@@ -232,6 +232,7 @@ export default function Phone3D({ screenshotSrc }: Phone3DProps) {
     let animId = 0;
 
     const onMouseMove = (e) => {
+      if (gyroActive) return; // gyro takes priority on mobile
       const mx = (e.clientX / window.innerWidth - 0.5) * 2;
       const my = (e.clientY / window.innerHeight - 0.5) * 2;
       targetRotY = mx * 0.35;
@@ -242,11 +243,12 @@ export default function Phone3D({ screenshotSrc }: Phone3DProps) {
     window.addEventListener("mousemove", onMouseMove);
 
     // --- Gyroscope tilt for mobile ---
+    let gyroActive = false;
     let gyroCleanup: (() => void) | null = null;
 
     const onDeviceOrientation = (e: DeviceOrientationEvent) => {
       if (e.gamma == null || e.beta == null) return;
-      // gamma: left/right tilt (-90..90), beta: front/back tilt (-180..180)
+      gyroActive = true;
       const mx = Math.max(-1, Math.min(1, e.gamma / 30));
       const my = Math.max(-1, Math.min(1, (e.beta - 45) / 30));
       targetRotY = mx * 0.35;
@@ -257,25 +259,26 @@ export default function Phone3D({ screenshotSrc }: Phone3DProps) {
 
     function enableGyro() {
       window.addEventListener("deviceorientation", onDeviceOrientation);
-      gyroCleanup = () => window.removeEventListener("deviceorientation", onDeviceOrientation);
     }
 
-    // Check if mobile/touch device
-    if ("ontouchstart" in window) {
-      const DOE = DeviceOrientationEvent as any;
-      if (typeof DOE.requestPermission === "function") {
-        // iOS 13+ requires permission on user gesture
-        const requestOnTouch = () => {
-          DOE.requestPermission().then((state: string) => {
-            if (state === "granted") enableGyro();
-          }).catch(() => {});
-          window.removeEventListener("touchstart", requestOnTouch, true);
-        };
-        window.addEventListener("touchstart", requestOnTouch, true);
-        gyroCleanup = () => window.removeEventListener("touchstart", requestOnTouch, true);
-      } else {
-        enableGyro();
-      }
+    // Try gyro directly (works on Android + older iOS)
+    const DOE = (window as any).DeviceOrientationEvent;
+    if (DOE && typeof DOE.requestPermission === "function") {
+      // iOS 13+ — request on tap of the phone mockup itself
+      const requestOnTap = () => {
+        DOE.requestPermission().then((state: string) => {
+          if (state === "granted") enableGyro();
+        }).catch(() => {});
+      };
+      container.addEventListener("touchend", requestOnTap, { once: true });
+      gyroCleanup = () => {
+        container.removeEventListener("touchend", requestOnTap);
+        window.removeEventListener("deviceorientation", onDeviceOrientation);
+      };
+    } else if (DOE) {
+      // Android / non-permission browsers — just enable
+      enableGyro();
+      gyroCleanup = () => window.removeEventListener("deviceorientation", onDeviceOrientation);
     }
 
     function animate() {
