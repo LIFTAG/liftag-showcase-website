@@ -190,10 +190,9 @@ export default function LiftioApp() {
             setTimeout(() => {
               runLaserReveal(progress, false, 600, () => {
                 // After all lasers done, animate hero elements in sequence
-                revealHeroElement('heroBadge', 100);
-                revealHeroElement('heroLogo', 300);
-                revealHeroElement('heroSub', 600);
-                revealHeroElement('heroActions', 800);
+                revealHeroElement('heroLogo', 100);
+                revealHeroElement('heroSub', 400);
+                revealHeroElement('heroActions', 600);
               });
             }, 120);
           });
@@ -386,13 +385,15 @@ export default function LiftioApp() {
 
       // Sweep: burn then vanish, left to right
       const total = allChars.length;
-      const burnDuration = 80; // ms each char stays green
-      const stagger = 12; // ms between chars
+      const burnDuration = 40; // ms each char stays lit
+      const stagger = 8; // ms between chars
 
       allChars.forEach((ch, i) => {
         setTimeout(() => {
+          ch.style.color = '#eaffe8';
           ch.classList.add('burn');
           setTimeout(() => {
+            ch.style.color = '';
             ch.classList.remove('burn');
             ch.classList.add('gone');
           }, burnDuration);
@@ -436,7 +437,7 @@ export default function LiftioApp() {
         const lp = sp - i;
         const isLast = (i === SCENE_COUNT - 1);
         const fadeIn = isLast ? 0.35 : (i === 1 ? 0.35 : 0.15);
-        const fadeOut = isLast ? 0.75 : 0.85;
+        const fadeOut = isLast ? 0.6 : 0.85;
 
         if (isLast) {
           // Text2: custom laser exit
@@ -665,6 +666,21 @@ export default function LiftioApp() {
 
     // Chart data points for dot positioning
     const chartPts: [number, number][] = [[0, 100], [40, 92], [80, 85], [120, 78], [160, 65], [200, 55], [240, 40], [280, 20]];
+
+    // Dot click → smooth scroll to corresponding panel
+    hiwDots.forEach((dot, i) => {
+      (dot as HTMLElement).style.cursor = 'pointer';
+      dot.addEventListener('click', () => {
+        if (!hiwSection) return;
+        const rect = hiwSection.getBoundingClientRect();
+        const sectionH = rect.height - window.innerHeight;
+        // Panel targets: 0 → p=0, 1 → p=0.5, 2 → p=1.0
+        const targetP = i / 2;
+        const sectionTop = window.scrollY + rect.top;
+        const targetScroll = sectionTop + targetP * sectionH;
+        window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+      });
+    });
 
     hiwLogBtn.addEventListener('click', () => {
       if (hiwWeightEl.textContent === '85' && hiwRepsEl.textContent === '9') {
@@ -1067,10 +1083,6 @@ export default function LiftioApp() {
 
       {/* Hero content */}
       <div className="hero-content" id="heroContent">
-        <div className="hero-badge hero-element" id="heroBadge">
-          <span className="hero-badge-dot"></span>
-          Now in early access
-        </div>
         <div className="hero-logo-icon hero-element" id="heroLogo"><img src="logo.png" alt="Liftio" /></div>
         <h1 className="hero-title">
           <span className="line laser-reveal laser-green" id="revealScan">Scan.</span>
