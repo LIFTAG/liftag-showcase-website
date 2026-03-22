@@ -674,16 +674,13 @@ export default function LiftioApp() {
     });
 
     function updateHIW() {
-      if (!hiwSection || !hiwTrack || !redScrollbar || !redThumb) return;
+      if (!hiwSection || !hiwTrack) return;
       const rect = hiwSection.getBoundingClientRect();
       const sectionTop = -rect.top;
       const sectionH = rect.height - window.innerHeight;
       if (sectionH <= 0) return;
       const p = Math.max(0, Math.min(1, sectionTop / sectionH));
       hiwTrack.style.transform = `translateX(-${p * 66.667}%)`;
-      // Red scrollbar thumb
-      const trackH = redScrollbar.offsetHeight - 60;
-      redThumb.style.top = (p * trackH) + 'px';
       // Dots
       const activeIdx = Math.min(2, Math.floor(p * 3));
       hiwDots.forEach((d, i) => d.classList.toggle('active', i === activeIdx));
@@ -1230,9 +1227,7 @@ export default function LiftioApp() {
               <div className="hiw-panel-line"></div>
             </div>
           </div>
-          <div className="red-scrollbar" id="redScrollbar">
-            <div className="red-scrollbar-thumb" id="redThumb"></div>
-          </div>
+          {/* red scrollbar removed */}
           <div className="hiw-dots" id="hiwDots">
             <div className="hiw-dot active"></div>
             <div className="hiw-dot"></div>

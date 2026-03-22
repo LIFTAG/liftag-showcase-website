@@ -139,15 +139,15 @@ export default function Roadmap() {
 
         {/* Timeline */}
         <div className="relative">
-          {/* Ghost line (background) */}
+          {/* Ghost line (background) — left on mobile, center on desktop */}
           <div
-            className="absolute left-1/2 -translate-x-1/2 top-0 w-[2px] h-full rounded-full"
+            className="absolute left-4 md:left-1/2 md:-translate-x-1/2 top-0 w-[2px] h-full rounded-full"
             style={{ background: 'rgba(255,255,255,0.06)' }}
           />
 
           {/* Active line (draws based on scroll) */}
           <div
-            className="absolute left-1/2 -translate-x-1/2 top-0 w-[2px] rounded-full"
+            className="absolute left-4 md:left-1/2 md:-translate-x-1/2 top-0 w-[2px] rounded-full"
             style={{
               height: `${lineProgress * 100}%`,
               background: 'linear-gradient(180deg, #c8ff00, rgba(200,255,0,0.3))',
@@ -157,7 +157,7 @@ export default function Roadmap() {
           />
 
           {/* Timeline items */}
-          <div className="relative flex flex-col gap-20 md:gap-28">
+          <div className="relative flex flex-col gap-16 md:gap-28">
             {MILESTONES.map((milestone, i) => {
               const isLeft = i % 2 === 0;
               const isPowered = lineProgress > (i + 0.5) / MILESTONES.length;
@@ -171,13 +171,13 @@ export default function Roadmap() {
                     opacity: visibleItems[i] ? 1 : 0,
                     transform: visibleItems[i]
                       ? 'translateX(0) translateY(0)'
-                      : `translateX(${isLeft ? '-40px' : '40px'}) translateY(20px)`,
+                      : `translateX(${isLeft ? '-20px' : '20px'}) translateY(20px)`,
                     transition: `all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${i * 0.1}s`,
                   }}
                 >
-                  {/* Node dot */}
+                  {/* Node dot — left on mobile, center on desktop */}
                   <div
-                    className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full z-10 ${
+                    className={`absolute left-4 -translate-x-1/2 md:left-1/2 w-4 h-4 rounded-full z-10 ${
                       isPowered ? 'node-powered' : ''
                     }`}
                     style={{
@@ -185,13 +185,15 @@ export default function Roadmap() {
                       border: `2px solid ${
                         isPowered ? '#c8ff00' : 'rgba(255,255,255,0.1)'
                       }`,
-                      top: '1.5rem',
+                      top: '0.25rem',
                     }}
                   />
 
                   {/* Content card */}
+                  {/* Mobile: single column offset right of the line */}
+                  {/* Desktop: alternating 2-column grid */}
                   <div
-                    className={`grid grid-cols-1 md:grid-cols-2 gap-8 items-start`}
+                    className="pl-10 md:pl-0 md:grid md:grid-cols-2 md:gap-8 md:items-start"
                   >
                     <div
                       className={`${
@@ -240,7 +242,7 @@ export default function Roadmap() {
 
                       {/* Title */}
                       <h3
-                        className="text-2xl font-bold mb-3"
+                        className="text-xl md:text-2xl font-bold mb-3"
                         style={{
                           color: isPowered ? '#ffffff' : 'rgba(255,255,255,0.6)',
                         }}
@@ -274,7 +276,7 @@ export default function Roadmap() {
                       </ul>
                     </div>
 
-                    {/* Empty column for alternating layout */}
+                    {/* Empty column for alternating layout — desktop only */}
                     {isLeft && <div className="hidden md:block" />}
                   </div>
                 </div>
