@@ -14,7 +14,7 @@ export default function LiftioApp() {
     const phone3dContainer = document.getElementById('phone3dContainer');
     if (phone3dContainer) {
       const root = createRoot(phone3dContainer);
-      root.render(<Phone3D screenshotSrc="/screenshot1.png" />);
+      root.render(<Phone3D screenshotSrc="/screenshot1.webp" />);
     }
 
     /* ═══════════════════════════════════════
@@ -40,7 +40,7 @@ export default function LiftioApp() {
       introCanvas.height = window.innerHeight;
     }
     sizeIntroCanvas();
-    window.addEventListener('resize', () => { if (!introComplete) sizeIntroCanvas(); });
+    window.addEventListener('resize', () => { if (!introComplete) sizeIntroCanvas(); }, { passive: true });
 
     // Draw one frame: neon green fill with silhouette punched out
     function drawIntroFrame(holeScale) {
@@ -250,43 +250,84 @@ export default function LiftioApp() {
     const runway = document.getElementById('scrollRunway');
 
     function sizeCanvas() {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5); // cap DPR for perf
       canvasW = Math.round(window.innerWidth * dpr);
       canvasH = Math.round(window.innerHeight * dpr);
       canvas.width = canvasW;
       canvas.height = canvasH;
       lastRenderedKey = '';
     }
-    window.addEventListener('resize', sizeCanvas);
+    window.addEventListener('resize', sizeCanvas, { passive: true });
     sizeCanvas();
 
-    // --- Load frames ---
+    // --- Load frames (sliding window — only ~60 frames in memory at a time) ---
     const BATCH_SIZE = 40;
+    const WINDOW_HALF = 30; // keep 30 frames before & after current position
 
-    function loadFrame(index) {
+    function loadFrame(index: number): Promise<void> {
+      if (index < 0 || index >= TOTAL_FRAMES) return Promise.resolve();
+      if (frames[index]) return Promise.resolve(); // already loaded — no-op
       return new Promise(resolve => {
         const img = new Image();
         img.onload = () => {
           frames[index] = img;
           loadedCount++;
           if (index === 0) drawSingle(0);
-          // Start intro after first batch loads (don't wait for all 774 frames)
+          // Start intro after first batch loads
           if (loadedCount >= BATCH_SIZE || loadedCount === TOTAL_FRAMES) runIntroReveal();
           resolve();
         };
-        img.onerror = () => { loadedCount++; if (loadedCount >= BATCH_SIZE || loadedCount === TOTAL_FRAMES) runIntroReveal(); resolve(); };
+        img.onerror = () => {
+          loadedCount++;
+          if (loadedCount >= BATCH_SIZE || loadedCount === TOTAL_FRAMES) runIntroReveal();
+          resolve();
+        };
         img.src = framePaths[index];
       });
     }
 
-    async function loadAll() {
-      for (let i = 0; i < TOTAL_FRAMES; i += BATCH_SIZE) {
-        const batch = [];
-        for (let j = i; j < Math.min(i + BATCH_SIZE, TOTAL_FRAMES); j++) batch.push(loadFrame(j));
-        await Promise.all(batch);
+    // Initial load: first BATCH_SIZE frames for the intro, then hand off to the window
+    async function loadInitialBatch() {
+      const batch: Promise<void>[] = [];
+      for (let j = 0; j < Math.min(BATCH_SIZE, TOTAL_FRAMES); j++) batch.push(loadFrame(j));
+      await Promise.all(batch);
+    }
+    loadInitialBatch();
+
+    // Sliding window: load frames near current position, evict distant ones
+    let windowLoading = false;
+    async function maintainWindow() {
+      if (windowLoading) return;
+      windowLoading = true;
+      try {
+        const center = Math.round(Math.max(0, Math.min(TOTAL_FRAMES - 1, targetFrame)));
+        const lo = Math.max(0, center - WINDOW_HALF);
+        const hi = Math.min(TOTAL_FRAMES - 1, center + WINDOW_HALF);
+
+        // Evict frames outside the window (but keep the first BATCH_SIZE for intro)
+        for (let i = 0; i < TOTAL_FRAMES; i++) {
+          if (frames[i] && (i < lo || i > hi) && i >= BATCH_SIZE) {
+            frames[i] = null;
+          }
+        }
+
+        // Load missing frames within the window, prioritising closest to center
+        const needed: number[] = [];
+        for (let i = lo; i <= hi; i++) {
+          if (!frames[i]) needed.push(i);
+        }
+        needed.sort((a, b) => Math.abs(a - center) - Math.abs(b - center));
+
+        // Load in small sub-batches to stay responsive
+        const SUB_BATCH = 8;
+        for (let i = 0; i < needed.length; i += SUB_BATCH) {
+          const sub = needed.slice(i, i + SUB_BATCH).map(idx => loadFrame(idx));
+          await Promise.all(sub);
+        }
+      } finally {
+        windowLoading = false;
       }
     }
-    loadAll();
 
     // Failsafe: if intro hasn't fired after 3s, force it
     setTimeout(() => {
@@ -462,17 +503,33 @@ export default function LiftioApp() {
       });
     }
 
-    // --- Tick ---
+    // --- Unified Tick (single rAF loop) ---
+    let lastScrollY = -1;
+    let isScrolling = false;
+    let scrollTimeout: any = null;
+
+    // Track scroll state for efficient updates
+    window.addEventListener('scroll', () => {
+      isScrolling = true;
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => { isScrolling = false; }, 150);
+    }, { passive: true });
+
     function tick() {
       const scrollY = window.scrollY;
+      const scrollChanged = scrollY !== lastScrollY;
+      lastScrollY = scrollY;
+
+      // Only do heavy work when scroll position changed or animations are lerping
       const totalMax = document.documentElement.scrollHeight - window.innerHeight;
       const totalProgress = totalMax > 0 ? scrollY / totalMax : 0;
 
-      // Global scroll progress bar
-      scrollProgress.style.width = (totalProgress * 100) + '%';
-
-      // Navbar background
-      navbar.classList.toggle('scrolled', scrollY > 60);
+      if (scrollChanged) {
+        // Global scroll progress bar
+        scrollProgress.style.width = (totalProgress * 100) + '%';
+        // Navbar background
+        navbar.classList.toggle('scrolled', scrollY > 60);
+      }
 
       // Video area
       const inRunway = isInRunway();
@@ -487,6 +544,7 @@ export default function LiftioApp() {
         currentFrame += Math.abs(diff) > 0.05 ? diff * LERP_SPEED : diff;
 
         drawBlended(currentFrame);
+        maintainWindow();
         updateTexts(runwayP);
 
         // Phone mockup: lerp its own progress for momentum
@@ -543,6 +601,12 @@ export default function LiftioApp() {
         }
         heroContent.classList.add('hidden');
       }
+
+      // --- Merged scroll updates (was a separate rAF loop) ---
+      updateHIW();
+      updateRoadmap();
+      updateDashMomentum();
+      updateFeaturesBg();
 
       requestAnimationFrame(tick);
     }
@@ -720,7 +784,7 @@ export default function LiftioApp() {
       hiwCurveCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
     sizeHIWCurveCanvas();
-    window.addEventListener('resize', sizeHIWCurveCanvas);
+    window.addEventListener('resize', sizeHIWCurveCanvas, { passive: true });
 
     // Interpolate Y at any X along the curve using catmull-rom-ish lerp
     function curveYAtX(xNorm: number): number {
@@ -845,19 +909,18 @@ export default function LiftioApp() {
         else hiwCurveCtx.lineTo(cx, cy);
       }
 
-      // Main line stroke
-      hiwCurveCtx.strokeStyle = 'rgba(200, 255, 0, 0.7)';
-      hiwCurveCtx.lineWidth = 2.5;
+      // Green glow (shadowBlur for smooth gaussian spread)
+      hiwCurveCtx.save();
+      hiwCurveCtx.shadowColor = 'rgba(200, 255, 0, 0.6)';
+      hiwCurveCtx.shadowBlur = 20;
+      hiwCurveCtx.strokeStyle = 'rgba(200, 255, 0, 0.35)';
+      hiwCurveCtx.lineWidth = 1.5;
       hiwCurveCtx.stroke();
+      hiwCurveCtx.restore();
 
-      // Wide glow layer
-      hiwCurveCtx.strokeStyle = 'rgba(200, 255, 0, 0.25)';
-      hiwCurveCtx.lineWidth = 12;
-      hiwCurveCtx.stroke();
-
-      // Extra soft glow
-      hiwCurveCtx.strokeStyle = 'rgba(200, 255, 0, 0.08)';
-      hiwCurveCtx.lineWidth = 30;
+      // Bright core (white-green, thin)
+      hiwCurveCtx.strokeStyle = 'rgba(230, 255, 200, 0.85)';
+      hiwCurveCtx.lineWidth = 1;
       hiwCurveCtx.stroke();
 
       // === Leading glow dot ===
@@ -1192,6 +1255,205 @@ export default function LiftioApp() {
     }
 
     /* ═══════════════════════════════════════
+       FEATURES — Grid + Neon Laser Connectors
+    ═══════════════════════════════════════ */
+    const featSection = document.getElementById('features');
+    const featTracesCanvas = document.getElementById('featTracesCanvas') as HTMLCanvasElement;
+    const featTracesCtx = featTracesCanvas?.getContext('2d');
+    const featRows = document.querySelectorAll('.feature-row');
+
+    // Per-row animation state
+    const featNodeProgress: number[] = new Array(featRows.length).fill(0);
+    const featConnProgress: number[] = new Array(featRows.length).fill(0);
+
+    const GRID_CELL = 60;
+    let featCanvasSized = false;
+
+    function sizeFeatCanvas() {
+      if (!featTracesCanvas || !featTracesCtx || !featSection) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = featSection.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      featTracesCanvas.width = rect.width * dpr;
+      featTracesCanvas.height = rect.height * dpr;
+      featTracesCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      featCanvasSized = true;
+    }
+    sizeFeatCanvas();
+    window.addEventListener('resize', () => { featCanvasSized = false; sizeFeatCanvas(); }, { passive: true });
+
+    // Helper: trace a path up to `drawLen` pixels along segments, calling lineTo.
+    // Returns the tip position.
+    function tracePath(
+      ctx: CanvasRenderingContext2D,
+      segs: { x: number; y: number }[],
+      drawLen: number
+    ): { x: number; y: number } {
+      let travelled = 0;
+      let tipX = segs[0].x, tipY = segs[0].y;
+      ctx.moveTo(tipX, tipY);
+      for (let s = 1; s < segs.length; s++) {
+        const dx = segs[s].x - segs[s - 1].x;
+        const dy = segs[s].y - segs[s - 1].y;
+        const segLen = Math.sqrt(dx * dx + dy * dy);
+        const remaining = drawLen - travelled;
+        if (remaining <= 0) break;
+        if (remaining >= segLen) {
+          ctx.lineTo(segs[s].x, segs[s].y);
+          tipX = segs[s].x; tipY = segs[s].y;
+          travelled += segLen;
+        } else {
+          const frac = remaining / segLen;
+          tipX = segs[s - 1].x + dx * frac;
+          tipY = segs[s - 1].y + dy * frac;
+          ctx.lineTo(tipX, tipY);
+          break;
+        }
+      }
+      return { x: tipX, y: tipY };
+    }
+
+    function pathLength(segs: { x: number; y: number }[]): number {
+      let len = 0;
+      for (let s = 1; s < segs.length; s++) {
+        const dx = segs[s].x - segs[s - 1].x;
+        const dy = segs[s].y - segs[s - 1].y;
+        len += Math.sqrt(dx * dx + dy * dy);
+      }
+      return len;
+    }
+
+    function updateFeaturesBg() {
+      if (!featSection || !featTracesCtx || !featTracesCanvas) return;
+
+      const sectionRect = featSection.getBoundingClientRect();
+      const viewH = window.innerHeight;
+
+      // Skip if section not near viewport
+      if (sectionRect.bottom < -200 || sectionRect.top > viewH + 200) return;
+
+      // Re-size canvas if needed (handles content-visibility delayed layout)
+      if (!featCanvasSized) sizeFeatCanvas();
+      if (!featCanvasSized) return;
+
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = featTracesCanvas.width / dpr;
+      const h = featTracesCanvas.height / dpr;
+      featTracesCtx.clearRect(0, 0, w, h);
+
+      // === Compute node positions ===
+      // getBoundingClientRect relative to section's top — both are viewport-relative so subtraction cancels scroll
+      const centerX = w / 2;
+      const nodes: { x: number; y: number }[] = [];
+
+      featRows.forEach((row, i) => {
+        const rowRect = row.getBoundingClientRect();
+        // Y relative to section top (both are viewport-relative, so this is scroll-independent)
+        const nodeY = (rowRect.top - sectionRect.top) + rowRect.height / 2;
+        nodes.push({ x: centerX, y: nodeY });
+
+        // Trigger: has the row's midpoint entered the viewport?
+        const rowMid = rowRect.top + rowRect.height / 2;
+        if (rowMid < viewH * 0.85) {
+          featNodeProgress[i] += (1 - featNodeProgress[i]) * 0.06;
+        }
+      });
+
+      // === Draw laser connections between nodes ===
+      for (let i = 0; i < nodes.length - 1; i++) {
+        // Connection starts once the source node is mostly visible
+        if (featNodeProgress[i] > 0.5) {
+          featConnProgress[i] += (1 - featConnProgress[i]) * 0.03;
+        }
+        const cp = featConnProgress[i];
+        if (cp < 0.003) continue;
+
+        const from = nodes[i];
+        const to = nodes[i + 1];
+        const isGreen = i % 2 === 0;
+
+        // Route: go out to a side rail, drop down, come back to center
+        const sideX = isGreen ? w * 0.08 : w * 0.92;
+
+        const segments = [
+          from,
+          { x: sideX, y: from.y },
+          { x: sideX, y: to.y },
+          to,
+        ];
+
+        const totalLen = pathLength(segments);
+        const drawLen = cp * totalLen;
+
+        // --- Glow layer ---
+        featTracesCtx.save();
+        featTracesCtx.shadowColor = isGreen ? 'rgba(200, 255, 0, 0.6)' : 'rgba(255, 45, 85, 0.6)';
+        featTracesCtx.shadowBlur = 18;
+        featTracesCtx.strokeStyle = isGreen ? 'rgba(200, 255, 0, 0.12)' : 'rgba(255, 45, 85, 0.12)';
+        featTracesCtx.lineWidth = 2;
+        featTracesCtx.lineCap = 'round';
+        featTracesCtx.lineJoin = 'round';
+        featTracesCtx.beginPath();
+        const tip = tracePath(featTracesCtx, segments, drawLen);
+        featTracesCtx.stroke();
+        featTracesCtx.restore();
+
+        // --- Core line ---
+        featTracesCtx.save();
+        featTracesCtx.strokeStyle = isGreen ? 'rgba(200, 255, 0, 0.7)' : 'rgba(255, 45, 85, 0.7)';
+        featTracesCtx.lineWidth = 1;
+        featTracesCtx.lineCap = 'round';
+        featTracesCtx.lineJoin = 'round';
+        featTracesCtx.beginPath();
+        tracePath(featTracesCtx, segments, drawLen);
+        featTracesCtx.stroke();
+        featTracesCtx.restore();
+
+        // --- Laser tip glow ---
+        if (cp < 0.97) {
+          const c = isGreen ? '200,255,0' : '255,45,85';
+          const tipGrad = featTracesCtx.createRadialGradient(tip.x, tip.y, 0, tip.x, tip.y, 28);
+          tipGrad.addColorStop(0, `rgba(${c}, 0.9)`);
+          tipGrad.addColorStop(0.3, `rgba(${c}, 0.2)`);
+          tipGrad.addColorStop(1, `rgba(${c}, 0)`);
+          featTracesCtx.fillStyle = tipGrad;
+          featTracesCtx.beginPath();
+          featTracesCtx.arc(tip.x, tip.y, 28, 0, Math.PI * 2);
+          featTracesCtx.fill();
+        }
+      }
+
+      // === Node dots at each feature row ===
+      nodes.forEach((node, i) => {
+        const p = featNodeProgress[i];
+        if (p < 0.01) return;
+
+        // Glow
+        const g = featTracesCtx.createRadialGradient(node.x, node.y, 0, node.x, node.y, 30 * p);
+        g.addColorStop(0, `rgba(200, 255, 0, ${0.35 * p})`);
+        g.addColorStop(0.5, `rgba(200, 255, 0, ${0.06 * p})`);
+        g.addColorStop(1, 'rgba(200, 255, 0, 0)');
+        featTracesCtx.fillStyle = g;
+        featTracesCtx.beginPath();
+        featTracesCtx.arc(node.x, node.y, 30 * p, 0, Math.PI * 2);
+        featTracesCtx.fill();
+
+        // Dot
+        featTracesCtx.fillStyle = `rgba(200, 255, 0, ${0.9 * p})`;
+        featTracesCtx.beginPath();
+        featTracesCtx.arc(node.x, node.y, 5 * p, 0, Math.PI * 2);
+        featTracesCtx.fill();
+
+        // Ring
+        featTracesCtx.strokeStyle = `rgba(200, 255, 0, ${0.25 * p})`;
+        featTracesCtx.lineWidth = 1;
+        featTracesCtx.beginPath();
+        featTracesCtx.arc(node.x, node.y, 14 * p, 0, Math.PI * 2);
+        featTracesCtx.stroke();
+      });
+    }
+
+    /* ═══════════════════════════════════════
        GYM OWNERS — Dashboard Sync
     ═══════════════════════════════════════ */
     const dashZones = [
@@ -1309,7 +1571,7 @@ export default function LiftioApp() {
       rmCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
     sizeRmCanvas();
-    window.addEventListener('resize', sizeRmCanvas);
+    window.addEventListener('resize', sizeRmCanvas, { passive: true });
 
     // Track per-node root animation progress
     const rmRootProgress: number[] = new Array(rmItems.length).fill(0);
@@ -1477,16 +1739,7 @@ export default function LiftioApp() {
       dashCol.style.transform = `translateY(${offset}px)`;
     }
 
-    /* ═══════════════════════════════════════
-       UNIFIED SCROLL UPDATES
-    ═══════════════════════════════════════ */
-    function scrollUpdates() {
-      updateHIW();
-      updateRoadmap();
-      updateDashMomentum();
-      requestAnimationFrame(scrollUpdates);
-    }
-    requestAnimationFrame(scrollUpdates);
+    /* scrollUpdates merged into tick() above */
 
 
   }, []);
@@ -1506,7 +1759,7 @@ export default function LiftioApp() {
       {/* Navbar */}
       <nav className="navbar" id="navbar">
         <a href="#" className="nav-brand" id="navBrand">
-          <div className="nav-logo"><img src="logo.png" alt="Liftio" /></div>
+          <div className="nav-logo"><img src="logo.webp" alt="Liftio" /></div>
           <span className="nav-wordmark">Liftio</span>
         </a>
         <ul className="nav-links">
@@ -1531,7 +1784,7 @@ export default function LiftioApp() {
 
       {/* Hero content */}
       <div className="hero-content" id="heroContent">
-        <div className="hero-logo-icon hero-element" id="heroLogo"><img src="logo.png" alt="Liftio" /></div>
+        <div className="hero-logo-icon hero-element" id="heroLogo"><img src="logo.webp" alt="Liftio" /></div>
         <h1 className="hero-title">
           <span className="line laser-reveal laser-green" id="revealScan">Scan.</span>
           <span className="line accent laser-reveal laser-red from-right" id="revealTrack">Track.</span>
@@ -1706,6 +1959,9 @@ export default function LiftioApp() {
 
       {/* ═══ FEATURES — Alternating Rows ═══ */}
       <section className="section features-section" id="features">
+        {/* Background grid + laser canvas */}
+        <div className="feat-grid-bg" aria-hidden="true"></div>
+        <canvas className="feat-traces-canvas" id="featTracesCanvas"></canvas>
         <div className="section-inner">
           <div className="section-label reveal">Features</div>
           <h2 className="section-title reveal reveal-delay-1">Built for lifters<br />who mean business.</h2>
@@ -2072,7 +2328,7 @@ export default function LiftioApp() {
           </div>
         </div>
         <div className="cta-content">
-          <div className="cta-logo reveal"><img src="logo.png" alt="Liftio" /></div>
+          <div className="cta-logo reveal"><img src="logo.webp" alt="Liftio" /></div>
           <h2 className="cta-title reveal reveal-delay-1">Ready to track<br />like you train?</h2>
           <p className="cta-desc reveal reveal-delay-2">Join the early access waitlist. Be first to bring Liftio to your gym.
           </p>
@@ -2093,7 +2349,7 @@ export default function LiftioApp() {
       <footer className="footer">
         <div className="footer-inner">
           <div className="footer-brand">
-            <div className="footer-logo"><img src="logo.png" alt="Liftio" /></div>
+            <div className="footer-logo"><img src="logo.webp" alt="Liftio" /></div>
             <span className="footer-name">Liftio</span>
           </div>
           <span className="footer-copy">© 2026 Liftio. All rights reserved.</span>

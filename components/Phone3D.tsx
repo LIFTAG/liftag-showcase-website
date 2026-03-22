@@ -281,7 +281,19 @@ export default function Phone3D({ screenshotSrc }: Phone3DProps) {
       gyroCleanup = () => window.removeEventListener("deviceorientation", onDeviceOrientation);
     }
 
+    // Visibility-aware render loop — pause when off-screen
+    let isVisible = false;
+    const visObserver = new IntersectionObserver(
+      (entries) => {
+        isVisible = entries[0]?.isIntersecting ?? false;
+        if (isVisible && !animId) animate();
+      },
+      { threshold: 0 }
+    );
+    visObserver.observe(container);
+
     function animate() {
+      if (!isVisible) { animId = 0; return; }
       animId = requestAnimationFrame(animate);
       currentRotX += (targetRotX - currentRotX) * 0.06;
       currentRotY += (targetRotY - currentRotY) * 0.06;
@@ -298,12 +310,14 @@ export default function Phone3D({ screenshotSrc }: Phone3DProps) {
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     };
-    window.addEventListener("resize", onResize);
+    window.addEventListener("resize", onResize, { passive: true });
 
     cleanupRef.current = () => {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("resize", onResize);
       gyroCleanup?.();
+      visObserver.disconnect();
+      isVisible = false;
       cancelAnimationFrame(animId);
       renderer.dispose();
       if (container.contains(renderer.domElement)) {
