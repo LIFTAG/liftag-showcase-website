@@ -1655,6 +1655,16 @@
       background: var(--accent);
     }
 
+    /* Mobile-only inline dashboard zone previews */
+    .dash-zone-mobile {
+      display: none;
+      margin-top: 16px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
     .owner-feature-block {
       min-height: 50vh;
       display: flex;
@@ -2301,20 +2311,15 @@
       }
 
       .owners-dash-col {
-        position: relative;
-        top: auto;
-        transform: none !important;
-        width: 100%;
-        margin: 20px 0;
+        display: none;
+      }
+
+      .dash-zone-mobile {
+        display: block;
       }
 
       .owners-features-col {
         padding: 20px 0 40px;
-      }
-
-      /* When dashboard is moved inside features col on mobile */
-      .owners-features-col .owners-dash-col {
-        margin: 12px 0 32px;
       }
 
       .owner-feature-block {

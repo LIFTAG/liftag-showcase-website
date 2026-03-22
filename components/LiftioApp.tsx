@@ -1201,11 +1201,6 @@ export default function LiftioApp() {
       document.getElementById('dz3')
     ];
     const ownerBlocks = document.querySelectorAll('[data-dash]');
-    const dashColEl = document.querySelector('.owners-dash-col') as HTMLElement;
-    const ownersSplitEl = document.querySelector('.owners-split') as HTMLElement;
-    const featuresColEl = document.querySelector('.owners-features-col') as HTMLElement;
-    let dashMobileLastIdx = -1;
-
     const dashObserver = new IntersectionObserver((entries) => {
       entries.forEach(e => {
         if (e.isIntersecting) {
@@ -1213,27 +1208,10 @@ export default function LiftioApp() {
           const idx = parseInt((e.target as HTMLElement).dataset.dash!);
           dashZones.forEach((z, i) => z?.classList.toggle('active', i === idx));
           ownerBlocks.forEach(b => b.classList.toggle('active-block', parseInt((b as HTMLElement).dataset.dash!) === idx));
-
-          // Mobile: move dashboard after the active feature block
-          if (window.innerWidth <= 900 && dashColEl && idx !== dashMobileLastIdx) {
-            dashMobileLastIdx = idx;
-            const activeBlock = e.target as HTMLElement;
-            activeBlock.after(dashColEl);
-          }
         }
       });
     }, { threshold: 0.15, rootMargin: '-30% 0px -30% 0px' });
     ownerBlocks.forEach(el => dashObserver.observe(el));
-
-    // Restore dashboard to original position on resize to desktop
-    window.addEventListener('resize', () => {
-      if (window.innerWidth > 900 && dashColEl && ownersSplitEl) {
-        if (dashColEl.parentElement !== ownersSplitEl) {
-          ownersSplitEl.insertBefore(dashColEl, featuresColEl);
-          dashMobileLastIdx = -1;
-        }
-      }
-    });
 
     /* ═══════════════════════════════════════
        GYM OWNERS — Living Dashboard Simulation
@@ -1900,24 +1878,66 @@ export default function LiftioApp() {
                 all from one dashboard.</h3>
               <p className="feature-desc">Every machine gets a digital profile with instructions, target muscles, and linked
                 exercises.</p>
+              <div className="dash-zone-mobile">
+                <div className="dash-zone-label">EQUIPMENT</div>
+                <div className="dash-mini-grid">
+                  <div className="dash-mini-item"></div><div className="dash-mini-item"></div>
+                  <div className="dash-mini-item"></div><div className="dash-mini-item"></div>
+                  <div className="dash-mini-item"></div><div className="dash-mini-item"></div>
+                  <div className="dash-mini-item"></div><div className="dash-mini-item"></div>
+                </div>
+              </div>
             </div>
             <div className="owner-feature-block reveal" data-dash="1">
               <div className="feature-number">QR CODE GENERATION</div>
               <h3 className="feature-title">Generate unique QR PDFs to print and stick, or link pre-printed stickers.</h3>
               <p className="feature-desc">Scan or input a physical sticker's ID and link it to the digital machine profile.
                 Flexible for any gym setup.</p>
+              <div className="dash-zone-mobile">
+                <div className="dash-zone-label">QR CODES</div>
+                <div style={{ 'display': 'flex', 'gap': '8px', 'alignItems': 'center' }}>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5">
+                    <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+                  </svg>
+                  <div style={{ 'padding': '4px 12px', 'background': 'var(--accent-dim)', 'borderRadius': '6px', 'fontSize': '0.6rem', 'fontWeight': '700', 'color': 'var(--accent)', 'letterSpacing': '0.1em' }}>GENERATE</div>
+                </div>
+              </div>
             </div>
             <div className="owner-feature-block reveal" data-dash="2">
               <div className="feature-number">USAGE ANALYTICS</div>
               <h3 className="feature-title">See which machines get the most scans, peak hours, and equipment trends.</h3>
               <p className="feature-desc">Data-driven decisions for your facility — know what equipment your members actually
                 use.</p>
+              <div className="dash-zone-mobile">
+                <div className="dash-zone-label">ANALYTICS</div>
+                <div className="dash-mini-bars">
+                  <div className="dash-mini-bar" style={{ 'height': '30%', 'opacity': '0.4' }}></div>
+                  <div className="dash-mini-bar" style={{ 'height': '55%', 'opacity': '0.6' }}></div>
+                  <div className="dash-mini-bar" style={{ 'height': '45%', 'opacity': '0.5' }}></div>
+                  <div className="dash-mini-bar" style={{ 'height': '80%', 'opacity': '0.8' }}></div>
+                  <div className="dash-mini-bar" style={{ 'height': '65%', 'opacity': '0.7' }}></div>
+                  <div className="dash-mini-bar" style={{ 'height': '100%' }}></div>
+                </div>
+              </div>
             </div>
             <div className="owner-feature-block reveal" data-dash="3">
               <div className="feature-number">PREMIUM EXPERIENCE</div>
               <h3 className="feature-title">Stand out from every other gym with a smart, branded workout experience.</h3>
               <p className="feature-desc">Your members get intelligent tracking that keeps them coming back. Retention through
                 innovation.</p>
+              <div className="dash-zone-mobile">
+                <div className="dash-zone-label">MEMBER EXPERIENCE</div>
+                <div style={{ 'display': 'flex', 'gap': '4px' }}>
+                  {[1,2,3,4].map(s => (
+                    <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill="var(--accent)" stroke="none">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                  ))}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,255,255,0.15)" stroke="none">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
         </div>
