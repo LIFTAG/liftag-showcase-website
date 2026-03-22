@@ -2304,11 +2304,25 @@
         position: relative;
         top: auto;
         transform: none !important;
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+      }
+
+      .owners-features-col {
+        padding: 20px 0 40px;
       }
 
       .owner-feature-block {
         min-height: auto;
         padding: 24px 0;
+      }
+
+      .owner-feature-block .feature-title,
+      .owner-feature-block .feature-desc,
+      .owner-feature-block .feature-number {
+        transform: none !important;
+        opacity: 1 !important;
       }
 
       /* Roadmap: left-aligned timeline on mobile */
