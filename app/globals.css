@@ -769,6 +769,23 @@
       pointer-events: none;
     }
 
+    /* Ambient gradient so the blur has color to work with */
+    .hiw-sticky::before,
+    .hiw-sticky::after {
+      z-index: 1;
+    }
+
+    .hiw-bg-glow {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 60%, rgba(200, 255, 0, 0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 30% 40%, rgba(200, 255, 0, 0.04) 0%, transparent 60%),
+        radial-gradient(ellipse 30% 30% at 70% 50%, rgba(255, 45, 85, 0.03) 0%, transparent 60%);
+    }
+
 
     .hiw-sticky::before,
     .hiw-sticky::after {
@@ -802,7 +819,6 @@
       display: flex;
       width: 300%;
       height: 100%;
-      will-change: transform;
       position: relative;
     }
 
@@ -1739,7 +1755,7 @@
       background: var(--bg);
       transform: translateX(-50%);
       transition: all 0.6s ease;
-      z-index: 2;
+      z-index: 3;
       overflow: visible;
     }
 
@@ -1773,6 +1789,55 @@
       font-weight: 300;
       color: var(--text-mid);
       line-height: 1.6;
+    }
+
+    /* ── Root System ── */
+    .rm-roots-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .rm-roots {
+      position: relative;
+      padding-top: 4px;
+      z-index: 2;
+    }
+
+    .rm-item > div:last-child {
+      position: relative;
+      z-index: 2;
+    }
+
+    .rm-trunk {
+      display: none;
+    }
+
+    .rm-branch {
+      padding: 6px 0;
+    }
+
+    .rm-branch span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 500;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.4s ease, color 0.4s ease;
+      transition-delay: calc(var(--i, 0) * 0.18s + 0.6s);
+    }
+
+    .rm-item.powered .rm-branch span {
+      opacity: 1;
+    }
+
+    .rm-item.powered .rm-branch:first-of-type span {
+      color: var(--accent);
     }
 
     .rm-live-badge {
@@ -1939,16 +2004,63 @@
       justify-content: center;
     }
 
-    .cta-canvas {
+    /* ── Ticker Tape Background ── */
+    .cta-ticker-bg {
       position: absolute;
       inset: 0;
       z-index: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 28px;
+      overflow: hidden;
+      mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 20%, black 70%);
+      -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 20%, black 70%);
     }
 
-    .cta-canvas canvas {
-      width: 100%;
-      height: 100%;
-      display: block;
+    .cta-ticker-row {
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .cta-ticker-track {
+      display: inline-flex;
+      gap: 40px;
+      animation: tickerScroll var(--ticker-speed, 100s) linear infinite;
+      animation-direction: normal;
+    }
+
+    /* Reverse direction for rows with dir=1 */
+    .cta-ticker-row:nth-child(even) .cta-ticker-track {
+      animation-name: tickerScrollReverse;
+    }
+
+    @keyframes tickerScroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    @keyframes tickerScrollReverse {
+      0% { transform: translateX(-50%); }
+      100% { transform: translateX(0); }
+    }
+
+    .cta-ticker-track span {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      flex-shrink: 0;
+    }
+
+    .ticker-g {
+      color: rgba(200, 255, 0, 0.1);
+    }
+
+    .ticker-r {
+      color: rgba(255, 45, 85, 0.1);
     }
 
     .cta-content {
@@ -2219,6 +2331,7 @@
         transform: translateX(-50%);
       }
 
+
       .rm-item {
         margin-bottom: 48px;
       }
@@ -2261,6 +2374,15 @@
       /* CTA */
       .cta-content {
         padding: 60px 20px;
+      }
+
+      .cta-ticker-bg {
+        gap: 20px;
+      }
+
+      .cta-ticker-track span {
+        font-size: 0.65rem;
+        padding: 4px 12px;
       }
 
       /* Footer */
