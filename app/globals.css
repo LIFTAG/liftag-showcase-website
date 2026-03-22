@@ -2295,7 +2295,7 @@
 
       .owners-split {
         flex-direction: column;
-        gap: 40px;
+        gap: 0;
         min-height: auto;
         padding: 0 20px;
       }
@@ -2305,12 +2305,12 @@
         top: auto;
         transform: none !important;
         width: 100%;
-        max-width: 400px;
-        margin: 0 auto;
+        order: 2;
       }
 
       .owners-features-col {
-        padding: 20px 0 40px;
+        padding: 20px 0 0;
+        order: 1;
       }
 
       .owner-feature-block {
