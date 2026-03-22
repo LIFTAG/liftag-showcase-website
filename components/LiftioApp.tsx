@@ -760,7 +760,7 @@ export default function LiftioApp() {
       const toCanvasY = (yn: number) => padTop + yn * graphH;
 
       // === Draw subtle baseline/grid with axis labels ===
-      hiwCurveCtx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+      hiwCurveCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
       hiwCurveCtx.lineWidth = 1;
       for (let gy = 0; gy <= 4; gy++) {
         const yy = padTop + (gy / 4) * graphH;
@@ -813,7 +813,7 @@ export default function LiftioApp() {
 
       // Gradient fill under the curve
       const grad = hiwCurveCtx.createLinearGradient(0, padTop, 0, padTop + graphH);
-      grad.addColorStop(0, 'rgba(200, 255, 0, 0.08)');
+      grad.addColorStop(0, 'rgba(200, 255, 0, 0.18)');
       grad.addColorStop(1, 'rgba(200, 255, 0, 0)');
 
       hiwCurveCtx.beginPath();
@@ -845,14 +845,19 @@ export default function LiftioApp() {
         else hiwCurveCtx.lineTo(cx, cy);
       }
 
-      // Line color shifts from green to brighter as it climbs
-      hiwCurveCtx.strokeStyle = 'rgba(200, 255, 0, 0.5)';
-      hiwCurveCtx.lineWidth = 2;
+      // Main line stroke
+      hiwCurveCtx.strokeStyle = 'rgba(200, 255, 0, 0.7)';
+      hiwCurveCtx.lineWidth = 2.5;
       hiwCurveCtx.stroke();
 
-      // Glow layer
-      hiwCurveCtx.strokeStyle = 'rgba(200, 255, 0, 0.15)';
-      hiwCurveCtx.lineWidth = 8;
+      // Wide glow layer
+      hiwCurveCtx.strokeStyle = 'rgba(200, 255, 0, 0.25)';
+      hiwCurveCtx.lineWidth = 12;
+      hiwCurveCtx.stroke();
+
+      // Extra soft glow
+      hiwCurveCtx.strokeStyle = 'rgba(200, 255, 0, 0.08)';
+      hiwCurveCtx.lineWidth = 30;
       hiwCurveCtx.stroke();
 
       // === Leading glow dot ===
@@ -861,13 +866,14 @@ export default function LiftioApp() {
       const tipX = toCanvasX(tipXn);
       const tipY = toCanvasY(tipYn);
 
-      const glowGrad = hiwCurveCtx.createRadialGradient(tipX, tipY, 0, tipX, tipY, 40);
-      glowGrad.addColorStop(0, 'rgba(200, 255, 0, 0.6)');
-      glowGrad.addColorStop(0.4, 'rgba(200, 255, 0, 0.15)');
+      const glowGrad = hiwCurveCtx.createRadialGradient(tipX, tipY, 0, tipX, tipY, 70);
+      glowGrad.addColorStop(0, 'rgba(200, 255, 0, 0.8)');
+      glowGrad.addColorStop(0.3, 'rgba(200, 255, 0, 0.25)');
+      glowGrad.addColorStop(0.6, 'rgba(200, 255, 0, 0.06)');
       glowGrad.addColorStop(1, 'rgba(200, 255, 0, 0)');
       hiwCurveCtx.fillStyle = glowGrad;
       hiwCurveCtx.beginPath();
-      hiwCurveCtx.arc(tipX, tipY, 40, 0, Math.PI * 2);
+      hiwCurveCtx.arc(tipX, tipY, 70, 0, Math.PI * 2);
       hiwCurveCtx.fill();
 
       // Solid tip dot
@@ -907,10 +913,10 @@ export default function LiftioApp() {
         hiwCurveCtx.arc(mx, my, 3, 0, Math.PI * 2);
         hiwCurveCtx.fill();
 
-        // Subtle glow
-        hiwCurveCtx.fillStyle = 'rgba(200, 255, 0, 0.15)';
+        // Marker glow
+        hiwCurveCtx.fillStyle = 'rgba(200, 255, 0, 0.25)';
         hiwCurveCtx.beginPath();
-        hiwCurveCtx.arc(mx, my, 8, 0, Math.PI * 2);
+        hiwCurveCtx.arc(mx, my, 14, 0, Math.PI * 2);
         hiwCurveCtx.fill();
 
         // Data label — fades in after flash, drifts slightly upward
@@ -1286,11 +1292,154 @@ export default function LiftioApp() {
     if (ownersSection) dashSimObserver.observe(ownersSection);
 
     /* ═══════════════════════════════════════
-       ROADMAP — Scroll-Driven Timeline
+       ROADMAP — Scroll-Driven Timeline + Root System
     ═══════════════════════════════════════ */
     const roadmapTimeline = document.getElementById('roadmapTimeline');
     const roadmapLine = document.getElementById('roadmapLineActive');
     const rmItems = document.querySelectorAll('[data-rm]');
+    const rmCanvas = document.getElementById('rmRootsCanvas') as HTMLCanvasElement;
+    const rmCtx = rmCanvas?.getContext('2d');
+
+    function sizeRmCanvas() {
+      if (!rmCanvas || !rmCtx || !roadmapTimeline) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = roadmapTimeline.getBoundingClientRect();
+      rmCanvas.width = rect.width * dpr;
+      rmCanvas.height = rect.height * dpr;
+      rmCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    sizeRmCanvas();
+    window.addEventListener('resize', sizeRmCanvas);
+
+    // Track per-node root animation progress
+    const rmRootProgress: number[] = new Array(rmItems.length).fill(0);
+    const rmPoweredAt: number[] = new Array(rmItems.length).fill(0);
+
+    function drawRoots() {
+      if (!rmCtx || !rmCanvas || !roadmapTimeline) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = rmCanvas.width / dpr;
+      const h = rmCanvas.height / dpr;
+      rmCtx.clearRect(0, 0, w, h);
+
+      const timelineRect = roadmapTimeline.getBoundingClientRect();
+      const now = performance.now();
+
+      rmItems.forEach((item, i) => {
+        if (!item.classList.contains('powered')) {
+          rmRootProgress[i] = 0;
+          rmPoweredAt[i] = 0;
+          return;
+        }
+        if (rmPoweredAt[i] === 0) rmPoweredAt[i] = now;
+        const elapsed = now - rmPoweredAt[i];
+        rmRootProgress[i] = Math.min(1, elapsed / 1200); // 1.2s to fully grow
+
+        const node = item.querySelector('.rm-node') as HTMLElement;
+        const branches = item.querySelectorAll('.rm-branch span');
+        if (!node || branches.length === 0) return;
+
+        const nodeRect = node.getBoundingClientRect();
+        const nodeX = nodeRect.left + nodeRect.width / 2 - timelineRect.left;
+        const nodeY = nodeRect.top + nodeRect.height / 2 - timelineRect.top;
+
+        branches.forEach((label, bi) => {
+          const labelRect = (label as HTMLElement).getBoundingClientRect();
+          // Target: edge of label closest to node
+          const isLeft = labelRect.left < nodeRect.left;
+          const endX = isLeft
+            ? labelRect.right - timelineRect.left + 4
+            : labelRect.left - timelineRect.left - 4;
+          const endY = labelRect.top + labelRect.height / 2 - timelineRect.top;
+
+          // Staggered progress per branch
+          const branchDelay = bi * 0.15;
+          const branchP = Math.max(0, Math.min(1,
+            (rmRootProgress[i] - branchDelay) / (1 - branchDelay)
+          ));
+          if (branchP <= 0) return;
+
+          // Ease-out for organic growth
+          const eased = 1 - Math.pow(1 - branchP, 3);
+
+          // Calculate organic cubic bezier control points
+          const dx = endX - nodeX;
+          const dy = endY - nodeY;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          // First control point: goes mostly horizontal from node
+          const cp1x = nodeX + dx * 0.2;
+          const cp1y = nodeY + dy * 0.05 + (bi % 2 === 0 ? -8 : 8);
+          // Second control point: curves toward the end
+          const cp2x = nodeX + dx * 0.7;
+          const cp2y = endY + (bi % 2 === 0 ? 6 : -6);
+
+          // Draw partial path based on progress
+          const steps = 40;
+          const drawSteps = Math.floor(eased * steps);
+          if (drawSteps < 2) return;
+
+          // Taper: thicker near node, thinner at tip
+          for (let s = 0; s < drawSteps - 1; s++) {
+            const t0 = s / steps;
+            const t1 = (s + 1) / steps;
+
+            // Cubic bezier interpolation
+            const x0 = bezierPt(nodeX, cp1x, cp2x, endX, t0);
+            const y0 = bezierPt(nodeY, cp1y, cp2y, endY, t0);
+            const x1 = bezierPt(nodeX, cp1x, cp2x, endX, t1);
+            const y1 = bezierPt(nodeY, cp1y, cp2y, endY, t1);
+
+            // Taper width: 2px at node → 0.5px at tip
+            const segWidth = 2 - (t0 * 1.5);
+            // Alpha: brighter near node, dimmer at tip
+            const segAlpha = 0.5 - t0 * 0.3;
+
+            rmCtx.beginPath();
+            rmCtx.moveTo(x0, y0);
+            rmCtx.lineTo(x1, y1);
+            rmCtx.strokeStyle = `rgba(200, 255, 0, ${segAlpha})`;
+            rmCtx.lineWidth = Math.max(0.5, segWidth);
+            rmCtx.lineCap = 'round';
+            rmCtx.stroke();
+          }
+
+          // Glow pass (wider, dimmer)
+          rmCtx.beginPath();
+          for (let s = 0; s <= drawSteps; s++) {
+            const t = s / steps;
+            const x = bezierPt(nodeX, cp1x, cp2x, endX, t);
+            const y = bezierPt(nodeY, cp1y, cp2y, endY, t);
+            if (s === 0) rmCtx.moveTo(x, y);
+            else rmCtx.lineTo(x, y);
+          }
+          rmCtx.strokeStyle = 'rgba(200, 255, 0, 0.08)';
+          rmCtx.lineWidth = 8;
+          rmCtx.lineCap = 'round';
+          rmCtx.stroke();
+
+          // Tip glow dot at current growth front
+          if (eased < 0.95) {
+            const tipT = eased;
+            const tipX = bezierPt(nodeX, cp1x, cp2x, endX, tipT);
+            const tipY = bezierPt(nodeY, cp1y, cp2y, endY, tipT);
+            const tipGrad = rmCtx.createRadialGradient(tipX, tipY, 0, tipX, tipY, 10);
+            tipGrad.addColorStop(0, 'rgba(200, 255, 0, 0.5)');
+            tipGrad.addColorStop(1, 'rgba(200, 255, 0, 0)');
+            rmCtx.fillStyle = tipGrad;
+            rmCtx.beginPath();
+            rmCtx.arc(tipX, tipY, 10, 0, Math.PI * 2);
+            rmCtx.fill();
+          }
+        });
+      });
+    }
+
+    // Cubic bezier helper
+    function bezierPt(p0: number, p1: number, p2: number, p3: number, t: number): number {
+      const mt = 1 - t;
+      return mt * mt * mt * p0 + 3 * mt * mt * t * p1 + 3 * mt * t * t * p2 + t * t * t * p3;
+    }
 
     function updateRoadmap() {
       if (!roadmapTimeline) return;
@@ -1309,165 +1458,11 @@ export default function LiftioApp() {
           }
         }
       });
+
+      drawRoots();
     }
 
-    /* ═══════════════════════════════════════
-       CTA — Fitness Label Particle System
-    ═══════════════════════════════════════ */
-    const ctaCanvas = document.getElementById('ctaCanvas') as HTMLCanvasElement;
-    const ctaCtx = ctaCanvas.getContext('2d');
-    let ctaParticles: any[] = [];
-    let ctaActive = false;
-    let ctaMouseX = -1, ctaMouseY = -1;
-
-    // Labels with sentiment: true = positive (green), false = negative (red)
-    const ctaLabels: [string, boolean][] = [
-      ['PR!', true], ['PB!', true], ['NEW PR!', true], ['REP PR!', true],
-      ['+5%', true], ['+8%', true], ['+12%', true], ['+3%', true], ['+15%', true], ['+20%', true],
-      ['+5kg', true], ['+10kg', true], ['+2.5kg', true], ['+20kg', true],
-      ['+10lb', true], ['+25lb', true], ['+5lb', true],
-      ['↑ VOL', true], ['↑ STR', true], ['STREAK', true],
-      ['-3kg', false], ['-5lb', false], ['-2%', false], ['-5%', false],
-      ['MISSED', false], ['FAILED', false], ['-1 REP', false],
-      ['3×8', true], ['5×5', true], ['4×12', true], ['1RM', true],
-      ['7 DAYS', true], ['30 DAYS', true],
-      ['100kg', true], ['225lb', true],
-    ];
-
-    const ctaGreen: [number, number, number] = [200, 255, 0];
-    const ctaRed: [number, number, number] = [255, 45, 85];
-
-    function initCTAParticles() {
-      const w = ctaCanvas.width = ctaCanvas.parentElement.offsetWidth;
-      const h = ctaCanvas.height = ctaCanvas.parentElement.offsetHeight;
-      const count = window.innerWidth < 768 ? 60 : 150;
-      ctaParticles = [];
-      for (let i = 0; i < count; i++) {
-        const [label, positive] = ctaLabels[Math.floor(Math.random() * ctaLabels.length)];
-        const color = positive ? ctaGreen : ctaRed;
-        const size = Math.random() * 3 + 5;
-        ctaParticles.push({
-          x: Math.random() * w,
-          y: Math.random() * h,
-          vx: (Math.random() - 0.5) * 0.3,
-          vy: (Math.random() - 0.5) * 0.3,
-          label,
-          color,
-          size,
-          baseAlpha: Math.random() * 0.25 + 0.08,
-          alpha: 0,
-          rotation: (Math.random() - 0.5) * 0.4,
-          rotSpeed: (Math.random() - 0.5) * 0.003,
-          pulsePhase: Math.random() * Math.PI * 2,
-          pulseSpeed: Math.random() * 0.02 + 0.01,
-          hoverScale: 1,
-        });
-      }
-    }
-
-    function drawCTAParticles() {
-      if (!ctaActive) return;
-      const w = ctaCanvas.width, h = ctaCanvas.height;
-      ctaCtx.clearRect(0, 0, w, h);
-      const now = performance.now() * 0.001;
-
-      for (const p of ctaParticles) {
-        // Gentle floating drift using sine waves
-        const t = now + p.pulsePhase;
-        p.x += p.vx + Math.sin(t * p.pulseSpeed * 30) * 0.15;
-        p.y += p.vy + Math.cos(t * p.pulseSpeed * 20) * 0.12;
-        p.rotation += p.rotSpeed + Math.sin(t * 0.5 + p.pulsePhase) * 0.002;
-        if (p.x < -50) p.x = w + 50; if (p.x > w + 50) p.x = -50;
-        if (p.y < -20) p.y = h + 20; if (p.y > h + 20) p.y = -20;
-
-        // Pulse alpha
-        const pulse = Math.sin(t * p.pulseSpeed * 60) * 0.5 + 0.5;
-        p.alpha = p.baseAlpha * (0.6 + pulse * 0.4);
-
-        // Gentle mouse repulsion
-        if (ctaMouseX > 0) {
-          const dx = p.x - ctaMouseX, dy = p.y - ctaMouseY;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 120) {
-            const force = (120 - dist) / 120 * 0.25;
-            p.vx += (dx / dist) * force;
-            p.vy += (dy / dist) * force;
-          }
-        }
-
-        // Damping — high so they stay floaty, not flung
-        p.vx *= 0.96; p.vy *= 0.96;
-
-        // Scale spring
-        p.hoverScale += (1 - p.hoverScale) * 0.1;
-
-        // Draw
-        ctaCtx.save();
-        ctaCtx.translate(p.x, p.y);
-        ctaCtx.rotate(p.rotation);
-        ctaCtx.scale(p.hoverScale, p.hoverScale);
-
-        const [r, g, b] = p.color;
-        const a = p.alpha;
-
-        ctaCtx.font = `800 ${p.size}px 'JetBrains Mono', monospace`;
-        ctaCtx.textAlign = 'center';
-        ctaCtx.textBaseline = 'middle';
-
-        // Glow for bright particles
-        if (a > 0.3) {
-          ctaCtx.shadowColor = `rgba(${r},${g},${b},${a * 0.6})`;
-          ctaCtx.shadowBlur = 12;
-        }
-
-        ctaCtx.fillStyle = `rgba(${r},${g},${b},${a})`;
-        ctaCtx.fillText(p.label, 0, 0);
-        ctaCtx.restore();
-      }
-
-      // Connection lines between nearby same-color particles
-      ctaCtx.lineWidth = 0.5;
-      for (let i = 0; i < ctaParticles.length; i++) {
-        for (let j = i + 1; j < ctaParticles.length; j++) {
-          const a = ctaParticles[i], b = ctaParticles[j];
-          if (a.color !== b.color) continue;
-          const dx = a.x - b.x, dy = a.y - b.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 70) {
-            const lineA = (1 - dist / 70) * 0.06 * Math.min(a.alpha, b.alpha) * 4;
-            ctaCtx.strokeStyle = `rgba(${a.color[0]},${a.color[1]},${a.color[2]},${lineA})`;
-            ctaCtx.beginPath();
-            ctaCtx.moveTo(a.x, a.y);
-            ctaCtx.lineTo(b.x, b.y);
-            ctaCtx.stroke();
-          }
-        }
-      }
-      requestAnimationFrame(drawCTAParticles);
-    }
-
-    const ctaSection = document.getElementById('cta');
-    const ctaObserver = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting && !ctaActive) {
-          ctaActive = true;
-          initCTAParticles();
-          drawCTAParticles();
-        } else if (!e.isIntersecting) {
-          ctaActive = false;
-        }
-      });
-    }, { threshold: 0.1 });
-    ctaObserver.observe(ctaSection);
-
-    ctaSection.addEventListener('mousemove', (e) => {
-      const rect = ctaSection.getBoundingClientRect();
-      ctaMouseX = e.clientX - rect.left;
-      ctaMouseY = e.clientY - rect.top;
-    });
-    ctaSection.addEventListener('mouseleave', () => { ctaMouseX = -1; });
-
-    window.addEventListener('resize', () => { if (ctaActive) initCTAParticles(); });
+    /* CTA ticker animations are pure CSS — no JS needed */
 
     /* ═══════════════════════════════════════
        DASHBOARD MOMENTUM
@@ -1593,6 +1588,7 @@ export default function LiftioApp() {
       {/* ═══ HOW IT WORKS — Horizontal Scroll ═══ */}
       <section className="section hiw-section" id="how">
         <div className="hiw-sticky">
+          <div className="hiw-bg-glow"></div>
           <canvas className="hiw-curve-canvas" id="hiwCurveCanvas"></canvas>
           <div className="hiw-header">
             <div className="section-label">How It Works</div>
@@ -1915,6 +1911,7 @@ export default function LiftioApp() {
             Shipping fast. Here's what's coming next.</p>
 
           <div className="roadmap-timeline" id="roadmapTimeline">
+            <canvas className="rm-roots-canvas" id="rmRootsCanvas"></canvas>
             <div className="roadmap-line-ghost"></div>
             <div className="roadmap-line-active" id="roadmapLineActive"></div>
 
@@ -1926,8 +1923,14 @@ export default function LiftioApp() {
                 </div>
                 <div className="rm-version">V1 — NOW</div>
                 <h3 className="rm-title">The Core Foundation</h3>
-                <p className="rm-desc">QR scan-to-track loop, automatic sessions, progressive overload display, instructional
-                  videos, gym owner portal.</p>
+                <div className="rm-roots">
+                  <div className="rm-trunk"></div>
+                  <div className="rm-branch" style={{ '--i': 0, '--angle': '-12deg', '--len': '38px' } as React.CSSProperties}><span>QR Scan-to-Track</span></div>
+                  <div className="rm-branch" style={{ '--i': 1, '--angle': '4deg', '--len': '50px' } as React.CSSProperties}><span>Auto Sessions</span></div>
+                  <div className="rm-branch" style={{ '--i': 2, '--angle': '-8deg', '--len': '44px' } as React.CSSProperties}><span>Progressive Overload</span></div>
+                  <div className="rm-branch" style={{ '--i': 3, '--angle': '10deg', '--len': '36px' } as React.CSSProperties}><span>Form Videos</span></div>
+                  <div className="rm-branch" style={{ '--i': 4, '--angle': '-5deg', '--len': '52px' } as React.CSSProperties}><span>Gym Owner Portal</span></div>
+                </div>
               </div>
             </div>
             <div className="rm-item future" data-rm>
@@ -1935,7 +1938,12 @@ export default function LiftioApp() {
               <div>
                 <div className="rm-version">V2 — DISCOVERY</div>
                 <h3 className="rm-title">Gym Discovery & Analytics</h3>
-                <p className="rm-desc">Interactive gym map for users. Equipment usage analytics dashboards for gym owners.</p>
+                <div className="rm-roots">
+                  <div className="rm-trunk"></div>
+                  <div className="rm-branch" style={{ '--i': 0, '--angle': '8deg', '--len': '46px' } as React.CSSProperties}><span>Interactive Gym Map</span></div>
+                  <div className="rm-branch" style={{ '--i': 1, '--angle': '-6deg', '--len': '40px' } as React.CSSProperties}><span>Usage Analytics</span></div>
+                  <div className="rm-branch" style={{ '--i': 2, '--angle': '14deg', '--len': '34px' } as React.CSSProperties}><span>Equipment Trends</span></div>
+                </div>
               </div>
             </div>
             <div className="rm-item future" data-rm>
@@ -1943,7 +1951,12 @@ export default function LiftioApp() {
               <div>
                 <div className="rm-version">V3 — TRAINERS</div>
                 <h3 className="rm-title">Trainer Integration</h3>
-                <p className="rm-desc">Trainer profiles, client progress monitoring, offline mode with background sync.</p>
+                <div className="rm-roots">
+                  <div className="rm-trunk"></div>
+                  <div className="rm-branch" style={{ '--i': 0, '--angle': '-10deg', '--len': '42px' } as React.CSSProperties}><span>Trainer Profiles</span></div>
+                  <div className="rm-branch" style={{ '--i': 1, '--angle': '6deg', '--len': '48px' } as React.CSSProperties}><span>Progress Monitoring</span></div>
+                  <div className="rm-branch" style={{ '--i': 2, '--angle': '-3deg', '--len': '38px' } as React.CSSProperties}><span>Offline + Sync</span></div>
+                </div>
               </div>
             </div>
             <div className="rm-item future" data-rm>
@@ -1951,7 +1964,12 @@ export default function LiftioApp() {
               <div>
                 <div className="rm-version">V4 — AI</div>
                 <h3 className="rm-title">Smart Insights</h3>
-                <p className="rm-desc">AI plateau detection, rest optimization, context-aware coaching chatbot.</p>
+                <div className="rm-roots">
+                  <div className="rm-trunk"></div>
+                  <div className="rm-branch" style={{ '--i': 0, '--angle': '12deg', '--len': '44px' } as React.CSSProperties}><span>Plateau Detection</span></div>
+                  <div className="rm-branch" style={{ '--i': 1, '--angle': '-8deg', '--len': '52px' } as React.CSSProperties}><span>Rest Optimization</span></div>
+                  <div className="rm-branch" style={{ '--i': 2, '--angle': '5deg', '--len': '40px' } as React.CSSProperties}><span>AI Coach Chatbot</span></div>
+                </div>
               </div>
             </div>
             <div className="rm-item future" data-rm>
@@ -1959,16 +1977,58 @@ export default function LiftioApp() {
               <div>
                 <div className="rm-version">V5 — COMMUNITY</div>
                 <h3 className="rm-title">Social Ecosystem</h3>
-                <p className="rm-desc">Gym reviews, user-generated content, trainer discovery marketplace.</p>
+                <div className="rm-roots">
+                  <div className="rm-trunk"></div>
+                  <div className="rm-branch" style={{ '--i': 0, '--angle': '-14deg', '--len': '36px' } as React.CSSProperties}><span>Gym Reviews</span></div>
+                  <div className="rm-branch" style={{ '--i': 1, '--angle': '8deg', '--len': '46px' } as React.CSSProperties}><span>User Content</span></div>
+                  <div className="rm-branch" style={{ '--i': 2, '--angle': '-4deg', '--len': '42px' } as React.CSSProperties}><span>Trainer Marketplace</span></div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ═══ FINAL CTA — Particle Background ═══ */}
+      {/* ═══ FINAL CTA — Ticker Tape Background ═══ */}
       <section className="section cta-section" id="cta">
-        <div className="cta-canvas"><canvas id="ctaCanvas"></canvas></div>
+        <div className="cta-ticker-bg" aria-hidden="true">
+          <div className="cta-ticker-row" style={{ '--ticker-speed': '80s', '--ticker-dir': '-1' } as React.CSSProperties}>
+            <div className="cta-ticker-track">
+              <span className="ticker-g">85kg × 8 Bench Press</span><span className="ticker-g">NEW PR!</span><span className="ticker-r">MISSED</span><span className="ticker-g">+5kg Squat</span><span className="ticker-g">12wk STREAK</span><span className="ticker-g">4×12 OHP</span><span className="ticker-g">90kg × 3 Deadlift</span><span className="ticker-r">-3kg</span><span className="ticker-g">PR! +10%</span><span className="ticker-g">5×5 Squat</span><span className="ticker-g">100kg × 5</span><span className="ticker-r">FAILED</span><span className="ticker-g">+2.5kg</span><span className="ticker-g">30 DAYS</span>
+              <span className="ticker-g">85kg × 8 Bench Press</span><span className="ticker-g">NEW PR!</span><span className="ticker-r">MISSED</span><span className="ticker-g">+5kg Squat</span><span className="ticker-g">12wk STREAK</span><span className="ticker-g">4×12 OHP</span><span className="ticker-g">90kg × 3 Deadlift</span><span className="ticker-r">-3kg</span><span className="ticker-g">PR! +10%</span><span className="ticker-g">5×5 Squat</span><span className="ticker-g">100kg × 5</span><span className="ticker-r">FAILED</span><span className="ticker-g">+2.5kg</span><span className="ticker-g">30 DAYS</span>
+            </div>
+          </div>
+          <div className="cta-ticker-row" style={{ '--ticker-speed': '120s', '--ticker-dir': '1' } as React.CSSProperties}>
+            <div className="cta-ticker-track">
+              <span className="ticker-g">+15% Strength</span><span className="ticker-g">225lb × 5</span><span className="ticker-g">7 DAYS</span><span className="ticker-r">-5lb</span><span className="ticker-g">REP PR!</span><span className="ticker-g">Cable Row 60kg</span><span className="ticker-g">1RM 120kg</span><span className="ticker-g">+20%</span><span className="ticker-r">-2%</span><span className="ticker-g">42 SESSIONS</span><span className="ticker-g">Leg Press 180kg</span><span className="ticker-g">3×8</span><span className="ticker-g">↑ VOL</span><span className="ticker-g">PB!</span>
+              <span className="ticker-g">+15% Strength</span><span className="ticker-g">225lb × 5</span><span className="ticker-g">7 DAYS</span><span className="ticker-r">-5lb</span><span className="ticker-g">REP PR!</span><span className="ticker-g">Cable Row 60kg</span><span className="ticker-g">1RM 120kg</span><span className="ticker-g">+20%</span><span className="ticker-r">-2%</span><span className="ticker-g">42 SESSIONS</span><span className="ticker-g">Leg Press 180kg</span><span className="ticker-g">3×8</span><span className="ticker-g">↑ VOL</span><span className="ticker-g">PB!</span>
+            </div>
+          </div>
+          <div className="cta-ticker-row" style={{ '--ticker-speed': '95s', '--ticker-dir': '-1' } as React.CSSProperties}>
+            <div className="cta-ticker-track">
+              <span className="ticker-g">Bench Press 80kg</span><span className="ticker-g">+8%</span><span className="ticker-g">NEW PR +5kg</span><span className="ticker-g">4×12 Lat Pulldown</span><span className="ticker-r">-1 REP</span><span className="ticker-g">STREAK 7</span><span className="ticker-g">70kg × 10</span><span className="ticker-g">↑ STR</span><span className="ticker-g">+12%</span><span className="ticker-r">-5%</span><span className="ticker-g">Squat 100kg</span><span className="ticker-g">5×5</span><span className="ticker-g">SESSION #247</span><span className="ticker-g">+10lb</span>
+              <span className="ticker-g">Bench Press 80kg</span><span className="ticker-g">+8%</span><span className="ticker-g">NEW PR +5kg</span><span className="ticker-g">4×12 Lat Pulldown</span><span className="ticker-r">-1 REP</span><span className="ticker-g">STREAK 7</span><span className="ticker-g">70kg × 10</span><span className="ticker-g">↑ STR</span><span className="ticker-g">+12%</span><span className="ticker-r">-5%</span><span className="ticker-g">Squat 100kg</span><span className="ticker-g">5×5</span><span className="ticker-g">SESSION #247</span><span className="ticker-g">+10lb</span>
+            </div>
+          </div>
+          <div className="cta-ticker-row" style={{ '--ticker-speed': '140s', '--ticker-dir': '1' } as React.CSSProperties}>
+            <div className="cta-ticker-track">
+              <span className="ticker-g">+25lb</span><span className="ticker-g">OHP 60kg × 6</span><span className="ticker-g">PB! Deadlift</span><span className="ticker-g">3×8 Rows</span><span className="ticker-r">MISSED</span><span className="ticker-g">90kg × 3</span><span className="ticker-g">+3%</span><span className="ticker-g">14 WEEK STREAK</span><span className="ticker-g">Incline Bench 65kg</span><span className="ticker-g">REP PR!</span><span className="ticker-r">-2.5kg</span><span className="ticker-g">4×10</span><span className="ticker-g">+5kg</span><span className="ticker-g">VOLUME ↑</span>
+              <span className="ticker-g">+25lb</span><span className="ticker-g">OHP 60kg × 6</span><span className="ticker-g">PB! Deadlift</span><span className="ticker-g">3×8 Rows</span><span className="ticker-r">MISSED</span><span className="ticker-g">90kg × 3</span><span className="ticker-g">+3%</span><span className="ticker-g">14 WEEK STREAK</span><span className="ticker-g">Incline Bench 65kg</span><span className="ticker-g">REP PR!</span><span className="ticker-r">-2.5kg</span><span className="ticker-g">4×10</span><span className="ticker-g">+5kg</span><span className="ticker-g">VOLUME ↑</span>
+            </div>
+          </div>
+          <div className="cta-ticker-row" style={{ '--ticker-speed': '70s', '--ticker-dir': '-1' } as React.CSSProperties}>
+            <div className="cta-ticker-track">
+              <span className="ticker-g">120kg × 1 Squat</span><span className="ticker-g">NEW PR!</span><span className="ticker-g">+15%</span><span className="ticker-g">Hip Thrust 100kg</span><span className="ticker-g">5×5 Bench</span><span className="ticker-r">FAILED</span><span className="ticker-g">+10kg</span><span className="ticker-g">PERSONAL BEST</span><span className="ticker-g">Romanian DL 80kg</span><span className="ticker-g">8 WEEK STREAK</span><span className="ticker-r">-3%</span><span className="ticker-g">4×12</span><span className="ticker-g">1RM 140kg</span><span className="ticker-g">+8%</span>
+              <span className="ticker-g">120kg × 1 Squat</span><span className="ticker-g">NEW PR!</span><span className="ticker-g">+15%</span><span className="ticker-g">Hip Thrust 100kg</span><span className="ticker-g">5×5 Bench</span><span className="ticker-r">FAILED</span><span className="ticker-g">+10kg</span><span className="ticker-g">PERSONAL BEST</span><span className="ticker-g">Romanian DL 80kg</span><span className="ticker-g">8 WEEK STREAK</span><span className="ticker-r">-3%</span><span className="ticker-g">4×12</span><span className="ticker-g">1RM 140kg</span><span className="ticker-g">+8%</span>
+            </div>
+          </div>
+          <div className="cta-ticker-row" style={{ '--ticker-speed': '110s', '--ticker-dir': '1' } as React.CSSProperties}>
+            <div className="cta-ticker-track">
+              <span className="ticker-g">Chest Press 50kg</span><span className="ticker-g">+5%</span><span className="ticker-g">3×10 Curls</span><span className="ticker-g">STREAK 21</span><span className="ticker-g">Leg Extension 70kg</span><span className="ticker-r">-1 REP</span><span className="ticker-g">+7.5kg</span><span className="ticker-g">PR! Squat</span><span className="ticker-g">60 SESSIONS</span><span className="ticker-g">Smith Machine 80kg</span><span className="ticker-g">↑ VOL</span><span className="ticker-r">-5lb</span><span className="ticker-g">5×5 OHP</span><span className="ticker-g">+12%</span>
+              <span className="ticker-g">Chest Press 50kg</span><span className="ticker-g">+5%</span><span className="ticker-g">3×10 Curls</span><span className="ticker-g">STREAK 21</span><span className="ticker-g">Leg Extension 70kg</span><span className="ticker-r">-1 REP</span><span className="ticker-g">+7.5kg</span><span className="ticker-g">PR! Squat</span><span className="ticker-g">60 SESSIONS</span><span className="ticker-g">Smith Machine 80kg</span><span className="ticker-g">↑ VOL</span><span className="ticker-r">-5lb</span><span className="ticker-g">5×5 OHP</span><span className="ticker-g">+12%</span>
+            </div>
+          </div>
+        </div>
         <div className="cta-content">
           <div className="cta-logo reveal"><img src="logo.png" alt="Liftio" /></div>
           <h2 className="cta-title reveal reveal-delay-1">Ready to track<br />like you train?</h2>
