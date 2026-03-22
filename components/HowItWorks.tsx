@@ -37,10 +37,8 @@ function QRScannerPanel() {
       `}</style>
       {/* Phone frame */}
       <div
-        className="relative rounded-[2rem] overflow-hidden"
+        className="relative rounded-[2rem] overflow-hidden w-[180px] h-[320px] sm:w-[220px] sm:h-[380px]"
         style={{
-          width: '220px',
-          height: '380px',
           background: 'rgba(255,255,255,0.03)',
           border: '2px solid rgba(255,255,255,0.08)',
           boxShadow: '0 0 40px rgba(255,45,85,0.1)',
@@ -129,7 +127,7 @@ function SetLoggerPanel() {
   return (
     <div className="relative flex items-center justify-center w-full h-full">
       <div
-        className="rounded-2xl p-6 w-[280px]"
+        className="rounded-2xl p-4 sm:p-6 w-full max-w-[280px]"
         style={{
           background: 'rgba(255,255,255,0.04)',
           border: '1px solid rgba(255,255,255,0.08)',
@@ -230,11 +228,10 @@ function ProgressChartPanel() {
     <div className="relative flex flex-col items-center justify-center w-full h-full gap-6">
       {/* Chart */}
       <div
-        className="rounded-2xl p-5"
+        className="rounded-2xl p-3 sm:p-5 w-full max-w-[340px]"
         style={{
           background: 'rgba(255,255,255,0.03)',
           border: '1px solid rgba(255,255,255,0.08)',
-          width: '340px',
         }}
       >
         <div className="flex items-center justify-between mb-4">
@@ -305,7 +302,7 @@ function ProgressChartPanel() {
       </div>
 
       {/* Stats row */}
-      <div className="flex gap-4">
+      <div className="flex gap-2 sm:gap-4 flex-wrap justify-center">
         {[
           { label: 'Total Sets', value: '247' },
           { label: 'Volume', value: '18.4t' },
@@ -313,7 +310,7 @@ function ProgressChartPanel() {
         ].map((stat) => (
           <div
             key={stat.label}
-            className="text-center px-4 py-2 rounded-xl"
+            className="text-center px-3 sm:px-4 py-2 rounded-xl"
             style={{
               background: 'rgba(255,255,255,0.04)',
               border: '1px solid rgba(255,255,255,0.06)',

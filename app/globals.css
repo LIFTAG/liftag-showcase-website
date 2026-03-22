@@ -35,6 +35,7 @@
       background: var(--bg);
       color: var(--text);
       -webkit-font-smoothing: antialiased;
+      overflow-x: clip;
     }
 
 
@@ -1884,38 +1885,180 @@
       }
 
       .navbar {
-        padding: 16px 24px;
+        padding: 16px 20px;
+      }
+
+      .hero-content {
+        padding: 0 20px;
       }
 
       .section-inner {
-        padding: 100px 24px;
+        padding: 80px 20px;
+      }
+
+      .scene-text {
+        padding: 0 20px;
       }
 
       .feature-row {
         flex-direction: column !important;
         gap: 40px;
-        padding: 40px 24px;
+        padding: 40px 20px;
+      }
+
+      .feature-row .feature-visual,
+      .feature-row .feature-info {
+        width: 100%;
+      }
+
+      .feat-card {
+        max-width: 100%;
+        padding: 28px;
       }
 
       .owners-split {
         flex-direction: column;
         gap: 40px;
         min-height: auto;
-        padding: 0 24px;
+        padding: 0 20px;
       }
 
       .owners-dash-col {
         position: relative;
         top: auto;
+        transform: none !important;
+      }
+
+      .owner-feature-block {
+        min-height: auto;
+        padding: 24px 0;
+      }
+
+      /* Roadmap: left-aligned timeline on mobile */
+      .roadmap-line-ghost,
+      .roadmap-line-active {
+        left: 16px;
         transform: none;
       }
 
       .rm-item:nth-child(odd),
       .rm-item:nth-child(even) {
-        padding-left: calc(50% + 30px);
+        padding-left: 44px;
         padding-right: 0;
-        flex-direction: row-reverse;
+        flex-direction: row;
         text-align: left;
+      }
+
+      .rm-node {
+        left: 16px;
+        transform: translateX(-50%);
+      }
+
+      .rm-item {
+        margin-bottom: 48px;
+      }
+
+      /* HIW panels */
+      .hiw-panel {
+        padding: 0 24px;
+      }
+
+      .hiw-header {
+        left: 20px;
+        top: 40px;
+      }
+
+      .hiw-sticky::before,
+      .hiw-sticky::after {
+        width: 40px;
+      }
+
+      .hiw-chart-card {
+        width: 100%;
+        max-width: 280px;
+      }
+
+      .hiw-log-card {
+        width: 200px;
+      }
+
+      .hiw-phone-frame {
+        width: 160px;
+        height: 180px;
+      }
+
+      /* CTA */
+      .cta-content {
+        padding: 60px 20px;
+      }
+
+      /* Footer */
+      .footer-inner {
+        padding: 32px 20px;
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+      }
+
+      /* Phone mockup: smaller on mobile */
+      .phone-mockup {
+        width: clamp(220px, 60vw, 280px);
+        height: clamp(440px, 120vw, 560px);
+        margin-left: calc(clamp(220px, 60vw, 280px) / -2);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .navbar {
+        padding: 12px 16px;
+      }
+
+      .hero-content {
+        padding: 0 16px;
+      }
+
+      .hero-title {
+        font-size: clamp(2.5rem, 12vw, 3.5rem);
+      }
+
+      .hero-sub {
+        font-size: 0.95rem;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .hero-actions .btn-primary,
+      .hero-actions .btn-secondary {
+        width: 100%;
+        justify-content: center;
+        padding: 14px 24px;
+      }
+
+      .section-inner {
+        padding: 60px 16px;
+      }
+
+      .scene-text {
+        padding: 0 16px;
+      }
+
+      .feature-row {
+        padding: 32px 16px;
+      }
+
+      .hiw-panel {
+        padding: 0 16px;
+      }
+
+      .hiw-header {
+        left: 16px;
+      }
+
+      .cta-content {
+        padding: 40px 16px;
       }
     }
   

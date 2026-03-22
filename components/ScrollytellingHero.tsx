@@ -495,7 +495,7 @@ const ScrollytellingHero: React.FC<ScrollytellingHeroProps> = ({ onFramesLoaded 
           {/* "Scan." - red neon line scan-reveal effect */}
           <div
             ref={scanTextRef}
-            className="absolute left-[10%] top-[20%] text-7xl md:text-8xl lg:text-9xl font-black uppercase tracking-wider"
+            className="absolute left-[6%] sm:left-[10%] top-[20%] text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black uppercase tracking-wider"
             style={{
               opacity: 0,
               color: '#ff2020',
@@ -520,7 +520,7 @@ const ScrollytellingHero: React.FC<ScrollytellingHeroProps> = ({ onFramesLoaded 
           {/* "Track." - typewriter with green cursor */}
           <div
             ref={trackTextRef}
-            className="absolute left-[10%] top-[40%] text-7xl md:text-8xl lg:text-9xl font-black uppercase tracking-wider"
+            className="absolute left-[6%] sm:left-[10%] top-[40%] text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black uppercase tracking-wider"
             style={{
               opacity: 0,
               color: '#ffffff',
@@ -533,7 +533,7 @@ const ScrollytellingHero: React.FC<ScrollytellingHeroProps> = ({ onFramesLoaded 
           {/* "Progress." - underline sweep + jump up */}
           <div
             ref={progressTextRef}
-            className="absolute left-[10%] top-[60%] text-7xl md:text-8xl lg:text-9xl font-black uppercase tracking-wider"
+            className="absolute left-[6%] sm:left-[10%] top-[60%] text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black uppercase tracking-wider"
             style={{
               opacity: 0,
               color: '#c8ff00',
@@ -560,7 +560,7 @@ const ScrollytellingHero: React.FC<ScrollytellingHeroProps> = ({ onFramesLoaded 
           {/* Scene 2 text - scramble effect */}
           <div
             ref={scene2TextRef}
-            className="absolute inset-0 flex items-center justify-center text-4xl md:text-6xl lg:text-7xl font-black uppercase tracking-[0.2em] text-center"
+            className="absolute inset-0 flex items-center justify-center text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] text-center px-4"
             style={{
               opacity: 0,
               color: '#ffffff',
@@ -647,7 +647,7 @@ const ScrollytellingHero: React.FC<ScrollytellingHeroProps> = ({ onFramesLoaded 
 
             {/* Title */}
             <h1
-              className="text-4xl md:text-6xl lg:text-7xl font-black uppercase tracking-tight mb-4"
+              className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black uppercase tracking-tight mb-4"
               style={{
                 color: '#ffffff',
                 textShadow: '0 0 30px rgba(200,255,0,0.2)',

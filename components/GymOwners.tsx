@@ -274,8 +274,7 @@ export default function GymOwners() {
     <section
       id="for-gyms"
       ref={sectionRef}
-      className="relative py-20 md:py-32"
-      style={{ minHeight: '200vh' }}
+      className="relative py-16 md:py-32 min-h-0 md:min-h-[200vh]"
     >
       <div className="max-w-7xl mx-auto px-6">
         {/* Header */}
@@ -302,9 +301,14 @@ export default function GymOwners() {
           </p>
         </div>
 
+        {/* Mobile dashboard (above features on small screens) */}
+        <div className="md:hidden mb-12 flex justify-center">
+          <DashboardMockup activeZone={Math.max(activeZone, 0)} />
+        </div>
+
         {/* Split layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20">
-          {/* Left - Sticky Dashboard */}
+          {/* Left - Sticky Dashboard (desktop only) */}
           <div className="hidden md:block">
             <div className="sticky top-32">
               <div ref={dashboardRef}>
@@ -324,11 +328,6 @@ export default function GymOwners() {
               />
             ))}
           </div>
-        </div>
-
-        {/* Mobile dashboard (below on small screens) */}
-        <div className="md:hidden mt-16">
-          <DashboardMockup activeZone={Math.max(activeZone, 0)} />
         </div>
       </div>
     </section>

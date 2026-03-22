@@ -116,7 +116,7 @@ function VideoPlayerVisual({ visible }: { visible: boolean }) {
   return (
     <div className="flex items-center justify-center h-[160px]">
       <div
-        className="rounded-xl overflow-hidden w-[260px]"
+        className="rounded-xl overflow-hidden w-full max-w-[260px]"
         style={{
           background: 'rgba(255,255,255,0.04)',
           border: '1px solid rgba(255,255,255,0.08)',
