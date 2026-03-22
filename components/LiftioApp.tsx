@@ -32,11 +32,8 @@ export default function LiftioApp() {
     let introComplete = false;
     let introRotation = 0;
 
-    // The densest filled area of the silhouette is bottom-left
-    // (where circle arc meets the L-bar). Offset the hole center there.
-    // Normalized offset from image center: ~0.18 left, ~0.18 down
-    const HOLE_OFFSET_X = -0.18;
-    const HOLE_OFFSET_Y = 0.18;
+    const HOLE_OFFSET_X = 0;
+    const HOLE_OFFSET_Y = 0;
 
     function sizeIntroCanvas() {
       introCanvas.width = window.innerWidth;
