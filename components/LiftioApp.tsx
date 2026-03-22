@@ -648,6 +648,299 @@ export default function LiftioApp() {
     let hiwLerpedP = 0;
     let hiwQRLerpedP = 0;
 
+    /* ── Strength Curve (HIW background) ── */
+    const hiwCurveCanvas = document.getElementById('hiwCurveCanvas') as HTMLCanvasElement;
+    const hiwCurveCtx = hiwCurveCanvas?.getContext('2d');
+
+    // Curve data points: [x (0-1), y (0-1 where 0=top, 1=bottom)]
+    // Panel 1 range (x 0-0.33): flat baseline
+    // Panel 2 range (x 0.33-0.66): climbing with variation
+    // Panel 3 range (x 0.66-1.0): dramatic surge
+    const curvePoints: [number, number][] = [
+      [0.00, 0.78],
+      [0.05, 0.78],
+      [0.10, 0.77],
+      [0.15, 0.78],
+      [0.20, 0.77],
+      [0.25, 0.78],
+      [0.30, 0.76],
+      // climb begins
+      [0.35, 0.73],
+      [0.38, 0.74],
+      [0.42, 0.69],
+      [0.46, 0.66],
+      [0.49, 0.68],
+      [0.53, 0.62],
+      [0.57, 0.58],
+      [0.60, 0.60],
+      [0.64, 0.54],
+      // surge
+      [0.68, 0.50],
+      [0.72, 0.44],
+      [0.76, 0.40],
+      [0.80, 0.34],
+      [0.84, 0.30],
+      [0.88, 0.24],
+      [0.92, 0.20],
+      [0.96, 0.15],
+      [1.00, 0.10],
+    ];
+
+    // Data point markers with contextual labels
+    const dataMarkers: { x: number; label: string; sub: string; above: boolean }[] = [
+      { x: 0.30, label: '60kg × 8',  sub: 'W1',  above: true },
+      { x: 0.38, label: '62.5kg',    sub: 'W2',  above: false },
+      { x: 0.46, label: '65kg × 8',  sub: 'W3',  above: true },
+      { x: 0.53, label: 'Bench',     sub: 'W5',  above: false },
+      { x: 0.60, label: '70kg × 6',  sub: 'W6',  above: true },
+      { x: 0.68, label: '+5kg PR',   sub: 'W8',  above: false },
+      { x: 0.76, label: '80kg × 5',  sub: 'W9',  above: true },
+      { x: 0.84, label: 'Squat 1RM', sub: 'W10', above: false },
+      { x: 0.92, label: '90kg × 3',  sub: 'W11', above: true },
+      { x: 1.00, label: 'NEW PR!',   sub: 'W12', above: false },
+    ];
+    const markerFlashTime: number[] = new Array(dataMarkers.length).fill(0);
+
+    // Y-axis weight labels (very faint)
+    const yAxisLabels = ['100kg', '80kg', '60kg', '40kg', '20kg'];
+    // X-axis date labels
+    const xAxisLabels = [
+      { x: 0.0, text: 'JAN' },
+      { x: 0.33, text: 'FEB' },
+      { x: 0.66, text: 'MAR' },
+      { x: 1.0, text: 'APR' },
+    ];
+
+    function sizeHIWCurveCanvas() {
+      if (!hiwCurveCanvas || !hiwCurveCtx) return;
+      const rect = hiwCurveCanvas.parentElement!.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      hiwCurveCanvas.width = rect.width * dpr;
+      hiwCurveCanvas.height = rect.height * dpr;
+      hiwCurveCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    sizeHIWCurveCanvas();
+    window.addEventListener('resize', sizeHIWCurveCanvas);
+
+    // Interpolate Y at any X along the curve using catmull-rom-ish lerp
+    function curveYAtX(xNorm: number): number {
+      for (let i = 0; i < curvePoints.length - 1; i++) {
+        const [x0, y0] = curvePoints[i];
+        const [x1, y1] = curvePoints[i + 1];
+        if (xNorm >= x0 && xNorm <= x1) {
+          const t = (xNorm - x0) / (x1 - x0);
+          // Smooth step for nice interpolation
+          const s = t * t * (3 - 2 * t);
+          return y0 + (y1 - y0) * s;
+        }
+      }
+      return curvePoints[curvePoints.length - 1][1];
+    }
+
+    function drawHIWCurve(p: number) {
+      if (!hiwCurveCtx || !hiwCurveCanvas) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = hiwCurveCanvas.width / dpr;
+      const h = hiwCurveCanvas.height / dpr;
+      hiwCurveCtx.clearRect(0, 0, w, h);
+
+      // The line draws from left to right based on scroll progress
+      // Map p to how far the line has drawn (with some lead/lag)
+      const drawProgress = Math.min(1, p * 1.1); // slightly ahead of scroll
+      if (drawProgress <= 0.001) return;
+
+      const padX = 40;
+      const padTop = h * 0.1;
+      const padBot = h * 0.15;
+      const graphW = w - padX * 2;
+      const graphH = h - padTop - padBot;
+
+      // Convert normalized point to canvas coords
+      const toCanvasX = (xn: number) => padX + xn * graphW;
+      const toCanvasY = (yn: number) => padTop + yn * graphH;
+
+      // === Draw subtle baseline/grid with axis labels ===
+      hiwCurveCtx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+      hiwCurveCtx.lineWidth = 1;
+      for (let gy = 0; gy <= 4; gy++) {
+        const yy = padTop + (gy / 4) * graphH;
+        hiwCurveCtx.beginPath();
+        hiwCurveCtx.moveTo(padX, yy);
+        hiwCurveCtx.lineTo(padX + graphW * drawProgress, yy);
+        hiwCurveCtx.stroke();
+
+        // Y-axis weight labels (very faint, only when visible)
+        if (drawProgress > 0.02 && yAxisLabels[gy]) {
+          const labelAlpha = Math.min(0.12, drawProgress * 0.4);
+          hiwCurveCtx.font = "500 10px 'JetBrains Mono', monospace";
+          hiwCurveCtx.fillStyle = `rgba(255, 255, 255, ${labelAlpha})`;
+          hiwCurveCtx.textAlign = 'right';
+          hiwCurveCtx.textBaseline = 'middle';
+          hiwCurveCtx.fillText(yAxisLabels[gy], padX - 10, yy);
+        }
+      }
+
+      // X-axis date labels
+      xAxisLabels.forEach(({ x: xn, text }) => {
+        if (xn > drawProgress) return;
+        const xx = toCanvasX(xn);
+        const yy = toCanvasY(1) + 18;
+        const labelAge = (drawProgress - xn) * 5; // fade in over scroll distance
+        const labelAlpha = Math.min(0.15, labelAge * 0.15);
+        if (labelAlpha < 0.01) return;
+        hiwCurveCtx.font = "600 9px 'JetBrains Mono', monospace";
+        hiwCurveCtx.fillStyle = `rgba(255, 255, 255, ${labelAlpha})`;
+        hiwCurveCtx.textAlign = 'center';
+        hiwCurveCtx.textBaseline = 'top';
+        hiwCurveCtx.fillText(text, xx, yy);
+      });
+
+      // Vertical grid lines at date marks (very subtle)
+      xAxisLabels.forEach(({ x: xn }) => {
+        if (xn > drawProgress || xn === 0) return;
+        const xx = toCanvasX(xn);
+        hiwCurveCtx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+        hiwCurveCtx.lineWidth = 1;
+        hiwCurveCtx.beginPath();
+        hiwCurveCtx.moveTo(xx, padTop);
+        hiwCurveCtx.lineTo(xx, toCanvasY(1));
+        hiwCurveCtx.stroke();
+      });
+
+      // === Draw the curve (smooth path) ===
+      const steps = Math.floor(drawProgress * 200);
+      if (steps < 2) return;
+
+      // Gradient fill under the curve
+      const grad = hiwCurveCtx.createLinearGradient(0, padTop, 0, padTop + graphH);
+      grad.addColorStop(0, 'rgba(200, 255, 0, 0.08)');
+      grad.addColorStop(1, 'rgba(200, 255, 0, 0)');
+
+      hiwCurveCtx.beginPath();
+      for (let i = 0; i <= steps; i++) {
+        const xn = (i / 200);
+        const yn = curveYAtX(xn);
+        const cx = toCanvasX(xn);
+        const cy = toCanvasY(yn);
+        if (i === 0) hiwCurveCtx.moveTo(cx, cy);
+        else hiwCurveCtx.lineTo(cx, cy);
+      }
+      // Fill area under curve
+      const lastXn = steps / 200;
+      const lastCx = toCanvasX(lastXn);
+      hiwCurveCtx.lineTo(lastCx, toCanvasY(1));
+      hiwCurveCtx.lineTo(toCanvasX(0), toCanvasY(1));
+      hiwCurveCtx.closePath();
+      hiwCurveCtx.fillStyle = grad;
+      hiwCurveCtx.fill();
+
+      // Stroke the line itself
+      hiwCurveCtx.beginPath();
+      for (let i = 0; i <= steps; i++) {
+        const xn = (i / 200);
+        const yn = curveYAtX(xn);
+        const cx = toCanvasX(xn);
+        const cy = toCanvasY(yn);
+        if (i === 0) hiwCurveCtx.moveTo(cx, cy);
+        else hiwCurveCtx.lineTo(cx, cy);
+      }
+
+      // Line color shifts from green to brighter as it climbs
+      hiwCurveCtx.strokeStyle = 'rgba(200, 255, 0, 0.5)';
+      hiwCurveCtx.lineWidth = 2;
+      hiwCurveCtx.stroke();
+
+      // Glow layer
+      hiwCurveCtx.strokeStyle = 'rgba(200, 255, 0, 0.15)';
+      hiwCurveCtx.lineWidth = 8;
+      hiwCurveCtx.stroke();
+
+      // === Leading glow dot ===
+      const tipXn = lastXn;
+      const tipYn = curveYAtX(tipXn);
+      const tipX = toCanvasX(tipXn);
+      const tipY = toCanvasY(tipYn);
+
+      const glowGrad = hiwCurveCtx.createRadialGradient(tipX, tipY, 0, tipX, tipY, 40);
+      glowGrad.addColorStop(0, 'rgba(200, 255, 0, 0.6)');
+      glowGrad.addColorStop(0.4, 'rgba(200, 255, 0, 0.15)');
+      glowGrad.addColorStop(1, 'rgba(200, 255, 0, 0)');
+      hiwCurveCtx.fillStyle = glowGrad;
+      hiwCurveCtx.beginPath();
+      hiwCurveCtx.arc(tipX, tipY, 40, 0, Math.PI * 2);
+      hiwCurveCtx.fill();
+
+      // Solid tip dot
+      hiwCurveCtx.fillStyle = 'rgba(200, 255, 0, 0.9)';
+      hiwCurveCtx.beginPath();
+      hiwCurveCtx.arc(tipX, tipY, 4, 0, Math.PI * 2);
+      hiwCurveCtx.fill();
+
+      // === Data point markers with labels ===
+      const now = performance.now();
+      dataMarkers.forEach((marker, mi) => {
+        if (marker.x > drawProgress) {
+          markerFlashTime[mi] = 0;
+          return;
+        }
+        const mx = toCanvasX(marker.x);
+        const my = toCanvasY(curveYAtX(marker.x));
+
+        // Flash when first revealed
+        if (markerFlashTime[mi] === 0) markerFlashTime[mi] = now;
+        const age = now - markerFlashTime[mi];
+        const flashAlpha = age < 600 ? 0.8 * (1 - age / 600) : 0;
+
+        // Flash ring
+        if (flashAlpha > 0) {
+          const flashRadius = 4 + (age / 600) * 20;
+          hiwCurveCtx.strokeStyle = `rgba(200, 255, 0, ${flashAlpha})`;
+          hiwCurveCtx.lineWidth = 1.5;
+          hiwCurveCtx.beginPath();
+          hiwCurveCtx.arc(mx, my, flashRadius, 0, Math.PI * 2);
+          hiwCurveCtx.stroke();
+        }
+
+        // Solid dot
+        hiwCurveCtx.fillStyle = 'rgba(200, 255, 0, 0.8)';
+        hiwCurveCtx.beginPath();
+        hiwCurveCtx.arc(mx, my, 3, 0, Math.PI * 2);
+        hiwCurveCtx.fill();
+
+        // Subtle glow
+        hiwCurveCtx.fillStyle = 'rgba(200, 255, 0, 0.15)';
+        hiwCurveCtx.beginPath();
+        hiwCurveCtx.arc(mx, my, 8, 0, Math.PI * 2);
+        hiwCurveCtx.fill();
+
+        // Data label — fades in after flash, drifts slightly upward
+        const labelDelay = 300; // ms after flash before label appears
+        const labelFadeDur = 500;
+        const labelAge = Math.max(0, age - labelDelay);
+        const labelAlpha = Math.min(0.22, (labelAge / labelFadeDur) * 0.22);
+        if (labelAlpha > 0.01) {
+          const drift = Math.min(6, (labelAge / 1000) * 6); // subtle upward drift
+          const labelY = marker.above ? my - 16 - drift : my + 18 + drift;
+          const isSpecial = marker.label.includes('PR');
+
+          // Main label (exercise/weight)
+          hiwCurveCtx.font = `${isSpecial ? '700' : '500'} 10px 'JetBrains Mono', monospace`;
+          hiwCurveCtx.textAlign = 'center';
+          hiwCurveCtx.textBaseline = marker.above ? 'bottom' : 'top';
+          hiwCurveCtx.fillStyle = isSpecial
+            ? `rgba(255, 45, 85, ${labelAlpha * 1.5})`
+            : `rgba(200, 255, 0, ${labelAlpha})`;
+          hiwCurveCtx.fillText(marker.label, mx, labelY);
+
+          // Sub label (week)
+          hiwCurveCtx.font = "400 8px 'JetBrains Mono', monospace";
+          hiwCurveCtx.fillStyle = `rgba(255, 255, 255, ${labelAlpha * 0.6})`;
+          const subY = marker.above ? labelY - 12 : labelY + 13;
+          hiwCurveCtx.fillText(marker.sub, mx, subY);
+        }
+      });
+    }
+
     const hiwWeightEl = document.getElementById('hiwWeight');
     const hiwRepsEl = document.getElementById('hiwReps');
     const hiwPREl = document.getElementById('hiwPR');
@@ -694,6 +987,8 @@ export default function LiftioApp() {
       if (sectionH <= 0) return;
       const p = Math.max(0, Math.min(1, sectionTop / sectionH));
       hiwTrack.style.transform = `translateX(-${p * 66.667}%)`;
+      // Strength curve background
+      drawHIWCurve(p);
       // Dots
       const activeIdx = Math.min(2, Math.floor(p * 3));
       hiwDots.forEach((d, i) => d.classList.toggle('active', i === activeIdx));
@@ -770,26 +1065,34 @@ export default function LiftioApp() {
     }, { threshold: 0.2 });
     document.querySelectorAll('.feature-row').forEach(el => featObserver.observe(el));
 
-    // Video timer countdown
+    // Video timer countdown (hover-reactive: speeds up when card is hovered)
     const videoTimer = document.getElementById('videoTimer');
-    const timerParent = videoTimer.closest('.feature-row');
+    const timerParent = videoTimer?.closest('.feature-row');
     let timerStarted = false;
+    let timerSpeedMultiplier = 1;
+    const timerCard = videoTimer?.closest('.feat-card');
+    if (timerCard) {
+      timerCard.addEventListener('mouseenter', () => { timerSpeedMultiplier = 5; });
+      timerCard.addEventListener('mouseleave', () => { timerSpeedMultiplier = 1; });
+    }
     const timerObserver = new IntersectionObserver((entries) => {
       entries.forEach(e => {
         if (e.isIntersecting && !timerStarted) {
           timerStarted = true;
           let seconds = 42;
-          const interval = setInterval(() => {
-            seconds--;
+          const tick = () => {
+            if (seconds <= 0) return;
+            seconds = Math.max(0, seconds - timerSpeedMultiplier);
             const m = Math.floor(seconds / 60);
-            const s = seconds % 60;
+            const s = Math.floor(seconds) % 60;
             videoTimer.textContent = `${m}:${String(s).padStart(2, '0')}`;
-            if (seconds <= 0) clearInterval(interval);
-          }, 1000);
+            setTimeout(tick, timerSpeedMultiplier > 1 ? 200 : 1000);
+          };
+          tick();
         }
       });
     }, { threshold: 0.3 });
-    timerObserver.observe(timerParent);
+    if (timerParent) timerObserver.observe(timerParent);
 
     // QR grid generation
     const qrGrid = document.getElementById('qrGrid');
@@ -804,6 +1107,81 @@ export default function LiftioApp() {
         cell.className = 'qr-cell ' + (v ? 'dark' : 'light');
         cell.style.transitionDelay = (Math.random() * 0.8 + 0.2) + 's';
         qrGrid.appendChild(cell);
+      });
+    }
+
+    /* ═══════════════════════════════════════
+       FEATURE CARDS — Magnetic 3D Tilt
+    ═══════════════════════════════════════ */
+    const featCards = document.querySelectorAll('.feat-card');
+    featCards.forEach(card => {
+      card.addEventListener('mousemove', (e: any) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateY = ((x - centerX) / centerX) * 12; // max ±12deg
+        const rotateX = ((centerY - y) / centerY) * 12;
+        (card as HTMLElement).style.setProperty('--rx', rotateX + 'deg');
+        (card as HTMLElement).style.setProperty('--ry', rotateY + 'deg');
+        (card as HTMLElement).style.setProperty('--glow-x', x + 'px');
+        (card as HTMLElement).style.setProperty('--glow-y', y + 'px');
+        (card as HTMLElement).style.setProperty('--card-angle', Math.atan2(y - centerY, x - centerX) * (180 / Math.PI) + 'deg');
+      });
+      card.addEventListener('mouseleave', () => {
+        (card as HTMLElement).style.setProperty('--rx', '0deg');
+        (card as HTMLElement).style.setProperty('--ry', '0deg');
+        (card as HTMLElement).style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease';
+        setTimeout(() => {
+          (card as HTMLElement).style.transition = 'transform 0.15s ease-out, box-shadow 0.3s ease';
+        }, 500);
+      });
+    });
+
+    /* ═══════════════════════════════════════
+       FEATURE CARDS — Hover-Reactive Visuals
+    ═══════════════════════════════════════ */
+    // Mini bars: react to mouse Y position on hover
+    const miniBarsContainer = document.querySelector('.mini-bars');
+    if (miniBarsContainer) {
+      const miniBars = miniBarsContainer.querySelectorAll('.mini-bar');
+      const barParentCard = miniBarsContainer.closest('.feat-card');
+      barParentCard?.addEventListener('mousemove', (e: any) => {
+        const rect = barParentCard.getBoundingClientRect();
+        const normalizedY = 1 - ((e.clientY - rect.top) / rect.height);
+        miniBars.forEach((bar, i) => {
+          const baseHeight = [30, 45, 40, 60, 55, 75, 70, 90, 100][i] || 50;
+          const influence = normalizedY * 30 - 15;
+          const wave = Math.sin((i / miniBars.length) * Math.PI * 2 + performance.now() * 0.002) * 8;
+          const h = Math.max(10, Math.min(100, baseHeight + influence + wave));
+          (bar as HTMLElement).style.height = h + '%';
+        });
+      });
+      barParentCard?.addEventListener('mouseleave', () => {
+        miniBars.forEach((bar, i) => {
+          const baseHeight = [30, 45, 40, 60, 55, 75, 70, 90, 100][i] || 50;
+          (bar as HTMLElement).style.height = baseHeight + '%';
+        });
+      });
+    }
+
+    // QR grid: shuffle cells on hover
+    if (qrGrid) {
+      const qrCard = qrGrid.closest('.feat-card');
+      let qrShuffleInterval: any = null;
+      qrCard?.addEventListener('mouseenter', () => {
+        qrShuffleInterval = setInterval(() => {
+          const cells = qrGrid.querySelectorAll('.qr-cell');
+          const idx = Math.floor(Math.random() * cells.length);
+          const cell = cells[idx];
+          const isDark = cell.classList.contains('dark');
+          cell.classList.toggle('dark', !isDark);
+          cell.classList.toggle('light', isDark);
+        }, 80);
+      });
+      qrCard?.addEventListener('mouseleave', () => {
+        if (qrShuffleInterval) clearInterval(qrShuffleInterval);
       });
     }
 
@@ -828,6 +1206,84 @@ export default function LiftioApp() {
       });
     }, { threshold: 0.15, rootMargin: '-30% 0px -30% 0px' });
     ownerBlocks.forEach(el => dashObserver.observe(el));
+
+    /* ═══════════════════════════════════════
+       GYM OWNERS — Living Dashboard Simulation
+    ═══════════════════════════════════════ */
+    const dashMockup = document.querySelector('.dash-body');
+    let dashSimActive = false;
+    let dashSimInterval: any = null;
+
+    const simNames = ['alex.m', 'sarah.k', 'mike.j', 'emma.r', 'chris.t', 'lisa.p', 'james.w', 'anna.c', 'tom.b', 'kate.d'];
+    const simMachines = ['Bench Press', 'Squat Rack', 'Cable Machine', 'Leg Press', 'Pull-up Bar', 'Lat Pulldown', 'Deadlift Platform', 'Smith Machine'];
+
+    // Create the activity feed container
+    const feedContainer = document.createElement('div');
+    feedContainer.className = 'dash-activity-feed';
+    if (dashMockup) dashMockup.appendChild(feedContainer);
+
+    // Create live stats bar
+    const liveStats = document.createElement('div');
+    liveStats.className = 'dash-live-stats';
+    let scanCount = 847;
+    let activeNow = 23;
+    liveStats.innerHTML = `
+      <span><span class="dash-live-pulse"></span>LIVE</span>
+      <span>SCANS: <span class="dash-live-stat-value" id="dashScanCount">${scanCount}</span></span>
+      <span>ACTIVE: <span class="dash-live-stat-value red" id="dashActiveNow">${activeNow}</span></span>
+    `;
+    const dashTopbar = document.querySelector('.dash-topbar');
+    if (dashTopbar && dashTopbar.parentElement) {
+      dashTopbar.parentElement.insertBefore(liveStats, dashTopbar.nextSibling);
+    }
+
+    function addFeedEvent() {
+      const name = simNames[Math.floor(Math.random() * simNames.length)];
+      const machine = simMachines[Math.floor(Math.random() * simMachines.length)];
+      const isPositive = Math.random() > 0.2;
+      const now = new Date();
+      const timeStr = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+
+      const item = document.createElement('div');
+      item.className = 'dash-feed-item';
+      item.innerHTML = `
+        <span class="dash-feed-dot ${isPositive ? '' : 'red'}"></span>
+        <span class="dash-feed-time">${timeStr}</span>
+        <span>${name} scanned <span style="color:var(--text-mid)">${machine}</span></span>
+      `;
+      feedContainer.prepend(item);
+
+      // Keep max 4 items
+      while (feedContainer.children.length > 4) {
+        feedContainer.removeChild(feedContainer.lastChild!);
+      }
+
+      // Update scan counter
+      scanCount += Math.floor(Math.random() * 3) + 1;
+      const scanEl = document.getElementById('dashScanCount');
+      if (scanEl) scanEl.textContent = String(scanCount);
+
+      // Fluctuate active count
+      activeNow += Math.random() > 0.5 ? 1 : -1;
+      activeNow = Math.max(18, Math.min(31, activeNow));
+      const activeEl = document.getElementById('dashActiveNow');
+      if (activeEl) activeEl.textContent = String(activeNow);
+    }
+
+    const ownersSection = document.getElementById('owners');
+    const dashSimObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting && !dashSimActive) {
+          dashSimActive = true;
+          addFeedEvent();
+          dashSimInterval = setInterval(addFeedEvent, 2500 + Math.random() * 2000);
+        } else if (!e.isIntersecting && dashSimActive) {
+          dashSimActive = false;
+          if (dashSimInterval) clearInterval(dashSimInterval);
+        }
+      });
+    }, { threshold: 0.1 });
+    if (ownersSection) dashSimObserver.observe(ownersSection);
 
     /* ═══════════════════════════════════════
        ROADMAP — Scroll-Driven Timeline
@@ -1137,6 +1593,7 @@ export default function LiftioApp() {
       {/* ═══ HOW IT WORKS — Horizontal Scroll ═══ */}
       <section className="section hiw-section" id="how">
         <div className="hiw-sticky">
+          <canvas className="hiw-curve-canvas" id="hiwCurveCanvas"></canvas>
           <div className="hiw-header">
             <div className="section-label">How It Works</div>
           </div>
@@ -1144,96 +1601,102 @@ export default function LiftioApp() {
             {/* Panel 1: Animated QR scan */}
             <div className="hiw-panel">
               <div className="hiw-panel-number">01</div>
-              <div className="hiw-panel-visual">
-                <div className="hiw-phone-frame">
-                  <div className="hiw-scan-area">
-                    <div className="hiw-scan-corners" id="hiwScanCorners">
-                      <span></span><span></span><span></span><span></span>
+              <div className="hiw-glass-pane">
+                <div className="hiw-panel-visual">
+                  <div className="hiw-phone-frame">
+                    <div className="hiw-scan-area">
+                      <div className="hiw-scan-corners" id="hiwScanCorners">
+                        <span></span><span></span><span></span><span></span>
+                      </div>
+                      <div className="hiw-scan-line" id="hiwScanLine"></div>
+                      <svg id="hiwQRIcon" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1"
+                        opacity="0.4">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                        <rect x="14" y="14" width="4" height="4" />
+                        <line x1="18" y1="14" x2="18" y2="18" />
+                        <line x1="14" y1="18" x2="18" y2="18" />
+                      </svg>
                     </div>
-                    <div className="hiw-scan-line" id="hiwScanLine"></div>
-                    <svg id="hiwQRIcon" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1"
-                      opacity="0.4">
-                      <rect x="3" y="3" width="7" height="7" />
-                      <rect x="14" y="3" width="7" height="7" />
-                      <rect x="3" y="14" width="7" height="7" />
-                      <rect x="14" y="14" width="4" height="4" />
-                      <line x1="18" y1="14" x2="18" y2="18" />
-                      <line x1="14" y1="18" x2="18" y2="18" />
-                    </svg>
                   </div>
                 </div>
+                <h3 className="hiw-panel-title">Scan the QR Code</h3>
+                <p className="hiw-panel-desc">Open Liftio, point your camera at the machine's QR code. The exercise loads
+                  instantly.</p>
+                <div className="hiw-panel-line"></div>
               </div>
-              <h3 className="hiw-panel-title">Scan the QR Code</h3>
-              <p className="hiw-panel-desc">Open Liftio, point your camera at the machine's QR code. The exercise loads
-                instantly.</p>
-              <div className="hiw-panel-line"></div>
             </div>
             {/* Panel 2: Live set logging UI */}
             <div className="hiw-panel">
               <div className="hiw-panel-number">02</div>
-              <div className="hiw-panel-visual">
-                <div className="hiw-log-card">
-                  <div className="hiw-log-exercise">Bench Press</div>
-                  <div className="hiw-log-previous">Last session: 80kg × 10</div>
-                  <div className="hiw-log-inputs">
-                    <div className="hiw-log-field">
-                      <div className="hiw-log-label">WEIGHT</div>
-                      <div className="hiw-log-value"><span id="hiwWeight">0</span><span
-                        className="hiw-log-unit">kg</span></div>
+              <div className="hiw-glass-pane">
+                <div className="hiw-panel-visual">
+                  <div className="hiw-log-card">
+                    <div className="hiw-log-exercise">Bench Press</div>
+                    <div className="hiw-log-previous">Last session: 80kg × 10</div>
+                    <div className="hiw-log-inputs">
+                      <div className="hiw-log-field">
+                        <div className="hiw-log-label">WEIGHT</div>
+                        <div className="hiw-log-value"><span id="hiwWeight">0</span><span
+                          className="hiw-log-unit">kg</span></div>
+                      </div>
+                      <div className="hiw-log-x">×</div>
+                      <div className="hiw-log-field">
+                        <div className="hiw-log-label">REPS</div>
+                        <div className="hiw-log-value"><span id="hiwReps">0</span></div>
+                      </div>
                     </div>
-                    <div className="hiw-log-x">×</div>
-                    <div className="hiw-log-field">
-                      <div className="hiw-log-label">REPS</div>
-                      <div className="hiw-log-value"><span id="hiwReps">0</span></div>
-                    </div>
+                    <div className="hiw-log-btn" id="hiwLogBtn" style={{ 'cursor': 'pointer' }}>LOG SET</div>
+                    <div className="hiw-log-pb" id="hiwPR" style={{ 'visibility': 'hidden', 'opacity': '0', 'transition': 'opacity 0.4s ease, visibility 0.4s ease' }}>NEW PR! <span style={{ 'color': 'var(--accent)' }}>+5kg</span></div>
                   </div>
-                  <div className="hiw-log-btn" id="hiwLogBtn" style={{ 'cursor': 'pointer' }}>LOG SET</div>
-                  <div className="hiw-log-pb" id="hiwPR" style={{ 'visibility': 'hidden', 'opacity': '0', 'transition': 'opacity 0.4s ease, visibility 0.4s ease' }}>NEW PR! <span style={{ 'color': 'var(--accent)' }}>+5kg</span></div>
                 </div>
+                <h3 className="hiw-panel-title">Track Your Sets</h3>
+                <p className="hiw-panel-desc">Enter weight and reps. See your previous performance, personal bests, and projected
+                  targets.</p>
+                <div className="hiw-panel-line"></div>
               </div>
-              <h3 className="hiw-panel-title">Track Your Sets</h3>
-              <p className="hiw-panel-desc">Enter weight and reps. See your previous performance, personal bests, and projected
-                targets.</p>
-              <div className="hiw-panel-line"></div>
             </div>
             {/* Panel 3: Progress chart */}
             <div className="hiw-panel">
               <div className="hiw-panel-number">03</div>
-              <div className="hiw-panel-visual">
-                <div className="hiw-chart-card">
-                  <div className="hiw-chart-title">Bench Press — 12 weeks</div>
-                  <svg className="hiw-chart-svg" viewBox="-5 -5 290 130" fill="none">
-                    <defs>
-                      <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.3" />
-                        <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
-                      </linearGradient>
-                      <clipPath id="chartClip">
-                        <rect id="hiwChartClipRect" x="-5" y="-5" width="0" height="130" />
-                      </clipPath>
-                    </defs>
-                    <polyline id="hiwChartLine" className="hiw-chart-line" points="0,100 40,92 80,85 120,78 160,65 200,55 240,40 280,20"
-                      stroke="var(--accent)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"
-                      clipPath="url(#chartClip)" />
-                    <polygon className="hiw-chart-fill"
-                      points="0,100 40,92 80,85 120,78 160,65 200,55 240,40 280,20 280,120 0,120" fill="url(#chartGrad)"
-                      clipPath="url(#chartClip)" />
-                    <circle id="hiwChartDot" cx="0" cy="100" r="4" fill="var(--accent)" opacity="0" />
-                  </svg>
-                  <div className="hiw-chart-stats">
-                    <div className="hiw-chart-stat"><span id="hiwStatStrength" style={{ 'color': 'var(--accent)', 'fontWeight': '800' }}>+0%</span><br /><span
-                      style={{ 'color': 'var(--text-dim)', 'fontSize': '0.6rem' }}>STRENGTH</span></div>
-                    <div className="hiw-chart-stat"><span id="hiwStatSessions" style={{ 'color': 'var(--red-neon)', 'fontWeight': '800' }}>0</span><br /><span
-                      style={{ 'color': 'var(--text-dim)', 'fontSize': '0.6rem' }}>SESSIONS</span></div>
-                    <div className="hiw-chart-stat"><span id="hiwStatPRs" style={{ 'fontWeight': '800' }}>0</span><br /><span
-                      style={{ 'color': 'var(--text-dim)', 'fontSize': '0.6rem' }}>NEW PRs</span></div>
+              <div className="hiw-glass-pane">
+                <div className="hiw-panel-visual">
+                  <div className="hiw-chart-card">
+                    <div className="hiw-chart-title">Bench Press — 12 weeks</div>
+                    <svg className="hiw-chart-svg" viewBox="-5 -5 290 130" fill="none">
+                      <defs>
+                        <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.3" />
+                          <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
+                        </linearGradient>
+                        <clipPath id="chartClip">
+                          <rect id="hiwChartClipRect" x="-5" y="-5" width="0" height="130" />
+                        </clipPath>
+                      </defs>
+                      <polyline id="hiwChartLine" className="hiw-chart-line" points="0,100 40,92 80,85 120,78 160,65 200,55 240,40 280,20"
+                        stroke="var(--accent)" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"
+                        clipPath="url(#chartClip)" />
+                      <polygon className="hiw-chart-fill"
+                        points="0,100 40,92 80,85 120,78 160,65 200,55 240,40 280,20 280,120 0,120" fill="url(#chartGrad)"
+                        clipPath="url(#chartClip)" />
+                      <circle id="hiwChartDot" cx="0" cy="100" r="4" fill="var(--accent)" opacity="0" />
+                    </svg>
+                    <div className="hiw-chart-stats">
+                      <div className="hiw-chart-stat"><span id="hiwStatStrength" style={{ 'color': 'var(--accent)', 'fontWeight': '800' }}>+0%</span><br /><span
+                        style={{ 'color': 'var(--text-dim)', 'fontSize': '0.6rem' }}>STRENGTH</span></div>
+                      <div className="hiw-chart-stat"><span id="hiwStatSessions" style={{ 'color': 'var(--red-neon)', 'fontWeight': '800' }}>0</span><br /><span
+                        style={{ 'color': 'var(--text-dim)', 'fontSize': '0.6rem' }}>SESSIONS</span></div>
+                      <div className="hiw-chart-stat"><span id="hiwStatPRs" style={{ 'fontWeight': '800' }}>0</span><br /><span
+                        style={{ 'color': 'var(--text-dim)', 'fontSize': '0.6rem' }}>NEW PRs</span></div>
+                    </div>
                   </div>
                 </div>
+                <h3 className="hiw-panel-title">Watch Progress Compound</h3>
+                <p className="hiw-panel-desc">Over weeks and months, Liftio builds your complete strength story — every rep, every
+                  PR.</p>
+                <div className="hiw-panel-line"></div>
               </div>
-              <h3 className="hiw-panel-title">Watch Progress Compound</h3>
-              <p className="hiw-panel-desc">Over weeks and months, Liftio builds your complete strength story — every rep, every
-                PR.</p>
-              <div className="hiw-panel-line"></div>
             </div>
           </div>
           {/* red scrollbar removed */}

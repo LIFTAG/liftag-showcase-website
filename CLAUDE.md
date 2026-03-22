@@ -1,6 +1,6 @@
 # Liftio — liftio.fit
 
-Landing page for Liftio, a QR-code-based gym workout tracking app.
+Landing page for Liftio — the all-in-one fitness app for lifters. The vision is to become the only fitness app gym-goers ever need: the standard for anyone who trains. QR-code scanning on gym machines is the initial hook and a key differentiator, but the bigger picture is a complete platform covering tracking, analytics, coaching, community, and gym discovery. Every piece of copy and design should push this narrative — Liftio isn't just a QR scanner, it's the future of how people train.
 
 ## Stack
 
