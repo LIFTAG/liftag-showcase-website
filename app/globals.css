@@ -66,8 +66,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      background: rgba(0, 0, 0, 0.2);
       backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
       transition: background 0.4s ease;
     }
 
@@ -634,10 +634,13 @@
     }
 
     .laser-char.burn {
-      color: #00ff66 !important;
-      text-shadow: 0 0 2px #00ff66, 0 0 6px #00ff66, 0 0 12px #00ff66;
-      filter: brightness(2.5);
-      transition: color 0.06s, text-shadow 0.06s, filter 0.06s;
+      color: #eaffe8 !important;
+      text-shadow:
+        0 0 1px #fff,
+        0 0 4px #7ad877,
+        0 0 12px #7ad877,
+        0 0 24px rgba(122, 216, 119, 0.5);
+      transition: none;
     }
 
     .laser-char.gone {
@@ -1152,6 +1155,7 @@
       display: flex;
       gap: 12px;
       z-index: 10;
+      pointer-events: auto;
     }
 
     .hiw-dot {
@@ -1159,12 +1163,23 @@
       height: 8px;
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.15);
+      cursor: pointer;
       transition: all 0.4s ease;
+    }
+
+    .hiw-dot:hover {
+      background: rgba(255, 255, 255, 0.4);
+      transform: scale(1.3);
     }
 
     .hiw-dot.active {
       background: var(--red-neon);
       box-shadow: 0 0 10px var(--red-neon-glow);
+    }
+
+    .hiw-dot.active:hover {
+      background: var(--red-neon);
+      transform: scale(1.3);
     }
 
     /* ═══════════════════════════════════════

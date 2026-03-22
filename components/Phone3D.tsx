@@ -132,7 +132,7 @@ export default function Phone3D({ screenshotSrc }: Phone3DProps) {
     const tex = new THREE.TextureLoader().load(screenshotSrc);
     tex.colorSpace = THREE.SRGBColorSpace;
 
-    const screenMat = new THREE.MeshBasicMaterial({ map: tex });
+    const screenMat = new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
     const screen = new THREE.Mesh(screenGeo, screenMat);
     screen.position.z = D / 2 + 0.013;
 
@@ -236,11 +236,47 @@ export default function Phone3D({ screenshotSrc }: Phone3DProps) {
       const my = (e.clientY / window.innerHeight - 0.5) * 2;
       targetRotY = mx * 0.35;
       targetRotX = -my * 0.15;
-      // Move key light slightly with cursor for dynamic shine
       keyLight.position.x = 2 + mx * 1.5;
       keyLight.position.y = 3 - my * 1;
     };
     window.addEventListener("mousemove", onMouseMove);
+
+    // --- Gyroscope tilt for mobile ---
+    let gyroCleanup: (() => void) | null = null;
+
+    const onDeviceOrientation = (e: DeviceOrientationEvent) => {
+      if (e.gamma == null || e.beta == null) return;
+      // gamma: left/right tilt (-90..90), beta: front/back tilt (-180..180)
+      const mx = Math.max(-1, Math.min(1, e.gamma / 30));
+      const my = Math.max(-1, Math.min(1, (e.beta - 45) / 30));
+      targetRotY = mx * 0.35;
+      targetRotX = -my * 0.15;
+      keyLight.position.x = 2 + mx * 1.5;
+      keyLight.position.y = 3 - my * 1;
+    };
+
+    function enableGyro() {
+      window.addEventListener("deviceorientation", onDeviceOrientation);
+      gyroCleanup = () => window.removeEventListener("deviceorientation", onDeviceOrientation);
+    }
+
+    // Check if mobile/touch device
+    if ("ontouchstart" in window) {
+      const DOE = DeviceOrientationEvent as any;
+      if (typeof DOE.requestPermission === "function") {
+        // iOS 13+ requires permission on user gesture
+        const requestOnTouch = () => {
+          DOE.requestPermission().then((state: string) => {
+            if (state === "granted") enableGyro();
+          }).catch(() => {});
+          window.removeEventListener("touchstart", requestOnTouch, true);
+        };
+        window.addEventListener("touchstart", requestOnTouch, true);
+        gyroCleanup = () => window.removeEventListener("touchstart", requestOnTouch, true);
+      } else {
+        enableGyro();
+      }
+    }
 
     function animate() {
       animId = requestAnimationFrame(animate);
@@ -264,6 +300,7 @@ export default function Phone3D({ screenshotSrc }: Phone3DProps) {
     cleanupRef.current = () => {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("resize", onResize);
+      gyroCleanup?.();
       cancelAnimationFrame(animId);
       renderer.dispose();
       if (container.contains(renderer.domElement)) {
