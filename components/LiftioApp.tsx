@@ -1201,17 +1201,39 @@ export default function LiftioApp() {
       document.getElementById('dz3')
     ];
     const ownerBlocks = document.querySelectorAll('[data-dash]');
+    const dashColEl = document.querySelector('.owners-dash-col') as HTMLElement;
+    const ownersSplitEl = document.querySelector('.owners-split') as HTMLElement;
+    const featuresColEl = document.querySelector('.owners-features-col') as HTMLElement;
+    let dashMobileLastIdx = -1;
+
     const dashObserver = new IntersectionObserver((entries) => {
       entries.forEach(e => {
         if (e.isIntersecting) {
           e.target.classList.add('visible');
-          const idx = parseInt(e.target.dataset.dash);
-          dashZones.forEach((z, i) => z.classList.toggle('active', i === idx));
-          ownerBlocks.forEach(b => b.classList.toggle('active-block', parseInt(b.dataset.dash) === idx));
+          const idx = parseInt((e.target as HTMLElement).dataset.dash!);
+          dashZones.forEach((z, i) => z?.classList.toggle('active', i === idx));
+          ownerBlocks.forEach(b => b.classList.toggle('active-block', parseInt((b as HTMLElement).dataset.dash!) === idx));
+
+          // Mobile: move dashboard after the active feature block
+          if (window.innerWidth <= 900 && dashColEl && idx !== dashMobileLastIdx) {
+            dashMobileLastIdx = idx;
+            const activeBlock = e.target as HTMLElement;
+            activeBlock.after(dashColEl);
+          }
         }
       });
     }, { threshold: 0.15, rootMargin: '-30% 0px -30% 0px' });
     ownerBlocks.forEach(el => dashObserver.observe(el));
+
+    // Restore dashboard to original position on resize to desktop
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 900 && dashColEl && ownersSplitEl) {
+        if (dashColEl.parentElement !== ownersSplitEl) {
+          ownersSplitEl.insertBefore(dashColEl, featuresColEl);
+          dashMobileLastIdx = -1;
+        }
+      }
+    });
 
     /* ═══════════════════════════════════════
        GYM OWNERS — Living Dashboard Simulation

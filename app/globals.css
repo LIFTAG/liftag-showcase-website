@@ -2301,16 +2301,20 @@
       }
 
       .owners-dash-col {
-        position: sticky;
-        top: 72px;
+        position: relative;
+        top: auto;
         transform: none !important;
         width: 100%;
-        z-index: 5;
-        padding-bottom: 20px;
+        margin: 20px 0;
       }
 
       .owners-features-col {
         padding: 20px 0 40px;
+      }
+
+      /* When dashboard is moved inside features col on mobile */
+      .owners-features-col .owners-dash-col {
+        margin: 12px 0 32px;
       }
 
       .owner-feature-block {
