@@ -2301,16 +2301,16 @@
       }
 
       .owners-dash-col {
-        position: relative;
-        top: auto;
+        position: sticky;
+        top: 72px;
         transform: none !important;
         width: 100%;
-        order: 2;
+        z-index: 5;
+        padding-bottom: 20px;
       }
 
       .owners-features-col {
-        padding: 20px 0 0;
-        order: 1;
+        padding: 20px 0 40px;
       }
 
       .owner-feature-block {
