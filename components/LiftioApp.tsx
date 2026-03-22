@@ -10,6 +10,16 @@ export default function LiftioApp() {
   useEffect(() => {
     'use strict';
 
+    // Console easter egg for devs
+    console.log(
+      '%c⚡ LIFTIO',
+      'color: #c8ff00; font-size: 28px; font-weight: 900; text-shadow: 0 0 20px rgba(200,255,0,0.5); background: #000; padding: 12px 20px; border-radius: 8px;'
+    );
+    console.log(
+      '%cBuilt with obsessive attention to detail.\nThink you can keep up? → liftio.fit/careers',
+      'color: rgba(255,255,255,0.5); font-size: 11px; line-height: 1.8;'
+    );
+
     // Mount Three.js phone into container
     const phone3dContainer = document.getElementById('phone3dContainer');
     if (phone3dContainer) {
@@ -124,6 +134,8 @@ export default function LiftioApp() {
           setTimeout(() => document.getElementById('navLink2')?.classList.add('nav-in'), 600);
           setTimeout(() => document.getElementById('navLink3')?.classList.add('nav-in'), 700);
           setTimeout(() => document.getElementById('navCta')?.classList.add('nav-in'), 500);
+          // Show scroll hint after nav finishes entering
+          setTimeout(() => document.getElementById('scrollHint')?.classList.add('visible'), 1200);
         }
       }
       requestAnimationFrame(animate);
@@ -509,10 +521,16 @@ export default function LiftioApp() {
     let scrollTimeout: any = null;
 
     // Track scroll state for efficient updates
+    let scrollHintHidden = false;
     window.addEventListener('scroll', () => {
       isScrolling = true;
       if (scrollTimeout) clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => { isScrolling = false; }, 150);
+      // Hide scroll hint on first meaningful scroll
+      if (!scrollHintHidden && window.scrollY > 80) {
+        scrollHintHidden = true;
+        document.getElementById('scrollHint')?.classList.remove('visible');
+      }
     }, { passive: true });
 
     function tick() {
@@ -624,6 +642,27 @@ export default function LiftioApp() {
     }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
 
     document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    /* ═══════════════════════════════════════
+       ACTIVE NAV SECTION TRACKING
+    ═══════════════════════════════════════ */
+    const navSectionLinks = document.querySelectorAll('.nav-links a');
+    const sectionIds = ['how', 'features', 'owners', 'roadmap'];
+    const navSectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          navSectionLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            link.classList.toggle('nav-section-active', href === '#' + id);
+          });
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '-20% 0px -60% 0px' });
+    sectionIds.forEach(id => {
+      const section = document.getElementById(id);
+      if (section) navSectionObserver.observe(section);
+    });
 
     /* ═══════════════════════════════════════
        SCENE 2 SCRAMBLE TEXT
@@ -1026,18 +1065,24 @@ export default function LiftioApp() {
     // Chart data points for dot positioning
     const chartPts: [number, number][] = [[0, 100], [40, 92], [80, 85], [120, 78], [160, 65], [200, 55], [240, 40], [280, 20]];
 
-    // Dot click → smooth scroll to corresponding panel
+    // Dot click/keyboard → smooth scroll to corresponding panel
     hiwDots.forEach((dot, i) => {
       (dot as HTMLElement).style.cursor = 'pointer';
-      dot.addEventListener('click', () => {
+      const scrollToPanel = () => {
         if (!hiwSection) return;
         const rect = hiwSection.getBoundingClientRect();
         const sectionH = rect.height - window.innerHeight;
-        // Panel targets: 0 → p=0, 1 → p=0.5, 2 → p=1.0
         const targetP = i / 2;
         const sectionTop = window.scrollY + rect.top;
         const targetScroll = sectionTop + targetP * sectionH;
         window.scrollTo({ top: targetScroll, behavior: 'smooth' });
+      };
+      dot.addEventListener('click', scrollToPanel);
+      dot.addEventListener('keydown', (e: any) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          scrollToPanel();
+        }
       });
     });
 
@@ -1045,6 +1090,34 @@ export default function LiftioApp() {
       if (hiwWeightEl.textContent === '85' && hiwRepsEl.textContent === '9') {
         hiwPREl.style.visibility = 'visible';
         hiwPREl.style.opacity = '1';
+        // Sparkle celebration burst
+        const rect = hiwPREl.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        for (let i = 0; i < 12; i++) {
+          const spark = document.createElement('div');
+          spark.className = 'pr-sparkle';
+          const angle = (Math.PI * 2 / 12) * i + (Math.random() - 0.5) * 0.4;
+          const dist = 25 + Math.random() * 35;
+          const isGreen = Math.random() > 0.3;
+          spark.style.left = cx + 'px';
+          spark.style.top = cy + 'px';
+          spark.style.background = isGreen ? 'var(--accent)' : 'var(--red-neon)';
+          spark.style.boxShadow = isGreen
+            ? '0 0 6px var(--accent), 0 0 12px var(--accent-glow)'
+            : '0 0 6px var(--red-neon), 0 0 12px var(--red-neon-glow)';
+          spark.style.setProperty('--sx', Math.cos(angle) * dist + 'px');
+          spark.style.setProperty('--sy', Math.sin(angle) * dist + 'px');
+          document.body.appendChild(spark);
+          setTimeout(() => spark.remove(), 700);
+        }
+      }
+    });
+    // Keyboard support for LOG SET button
+    hiwLogBtn.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        hiwLogBtn.click();
       }
     });
 
@@ -1060,7 +1133,11 @@ export default function LiftioApp() {
       drawHIWCurve(p);
       // Dots
       const activeIdx = Math.min(2, Math.floor(p * 3));
-      hiwDots.forEach((d, i) => d.classList.toggle('active', i === activeIdx));
+      hiwDots.forEach((d, i) => {
+        const isActive = i === activeIdx;
+        d.classList.toggle('active', isActive);
+        d.setAttribute('aria-selected', String(isActive));
+      });
 
       // Panel 2 weight/reps: fully incremented by the time panel 2 is centered
       // Panel 2 is centered at p=0.5. Ramp from p=0.35 to p=0.5
@@ -1224,6 +1301,27 @@ export default function LiftioApp() {
         if (qrShuffleInterval) clearInterval(qrShuffleInterval);
       });
     }
+
+    /* ═══════════════════════════════════════
+       FEATURE CARDS — 3D Tilt + Glow Follow
+    ═══════════════════════════════════════ */
+    document.querySelectorAll('.feat-card').forEach((card: any) => {
+      card.addEventListener('mousemove', (e: MouseEvent) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = ((y - centerY) / centerY) * -4;
+        const rotateY = ((x - centerX) / centerX) * 4;
+        card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        card.style.setProperty('--glow-x', x + 'px');
+        card.style.setProperty('--glow-y', y + 'px');
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
+      });
+    });
 
     const featSection = document.getElementById('features');
     function updateFeaturesBg() {}
@@ -1570,7 +1668,7 @@ export default function LiftioApp() {
         <div className="hero-actions hero-element" id="heroActions">
           <a href="#cta" className="btn-primary">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-              strokeLinecap="round" strokeLinejoin="round">
+              strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
             Get Started
@@ -1579,6 +1677,11 @@ export default function LiftioApp() {
         </div>
       </div>
 
+      {/* Scroll hint */}
+      <div className="scroll-hint" id="scrollHint">
+        <span className="scroll-hint-text">Scroll</span>
+        <div className="scroll-hint-line"></div>
+      </div>
 
       {/* Scrollytelling runway */}
       <div className="scroll-runway" id="scrollRunway">
@@ -1671,7 +1774,7 @@ export default function LiftioApp() {
                         <div className="hiw-log-value"><span id="hiwReps">0</span></div>
                       </div>
                     </div>
-                    <div className="hiw-log-btn" id="hiwLogBtn" style={{ 'cursor': 'pointer' }}>LOG SET</div>
+                    <div className="hiw-log-btn" id="hiwLogBtn" role="button" tabIndex={0} style={{ 'cursor': 'pointer' }}>LOG SET</div>
                     <div className="hiw-log-pb" id="hiwPR" style={{ 'visibility': 'hidden', 'opacity': '0', 'transition': 'opacity 0.4s ease, visibility 0.4s ease' }}>NEW PR! <span style={{ 'color': 'var(--accent)' }}>+5kg</span></div>
                   </div>
                 </div>
@@ -1724,10 +1827,10 @@ export default function LiftioApp() {
             </div>
           </div>
           {/* red scrollbar removed */}
-          <div className="hiw-dots" id="hiwDots">
-            <div className="hiw-dot active"></div>
-            <div className="hiw-dot"></div>
-            <div className="hiw-dot"></div>
+          <div className="hiw-dots" id="hiwDots" role="tablist" aria-label="How it works steps">
+            <div className="hiw-dot active" role="tab" tabIndex={0} aria-label="Step 1: Scan" aria-selected="true"></div>
+            <div className="hiw-dot" role="tab" tabIndex={0} aria-label="Step 2: Track" aria-selected="false"></div>
+            <div className="hiw-dot" role="tab" tabIndex={0} aria-label="Step 3: Progress" aria-selected="false"></div>
           </div>
         </div>
       </section>
@@ -1761,7 +1864,7 @@ export default function LiftioApp() {
           </div>
           <div className="feature-info">
             <div className="feature-number">01 — PROGRESSIVE OVERLOAD</div>
-            <h3 className="feature-title">Your previous sets, PBs, and projected targets — the moment you scan.</h3>
+            <h3 className="feature-title">Your previous sets, PRs, and projected targets — the moment you scan.</h3>
             <p className="feature-desc">No more guessing what you lifted last week. Liftio remembers everything and shows you
               exactly what to beat today.</p>
           </div>
@@ -1800,7 +1903,7 @@ export default function LiftioApp() {
           <div className="feature-visual">
             <div className="feat-card" style={{ 'justifyContent': 'center', 'gap': '12px' }}>
               <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.2"
-                strokeLinecap="round" opacity="0.7">
+                strokeLinecap="round" opacity="0.7" aria-hidden="true">
                 <polygon points="23 7 16 12 23 17 23 7" />
                 <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
               </svg>
@@ -2072,8 +2175,8 @@ export default function LiftioApp() {
           </div>
           <div className="cta-ticker-row" style={{ '--ticker-speed': '120s', '--ticker-dir': '1' } as React.CSSProperties}>
             <div className="cta-ticker-track">
-              <span className="ticker-g">+15% Strength</span><span className="ticker-g">225lb × 5</span><span className="ticker-g">7 DAYS</span><span className="ticker-r">-5lb</span><span className="ticker-g">REP PR!</span><span className="ticker-g">Cable Row 60kg</span><span className="ticker-g">1RM 120kg</span><span className="ticker-g">+20%</span><span className="ticker-r">-2%</span><span className="ticker-g">42 SESSIONS</span><span className="ticker-g">Leg Press 180kg</span><span className="ticker-g">3×8</span><span className="ticker-g">↑ VOL</span><span className="ticker-g">PB!</span>
-              <span className="ticker-g">+15% Strength</span><span className="ticker-g">225lb × 5</span><span className="ticker-g">7 DAYS</span><span className="ticker-r">-5lb</span><span className="ticker-g">REP PR!</span><span className="ticker-g">Cable Row 60kg</span><span className="ticker-g">1RM 120kg</span><span className="ticker-g">+20%</span><span className="ticker-r">-2%</span><span className="ticker-g">42 SESSIONS</span><span className="ticker-g">Leg Press 180kg</span><span className="ticker-g">3×8</span><span className="ticker-g">↑ VOL</span><span className="ticker-g">PB!</span>
+              <span className="ticker-g">+15% Strength</span><span className="ticker-g">225lb × 5</span><span className="ticker-g">7 DAYS</span><span className="ticker-r">-5lb</span><span className="ticker-g">REP PR!</span><span className="ticker-g">Cable Row 60kg</span><span className="ticker-g">1RM 120kg</span><span className="ticker-g">+20%</span><span className="ticker-r">-2%</span><span className="ticker-g">42 SESSIONS</span><span className="ticker-g">Leg Press 180kg</span><span className="ticker-g">3×8</span><span className="ticker-g">↑ VOL</span><span className="ticker-g">PR!</span>
+              <span className="ticker-g">+15% Strength</span><span className="ticker-g">225lb × 5</span><span className="ticker-g">7 DAYS</span><span className="ticker-r">-5lb</span><span className="ticker-g">REP PR!</span><span className="ticker-g">Cable Row 60kg</span><span className="ticker-g">1RM 120kg</span><span className="ticker-g">+20%</span><span className="ticker-r">-2%</span><span className="ticker-g">42 SESSIONS</span><span className="ticker-g">Leg Press 180kg</span><span className="ticker-g">3×8</span><span className="ticker-g">↑ VOL</span><span className="ticker-g">PR!</span>
             </div>
           </div>
           <div className="cta-ticker-row" style={{ '--ticker-speed': '95s', '--ticker-dir': '-1' } as React.CSSProperties}>
@@ -2084,8 +2187,8 @@ export default function LiftioApp() {
           </div>
           <div className="cta-ticker-row" style={{ '--ticker-speed': '140s', '--ticker-dir': '1' } as React.CSSProperties}>
             <div className="cta-ticker-track">
-              <span className="ticker-g">+25lb</span><span className="ticker-g">OHP 60kg × 6</span><span className="ticker-g">PB! Deadlift</span><span className="ticker-g">3×8 Rows</span><span className="ticker-r">MISSED</span><span className="ticker-g">90kg × 3</span><span className="ticker-g">+3%</span><span className="ticker-g">14 WEEK STREAK</span><span className="ticker-g">Incline Bench 65kg</span><span className="ticker-g">REP PR!</span><span className="ticker-r">-2.5kg</span><span className="ticker-g">4×10</span><span className="ticker-g">+5kg</span><span className="ticker-g">VOLUME ↑</span>
-              <span className="ticker-g">+25lb</span><span className="ticker-g">OHP 60kg × 6</span><span className="ticker-g">PB! Deadlift</span><span className="ticker-g">3×8 Rows</span><span className="ticker-r">MISSED</span><span className="ticker-g">90kg × 3</span><span className="ticker-g">+3%</span><span className="ticker-g">14 WEEK STREAK</span><span className="ticker-g">Incline Bench 65kg</span><span className="ticker-g">REP PR!</span><span className="ticker-r">-2.5kg</span><span className="ticker-g">4×10</span><span className="ticker-g">+5kg</span><span className="ticker-g">VOLUME ↑</span>
+              <span className="ticker-g">+25lb</span><span className="ticker-g">OHP 60kg × 6</span><span className="ticker-g">PR! Deadlift</span><span className="ticker-g">3×8 Rows</span><span className="ticker-r">MISSED</span><span className="ticker-g">90kg × 3</span><span className="ticker-g">+3%</span><span className="ticker-g">14 WEEK STREAK</span><span className="ticker-g">Incline Bench 65kg</span><span className="ticker-g">REP PR!</span><span className="ticker-r">-2.5kg</span><span className="ticker-g">4×10</span><span className="ticker-g">+5kg</span><span className="ticker-g">VOLUME ↑</span>
+              <span className="ticker-g">+25lb</span><span className="ticker-g">OHP 60kg × 6</span><span className="ticker-g">PR! Deadlift</span><span className="ticker-g">3×8 Rows</span><span className="ticker-r">MISSED</span><span className="ticker-g">90kg × 3</span><span className="ticker-g">+3%</span><span className="ticker-g">14 WEEK STREAK</span><span className="ticker-g">Incline Bench 65kg</span><span className="ticker-g">REP PR!</span><span className="ticker-r">-2.5kg</span><span className="ticker-g">4×10</span><span className="ticker-g">+5kg</span><span className="ticker-g">VOLUME ↑</span>
             </div>
           </div>
           <div className="cta-ticker-row" style={{ '--ticker-speed': '70s', '--ticker-dir': '-1' } as React.CSSProperties}>
@@ -2107,14 +2210,14 @@ export default function LiftioApp() {
           <p className="cta-desc reveal reveal-delay-2">Join the early access waitlist. Be first to bring Liftio to your gym.
           </p>
           <div className="hero-actions reveal reveal-delay-3">
-            <a href="#" className="btn-primary btn-primary-glow">
+            <a href="#cta" className="btn-primary btn-primary-glow">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-                strokeLinecap="round" strokeLinejoin="round">
+                strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
               Get Early Access
             </a>
-            <a href="#" className="btn-secondary">Contact Us</a>
+            <a href="#cta" className="btn-secondary">Contact Us</a>
           </div>
         </div>
       </section>
