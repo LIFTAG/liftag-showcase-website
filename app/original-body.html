@@ -1,0 +1,494 @@
+
+  <!-- Intro Reveal -->
+  <div class="intro-reveal" id="introReveal">
+    <canvas id="introCanvas"></canvas>
+  </div>
+
+
+  <!-- Scroll progress -->
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <a href="#" class="nav-brand">
+      <div class="nav-logo"><img src="logo.png" alt="Liftio"></div>
+      <span class="nav-wordmark">Liftio</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#how">How It Works</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#owners">For Gyms</a></li>
+      <li><a href="#roadmap">Roadmap</a></li>
+    </ul>
+    <a href="#cta" class="nav-cta">Get Early Access</a>
+  </nav>
+
+  <!-- ═══ CANVAS (scrollytelling) ═══ -->
+  <div class="canvas-viewport" id="canvasViewport">
+    <canvas id="frameCanvas"></canvas>
+  </div>
+  <div class="video-overlay" id="videoOverlay"></div>
+
+  <!-- Phone mockup -->
+  <div class="phone-mockup" id="phoneMockup">
+    <div class="phone-mockup-inner" id="phoneInner">
+      <div class="phone-glow" id="phoneGlow"></div>
+      <img src="screenshot1.png" alt="Liftio App">
+    </div>
+  </div>
+
+  <!-- Hero content -->
+  <div class="hero-content" id="heroContent">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Now in early access
+    </div>
+    <div class="hero-logo-icon"><img src="logo.png" alt="Liftio"></div>
+    <h1 class="hero-title">
+      <span class="line scan-reveal">Scan.</span>
+      <span class="line accent track-reveal" data-text="Track."></span>
+      <span class="line progress-reveal"><span class="prog-text-clip"><span
+            class="prog-text">Progress.</span></span><span class="prog-mask"></span></span>
+    </h1>
+    <p class="hero-sub">QR codes on every machine. Instant workout tracking. Zero friction between you and your gains.
+    </p>
+    <div class="hero-actions">
+      <a href="#cta" class="btn-primary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+        Get Started
+      </a>
+      <a href="#how" class="btn-secondary">See How It Works</a>
+    </div>
+  </div>
+
+
+  <!-- Scrollytelling runway -->
+  <div class="scroll-runway" id="scrollRunway">
+    <div class="scroll-content">
+      <section class="scene-section" data-scene="0">
+        <div class="scene-text" id="text0">
+          <div class="scene-number">01</div>
+          <h2 class="scene-heading">Walk up. Scan the code.</h2>
+          <p class="scene-desc">Every machine in your gym has a Liftio QR code. One scan and you're tracking — no
+            searching, no setup.</p>
+        </div>
+      </section>
+      <section class="scene-section" data-scene="1">
+        <div class="scene-text" id="text1">
+          <div class="scene-number">02</div>
+          <h2 class="scene-heading scramble-text" data-final="See your history. Beat it."></h2>
+          <p class="scene-desc scramble-text"
+            data-final="Instantly see your last performance, personal bests, and projected targets. Progressive overload, automated.">
+          </p>
+        </div>
+      </section>
+      <section class="scene-section" data-scene="2" style="height: 300vh;">
+        <div class="scene-text" id="text2">
+          <div class="scene-number">03</div>
+          <h2 class="scene-heading">Log and move on.</h2>
+          <p class="scene-desc">Weight. Reps. Save. The fastest logging flow in fitness — so you stay in the zone.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Transition -->
+  <div class="section-transition"></div>
+
+  <!-- ═══ HOW IT WORKS — Horizontal Scroll ═══ -->
+  <section class="section hiw-section" id="how">
+    <div class="hiw-sticky">
+      <div class="hiw-header">
+        <div class="section-label">How It Works</div>
+      </div>
+      <div class="hiw-track" id="hiwTrack">
+        <!-- Panel 1: Animated QR scan -->
+        <div class="hiw-panel">
+          <div class="hiw-panel-number">01</div>
+          <div class="hiw-panel-visual">
+            <div class="hiw-phone-frame">
+              <div class="hiw-scan-area">
+                <div class="hiw-scan-corners">
+                  <span></span><span></span><span></span><span></span>
+                </div>
+                <div class="hiw-scan-line"></div>
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1"
+                  opacity="0.4">
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                  <rect x="14" y="14" width="4" height="4" />
+                  <line x1="18" y1="14" x2="18" y2="18" />
+                  <line x1="14" y1="18" x2="18" y2="18" />
+                </svg>
+              </div>
+            </div>
+          </div>
+          <h3 class="hiw-panel-title">Scan the QR Code</h3>
+          <p class="hiw-panel-desc">Open Liftio, point your camera at the machine's QR code. The exercise loads
+            instantly.</p>
+          <div class="hiw-panel-line"></div>
+        </div>
+        <!-- Panel 2: Live set logging UI -->
+        <div class="hiw-panel">
+          <div class="hiw-panel-number">02</div>
+          <div class="hiw-panel-visual">
+            <div class="hiw-log-card">
+              <div class="hiw-log-exercise">Bench Press</div>
+              <div class="hiw-log-previous">Last session: 80kg × 10</div>
+              <div class="hiw-log-inputs">
+                <div class="hiw-log-field">
+                  <div class="hiw-log-label">WEIGHT</div>
+                  <div class="hiw-log-value"><span class="hiw-counter" data-to="85">0</span><span
+                      class="hiw-log-unit">kg</span></div>
+                </div>
+                <div class="hiw-log-x">×</div>
+                <div class="hiw-log-field">
+                  <div class="hiw-log-label">REPS</div>
+                  <div class="hiw-log-value"><span class="hiw-counter" data-to="10">0</span></div>
+                </div>
+              </div>
+              <div class="hiw-log-btn">LOG SET</div>
+              <div class="hiw-log-pb">NEW PR! <span style="color:var(--accent);">+5kg</span></div>
+            </div>
+          </div>
+          <h3 class="hiw-panel-title">Track Your Sets</h3>
+          <p class="hiw-panel-desc">Enter weight and reps. See your previous performance, personal bests, and projected
+            targets.</p>
+          <div class="hiw-panel-line"></div>
+        </div>
+        <!-- Panel 3: Progress chart -->
+        <div class="hiw-panel">
+          <div class="hiw-panel-number">03</div>
+          <div class="hiw-panel-visual">
+            <div class="hiw-chart-card">
+              <div class="hiw-chart-title">Bench Press — 12 weeks</div>
+              <svg class="hiw-chart-svg" viewBox="0 0 280 120" fill="none">
+                <polyline class="hiw-chart-line" points="0,100 40,92 80,85 120,78 160,65 200,55 240,40 280,20"
+                  stroke="var(--accent)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.3" />
+                  <stop offset="100%" stop-color="var(--accent)" stop-opacity="0" />
+                </linearGradient>
+                <polygon class="hiw-chart-fill"
+                  points="0,100 40,92 80,85 120,78 160,65 200,55 240,40 280,20 280,120 0,120" fill="url(#chartGrad)" />
+              </svg>
+              <div class="hiw-chart-stats">
+                <div class="hiw-chart-stat"><span style="color:var(--accent);font-weight:800;">+32%</span><br><span
+                    style="color:var(--text-dim);font-size:0.6rem;">STRENGTH</span></div>
+                <div class="hiw-chart-stat"><span style="color:var(--red-neon);font-weight:800;">24</span><br><span
+                    style="color:var(--text-dim);font-size:0.6rem;">SESSIONS</span></div>
+                <div class="hiw-chart-stat"><span style="font-weight:800;">7</span><br><span
+                    style="color:var(--text-dim);font-size:0.6rem;">NEW PRs</span></div>
+              </div>
+            </div>
+          </div>
+          <h3 class="hiw-panel-title">Watch Progress Compound</h3>
+          <p class="hiw-panel-desc">Over weeks and months, Liftio builds your complete strength story — every rep, every
+            PR.</p>
+          <div class="hiw-panel-line"></div>
+        </div>
+      </div>
+      <div class="red-scrollbar" id="redScrollbar">
+        <div class="red-scrollbar-thumb" id="redThumb"></div>
+      </div>
+      <div class="hiw-dots" id="hiwDots">
+        <div class="hiw-dot active"></div>
+        <div class="hiw-dot"></div>
+        <div class="hiw-dot"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FEATURES — Alternating Rows ═══ -->
+  <section class="section features-section" id="features">
+    <div class="section-inner">
+      <div class="section-label reveal">Features</div>
+      <h2 class="section-title reveal reveal-delay-1">Built for lifters<br>who mean business.</h2>
+      <p class="section-subtitle reveal reveal-delay-2">Every feature serves one goal: keep you progressing with zero
+        wasted time.</p>
+    </div>
+
+    <div class="feature-row" data-feat>
+      <div class="feature-visual">
+        <div class="feat-card">
+          <div class="mini-bars">
+            <div class="mini-bar"></div>
+            <div class="mini-bar"></div>
+            <div class="mini-bar"></div>
+            <div class="mini-bar"></div>
+            <div class="mini-bar"></div>
+            <div class="mini-bar"></div>
+            <div class="mini-bar"></div>
+            <div class="mini-bar"></div>
+            <div class="mini-bar"></div>
+          </div>
+        </div>
+      </div>
+      <div class="feature-info">
+        <div class="feature-number">01 — PROGRESSIVE OVERLOAD</div>
+        <h3 class="feature-title">Your previous sets, PBs, and projected targets — the moment you scan.</h3>
+        <p class="feature-desc">No more guessing what you lifted last week. Liftio remembers everything and shows you
+          exactly what to beat today.</p>
+      </div>
+    </div>
+
+    <div class="feature-row" data-feat>
+      <div class="feature-visual">
+        <div class="feat-card" style="justify-content:center;">
+          <div class="feat-stat counter" data-target="2" data-suffix="s" data-decimal="0">&lt;2s</div>
+          <div class="feat-stat-sub">Scan to log — the fastest in fitness</div>
+        </div>
+      </div>
+      <div class="feature-info">
+        <div class="feature-number">02 — AUTOMATIC SESSIONS</div>
+        <h3 class="feature-title">Your first scan starts a session. Your last set ends it.</h3>
+        <p class="feature-desc">After 60 minutes of inactivity, the session auto-closes and timestamps your final set.
+          Zero buttons, zero friction.</p>
+      </div>
+    </div>
+
+    <div class="feature-row" data-feat>
+      <div class="feature-visual">
+        <div class="feat-card" style="justify-content:center;">
+          <div class="qr-grid" id="qrGrid"></div>
+        </div>
+      </div>
+      <div class="feature-info">
+        <div class="feature-number">03 — QR-LINKED MACHINES</div>
+        <h3 class="feature-title">Each code maps to the exact machine you're standing at.</h3>
+        <p class="feature-desc">Assigned exercises, custom instructions, form videos, and your entire history on that
+          specific machine — all linked to one QR code.</p>
+      </div>
+    </div>
+
+    <div class="feature-row" data-feat>
+      <div class="feature-visual">
+        <div class="feat-card" style="justify-content:center; gap: 12px;">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.2"
+            stroke-linecap="round" opacity="0.7">
+            <polygon points="23 7 16 12 23 17 23 7" />
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+          </svg>
+          <div
+            style="font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--text-dim); letter-spacing:0.1em;">
+            ► <span id="videoTimer">0:42</span> — BENCH PRESS FORM</div>
+        </div>
+      </div>
+      <div class="feature-info">
+        <div class="feature-number">04 — MACHINE-SPECIFIC VIDEOS</div>
+        <h3 class="feature-title">Don't know the exercise? Tap play.</h3>
+        <p class="feature-desc">Form videos filmed on the exact machine you're standing at. Target muscle diagrams and
+          step-by-step instructions included.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FOR GYM OWNERS — Split Screen ═══ -->
+  <section class="section" id="owners">
+    <div class="section-inner" style="padding-bottom:0;">
+      <div class="section-label reveal">For Gym Owners</div>
+      <h2 class="section-title reveal reveal-delay-1">Digitize your floor<br>in an afternoon.</h2>
+      <p class="section-subtitle reveal reveal-delay-2">Give your members a premium digital experience. Give yourself
+        actionable usage data.</p>
+    </div>
+    <div class="owners-split">
+      <div class="owners-dash-col">
+        <div class="dash-mockup">
+          <div class="dash-topbar">
+            <div class="dash-dot r"></div>
+            <div class="dash-dot y"></div>
+            <div class="dash-dot g"></div>
+            <span class="dash-topbar-title">LIFTIO DASHBOARD</span>
+          </div>
+          <div class="dash-body">
+            <div class="dash-zone active" id="dz0">
+              <div class="dash-zone-label">EQUIPMENT</div>
+              <div class="dash-mini-grid">
+                <div class="dash-mini-item"></div>
+                <div class="dash-mini-item"></div>
+                <div class="dash-mini-item"></div>
+                <div class="dash-mini-item"></div>
+                <div class="dash-mini-item"></div>
+                <div class="dash-mini-item"></div>
+                <div class="dash-mini-item"></div>
+                <div class="dash-mini-item"></div>
+              </div>
+            </div>
+            <div class="dash-zone" id="dz1">
+              <div class="dash-zone-label">QR CODES</div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5">
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                </svg>
+                <div
+                  style="padding:4px 12px;background:var(--accent-dim);border-radius:6px;font-size:0.6rem;font-weight:700;color:var(--accent);letter-spacing:0.1em;">
+                  GENERATE</div>
+              </div>
+            </div>
+            <div class="dash-zone" id="dz2">
+              <div class="dash-zone-label">ANALYTICS</div>
+              <div class="dash-mini-bars">
+                <div class="dash-mini-bar" style="height:30%;opacity:0.4;"></div>
+                <div class="dash-mini-bar" style="height:55%;opacity:0.6;"></div>
+                <div class="dash-mini-bar" style="height:45%;opacity:0.5;"></div>
+                <div class="dash-mini-bar" style="height:80%;opacity:0.8;"></div>
+                <div class="dash-mini-bar" style="height:65%;opacity:0.7;"></div>
+                <div class="dash-mini-bar" style="height:100%;"></div>
+              </div>
+            </div>
+            <div class="dash-zone" id="dz3">
+              <div class="dash-zone-label">MEMBER EXPERIENCE</div>
+              <div style="display:flex;gap:4px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--accent)" stroke="none">
+                  <polygon
+                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--accent)" stroke="none">
+                  <polygon
+                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--accent)" stroke="none">
+                  <polygon
+                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--accent)" stroke="none">
+                  <polygon
+                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,255,255,0.15)" stroke="none">
+                  <polygon
+                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="owners-features-col">
+        <div class="owner-feature-block reveal" data-dash="0">
+          <div class="feature-number">EQUIPMENT MANAGEMENT</div>
+          <h3 class="feature-title">Add machines, assign exercises, upload custom form videos, and generate QR codes —
+            all from one dashboard.</h3>
+          <p class="feature-desc">Every machine gets a digital profile with instructions, target muscles, and linked
+            exercises.</p>
+        </div>
+        <div class="owner-feature-block reveal" data-dash="1">
+          <div class="feature-number">QR CODE GENERATION</div>
+          <h3 class="feature-title">Generate unique QR PDFs to print and stick, or link pre-printed stickers.</h3>
+          <p class="feature-desc">Scan or input a physical sticker's ID and link it to the digital machine profile.
+            Flexible for any gym setup.</p>
+        </div>
+        <div class="owner-feature-block reveal" data-dash="2">
+          <div class="feature-number">USAGE ANALYTICS</div>
+          <h3 class="feature-title">See which machines get the most scans, peak hours, and equipment trends.</h3>
+          <p class="feature-desc">Data-driven decisions for your facility — know what equipment your members actually
+            use.</p>
+        </div>
+        <div class="owner-feature-block reveal" data-dash="3">
+          <div class="feature-number">PREMIUM EXPERIENCE</div>
+          <h3 class="feature-title">Stand out from every other gym with a smart, branded workout experience.</h3>
+          <p class="feature-desc">Your members get intelligent tracking that keeps them coming back. Retention through
+            innovation.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ ROADMAP — Centered Alternating Timeline ═══ -->
+  <section class="section" id="roadmap">
+    <div class="section-inner">
+      <div class="section-label reveal" style="text-align:center;">Roadmap</div>
+      <h2 class="section-title reveal reveal-delay-1" style="text-align:center;margin:0 auto 20px;">We're
+        just<br>getting started.</h2>
+      <p class="section-subtitle reveal reveal-delay-2" style="text-align:center;margin:0 auto 80px;">Built in public.
+        Shipping fast. Here's what's coming next.</p>
+
+      <div class="roadmap-timeline" id="roadmapTimeline">
+        <div class="roadmap-line-ghost"></div>
+        <div class="roadmap-line-active" id="roadmapLineActive"></div>
+
+        <div class="rm-item" data-rm>
+          <div class="rm-node"></div>
+          <div>
+            <div class="rm-live-badge">
+              <div class="rm-live-dot"></div> LIVE
+            </div>
+            <div class="rm-version">V1 — NOW</div>
+            <h3 class="rm-title">The Core Foundation</h3>
+            <p class="rm-desc">QR scan-to-track loop, automatic sessions, progressive overload display, instructional
+              videos, gym owner portal.</p>
+          </div>
+        </div>
+        <div class="rm-item future" data-rm>
+          <div class="rm-node"></div>
+          <div>
+            <div class="rm-version">V2 — DISCOVERY</div>
+            <h3 class="rm-title">Gym Discovery & Analytics</h3>
+            <p class="rm-desc">Interactive gym map for users. Equipment usage analytics dashboards for gym owners.</p>
+          </div>
+        </div>
+        <div class="rm-item future" data-rm>
+          <div class="rm-node"></div>
+          <div>
+            <div class="rm-version">V3 — TRAINERS</div>
+            <h3 class="rm-title">Trainer Integration</h3>
+            <p class="rm-desc">Trainer profiles, client progress monitoring, offline mode with background sync.</p>
+          </div>
+        </div>
+        <div class="rm-item future" data-rm>
+          <div class="rm-node"></div>
+          <div>
+            <div class="rm-version">V4 — AI</div>
+            <h3 class="rm-title">Smart Insights</h3>
+            <p class="rm-desc">AI plateau detection, rest optimization, context-aware coaching chatbot.</p>
+          </div>
+        </div>
+        <div class="rm-item future" data-rm>
+          <div class="rm-node"></div>
+          <div>
+            <div class="rm-version">V5 — COMMUNITY</div>
+            <h3 class="rm-title">Social Ecosystem</h3>
+            <p class="rm-desc">Gym reviews, user-generated content, trainer discovery marketplace.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FINAL CTA — Particle Background ═══ -->
+  <section class="section cta-section" id="cta">
+    <div class="cta-canvas"><canvas id="ctaCanvas"></canvas></div>
+    <div class="cta-content">
+      <div class="cta-logo reveal"><img src="logo.png" alt="Liftio"></div>
+      <h2 class="cta-title reveal reveal-delay-1">Ready to track<br>like you train?</h2>
+      <p class="cta-desc reveal reveal-delay-2">Join the early access waitlist. Be first to bring Liftio to your gym.
+      </p>
+      <div class="hero-actions reveal reveal-delay-3">
+        <a href="#" class="btn-primary btn-primary-glow">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+          Get Early Access
+        </a>
+        <a href="#" class="btn-secondary">Contact Us</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo"><img src="logo.png" alt="Liftio"></div>
+        <span class="footer-name">Liftio</span>
+      </div>
+      <span class="footer-copy">&copy; 2026 Liftio. All rights reserved.</span>
+    </div>
+  </footer>
