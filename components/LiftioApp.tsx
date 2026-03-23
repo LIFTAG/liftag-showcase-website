@@ -220,8 +220,8 @@ export default function LiftioApp() {
             el.classList.add('reveal-done');
             el.style.clipPath = 'inset(-20% 0 -20% 0)';
             // Phase 3: Beam shrinks bottom-to-top (disappears same way it appeared)
-            beam.style.animation = 'chargeShrink 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-            setTimeout(() => beam.remove(), 200);
+            beam.style.animation = 'chargeShrink 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+            setTimeout(() => beam.remove(), 300);
             if (onDone) onDone();
           }
         }
