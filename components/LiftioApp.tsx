@@ -171,17 +171,23 @@ export default function LiftioApp() {
       if (!el || el.classList.contains('reveal-done')) return;
 
       const isGreen = el.classList.contains('laser-green');
-      const startPos = fromRight ? '100%' : '0%';
+      const rect = el.getBoundingClientRect();
+      const chargeX = fromRight ? rect.right : rect.left;
+      const chargeY = rect.top + rect.height / 2;
 
-      // Phase 1: Charge-up — beam materialises at start
-      el.style.setProperty('--laser-pos', startPos);
-      el.classList.add('laser-charging');
+      // Phase 1: Charge-up dot — rendered outside the clipped element so it's visible
+      const chargeDot = document.createElement('div');
+      chargeDot.className = 'laser-charge-dot ' + (isGreen ? 'green' : 'red');
+      chargeDot.style.left = chargeX + 'px';
+      chargeDot.style.top = chargeY + 'px';
+      document.body.appendChild(chargeDot);
 
       setTimeout(() => {
-        el.classList.remove('laser-charging');
-        el.classList.add('sweeping');
+        chargeDot.remove();
 
         // Phase 2: Sweep with sparks
+        el.classList.add('sweeping');
+        el.style.setProperty('--laser-pos', fromRight ? '100%' : '0%');
         const start = performance.now();
         let lastSparkTime = 0;
 
@@ -216,7 +222,7 @@ export default function LiftioApp() {
           }
         }
         requestAnimationFrame(animate);
-      }, 250); // charge-up duration
+      }, 300); // charge-up duration
     }
 
     function revealHeroElement(id, delay) {
