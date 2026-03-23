@@ -331,48 +331,108 @@
     .laser-reveal.from-right {
       clip-path: inset(-20% 0 -20% 100%);
     }
+    /* Beam core — bright white line */
     .laser-reveal::after {
       content: '';
       position: absolute;
-      top: -15%;
-      bottom: -15%;
-      width: 1.5px;
+      top: -20%;
+      bottom: -20%;
+      width: 2px;
       left: var(--laser-pos, 0%);
       background: #fff;
       border-radius: 1px;
       opacity: 0;
-      transition: opacity 0.15s ease;
+      transition: opacity 0.1s ease;
     }
-    /* Green laser glow */
+    /* Glow trail — wide neon wash following the beam */
+    .laser-reveal::before {
+      content: '';
+      position: absolute;
+      top: -60%;
+      bottom: -60%;
+      width: 80px;
+      left: var(--laser-pos, 0%);
+      transform: translateX(-50%);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+    /* Green laser */
     .laser-reveal.laser-green::after {
       box-shadow:
-        0 0 4px #fff,
-        0 0 15px var(--accent),
-        0 0 40px var(--accent),
-        0 0 80px var(--accent),
-        0 0 120px var(--accent-glow),
-        -6px 0 25px var(--accent-glow),
-        6px 0 25px var(--accent-glow);
+        0 0 6px #fff,
+        0 0 20px var(--accent),
+        0 0 50px var(--accent),
+        0 0 100px var(--accent),
+        0 0 150px var(--accent-glow),
+        -8px 0 30px var(--accent-glow),
+        8px 0 30px var(--accent-glow);
     }
-    /* Red laser glow */
+    .laser-reveal.laser-green::before {
+      background: radial-gradient(ellipse 50% 45% at center, rgba(200, 255, 0, 0.35) 0%, rgba(200, 255, 0, 0.08) 50%, transparent 70%);
+    }
+    /* Red laser */
     .laser-reveal.laser-red::after {
       box-shadow:
-        0 0 4px #fff,
-        0 0 15px var(--red-neon),
-        0 0 40px var(--red-neon),
-        0 0 80px var(--red-neon),
-        0 0 120px var(--red-neon-glow),
-        -6px 0 25px var(--red-neon-glow),
-        6px 0 25px var(--red-neon-glow);
+        0 0 6px #fff,
+        0 0 20px var(--red-neon),
+        0 0 50px var(--red-neon),
+        0 0 100px var(--red-neon),
+        0 0 150px var(--red-neon-glow),
+        -8px 0 30px var(--red-neon-glow),
+        8px 0 30px var(--red-neon-glow);
     }
-    .laser-reveal.sweeping::after {
+    .laser-reveal.laser-red::before {
+      background: radial-gradient(ellipse 50% 45% at center, rgba(255, 45, 85, 0.35) 0%, rgba(255, 45, 85, 0.08) 50%, transparent 70%);
+    }
+    /* Sweeping: beam + trail visible */
+    .laser-reveal.sweeping::after,
+    .laser-reveal.laser-charging::after {
       opacity: 1;
     }
+    .laser-reveal.sweeping::before,
+    .laser-reveal.laser-charging::before {
+      opacity: 1;
+    }
+    /* Charge-up: beam materialises at start position */
+    .laser-reveal.laser-charging::after {
+      animation: laserChargeUp 0.25s ease-out;
+    }
+    @keyframes laserChargeUp {
+      0% { transform: scaleY(0.1); opacity: 0; }
+      40% { transform: scaleY(1.6); opacity: 1; }
+      70% { transform: scaleY(0.85); opacity: 0.9; }
+      100% { transform: scaleY(1); opacity: 1; }
+    }
+    .laser-reveal.laser-charging::before {
+      animation: laserChargeGlow 0.25s ease-out;
+    }
+    @keyframes laserChargeGlow {
+      0% { opacity: 0; transform: translateX(-50%) scale(0.3); }
+      50% { opacity: 1; transform: translateX(-50%) scale(1.4); }
+      100% { opacity: 1; transform: translateX(-50%) scale(1); }
+    }
+    /* Done */
     .laser-reveal.reveal-done {
       clip-path: none;
     }
-    .laser-reveal.reveal-done::after {
+    .laser-reveal.reveal-done::after,
+    .laser-reveal.reveal-done::before {
       display: none;
+    }
+    /* Laser spark particles */
+    .laser-spark {
+      position: fixed;
+      width: 2px;
+      height: 2px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 99999;
+      animation: laserSparkFly 0.45s ease-out forwards;
+    }
+    @keyframes laserSparkFly {
+      0% { transform: translate(0, 0) scale(1.5); opacity: 1; }
+      100% { transform: translate(var(--sx), var(--sy)) scale(0); opacity: 0; }
     }
 
     /* Navbar brand & CTA — slide in from sides */

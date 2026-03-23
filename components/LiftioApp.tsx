@@ -142,40 +142,81 @@ export default function LiftioApp() {
     }
 
     /* ═══════════════════════════════════════
-       LASER REVEAL — Vertical laser wipe
+       LASER REVEAL — Charge → Sweep → Sparks
     ═══════════════════════════════════════ */
+    function emitLaserSparks(el, posPercent, isGreen) {
+      const rect = el.getBoundingClientRect();
+      const x = rect.left + (posPercent / 100) * rect.width;
+      const y = rect.top + rect.height / 2;
+      const count = 1 + Math.floor(Math.random() * 2); // 1-2 sparks
+      for (let i = 0; i < count; i++) {
+        const spark = document.createElement('div');
+        spark.className = 'laser-spark';
+        const angle = (Math.random() - 0.5) * Math.PI * 0.9;
+        const dist = 12 + Math.random() * 28;
+        spark.style.left = x + 'px';
+        spark.style.top = y + 'px';
+        spark.style.background = isGreen ? 'var(--accent)' : 'var(--red-neon)';
+        spark.style.boxShadow = isGreen
+          ? '0 0 4px var(--accent), 0 0 8px var(--accent-glow)'
+          : '0 0 4px var(--red-neon), 0 0 8px var(--red-neon-glow)';
+        spark.style.setProperty('--sx', (Math.cos(angle) * dist * 0.4) + 'px');
+        spark.style.setProperty('--sy', (Math.sin(angle) * dist) + 'px');
+        document.body.appendChild(spark);
+        setTimeout(() => spark.remove(), 450);
+      }
+    }
+
     function runLaserReveal(el, fromRight, duration, onDone) {
       if (!el || el.classList.contains('reveal-done')) return;
 
-      el.classList.add('sweeping');
-      const start = performance.now();
+      const isGreen = el.classList.contains('laser-green');
+      const startPos = fromRight ? '100%' : '0%';
 
-      function animate(now) {
-        const t = Math.min((now - start) / duration, 1);
-        // Smooth ease-in-out
-        const eased = t < 0.5
-          ? 2 * t * t
-          : 1 - Math.pow(-2 * t + 2, 2) / 2;
-        const pos = eased * 100;
+      // Phase 1: Charge-up — beam materialises at start
+      el.style.setProperty('--laser-pos', startPos);
+      el.classList.add('laser-charging');
 
-        if (fromRight) {
-          el.style.clipPath = `inset(-20% 0 -20% ${100 - Math.min(pos, 100)}%)`;
-          el.style.setProperty('--laser-pos', (100 - pos) + '%');
-        } else {
-          el.style.clipPath = `inset(-20% ${100 - Math.min(pos, 100)}% -20% 0)`;
-          el.style.setProperty('--laser-pos', pos + '%');
+      setTimeout(() => {
+        el.classList.remove('laser-charging');
+        el.classList.add('sweeping');
+
+        // Phase 2: Sweep with sparks
+        const start = performance.now();
+        let lastSparkTime = 0;
+
+        function animate(now) {
+          const t = Math.min((now - start) / duration, 1);
+          const eased = t < 0.5
+            ? 2 * t * t
+            : 1 - Math.pow(-2 * t + 2, 2) / 2;
+          const pos = eased * 100;
+
+          if (fromRight) {
+            el.style.clipPath = `inset(-20% 0 -20% ${100 - Math.min(pos, 100)}%)`;
+            el.style.setProperty('--laser-pos', (100 - pos) + '%');
+          } else {
+            el.style.clipPath = `inset(-20% ${100 - Math.min(pos, 100)}% -20% 0)`;
+            el.style.setProperty('--laser-pos', pos + '%');
+          }
+
+          // Emit sparks at the beam edge
+          if (now - lastSparkTime > 70 && t > 0.04 && t < 0.92) {
+            lastSparkTime = now;
+            emitLaserSparks(el, fromRight ? (100 - pos) : pos, isGreen);
+          }
+
+          if (t < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            el.classList.remove('sweeping');
+            el.classList.add('reveal-done');
+            el.style.clipPath = 'inset(-20% 0 -20% 0)';
+            if (onDone) onDone();
+          }
         }
-
-        if (t < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          el.classList.remove('sweeping');
-          el.classList.add('reveal-done');
-          el.style.clipPath = 'inset(-20% 0 -20% 0)';
-          if (onDone) onDone();
-        }
-      }
-      requestAnimationFrame(animate);
+        requestAnimationFrame(animate);
+      }, 250); // charge-up duration
     }
 
     function revealHeroElement(id, delay) {
@@ -190,22 +231,22 @@ export default function LiftioApp() {
       const track = document.getElementById('revealTrack');
       const progress = document.getElementById('revealProgress');
 
-      // Scan: left to right, green
-      runLaserReveal(scan, false, 600, () => {
-        // Track: right to left, red
+      // Scan: left to right, green laser
+      runLaserReveal(scan, false, 700, () => {
+        // Track: right to left, red laser
         setTimeout(() => {
-          runLaserReveal(track, true, 600, () => {
-            // Progress: left to right, green
+          runLaserReveal(track, true, 700, () => {
+            // Progress: left to right, green laser
             setTimeout(() => {
-              runLaserReveal(progress, false, 600, () => {
+              runLaserReveal(progress, false, 700, () => {
                 // After all lasers done, animate hero elements in sequence
                 revealHeroElement('heroLogo', 100);
                 revealHeroElement('heroSub', 400);
                 revealHeroElement('heroActions', 600);
               });
-            }, 120);
+            }, 80);
           });
-        }, 120);
+        }, 80);
       });
     }
 
