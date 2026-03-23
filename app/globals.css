@@ -2863,7 +2863,7 @@
     /* Scroll hint — animated drop line */
     .scroll-hint {
       position: fixed;
-      bottom: 36px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 21;
