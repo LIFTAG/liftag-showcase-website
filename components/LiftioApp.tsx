@@ -128,14 +128,14 @@ export default function LiftioApp() {
           introReveal.classList.add('done');
           introComplete = true;
           // Navbar enters after overlay is gone
-          setTimeout(() => document.getElementById('navBrand')?.classList.add('nav-in'), 200);
-          setTimeout(() => document.getElementById('navLink0')?.classList.add('nav-in'), 400);
-          setTimeout(() => document.getElementById('navLink1')?.classList.add('nav-in'), 500);
-          setTimeout(() => document.getElementById('navLink2')?.classList.add('nav-in'), 600);
-          setTimeout(() => document.getElementById('navLink3')?.classList.add('nav-in'), 700);
-          setTimeout(() => document.getElementById('navCta')?.classList.add('nav-in'), 500);
+          setTimeout(() => document.getElementById('navBrand')?.classList.add('nav-in'), 1200);
+          setTimeout(() => document.getElementById('navLink0')?.classList.add('nav-in'), 1400);
+          setTimeout(() => document.getElementById('navLink1')?.classList.add('nav-in'), 1500);
+          setTimeout(() => document.getElementById('navLink2')?.classList.add('nav-in'), 1600);
+          setTimeout(() => document.getElementById('navLink3')?.classList.add('nav-in'), 1700);
+          setTimeout(() => document.getElementById('navCta')?.classList.add('nav-in'), 1500);
           // Show scroll hint after nav finishes entering
-          setTimeout(() => document.getElementById('scrollHint')?.classList.add('visible'), 1200);
+          setTimeout(() => document.getElementById('scrollHint')?.classList.add('visible'), 2200);
         }
       }
       requestAnimationFrame(animate);
