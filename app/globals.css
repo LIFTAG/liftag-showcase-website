@@ -421,6 +421,10 @@
       0% { transform: translateX(-50%) scaleY(0); opacity: 0; }
       100% { transform: translateX(-50%) scaleY(1); opacity: 1; }
     }
+    @keyframes chargeShrink {
+      0% { transform: translateX(-50%) scaleY(1); opacity: 1; }
+      100% { transform: translateX(-50%) scaleY(0); opacity: 0; }
+    }
     /* Done */
     .laser-reveal.reveal-done {
       clip-path: none;

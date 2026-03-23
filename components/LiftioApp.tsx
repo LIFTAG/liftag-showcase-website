@@ -183,8 +183,6 @@ export default function LiftioApp() {
       document.body.appendChild(beam);
 
       setTimeout(() => {
-        beam.remove();
-
         // Phase 2: Sweep with sparks
         el.classList.add('sweeping');
         el.style.setProperty('--laser-pos', fromRight ? '100%' : '0%');
@@ -206,6 +204,9 @@ export default function LiftioApp() {
             el.style.setProperty('--laser-pos', pos + '%');
           }
 
+          // Move the charge beam to follow the sweep
+          beam.style.left = (rect.left + (fromRight ? (100 - pos) : pos) / 100 * rect.width) + 'px';
+
           // Emit sparks at the beam edge
           if (now - lastSparkTime > 70 && t > 0.04 && t < 0.92) {
             lastSparkTime = now;
@@ -218,11 +219,14 @@ export default function LiftioApp() {
             el.classList.remove('sweeping');
             el.classList.add('reveal-done');
             el.style.clipPath = 'inset(-20% 0 -20% 0)';
+            // Phase 3: Beam shrinks bottom-to-top (disappears same way it appeared)
+            beam.style.animation = 'chargeShrink 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards';
+            setTimeout(() => beam.remove(), 200);
             if (onDone) onDone();
           }
         }
         requestAnimationFrame(animate);
-      }, 300); // charge-up duration
+      }, 250);
     }
 
     function revealHeroElement(id, delay) {
@@ -238,21 +242,17 @@ export default function LiftioApp() {
       const progress = document.getElementById('revealProgress');
 
       // Scan: left to right, green laser
-      runLaserReveal(scan, false, 700, () => {
+      runLaserReveal(scan, false, 550, () => {
         // Track: right to left, red laser
-        setTimeout(() => {
-          runLaserReveal(track, true, 700, () => {
-            // Progress: left to right, green laser
-            setTimeout(() => {
-              runLaserReveal(progress, false, 700, () => {
-                // After all lasers done, animate hero elements in sequence
-                revealHeroElement('heroLogo', 100);
-                revealHeroElement('heroSub', 400);
-                revealHeroElement('heroActions', 600);
-              });
-            }, 80);
+        runLaserReveal(track, true, 550, () => {
+          // Progress: left to right, green laser
+          runLaserReveal(progress, false, 550, () => {
+            // After all lasers done, animate hero elements in sequence
+            revealHeroElement('heroLogo', 100);
+            revealHeroElement('heroSub', 400);
+            revealHeroElement('heroActions', 600);
           });
-        }, 80);
+        });
       });
     }
 
