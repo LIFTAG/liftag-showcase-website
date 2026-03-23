@@ -2278,14 +2278,14 @@
     }
 
     /* CTA buttons — pop entrance */
-    .cta-content .hero-actions {
+    .cta-actions {
       opacity: 0;
       transform: translateY(20px) scale(0.95);
       transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.55s,
                   transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.55s;
     }
 
-    .cta-content .hero-actions.visible {
+    .cta-actions.visible {
       opacity: 1;
       transform: translateY(0) scale(1);
     }
