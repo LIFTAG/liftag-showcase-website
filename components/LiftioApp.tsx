@@ -173,17 +173,17 @@ export default function LiftioApp() {
       const isGreen = el.classList.contains('laser-green');
       const rect = el.getBoundingClientRect();
       const chargeX = fromRight ? rect.right : rect.left;
-      const chargeY = rect.top + rect.height / 2;
 
-      // Phase 1: Charge-up dot — rendered outside the clipped element so it's visible
-      const chargeDot = document.createElement('div');
-      chargeDot.className = 'laser-charge-dot ' + (isGreen ? 'green' : 'red');
-      chargeDot.style.left = chargeX + 'px';
-      chargeDot.style.top = chargeY + 'px';
-      document.body.appendChild(chargeDot);
+      // Phase 1: Beam grows top-to-bottom at the start edge
+      const beam = document.createElement('div');
+      beam.className = 'laser-charge-beam ' + (isGreen ? 'green' : 'red');
+      beam.style.left = chargeX + 'px';
+      beam.style.top = (rect.top - rect.height * 0.2) + 'px';
+      beam.style.height = (rect.height * 1.4) + 'px';
+      document.body.appendChild(beam);
 
       setTimeout(() => {
-        chargeDot.remove();
+        beam.remove();
 
         // Phase 2: Sweep with sparks
         el.classList.add('sweeping');
