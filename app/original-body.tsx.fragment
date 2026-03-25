@@ -11,8 +11,8 @@
   {/* Navbar */}
   <nav className="navbar" id="navbar">
     <a href="#" className="nav-brand">
-      <div className="nav-logo"><img src="logo.png" alt="LifTag" /></div>
-      <span className="nav-wordmark">LifTag</span>
+      <div className="nav-logo"><img src="logo.png" alt="Liftio" /></div>
+      <span className="nav-wordmark">Liftio</span>
     </a>
     <ul className="nav-links">
       <li><a href="#how">How It Works</a></li>
@@ -33,7 +33,7 @@
   <div className="phone-mockup" id="phoneMockup">
     <div className="phone-mockup-inner" id="phoneInner">
       <div className="phone-glow" id="phoneGlow"></div>
-      <img src="screenshot1.png" alt="LifTag App" />
+      <img src="screenshot1.png" alt="Liftio App" />
     </div>
   </div>
 
@@ -43,7 +43,7 @@
       <span className="hero-badge-dot"></span>
       Now in early access
     </div>
-    <div className="hero-logo-icon"><img src="logo.png" alt="LifTag" /></div>
+    <div className="hero-logo-icon"><img src="logo.png" alt="Liftio" /></div>
     <h1 className="hero-title">
       <span className="line scan-reveal">Scan.</span>
       <span className="line accent track-reveal" data-text="Track."></span>
@@ -72,7 +72,7 @@
         <div className="scene-text" id="text0">
           <div className="scene-number">01</div>
           <h2 className="scene-heading">Walk up. Scan the code.</h2>
-          <p className="scene-desc">Every machine in your gym has a LifTag QR code. One scan and you're tracking — no
+          <p className="scene-desc">Every machine in your gym has a Liftio QR code. One scan and you're tracking — no
             searching, no setup.</p>
         </div>
       </section>
@@ -128,7 +128,7 @@
             </div>
           </div>
           <h3 className="hiw-panel-title">Scan the QR Code</h3>
-          <p className="hiw-panel-desc">Open LifTag, point your camera at the machine's QR code. The exercise loads
+          <p className="hiw-panel-desc">Open Liftio, point your camera at the machine's QR code. The exercise loads
             instantly.</p>
           <div className="hiw-panel-line"></div>
         </div>
@@ -187,7 +187,7 @@
             </div>
           </div>
           <h3 className="hiw-panel-title">Watch Progress Compound</h3>
-          <p className="hiw-panel-desc">Over weeks and months, LifTag builds your complete strength story — every rep, every
+          <p className="hiw-panel-desc">Over weeks and months, Liftio builds your complete strength story — every rep, every
             PR.</p>
           <div className="hiw-panel-line"></div>
         </div>
@@ -231,7 +231,7 @@
       <div className="feature-info">
         <div className="feature-number">01 — PROGRESSIVE OVERLOAD</div>
         <h3 className="feature-title">Your previous sets, PBs, and projected targets — the moment you scan.</h3>
-        <p className="feature-desc">No more guessing what you lifted last week. LifTag remembers everything and shows you
+        <p className="feature-desc">No more guessing what you lifted last week. Liftio remembers everything and shows you
           exactly what to beat today.</p>
       </div>
     </div>
@@ -302,7 +302,7 @@
             <div className="dash-dot r"></div>
             <div className="dash-dot y"></div>
             <div className="dash-dot g"></div>
-            <span className="dash-topbar-title">LIFTAG DASHBOARD</span>
+            <span className="dash-topbar-title">LIFTIO DASHBOARD</span>
           </div>
           <div className="dash-body">
             <div className="dash-zone active" id="dz0">
@@ -465,9 +465,9 @@
   <section className="section cta-section" id="cta">
     <div className="cta-canvas"><canvas id="ctaCanvas"></canvas></div>
     <div className="cta-content">
-      <div className="cta-logo reveal"><img src="logo.png" alt="LifTag" /></div>
+      <div className="cta-logo reveal"><img src="logo.png" alt="Liftio" /></div>
       <h2 className="cta-title reveal reveal-delay-1">Ready to track<br />like you train?</h2>
-      <p className="cta-desc reveal reveal-delay-2">Join the early access waitlist. Be first to bring LifTag to your gym.
+      <p className="cta-desc reveal reveal-delay-2">Join the early access waitlist. Be first to bring Liftio to your gym.
       </p>
       <div className="hero-actions reveal reveal-delay-3">
         <a href="#" className="btn-primary btn-primary-glow">
@@ -486,9 +486,9 @@
   <footer className="footer">
     <div className="footer-inner">
       <div className="footer-brand">
-        <div className="footer-logo"><img src="logo.png" alt="LifTag" /></div>
-        <span className="footer-name">LifTag</span>
+        <div className="footer-logo"><img src="logo.png" alt="Liftio" /></div>
+        <span className="footer-name">Liftio</span>
       </div>
-      <span className="footer-copy">© 2026 LifTag. All rights reserved.</span>
+      <span className="footer-copy">© 2026 Liftio. All rights reserved.</span>
     </div>
   </footer>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "LifTag — Scan. Track. Progress.",
+  title: "Liftio — Scan. Track. Progress.",
   description: "QR codes on every machine. Instant workout tracking. Zero friction between you and your gains.",
 };
 
