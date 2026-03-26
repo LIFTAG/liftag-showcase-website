@@ -1848,37 +1848,55 @@ export default function LiftioApp() {
       const pts = tr.smooth;
       if (pts.length < 2) return;
 
-      // Growth with ease-out for smooth deceleration
-      const rawGrow = Math.min(1, progress / 0.5);
-      const growP = 1 - Math.pow(1 - rawGrow, 2.5);
-      // Fade with smooth ease
-      const fadeP = progress < 0.4 ? 0 : Math.pow(Math.min(1, (progress - 0.4) / 0.6), 1.5);
+      // Growth with ease-out matching permanent branches
+      const rawGrow = Math.min(1, progress / 0.65);
+      const growP = 1 - Math.pow(1 - rawGrow, 3);
+      // Fade with smooth ease — delayed so branches hold at full before fading
+      const fadeP = progress < 0.55 ? 0 : Math.pow(Math.min(1, (progress - 0.55) / 0.45), 1.5);
       const alpha = Math.max(0, 1 - fadeP);
       if (alpha <= 0) return;
 
       const dm = tr.depth === 0 ? 1 : tr.depth === 1 ? 0.5 : 0.25;
       const a = alpha * dm;
-      const endIdx = growP * (pts.length - 1);
+      const totalPts = pts.length - 1;
+      const drawPts = Math.floor(growP * totalPts);
+      if (drawPts < 1) return;
 
-      // Glow
-      drawTracePath(ctx, pts, endIdx, tr.depth === 0 ? 10 : 5, `rgba(200,255,0,${a * 0.06})`);
-      // Core
-      drawTracePath(ctx, pts, endIdx, tr.depth === 0 ? 1.8 : 1, `rgba(200,255,0,${a * 0.35})`);
-      // Hot center
-      drawTracePath(ctx, pts, endIdx, tr.depth === 0 ? 0.6 : 0.3, `rgba(255,255,255,${a * 0.3})`);
+      // Tapered segments — matching permanent branch style
+      for (let s = 0; s < drawPts; s++) {
+        const t0 = s / totalPts;
+        const segWidth = 2 - (t0 * 1.5);
+        const segAlpha = (0.5 - t0 * 0.3) * a;
 
-      // Tip glow
-      if (growP < 0.95) {
-        const fi = Math.min(Math.floor(endIdx), pts.length - 1);
-        const tip = pts[fi];
-        const r = tr.depth === 0 ? 12 : 7;
-        const tg = ctx.createRadialGradient(tip.x, tip.y, 0, tip.x, tip.y, r);
-        tg.addColorStop(0, `rgba(255,255,255,${a * 0.45})`);
-        tg.addColorStop(0.4, `rgba(200,255,0,${a * 0.15})`);
-        tg.addColorStop(1, 'rgba(200,255,0,0)');
+        ctx.beginPath();
+        ctx.moveTo(pts[s].x, pts[s].y);
+        ctx.lineTo(pts[s + 1].x, pts[s + 1].y);
+        ctx.strokeStyle = `rgba(200, 255, 0, ${segAlpha})`;
+        ctx.lineWidth = Math.max(0.5, segWidth);
+        ctx.lineCap = 'round';
+        ctx.stroke();
+      }
+
+      // Glow pass (wider, dimmer)
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let s = 1; s <= drawPts; s++) {
+        ctx.lineTo(pts[s].x, pts[s].y);
+      }
+      ctx.strokeStyle = `rgba(200, 255, 0, ${0.08 * a})`;
+      ctx.lineWidth = 8;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      // Tip glow dot — persists at endpoint, fades together with trace
+      {
+        const tip = pts[Math.min(drawPts, pts.length - 1)];
+        const tg = ctx.createRadialGradient(tip.x, tip.y, 0, tip.x, tip.y, 10);
+        tg.addColorStop(0, `rgba(200, 255, 0, ${0.5 * a})`);
+        tg.addColorStop(1, 'rgba(200, 255, 0, 0)');
         ctx.fillStyle = tg;
         ctx.beginPath();
-        ctx.arc(tip.x, tip.y, r, 0, Math.PI * 2);
+        ctx.arc(tip.x, tip.y, 10, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -2048,8 +2066,8 @@ export default function LiftioApp() {
           rmCtx.lineCap = 'round';
           rmCtx.stroke();
 
-          // Tip glow dot at current growth front
-          if (eased < 0.95) {
+          // Tip glow dot — stays at growth front, persists at endpoint
+          {
             const tipT = eased;
             const tipX = bezierPt(nodeX, cp1x, cp2x, endX, tipT);
             const tipY = bezierPt(nodeY, cp1y, cp2y, endY, tipT);
