@@ -505,7 +505,7 @@ export default function LiftioApp() {
         // Wait a frame for opacity:0 to paint, then restore text and remove laser-active
         requestAnimationFrame(() => {
           children.forEach((child, ci) => {
-            const origTexts = ['03', 'Log and move on.', 'Weight. Reps. Save. The fastest logging flow in fitness — so you stay in the zone.'];
+            const origTexts = ['03', 'Log and move on.', 'Weight. Reps. Done. Stay in the zone.'];
             child.textContent = origTexts[ci] || '';
           });
           el.classList.remove('laser-active');
@@ -522,7 +522,7 @@ export default function LiftioApp() {
       el.style.opacity = '';
       el.style.transition = '';
       const children = Array.from(el.children) as HTMLElement[];
-      const origTexts = ['03', 'Log and move on.', 'Weight. Reps. Save. The fastest logging flow in fitness — so you stay in the zone.'];
+      const origTexts = ['03', 'Log and move on.', 'Weight. Reps. Done. Stay in the zone.'];
       children.forEach((child, ci) => {
         child.textContent = origTexts[ci] || '';
       });
@@ -726,6 +726,7 @@ export default function LiftioApp() {
         let s = '';
         for (let i = 0; i < len; i++) {
           if (el.dataset.final[i] === ' ') s += ' ';
+          else if (el.dataset.final[i] === '|') s += ' ';
           else s += scrambleChars[Math.floor(Math.random() * scrambleChars.length)];
         }
         el.textContent = s;
@@ -741,7 +742,7 @@ export default function LiftioApp() {
         if (iv) clearInterval(iv.iv);
 
         // Flash green
-        el.textContent = el.dataset.final;
+        el.innerHTML = el.dataset.final.replace(/\|/g, '<br>');
         el.classList.add('flash');
 
         // Flash off after brief moment
@@ -1754,16 +1755,15 @@ export default function LiftioApp() {
             <div className="scene-text" id="text0">
               <div className="scene-number">01</div>
               <h2 className="scene-heading">Walk up. Scan the code.</h2>
-              <p className="scene-desc">Every machine in your gym has a Liftio QR code. One scan and you're tracking — no
-                searching, no setup.</p>
+              <p className="scene-desc">One scan. Instantly tracking.</p>
             </div>
           </section>
           <section className="scene-section" data-scene="1">
             <div className="scene-text" id="text1">
               <div className="scene-number">02</div>
-              <h2 className="scene-heading scramble-text" data-final="See your history. Beat it."></h2>
+              <h2 className="scene-heading scramble-text" data-final="See your history.|Beat it."></h2>
               <p className="scene-desc scramble-text"
-                data-final="Instantly see your last performance, personal bests, and projected targets. Progressive overload, automated.">
+                data-final="Your history, PRs, and targets. All right there.">
               </p>
             </div>
           </section>
@@ -1771,7 +1771,7 @@ export default function LiftioApp() {
             <div className="scene-text" id="text2">
               <div className="scene-number">03</div>
               <h2 className="scene-heading">Log and move on.</h2>
-              <p className="scene-desc">Weight. Reps. Save. The fastest logging flow in fitness — so you stay in the zone.</p>
+              <p className="scene-desc">Weight. Reps. Done. Stay in the zone.</p>
             </div>
           </section>
         </div>

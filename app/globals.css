@@ -678,34 +678,96 @@
       position: relative;
     }
 
+    .scene-section[data-scene="1"] {
+      justify-content: flex-start;
+    }
+
     .scene-text {
       position: sticky;
       top: 50%;
       transform: translateY(-50%);
       text-align: center;
       opacity: 0;
-      transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
       pointer-events: auto;
       max-width: 700px;
       padding: 0 40px;
     }
 
+    /* Scene 1 — left-aligned to keep center content visible */
+    #text1 {
+      text-align: left;
+      margin-right: auto;
+      margin-left: 8vw;
+    }
+
+    /* Children hidden by default */
+    .scene-text .scene-number,
+    .scene-text .scene-heading,
+    .scene-text .scene-desc {
+      opacity: 0;
+      transform: translateY(28px);
+    }
+
+    /* ── Entrance: parent visible, children stagger up ── */
     .scene-text.visible {
       opacity: 1;
     }
 
-    .scene-text.exiting {
-      opacity: 0;
-      transform: translateY(-50%) scale(0.85);
-      filter: blur(8px);
-      transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease;
+    .scene-text.visible .scene-number,
+    .scene-text.visible .scene-heading,
+    .scene-text.visible .scene-desc {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
+    .scene-text.visible .scene-number { transition-delay: 0s; }
+    .scene-text.visible .scene-heading { transition-delay: 0.1s; }
+    .scene-text.visible .scene-desc { transition-delay: 0.22s; }
+
+    /* Accent glow pulse on the scene number */
+    .scene-text.visible .scene-number {
+      animation: numberGlow 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes numberGlow {
+      0%   { text-shadow: 0 0 0 transparent; }
+      35%  { text-shadow: 0 0 18px var(--accent), 0 0 40px rgba(200, 255, 0, 0.25); }
+      100% { text-shadow: 0 0 0 transparent; }
+    }
+
+    /* ── Exit: children slide up and out, reverse stagger ── */
+    .scene-text.exiting {
+      opacity: 1;
+    }
+
+    .scene-text.exiting .scene-number,
+    .scene-text.exiting .scene-heading,
+    .scene-text.exiting .scene-desc {
+      opacity: 0;
+      transform: translateY(-24px);
+      transition: opacity 0.4s cubic-bezier(0.5, 0, 0.75, 0),
+                  transform 0.4s cubic-bezier(0.5, 0, 0.75, 0);
+    }
+
+    .scene-text.exiting .scene-desc    { transition-delay: 0s; }
+    .scene-text.exiting .scene-heading  { transition-delay: 0.06s; }
+    .scene-text.exiting .scene-number   { transition-delay: 0.12s; }
 
     /* Text2 laser-burn — handled by JS */
     #text2.laser-active {
       opacity: 1 !important;
       transform: translateY(-50%) !important;
       transition: none !important;
+    }
+
+    #text2.laser-active .scene-number,
+    #text2.laser-active .scene-heading,
+    #text2.laser-active .scene-desc {
+      opacity: 1;
+      transform: translateY(0);
+      transition: none;
     }
 
     .laser-char {
@@ -747,10 +809,11 @@
     }
 
     .scene-desc {
-      font-size: clamp(0.95rem, 1.3vw, 1.15rem);
-      font-weight: 300;
-      line-height: 1.7;
-      color: var(--text-mid);
+      font-size: clamp(1rem, 1.4vw, 1.25rem);
+      font-weight: 400;
+      line-height: 1.5;
+      color: var(--text-light);
+      letter-spacing: 0.01em;
     }
 
     /* ═══════════════════════════════════════
@@ -2522,6 +2585,10 @@
         padding: 0 20px;
       }
 
+      #text1 {
+        margin-left: 20px;
+      }
+
       .feature-row {
         flex-direction: column !important;
         gap: 40px;
@@ -2615,7 +2682,11 @@
         margin-bottom: 48px;
       }
 
-      /* HIW panels */
+      /* HIW panels — more scroll room on mobile */
+      .hiw-section {
+        height: 420vh;
+      }
+
       .hiw-panel {
         padding: 0 24px;
       }
@@ -2719,6 +2790,10 @@
 
       .feature-row {
         padding: 32px 16px;
+      }
+
+      .hiw-section {
+        height: 500vh;
       }
 
       .hiw-panel {
