@@ -108,10 +108,12 @@ export default function LiftioApp() {
         introRotation = -(t * t) * (Math.PI / 6);
         drawIntroFrame(size);
 
-        // Rapid fade starting at 60%
-        if (t > 0.6) {
-          const fadeT = (t - 0.6) / 0.1;
-          introReveal.style.opacity = Math.max(0, 1 - fadeT);
+        // Pull green pane upward towards the end of the zoom
+        if (t > 0.72) {
+          const pullT = Math.min((t - 0.72) / 0.22, 1);
+          // Ease-out cubic for a fast start, smooth deceleration
+          const easedPull = 1 - Math.pow(1 - pullT, 3);
+          introReveal.style.transform = `translateY(${-easedPull * 100}%)`;
         }
 
         // Reveal hero content
@@ -323,6 +325,17 @@ export default function LiftioApp() {
     const BATCH_SIZE = 40;
     const WINDOW_HALF = 30; // keep 30 frames before & after current position
 
+    // Loading indicator inside the intro reveal canvas
+    const loadingLabel = document.createElement('div');
+    loadingLabel.id = 'frameLoadingLabel';
+    loadingLabel.textContent = '0 %';
+    Object.assign(loadingLabel.style, {
+      position: 'fixed', bottom: '48px', left: '50%', transform: 'translateX(-50%)',
+      zIndex: '100001', fontFamily: "'JetBrains Mono', monospace", fontSize: '13px',
+      color: '#000', letterSpacing: '0.06em', opacity: '0.6', pointerEvents: 'none',
+    });
+    introReveal?.parentNode?.appendChild(loadingLabel);
+
     function loadFrame(index: number): Promise<void> {
       if (index < 0 || index >= TOTAL_FRAMES) return Promise.resolve();
       if (frames[index]) return Promise.resolve(); // already loaded — no-op
@@ -332,26 +345,37 @@ export default function LiftioApp() {
           frames[index] = img;
           loadedCount++;
           if (index === 0) drawSingle(0);
-          // Start intro after first batch loads
-          if (loadedCount >= BATCH_SIZE || loadedCount === TOTAL_FRAMES) runIntroReveal();
+          // Update loading indicator
+          const pct = Math.round((loadedCount / TOTAL_FRAMES) * 100);
+          if (loadingLabel) loadingLabel.textContent = `${pct} %`;
+          // Start intro only after ALL frames are loaded
+          if (loadedCount >= TOTAL_FRAMES) {
+            if (loadingLabel) loadingLabel.remove();
+            runIntroReveal();
+          }
           resolve();
         };
         img.onerror = () => {
           loadedCount++;
-          if (loadedCount >= BATCH_SIZE || loadedCount === TOTAL_FRAMES) runIntroReveal();
+          const pct = Math.round((loadedCount / TOTAL_FRAMES) * 100);
+          if (loadingLabel) loadingLabel.textContent = `${pct} %`;
+          if (loadedCount >= TOTAL_FRAMES) {
+            if (loadingLabel) loadingLabel.remove();
+            runIntroReveal();
+          }
           resolve();
         };
         img.src = framePaths[index];
       });
     }
 
-    // Initial load: first BATCH_SIZE frames for the intro, then hand off to the window
-    async function loadInitialBatch() {
+    // Initial load: ALL frames must be loaded before the intro starts
+    async function loadAllFrames() {
       const batch: Promise<void>[] = [];
-      for (let j = 0; j < Math.min(BATCH_SIZE, TOTAL_FRAMES); j++) batch.push(loadFrame(j));
+      for (let j = 0; j < TOTAL_FRAMES; j++) batch.push(loadFrame(j));
       await Promise.all(batch);
     }
-    loadInitialBatch();
+    loadAllFrames();
 
     // Sliding window: load frames near current position, evict distant ones
     let windowLoading = false;
@@ -388,8 +412,9 @@ export default function LiftioApp() {
       }
     }
 
-    // Failsafe: if intro hasn't fired after 3s, force it
+    // Failsafe: if intro hasn't fired after 15s (slow connections), force it
     setTimeout(() => {
+      if (loadingLabel?.parentNode) loadingLabel.remove();
       runIntroReveal();
       // Hard fallback: ensure content is visible no matter what
       setTimeout(() => {
@@ -397,7 +422,7 @@ export default function LiftioApp() {
         if (hero && !hero.classList.contains('revealed')) hero.classList.add('revealed');
         if (introReveal && !introReveal.classList.contains('done')) introReveal.classList.add('done');
       }, 2500);
-    }, 3000);
+    }, 15000);
 
     // --- Draw ---
     function coverFit(iw, ih) {
@@ -726,10 +751,10 @@ export default function LiftioApp() {
         let s = '';
         for (let i = 0; i < len; i++) {
           if (el.dataset.final[i] === ' ') s += ' ';
-          else if (el.dataset.final[i] === '|') s += ' ';
+          else if (el.dataset.final[i] === '|') s += '<br>';
           else s += scrambleChars[Math.floor(Math.random() * scrambleChars.length)];
         }
-        el.textContent = s;
+        el.innerHTML = s;
       }
       const iv = setInterval(randomize, 50);
       scrambleIntervals.push({ el, iv });
@@ -798,6 +823,37 @@ export default function LiftioApp() {
     const hiwQRIcon = document.getElementById('hiwQRIcon');
     let hiwLerpedP = 0;
     let hiwQRLerpedP = 0;
+
+    // Glass pane tilt state (scroll + cursor, updated per-frame)
+    const hiwGlassPanes = document.querySelectorAll('.hiw-glass-pane') as NodeListOf<HTMLElement>;
+    let hiwScrollTiltY = 0;
+    const paneState = Array.from(hiwGlassPanes).map(() => ({
+      cursorRY: 0, cursorRX: 0, hoverScale: 0, hovered: false,
+    }));
+
+    // Scan frame cursor-following state (panel 1)
+    let scanTargetX = 0, scanTargetY = 0;
+    let scanCurrentX = 0, scanCurrentY = 0;
+
+    // Mark panel 1 for scan text effect
+    if (hiwGlassPanes[0]) hiwGlassPanes[0].classList.add('scan-interactive');
+
+    // Panel 2 log card repulsion + swap
+    let logRepelTargetX = 0, logRepelTargetY = 0;
+    let logRepelCurrentX = 0, logRepelCurrentY = 0;
+    let logSwapTarget = 0, logSwapProgress = 0;
+    const logVisual = hiwGlassPanes[1]?.querySelector('.hiw-panel-visual') as HTMLElement;
+    const logTitle = hiwGlassPanes[1]?.querySelector('.hiw-panel-title') as HTMLElement;
+    const logDesc = hiwGlassPanes[1]?.querySelector('.hiw-panel-desc') as HTMLElement;
+    const logLine = hiwGlassPanes[1]?.querySelector('.hiw-panel-line') as HTMLElement;
+    let logSwapOffsetDown = 0, logSwapOffsetUp = 0;
+    if (logVisual && logTitle && logDesc) {
+      logSwapOffsetDown = logTitle.offsetHeight + logDesc.offsetHeight + 60;
+      logSwapOffsetUp = logVisual.offsetHeight + 36;
+    }
+
+    // Panel 3 chart cursor bias
+    let chartCursorTarget = 0, chartCursorCurrent = 0;
 
     /* ── Strength Curve (HIW background) ── */
     const hiwCurveCanvas = document.getElementById('hiwCurveCanvas') as HTMLCanvasElement;
@@ -1208,9 +1264,42 @@ export default function LiftioApp() {
       hiwQRLerpedP += (p - hiwQRLerpedP) * 0.06;
       const cornersOffset = (p - hiwLerpedP) * 600;
       const qrOffset = (p - hiwQRLerpedP) * 900;
-      hiwScanCorners.style.transform = `translateX(${cornersOffset}px)`;
-      hiwScanLine.style.transform = `translateX(${cornersOffset}px)`;
+
+      // Lerp scan frame toward cursor (or back to origin)
+      scanCurrentX += (scanTargetX - scanCurrentX) * 0.14;
+      scanCurrentY += (scanTargetY - scanCurrentY) * 0.14;
+
+      hiwScanCorners.style.transform = `translate(${cornersOffset + scanCurrentX}px, ${scanCurrentY}px)`;
+      hiwScanLine.style.transform = `translate(${cornersOffset + scanCurrentX}px, ${scanCurrentY}px)`;
       hiwQRIcon.style.transform = `translateX(${qrOffset}px)`;
+
+      // QR icon: gray when scan frame moves away, green when on it
+      const frameDist = Math.sqrt(scanCurrentX * scanCurrentX + scanCurrentY * scanCurrentY);
+      const qrOnFrame = frameDist < 20;
+      hiwQRIcon.style.stroke = qrOnFrame ? 'var(--accent)' : 'rgba(255,255,255,0.15)';
+      hiwQRIcon.style.opacity = qrOnFrame ? '0.4' : '0.2';
+
+      // Scan text reveal: set frame position relative to title/desc
+      const firstPane = hiwGlassPanes[0];
+      if (firstPane) {
+        const pTitle = firstPane.querySelector('.hiw-panel-title') as HTMLElement;
+        const pDesc = firstPane.querySelector('.hiw-panel-desc') as HTMLElement;
+        const scanArea = firstPane.querySelector('.hiw-scan-area') as HTMLElement;
+        if (pTitle && scanArea) {
+          const pr = firstPane.getBoundingClientRect();
+          const sr = scanArea.getBoundingClientRect();
+          const frameCX = (sr.left + sr.width / 2 - pr.left) + scanCurrentX;
+          const frameCY = (sr.top + sr.height / 2 - pr.top) + scanCurrentY;
+          const tr = pTitle.getBoundingClientRect();
+          pTitle.style.setProperty('--scan-x', `${frameCX - (tr.left - pr.left)}px`);
+          pTitle.style.setProperty('--scan-y', `${frameCY - (tr.top - pr.top)}px`);
+          if (pDesc) {
+            const dr = pDesc.getBoundingClientRect();
+            pDesc.style.setProperty('--scan-x', `${frameCX - (dr.left - pr.left)}px`);
+            pDesc.style.setProperty('--scan-y', `${frameCY - (dr.top - pr.top)}px`);
+          }
+        }
+      }
 
       // Panel 3 chart: draw line as we scroll into it
       const chartStart = 0.72;
@@ -1224,12 +1313,12 @@ export default function LiftioApp() {
         chartP = (p - chartStart) / (chartEnd - chartStart);
       }
       // Ease-out for smooth feel
-      const easedP = 1 - Math.pow(1 - chartP, 3);
+      const baseEasedP = 1 - Math.pow(1 - chartP, 3);
 
-      // Clip rect reveals both the line and gradient fill
-      if (hiwChartClipRect) {
-        hiwChartClipRect.setAttribute('width', String(easedP * 290));
-      }
+      // Cursor bias: lerp and blend with scroll-driven progress
+      chartCursorCurrent += (chartCursorTarget - chartCursorCurrent) * 0.1;
+      const easedP = Math.max(0, Math.min(1, baseEasedP + chartCursorCurrent));
+
       // Dot follows the line endpoint
       if (hiwChartDot && chartP > 0) {
         const totalLen = chartPts.length - 1;
@@ -1242,13 +1331,135 @@ export default function LiftioApp() {
         hiwChartDot.setAttribute('cx', String(cx));
         hiwChartDot.setAttribute('cy', String(cy));
         hiwChartDot.setAttribute('opacity', chartP > 0.02 ? '1' : '0');
+        // Clip rect tracks the dot so the line never extends past it
+        if (hiwChartClipRect) hiwChartClipRect.setAttribute('width', String(cx + 10));
       } else if (hiwChartDot) {
         hiwChartDot.setAttribute('opacity', '0');
+        if (hiwChartClipRect) hiwChartClipRect.setAttribute('width', '0');
       }
       // Stats count up
       if (hiwStatStrength) hiwStatStrength.textContent = `+${Math.round(easedP * 32)}%`;
       if (hiwStatSessions) hiwStatSessions.textContent = String(Math.round(easedP * 24));
       if (hiwStatPRs) hiwStatPRs.textContent = String(Math.round(easedP * 7));
+
+      // Panel 2: log card repulsion + position swap
+      logRepelCurrentX += (logRepelTargetX - logRepelCurrentX) * 0.12;
+      logRepelCurrentY += (logRepelTargetY - logRepelCurrentY) * 0.12;
+
+      // Swap when pushed down enough (cursor near top of pane)
+      if (logRepelCurrentY > 35) logSwapTarget = 1;
+      else if (logRepelCurrentY < 15) logSwapTarget = 0;
+
+      logSwapProgress += (logSwapTarget - logSwapProgress) * 0.18;
+
+      if (logVisual) {
+        const vy = logRepelCurrentY * (1 - logSwapProgress) + logSwapOffsetDown * logSwapProgress;
+        logVisual.style.transform = `translate(${logRepelCurrentX}px, ${vy}px)`;
+      }
+      if (logTitle) {
+        logTitle.style.transform = `translateY(${-logSwapOffsetUp * logSwapProgress}px)`;
+      }
+      if (logDesc) {
+        logDesc.style.transform = `translateY(${-logSwapOffsetUp * logSwapProgress}px)`;
+      }
+      if (logLine) {
+        logLine.style.transform = `translateY(${-logSwapOffsetUp * logSwapProgress}px)`;
+      }
+
+      // Glass pane scroll tilt — inertia: cards resist horizontal motion
+      const scrollVelocity = p - hiwLerpedP;
+      hiwScrollTiltY = Math.max(-8, Math.min(8, -scrollVelocity * 220));
+
+      hiwGlassPanes.forEach((pane, i) => {
+        const s = paneState[i];
+        if (!s.hovered) {
+          s.cursorRY *= 0.87;
+          s.cursorRX *= 0.87;
+          s.hoverScale += (0 - s.hoverScale) * 0.12;
+        } else {
+          s.hoverScale += (0.03 - s.hoverScale) * 0.15;
+        }
+        const ry = hiwScrollTiltY + s.cursorRY;
+        const rx = s.cursorRX;
+        const sc = 1 + s.hoverScale;
+        pane.style.transform = `perspective(800px) rotateY(${ry}deg) rotateX(${rx}deg) scale3d(${sc},${sc},${sc})`;
+      });
+    }
+
+    /* ═══════════════════════════════════════
+       GLASS PANE — 3D tilt + cursor glow
+    ═══════════════════════════════════════ */
+    if (window.matchMedia('(hover: hover)').matches) {
+      hiwGlassPanes.forEach((pane, idx) => {
+        // Create edge glow element
+        const edgeGlow = document.createElement('div');
+        edgeGlow.className = 'glass-edge-glow';
+        pane.appendChild(edgeGlow);
+
+        pane.addEventListener('mousemove', (e: MouseEvent) => {
+          const rect = pane.getBoundingClientRect();
+          const x = (e.clientX - rect.left) / rect.width;
+          const y = (e.clientY - rect.top) / rect.height;
+
+          // Update pane state — transform applied in updateHIW()
+          paneState[idx].cursorRY = (x - 0.5) * 14;
+          paneState[idx].cursorRX = (0.5 - y) * 10;
+
+          // Cursor position for glow effects
+          pane.style.setProperty('--mx', `${x * 100}%`);
+          pane.style.setProperty('--my', `${y * 100}%`);
+
+          // Panel 1: scan frame follows cursor
+          if (idx === 0) {
+            const scanArea = pane.querySelector('.hiw-scan-area');
+            if (scanArea) {
+              const sr = scanArea.getBoundingClientRect();
+              const scx = sr.left + sr.width / 2;
+              const scy = sr.top + sr.height / 2;
+              scanTargetX = (e.clientX - scx) * 0.55;
+              scanTargetY = (e.clientY - scy) * 0.55;
+            }
+          }
+
+          // Panel 2: log card repelled by cursor
+          if (idx === 1) {
+            logRepelTargetX = -(x - 0.5) * 50;
+            logRepelTargetY = -(y - 0.5) * 100;
+          }
+
+          // Panel 3: chart follows cursor X
+          if (idx === 2) {
+            chartCursorTarget = (x - 0.5) * 1.2;
+          }
+        });
+
+        pane.addEventListener('mouseenter', () => {
+          paneState[idx].hovered = true;
+          edgeGlow.style.opacity = '1';
+          pane.classList.add('glass-hovered');
+        });
+
+        pane.addEventListener('mouseleave', () => {
+          paneState[idx].hovered = false;
+          edgeGlow.style.opacity = '0';
+          pane.classList.remove('glass-hovered');
+          // Panel 1: scan frame returns to origin
+          if (idx === 0) {
+            scanTargetX = 0;
+            scanTargetY = 0;
+          }
+          // Panel 2: log card returns
+          if (idx === 1) {
+            logRepelTargetX = 0;
+            logRepelTargetY = 0;
+            logSwapTarget = 0;
+          }
+          // Panel 3: chart returns to scroll-driven position
+          if (idx === 2) {
+            chartCursorTarget = 0;
+          }
+        });
+      });
     }
 
     /* ═══════════════════════════════════════
@@ -1372,7 +1583,63 @@ export default function LiftioApp() {
     });
 
     const featSection = document.getElementById('features');
-    function updateFeaturesBg() {}
+    const featGridBg = featSection?.querySelector('.feat-grid-bg') as HTMLElement | null;
+    const featRows = document.querySelectorAll('.feature-row') as NodeListOf<HTMLElement>;
+    const featSpotlight = document.getElementById('featSpotlight') as HTMLElement | null;
+    let spotY = 0;
+    let spotX = 0;
+
+    function updateFeaturesBg() {
+      if (!featSection) return;
+      const viewH = window.innerHeight;
+      const sRect = featSection.getBoundingClientRect();
+      const sP = (viewH - sRect.top) / (sRect.height + viewH);
+
+      // Grid: gentle vertical drift
+      if (featGridBg) {
+        featGridBg.style.transform = `translateY(${(0.5 - sP) * 80}px)`;
+      }
+
+      const t = performance.now() * 0.001;
+
+      // Calculate charge per row + track the active card for the spotlight
+      let closestDist = Infinity;
+      let targetY = 0;
+      let targetX = sRect.width * 0.5;
+
+      featRows.forEach(row => {
+        const rr = row.getBoundingClientRect();
+        const cy = rr.top + rr.height * 0.5;
+        const dist = Math.abs(cy - viewH * 0.5);
+        // Charge: 1 when centered, 0 when > 60% of viewport away
+        const charge = Math.max(0, 1 - dist / (viewH * 0.6));
+
+        // Set --charge on the card
+        const card = row.querySelector('.feat-card') as HTMLElement;
+        if (card) card.style.setProperty('--charge', String(charge.toFixed(3)));
+
+        // Track the closest row for the spotlight
+        if (dist < closestDist) {
+          closestDist = dist;
+          targetY = rr.top - sRect.top + rr.height * 0.5;
+          const vis = row.querySelector('.feature-visual');
+          if (vis) {
+            const vr = vis.getBoundingClientRect();
+            targetX = vr.left - sRect.left + vr.width * 0.5;
+          }
+        }
+      });
+
+      // Spotlight lerps toward the active card
+      if (featSpotlight) {
+        spotY += (targetY - spotY) * 0.06;
+        spotX += (targetX - spotX) * 0.04;
+        const pulse = 1 + Math.sin(t * 1.8) * 0.05;
+        featSpotlight.style.transform =
+          `translate(${spotX - 350}px, ${spotY - 250}px) scale(${pulse})`;
+        featSpotlight.style.opacity = (sP > 0.05 && sP < 0.95) ? '1' : '0';
+      }
+    }
 
     /* ═══════════════════════════════════════
        GYM OWNERS — Dashboard Sync
@@ -1498,6 +1765,158 @@ export default function LiftioApp() {
     const rmRootProgress: number[] = new Array(rmItems.length).fill(0);
     const rmPoweredAt: number[] = new Array(rmItems.length).fill(0);
 
+    // ── Circuit-trace pulse system ──
+    type CTrace = { smooth: {x: number; y: number}[]; children: CTrace[]; depth: number; branchT: number };
+    type CPulse = { traces: CTrace[]; startTime: number; originX: number; originY: number; duration: number };
+    const circuitPulses: CPulse[] = [];
+    const pulsedNodes = new Set<number>();
+
+    // Catmull-Rom spline interpolation for smooth curves
+    function catmullRom(pts: {x: number; y: number}[], res: number = 5): {x: number; y: number}[] {
+      if (pts.length < 3) return [...pts];
+      const out: {x: number; y: number}[] = [];
+      for (let i = 0; i < pts.length - 1; i++) {
+        const p0 = pts[Math.max(0, i - 1)];
+        const p1 = pts[i];
+        const p2 = pts[Math.min(pts.length - 1, i + 1)];
+        const p3 = pts[Math.min(pts.length - 1, i + 2)];
+        for (let t = 0; t < res; t++) {
+          const f = t / res;
+          const ff = f * f, fff = ff * f;
+          out.push({
+            x: 0.5 * ((2 * p1.x) + (-p0.x + p2.x) * f + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * ff + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * fff),
+            y: 0.5 * ((2 * p1.y) + (-p0.y + p2.y) * f + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * ff + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * fff),
+          });
+        }
+      }
+      out.push(pts[pts.length - 1]);
+      return out;
+    }
+
+    function genTrace(sx: number, sy: number, angle: number, depth: number): CTrace {
+      const waypoints: {x: number; y: number}[] = [{ x: sx, y: sy }];
+      const children: CTrace[] = [];
+      const totalLen = depth === 0 ? 100 + Math.random() * 80 : 35 + Math.random() * 30;
+      const numWaypoints = depth === 0 ? 7 + Math.floor(Math.random() * 3) : 4 + Math.floor(Math.random() * 2);
+      const seg = totalLen / numWaypoints;
+      let cx = sx, cy = sy, dir = angle;
+
+      for (let s = 0; s < numWaypoints; s++) {
+        dir += (Math.random() - 0.5) * 0.45;
+        cx += Math.cos(dir) * seg;
+        cy += Math.sin(dir) * seg;
+        waypoints.push({ x: cx, y: cy });
+
+        if (depth < 2 && s > 1 && s < numWaypoints - 1 && Math.random() < 0.28) {
+          const bd = dir + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random() * 0.7);
+          const child = genTrace(cx, cy, bd, depth + 1);
+          child.branchT = (s + 1) / numWaypoints;
+          children.push(child);
+        }
+      }
+      return { smooth: catmullRom(waypoints), children, depth, branchT: 0 };
+    }
+
+    function spawnPulse(x: number, y: number) {
+      const traces: CTrace[] = [];
+      const n = 4 + Math.floor(Math.random() * 2);
+      for (let i = 0; i < n; i++) {
+        traces.push(genTrace(x, y, (Math.PI * 2 / n) * i + (Math.random() - 0.5) * 0.5, 0));
+      }
+      circuitPulses.push({ traces, startTime: performance.now(), originX: x, originY: y, duration: 2400 });
+    }
+
+    function drawTracePath(ctx: CanvasRenderingContext2D, pts: {x: number; y: number}[], endIdx: number, lw: number, color: string) {
+      if (endIdx < 1) return;
+      const fullSegs = Math.floor(endIdx);
+      const frac = endIdx - fullSegs;
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let j = 1; j <= Math.min(fullSegs, pts.length - 1); j++) ctx.lineTo(pts[j].x, pts[j].y);
+      if (fullSegs < pts.length - 1 && frac > 0) {
+        const a = pts[fullSegs], b = pts[fullSegs + 1];
+        ctx.lineTo(a.x + (b.x - a.x) * frac, a.y + (b.y - a.y) * frac);
+      }
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lw;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+    }
+
+    function drawTrace(ctx: CanvasRenderingContext2D, tr: CTrace, progress: number, parentGrowP?: number) {
+      const pts = tr.smooth;
+      if (pts.length < 2) return;
+
+      // Growth with ease-out for smooth deceleration
+      const rawGrow = Math.min(1, progress / 0.5);
+      const growP = 1 - Math.pow(1 - rawGrow, 2.5);
+      // Fade with smooth ease
+      const fadeP = progress < 0.4 ? 0 : Math.pow(Math.min(1, (progress - 0.4) / 0.6), 1.5);
+      const alpha = Math.max(0, 1 - fadeP);
+      if (alpha <= 0) return;
+
+      const dm = tr.depth === 0 ? 1 : tr.depth === 1 ? 0.5 : 0.25;
+      const a = alpha * dm;
+      const endIdx = growP * (pts.length - 1);
+
+      // Glow
+      drawTracePath(ctx, pts, endIdx, tr.depth === 0 ? 10 : 5, `rgba(200,255,0,${a * 0.06})`);
+      // Core
+      drawTracePath(ctx, pts, endIdx, tr.depth === 0 ? 1.8 : 1, `rgba(200,255,0,${a * 0.35})`);
+      // Hot center
+      drawTracePath(ctx, pts, endIdx, tr.depth === 0 ? 0.6 : 0.3, `rgba(255,255,255,${a * 0.3})`);
+
+      // Tip glow
+      if (growP < 0.95) {
+        const fi = Math.min(Math.floor(endIdx), pts.length - 1);
+        const tip = pts[fi];
+        const r = tr.depth === 0 ? 12 : 7;
+        const tg = ctx.createRadialGradient(tip.x, tip.y, 0, tip.x, tip.y, r);
+        tg.addColorStop(0, `rgba(255,255,255,${a * 0.45})`);
+        tg.addColorStop(0.4, `rgba(200,255,0,${a * 0.15})`);
+        tg.addColorStop(1, 'rgba(200,255,0,0)');
+        ctx.fillStyle = tg;
+        ctx.beginPath();
+        ctx.arc(tip.x, tip.y, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Children start growing after parent reaches their branch point
+      tr.children.forEach(c => {
+        const childDelay = c.branchT * 0.35;
+        const childP = Math.max(0, (progress - childDelay) / (1 - childDelay));
+        if (childP > 0) drawTrace(ctx, c, childP);
+      });
+    }
+
+    function drawCircuitPulses(ctx: CanvasRenderingContext2D, now: number) {
+      for (let pi = circuitPulses.length - 1; pi >= 0; pi--) {
+        const pulse = circuitPulses[pi];
+        const elapsed = now - pulse.startTime;
+        const p = elapsed / pulse.duration;
+        if (p > 1) { circuitPulses.splice(pi, 1); continue; }
+
+        // Origin flash — smooth radial expansion
+        if (elapsed < 500) {
+          const fp = elapsed / 500;
+          const easedFp = 1 - Math.pow(1 - fp, 3);
+          const fr = easedFp * 90;
+          const fa = (1 - fp) * (1 - fp) * 0.2;
+          const fg = ctx.createRadialGradient(pulse.originX, pulse.originY, 0, pulse.originX, pulse.originY, fr);
+          fg.addColorStop(0, `rgba(255,255,255,${fa})`);
+          fg.addColorStop(0.35, `rgba(200,255,0,${fa * 0.3})`);
+          fg.addColorStop(1, 'rgba(200,255,0,0)');
+          ctx.fillStyle = fg;
+          ctx.beginPath();
+          ctx.arc(pulse.originX, pulse.originY, fr, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        pulse.traces.forEach(tr => drawTrace(ctx, tr, p));
+      }
+    }
+
     function drawRoots() {
       if (!rmCtx || !rmCanvas || !roadmapTimeline) return;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -1508,10 +1927,32 @@ export default function LiftioApp() {
       const timelineRect = roadmapTimeline.getBoundingClientRect();
       const now = performance.now();
 
+      // Draw circuit-trace pulses (behind everything)
+      drawCircuitPulses(rmCtx, now);
+
+      // Ambient breathing glow on powered nodes
+      rmItems.forEach((item, idx) => {
+        if (!item.classList.contains('powered')) return;
+        const nd = item.querySelector('.rm-node') as HTMLElement;
+        if (!nd) return;
+        const nr = nd.getBoundingClientRect();
+        const nx = nr.left + nr.width / 2 - timelineRect.left;
+        const ny = nr.top + nr.height / 2 - timelineRect.top;
+        const breathe = 0.5 + Math.sin(now * 0.002 + idx * 1.5) * 0.25;
+        const ag = rmCtx.createRadialGradient(nx, ny, 0, nx, ny, 70);
+        ag.addColorStop(0, `rgba(200,255,0,${breathe * 0.05})`);
+        ag.addColorStop(1, 'rgba(200,255,0,0)');
+        rmCtx.fillStyle = ag;
+        rmCtx.beginPath();
+        rmCtx.arc(nx, ny, 70, 0, Math.PI * 2);
+        rmCtx.fill();
+      });
+
       rmItems.forEach((item, i) => {
         if (!item.classList.contains('powered')) {
           rmRootProgress[i] = 0;
           rmPoweredAt[i] = 0;
+          pulsedNodes.delete(i);
           return;
         }
         if (rmPoweredAt[i] === 0) rmPoweredAt[i] = now;
@@ -1525,6 +1966,12 @@ export default function LiftioApp() {
         const nodeRect = node.getBoundingClientRect();
         const nodeX = nodeRect.left + nodeRect.width / 2 - timelineRect.left;
         const nodeY = nodeRect.top + nodeRect.height / 2 - timelineRect.top;
+
+        // Spawn circuit pulse on first power-up
+        if (!pulsedNodes.has(i)) {
+          pulsedNodes.add(i);
+          spawnPulse(nodeX, nodeY);
+        }
 
         branches.forEach((label, bi) => {
           const labelRect = (label as HTMLElement).getBoundingClientRect();
@@ -1761,9 +2208,9 @@ export default function LiftioApp() {
           <section className="scene-section" data-scene="1">
             <div className="scene-text" id="text1">
               <div className="scene-number">02</div>
-              <h2 className="scene-heading scramble-text" data-final="See your history.|Beat it."></h2>
+              <h2 className="scene-heading scramble-text" data-final="See history.|Beat it."></h2>
               <p className="scene-desc scramble-text"
-                data-final="Your history, PRs, and targets. All right there.">
+                data-final="Your history, PRs, and targets.|All right there.">
               </p>
             </div>
           </section>
@@ -1855,14 +2302,14 @@ export default function LiftioApp() {
                 <div className="hiw-panel-visual">
                   <div className="hiw-chart-card">
                     <div className="hiw-chart-title">Bench Press — 12 weeks</div>
-                    <svg className="hiw-chart-svg" viewBox="-5 -5 290 130" fill="none">
+                    <svg className="hiw-chart-svg" viewBox="-5 -15 310 150" fill="none">
                       <defs>
                         <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.3" />
                           <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
                         </linearGradient>
                         <clipPath id="chartClip">
-                          <rect id="hiwChartClipRect" x="-5" y="-5" width="0" height="130" />
+                          <rect id="hiwChartClipRect" x="-5" y="-15" width="0" height="150" />
                         </clipPath>
                       </defs>
                       <polyline id="hiwChartLine" className="hiw-chart-line" points="0,100 40,92 80,85 120,78 160,65 200,55 240,40 280,20"
@@ -1903,6 +2350,7 @@ export default function LiftioApp() {
       <section className="section features-section" id="features">
         {/* Background grid */}
         <div className="feat-grid-bg" aria-hidden="true"></div>
+        <div className="feat-spotlight" id="featSpotlight" aria-hidden="true"></div>
         <div className="section-inner">
           <div className="section-label reveal">Features</div>
           <h2 className="section-title reveal reveal-delay-1">Built for lifters<br />who mean business.</h2>
