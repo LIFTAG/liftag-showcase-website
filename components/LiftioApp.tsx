@@ -348,8 +348,9 @@ export default function LiftioApp() {
           // Update loading indicator
           const pct = Math.round((loadedCount / TOTAL_FRAMES) * 100);
           if (loadingLabel) loadingLabel.textContent = `${pct} %`;
-          // Start intro only after ALL frames are loaded
-          if (loadedCount >= TOTAL_FRAMES) {
+          // Start intro once 60% of frames are loaded
+          const revealThreshold = Math.ceil(TOTAL_FRAMES * 0.6);
+          if (loadedCount >= revealThreshold && !introStarted) {
             if (loadingLabel) loadingLabel.remove();
             runIntroReveal();
           }
@@ -359,7 +360,8 @@ export default function LiftioApp() {
           loadedCount++;
           const pct = Math.round((loadedCount / TOTAL_FRAMES) * 100);
           if (loadingLabel) loadingLabel.textContent = `${pct} %`;
-          if (loadedCount >= TOTAL_FRAMES) {
+          const revealThreshold = Math.ceil(TOTAL_FRAMES * 0.6);
+          if (loadedCount >= revealThreshold && !introStarted) {
             if (loadingLabel) loadingLabel.remove();
             runIntroReveal();
           }
@@ -1765,175 +1767,6 @@ export default function LiftioApp() {
     const rmRootProgress: number[] = new Array(rmItems.length).fill(0);
     const rmPoweredAt: number[] = new Array(rmItems.length).fill(0);
 
-    // ── Circuit-trace pulse system ──
-    type CTrace = { smooth: {x: number; y: number}[]; children: CTrace[]; depth: number; branchT: number };
-    type CPulse = { traces: CTrace[]; startTime: number; originX: number; originY: number; duration: number };
-    const circuitPulses: CPulse[] = [];
-    const pulsedNodes = new Set<number>();
-
-    // Catmull-Rom spline interpolation for smooth curves
-    function catmullRom(pts: {x: number; y: number}[], res: number = 5): {x: number; y: number}[] {
-      if (pts.length < 3) return [...pts];
-      const out: {x: number; y: number}[] = [];
-      for (let i = 0; i < pts.length - 1; i++) {
-        const p0 = pts[Math.max(0, i - 1)];
-        const p1 = pts[i];
-        const p2 = pts[Math.min(pts.length - 1, i + 1)];
-        const p3 = pts[Math.min(pts.length - 1, i + 2)];
-        for (let t = 0; t < res; t++) {
-          const f = t / res;
-          const ff = f * f, fff = ff * f;
-          out.push({
-            x: 0.5 * ((2 * p1.x) + (-p0.x + p2.x) * f + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * ff + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * fff),
-            y: 0.5 * ((2 * p1.y) + (-p0.y + p2.y) * f + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * ff + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * fff),
-          });
-        }
-      }
-      out.push(pts[pts.length - 1]);
-      return out;
-    }
-
-    function genTrace(sx: number, sy: number, angle: number, depth: number): CTrace {
-      const waypoints: {x: number; y: number}[] = [{ x: sx, y: sy }];
-      const children: CTrace[] = [];
-      const totalLen = depth === 0 ? 100 + Math.random() * 80 : 35 + Math.random() * 30;
-      const numWaypoints = depth === 0 ? 7 + Math.floor(Math.random() * 3) : 4 + Math.floor(Math.random() * 2);
-      const seg = totalLen / numWaypoints;
-      let cx = sx, cy = sy, dir = angle;
-
-      for (let s = 0; s < numWaypoints; s++) {
-        dir += (Math.random() - 0.5) * 0.45;
-        cx += Math.cos(dir) * seg;
-        cy += Math.sin(dir) * seg;
-        waypoints.push({ x: cx, y: cy });
-
-        if (depth < 2 && s > 1 && s < numWaypoints - 1 && Math.random() < 0.28) {
-          const bd = dir + (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random() * 0.7);
-          const child = genTrace(cx, cy, bd, depth + 1);
-          child.branchT = (s + 1) / numWaypoints;
-          children.push(child);
-        }
-      }
-      return { smooth: catmullRom(waypoints), children, depth, branchT: 0 };
-    }
-
-    function spawnPulse(x: number, y: number) {
-      const traces: CTrace[] = [];
-      const n = 4 + Math.floor(Math.random() * 2);
-      for (let i = 0; i < n; i++) {
-        traces.push(genTrace(x, y, (Math.PI * 2 / n) * i + (Math.random() - 0.5) * 0.5, 0));
-      }
-      circuitPulses.push({ traces, startTime: performance.now(), originX: x, originY: y, duration: 2400 });
-    }
-
-    function drawTracePath(ctx: CanvasRenderingContext2D, pts: {x: number; y: number}[], endIdx: number, lw: number, color: string) {
-      if (endIdx < 1) return;
-      const fullSegs = Math.floor(endIdx);
-      const frac = endIdx - fullSegs;
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let j = 1; j <= Math.min(fullSegs, pts.length - 1); j++) ctx.lineTo(pts[j].x, pts[j].y);
-      if (fullSegs < pts.length - 1 && frac > 0) {
-        const a = pts[fullSegs], b = pts[fullSegs + 1];
-        ctx.lineTo(a.x + (b.x - a.x) * frac, a.y + (b.y - a.y) * frac);
-      }
-      ctx.strokeStyle = color;
-      ctx.lineWidth = lw;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.stroke();
-    }
-
-    function drawTrace(ctx: CanvasRenderingContext2D, tr: CTrace, progress: number, parentGrowP?: number) {
-      const pts = tr.smooth;
-      if (pts.length < 2) return;
-
-      // Growth with ease-out matching permanent branches
-      const rawGrow = Math.min(1, progress / 0.65);
-      const growP = 1 - Math.pow(1 - rawGrow, 3);
-      // Fade with smooth ease — delayed so branches hold at full before fading
-      const fadeP = progress < 0.55 ? 0 : Math.pow(Math.min(1, (progress - 0.55) / 0.45), 1.5);
-      const alpha = Math.max(0, 1 - fadeP);
-      if (alpha <= 0) return;
-
-      const dm = tr.depth === 0 ? 1 : tr.depth === 1 ? 0.5 : 0.25;
-      const a = alpha * dm;
-      const totalPts = pts.length - 1;
-      const drawPts = Math.floor(growP * totalPts);
-      if (drawPts < 1) return;
-
-      // Tapered segments — matching permanent branch style
-      for (let s = 0; s < drawPts; s++) {
-        const t0 = s / totalPts;
-        const segWidth = 2 - (t0 * 1.5);
-        const segAlpha = (0.5 - t0 * 0.3) * a;
-
-        ctx.beginPath();
-        ctx.moveTo(pts[s].x, pts[s].y);
-        ctx.lineTo(pts[s + 1].x, pts[s + 1].y);
-        ctx.strokeStyle = `rgba(200, 255, 0, ${segAlpha})`;
-        ctx.lineWidth = Math.max(0.5, segWidth);
-        ctx.lineCap = 'round';
-        ctx.stroke();
-      }
-
-      // Glow pass (wider, dimmer)
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let s = 1; s <= drawPts; s++) {
-        ctx.lineTo(pts[s].x, pts[s].y);
-      }
-      ctx.strokeStyle = `rgba(200, 255, 0, ${0.08 * a})`;
-      ctx.lineWidth = 8;
-      ctx.lineCap = 'round';
-      ctx.stroke();
-
-      // Tip glow dot — persists at endpoint, fades together with trace
-      {
-        const tip = pts[Math.min(drawPts, pts.length - 1)];
-        const tg = ctx.createRadialGradient(tip.x, tip.y, 0, tip.x, tip.y, 10);
-        tg.addColorStop(0, `rgba(200, 255, 0, ${0.5 * a})`);
-        tg.addColorStop(1, 'rgba(200, 255, 0, 0)');
-        ctx.fillStyle = tg;
-        ctx.beginPath();
-        ctx.arc(tip.x, tip.y, 10, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Children start growing after parent reaches their branch point
-      tr.children.forEach(c => {
-        const childDelay = c.branchT * 0.35;
-        const childP = Math.max(0, (progress - childDelay) / (1 - childDelay));
-        if (childP > 0) drawTrace(ctx, c, childP);
-      });
-    }
-
-    function drawCircuitPulses(ctx: CanvasRenderingContext2D, now: number) {
-      for (let pi = circuitPulses.length - 1; pi >= 0; pi--) {
-        const pulse = circuitPulses[pi];
-        const elapsed = now - pulse.startTime;
-        const p = elapsed / pulse.duration;
-        if (p > 1) { circuitPulses.splice(pi, 1); continue; }
-
-        // Origin flash — smooth radial expansion
-        if (elapsed < 500) {
-          const fp = elapsed / 500;
-          const easedFp = 1 - Math.pow(1 - fp, 3);
-          const fr = easedFp * 90;
-          const fa = (1 - fp) * (1 - fp) * 0.2;
-          const fg = ctx.createRadialGradient(pulse.originX, pulse.originY, 0, pulse.originX, pulse.originY, fr);
-          fg.addColorStop(0, `rgba(255,255,255,${fa})`);
-          fg.addColorStop(0.35, `rgba(200,255,0,${fa * 0.3})`);
-          fg.addColorStop(1, 'rgba(200,255,0,0)');
-          ctx.fillStyle = fg;
-          ctx.beginPath();
-          ctx.arc(pulse.originX, pulse.originY, fr, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        pulse.traces.forEach(tr => drawTrace(ctx, tr, p));
-      }
-    }
 
     function drawRoots() {
       if (!rmCtx || !rmCanvas || !roadmapTimeline) return;
@@ -1944,9 +1777,6 @@ export default function LiftioApp() {
 
       const timelineRect = roadmapTimeline.getBoundingClientRect();
       const now = performance.now();
-
-      // Draw circuit-trace pulses (behind everything)
-      drawCircuitPulses(rmCtx, now);
 
       // Ambient breathing glow on powered nodes
       rmItems.forEach((item, idx) => {
@@ -1970,7 +1800,6 @@ export default function LiftioApp() {
         if (!item.classList.contains('powered')) {
           rmRootProgress[i] = 0;
           rmPoweredAt[i] = 0;
-          pulsedNodes.delete(i);
           return;
         }
         if (rmPoweredAt[i] === 0) rmPoweredAt[i] = now;
@@ -1984,12 +1813,6 @@ export default function LiftioApp() {
         const nodeRect = node.getBoundingClientRect();
         const nodeX = nodeRect.left + nodeRect.width / 2 - timelineRect.left;
         const nodeY = nodeRect.top + nodeRect.height / 2 - timelineRect.top;
-
-        // Spawn circuit pulse on first power-up
-        if (!pulsedNodes.has(i)) {
-          pulsedNodes.add(i);
-          spawnPulse(nodeX, nodeY);
-        }
 
         branches.forEach((label, bi) => {
           const labelRect = (label as HTMLElement).getBoundingClientRect();
