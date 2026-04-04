@@ -2005,6 +2005,17 @@ export default function LiftagApp() {
       });
     }
 
+    /* ═══════════════════════════════════════
+       CTA CONTACT — Force mailto
+    ═══════════════════════════════════════ */
+    const ctaContactBtn = document.getElementById('ctaContactBtn');
+    if (ctaContactBtn) {
+      ctaContactBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = 'mailto:support@liftag.app';
+      });
+    }
+
   }, []);
 
   return (
@@ -2607,7 +2618,7 @@ export default function LiftagApp() {
               </svg>
               Dashboard
             </a>
-            <a href="mailto:support@liftag.app" className="btn-secondary">Contact Us</a>
+            <a href="mailto:support@liftag.app" className="btn-secondary" id="ctaContactBtn">Contact Us</a>
           </div>
         </div>
       </section>

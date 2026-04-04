@@ -2413,6 +2413,7 @@
       justify-content: center;
       gap: 28px;
       overflow: hidden;
+      pointer-events: none;
       mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 20%, black 70%);
       -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 20%, black 70%);
     }
