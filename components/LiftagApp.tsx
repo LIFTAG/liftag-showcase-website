@@ -1889,18 +1889,29 @@ export default function LiftagApp() {
           rmCtx.lineCap = 'round';
           rmCtx.stroke();
 
-          // Tip glow dot — stays at growth front, persists at endpoint
+          // Tip glow dot — stays at growth front, fades out as text appears
           {
             const tipT = eased;
             const tipX = bezierPt(nodeX, cp1x, cp2x, endX, tipT);
             const tipY = bezierPt(nodeY, cp1y, cp2y, endY, tipT);
-            const tipGrad = rmCtx.createRadialGradient(tipX, tipY, 0, tipX, tipY, 10);
-            tipGrad.addColorStop(0, 'rgba(200, 255, 0, 0.5)');
-            tipGrad.addColorStop(1, 'rgba(200, 255, 0, 0)');
-            rmCtx.fillStyle = tipGrad;
-            rmCtx.beginPath();
-            rmCtx.arc(tipX, tipY, 10, 0, Math.PI * 2);
-            rmCtx.fill();
+            // Fade out once root reaches endpoint: text appears ~0.6s+delay after powered
+            // branchP=1 means root is done; fade over the next 0.8s using elapsed time
+            const textDelay = branchDelay * 1200 + 600; // ms after powered when this label starts appearing
+            const fadeStart = textDelay;
+            const fadeDur = 800;
+            const tipFade = branchP >= 1
+              ? Math.max(0, 1 - Math.max(0, elapsed - fadeStart) / fadeDur)
+              : 1;
+            if (tipFade > 0) {
+              const tipAlpha = 0.5 * tipFade;
+              const tipGrad = rmCtx.createRadialGradient(tipX, tipY, 0, tipX, tipY, 10);
+              tipGrad.addColorStop(0, `rgba(200, 255, 0, ${tipAlpha})`);
+              tipGrad.addColorStop(1, 'rgba(200, 255, 0, 0)');
+              rmCtx.fillStyle = tipGrad;
+              rmCtx.beginPath();
+              rmCtx.arc(tipX, tipY, 10, 0, Math.PI * 2);
+              rmCtx.fill();
+            }
           }
         });
       });
@@ -1967,6 +1978,32 @@ export default function LiftagApp() {
 
     /* scrollUpdates merged into tick() above */
 
+    /* ═══════════════════════════════════════
+       HERO DOWNLOAD — Swipe to "Coming Soon"
+    ═══════════════════════════════════════ */
+    const heroDownloadBtn = document.getElementById('heroDownloadBtn');
+    const heroDownloadLabel = document.getElementById('heroDownloadLabel');
+    if (heroDownloadBtn && heroDownloadLabel) {
+      let dlClicked = false;
+      heroDownloadBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (dlClicked) return;
+        dlClicked = true;
+        // Hide the arrow icon
+        const svg = heroDownloadBtn.querySelector('svg');
+        if (svg) svg.style.display = 'none';
+        // Set up the swipe container
+        heroDownloadLabel.classList.add('dl-swipe-out');
+        heroDownloadLabel.addEventListener('transitionend', () => {
+          heroDownloadLabel.textContent = 'Coming Soon';
+          heroDownloadLabel.classList.remove('dl-swipe-out');
+          // Force reflow so the animation starts from the offset position
+          void heroDownloadLabel.offsetWidth;
+          heroDownloadLabel.classList.add('dl-swipe-in');
+          heroDownloadBtn.classList.add('btn-coming-soon');
+        }, { once: true });
+      });
+    }
 
   }, []);
 
@@ -1994,7 +2031,7 @@ export default function LiftagApp() {
           <li><a href="#owners" className="nav-anim nav-anim-link" id="navLink2">For Gyms</a></li>
           <li><a href="#roadmap" className="nav-anim nav-anim-link" id="navLink3">Roadmap</a></li>
         </ul>
-        <a href="#cta" className="nav-cta" id="navCta">Get Early Access</a>
+        <a href="https://app-staging.liftag.fit" className="nav-cta" id="navCta">Dashboard</a>
       </nav>
 
       {/* ═══ CANVAS (scrollytelling) ═══ */}
@@ -2019,13 +2056,13 @@ export default function LiftagApp() {
         <p className="hero-sub hero-element" id="heroSub">QR codes on every machine. Instant workout tracking. Zero friction between you and your gains.
         </p>
         <div className="hero-actions hero-element" id="heroActions">
-          <a href="#cta" className="btn-primary">
+          <button type="button" className="btn-primary" id="heroDownloadBtn">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
               strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
-            Get Started
-          </a>
+            <span id="heroDownloadLabel">Download the App</span>
+          </button>
           <a href="#how" className="btn-secondary">See How It Works</a>
         </div>
       </div>
@@ -2563,14 +2600,14 @@ export default function LiftagApp() {
           <p className="cta-desc">Join the early access waitlist. Be first to bring LIFTAG to your gym.
           </p>
           <div className="hero-actions cta-actions">
-            <a href="#cta" className="btn-primary btn-primary-glow">
+            <a href="https://app-staging.liftag.fit" className="btn-primary btn-primary-glow">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
                 strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
-              Get Early Access
+              Dashboard
             </a>
-            <a href="#cta" className="btn-secondary">Contact Us</a>
+            <a href="mailto:support@liftag.app" className="btn-secondary">Contact Us</a>
           </div>
         </div>
       </section>
