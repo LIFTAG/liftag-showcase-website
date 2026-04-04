@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import Phone3D from "./Phone3D";
 
-export default function LiftioApp() {
+export default function LiftagApp() {
   useEffect(() => {
     'use strict';
 
@@ -1985,8 +1985,8 @@ export default function LiftioApp() {
       {/* Navbar */}
       <nav className="navbar" id="navbar">
         <a href="#" className="nav-brand" id="navBrand">
-          <div className="nav-logo"><img src="logo.webp" alt="LifTag" /></div>
-          <span className="nav-wordmark">LifTag</span>
+          <div className="nav-logo"><img src="logo.webp" alt="LIFTAG" /></div>
+          <span className="nav-wordmark">LIFTAG</span>
         </a>
         <ul className="nav-links">
           <li><a href="#how" className="nav-anim nav-anim-link" id="navLink0">How It Works</a></li>
@@ -2010,7 +2010,7 @@ export default function LiftioApp() {
 
       {/* Hero content */}
       <div className="hero-content" id="heroContent">
-        <div className="hero-logo-icon hero-element" id="heroLogo"><img src="logo.webp" alt="LifTag" /></div>
+        <div className="hero-logo-icon hero-element" id="heroLogo"><img src="logo.webp" alt="LIFTAG" /></div>
         <h1 className="hero-title">
           <span className="line laser-reveal laser-green" id="revealScan">Scan.</span>
           <span className="line accent laser-reveal laser-red from-right" id="revealTrack">Track.</span>
@@ -2101,7 +2101,7 @@ export default function LiftioApp() {
                   </div>
                 </div>
                 <h3 className="hiw-panel-title">Scan the QR Code</h3>
-                <p className="hiw-panel-desc">Open LifTag, point your camera at the machine's QR code. The exercise loads
+                <p className="hiw-panel-desc">Open LIFTAG, point your camera at the machine's QR code. The exercise loads
                   instantly.</p>
                 <div className="hiw-panel-line"></div>
               </div>
@@ -2172,7 +2172,7 @@ export default function LiftioApp() {
                   </div>
                 </div>
                 <h3 className="hiw-panel-title">Watch Progress Compound</h3>
-                <p className="hiw-panel-desc">Over weeks and months, LifTag builds your complete strength story — every rep, every
+                <p className="hiw-panel-desc">Over weeks and months, LIFTAG builds your complete strength story — every rep, every
                   PR.</p>
                 <div className="hiw-panel-line"></div>
               </div>
@@ -2218,7 +2218,7 @@ export default function LiftioApp() {
           <div className="feature-info">
             <div className="feature-number">01 — PROGRESSIVE OVERLOAD</div>
             <h3 className="feature-title">Your previous sets, PRs, and projected targets — the moment you scan.</h3>
-            <p className="feature-desc">No more guessing what you lifted last week. LifTag remembers everything and shows you
+            <p className="feature-desc">No more guessing what you lifted last week. LIFTAG remembers everything and shows you
               exactly what to beat today.</p>
           </div>
         </div>
@@ -2558,9 +2558,9 @@ export default function LiftioApp() {
           </div>
         </div>
         <div className="cta-content">
-          <div className="cta-logo"><img src="logo.webp" alt="LifTag" /></div>
+          <div className="cta-logo"><img src="logo.webp" alt="LIFTAG" /></div>
           <h2 className="cta-title">Ready to track<br />like you train?</h2>
-          <p className="cta-desc">Join the early access waitlist. Be first to bring LifTag to your gym.
+          <p className="cta-desc">Join the early access waitlist. Be first to bring LIFTAG to your gym.
           </p>
           <div className="hero-actions cta-actions">
             <a href="#cta" className="btn-primary btn-primary-glow">
@@ -2579,10 +2579,10 @@ export default function LiftioApp() {
       <footer className="footer">
         <div className="footer-inner">
           <div className="footer-brand">
-            <div className="footer-logo"><img src="logo.webp" alt="LifTag" /></div>
-            <span className="footer-name">LifTag</span>
+            <div className="footer-logo"><img src="logo.webp" alt="LIFTAG" /></div>
+            <span className="footer-name">LIFTAG</span>
           </div>
-          <span className="footer-copy">© 2026 LifTag. All rights reserved.</span>
+          <span className="footer-copy">© 2026 LIFTAG. All rights reserved.</span>
         </div>
       </footer>
 

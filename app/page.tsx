@@ -1,5 +1,5 @@
-import LiftioApp from "@/components/LiftioApp";
+import LiftagApp from "@/components/LiftagApp";
 
 export default function Home() {
-  return <LiftioApp />;
+  return <LiftagApp />;
 }
