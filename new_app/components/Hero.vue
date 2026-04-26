@@ -87,10 +87,10 @@ function wordMarginRight(i: number) {
 }
 
 // ─── hero stats ───────────────────────────────────────────────────────────────
-const stat1 = useCountUp(12400, 1600)
-const stat2 = useCountUp(340,   1600)
-const stat3 = useCountUp(2400000, 1600)
-const stat4 = useCountUp(98,    1600)
+const stat1 = useCountUp(250, 1600)
+const stat2 = useCountUp(11,  1600)
+const stat3 = useCountUp(20,  1600)
+const stat4 = useCountUp(100, 1600)
 
 function fmtStat(val: number, target: number, suffix: string, compact: boolean) {
   if (compact) return (val / 1_000_000).toFixed(2) + 'M'
@@ -444,7 +444,7 @@ const p3 = computed(() => ({
               boxShadow: '0 0 10px #CCFF00, 0 0 20px #CCFF00',
             }"
           />
-          <span class="protocol" :style="{ color: '#CCFF00', fontSize: '11px' }">v1.0 · NOW IN BETA</span>
+          <span class="protocol" :style="{ color: '#CCFF00', fontSize: '11px' }">PUBLIC BETA · LAUNCHING SOON</span>
         </div>
 
         <!-- Headline — word-by-word entrance -->
@@ -526,7 +526,6 @@ const p3 = computed(() => ({
             transition: 'opacity 900ms 800ms cubic-bezier(0.16,1,0.3,1), transform 900ms 800ms cubic-bezier(0.16,1,0.3,1)',
           }"
         >
-          <!-- 12,400+ lifters -->
           <div :ref="(el) => (stat1.el.value = el as HTMLElement | null)">
             <div
               :style="{
@@ -537,11 +536,10 @@ const p3 = computed(() => ({
                 letterSpacing: '-0.02em',
                 lineHeight: 1,
               }"
-            >{{ fmtStat(stat1.val.value, 12400, '+', false) }}</div>
-            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">Active lifters</div>
+            >{{ fmtStat(stat1.val.value, 250, '+', false) }}</div>
+            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">Exercises in library</div>
           </div>
 
-          <!-- 340 partner gyms -->
           <div :ref="(el) => (stat2.el.value = el as HTMLElement | null)">
             <div
               :style="{
@@ -552,11 +550,10 @@ const p3 = computed(() => ({
                 letterSpacing: '-0.02em',
                 lineHeight: 1,
               }"
-            >{{ fmtStat(stat2.val.value, 340, '', false) }}</div>
-            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">Partner gyms</div>
+            >{{ fmtStat(stat2.val.value, 11, '', false) }}</div>
+            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">Muscle groups</div>
           </div>
 
-          <!-- 2.4M sets logged -->
           <div :ref="(el) => (stat3.el.value = el as HTMLElement | null)">
             <div
               :style="{
@@ -567,11 +564,10 @@ const p3 = computed(() => ({
                 letterSpacing: '-0.02em',
                 lineHeight: 1,
               }"
-            >{{ fmtStat(stat3.val.value, 2400000, '', true) }}</div>
-            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">Sets logged</div>
+            >{{ fmtStat(stat3.val.value, 20, '+', false) }}</div>
+            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">Yrs founder experience</div>
           </div>
 
-          <!-- 98% retention W4 -->
           <div :ref="(el) => (stat4.el.value = el as HTMLElement | null)">
             <div
               :style="{
@@ -582,8 +578,8 @@ const p3 = computed(() => ({
                 letterSpacing: '-0.02em',
                 lineHeight: 1,
               }"
-            >{{ fmtStat(stat4.val.value, 98, '%', false) }}</div>
-            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">Retention W4</div>
+            >{{ fmtStat(stat4.val.value, 100, '%', false) }}</div>
+            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">Free · forever</div>
           </div>
         </div>
       </div>

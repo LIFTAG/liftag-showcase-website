@@ -23,9 +23,9 @@ const benefits = [
 ]
 
 const gymNumbers = [
-  { n: '3×', l: 'Beginner confidence', sub: 'vs unmarked gym floor' },
-  { n: '−42%', l: 'Trainer Q&A interruptions', sub: 'members self-serve faster' },
-  { n: '340+', l: 'Partner gyms', sub: 'and growing weekly' },
+  { n: '0€', l: 'Setup fee', sub: 'no subscription, ever' },
+  { n: 'FREE', l: 'QR sticker kit', sub: 'we ship it to you' },
+  { n: 'MAP', l: 'Featured placement', sub: 'verified gym badge' },
 ]
 
 const muscleTags = ['BACK', 'LATS', 'BICEPS']
@@ -344,7 +344,7 @@ const muscleTags = ['BACK', 'LATS', 'BICEPS']
               }"
             />
             <span class="protocol" :style="{ color: '#CCFF00', fontSize: '9px' }">
-              340 PARTNER GYMS · GROWING
+              FREE QR KIT · APPLY NOW
             </span>
           </div>
         </div>

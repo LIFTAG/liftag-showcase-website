@@ -1,11 +1,11 @@
 <script setup lang="ts">
-const gyms = [
-  'IRON · TEMPLE', 'APEX · ATHLETIC', 'STRENGTH · LAB',
-  'BARBELL · CLUB', 'MONOLITH · GYM', 'GRIT · HOUSE',
-  'PROTOCOL · 24', 'CHALK · & · STEEL', 'NORTH · BLOCK',
-  'PR · UNIT', 'DELOAD · CO',
+const features = [
+  'QR · MACHINE SCAN', 'AUTO · 1RM', '250+ · EXERCISES',
+  '11 · MUSCLE GROUPS', 'COACH · DIRECTORY', 'GYM · MAP',
+  'ROUTINES · SUPERSETS', 'WORKOUT · HISTORY', 'PRs · AUTO-DETECTED',
+  'EN · SK', 'FREE · FOREVER',
 ]
-const items = [...gyms, ...gyms]
+const items = [...features, ...features]
 </script>
 
 <template>
@@ -38,7 +38,7 @@ const items = [...gyms, ...gyms]
 
     <div class="marquee-track">
       <div
-        v-for="(g, i) in items"
+        v-for="(item, i) in items"
         :key="i"
         :style="{
           display: 'flex',
@@ -54,7 +54,7 @@ const items = [...gyms, ...gyms]
           whiteSpace: 'nowrap',
         }"
       >
-        <span>{{ g }}</span>
+        <span>{{ item }}</span>
         <span
           :style="{
             width: '6px',

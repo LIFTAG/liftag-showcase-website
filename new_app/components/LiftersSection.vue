@@ -44,16 +44,16 @@ const cards: FeatureCardProps[] = [
     span: 'span 3',
     img: '/assets/screens/exercises.png',
     tag: 'LIBRARY',
-    title: '500+ exercises. Form videos.',
+    title: '250+ exercises. Form videos.',
     body: 'Vetted by coaches, not influencers.',
     compact: true,
   },
 ]
 
 const numbers = [
-  { n: '500+', l: 'Exercises in the library' },
   { n: '< 2s', l: 'Avg time to log a set' },
-  { n: '9 wk', l: 'Median user PR cycle' },
+  { n: '∞', l: 'Sessions stored' },
+  { n: 'EN · SK', l: 'Languages, day one' },
   { n: '0', l: 'Spreadsheets required' },
 ]
 

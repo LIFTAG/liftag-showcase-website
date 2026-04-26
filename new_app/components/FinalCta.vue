@@ -6,16 +6,16 @@ interface QuoteItem {
 
 const quotes: QuoteItem[] = [
   {
-    text: "My PRs are climbing for the first time in 18 months.",
-    who: '@marek_lifts · 2y user',
+    text: "We built Liftag because we wanted it ourselves. Notes app, then a spreadsheet, then nothing — now everything's in one place.",
+    who: '[YOUR NAME] · co-founder',
   },
   {
-    text: "Best client management tool I've used as an online coach.",
-    who: 'Lina R. · S&amp;C coach',
+    text: "Almost 20 years of training between the three of us. This is the app we always wished existed.",
+    who: '[YOUR NAME] · co-founder',
   },
   {
-    text: "Members stopped asking how to use the cable stack.",
-    who: 'Apex Athletic · partner gym',
+    text: "Tracking should take two taps. Setup videos belong on the machine. We made the gym we want to train in.",
+    who: '[YOUR NAME] · co-founder',
   },
 ]
 </script>
@@ -90,8 +90,8 @@ const quotes: QuoteItem[] = [
           lineHeight: 1.55,
         }"
       >
-        Join 12,000+ lifters tracking real progress, scanning real machines, and skipping the
-        spreadsheet.
+        Track real progress. Scan real machines. Skip the spreadsheet.<br />
+        Public beta — open now on iOS, Android coming soon.
       </p>
 
       <!-- Store buttons -->
