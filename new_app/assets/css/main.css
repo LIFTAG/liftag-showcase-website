@@ -1,0 +1,490 @@
+/* LIFTAG — Global tokens, typography, atomic primitives.
+   Ported from the design bundle's index.html <style> + styles/liftag.css. */
+
+:root {
+  /* Brand */
+  --liftag-primary: #CCFF00;
+  --liftag-primary-dark: #4A5E00;
+  --liftag-primary-glow: rgba(204, 255, 0, 0.4);
+  --liftag-primary-dim: rgba(204, 255, 0, 0.15);
+  --liftag-red-neon: #FF2D55;
+  --liftag-red-neon-glow: rgba(255, 45, 85, 0.4);
+
+  /* Surfaces */
+  --liftag-bg: #000000;
+  --liftag-neutral: #0E0E0E;
+  --liftag-secondary: #1A1A1A;
+  --liftag-surface-card: #262626;
+  --liftag-surface-dark: #131313;
+  --liftag-border: #333333;
+
+  /* Text */
+  --liftag-fg: #FFFFFF;
+  --liftag-fg-on-primary: #0E0E0E;
+  --liftag-fg-muted: #ADAAAA;
+  --liftag-fg-tertiary: #A1A1A1;
+  --liftag-fg-dim: rgba(255, 255, 255, 0.5);
+  --liftag-fg-mid: rgba(255, 255, 255, 0.7);
+
+  /* Status */
+  --liftag-success: #22C55E;
+  --liftag-warning: #F59E0B;
+  --liftag-error: #EF4444;
+  --liftag-info: #3B82F6;
+
+  /* Radii */
+  --liftag-r-sm: 8px;
+  --liftag-r-md: 12px;
+  --liftag-r-lg: 14px;
+  --liftag-r-xl: 24px;
+  --liftag-r-2xl: 32px;
+  --liftag-r-pill: 9999px;
+
+  /* Shadow / glow */
+  --liftag-shadow-card: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --liftag-shadow-pop: 0 12px 40px rgba(0, 0, 0, 0.5);
+  --liftag-glow-primary: 0 0 24px var(--liftag-primary-glow);
+
+  /* Type families */
+  --liftag-font-headline: 'Space Grotesk', system-ui, sans-serif;
+  --liftag-font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --liftag-font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: #000;
+  color: #fff;
+  font-family: var(--liftag-font-body);
+  -webkit-font-smoothing: antialiased;
+}
+/* Avoid `overflow-x: hidden` on body/html — it breaks `position: sticky`
+   for descendants like the HowItWorks horizontal-scroll section.
+   Sections that have decorative bleed (Hero parallax, Marquee, etc.) set
+   their own `overflow: hidden` on the <section>. */
+
+::selection {
+  background: var(--liftag-primary);
+  color: #0E0E0E;
+}
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #000;
+}
+::-webkit-scrollbar-thumb {
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--liftag-primary);
+}
+
+img {
+  display: block;
+}
+button {
+  font-family: inherit;
+}
+
+/* ── Atoms ── */
+.protocol {
+  font-family: var(--liftag-font-mono);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.display {
+  font-family: var(--liftag-font-headline);
+  font-weight: 700;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: -0.04em;
+  line-height: 0.92;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.lime {
+  color: var(--liftag-primary);
+}
+.red {
+  color: var(--liftag-red-neon);
+}
+.muted {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.btn-primary {
+  background: var(--liftag-primary);
+  color: #0E0E0E;
+  border: none;
+  border-radius: 9999px;
+  padding: 18px 32px;
+  font-family: var(--liftag-font-body);
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 0 36px rgba(204, 255, 0, 0.45), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  transition: all 250ms cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 50px rgba(204, 255, 0, 0.6);
+}
+.btn-ghost {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+  padding: 18px 32px;
+  font-family: var(--liftag-font-body);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-ghost:hover {
+  border-color: var(--liftag-primary);
+  color: var(--liftag-primary);
+}
+
+/* Phone bezel — screenshots already include Dynamic Island */
+.phone {
+  width: 280px;
+  aspect-ratio: 393 / 852;
+  border-radius: 52px;
+  background: #000;
+  border: 3px solid #2a2a2a;
+  box-shadow:
+    0 0 0 1px #1a1a1a,
+    0 30px 80px rgba(0, 0, 0, 0.8),
+    0 0 60px rgba(204, 255, 0, 0.08);
+  overflow: hidden;
+  position: relative;
+}
+.phone img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+section {
+  position: relative;
+}
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+/* Reveal-on-scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 800ms cubic-bezier(0.16, 1, 0.3, 1), transform 800ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Marquee */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  display: flex;
+  gap: 80px;
+  width: max-content;
+  animation: marquee 40s linear infinite;
+}
+
+@keyframes scanline {
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: 1; }
+  50% { transform: translateY(180px); opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(0); opacity: 0; }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 rgba(204, 255, 0, 0); }
+  50% { box-shadow: 0 0 60px rgba(204, 255, 0, 0.45); }
+}
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+@keyframes scrollPulse {
+  0% { transform: scaleY(0); transform-origin: top; opacity: 0; }
+  40% { transform: scaleY(1); transform-origin: top; opacity: 1; }
+  60% { transform: scaleY(1); transform-origin: bottom; opacity: 1; }
+  100% { transform: scaleY(0); transform-origin: bottom; opacity: 0; }
+}
+@keyframes heroAreaFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Mobile responsive ── */
+@media (max-width: 880px) {
+  .container {
+    padding: 0 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+  .nav-desktop {
+    display: none !important;
+  }
+  .nav-mobile-toggle {
+    display: flex !important;
+  }
+  .hero-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .hero-phones {
+    display: none !important;
+  }
+  .hero-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .hero-badges {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+  }
+  .section-2col,
+  .section-3col {
+    grid-template-columns: 1fr !important;
+  }
+  .bento-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .bento-grid > * {
+    grid-column: span 1 !important;
+    grid-row: span 1 !important;
+  }
+  .progress-triCol {
+    grid-template-columns: 1fr !important;
+  }
+  .progress-chips-left,
+  .progress-chips-right {
+    display: none !important;
+  }
+  .footer-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .display {
+    font-size: clamp(44px, 12vw, 72px) !important;
+  }
+  .phone {
+    width: 220px !important;
+  }
+  .scan-qr-sticker {
+    display: none !important;
+  }
+  .gyms-3col {
+    grid-template-columns: 1fr !important;
+  }
+  .gyms-qr {
+    display: none !important;
+  }
+  .gyms-numbers {
+    grid-template-columns: 1fr !important;
+  }
+  .gyms-numbers > *:not(:last-child) {
+    border-right: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  }
+  .trainers-3col {
+    grid-template-columns: 1fr !important;
+  }
+  .trainers-tabs-right {
+    display: none !important;
+  }
+  .metrics-strip {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .metrics-strip > *:nth-child(2) {
+    border-right: none !important;
+  }
+  .metrics-strip > *:nth-child(3) {
+    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+  }
+  .metrics-strip > *:nth-child(4) {
+    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-right: none !important;
+  }
+  .marquee-track {
+    gap: 40px !important;
+  }
+  .cta-quotes {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  section {
+    padding-top: 80px !important;
+    padding-bottom: 80px !important;
+  }
+
+  /* Two-column section headers (Lifters, Trainers, Gyms) → stack on mobile */
+  .section-header-2col {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+    margin-bottom: 56px !important;
+  }
+
+  /* 4-cell metric strips (Lifters numbers, Progress bottom strip) */
+  .metrics-strip-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+  }
+  .metrics-strip-4 > *:nth-child(2) {
+    border-right: none !important;
+  }
+  .metrics-strip-4 > *:nth-child(3),
+  .metrics-strip-4 > *:nth-child(4) {
+    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+  }
+  .metrics-strip-4 > *:nth-child(4) {
+    border-right: none !important;
+  }
+
+  /* ScanSection — stack image above steps, shrink phone area */
+  .scan-grid-2col {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+    margin-top: 48px !important;
+  }
+  .scan-phone-area {
+    height: 480px !important;
+  }
+
+  /* GymsSection — center phone column shrink + clip overflow */
+  .gyms-phones-center {
+    height: 440px !important;
+    transform: scale(0.85) !important;
+    transform-origin: top center !important;
+  }
+
+  /* TrainersSection mobile horizontal tab strip — visible only on mobile */
+  .trainers-mobile-tabs {
+    display: flex !important;
+  }
+
+  /* HowItWorks — runway shorter on mobile, glass pane fits viewport */
+  .hiw-section {
+    height: 240vh !important;
+  }
+  .hiw-glass-pane {
+    max-width: 92vw !important;
+    padding: 32px 20px 28px !important;
+  }
+  .hiw-chart-card {
+    width: 100% !important;
+    max-width: 280px !important;
+  }
+  .hiw-panel {
+    padding: 0 16px !important;
+  }
+  .hiw-header {
+    top: 24px !important;
+    left: 20px !important;
+  }
+  .hiw-dots {
+    bottom: 24px !important;
+  }
+
+  /* Roadmap — slightly tighter padding */
+  .rm-section-padding {
+    padding: 80px 0 !important;
+  }
+
+  /* Scan: hide the big phone area entirely on mobile — each step
+     card has its own inline phone-screen preview (see ScanSection.vue). */
+  .scan-phone-area {
+    display: none !important;
+  }
+  .scan-grid-2col {
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+    margin-top: 32px !important;
+  }
+  /* Inline screen preview inside each step card — visible only on mobile */
+  .scan-step-screen {
+    display: block !important;
+  }
+
+  /* Trainers: phone+chips column moves above the copy column on mobile.
+     Tab pills are above both, so reading order is:
+     pills → phone+chips → copy → CTAs. No sticky (it overlapped content). */
+  .trainers-3col > :nth-child(2) {
+    order: -1 !important;
+  }
+
+  /* Progress: only the centre phone column is visible on mobile —
+     centre it horizontally inside the grid cell. */
+  .progress-triCol > :nth-child(2) {
+    justify-self: center !important;
+  }
+}
+
+/* Default (desktop): inline scan-step screen previews are hidden */
+.scan-step-screen {
+  display: none;
+}
+
+/* Default (desktop): mobile-only tab strip is hidden */
+.trainers-mobile-tabs {
+  display: none;
+}
+
+/* Extra-narrow screens (≤420px) — squeeze more */
+@media (max-width: 420px) {
+  .display {
+    font-size: clamp(36px, 11vw, 56px) !important;
+  }
+  .phone {
+    width: 200px !important;
+  }
+  .scan-phone-area {
+    height: 420px !important;
+  }
+  .gyms-phones-center {
+    height: 380px !important;
+    transform: scale(0.75) !important;
+  }
+  .hiw-phone-frame {
+    width: 140px !important;
+    height: 160px !important;
+  }
+  .hiw-log-card {
+    width: 100% !important;
+    max-width: 240px !important;
+  }
+}

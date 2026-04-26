@@ -1,0 +1,439 @@
+<script setup lang="ts">
+interface Feature {
+  tag: string
+  title: string
+  body: string
+  screen: string
+  chip1: { label: string; value: string; sub: string; color: string }
+  chip2: { label: string; value: string; sub: string; color: string }
+}
+
+const features: Feature[] = [
+  {
+    tag: 'YOUR PROFILE',
+    title: 'Manage your profile.',
+    body: 'Specialisms, experience, location, linked gyms. Full control over how you appear to lifters looking for a coach.',
+    screen: '/assets/screens/coach-profile.png',
+    chip1: { label: 'PROFILE STATUS', value: '✓ VERIFIED', sub: 'Trainer badge active', color: '#FF2D55' },
+    chip2: { label: 'PROFILE VIEWS', value: '1.2k', sub: 'last 30 days', color: '#fff' },
+  },
+  {
+    tag: 'BE DISCOVERED',
+    title: 'Clients find you.',
+    body: 'Appear in the Liftag trainer directory. Lifters browse verified coaches by specialty, experience, and location — and contact you directly.',
+    screen: '/assets/screens/trainer-discover.png',
+    chip1: { label: 'TRAINER DIRECTORY', value: '2.4k+', sub: 'verified coaches', color: '#FF2D55' },
+    chip2: { label: 'NEW INQUIRIES', value: '7', sub: 'this week', color: '#fff' },
+  },
+  {
+    tag: 'CLIENT PROGRESS',
+    title: 'See every rep they log.',
+    body: 'Review workout history, volume trends, and goal progress for each client. Know when to push and what to adjust — based on real data.',
+    screen: '/assets/screens/trainer-profile.png',
+    chip1: { label: 'ACTIVE CLIENTS', value: '24', sub: '+3 this week', color: '#22C55E' },
+    chip2: { label: 'AVG ADHERENCE', value: '94%', sub: 'last 30 days', color: '#fff' },
+  },
+  {
+    tag: 'SHARE PLANS',
+    title: 'Share plans instantly.',
+    body: 'Build a custom routine, share via email. Clients activate it and follow your live updates — no third-party tools needed.',
+    screen: '/assets/screens/workout.png',
+    chip1: { label: 'PLANS DELIVERED', value: '187', sub: 'this month', color: '#FF2D55' },
+    chip2: { label: 'PLAN TYPES', value: 'PPL · 5-day · Custom', sub: 'fully flexible', color: '#fff' },
+  },
+]
+
+const active = ref(0)
+const f = computed(() => features[active.value])
+
+const bullets = [
+  'Verified trainer badge + priority placement',
+  'Share plans with any client via email',
+  'Review client history & volume trends',
+  'Add custom exercises with your own videos',
+  'Online & in-person coaching, one dashboard',
+]
+
+function chipBorderColor(color: string) {
+  if (color === '#FF2D55') return 'rgba(255,45,85,0.2)'
+  if (color === '#22C55E') return 'rgba(34,197,94,0.2)'
+  return 'rgba(255,255,255,0.2)'
+}
+
+function tabOpacity(i: number, isHover: boolean) {
+  if (active.value === i) return 1
+  return isHover ? 0.75 : 0.45
+}
+
+// Per-tab hover state for right side
+const tabHovered = ref<Record<number, boolean>>({})
+</script>
+
+<template>
+  <section
+    id="trainers"
+    :style="{
+      background: 'linear-gradient(180deg, #000 0%, #050505 100%)',
+      borderTop: '1px solid rgba(255,255,255,0.06)',
+      padding: '160px 0',
+      position: 'relative',
+      overflow: 'hidden',
+    }"
+  >
+    <!-- Top gradient line -->
+    <div
+      :style="{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '1px',
+        background: 'linear-gradient(90deg, transparent, #FF2D55 50%, transparent)',
+        opacity: 0.5,
+      }"
+    />
+    <!-- Left ambient glow -->
+    <div
+      :style="{
+        position: 'absolute',
+        top: '20%',
+        left: '-10%',
+        width: '500px',
+        height: '500px',
+        background: 'radial-gradient(circle, rgba(255,45,85,0.08), transparent 60%)',
+        filter: 'blur(80px)',
+      }"
+    />
+
+    <div class="container" style="position: relative;">
+      <!-- Header -->
+      <div
+        class="section-header-2col"
+        :style="{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '60px',
+          alignItems: 'end',
+          marginBottom: '80px',
+        }"
+      >
+        <div>
+          <Eyebrow color="#FF2D55">▸ FOR TRAINERS &amp; COACHES</Eyebrow>
+          <SectionTitle>
+            Your clients,<br /><span style="color: #FF2D55;">quantified.</span>
+          </SectionTitle>
+        </div>
+        <p
+          class="reveal"
+          :style="{
+            color: 'rgba(255,255,255,0.6)',
+            fontSize: '17px',
+            fontWeight: 300,
+            lineHeight: 1.6,
+            maxWidth: '440px',
+            margin: 0,
+          }"
+        >
+          LIFTAG is a full coaching platform — not just a directory. Build your profile, get
+          discovered, share plans, and track every client's progress in one place.
+        </p>
+      </div>
+
+      <!-- Mobile horizontal tab strip — only visible on mobile -->
+      <div
+        class="trainers-mobile-tabs"
+        :style="{
+          gap: '8px',
+          overflowX: 'auto',
+          paddingBottom: '12px',
+          marginBottom: '24px',
+          scrollbarWidth: 'none',
+        }"
+      >
+        <button
+          v-for="(feat, i) in features"
+          :key="i"
+          @click="active = i"
+          :style="{
+            flex: '0 0 auto',
+            padding: '10px 16px',
+            borderRadius: '9999px',
+            background: active === i ? 'rgba(255,45,85,0.15)' : 'rgba(255,255,255,0.04)',
+            border: active === i ? '1px solid #FF2D55' : '1px solid rgba(255,255,255,0.1)',
+            color: active === i ? '#FF2D55' : 'rgba(255,255,255,0.65)',
+            fontFamily: '\'JetBrains Mono\', monospace',
+            fontWeight: 700,
+            fontSize: '10px',
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+            cursor: 'pointer',
+            transition: 'all 250ms ease',
+          }"
+        >
+          {{ feat.tag }}
+        </button>
+      </div>
+
+      <!-- 3-col: copy | phone+chips | vertical tabs -->
+      <div
+        class="trainers-3col"
+        :style="{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1.1fr 1fr',
+          gap: '60px',
+          alignItems: 'center',
+        }"
+      >
+        <!-- LEFT — copy + bullets + CTA -->
+        <div class="reveal">
+          <div :style="{ marginBottom: '8px' }">
+            <div class="protocol" :style="{ color: '#FF2D55', marginBottom: '12px', fontSize: '10px' }">
+              {{ f.tag }}
+            </div>
+            <h3
+              :style="{
+                margin: 0,
+                fontFamily: '\'Space Grotesk\', sans-serif',
+                fontWeight: 700,
+                fontStyle: 'italic',
+                fontSize: 'clamp(32px, 3.5vw, 48px)',
+                lineHeight: 1,
+                letterSpacing: '-0.04em',
+                textTransform: 'uppercase',
+                color: '#fff',
+                transition: 'all 300ms ease',
+              }"
+            >
+              {{ f.title }}
+            </h3>
+            <p
+              :style="{
+                color: 'rgba(255,255,255,0.6)',
+                fontWeight: 300,
+                fontSize: '15px',
+                lineHeight: 1.6,
+                marginTop: '16px',
+                marginBottom: 0,
+              }"
+            >
+              {{ f.body }}
+            </p>
+          </div>
+
+          <!-- Bullet list -->
+          <div :style="{ marginTop: '36px', display: 'flex', flexDirection: 'column', gap: 0 }">
+            <div
+              v-for="(item, i) in bullets"
+              :key="i"
+              :style="{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px 0',
+                borderTop: '1px solid rgba(255,255,255,0.06)',
+              }"
+            >
+              <span
+                :style="{
+                  width: '5px',
+                  height: '5px',
+                  borderRadius: '50%',
+                  flexShrink: 0,
+                  background: '#FF2D55',
+                  boxShadow: '0 0 8px rgba(255,45,85,0.6)',
+                }"
+              />
+              <span :style="{ color: 'rgba(255,255,255,0.7)', fontSize: '13px' }">{{ item }}</span>
+            </div>
+            <div :style="{ borderTop: '1px solid rgba(255,255,255,0.06)' }" />
+          </div>
+
+          <div :style="{ marginTop: '32px', display: 'flex', gap: '12px', flexWrap: 'wrap' }">
+            <button class="btn-primary" style="padding: 14px 24px; font-size: 12px;">
+              Join as a coach
+            </button>
+            <button class="btn-ghost" style="padding: 14px 24px; font-size: 12px;">
+              Learn more
+            </button>
+          </div>
+        </div>
+
+        <!-- CENTER — phone + dynamic chips below -->
+        <div
+          class="reveal"
+          :style="{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '16px',
+          }"
+        >
+          <div :style="{ position: 'relative' }">
+            <!-- Red glow -->
+            <div
+              :style="{
+                position: 'absolute',
+                inset: '-40px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(255,45,85,0.12), transparent 65%)',
+                filter: 'blur(30px)',
+              }"
+            />
+            <div
+              :style="{
+                animation: 'float-y 6s ease-in-out infinite',
+                position: 'relative',
+                zIndex: 2,
+              }"
+            >
+              <Phone :scale="1.0">
+                <img
+                  v-for="(feat, i) in features"
+                  :key="i"
+                  :src="feat.screen"
+                  alt=""
+                  :style="{
+                    position: 'absolute',
+                    inset: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    opacity: active === i ? 1 : 0,
+                    transition: 'opacity 600ms cubic-bezier(0.16,1,0.3,1)',
+                  }"
+                />
+              </Phone>
+            </div>
+          </div>
+
+          <!-- Chips row -->
+          <div
+            :style="{
+              display: 'flex',
+              gap: '12px',
+              width: '100%',
+              justifyContent: 'center',
+            }"
+          >
+            <!-- Chip 1 -->
+            <div
+              :style="{
+                background: 'rgba(10,10,10,0.95)',
+                border: `1px solid ${chipBorderColor(f.chip1.color)}`,
+                borderRadius: '14px',
+                padding: '12px 16px',
+                backdropFilter: 'blur(20px)',
+                boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+                flex: 1,
+                transition: 'all 400ms ease',
+              }"
+            >
+              <div class="protocol" :style="{ color: 'rgba(255,255,255,0.4)', fontSize: '9px' }">
+                {{ f.chip1.label }}
+              </div>
+              <div
+                :style="{
+                  fontFamily: '\'JetBrains Mono\', monospace',
+                  fontWeight: 800,
+                  fontSize: '20px',
+                  letterSpacing: '-0.02em',
+                  marginTop: '4px',
+                  color: f.chip1.color,
+                }"
+              >
+                {{ f.chip1.value }}
+              </div>
+              <div :style="{ fontSize: '11px', color: 'rgba(255,255,255,0.45)', marginTop: '2px' }">
+                {{ f.chip1.sub }}
+              </div>
+            </div>
+
+            <!-- Chip 2 -->
+            <div
+              :style="{
+                background: 'rgba(10,10,10,0.95)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '14px',
+                padding: '12px 16px',
+                backdropFilter: 'blur(20px)',
+                boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+                flex: 1,
+                transition: 'all 400ms ease',
+              }"
+            >
+              <div class="protocol" :style="{ color: 'rgba(255,255,255,0.4)', fontSize: '9px' }">
+                {{ f.chip2.label }}
+              </div>
+              <div
+                :style="{
+                  fontFamily: f.chip2.value.length > 6 ? '\'Inter\', sans-serif' : '\'JetBrains Mono\', monospace',
+                  fontWeight: 800,
+                  fontSize: f.chip2.value.length > 6 ? '12px' : '20px',
+                  letterSpacing: '-0.01em',
+                  marginTop: '4px',
+                  color: '#fff',
+                  lineHeight: 1.2,
+                }"
+              >
+                {{ f.chip2.value }}
+              </div>
+              <div :style="{ fontSize: '11px', color: 'rgba(255,255,255,0.45)', marginTop: '2px' }">
+                {{ f.chip2.sub }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT — vertical tab list -->
+        <div
+          class="trainers-tabs-right"
+          :style="{ display: 'flex', flexDirection: 'column', gap: 0 }"
+        >
+          <div
+            v-for="(feat, i) in features"
+            :key="i"
+            @click="active = i"
+            @mouseenter="tabHovered[i] = true"
+            @mouseleave="tabHovered[i] = false"
+            :style="{
+              padding: '22px 0 22px 20px',
+              borderTop: '1px solid rgba(255,255,255,0.06)',
+              borderLeft: `2px solid ${active === i ? '#FF2D55' : 'transparent'}`,
+              cursor: 'pointer',
+              transition: 'all 300ms ease',
+              opacity: active === i ? 1 : tabHovered[i] ? 0.75 : 0.45,
+            }"
+          >
+            <div
+              class="protocol"
+              :style="{
+                color: active === i ? '#FF2D55' : 'rgba(255,255,255,0.5)',
+                fontSize: '9px',
+                marginBottom: '6px',
+                transition: 'color 300ms ease',
+              }"
+            >
+              {{ feat.tag }}
+            </div>
+            <div
+              :style="{
+                fontFamily: '\'Space Grotesk\', sans-serif',
+                fontWeight: 700,
+                fontStyle: 'italic',
+                fontSize: '20px',
+                letterSpacing: '-0.03em',
+                textTransform: 'uppercase',
+                color: '#fff',
+                lineHeight: 1.1,
+              }"
+            >
+              {{ feat.title }}
+            </div>
+          </div>
+          <div :style="{ borderTop: '1px solid rgba(255,255,255,0.06)' }" />
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
