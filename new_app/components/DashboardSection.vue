@@ -56,10 +56,10 @@ function tick() {
   // Map raw scroll progress to lid open progress.
   //   p < 0.10        : closed (entry hold)
   //   0.10 → 0.62     : lid opens
-  //   0.62 → 0.78     : fully open hold
-  //   0.78 → 0.96     : content fades out as user scrolls past the section
+  //   0.62 → 0.68     : brief hold at fully open
+  //   0.68 → 0.96     : content drifts upward and fades out as user scrolls past
   const lidT = smoothstep((p - 0.1) / 0.52)
-  const exitT = reduceMotion ? 0 : smoothstep((p - 0.78) / 0.18)
+  const exitT = reduceMotion ? 0 : smoothstep((p - 0.68) / 0.28)
   openProgress.value = lidT
 
   const section = sectionRef.value
@@ -324,11 +324,12 @@ onBeforeUnmount(() => {
   align-items: center;
   width: 100%;
   opacity: calc(1 - var(--exit-p));
-  transform: translateY(calc(var(--exit-p) * -48px));
+  transform: translateY(calc(var(--exit-p) * -260px));
+  will-change: transform, opacity;
 }
 
 .dashboard-bg {
-  opacity: calc(1 - var(--exit-p));
+  opacity: calc(1 - var(--exit-p) * 0.85);
 }
 
 .dashboard-copy {
