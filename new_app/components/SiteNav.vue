@@ -53,7 +53,7 @@ onBeforeUnmount(() => {
     </a>
 
     <!-- Desktop nav links -->
-    <nav class="nav-desktop" style="display: flex; gap: 36px;">
+    <nav class="nav-desktop nav-center-links">
       <a
         v-for="[label, href] in navLinks"
         :key="label"
@@ -65,6 +65,12 @@ onBeforeUnmount(() => {
     <!-- Right side: CTA + hamburger -->
     <div style="display: flex; align-items: center; gap: 12px;">
       <!-- Desktop CTA -->
+      <a
+        href="#dashboard"
+        class="btn-ghost nav-desktop nav-dashboard-cta"
+      >
+        Dashboard
+      </a>
       <button
         class="btn-primary nav-desktop"
         style="padding: 10px 20px; font-size: 11px; box-shadow: 0 0 24px rgba(204,255,0,0.4);"
@@ -149,6 +155,13 @@ onBeforeUnmount(() => {
         @click="open = false"
       >{{ label }}</a>
     </nav>
+    <a
+      href="#dashboard"
+      class="nav-dashboard-mobile"
+      @click="open = false"
+    >
+      Dashboard
+    </a>
     <div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
       <AppStoreBtn store="apple" />
       <AppStoreBtn store="google" />
@@ -189,8 +202,25 @@ onBeforeUnmount(() => {
   transition: color 200ms ease;
 }
 
+.nav-center-links {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  transform: translate(-50%, -50%);
+}
+
 .nav-link:hover {
   color: #CCFF00;
+}
+
+.nav-dashboard-cta {
+  padding: 10px 18px;
+  font-size: 11px;
+  line-height: 1;
+  text-decoration: none;
 }
 
 .nav-drawer-link {
@@ -209,5 +239,34 @@ onBeforeUnmount(() => {
 
 .nav-drawer-link:hover {
   color: #CCFF00;
+}
+
+.nav-dashboard-mobile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  margin-top: 24px;
+  padding: 12px 18px;
+  border: 1px solid rgba(204, 255, 0, 0.34);
+  border-radius: 999px;
+  color: #CCFF00;
+  text-decoration: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1080px) {
+  .nav-center-links {
+    gap: 24px;
+  }
+
+  .nav-link {
+    font-size: 10px;
+    letter-spacing: 0.16em;
+  }
 }
 </style>

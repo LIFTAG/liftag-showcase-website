@@ -6,7 +6,7 @@ const props = withDefaults(defineProps<{
   screenshotSrc: string
   tiltDelayMs?: number
   screenTransition?: boolean
-  screenTransitionDirection?: 'up' | 'down'
+  screenTransitionDirection?: 'up' | 'down' | 'left' | 'right'
 }>(), {
   tiltDelayMs: 0,
   screenTransition: false,
@@ -156,7 +156,7 @@ function initPhone() {
   let screenTransition: {
     from: ScreenImage
     to: ScreenImage
-    direction: 'up' | 'down'
+    direction: 'up' | 'down' | 'left' | 'right'
     start: number
     duration: number
   } | null = null
@@ -175,7 +175,7 @@ function initPhone() {
     }
   }
 
-  function drawScreenImage(image: ScreenImage, y = 0) {
+  function drawScreenImage(image: ScreenImage, x = 0, y = 0) {
     if (!screenTextureCtx) return
 
     const { width: imageW, height: imageH } = imageSize(image)
@@ -184,7 +184,7 @@ function initPhone() {
     const scale = Math.max(canvasW / imageW, canvasH / imageH)
     const drawW = imageW * scale
     const drawH = imageH * scale
-    const drawX = (canvasW - drawW) / 2
+    const drawX = (canvasW - drawW) / 2 + x
     const drawY = (canvasH - drawH) / 2 + y
 
     screenTextureCtx.drawImage(image, drawX, drawY, drawW, drawH)
@@ -227,22 +227,38 @@ function initPhone() {
 
     const progress = Math.min(1, (now - screenTransition.start) / screenTransition.duration)
     const eased = 1 - Math.pow(1 - progress, 3)
-    const y = screenTextureCanvas.height * eased * (screenTransition.direction === 'up' ? -1 : 1)
+    const isHorizontal = screenTransition.direction === 'left' || screenTransition.direction === 'right'
+    const offset = (isHorizontal ? screenTextureCanvas.width : screenTextureCanvas.height)
+      * eased
+      * (screenTransition.direction === 'up' || screenTransition.direction === 'left' ? -1 : 1)
+    const x = isHorizontal ? offset : 0
+    const y = isHorizontal ? 0 : offset
 
     screenTextureCtx.clearRect(0, 0, screenTextureCanvas.width, screenTextureCanvas.height)
     drawScreenImage(screenTransition.to)
-    drawScreenImage(screenTransition.from, y)
+    drawScreenImage(screenTransition.from, x, y)
 
-    const edgeY = screenTransition.direction === 'up'
-      ? screenTextureCanvas.height + y
-      : y
-    if (edgeY > 0 && edgeY < screenTextureCanvas.height) {
-      const gradient = screenTextureCtx.createLinearGradient(0, edgeY - 24, 0, edgeY + 24)
+    const edge = isHorizontal
+      ? screenTransition.direction === 'left'
+        ? screenTextureCanvas.width + x
+        : x
+      : screenTransition.direction === 'up'
+        ? screenTextureCanvas.height + y
+        : y
+    const maxEdge = isHorizontal ? screenTextureCanvas.width : screenTextureCanvas.height
+    if (edge > 0 && edge < maxEdge) {
+      const gradient = isHorizontal
+        ? screenTextureCtx.createLinearGradient(edge - 24, 0, edge + 24, 0)
+        : screenTextureCtx.createLinearGradient(0, edge - 24, 0, edge + 24)
       gradient.addColorStop(0, 'rgba(0,0,0,0)')
       gradient.addColorStop(0.5, 'rgba(0,0,0,0.32)')
       gradient.addColorStop(1, 'rgba(0,0,0,0)')
       screenTextureCtx.fillStyle = gradient
-      screenTextureCtx.fillRect(0, edgeY - 24, screenTextureCanvas.width, 48)
+      if (isHorizontal) {
+        screenTextureCtx.fillRect(edge - 24, 0, 48, screenTextureCanvas.height)
+      } else {
+        screenTextureCtx.fillRect(0, edge - 24, screenTextureCanvas.width, 48)
+      }
     }
 
     activeTexture.needsUpdate = true

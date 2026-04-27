@@ -7,7 +7,7 @@ const props = withDefaults(defineProps<{
   scale?: number
   tiltDelayMs?: number
   screenTransition?: boolean
-  screenTransitionDirection?: 'up' | 'down'
+  screenTransitionDirection?: 'up' | 'down' | 'left' | 'right'
   style?: Record<string, string>
 }>(), {
   glow: false,

@@ -47,6 +47,7 @@ const active = ref(0)
 const coachPulse = ref(0)
 const sectionRef = ref<HTMLElement | null>(null)
 const sectionInView = ref(false)
+const trainerScreenCycleMs = 4200
 const f = computed(() => features[active.value])
 
 const bullets = [
@@ -70,12 +71,56 @@ function tabOpacity(i: number, isHover: boolean) {
 
 // Per-tab hover state for right side
 const tabHovered = ref<Record<number, boolean>>({})
+const hoveredTrainer = ref<number | null>(null)
+const exitingTrainer = ref<number | null>(null)
 
 let autoCycle: ReturnType<typeof setInterval> | null = null
+let exitTimer: ReturnType<typeof setTimeout> | null = null
 
 function setActive(index: number) {
+  if (active.value === index) return
+  exitingTrainer.value = active.value
+  if (exitTimer) clearTimeout(exitTimer)
+  exitTimer = setTimeout(() => {
+    exitingTrainer.value = null
+    exitTimer = null
+  }, 300)
   active.value = index
   coachPulse.value += 1
+}
+
+function clearAutoCycle() {
+  if (!autoCycle) return
+  clearInterval(autoCycle)
+  autoCycle = null
+}
+
+function startAutoCycle() {
+  if (!sectionInView.value || hoveredTrainer.value !== null) return
+  clearAutoCycle()
+
+  autoCycle = setInterval(() => {
+    setActive((active.value + 1) % features.length)
+  }, trainerScreenCycleMs)
+}
+
+function selectTrainer(index: number) {
+  setActive(index)
+  if (hoveredTrainer.value === null) startAutoCycle()
+}
+
+function setHoveredTrainer(index: number) {
+  tabHovered.value[index] = true
+  hoveredTrainer.value = index
+  clearAutoCycle()
+  setActive(index)
+}
+
+function clearHoveredTrainer(index: number) {
+  tabHovered.value[index] = false
+  if (hoveredTrainer.value !== index) return
+  hoveredTrainer.value = null
+  startAutoCycle()
 }
 
 onMounted(() => {
@@ -93,20 +138,13 @@ onMounted(() => {
 })
 
 watch(sectionInView, (visible) => {
-  if (visible) {
-    if (autoCycle) return
-
-    autoCycle = setInterval(() => {
-      setActive((active.value + 1) % features.length)
-    }, 4200)
-  } else if (autoCycle) {
-    clearInterval(autoCycle)
-    autoCycle = null
-  }
+  if (visible) startAutoCycle()
+  else clearAutoCycle()
 }, { immediate: true })
 
 onBeforeUnmount(() => {
-  if (autoCycle) clearInterval(autoCycle)
+  clearAutoCycle()
+  if (exitTimer) clearTimeout(exitTimer)
 })
 </script>
 
@@ -115,7 +153,7 @@ onBeforeUnmount(() => {
     id="trainers"
     ref="sectionRef"
     class="trainers-section"
-    :class="{ 'is-live': sectionInView }"
+    :class="{ 'is-live': sectionInView, 'is-hover-locked': hoveredTrainer !== null }"
     :style="{
       background: 'linear-gradient(180deg, #000 0%, #050505 100%)',
       borderTop: '1px solid rgba(255,255,255,0.06)',
@@ -149,7 +187,7 @@ onBeforeUnmount(() => {
       }"
     />
 
-    <div class="container" style="position: relative;">
+    <div class="container" style="position: relative; z-index: 1;">
       <!-- Header -->
       <div
         class="section-header-2col"
@@ -197,8 +235,8 @@ onBeforeUnmount(() => {
         <button
           v-for="(feat, i) in features"
           :key="i"
-          @click="setActive(i)"
-          @pointerdown="setActive(i)"
+          @click="selectTrainer(i)"
+          @pointerdown="selectTrainer(i)"
           class="trainer-mobile-tab"
           :class="{ 'is-active': active === i }"
           :style="{
@@ -325,6 +363,8 @@ onBeforeUnmount(() => {
                 borderRadius: '50%',
                 background: 'radial-gradient(circle, rgba(255,45,85,0.12), transparent 65%)',
                 filter: 'blur(30px)',
+                zIndex: 0,
+                pointerEvents: 'none',
               }"
             />
             <div :key="coachPulse" class="trainer-phone-pulse" aria-hidden="true" />
@@ -427,17 +467,17 @@ onBeforeUnmount(() => {
           <div
             v-for="(feat, i) in features"
             :key="i"
-            @click="setActive(i)"
-            @pointerdown="setActive(i)"
-            @mouseenter="tabHovered[i] = true"
-            @mouseleave="tabHovered[i] = false"
+            @click="selectTrainer(i)"
+            @pointerdown="selectTrainer(i)"
+            @mouseenter="setHoveredTrainer(i)"
+            @mouseleave="clearHoveredTrainer(i)"
             class="trainer-tab-row"
-            :class="{ 'is-active': active === i }"
+            :class="{ 'is-active': active === i, 'is-exiting': exitingTrainer === i }"
             :style="{
               '--tab-delay': `${i * 120}ms`,
+              '--cycle-ms': `${trainerScreenCycleMs}ms`,
               padding: '22px 0 22px 20px',
               borderTop: '1px solid rgba(255,255,255,0.06)',
-              borderLeft: `2px solid ${active === i ? '#FF2D55' : 'transparent'}`,
               cursor: 'pointer',
               transition: 'all 300ms ease',
               opacity: active === i ? 1 : tabHovered[i] ? 0.75 : 0.45,
@@ -481,6 +521,7 @@ onBeforeUnmount(() => {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: 0;
   pointer-events: none;
   background: radial-gradient(420px circle at 50% 52%, rgba(255, 45, 85, 0.07), transparent 68%);
   opacity: 0;
@@ -497,6 +538,57 @@ onBeforeUnmount(() => {
 .trainer-stat-chip {
   position: relative;
   overflow: hidden;
+}
+
+.trainer-tab-row {
+  border-left: 2px solid transparent;
+}
+
+.trainer-tab-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  border-radius: 999px;
+  pointer-events: none;
+  background: rgba(255, 45, 85, 0.22);
+  opacity: 0;
+  transform: scaleY(0.45);
+  transform-origin: top center;
+  transition: opacity 260ms ease, transform 260ms ease, background 260ms ease;
+}
+
+.trainer-tab-row.is-active::before {
+  opacity: 1;
+  background: linear-gradient(180deg, #ff7d96 0%, #ff2d55 72%, rgba(255, 45, 85, 0.4) 100%);
+  box-shadow:
+    0 0 10px rgba(255, 45, 85, 0.62),
+    0 0 22px rgba(255, 45, 85, 0.24);
+  transform: scaleY(0);
+  animation: trainerTabLineLoad var(--cycle-ms, 4200ms) linear forwards;
+}
+
+.trainer-tab-row.is-exiting::before {
+  opacity: 1;
+  background: linear-gradient(180deg, #ff7d96 0%, #ff2d55 72%, rgba(255, 45, 85, 0.28) 100%);
+  box-shadow:
+    0 0 8px rgba(255, 45, 85, 0.44),
+    0 0 18px rgba(255, 45, 85, 0.18);
+  transform: scaleY(1);
+  clip-path: inset(0 0 0 0);
+  animation: trainerTabLineExit 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.trainers-section:not(.is-live) .trainer-tab-row.is-active::before {
+  animation-play-state: paused;
+}
+
+.trainers-section.is-hover-locked .trainer-tab-row.is-active::before {
+  animation: none;
+  opacity: 1;
+  transform: scaleY(1);
 }
 
 .trainer-mobile-tab::after,
@@ -569,12 +661,46 @@ onBeforeUnmount(() => {
   }
 }
 
+@keyframes trainerTabLineLoad {
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes trainerTabLineExit {
+  0% {
+    opacity: 1;
+    transform: scaleY(1);
+    clip-path: inset(0 0 0 0);
+  }
+
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleY(1);
+    clip-path: inset(100% 0 0 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .trainers-section.is-live::after,
   .trainers-section.is-live .trainer-tab-row::after,
   .trainers-section.is-live .trainer-stat-chip::after,
   .trainer-phone-pulse {
     animation: none;
+  }
+
+  .trainer-tab-row.is-active::before {
+    animation: none;
+    transform: scaleY(1);
+  }
+
+  .trainer-tab-row.is-exiting::before {
+    animation: none;
+    opacity: 0;
   }
 }
 </style>

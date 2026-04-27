@@ -11,18 +11,13 @@ const productLinks: FooterLink[] = [
   { label: 'Pricing', href: '#pricing' },
   { label: 'Roadmap', href: '#roadmap' },
 ]
-
-const linkColumns: [string, string[]][] = [
-  ['Company', ['About', 'Press', 'Careers', 'Contact']],
-  ['Legal', ['Terms', 'Privacy', 'Security', 'Cookies']],
-]
 </script>
 
 <template>
   <footer class="site-footer">
     <div
       class="container footer-grid"
-      style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 48px;"
+      style="display: grid; grid-template-columns: minmax(280px, 1.4fr) minmax(180px, 0.6fr); gap: 48px;"
     >
       <!-- Logo + tagline column -->
       <div>
@@ -50,18 +45,6 @@ const linkColumns: [string, string[]][] = [
         </ul>
       </div>
 
-      <!-- Link columns -->
-      <div
-        v-for="[heading, items] in linkColumns"
-        :key="heading"
-      >
-        <div class="protocol footer-col-heading">{{ heading }}</div>
-        <ul class="footer-link-list">
-          <li v-for="item in items" :key="item">
-            <a href="#" class="footer-link">{{ item }}</a>
-          </li>
-        </ul>
-      </div>
     </div>
 
     <!-- Bottom bar -->
@@ -79,7 +62,47 @@ const linkColumns: [string, string[]][] = [
       "
     >
       <span class="protocol" style="color: #666;">© 2026 LIFTAG · BRATISLAVA · BUILT BY LIFTERS</span>
-      <span class="protocol" style="color: #666;">v1.0 · NOW IN BETA</span>
+      <div class="footer-bottom-actions">
+        <a
+          href="https://www.instagram.com/liftag.fit/"
+          class="footer-social-link"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Liftag on Instagram"
+        >
+          <svg
+            class="footer-social-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <rect
+              x="5.25"
+              y="5.25"
+              width="13.5"
+              height="13.5"
+              rx="4"
+              stroke="currentColor"
+              stroke-width="1.8"
+            />
+            <circle
+              cx="12"
+              cy="12"
+              r="3.15"
+              stroke="currentColor"
+              stroke-width="1.8"
+            />
+            <circle
+              cx="16.45"
+              cy="7.65"
+              r="1.05"
+              fill="currentColor"
+            />
+          </svg>
+          <span class="protocol">INSTAGRAM</span>
+        </a>
+        <span class="protocol" style="color: #666;">v1.0 · NOW IN BETA</span>
+      </div>
     </div>
   </footer>
 </template>
@@ -155,5 +178,34 @@ const linkColumns: [string, string[]][] = [
 
 .footer-link:hover {
   color: #CCFF00;
+}
+
+.footer-bottom-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.footer-social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.54);
+  text-decoration: none;
+  transition:
+    color 200ms ease,
+    transform 200ms ease;
+}
+
+.footer-social-link:hover {
+  color: #CCFF00;
+  transform: translateY(-1px);
+}
+
+.footer-social-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
 }
 </style>

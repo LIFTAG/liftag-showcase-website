@@ -4,6 +4,7 @@ import * as THREE from 'three'
 
 const props = withDefaults(defineProps<{
   screenshotSrc: string
+  videoSrc?: string
   openProgress?: number
   tiltDelayMs?: number
 }>(), {
@@ -15,6 +16,7 @@ const containerRef = ref<HTMLDivElement | null>(null)
 
 let cleanup: (() => void) | null = null
 let updateTexture: ((src: string) => void) | null = null
+let setVideoSource: ((src?: string) => void) | null = null
 let setOpenProgress: ((p: number) => void) | null = null
 let initObserver: IntersectionObserver | null = null
 let initialized = false
@@ -265,7 +267,7 @@ function initMacbook() {
   screenGeo.rotateX(Math.PI / 2)
 
   const textureLoader = new THREE.TextureLoader()
-  let activeTexture = textureLoader.load(
+  let posterTexture = textureLoader.load(
     props.screenshotSrc,
     () => {
       renderer.render(scene, camera)
@@ -275,11 +277,13 @@ function initMacbook() {
       console.error('[Macbook3D] failed to load screenshot', props.screenshotSrc, err)
     },
   )
-  activeTexture.colorSpace = THREE.SRGBColorSpace
-  activeTexture.anisotropy = renderer.capabilities.getMaxAnisotropy?.() ?? 1
+  posterTexture.colorSpace = THREE.SRGBColorSpace
+  posterTexture.anisotropy = renderer.capabilities.getMaxAnisotropy?.() ?? 1
+  let screenVideo: HTMLVideoElement | null = null
+  let videoTexture: THREE.VideoTexture | null = null
 
   const screenMat = new THREE.MeshBasicMaterial({
-    map: activeTexture,
+    map: posterTexture,
     toneMapped: false,
     polygonOffset: true,
     polygonOffsetFactor: -2,
@@ -321,15 +325,17 @@ function initMacbook() {
   scene.add(macbook)
 
   updateTexture = (src: string) => {
-    const previous = activeTexture
-    activeTexture = textureLoader.load(src, () => {
-      screenMat.map = activeTexture
-      screenMat.needsUpdate = true
+    const previous = posterTexture
+    posterTexture = textureLoader.load(src, () => {
+      if (!videoTexture) {
+        screenMat.map = posterTexture
+        screenMat.needsUpdate = true
+      }
       previous.dispose()
       renderer.render(scene, camera)
     })
-    activeTexture.colorSpace = THREE.SRGBColorSpace
-    activeTexture.anisotropy = renderer.capabilities.getMaxAnisotropy?.() ?? 1
+    posterTexture.colorSpace = THREE.SRGBColorSpace
+    posterTexture.anisotropy = renderer.capabilities.getMaxAnisotropy?.() ?? 1
   }
 
   // ---- Animation state ----
@@ -348,6 +354,72 @@ function initMacbook() {
   let currentTiltY = -0.06
   let animId = 0
   let isVisible = false
+
+  function disposeVideo() {
+    screenVideo?.pause()
+    if (screenVideo) {
+      screenVideo.removeAttribute('src')
+      screenVideo.load()
+    }
+    videoTexture?.dispose()
+    screenVideo = null
+    videoTexture = null
+  }
+
+  function playVideo() {
+    if (!screenVideo || !isVisible) return
+    const playAttempt = screenVideo.play()
+    if (playAttempt) {
+      playAttempt.catch(() => {
+        // Muted autoplay is expected to work, but keep the poster if a browser blocks it.
+      })
+    }
+  }
+
+  setVideoSource = (src?: string) => {
+    disposeVideo()
+    screenMat.map = posterTexture
+    screenMat.needsUpdate = true
+
+    if (!src || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      renderer.render(scene, camera)
+      return
+    }
+
+    const video = document.createElement('video')
+    video.src = src
+    video.muted = true
+    video.defaultMuted = true
+    video.loop = true
+    video.autoplay = true
+    video.playsInline = true
+    video.preload = 'metadata'
+    video.setAttribute('muted', '')
+    video.setAttribute('playsinline', '')
+    video.setAttribute('webkit-playsinline', '')
+
+    const texture = new THREE.VideoTexture(video)
+    texture.colorSpace = THREE.SRGBColorSpace
+    texture.minFilter = THREE.LinearFilter
+    texture.magFilter = THREE.LinearFilter
+    texture.generateMipmaps = false
+
+    screenVideo = video
+    videoTexture = texture
+
+    video.addEventListener('loadeddata', () => {
+      if (videoTexture !== texture) return
+      screenMat.map = texture
+      screenMat.needsUpdate = true
+      renderer.render(scene, camera)
+      playVideo()
+    }, { once: true })
+
+    video.load()
+    playVideo()
+  }
+
+  setVideoSource(props.videoSrc)
 
   const onMouseMove = (event: MouseEvent) => {
     const mx = (event.clientX / window.innerWidth - 0.5) * 2
@@ -380,7 +452,12 @@ function initMacbook() {
   const visObserver = new IntersectionObserver(
     (entries) => {
       isVisible = entries[0]?.isIntersecting ?? false
-      if (isVisible && !animId) animate()
+      if (isVisible) {
+        playVideo()
+        if (!animId) animate()
+      } else {
+        screenVideo?.pause()
+      }
     },
     { threshold: 0 },
   )
@@ -403,8 +480,10 @@ function initMacbook() {
     cancelAnimationFrame(animId)
 
     updateTexture = null
+    setVideoSource = null
     setOpenProgress = null
-    activeTexture.dispose()
+    disposeVideo()
+    posterTexture.dispose()
     kbTex.dispose()
     renderer.dispose()
 
@@ -447,6 +526,14 @@ watch(
   () => props.screenshotSrc,
   (src) => {
     if (updateTexture) updateTexture(src)
+    else initMacbook()
+  },
+)
+
+watch(
+  () => props.videoSrc,
+  (src) => {
+    if (setVideoSource) setVideoSource(src)
     else initMacbook()
   },
 )

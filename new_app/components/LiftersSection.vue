@@ -103,6 +103,64 @@ function imgPanBackTo(card: FeatureCardProps) {
 
 // Per-card hover state
 const hovered = ref<Record<number, boolean>>({})
+const cardStates = ref<Record<number, 'before' | 'visible' | 'after'>>({})
+const cardEls: HTMLElement[] = []
+
+let cardObserver: IntersectionObserver | null = null
+
+function setCardRef(el: unknown, index: number) {
+  if (typeof HTMLElement === 'undefined' || !(el instanceof HTMLElement)) return
+  cardEls[index] = el
+}
+
+function cardStateClass(index: number) {
+  return `is-${cardStates.value[index] ?? 'after'}`
+}
+
+function setCardState(index: number, state: 'before' | 'visible' | 'after') {
+  if (cardStates.value[index] === state) return
+  cardStates.value[index] = state
+}
+
+onMounted(async () => {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    cards.forEach((_, index) => setCardState(index, 'visible'))
+    return
+  }
+
+  await nextTick()
+
+  cardObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        const index = Number((entry.target as HTMLElement).dataset.cardIndex)
+        if (Number.isNaN(index)) return
+
+        if (entry.isIntersecting) {
+          setCardState(index, 'visible')
+          return
+        }
+
+        const isAboveViewportCenter = entry.boundingClientRect.top < window.innerHeight * 0.5
+        setCardState(index, isAboveViewportCenter ? 'before' : 'after')
+      })
+    },
+    {
+      threshold: 0.02,
+      rootMargin: '-22% 0px -12% 0px',
+    },
+  )
+
+  cardEls.forEach((el, index) => {
+    el.dataset.cardIndex = String(index)
+    setCardState(index, 'after')
+    cardObserver?.observe(el)
+  })
+})
+
+onBeforeUnmount(() => {
+  cardObserver?.disconnect()
+})
 </script>
 
 <template>
@@ -177,10 +235,12 @@ const hovered = ref<Record<number, boolean>>({})
         <div
           v-for="(card, i) in cards"
           :key="i"
-          class="reveal lifters-card"
+          :ref="(el) => setCardRef(el, i)"
+          :class="['lifters-card', cardStateClass(i)]"
           @mouseenter="hovered[i] = true"
           @mouseleave="hovered[i] = false"
           :style="{
+            '--card-delay': `${i * 70}ms`,
             gridColumn: card.span,
             gridRow: card.tall ? 'span 2' : 'auto',
             background: '#0a0a0a',
@@ -196,8 +256,6 @@ const hovered = ref<Record<number, boolean>>({})
             display: 'flex',
             flexDirection: 'column',
             cursor: 'pointer',
-            transition: 'transform 350ms cubic-bezier(0.16,1,0.3,1), box-shadow 350ms cubic-bezier(0.16,1,0.3,1), border-color 220ms ease',
-            transform: 'translate3d(0,0,0)',
             boxShadow: hovered[i]
               ? '0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(204,255,0,0.1)'
               : 'none',
@@ -329,6 +387,38 @@ const hovered = ref<Record<number, boolean>>({})
 </template>
 
 <style scoped>
+.lifters-card {
+  opacity: 0;
+  transform: translate3d(0, 46px, 0) scale(0.965);
+  filter: blur(8px);
+  transition:
+    opacity 760ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 860ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 760ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 350ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 220ms ease;
+  transition-delay: 0ms, 0ms, 0ms, 0ms, 0ms;
+}
+
+.lifters-card.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+  transition-delay: var(--card-delay, 0ms), var(--card-delay, 0ms), var(--card-delay, 0ms), 0ms, 0ms;
+}
+
+.lifters-card.is-before {
+  opacity: 0;
+  transform: translate3d(0, -38px, 0) scale(0.985);
+  filter: blur(5px);
+}
+
+.lifters-card.is-after {
+  opacity: 0;
+  transform: translate3d(0, 46px, 0) scale(0.965);
+  filter: blur(8px);
+}
+
 .lifters-card-image {
   object-position: var(--img-x, 50%) var(--img-y, 50%);
 }
@@ -350,6 +440,16 @@ const hovered = ref<Record<number, boolean>>({})
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .lifters-card,
+  .lifters-card.is-visible,
+  .lifters-card.is-before,
+  .lifters-card.is-after {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+
   .lifters-card:hover .lifters-card-image {
     animation: none;
   }

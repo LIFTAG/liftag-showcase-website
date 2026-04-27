@@ -1,9 +1,12 @@
 <script setup lang="ts">
 const step = ref(0)
-const phoneSwipeDirection = ref<'up' | 'down'>('up')
+const phoneSwipeDirection = ref<'left' | 'right'>('left')
 const hoveredStep = ref<number | null>(null)
+const cyclePulse = ref(0)
+const scanCycleMs = 3200
 const inView = ref(false)
 const sectionRef = ref<HTMLElement | null>(null)
+let cycleInterval: ReturnType<typeof setInterval> | null = null
 
 const steps = [
   {
@@ -27,17 +30,21 @@ const steps = [
 
 function setStep(nextStep: number) {
   if (nextStep === step.value) return
-  phoneSwipeDirection.value = nextStep > step.value ? 'up' : 'down'
+  phoneSwipeDirection.value = nextStep > step.value ? 'left' : 'right'
   step.value = nextStep
+  cyclePulse.value += 1
 }
 
 function setHoveredStep(nextStep: number) {
   hoveredStep.value = nextStep
+  clearCycleInterval()
   setStep(nextStep)
 }
 
 function clearHoveredStep(stepIndex: number) {
-  if (hoveredStep.value === stepIndex) hoveredStep.value = null
+  if (hoveredStep.value !== stepIndex) return
+  hoveredStep.value = null
+  if (inView.value) startCycleInterval()
 }
 
 onMounted(() => {
@@ -56,24 +63,28 @@ onMounted(() => {
   })
 })
 
-let cycleInterval: ReturnType<typeof setInterval> | null = null
+function clearCycleInterval() {
+  if (cycleInterval === null) return
+  clearInterval(cycleInterval)
+  cycleInterval = null
+}
+
+function startCycleInterval() {
+  clearCycleInterval()
+  cyclePulse.value += 1
+  cycleInterval = setInterval(() => {
+    if (hoveredStep.value !== null) return
+    setStep((step.value + 1) % 2)
+  }, scanCycleMs)
+}
 
 watch(inView, (val) => {
-  if (val) {
-    cycleInterval = setInterval(() => {
-      if (hoveredStep.value !== null) return
-      setStep((step.value + 1) % 2)
-    }, 3200)
-  } else {
-    if (cycleInterval !== null) {
-      clearInterval(cycleInterval)
-      cycleInterval = null
-    }
-  }
+  if (val && hoveredStep.value === null) startCycleInterval()
+  else clearCycleInterval()
 })
 
 onBeforeUnmount(() => {
-  if (cycleInterval !== null) clearInterval(cycleInterval)
+  clearCycleInterval()
 })
 </script>
 
@@ -148,6 +159,14 @@ onBeforeUnmount(() => {
                 />
                 <div v-if="step === 0" class="scan-phone-laser-overlay" aria-hidden="true">
                   <span class="scan-phone-laser-line" />
+                </div>
+                <div
+                  class="scan-cycle-indicator"
+                  :class="{ 'is-paused': hoveredStep !== null }"
+                  :style="{ '--cycle-ms': `${scanCycleMs}ms` }"
+                  aria-hidden="true"
+                >
+                  <span :key="`scan-cycle-${cyclePulse}`" />
                 </div>
               </div>
             </div>
@@ -386,6 +405,43 @@ onBeforeUnmount(() => {
   will-change: transform;
 }
 
+.scan-cycle-indicator {
+  position: absolute;
+  left: 50%;
+  bottom: -26px;
+  z-index: 15;
+  width: 92px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 1;
+  transform: translateX(-50%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  transition: opacity 260ms ease, filter 260ms ease;
+}
+
+.scan-cycle-indicator span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(204, 255, 0, 0.48), #ccff00);
+  box-shadow: 0 0 12px rgba(204, 255, 0, 0.44);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: scanCycleFill var(--cycle-ms, 3200ms) linear forwards;
+}
+
+.scan-cycle-indicator.is-paused {
+  opacity: 0.34;
+  filter: saturate(0.65);
+}
+
+.scan-cycle-indicator.is-paused span {
+  animation-play-state: paused;
+}
+
 .scan-phone-laser-overlay {
   position: absolute;
   top: 35.5%;
@@ -462,6 +518,12 @@ onBeforeUnmount(() => {
   }
 }
 
+@keyframes scanCycleFill {
+  to {
+    transform: scaleX(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .scan-step-row {
     transition: none !important;
@@ -469,6 +531,7 @@ onBeforeUnmount(() => {
   }
 
   .scan-phone-float,
+  .scan-cycle-indicator span,
   .scan-phone-laser-line {
     animation: none;
   }

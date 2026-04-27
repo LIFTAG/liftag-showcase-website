@@ -82,10 +82,10 @@ const refL4 = ref<SVGPolylineElement | null>(null)
 // ─── hero words ───────────────────────────────────────────────────────────────
 const words = ['FOR', 'LIFTERS.', 'BY', 'LIFTERS.']
 function isLime(word: string) { return word === 'LIFTERS.' }
-const heroLaserGroups = [
-  [0, 2],
-  [1, 3],
-]
+const heroLaserSequence = [0, 1, 2, 3]
+const heroLaserChargeMs = 140
+const heroLaserSweepMs = 390
+const heroLaserGapMs = 55
 const heroLaserDone = ref(false)
 const heroDetailsEntered = computed(() => entered.value && heroLaserDone.value)
 const heroTitleEls: HTMLElement[] = []
@@ -168,13 +168,20 @@ function runHeroLaserReveal(
   const fontSize = Number.parseFloat(window.getComputedStyle(el).fontSize) || rect.height
   const rightClipPad = isGreen && fromRight ? fontSize * 0.14 : 0
   const rightClipInset = rightClipPad > 0 ? `${-rightClipPad}px` : '0'
-  const chargeX = fromRight ? rect.right + rightClipPad : rect.left
   const beam = document.createElement('div')
 
+  const syncBeam = (beamPercent: number) => {
+    const liveRect = el.getBoundingClientRect()
+    const beamTravelWidth = liveRect.width + (fromRight ? rightClipPad : 0)
+    const x = liveRect.left + (beamPercent / 100) * beamTravelWidth
+
+    beam.style.left = `${x}px`
+    beam.style.top = `${liveRect.top - liveRect.height * 0.2}px`
+    beam.style.height = `${liveRect.height * 1.4}px`
+  }
+
   beam.className = `hero-laser-charge-beam ${isGreen ? 'green' : 'red'}`
-  beam.style.left = `${chargeX}px`
-  beam.style.top = `${rect.top - rect.height * 0.2}px`
-  beam.style.height = `${rect.height * 1.4}px`
+  syncBeam(fromRight ? 100 : 0)
   document.body.appendChild(beam)
   heroLaserNodes.add(beam)
 
@@ -197,8 +204,7 @@ function runHeroLaserReveal(
       }
 
       el.style.setProperty('--laser-pos', `${beamPercent}%`)
-      const beamTravelWidth = rect.width + (fromRight ? rightClipPad : 0)
-      beam.style.left = `${rect.left + (beamPercent / 100) * beamTravelWidth}px`
+      syncBeam(beamPercent)
 
       if (now - lastSparkTime > 70 && t > 0.04 && t < 0.92) {
         lastSparkTime = now
@@ -222,7 +228,7 @@ function runHeroLaserReveal(
     }
 
     queueHeroLaserRaf(animate)
-  }, 250)
+  }, heroLaserChargeMs)
 }
 
 function runAllHeroLaserReveals() {
@@ -235,26 +241,20 @@ function runAllHeroLaserReveals() {
     return
   }
 
-  const revealGroup = (groupIndex: number) => {
-    const group = heroLaserGroups[groupIndex]
+  const revealNext = (sequenceIndex: number) => {
+    const index = heroLaserSequence[sequenceIndex]
 
-    if (!group) {
+    if (index === undefined) {
       heroLaserDone.value = true
       return
     }
 
-    let completed = 0
-    group.forEach((index) => {
-      runHeroLaserReveal(heroTitleEls[index], index % 2 === 1, 620, () => {
-        completed += 1
-        if (completed === group.length) {
-          queueHeroLaserTimer(() => revealGroup(groupIndex + 1), 140)
-        }
-      })
+    runHeroLaserReveal(heroTitleEls[index], index % 2 === 1, heroLaserSweepMs, () => {
+      queueHeroLaserTimer(() => revealNext(sequenceIndex + 1), heroLaserGapMs)
     })
   }
 
-  revealGroup(0)
+  revealNext(0)
 }
 
 function cleanupHeroLasers() {
@@ -768,7 +768,7 @@ const p3 = computed(() => ({
       <!-- ── RIGHT: 3 phones with parallax ── -->
       <div
         class="hero-phones"
-        :style="{ position: 'relative', height: '700px', perspective: '1600px' }"
+        :style="{ position: 'relative', height: '700px', perspective: '1600px', transform: 'translateY(-32px)' }"
       >
 
         <!-- Back-left phone -->

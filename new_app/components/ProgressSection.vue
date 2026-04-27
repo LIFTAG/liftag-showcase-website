@@ -11,6 +11,7 @@ const screenPulse = ref(0)
 const activeVolumeBar = ref<number | null>(null)
 const lineProgress = ref(1)
 const lineChartRef = ref<SVGSVGElement | null>(null)
+const progressScreenCycleMs = 2800
 let volumeResetTimer: ReturnType<typeof setTimeout> | null = null
 let lineTargetProgress = 1
 let lineProgressRaf = 0
@@ -23,7 +24,7 @@ function setScreen(next: number) {
 onMounted(() => {
   const t = setInterval(() => {
     setScreen((screen.value + 1) % screens.length)
-  }, 2800)
+  }, progressScreenCycleMs)
   onBeforeUnmount(() => clearInterval(t))
 })
 
@@ -345,6 +346,14 @@ onBeforeUnmount(() => {
             :style="{ position: 'relative', zIndex: '2' }"
           />
 
+          <div
+            class="progress-cycle-indicator"
+            :style="{ '--cycle-ms': `${progressScreenCycleMs}ms` }"
+            aria-hidden="true"
+          >
+            <span :key="`progress-cycle-${screenPulse}`" />
+          </div>
+
           <!-- Dot indicators -->
           <div
             :style="{
@@ -627,6 +636,31 @@ onBeforeUnmount(() => {
   animation: progressPhonePulse 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+.progress-cycle-indicator {
+  position: absolute;
+  left: 50%;
+  bottom: -48px;
+  width: 92px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(-50%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.progress-cycle-indicator span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(204, 255, 0, 0.5), #ccff00);
+  box-shadow: 0 0 12px rgba(204, 255, 0, 0.48);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: phoneCycleFill var(--cycle-ms, 2800ms) linear forwards;
+}
+
 .progress-line-chart {
   cursor: crosshair;
   overflow: visible;
@@ -681,6 +715,12 @@ onBeforeUnmount(() => {
   }
 }
 
+@keyframes phoneCycleFill {
+  to {
+    transform: scaleX(1);
+  }
+}
+
 @keyframes progressLineBreathe {
   0%, 100% {
     opacity: 0.62;
@@ -713,6 +753,7 @@ onBeforeUnmount(() => {
 @media (prefers-reduced-motion: reduce) {
   .progress-chip::after,
   .progress-phone-pulse,
+  .progress-cycle-indicator span,
   .progress-line-path,
   .progress-line-dot,
   .progress-stat-card::after {

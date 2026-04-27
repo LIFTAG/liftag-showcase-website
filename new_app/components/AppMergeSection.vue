@@ -33,6 +33,8 @@ let observer: IntersectionObserver | null = null
 let stageResizeObserver: ResizeObserver | null = null
 let isVisible = false
 let reduceMotion = false
+let lastMergeCss = -1
+let lastFinaleCss = -1
 
 const mockApps: MockApp[] = [
   {
@@ -234,13 +236,12 @@ function applyAppStyles(app: MockApp, index: number, p: number, finale: number, 
   const motion = appMotion(app, p, finale, now)
   const merge = motion.merge
   const fade = smoothstep((p - 0.67) / 0.22)
-  const opacity = 0.98 * (1 - fade * 0.94)
-  const blur = merge * 0.7 + fade * 1.8
+  const collapseFade = smoothstep((merge - 0.58) / 0.3)
+  const opacity = 0.98 * (1 - Math.max(fade * 0.94, collapseFade * 0.9))
   const icon = iconEls[index]
 
   if (icon) {
     icon.style.opacity = String(opacity)
-    icon.style.filter = `blur(${blur}px) saturate(${1 + merge * 0.25})`
     icon.style.transform = `translate3d(calc(-50% + ${motion.x}px), calc(-50% + ${motion.y}px), 0) rotate(${motion.rotate}deg) scale(${motion.scale})`
     icon.style.zIndex = String(Math.round(20 + app.depth * 10 - merge * 5))
   }
@@ -251,10 +252,8 @@ function applyAppStyles(app: MockApp, index: number, p: number, finale: number, 
     const captionY = motion.y + 50 + merge * 12
     const captionScale = 0.98 - merge * 0.16
 
-    caption.style.left = `calc(50% + ${motion.x}px)`
-    caption.style.top = `calc(50% + ${captionY}px)`
     caption.style.opacity = String(captionOpacity)
-    caption.style.transform = `translate3d(-50%, 0, 0) rotate(${motion.rotate}deg) scale(${captionScale})`
+    caption.style.transform = `translate3d(calc(-50% + ${motion.x}px), ${captionY}px, 0) rotate(${motion.rotate}deg) scale(${captionScale})`
   }
 
   const vector = vectorEls[index]
@@ -278,10 +277,8 @@ function applyAppStyles(app: MockApp, index: number, p: number, finale: number, 
 
   vector.style.setProperty('--spark-x', `${sparkTravel}px`)
   vector.style.setProperty('--spark-opacity', String(sparkOpacity))
-  vector.style.left = `calc(50% + ${startX}px)`
-  vector.style.top = `calc(50% + ${startY}px)`
   vector.style.opacity = String(alpha)
-  vector.style.transform = `rotate(${angle}deg) scaleX(${lineLen * draw})`
+  vector.style.transform = `translate3d(${startX}px, ${startY}px, 0) rotate(${angle}deg) scaleX(${lineLen * draw})`
 }
 
 function applyLiftagStyle(merge: number, finale: number) {
@@ -305,11 +302,18 @@ function updateAnimatedStyles(now = performance.now()) {
   const section = sectionRef.value
 
   if (section) {
-    section.style.setProperty('--merge-p', String(merge))
-    section.style.setProperty('--finale-p', String(finale))
-    section.style.setProperty('--pointer-x', `${pointerX}%`)
-    section.style.setProperty('--pointer-y', `${pointerY}%`)
-    section.style.setProperty('--energy', String(0.28 + merge * 0.72))
+    const mergeCss = Math.round(merge * 200) / 200
+    const finaleCss = Math.round(finale * 200) / 200
+
+    if (mergeCss !== lastMergeCss) {
+      section.style.setProperty('--merge-p', String(mergeCss))
+      lastMergeCss = mergeCss
+    }
+
+    if (finaleCss !== lastFinaleCss) {
+      section.style.setProperty('--finale-p', String(finaleCss))
+      lastFinaleCss = finaleCss
+    }
   }
 
   mockApps.forEach((app, index) => applyAppStyles(app, index, scrollP, finale, now))
@@ -335,7 +339,6 @@ function iconBaseStyle(app: MockApp) {
     '--icon-accent': app.accent,
     '--icon-glow': app.glow,
     opacity: 0.98,
-    filter: 'blur(0px) saturate(1)',
     transform: `translate3d(calc(-50% + ${app.x}px), calc(-50% + ${app.y}px), 0) rotate(${app.rotate}deg) scale(0.98)`,
     zIndex: String(Math.round(20 + app.depth * 10)),
   }
@@ -343,10 +346,10 @@ function iconBaseStyle(app: MockApp) {
 
 function captionBaseStyle(app: MockApp) {
   return {
-    left: `calc(50% + ${app.x}px)`,
-    top: `calc(50% + ${app.y + 50}px)`,
+    left: '50%',
+    top: '50%',
     opacity: 1,
-    transform: `translate3d(-50%, 0, 0) rotate(${app.rotate}deg) scale(0.98)`,
+    transform: `translate3d(calc(-50% + ${app.x}px), ${app.y + 50}px, 0) rotate(${app.rotate}deg) scale(0.98)`,
     zIndex: '43',
   }
 }
@@ -462,47 +465,53 @@ onBeforeUnmount(() => {
             class="mergeable-app"
             :style="iconBaseStyle(app)"
           >
-            <div class="mock-icon">
-              <svg class="mock-icon-glyph" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-                <template v-if="app.key === 'set'">
-                  <rect x="11" y="12" width="26" height="25" rx="6" stroke="currentColor" stroke-width="3" />
-                  <path d="M17 20h14M17 27h9M17 34h7" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                  <path d="M31 32l3 3 6-7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-                </template>
-                <template v-else-if="app.key === 'timer'">
-                  <circle cx="24" cy="25" r="14" stroke="currentColor" stroke-width="3" />
-                  <path d="M24 25l8-7M18 7h12M24 7v5" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                  <path d="M14 13l-3-3M34 13l3-3" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                </template>
-                <template v-else-if="app.key === 'stopwatch'">
-                  <circle cx="24" cy="26" r="14" stroke="currentColor" stroke-width="3" />
-                  <path d="M24 26V16M24 26h8M19 7h10M24 7v5" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                  <path d="M24 40a14 14 0 0 1-12-7" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.45" />
-                </template>
-                <template v-else-if="app.key === 'guides'">
-                  <path d="M12 12h11c4 0 7 3 7 7v17H19c-4 0-7-3-7-7V12Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round" />
-                  <path d="M30 16h6v20h-6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.55" />
-                  <path d="M21 22l8 5-8 5V22Z" fill="currentColor" />
-                </template>
-                <template v-else-if="app.key === 'planner'">
-                  <rect x="10" y="12" width="28" height="26" rx="6" stroke="currentColor" stroke-width="3" />
-                  <path d="M16 9v7M32 9v7M11 20h26" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                  <path d="M18 27h3M26 27h3M18 33h3M26 33h3" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                </template>
-                <template v-else-if="app.key === 'progress'">
-                  <path d="M10 36h28" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.55" />
-                  <path d="M13 31l7-8 6 4 9-13" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-                  <circle cx="13" cy="31" r="2.5" fill="currentColor" />
-                  <circle cx="35" cy="14" r="2.5" fill="currentColor" />
-                </template>
-                <template v-else-if="app.key === 'pr'">
-                  <path d="M17 13h14v6c0 7-3 12-7 12s-7-5-7-12v-6Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round" />
-                  <path d="M17 16h-6v3c0 4 3 7 7 7M31 16h6v3c0 4-3 7-7 7M24 31v6M18 38h12" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-                </template>
-                <template v-else>
-                  <path d="M24 10c6 0 11 5 11 11 0 8-11 17-11 17s-11-9-11-17c0-6 5-11 11-11Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round" />
-                  <path d="M18 23h4l3-6 3 12 2-6h4" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-                </template>
+            <div :class="['mock-icon', `mock-icon--${app.key}`]">
+              <svg
+                :class="['mock-icon-glyph', `mock-icon-glyph--${app.key}`]"
+                viewBox="0 0 48 48"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <g v-if="app.key === 'set'">
+                  <rect x="12" y="9" width="24" height="30" rx="7" stroke-width="3.8" />
+                  <path d="M19 18h10M19 25h10" stroke-width="3.8" />
+                  <path d="M18.5 33l4 4 8-9" stroke-width="3.4" />
+                </g>
+                <g v-else-if="app.key === 'timer'">
+                  <circle cx="24" cy="26" r="14" stroke-width="4" />
+                  <path d="M24 26l8-8" stroke-width="4.4" />
+                  <path d="M18 8h12M24 8v5" stroke-width="4" />
+                </g>
+                <g v-else-if="app.key === 'stopwatch'">
+                  <circle cx="24" cy="27" r="14" stroke-width="4" />
+                  <path d="M24 27V16M24 27h9" stroke-width="4.2" />
+                  <path d="M18 8h12M24 8v5" stroke-width="4" />
+                </g>
+                <g v-else-if="app.key === 'guides'">
+                  <rect x="10" y="11" width="28" height="26" rx="8" stroke-width="4" />
+                  <path d="M19.5 17.5l14.5 6.5-14.5 6.5v-13Z" stroke-width="3.5" />
+                </g>
+                <g v-else-if="app.key === 'planner'">
+                  <rect x="10" y="12" width="28" height="26" rx="7" stroke-width="4" />
+                  <path d="M16 9v7M32 9v7M12 21h24" stroke-width="3.6" />
+                  <path d="M18 29h12M18 34h8" stroke-width="3.8" />
+                </g>
+                <g v-else-if="app.key === 'progress'">
+                  <path d="M10 37h28" stroke-width="3.6" />
+                  <path d="M12 31l8-9 7 5 10-14" stroke-width="4.5" />
+                  <path d="M12 31h.01M37 13h.01" stroke-width="6" />
+                </g>
+                <g v-else-if="app.key === 'pr'">
+                  <path d="M16 11h16v8c0 7.5-3.5 13-8 13s-8-5.5-8-13v-8Z" stroke-width="4" />
+                  <path d="M16 16h-6v3c0 4.5 3 7.5 7 7.5M32 16h6v3c0 4.5-3 7.5-7 7.5M24 32v6M18 40h12" stroke-width="3.7" />
+                </g>
+                <g v-else>
+                  <rect x="10" y="14" width="28" height="22" rx="8" stroke-width="4" />
+                  <path d="M16 26h5l3-8 4 15 3-8h5" stroke-width="4" />
+                </g>
               </svg>
             </div>
           </div>
@@ -519,7 +528,6 @@ onBeforeUnmount(() => {
           </div>
 
           <div ref="liftagRef" class="liftag-target" :style="liftagBaseStyle" aria-label="LIFTAG app icon">
-            <div class="liftag-icon-aura"></div>
             <div class="liftag-icon-shell">
               <img src="/logo.svg" alt="LIFTAG" />
               <div class="liftag-icon-sheen"></div>
@@ -539,9 +547,6 @@ onBeforeUnmount(() => {
 .app-merge-section {
   --merge-p: 0;
   --finale-p: 0;
-  --pointer-x: 50%;
-  --pointer-y: 50%;
-  --energy: 0.28;
   position: relative;
   min-height: 260vh;
   background: #000;
@@ -563,7 +568,7 @@ onBeforeUnmount(() => {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(520px circle at var(--pointer-x) var(--pointer-y), rgba(204, 255, 0, calc(0.04 + var(--merge-p) * 0.08)), transparent 64%),
+    radial-gradient(520px circle at 66% 48%, rgba(204, 255, 0, calc(0.04 + var(--merge-p) * 0.08)), transparent 64%),
     radial-gradient(720px circle at 72% 50%, rgba(204, 255, 0, calc(0.05 + var(--merge-p) * 0.12)), transparent 68%),
     radial-gradient(580px circle at 20% 65%, rgba(255, 45, 85, 0.045), transparent 70%);
 }
@@ -587,10 +592,10 @@ onBeforeUnmount(() => {
   width: 520px;
   aspect-ratio: 1;
   border-radius: 50%;
-  border: 1px solid rgba(204, 255, 0, calc(0.08 + var(--merge-p) * 0.2));
+  border: 1px solid rgba(204, 255, 0, 0.18);
   box-shadow:
-    0 0 40px rgba(204, 255, 0, calc(0.04 + var(--merge-p) * 0.08)),
-    inset 0 0 38px rgba(204, 255, 0, calc(0.02 + var(--merge-p) * 0.05));
+    0 0 30px rgba(204, 255, 0, 0.08),
+    inset 0 0 30px rgba(204, 255, 0, 0.04);
   transform: translate(-50%, -50%) scale(calc(0.85 + var(--merge-p) * 0.35));
   opacity: calc(0.24 + var(--merge-p) * 0.48);
 }
@@ -658,6 +663,7 @@ onBeforeUnmount(() => {
   min-height: 590px;
   isolation: isolate;
   transform-style: preserve-3d;
+  contain: layout paint style;
 }
 
 .merge-rings {
@@ -671,24 +677,26 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: calc(210px + var(--merge-p) * 80px);
+  width: 290px;
   aspect-ratio: 1;
   border-radius: 50%;
   border: 1px solid rgba(204, 255, 0, 0.12);
   box-shadow: inset 0 0 40px rgba(204, 255, 0, 0.035);
-  transform: translate(-50%, -50%) scale(calc(1 + var(--merge-p) * 0.26));
+  transform: translate(-50%, -50%) scale(calc(0.724 + var(--merge-p) * 0.276));
   opacity: calc(0.22 + var(--merge-p) * 0.44);
 }
 
 .merge-rings span:nth-child(2) {
-  width: calc(390px + var(--merge-p) * 90px);
+  width: 480px;
   border-color: rgba(255, 255, 255, 0.08);
+  transform: translate(-50%, -50%) scale(calc(0.813 + var(--merge-p) * 0.187));
   opacity: calc(0.16 + var(--merge-p) * 0.3);
 }
 
 .merge-rings span:nth-child(3) {
-  width: calc(560px + var(--merge-p) * 90px);
+  width: 650px;
   border-color: rgba(255, 45, 85, 0.12);
+  transform: translate(-50%, -50%) scale(calc(0.862 + var(--merge-p) * 0.138));
   opacity: calc(0.1 + var(--merge-p) * 0.22);
 }
 
@@ -716,8 +724,7 @@ onBeforeUnmount(() => {
   inset: -7px 0;
   border-radius: 999px;
   background: linear-gradient(90deg, transparent, var(--line-glow), transparent);
-  filter: blur(7px);
-  opacity: 0.42;
+  opacity: 0.2;
 }
 
 .merge-vector::after {
@@ -743,7 +750,9 @@ onBeforeUnmount(() => {
   width: 0;
   height: 0;
   pointer-events: none;
-  will-change: transform, opacity, filter;
+  contain: layout style;
+  overflow: visible;
+  will-change: transform, opacity;
   transform-origin: center;
 }
 
@@ -756,35 +765,32 @@ onBeforeUnmount(() => {
   border-radius: 20px;
   display: grid;
   place-items: center;
-  color: var(--icon-accent);
+  color: rgba(255, 255, 255, 0.94);
   background: var(--icon-gradient);
   border: 1px solid rgba(255, 255, 255, 0.28);
   box-shadow:
     0 18px 42px rgba(0, 0, 0, 0.44),
-    0 0 30px var(--icon-glow),
+    0 0 22px var(--icon-glow),
     inset 0 1px 1px rgba(255, 255, 255, 0.44),
     inset 0 -18px 30px rgba(0, 0, 0, 0.18);
   overflow: hidden;
   transform: translate(-50%, -50%);
-}
-
-.mock-icon::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(80px 50px at 32% 10%, rgba(255, 255, 255, 0.45), transparent 58%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.24), transparent 44%);
-  pointer-events: none;
+  backface-visibility: hidden;
+  contain: paint;
 }
 
 .mock-icon-glyph {
   position: relative;
-  z-index: 1;
-  width: 44px;
-  height: 44px;
+  z-index: 2;
+  width: 54px;
+  height: 54px;
   color: currentColor;
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.22));
+  stroke-width: 3.2px;
+  opacity: 1;
+}
+
+.mock-icon-glyph * {
+  vector-effect: non-scaling-stroke;
 }
 
 .mock-app-caption {
@@ -798,9 +804,9 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   background: rgba(6, 6, 6, 0.58);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.34);
+  contain: layout paint style;
+  will-change: transform, opacity;
   opacity: var(--caption-opacity, 1);
   transform: translate(
     calc(-50% + var(--label-x, 0px)),
@@ -844,20 +850,10 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 18px;
   will-change: transform, opacity;
+  contain: layout style;
   transform-style: preserve-3d;
   z-index: 44;
   pointer-events: none;
-}
-
-.liftag-icon-aura {
-  position: absolute;
-  inset: -76px -74px 18px;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle, rgba(204, 255, 0, calc(0.1 + var(--merge-p) * 0.22)), transparent 64%),
-    radial-gradient(circle, rgba(255, 45, 85, calc(var(--finale-p) * 0.09)), transparent 70%);
-  filter: blur(18px);
-  transform: translateZ(-1px) scale(calc(0.78 + var(--merge-p) * 0.36));
 }
 
 .liftag-icon-shell {
@@ -865,16 +861,17 @@ onBeforeUnmount(() => {
   height: 156px;
   border-radius: 34px;
   position: relative;
+  z-index: 1;
   overflow: hidden;
   display: grid;
   place-items: center;
   background:
     radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.18), transparent 34%),
-    linear-gradient(145deg, #161616 0%, #020202 48%, #181d05 100%);
+    linear-gradient(145deg, #171717 0%, #020202 48%, #090909 100%);
   border: 1px solid rgba(204, 255, 0, calc(0.16 + var(--merge-p) * 0.34));
   box-shadow:
     0 32px 90px rgba(0, 0, 0, 0.64),
-    0 0 calc(34px + var(--merge-p) * 42px) rgba(204, 255, 0, calc(0.18 + var(--merge-p) * 0.28)),
+    0 0 calc(22px + var(--merge-p) * 30px) rgba(204, 255, 0, calc(0.12 + var(--merge-p) * 0.2)),
     inset 0 1px 2px rgba(255, 255, 255, 0.28),
     inset 0 -28px 48px rgba(0, 0, 0, 0.5);
 }
@@ -901,14 +898,14 @@ onBeforeUnmount(() => {
 }
 
 .liftag-target-label {
+  position: relative;
+  z-index: 2;
   text-align: center;
-  padding: 10px 14px;
-  border-radius: 14px;
-  background: rgba(0, 0, 0, 0.54);
-  border: 1px solid rgba(204, 255, 0, calc(0.08 + var(--merge-p) * 0.18));
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.42);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
   opacity: calc(0.4 + var(--merge-p) * 0.6);
 }
 

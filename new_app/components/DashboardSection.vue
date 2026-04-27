@@ -21,6 +21,8 @@ const c3 = computed(() => ({
   y: mouse.value.y * -12,
 }))
 
+const chipSpread = computed(() => smoothstep((openProgress.value - 0.02) / 0.34))
+
 let observer: IntersectionObserver | null = null
 let rafId = 0
 let isVisible = false
@@ -34,6 +36,28 @@ function clamp01(v: number) {
 function smoothstep(v: number) {
   const t = clamp01(v)
   return t * t * (3 - 2 * t)
+}
+
+function exitSlice(p: number, start: number, duration: number) {
+  return smoothstep((p - start) / duration)
+}
+
+function setExitMotion(section: HTMLElement, key: string, value: number, y: number, _blur: number) {
+  section.style.setProperty(`--exit-${key}`, String(value))
+  section.style.setProperty(`--exit-${key}-y`, `${value * y}px`)
+}
+
+function chipTransform(
+  cursor: { x: number, y: number },
+  packedX: number,
+  packedY: number,
+) {
+  const packed = 1 - chipSpread.value
+  const x = cursor.x + packedX * packed
+  const y = cursor.y + packedY * packed
+  const scale = 0.9 + chipSpread.value * 0.1
+
+  return `translate3d(${x}px, ${y}px, 0) rotate(0deg) scale(${scale})`
 }
 
 function getScrollProgress() {
@@ -56,10 +80,12 @@ function tick() {
   // Map raw scroll progress to lid open progress.
   //   p < 0.10        : closed (entry hold)
   //   0.10 → 0.62     : lid opens
-  //   0.62 → 0.68     : brief hold at fully open
-  //   0.68 → 0.96     : content drifts upward and fades out as user scrolls past
+  //   0.62 → 0.80     : hold at fully open
+  //   0.80 → 1.00     : content keeps drifting upward while fading out
   const lidT = smoothstep((p - 0.1) / 0.52)
-  const exitT = reduceMotion ? 0 : smoothstep((p - 0.68) / 0.28)
+  const exitT = reduceMotion ? 0 : smoothstep((p - 0.8) / 0.2)
+  const exitFlow = reduceMotion ? 0 : smoothstep((p - 0.78) / 0.22)
+  const exitP = reduceMotion ? -1 : p
   openProgress.value = lidT
 
   const section = sectionRef.value
@@ -67,6 +93,18 @@ function tick() {
     section.style.setProperty('--lid-p', String(lidT))
     section.style.setProperty('--scroll-p', String(p))
     section.style.setProperty('--exit-p', String(exitT))
+    section.style.setProperty('--exit-flow-y', `${exitFlow * -92}px`)
+    section.style.setProperty('--exit-flow-scale', String(1 - exitFlow * 0.018))
+    setExitMotion(section, 'copy', exitSlice(exitP, 0.805, 0.17), -28, 8)
+    setExitMotion(section, 'feature-0', exitSlice(exitP, 0.825, 0.16), -20, 5)
+    setExitMotion(section, 'feature-1', exitSlice(exitP, 0.85, 0.145), -24, 6)
+    setExitMotion(section, 'feature-2', exitSlice(exitP, 0.875, 0.125), -28, 7)
+    setExitMotion(section, 'chip-metric', exitSlice(exitP, 0.825, 0.16), -28, 6)
+    setExitMotion(section, 'chip-deploy', exitSlice(exitP, 0.85, 0.145), -32, 7)
+    setExitMotion(section, 'chip-sync', exitSlice(exitP, 0.875, 0.125), -34, 7)
+    setExitMotion(section, 'stage-glow', exitSlice(exitP, 0.835, 0.165), -18, 16)
+    setExitMotion(section, 'macbook', exitSlice(exitP, 0.86, 0.14), -46, 10)
+    setExitMotion(section, 'bg', exitSlice(exitP, 0.86, 0.14), -30, 3)
   }
 }
 
@@ -140,20 +178,27 @@ onBeforeUnmount(() => {
 
       <div class="container dashboard-layout">
         <div class="dashboard-copy">
-          <Eyebrow>▸ FOR GYM OWNERS</Eyebrow>
-          <SectionTitle :max="560">
-            Run your gyms from <span class="lime">one dashboard.</span>
-          </SectionTitle>
-          <p class="dashboard-lede reveal">
-            Locations, machines, and managers. Run your whole brand from one screen.
-          </p>
+          <div class="dashboard-copy-head">
+            <Eyebrow>▸ FOR GYM OWNERS</Eyebrow>
+            <SectionTitle :max="560">
+              Run your gyms from <span class="lime">one dashboard.</span>
+            </SectionTitle>
+            <p class="dashboard-lede reveal">
+              Locations, machines, and managers. Run your whole brand from one screen.
+            </p>
+          </div>
 
           <ul class="dashboard-features">
             <li
               v-for="(f, i) in features"
               :key="f.tag"
               class="dashboard-feature reveal"
-              :style="{ '--i': i }"
+              :style="{
+                '--i': i,
+                '--exit-row': `var(--exit-feature-${i})`,
+                '--exit-row-y': `var(--exit-feature-${i}-y)`,
+                '--exit-row-blur': `var(--exit-feature-${i}-blur)`,
+              }"
             >
               <span class="dashboard-feature-line" aria-hidden="true"></span>
               <span class="dashboard-feature-scan" aria-hidden="true"></span>
@@ -173,6 +218,7 @@ onBeforeUnmount(() => {
             <ClientOnly>
               <Macbook3D
                 screenshot-src="/assets/screens/dashboard.png"
+                video-src="/assets/videos/macbook-dashboard.mp4"
                 :open-progress="openProgress"
               />
               <template #fallback>
@@ -189,8 +235,8 @@ onBeforeUnmount(() => {
           <div
             class="dash-chip dash-chip-sync"
             :style="{
-              transform: `translate3d(${c1.x}px, ${c1.y}px, 0)`,
-              opacity: entered ? 1 : 0,
+              transform: chipTransform(c1, -8, -252),
+              opacity: entered ? 'calc(1 - var(--exit-chip-sync))' : 0,
             }"
             aria-hidden="true"
           >
@@ -207,8 +253,8 @@ onBeforeUnmount(() => {
           <div
             class="dash-chip dash-chip-metric"
             :style="{
-              transform: `translate3d(${c2.x}px, ${c2.y}px, 0)`,
-              opacity: entered ? 1 : 0,
+              transform: chipTransform(c2, -108, 46),
+              opacity: entered ? 'calc(1 - var(--exit-chip-metric))' : 0,
             }"
             aria-hidden="true"
           >
@@ -237,13 +283,13 @@ onBeforeUnmount(() => {
           <div
             class="dash-chip dash-chip-deploy"
             :style="{
-              transform: `translate3d(${c3.x}px, ${c3.y}px, 0)`,
-              opacity: entered ? 1 : 0,
+              transform: chipTransform(c3, -8, -174),
+              opacity: entered ? 'calc(1 - var(--exit-chip-deploy))' : 0,
             }"
             aria-hidden="true"
           >
             <div class="dash-chip-deploy-tag">⚡ DEPLOYED</div>
-            <div class="dash-chip-deploy-title">Berlin · Mitte</div>
+            <div class="dash-chip-deploy-title">Bratislava · Slovakia</div>
           </div>
         </div>
       </div>
@@ -256,6 +302,38 @@ onBeforeUnmount(() => {
   --lid-p: 0;
   --scroll-p: 0;
   --exit-p: 0;
+  --exit-copy: 0;
+  --exit-copy-y: 0px;
+  --exit-copy-blur: 0px;
+  --exit-feature-0: 0;
+  --exit-feature-0-y: 0px;
+  --exit-feature-0-blur: 0px;
+  --exit-feature-1: 0;
+  --exit-feature-1-y: 0px;
+  --exit-feature-1-blur: 0px;
+  --exit-feature-2: 0;
+  --exit-feature-2-y: 0px;
+  --exit-feature-2-blur: 0px;
+  --exit-chip-sync: 0;
+  --exit-chip-sync-y: 0px;
+  --exit-chip-sync-blur: 0px;
+  --exit-chip-metric: 0;
+  --exit-chip-metric-y: 0px;
+  --exit-chip-metric-blur: 0px;
+  --exit-chip-deploy: 0;
+  --exit-chip-deploy-y: 0px;
+  --exit-chip-deploy-blur: 0px;
+  --exit-stage-glow: 0;
+  --exit-stage-glow-y: 0px;
+  --exit-stage-glow-blur: 0px;
+  --exit-macbook: 0;
+  --exit-macbook-y: 0px;
+  --exit-macbook-blur: 0px;
+  --exit-bg: 0;
+  --exit-bg-y: 0px;
+  --exit-bg-blur: 0px;
+  --exit-flow-y: 0px;
+  --exit-flow-scale: 1;
   position: relative;
   min-height: 240vh;
   background: #000;
@@ -323,17 +401,25 @@ onBeforeUnmount(() => {
   gap: clamp(40px, 6vw, 92px);
   align-items: center;
   width: 100%;
-  opacity: calc(1 - var(--exit-p));
-  transform: translateY(calc(var(--exit-p) * -260px));
-  will-change: transform, opacity;
+  transform: translate3d(0, var(--exit-flow-y), 0) scale(var(--exit-flow-scale));
+  transform-origin: center center;
+  will-change: transform;
 }
 
 .dashboard-bg {
-  opacity: calc(1 - var(--exit-p) * 0.85);
+  opacity: calc(1 - var(--exit-bg) * 0.82);
+  transform: translate3d(0, var(--exit-bg-y), 0);
+  will-change: opacity, transform;
 }
 
 .dashboard-copy {
   max-width: 560px;
+}
+
+.dashboard-copy-head {
+  opacity: calc(1 - var(--exit-copy));
+  transform: translate3d(0, var(--exit-copy-y), 0);
+  will-change: opacity, transform;
 }
 
 .dashboard-lede {
@@ -356,8 +442,12 @@ onBeforeUnmount(() => {
 .dashboard-feature {
   --i: 0;
   --rev-delay: calc(var(--i) * 140ms);
+  --exit-row: 0;
+  --exit-row-y: 0px;
+  --exit-row-blur: 0px;
   position: relative;
   padding: 18px 0;
+  will-change: opacity, transform;
 }
 
 /* Animated top divider: gray line that draws in left→right */
@@ -418,7 +508,8 @@ onBeforeUnmount(() => {
   transition: opacity 700ms cubic-bezier(0.16, 1, 0.3, 1) calc(var(--rev-delay) + 180ms);
 }
 .dashboard-feature.reveal.in {
-  opacity: 1;
+  opacity: calc(1 - var(--exit-row));
+  transform: translate3d(0, var(--exit-row-y), 0);
 }
 
 .dashboard-feature.reveal.in .dashboard-feature-line,
@@ -531,12 +622,10 @@ onBeforeUnmount(() => {
 /* ── Floating data chips around the macbook ─────────────────────────── */
 .dash-chip {
   position: absolute;
-  background: rgba(10, 10, 10, 0.88);
+  background: rgba(10, 10, 10, 0.94);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   padding: 12px 16px;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7);
   z-index: 6;
   transition: opacity 1100ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -546,14 +635,15 @@ onBeforeUnmount(() => {
 
 /* Catalog sync chip — bottom-left, like the QR chip */
 .dash-chip-sync {
-  bottom: 24px;
-  left: -20px;
+  bottom: 176px;
+  left: 42px;
   display: flex;
   align-items: center;
   gap: 12px;
   border-color: rgba(204, 255, 0, 0.3);
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7), 0 0 36px rgba(204, 255, 0, 0.18);
   transition-delay: 700ms;
+  translate: 0 var(--exit-chip-sync-y);
 }
 
 .dash-chip-sync .dash-chip-icon {
@@ -608,6 +698,7 @@ onBeforeUnmount(() => {
   right: -24px;
   min-width: 168px;
   transition-delay: 900ms;
+  translate: 0 var(--exit-chip-metric-y);
 }
 
 .dash-chip-metric .dash-chip-mtag {
@@ -660,6 +751,7 @@ onBeforeUnmount(() => {
   padding: 10px 16px;
   box-shadow: 0 0 40px rgba(204, 255, 0, 0.5);
   transition-delay: 1100ms;
+  translate: 0 var(--exit-chip-deploy-y);
 }
 
 .dash-chip-deploy .dash-chip-deploy-tag {
@@ -692,9 +784,12 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(60% 60% at 50% 60%, rgba(204, 255, 0, calc(0.08 + var(--lid-p) * 0.18)), transparent 70%);
-  filter: blur(20px);
-  opacity: calc(0.4 + var(--lid-p) * 0.6);
+  background:
+    radial-gradient(42% 42% at 50% 58%, rgba(204, 255, 0, calc(0.1 + var(--lid-p) * 0.18)), transparent 72%),
+    radial-gradient(68% 58% at 50% 62%, rgba(204, 255, 0, calc(0.04 + var(--lid-p) * 0.08)), transparent 76%);
+  opacity: calc((0.4 + var(--lid-p) * 0.6) * (1 - var(--exit-stage-glow)));
+  transform: translate3d(0, var(--exit-stage-glow-y), 0);
+  will-change: opacity, transform;
 }
 
 .dashboard-hint {
@@ -704,7 +799,7 @@ onBeforeUnmount(() => {
   transform: translateX(-50%);
   pointer-events: none;
   z-index: 3;
-  opacity: calc(1 - var(--lid-p));
+  opacity: calc((1 - var(--lid-p)) * (1 - var(--exit-copy)));
   transition: opacity 0.4s ease;
 }
 
@@ -722,6 +817,9 @@ onBeforeUnmount(() => {
   width: min(100%, 760px);
   aspect-ratio: 1.3 / 1;
   z-index: 2;
+  opacity: calc(1 - var(--exit-macbook));
+  transform: translate3d(0, var(--exit-macbook-y), 0) scale(calc(1 - var(--exit-macbook) * 0.035));
+  will-change: opacity, transform;
 }
 
 .dashboard-fallback-img {
@@ -764,8 +862,8 @@ onBeforeUnmount(() => {
   }
 
   .dash-chip-sync {
-    bottom: 8px;
-    left: -8px;
+    bottom: 122px;
+    left: 24px;
   }
   .dash-chip-metric {
     top: 8px;

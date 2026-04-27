@@ -22,6 +22,8 @@ const scanDesc      = ref<HTMLElement | null>(null)
 const scanHovered   = ref(false)
 const prVisible     = ref(false)
 const prBurstKey    = ref(0)
+const hiwIntroEntered = ref(false)
+const hiwLastExiting = ref(false)
 
 const prBurstParticles = [
   { x: '-42px', y: '-34px', rotate: '-22deg', delay: '0ms', color: 'var(--liftag-primary)' },
@@ -52,6 +54,8 @@ let scanCurrentY = 0
 let chartHovered = false
 let chartHoverTargetP = 1
 let chartDisplayP = 0
+
+const HIW_LAST_EXIT_VIEWPORT_BOTTOM = 0.86
 
 // ─── Curve data ───────────────────────────────────────────────────────────
 const curvePoints: [number, number][] = [
@@ -333,6 +337,16 @@ function updateHIW(p: number) {
   const track = trackRef.value
   if (!track) return
 
+  if (sectionRef.value) {
+    const rect = sectionRef.value.getBoundingClientRect()
+
+    if (rect.top < window.innerHeight * 0.28 || p > 0.012) {
+      hiwIntroEntered.value = true
+    }
+
+    hiwLastExiting.value = rect.bottom < window.innerHeight * HIW_LAST_EXIT_VIEWPORT_BOTTOM
+  }
+
   // Horizontal track translate
   track.style.transform = `translateX(-${p * 66.667}%)`
 
@@ -583,7 +597,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section ref="sectionRef" class="hiw-section" id="how">
+  <section
+    id="how"
+    ref="sectionRef"
+    class="hiw-section"
+    :class="{ 'hiw-intro-in': hiwIntroEntered, 'hiw-last-exit': hiwLastExiting }"
+  >
     <div class="hiw-sticky">
       <div class="hiw-bg-glow"></div>
       <canvas ref="curveCanvas" class="hiw-curve-canvas"></canvas>
@@ -934,6 +953,35 @@ onBeforeUnmount(() => {
   mix-blend-mode: screen;
 }
 
+.hiw-panel:first-child .hiw-panel-number {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.88);
+  filter: blur(10px);
+  transition:
+    opacity 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1100ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hiw-section.hiw-intro-in .hiw-panel:first-child .hiw-panel-number {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  filter: blur(0);
+}
+
+.hiw-panel:last-child .hiw-panel-number {
+  transition:
+    opacity 620ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 720ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 620ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hiw-section.hiw-last-exit .hiw-panel:last-child .hiw-panel-number {
+  opacity: 0;
+  transform: translate(-50%, -56%) scale(0.94);
+  filter: blur(8px);
+}
+
 /* ── Glass pane ───────────────────────────────────────── */
 .hiw-glass-pane {
   --mx: 50%;
@@ -958,6 +1006,39 @@ onBeforeUnmount(() => {
   overflow: hidden;
   will-change: transform;
   transition: box-shadow 0.4s ease, border-color 0.4s ease;
+}
+
+.hiw-panel:first-child .hiw-glass-pane {
+  opacity: 0;
+  transform: translate3d(0, 42px, 0) scale(0.955);
+  filter: blur(8px);
+  transition:
+    opacity 760ms cubic-bezier(0.16, 1, 0.3, 1) 120ms,
+    transform 900ms cubic-bezier(0.16, 1, 0.3, 1) 120ms,
+    filter 760ms cubic-bezier(0.16, 1, 0.3, 1) 120ms,
+    box-shadow 0.4s ease,
+    border-color 0.4s ease;
+}
+
+.hiw-section.hiw-intro-in .hiw-panel:first-child .hiw-glass-pane {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+}
+
+.hiw-panel:last-child .hiw-glass-pane {
+  transition:
+    opacity 560ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 560ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.4s ease,
+    border-color 0.4s ease;
+}
+
+.hiw-section.hiw-last-exit .hiw-panel:last-child .hiw-glass-pane {
+  opacity: 0;
+  transform: translate3d(0, -34px, 0) scale(0.975);
+  filter: blur(7px);
 }
 
 .hiw-glass-pane.glass-hovered {
@@ -1086,6 +1167,58 @@ onBeforeUnmount(() => {
   border-radius: 1px;
 }
 
+.hiw-panel:first-child .hiw-panel-visual,
+.hiw-panel:first-child .hiw-panel-title,
+.hiw-panel:first-child .hiw-panel-desc,
+.hiw-panel:first-child .hiw-panel-line {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 720ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 760ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hiw-section.hiw-intro-in .hiw-panel:first-child .hiw-panel-visual {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 300ms;
+}
+
+.hiw-section.hiw-intro-in .hiw-panel:first-child .hiw-panel-title {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 430ms;
+}
+
+.hiw-section.hiw-intro-in .hiw-panel:first-child .hiw-panel-desc {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 520ms;
+}
+
+.hiw-section.hiw-intro-in .hiw-panel:first-child .hiw-panel-line {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 620ms;
+}
+
+.hiw-panel:last-child .hiw-panel-visual,
+.hiw-panel:last-child .hiw-panel-title,
+.hiw-panel:last-child .hiw-panel-desc,
+.hiw-panel:last-child .hiw-panel-line {
+  transition:
+    opacity 460ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hiw-section.hiw-last-exit .hiw-panel:last-child .hiw-panel-visual,
+.hiw-section.hiw-last-exit .hiw-panel:last-child .hiw-panel-title,
+.hiw-section.hiw-last-exit .hiw-panel:last-child .hiw-panel-desc,
+.hiw-section.hiw-last-exit .hiw-panel:last-child .hiw-panel-line {
+  opacity: 0;
+  transform: translateY(-18px);
+}
+
 .hiw-panel-visual {
   margin-bottom: 36px;
 }
@@ -1124,6 +1257,36 @@ onBeforeUnmount(() => {
   border-style: solid;
   border-width: 0;
 }
+
+.hiw-panel:first-child .hiw-scan-corners span {
+  opacity: 0;
+  transform: scale(0.62);
+  transition:
+    opacity 520ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hiw-section.hiw-intro-in .hiw-panel:first-child .hiw-scan-corners span {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.hiw-section.hiw-intro-in .hiw-panel:first-child .hiw-scan-corners span:nth-child(1) {
+  transition-delay: 460ms;
+}
+
+.hiw-section.hiw-intro-in .hiw-panel:first-child .hiw-scan-corners span:nth-child(2) {
+  transition-delay: 520ms;
+}
+
+.hiw-section.hiw-intro-in .hiw-panel:first-child .hiw-scan-corners span:nth-child(3) {
+  transition-delay: 580ms;
+}
+
+.hiw-section.hiw-intro-in .hiw-panel:first-child .hiw-scan-corners span:nth-child(4) {
+  transition-delay: 640ms;
+}
+
 .hiw-scan-corners span:nth-child(1) {
   top: 0; left: 0;
   border-top-width: 2px;
@@ -1157,6 +1320,20 @@ onBeforeUnmount(() => {
   height: 2px;
   background: var(--red-neon);
   box-shadow: 0 0 12px var(--red-neon);
+}
+
+.hiw-panel:first-child .hiw-scan-line {
+  opacity: 0;
+  clip-path: inset(0 100% 0 0);
+  transition:
+    opacity 420ms ease,
+    clip-path 660ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hiw-section.hiw-intro-in .hiw-panel:first-child .hiw-scan-line {
+  opacity: 1;
+  clip-path: inset(0 0 0 0);
+  transition-delay: 720ms;
 }
 
 .hiw-qr-icon {
