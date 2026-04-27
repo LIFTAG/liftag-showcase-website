@@ -12,6 +12,14 @@ const statStrength  = ref<HTMLElement | null>(null)
 const statSessions  = ref<HTMLElement | null>(null)
 const statPRs       = ref<HTMLElement | null>(null)
 const dotEls        = ref<HTMLElement[]>([])
+const scanPane      = ref<HTMLElement | null>(null)
+const scanArea      = ref<HTMLElement | null>(null)
+const scanCorners   = ref<HTMLElement | null>(null)
+const scanLine      = ref<HTMLElement | null>(null)
+const qrIcon        = ref<SVGSVGElement | null>(null)
+const scanTitle     = ref<HTMLElement | null>(null)
+const scanDesc      = ref<HTMLElement | null>(null)
+const scanHovered   = ref(false)
 
 // ─── Canvas context + mutable state ──────────────────────────────────────
 let ctx: CanvasRenderingContext2D | null = null
@@ -23,6 +31,13 @@ let intersectionObs: IntersectionObserver | null = null
 // Marker flash timestamps (non-reactive, mutated in rAF)
 const MARKER_COUNT = 10
 const markerFlashTime: number[] = new Array(MARKER_COUNT).fill(0)
+
+let hiwLerpedP = 0
+let hiwQRLerpedP = 0
+let scanTargetX = 0
+let scanTargetY = 0
+let scanCurrentX = 0
+let scanCurrentY = 0
 
 // ─── Curve data ───────────────────────────────────────────────────────────
 const curvePoints: [number, number][] = [
@@ -307,6 +322,8 @@ function updateHIW(p: number) {
   // Horizontal track translate
   track.style.transform = `translateX(-${p * 66.667}%)`
 
+  updateScanHoverEffect(p)
+
   // Draw the strength curve (always — flash timings use perf.now())
   drawHIWCurve(p)
 
@@ -370,6 +387,90 @@ function updateHIW(p: number) {
   if (statStrength.value) statStrength.value.textContent = `+${Math.round(easedP * 32)}%`
   if (statSessions.value) statSessions.value.textContent = String(Math.round(easedP * 24))
   if (statPRs.value)      statPRs.value.textContent      = String(Math.round(easedP * 7))
+}
+
+function updateScanHoverEffect(p: number) {
+  hiwLerpedP += (p - hiwLerpedP) * 0.12
+  hiwQRLerpedP += (p - hiwQRLerpedP) * 0.06
+
+  const cornersOffset = (p - hiwLerpedP) * 600
+  const qrOffset = (p - hiwQRLerpedP) * 900
+
+  scanCurrentX += (scanTargetX - scanCurrentX) * 0.14
+  scanCurrentY += (scanTargetY - scanCurrentY) * 0.14
+
+  if (scanCorners.value) {
+    scanCorners.value.style.transform = `translate(${cornersOffset + scanCurrentX}px, ${scanCurrentY}px)`
+  }
+  if (scanLine.value) {
+    scanLine.value.style.transform = `translate(${cornersOffset + scanCurrentX}px, ${scanCurrentY}px)`
+  }
+  if (qrIcon.value) {
+    const frameDist = Math.sqrt(scanCurrentX * scanCurrentX + scanCurrentY * scanCurrentY)
+    const qrOnFrame = frameDist < 20
+    qrIcon.value.style.transform = `translateX(${qrOffset}px)`
+    qrIcon.value.style.stroke = qrOnFrame ? 'var(--accent)' : 'rgba(255,255,255,0.15)'
+    qrIcon.value.style.opacity = qrOnFrame ? '0.4' : '0.2'
+  }
+
+  const pane = scanPane.value
+  const area = scanArea.value
+  const title = scanTitle.value
+  if (!pane || !area || !title) return
+
+  const paneRect = pane.getBoundingClientRect()
+  const areaRect = area.getBoundingClientRect()
+  const frameCX = (areaRect.left + areaRect.width / 2 - paneRect.left) + scanCurrentX
+  const frameCY = (areaRect.top + areaRect.height / 2 - paneRect.top) + scanCurrentY
+  const scanPhase = (1 - Math.cos((performance.now() % 2000) / 2000 * Math.PI * 2)) / 2
+  const scanLineY = 10 + scanPhase * (areaRect.height - 20)
+
+  scanLine.value?.style.setProperty('--scan-line-y', `${scanLineY}px`)
+
+  const setScannerWindow = (el: HTMLElement) => {
+    const rect = el.getBoundingClientRect()
+    const localX = frameCX - (rect.left - paneRect.left)
+    const localY = frameCY - (rect.top - paneRect.top)
+
+    el.style.setProperty('--scan-w', `${areaRect.width}px`)
+    el.style.setProperty('--scan-h', `${scanLineY}px`)
+    el.style.setProperty('--scan-left', `${localX - areaRect.width / 2}px`)
+    el.style.setProperty('--scan-top', `${localY - areaRect.height / 2}px`)
+  }
+
+  setScannerWindow(title)
+  if (scanDesc.value) setScannerWindow(scanDesc.value)
+}
+
+function handleScanPaneMove(event: MouseEvent) {
+  const pane = scanPane.value
+  const area = scanArea.value
+  if (!pane || !area) return
+
+  const paneRect = pane.getBoundingClientRect()
+  const x = (event.clientX - paneRect.left) / paneRect.width
+  const y = (event.clientY - paneRect.top) / paneRect.height
+  pane.style.setProperty('--mx', `${x * 100}%`)
+  pane.style.setProperty('--my', `${y * 100}%`)
+
+  const areaRect = area.getBoundingClientRect()
+  const scanCenterX = areaRect.left + areaRect.width / 2
+  const scanCenterY = areaRect.top + areaRect.height / 2
+  scanTargetX = (event.clientX - scanCenterX) * 0.55
+  scanTargetY = (event.clientY - scanCenterY) * 0.55
+}
+
+function handleScanPaneEnter(event: MouseEvent) {
+  scanHovered.value = true
+  handleScanPaneMove(event)
+}
+
+function handleScanPaneLeave() {
+  scanHovered.value = false
+  scanTargetX = 0
+  scanTargetY = 0
+  scanPane.value?.style.setProperty('--mx', '50%')
+  scanPane.value?.style.setProperty('--my', '50%')
 }
 
 // ─── rAF loop ─────────────────────────────────────────────────────────────
@@ -451,17 +552,24 @@ onBeforeUnmount(() => {
         <!-- Panel 01: Scan -->
         <div class="hiw-panel">
           <div class="hiw-panel-number">01</div>
-          <div class="hiw-glass-pane">
+          <div
+            ref="scanPane"
+            class="hiw-glass-pane scan-interactive"
+            :class="{ 'glass-hovered': scanHovered }"
+            @mouseenter="handleScanPaneEnter"
+            @mousemove="handleScanPaneMove"
+            @mouseleave="handleScanPaneLeave"
+          >
             <div class="hiw-panel-visual">
               <div class="hiw-phone-frame">
-                <div class="hiw-scan-area">
-                  <div class="hiw-scan-corners">
+                <div ref="scanArea" class="hiw-scan-area">
+                  <div ref="scanCorners" class="hiw-scan-corners">
                     <span></span><span></span><span></span><span></span>
                   </div>
-                  <div class="hiw-scan-line"></div>
+                  <div ref="scanLine" class="hiw-scan-line"></div>
                   <svg width="60" height="60" viewBox="0 0 24 24" fill="none"
                     stroke="var(--liftag-primary)" stroke-width="1" opacity="0.4"
-                    class="hiw-qr-icon">
+                    class="hiw-qr-icon" ref="qrIcon">
                     <rect x="3" y="3" width="7" height="7" />
                     <rect x="14" y="3" width="7" height="7" />
                     <rect x="3" y="14" width="7" height="7" />
@@ -472,8 +580,8 @@ onBeforeUnmount(() => {
                 </div>
               </div>
             </div>
-            <h3 class="hiw-panel-title">Scan the QR Code</h3>
-            <p class="hiw-panel-desc">Open LIFTAG, point your camera at the machine's QR code. The exercise loads instantly.</p>
+            <h3 ref="scanTitle" class="hiw-panel-title">Scan the QR Code</h3>
+            <p ref="scanDesc" class="hiw-panel-desc">Open LIFTAG, point your camera at the machine's QR code. The exercise loads instantly.</p>
             <div class="hiw-panel-line"></div>
           </div>
         </div>
@@ -525,7 +633,7 @@ onBeforeUnmount(() => {
           <div class="hiw-glass-pane">
             <div class="hiw-panel-visual">
               <div class="hiw-chart-card">
-                <div class="hiw-chart-title">Bench Press — 12 weeks</div>
+                <div class="hiw-chart-title">Bench Press · 12 weeks</div>
                 <svg class="hiw-chart-svg" viewBox="-5 -15 310 150" fill="none">
                   <defs>
                     <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
@@ -566,7 +674,7 @@ onBeforeUnmount(() => {
               </div>
             </div>
             <h3 class="hiw-panel-title">Watch Progress Compound</h3>
-            <p class="hiw-panel-desc">Over weeks and months, LIFTAG builds your complete strength story — every rep, every PR.</p>
+            <p class="hiw-panel-desc">Over weeks and months, LIFTAG builds your complete strength story. Every rep, every PR.</p>
             <div class="hiw-panel-line"></div>
           </div>
         </div>
@@ -718,20 +826,24 @@ onBeforeUnmount(() => {
 
 .hiw-panel-number {
   position: absolute;
+  z-index: 3;
   font-family: 'JetBrains Mono', monospace;
   font-size: 30vw;
   font-weight: 900;
-  color: rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.035);
   line-height: 1;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
   user-select: none;
+  mix-blend-mode: screen;
 }
 
 /* ── Glass pane ───────────────────────────────────────── */
 .hiw-glass-pane {
+  --mx: 50%;
+  --my: 50%;
   position: relative;
   z-index: 2;
   display: flex;
@@ -740,42 +852,56 @@ onBeforeUnmount(() => {
   padding: 48px 40px 40px;
   border-radius: 28px;
   max-width: 440px;
-  background:
-    linear-gradient(
-      135deg,
-      rgba(10, 10, 15, 0.92) 0%,
-      rgba(5, 5, 10, 0.85) 40%,
-      rgba(10, 10, 15, 0.9) 100%
-    );
-  backdrop-filter: blur(60px) saturate(1.3);
-  -webkit-backdrop-filter: blur(60px) saturate(1.3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow:
-    0 8px 40px rgba(0, 0, 0, 0.5),
-    0 2px 8px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    inset 0 0 60px rgba(0, 0, 0, 0.2);
+    0 8px 44px rgba(0, 0, 0, 0.46),
+    0 2px 10px rgba(0, 0, 0, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 0 64px rgba(0, 0, 0, 0.18);
   overflow: hidden;
   will-change: transform;
   transition: box-shadow 0.4s ease, border-color 0.4s ease;
 }
 
-/* Specular highlight sheen */
+.hiw-glass-pane.glass-hovered {
+  border-color: rgba(200, 255, 0, 0.22);
+  box-shadow:
+    0 18px 70px rgba(0, 0, 0, 0.62),
+    0 0 38px rgba(200, 255, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 72px rgba(200, 255, 0, 0.035);
+}
+
 .hiw-glass-pane::before {
   content: '';
   position: absolute;
-  top: -1px;
-  left: -1px;
-  right: -1px;
-  height: 50%;
-  border-radius: 28px 28px 0 0;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.06) 0%,
-    rgba(255, 255, 255, 0.02) 30%,
-    transparent 100%
-  );
+  inset: 0;
+  border-radius: 28px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(18, 20, 18, 0.42) 0%,
+      rgba(5, 7, 8, 0.28) 42%,
+      rgba(12, 14, 12, 0.36) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.04) 32%,
+      transparent 58%
+    );
+  backdrop-filter: blur(96px) saturate(1.55) brightness(1.08);
+  -webkit-backdrop-filter: blur(96px) saturate(1.55) brightness(1.08);
   pointer-events: none;
+  z-index: 0;
+}
+
+.hiw-glass-pane > * {
+  position: relative;
+  z-index: 2;
 }
 
 /* Cursor inner glow (static default) */
@@ -785,19 +911,25 @@ onBeforeUnmount(() => {
   inset: 0;
   border-radius: 28px;
   background: radial-gradient(
-    280px circle at 50% 50%,
-    rgba(200, 255, 0, 0.05) 0%,
-    rgba(200, 255, 0, 0.01) 40%,
+    280px circle at var(--mx) var(--my),
+    rgba(200, 255, 0, 0.09) 0%,
+    rgba(200, 255, 0, 0.025) 42%,
     transparent 70%
   );
+  opacity: 0.72;
+  transition: opacity 0.35s ease;
   pointer-events: none;
   z-index: 1;
 }
 
+.hiw-glass-pane.glass-hovered::after {
+  opacity: 1;
+}
+
 @media (max-width: 768px) {
-  .hiw-glass-pane {
-    backdrop-filter: blur(20px) saturate(1.2);
-    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  .hiw-glass-pane::before {
+    backdrop-filter: blur(40px) saturate(1.35) brightness(1.05);
+    -webkit-backdrop-filter: blur(40px) saturate(1.35) brightness(1.05);
   }
 }
 
@@ -819,6 +951,36 @@ onBeforeUnmount(() => {
   line-height: 1.7;
   max-width: 420px;
   text-align: center;
+}
+
+.scan-interactive .hiw-panel-title,
+.scan-interactive .hiw-panel-desc {
+  --scan-left: -999px;
+  --scan-top: -999px;
+  --scan-w: 120px;
+  --scan-h: 120px;
+  background-image:
+    linear-gradient(var(--accent), var(--accent)),
+    linear-gradient(#fff, #fff);
+  background-size:
+    var(--scan-w) var(--scan-h),
+    100% 100%;
+  background-position:
+    var(--scan-left) var(--scan-top),
+    0 0;
+  background-repeat: no-repeat;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.scan-interactive .hiw-panel-desc {
+  background-image:
+    linear-gradient(var(--accent), var(--accent)),
+    linear-gradient(var(--text-mid), var(--text-mid));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .hiw-panel-line {
@@ -895,16 +1057,12 @@ onBeforeUnmount(() => {
 
 .hiw-scan-line {
   position: absolute;
+  top: var(--scan-line-y, 10px);
   left: 8px;
   right: 8px;
   height: 2px;
   background: var(--red-neon);
   box-shadow: 0 0 12px var(--red-neon);
-  animation: scanMove 2s ease-in-out infinite;
-}
-@keyframes scanMove {
-  0%, 100% { top: 10px; }
-  50%       { top: calc(100% - 10px); }
 }
 
 .hiw-qr-icon {

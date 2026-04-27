@@ -22,19 +22,19 @@ interface RmItem {
 
 const rmData: RmItem[] = [
   {
-    version: 'V1 — NOW',
+    version: 'V1 · NOW',
     title: 'The Core Foundation',
     isLive: true,
     branches: [
       { label: 'QR Scan-to-Track',   i: 0, angle: '-12deg', len: '38px' },
-      { label: 'Auto Sessions',       i: 1, angle: '4deg',   len: '50px' },
-      { label: 'Progressive Overload',i: 2, angle: '-8deg',  len: '44px' },
-      { label: 'Form Videos',         i: 3, angle: '10deg',  len: '36px' },
-      { label: 'Gym Owner Portal',    i: 4, angle: '-5deg',  len: '52px' },
+      { label: '2-Tap Set Logger',   i: 1, angle: '4deg',   len: '50px' },
+      { label: 'Routines + Plans',   i: 2, angle: '-8deg',  len: '44px' },
+      { label: 'Exercise Library',   i: 3, angle: '10deg',  len: '36px' },
+      { label: 'Trainer Directory',  i: 4, angle: '-5deg',  len: '52px' },
     ],
   },
   {
-    version: 'V2 — DISCOVERY',
+    version: 'V2 · DISCOVERY',
     title: 'Gym Discovery & Analytics',
     isFuture: true,
     branches: [
@@ -44,17 +44,7 @@ const rmData: RmItem[] = [
     ],
   },
   {
-    version: 'V3 — TRAINERS',
-    title: 'Trainer Integration',
-    isFuture: true,
-    branches: [
-      { label: 'Trainer Profiles',    i: 0, angle: '-10deg', len: '42px' },
-      { label: 'Progress Monitoring', i: 1, angle: '6deg',   len: '48px' },
-      { label: 'Offline + Sync',      i: 2, angle: '-3deg',  len: '38px' },
-    ],
-  },
-  {
-    version: 'V4 — AI',
+    version: 'V3 · AI',
     title: 'Smart Insights',
     isFuture: true,
     branches: [
@@ -64,7 +54,7 @@ const rmData: RmItem[] = [
     ],
   },
   {
-    version: 'V5 — COMMUNITY',
+    version: 'V4 · COMMUNITY',
     title: 'Social Ecosystem',
     isFuture: true,
     branches: [

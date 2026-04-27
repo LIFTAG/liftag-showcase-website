@@ -18,7 +18,7 @@ const steps = [
     screen: '/assets/screens/log-set.png',
     extra: {
       label: 'OPTIONAL',
-      note: "Watch the gym's own instruction video — filmed by their trainers, on their machines.",
+      note: "Watch the gym's own instruction video. Filmed by their trainers, on their machines.",
     },
   },
 ]
@@ -34,7 +34,9 @@ onMounted(() => {
   )
   io.observe(sectionRef.value)
 
-  onBeforeUnmount(() => io.disconnect())
+  onBeforeUnmount(() => {
+    io.disconnect()
+  })
 })
 
 let cycleInterval: ReturnType<typeof setInterval> | null = null
@@ -94,7 +96,7 @@ onBeforeUnmount(() => {
           marginTop: '28px',
         }"
       >
-        No more guessing how a cable stack works. Scan the QR code on any partner gym machine —
+        No more guessing how a cable stack works. Scan the QR code on any partner gym machine.
         Liftag opens the right exercise, demo video, and tracking flow in seconds.
       </p>
 
@@ -119,50 +121,7 @@ onBeforeUnmount(() => {
               animation: 'float-y 5s ease-in-out infinite',
             }"
           >
-            <Phone :scale="1.05">
-              <!-- Screen images — cross-fade -->
-              <img
-                v-for="(s, i) in steps"
-                :key="i"
-                :src="s.screen"
-                alt=""
-                :style="{
-                  position: 'absolute',
-                  inset: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  opacity: step === i ? 1 : 0,
-                  transition: 'opacity 700ms cubic-bezier(0.16,1,0.3,1)',
-                }"
-              />
-
-              <!-- Scan overlay — only on step 0 -->
-              <div
-                v-if="step === 0"
-                :style="{
-                  position: 'absolute',
-                  top: '32%',
-                  left: '20%',
-                  right: '20%',
-                  aspectRatio: '1',
-                  pointerEvents: 'none',
-                }"
-              >
-                <div
-                  :style="{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '2px',
-                    background: 'linear-gradient(90deg, transparent, #CCFF00, transparent)',
-                    boxShadow: '0 0 16px #CCFF00',
-                    animation: 'scanline 2s ease-in-out infinite',
-                  }"
-                />
-              </div>
-            </Phone>
+            <Phone :src="steps[step].screen" :scale="1.05" />
           </div>
 
           <!-- Decorative QR sticker — rotated -8deg -->
@@ -170,15 +129,16 @@ onBeforeUnmount(() => {
             class="scan-qr-sticker"
             :style="{
               position: 'absolute',
-              bottom: '40px',
-              left: '-10px',
-              width: '110px',
-              height: '110px',
+              bottom: '76px',
+              left: '8px',
+              width: '122px',
+              height: '122px',
               background: '#fff',
-              padding: '10px',
-              borderRadius: '10px',
+              padding: '11px',
+              borderRadius: '12px',
               boxShadow: '0 20px 50px rgba(0,0,0,0.6), 0 0 30px rgba(204,255,0,0.2)',
               transform: 'rotate(-8deg)',
+              zIndex: 4,
             }"
           >
             <img
@@ -189,18 +149,21 @@ onBeforeUnmount(() => {
             <div
               :style="{
                 position: 'absolute',
-                bottom: '-18px',
-                left: 0,
-                right: 0,
+                bottom: '-31px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 'max-content',
                 textAlign: 'center',
                 fontFamily: '\'JetBrains Mono\', monospace',
                 fontSize: '8px',
                 fontWeight: 700,
-                letterSpacing: '0.2em',
+                letterSpacing: '0.08em',
                 color: '#CCFF00',
+                textTransform: 'uppercase',
+                textShadow: '0 0 14px rgba(204,255,0,0.32)',
               }"
             >
-              LAT PULLDOWN · #042
+              Easy to spot qr codes
             </div>
           </div>
         </div>

@@ -565,7 +565,7 @@ const p3 = computed(() => ({
                 lineHeight: 1,
               }"
             >{{ fmtStat(stat3.val.value, 20, '+', false) }}</div>
-            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">Yrs founder experience</div>
+            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">20+ yrs combined founder lifting experience</div>
           </div>
 
           <div :ref="(el) => (stat4.el.value = el as HTMLElement | null)">
@@ -601,7 +601,7 @@ const p3 = computed(() => ({
             willChange: 'transform',
           }"
         >
-          <Phone src="/assets/screens/progression.png" :scale="0.76" />
+          <Phone src="/assets/screens/progression.png" :scale="0.7" :tilt-delay-ms="140" />
         </div>
 
         <!-- Back-right phone -->
@@ -615,7 +615,7 @@ const p3 = computed(() => ({
             willChange: 'transform',
           }"
         >
-          <Phone src="/assets/screens/log-set.png" :scale="0.7" />
+          <Phone src="/assets/screens/log-set.png" :scale="0.64" :tilt-delay-ms="230" />
         </div>
 
         <!-- Front center phone (main) -->
@@ -632,14 +632,14 @@ const p3 = computed(() => ({
           <div
             :style="{
               position: 'absolute',
-              inset: '-40px',
+              inset: '8px',
               borderRadius: '50%',
               background: 'radial-gradient(circle, rgba(204,255,0,0.22) 0%, transparent 65%)',
-              filter: 'blur(30px)',
+              filter: 'blur(24px)',
               animation: 'pulse-glow 4s ease-in-out infinite',
             }"
           />
-          <Phone src="/assets/screens/home.png" :scale="1" />
+          <Phone src="/assets/screens/home.png" :scale="0.92" :tilt-delay-ms="0" />
           <!-- Reflection streak -->
           <div
             :style="{
@@ -740,9 +740,9 @@ const p3 = computed(() => ({
             <span :style="{ color: '#22C55E' }">↑</span> +18% vs last week
           </div>
           <!-- Mini sparkline -->
-          <svg viewBox="0 0 80 20" :style="{ width: '80px', height: '20px', marginTop: '10px' }">
+          <svg viewBox="-3 -3 86 26" :style="{ width: '86px', height: '26px', marginTop: '8px', overflow: 'visible' }">
             <polyline
-              points="0,16 12,13 24,14 36,10 48,11 60,7 72,4 80,2"
+              points="0,16 12,13 24,14 36,10 48,11 60,7 72,4 77,2"
               fill="none"
               stroke="#CCFF00"
               stroke-width="1.5"
@@ -750,7 +750,7 @@ const p3 = computed(() => ({
               stroke-linejoin="round"
               opacity="0.7"
             />
-            <circle cx="80" cy="2" r="2.5" fill="#CCFF00" />
+            <circle cx="77" cy="2" r="2.5" fill="#CCFF00" />
           </svg>
         </div>
 

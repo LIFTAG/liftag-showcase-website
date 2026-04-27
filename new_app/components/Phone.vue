@@ -1,18 +1,23 @@
 <script setup lang="ts">
+import Phone3D from './Phone3D.vue'
+
 const props = withDefaults(defineProps<{
   src?: string
   glow?: boolean
   scale?: number
+  tiltDelayMs?: number
   style?: Record<string, string>
 }>(), {
   glow: false,
   scale: 1,
+  tiltDelayMs: 0,
 })
 </script>
 
 <template>
   <div
     class="phone"
+    :class="{ 'phone--3d': props.src }"
     :style="{
       transform: `scale(${props.scale})`,
       transformOrigin: 'center',
@@ -20,7 +25,12 @@ const props = withDefaults(defineProps<{
       ...props.style,
     }"
   >
-    <img v-if="props.src" :src="props.src" alt="LIFTAG screen" />
-    <slot />
+    <ClientOnly v-if="props.src">
+      <Phone3D :screenshot-src="props.src" :tilt-delay-ms="props.tiltDelayMs" />
+      <template #fallback>
+        <img :src="props.src" alt="LIFTAG screen" />
+      </template>
+    </ClientOnly>
+    <slot v-else />
   </div>
 </template>

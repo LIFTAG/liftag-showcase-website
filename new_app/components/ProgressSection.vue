@@ -7,10 +7,18 @@ const screens = [
 ]
 
 const screen = ref(0)
+const screenPulse = ref(0)
+const activeVolumeBar = ref<number | null>(null)
+let volumeResetTimer: ReturnType<typeof setTimeout> | null = null
+
+function setScreen(next: number) {
+  screen.value = next
+  screenPulse.value += 1
+}
 
 onMounted(() => {
   const t = setInterval(() => {
-    screen.value = (screen.value + 1) % screens.length
+    setScreen((screen.value + 1) % screens.length)
   }, 2800)
   onBeforeUnmount(() => clearInterval(t))
 })
@@ -38,6 +46,7 @@ const stats = [
 
 const barVals = [40, 55, 48, 62, 58, 70, 75, 68, 80, 85, 78, 92]
 const barMax = Math.max(...barVals)
+const litVolumeBar = computed(() => activeVolumeBar.value ?? barVals.length - 1)
 
 const linePts = [
   [0, 32], [10, 28], [20, 24], [30, 26], [40, 20], [50, 18],
@@ -56,6 +65,39 @@ function chipSubColor(accent: string) {
   if (accent === '#22C55E') return '#22C55E'
   return 'rgba(255,255,255,0.4)'
 }
+
+function chipGlint(accent: string) {
+  if (accent === '#CCFF00') return 'rgba(204,255,0,0.18)'
+  if (accent === '#22C55E') return 'rgba(34,197,94,0.16)'
+  return 'rgba(255,255,255,0.1)'
+}
+
+function clearVolumeResetTimer() {
+  if (!volumeResetTimer) return
+  clearTimeout(volumeResetTimer)
+  volumeResetTimer = null
+}
+
+function activateVolumeBar(index: number, event?: PointerEvent) {
+  clearVolumeResetTimer()
+  activeVolumeBar.value = index
+
+  if (event && event.pointerType !== 'mouse') {
+    volumeResetTimer = setTimeout(() => {
+      activeVolumeBar.value = null
+      volumeResetTimer = null
+    }, 1400)
+  }
+}
+
+function clearVolumeBar(event?: PointerEvent | FocusEvent) {
+  if (event instanceof PointerEvent && event.pointerType !== 'mouse') return
+
+  clearVolumeResetTimer()
+  activeVolumeBar.value = null
+}
+
+onBeforeUnmount(clearVolumeResetTimer)
 </script>
 
 <template>
@@ -102,7 +144,7 @@ function chipSubColor(accent: string) {
             margin: '24px auto 0',
           }"
         >
-          Volume, PRs, 1RM estimates, streaks, body-part splits, workout history, rest trends — every
+          Volume, PRs, 1RM estimates, streaks, body-part splits, workout history, rest trends. Every
           dimension of your training in one place.
         </p>
       </div>
@@ -130,12 +172,17 @@ function chipSubColor(accent: string) {
           <div
             v-for="(chip, i) in leftChips"
             :key="i"
+            class="progress-chip"
             :style="{
               background: '#0a0a0a',
               border: chipBorder(chip.accent),
               borderRadius: '14px',
               padding: '12px 16px',
               maxWidth: '220px',
+              position: 'relative',
+              overflow: 'hidden',
+              '--chip-glint': chipGlint(chip.accent),
+              '--chip-delay': `${i * 120}ms`,
             }"
           >
             <div
@@ -164,6 +211,7 @@ function chipSubColor(accent: string) {
 
           <!-- Mini bar chart -->
           <div
+            class="weekly-volume-card"
             :style="{
               background: '#0a0a0a',
               border: '1px solid rgba(255,255,255,0.07)',
@@ -175,18 +223,42 @@ function chipSubColor(accent: string) {
             <div class="protocol" :style="{ color: '#666', fontSize: '9px', marginBottom: '10px' }">
               WEEKLY VOLUME
             </div>
-            <div :style="{ display: 'flex', gap: '3px', alignItems: 'flex-end', height: '36px' }">
-              <div
+            <div
+              class="weekly-volume-bars"
+              :style="{ display: 'flex', gap: '3px', alignItems: 'flex-end', height: '36px' }"
+              @pointerleave="clearVolumeBar($event)"
+            >
+              <button
                 v-for="(v, i) in barVals"
                 :key="i"
+                type="button"
+                class="weekly-volume-bar"
+                :class="{ 'is-lit': i === litVolumeBar }"
+                :aria-label="`Week ${i + 1} volume ${v}`"
+                @pointerenter="activateVolumeBar(i, $event)"
+                @pointerdown="activateVolumeBar(i, $event)"
+                @focus="activateVolumeBar(i)"
+                @blur="clearVolumeBar"
                 :style="{
                   flex: 1,
-                  borderRadius: '2px',
-                  background: i === barVals.length - 1 ? '#CCFF00' : 'rgba(204,255,0,0.25)',
-                  height: `${(v / barMax) * 100}%`,
-                  boxShadow: i === barVals.length - 1 ? '0 0 8px rgba(204,255,0,0.6)' : 'none',
                 }"
-              />
+              >
+                <span
+                  :style="{
+                    height: `${(v / barMax) * 100}%`,
+                    background: i === litVolumeBar
+                      ? 'linear-gradient(180deg, #F0FF99 0%, #CCFF00 58%, #8CB000 100%)'
+                      : 'rgba(204,255,0,0.22)',
+                    boxShadow: i === litVolumeBar
+                      ? '0 0 12px rgba(204,255,0,0.86), 0 0 30px rgba(204,255,0,0.22)'
+                      : '0 0 0 rgba(204,255,0,0)',
+                    opacity: i === litVolumeBar ? 1 : 0.64,
+                  }"
+                />
+              </button>
+            </div>
+            <div class="weekly-volume-readout">
+              WEEK {{ litVolumeBar + 1 }} · {{ barVals[litVolumeBar] }} VOL
             </div>
           </div>
         </div>
@@ -203,30 +275,20 @@ function chipSubColor(accent: string) {
           <div
             :style="{
               position: 'absolute',
-              inset: '-30px',
+              inset: '6px',
               borderRadius: '50%',
               background: 'radial-gradient(circle, rgba(204,255,0,0.18), transparent 65%)',
-              filter: 'blur(20px)',
+              filter: 'blur(18px)',
               animation: 'pulse-glow 4s ease-in-out infinite',
             }"
           />
-          <Phone :scale="1.05">
-            <img
-              v-for="(src, i) in screens"
-              :key="i"
-              :src="src"
-              alt=""
-              :style="{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                opacity: screen === i ? 1 : 0,
-                transition: 'opacity 800ms cubic-bezier(0.16,1,0.3,1)',
-              }"
-            />
-          </Phone>
+          <div :key="screenPulse" class="progress-phone-pulse" aria-hidden="true" />
+          <Phone
+            :src="screens[screen]"
+            :scale="1.05"
+            :tilt-delay-ms="180"
+            :style="{ position: 'relative', zIndex: '2' }"
+          />
 
           <!-- Dot indicators -->
           <div
@@ -242,7 +304,7 @@ function chipSubColor(accent: string) {
             <div
               v-for="(_, i) in screens"
               :key="i"
-              @click="screen = i"
+              @click="setScreen(i)"
               :style="{
                 width: screen === i ? '20px' : '6px',
                 height: '6px',
@@ -269,12 +331,17 @@ function chipSubColor(accent: string) {
           <div
             v-for="(chip, i) in rightChips"
             :key="i"
+            class="progress-chip"
             :style="{
               background: '#0a0a0a',
               border: chipBorder(chip.accent),
               borderRadius: '14px',
               padding: '12px 16px',
               maxWidth: '220px',
+              position: 'relative',
+              overflow: 'hidden',
+              '--chip-glint': chipGlint(chip.accent),
+              '--chip-delay': `${(i + leftChips.length) * 120}ms`,
             }"
           >
             <div
@@ -314,8 +381,9 @@ function chipSubColor(accent: string) {
             <div class="protocol" :style="{ color: '#666', fontSize: '9px', marginBottom: '10px' }">
               1RM PROGRESSION
             </div>
-            <svg viewBox="0 0 100 36" :style="{ width: '100%', height: '36px' }">
+            <svg class="progress-line-chart" viewBox="0 0 100 36" :style="{ width: '100%', height: '36px' }">
               <polyline
+                class="progress-line-path"
                 :points="polyline"
                 fill="none"
                 stroke="#CCFF00"
@@ -323,7 +391,7 @@ function chipSubColor(accent: string) {
                 stroke-linejoin="round"
                 opacity="0.7"
               />
-              <circle cx="100" cy="2" r="2.5" fill="#CCFF00" />
+              <circle class="progress-line-dot" cx="100" cy="2" r="2.5" fill="#CCFF00" />
             </svg>
           </div>
         </div>
@@ -346,11 +414,14 @@ function chipSubColor(accent: string) {
         <div
           v-for="(s, i) in stats"
           :key="i"
-          class="reveal"
+          class="reveal progress-stat-card"
           :style="{
             padding: '28px 24px',
             background: '#0a0a0a',
             borderRight: i < 3 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+            position: 'relative',
+            overflow: 'hidden',
+            '--stat-delay': `${i * 170}ms`,
           }"
         >
           <div
@@ -376,3 +447,196 @@ function chipSubColor(accent: string) {
     </div>
   </section>
 </template>
+
+<style scoped>
+.progress-chip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 18%, var(--chip-glint), transparent 46%);
+  transform: translateX(-130%);
+  opacity: 0.72;
+  animation: progressChipGlint 6.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  animation-delay: var(--chip-delay, 0ms);
+}
+
+.weekly-volume-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.weekly-volume-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  background: radial-gradient(120px 64px at 18% 32%, rgba(204, 255, 0, 0.08), transparent 70%);
+  opacity: 0.8;
+}
+
+.weekly-volume-bars {
+  position: relative;
+  z-index: 1;
+}
+
+.weekly-volume-bar {
+  appearance: none;
+  height: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  display: flex;
+  align-items: flex-end;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.weekly-volume-bar span {
+  display: block;
+  width: 100%;
+  border-radius: 3px 3px 2px 2px;
+  transform-origin: 50% 100%;
+  transition:
+    transform 520ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 480ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 320ms ease;
+}
+
+.weekly-volume-bar.is-lit span {
+  transform: translateY(-2px) scaleY(1.06);
+}
+
+.weekly-volume-bar:focus-visible {
+  outline: 1px solid rgba(204, 255, 0, 0.72);
+  outline-offset: 3px;
+}
+
+.weekly-volume-readout {
+  position: relative;
+  z-index: 1;
+  margin-top: 9px;
+  font-family: var(--liftag-font-mono);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  color: rgba(204, 255, 0, 0.78);
+  text-transform: uppercase;
+  transition: color 260ms ease;
+}
+
+.progress-phone-pulse {
+  position: absolute;
+  inset: -22px;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: 999px;
+  border: 1px solid rgba(204, 255, 0, 0.24);
+  box-shadow:
+    0 0 28px rgba(204, 255, 0, 0.12),
+    inset 0 0 34px rgba(204, 255, 0, 0.07);
+  animation: progressPhonePulse 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.progress-line-chart {
+  overflow: visible;
+}
+
+.progress-line-path {
+  filter: drop-shadow(0 0 7px rgba(204, 255, 0, 0.38));
+  stroke-dasharray: 150;
+  stroke-dashoffset: 150;
+  animation:
+    progressLineDraw 2200ms cubic-bezier(0.16, 1, 0.3, 1) 220ms both,
+    progressLineBreathe 3600ms ease-in-out 2500ms infinite;
+}
+
+.progress-line-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  filter: drop-shadow(0 0 8px rgba(204, 255, 0, 0.8));
+  animation: progressDotPulse 2600ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.progress-stat-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(120deg, transparent 20%, rgba(204, 255, 0, 0.08), transparent 52%);
+  transform: translateX(-140%);
+  animation: progressStatSweep 7.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  animation-delay: var(--stat-delay, 0ms);
+}
+
+@keyframes progressChipGlint {
+  0%, 62% {
+    transform: translateX(-130%);
+  }
+  78%, 100% {
+    transform: translateX(130%);
+  }
+}
+
+@keyframes progressPhonePulse {
+  from {
+    opacity: 0.72;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+}
+
+@keyframes progressLineDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes progressLineBreathe {
+  0%, 100% {
+    opacity: 0.62;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes progressDotPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.45);
+  }
+}
+
+@keyframes progressStatSweep {
+  0%, 68% {
+    transform: translateX(-140%);
+  }
+  84%, 100% {
+    transform: translateX(140%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-chip::after,
+  .progress-phone-pulse,
+  .progress-line-path,
+  .progress-line-dot,
+  .progress-stat-card::after {
+    animation: none;
+  }
+
+  .weekly-volume-bar span {
+    transition: none;
+  }
+}
+</style>

@@ -11,6 +11,7 @@ useReveal()
     <PartnerMarquee />
     <ScanSection />
     <HowItWorks />
+    <AppMergeSection />
     <LiftersSection />
     <ProgressSection />
     <TrainersSection />

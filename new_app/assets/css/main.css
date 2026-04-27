@@ -65,6 +65,17 @@ body {
   font-family: var(--liftag-font-body);
   -webkit-font-smoothing: antialiased;
 }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 76px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
 /* Avoid `overflow-x: hidden` on body/html — it breaks `position: sticky`
    for descendants like the HowItWorks horizontal-scroll section.
    Sections that have decorative bleed (Hero parallax, Marquee, etc.) set
@@ -183,6 +194,22 @@ button {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+.phone--3d {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+.phone-3d-mount {
+  position: absolute;
+  inset: 0 -6%;
+}
+.phone-3d-mount canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 section {

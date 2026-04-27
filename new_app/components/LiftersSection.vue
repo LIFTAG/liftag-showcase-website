@@ -3,6 +3,9 @@ interface FeatureCardProps {
   span: string
   tall?: boolean
   img?: string
+  imgPosition?: string
+  imgScale?: number
+  visualHeight?: string
   tag: string
   title: string
   body: string
@@ -14,14 +17,19 @@ const cards: FeatureCardProps[] = [
     span: 'span 7',
     tall: true,
     img: '/assets/screens/progression.png',
+    imgPosition: '50% 79%',
+    imgScale: 1.12,
+    visualHeight: '64%',
     tag: 'PROGRESS INSIGHTS',
     title: 'Progress, not vibes.',
-    body: 'Per-session weight, 1RM, and total volume — auto-aggregated across every workout. Watch the line climb.',
+    body: 'Per-session weight, 1RM, and total volume, auto-aggregated across every workout. Watch the line climb.',
   },
   {
     span: 'span 5',
     tall: true,
     img: '/assets/screens/log-set.png',
+    imgPosition: '50% 48%',
+    visualHeight: '64%',
     tag: 'LOG SET',
     title: 'Two taps. Set logged.',
     body: 'Weight × reps. RPE optional. The timer auto-runs between sets so you don\'t have to think.',
@@ -29,6 +37,8 @@ const cards: FeatureCardProps[] = [
   {
     span: 'span 5',
     img: '/assets/screens/active-session.png',
+    imgPosition: '50% 45%',
+    visualHeight: '220px',
     tag: 'ROUTINES + SUPERSETS',
     title: 'Plans that flex with you.',
     body: 'Build routines, share them, run supersets. Every session adapts to your real performance.',
@@ -36,6 +46,8 @@ const cards: FeatureCardProps[] = [
   {
     span: 'span 4',
     img: '/assets/screens/history.png',
+    imgPosition: '50% 29%',
+    visualHeight: '220px',
     tag: 'HISTORY',
     title: 'Every session, dated.',
     body: 'Calendar + by-body-part. Find any session in two taps.',
@@ -43,6 +55,8 @@ const cards: FeatureCardProps[] = [
   {
     span: 'span 3',
     img: '/assets/screens/exercises.png',
+    imgPosition: '50% 17%',
+    visualHeight: '230px',
     tag: 'LIBRARY',
     title: '250+ exercises. Form videos.',
     body: 'Vetted by coaches, not influencers.',
@@ -56,6 +70,20 @@ const numbers = [
   { n: 'EN · SK', l: 'Languages, day one' },
   { n: '0', l: 'Spreadsheets required' },
 ]
+
+function imgPositionX(card: FeatureCardProps) {
+  return card.imgPosition?.split(/\s+/)[0] ?? '50%'
+}
+
+function imgPositionY(card: FeatureCardProps) {
+  return card.imgPosition?.split(/\s+/)[1] ?? '50%'
+}
+
+function imgPanY(card: FeatureCardProps, delta: number) {
+  const y = Number.parseFloat(imgPositionY(card))
+  if (Number.isNaN(y)) return imgPositionY(card)
+  return `${Math.min(100, Math.max(0, y + delta))}%`
+}
 
 // Per-card hover state
 const hovered = ref<Record<number, boolean>>({})
@@ -116,8 +144,8 @@ const hovered = ref<Record<number, boolean>>({})
             margin: 0,
           }"
         >
-          Progressive overload, made obvious. Goals, PRs, history, and clean charts that show — at a
-          glance — whether you're getting stronger or stalling.
+          Progressive overload, made obvious. Goals, PRs, history, and clean charts that show, at a
+          glance, whether you're getting stronger or stalling.
         </p>
       </div>
 
@@ -133,7 +161,7 @@ const hovered = ref<Record<number, boolean>>({})
         <div
           v-for="(card, i) in cards"
           :key="i"
-          class="reveal"
+          class="reveal lifters-card"
           @mouseenter="hovered[i] = true"
           @mouseleave="hovered[i] = false"
           :style="{
@@ -146,12 +174,14 @@ const hovered = ref<Record<number, boolean>>({})
             borderRadius: '28px',
             overflow: 'hidden',
             position: 'relative',
+            isolation: 'isolate',
+            backfaceVisibility: 'hidden',
             minHeight: card.tall ? '600px' : '320px',
             display: 'flex',
             flexDirection: 'column',
             cursor: 'pointer',
-            transition: 'all 350ms cubic-bezier(0.16,1,0.3,1)',
-            transform: hovered[i] ? 'translateY(-4px)' : 'translateY(0)',
+            transition: 'transform 350ms cubic-bezier(0.16,1,0.3,1), box-shadow 350ms cubic-bezier(0.16,1,0.3,1), border-color 220ms ease',
+            transform: 'translate3d(0,0,0)',
             boxShadow: hovered[i]
               ? '0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(204,255,0,0.1)'
               : 'none',
@@ -162,32 +192,42 @@ const hovered = ref<Record<number, boolean>>({})
             v-if="card.img"
             :style="{
               position: 'relative',
-              height: card.compact ? '200px' : card.tall ? '60%' : '200px',
+              height: card.visualHeight ?? (card.compact ? '200px' : card.tall ? '60%' : '200px'),
               overflow: 'hidden',
               background: '#000',
+              transform: 'translateZ(0)',
+              backfaceVisibility: 'hidden',
             }"
           >
             <img
               :src="card.img"
               alt=""
+              class="lifters-card-image"
               :style="{
+                '--img-x': imgPositionX(card),
+                '--img-y': imgPositionY(card),
+                '--img-pan-a': imgPanY(card, 5),
+                '--img-pan-b': imgPanY(card, -4),
+                '--img-pan-duration': `${5.2 + (i % 3) * 0.5}s`,
                 position: 'absolute',
-                top: '4%',
-                left: '50%',
-                transform: `translateX(-50%) scale(${hovered[i] ? 1.05 : 1})`,
-                width: '78%',
-                height: 'auto',
-                transition: 'transform 700ms cubic-bezier(0.16,1,0.3,1)',
-                borderRadius: '24px',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.8)',
-                border: '1px solid rgba(255,255,255,0.05)',
+                inset: 0,
+                transform: `scale(${card.imgScale ?? 1})`,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                transformOrigin: card.imgPosition ?? '50% 50%',
+                willChange: 'transform',
+                backfaceVisibility: 'hidden',
+                borderRadius: '0',
               }"
             />
             <div
               :style="{
                 position: 'absolute',
-                inset: 0,
-                background: 'linear-gradient(180deg, transparent 50%, #0a0a0a 95%)',
+                inset: '0 0 -2px 0',
+                background: 'linear-gradient(180deg, rgba(10,10,10,0) 45%, #0a0a0a 96%)',
+                pointerEvents: 'none',
+                transform: 'translateZ(0)',
               }"
             />
           </div>
@@ -271,3 +311,31 @@ const hovered = ref<Record<number, boolean>>({})
     </div>
   </section>
 </template>
+
+<style scoped>
+.lifters-card-image {
+  object-position: var(--img-x, 50%) var(--img-y, 50%);
+}
+
+.lifters-card:hover .lifters-card-image {
+  animation: liftersScreenshotPan var(--img-pan-duration, 5.8s) cubic-bezier(0.45, 0, 0.2, 1) infinite;
+}
+
+@keyframes liftersScreenshotPan {
+  0%, 100% {
+    object-position: var(--img-x, 50%) var(--img-y, 50%);
+  }
+  44% {
+    object-position: var(--img-x, 50%) var(--img-pan-a, 56%);
+  }
+  78% {
+    object-position: var(--img-x, 50%) var(--img-pan-b, 44%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lifters-card:hover .lifters-card-image {
+    animation: none;
+  }
+}
+</style>

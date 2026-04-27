@@ -1,27 +1,9 @@
 <script setup lang="ts">
-interface QuoteItem {
-  text: string
-  who: string
-}
-
-const quotes: QuoteItem[] = [
-  {
-    text: "We built Liftag because we wanted it ourselves. Notes app, then a spreadsheet, then nothing — now everything's in one place.",
-    who: '[YOUR NAME] · co-founder',
-  },
-  {
-    text: "Almost 20 years of training between the three of us. This is the app we always wished existed.",
-    who: '[YOUR NAME] · co-founder',
-  },
-  {
-    text: "Tracking should take two taps. Setup videos belong on the machine. We made the gym we want to train in.",
-    who: '[YOUR NAME] · co-founder',
-  },
-]
 </script>
 
 <template>
   <section
+    class="final-cta-section"
     :style="{
       background: '#000',
       padding: '160px 0 120px',
@@ -33,6 +15,7 @@ const quotes: QuoteItem[] = [
   >
     <!-- Radial glow background -->
     <div
+      class="final-cta-grid"
       :style="{
         position: 'absolute',
         inset: 0,
@@ -55,17 +38,20 @@ const quotes: QuoteItem[] = [
 
     <div class="container" style="position: relative;">
       <!-- Logo -->
-      <img
-        src="/assets/logo.svg"
-        width="100"
-        height="100"
-        :style="{
-          filter: 'drop-shadow(0 0 40px rgba(204,255,0,0.7))',
-          margin: '0 auto 40px',
-          animation: 'float-y 4s ease-in-out infinite',
-        }"
-        alt="LIFTAG logo"
-      />
+      <div class="final-logo-wrap">
+        <span class="final-logo-ring ring-one" aria-hidden="true" />
+        <span class="final-logo-ring ring-two" aria-hidden="true" />
+        <img
+          src="/assets/logo.svg"
+          width="100"
+          height="100"
+          :style="{
+            filter: 'drop-shadow(0 0 40px rgba(204,255,0,0.7))',
+            animation: 'float-y 4s ease-in-out infinite',
+          }"
+          alt="LIFTAG logo"
+        />
+      </div>
 
       <!-- Main heading -->
       <h2
@@ -91,12 +77,12 @@ const quotes: QuoteItem[] = [
         }"
       >
         Track real progress. Scan real machines. Skip the spreadsheet.<br />
-        Public beta — open now on iOS, Android coming soon.
+        Public beta. Open now on iOS, Android coming soon.
       </p>
 
       <!-- Store buttons -->
       <div
-        class="reveal"
+        class="reveal final-store-buttons"
         :style="{
           marginTop: '48px',
           display: 'flex',
@@ -109,58 +95,116 @@ const quotes: QuoteItem[] = [
         <AppStoreBtn store="google" />
       </div>
 
-      <!-- Quote columns -->
-      <div
-        class="cta-quotes reveal"
-        :style="{
-          marginTop: '80px',
-          display: 'flex',
-          gap: '48px',
-          justifyContent: 'center',
-          flexWrap: 'wrap',
-        }"
-      >
-        <div
-          v-for="(q, i) in quotes"
-          :key="i"
-          :style="{ maxWidth: '280px', textAlign: 'left' }"
-        >
-          <div
-            :style="{
-              color: '#CCFF00',
-              fontSize: '22px',
-              fontFamily: '\'Space Grotesk\', sans-serif',
-              fontStyle: 'italic',
-              fontWeight: 700,
-              lineHeight: 1,
-              marginBottom: '8px',
-            }"
-          >"</div>
-          <p
-            :style="{
-              color: 'rgba(255,255,255,0.85)',
-              fontSize: '14.5px',
-              lineHeight: 1.55,
-              margin: 0,
-              fontWeight: 400,
-            }"
-          >
-            {{ q.text }}
-          </p>
-          <p
-            v-html="q.who"
-            :style="{
-              color: '#666',
-              fontSize: '11px',
-              fontFamily: '\'JetBrains Mono\', monospace',
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              marginTop: '12px',
-              fontWeight: 700,
-            }"
-          />
-        </div>
-      </div>
     </div>
   </section>
 </template>
+
+<style scoped>
+.final-cta-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(360px circle at 50% 48%, rgba(204, 255, 0, 0.12), transparent 70%);
+  animation: finalAuraBreathe 6.2s ease-in-out infinite;
+}
+
+.final-cta-grid {
+  animation: finalGridDrift 18s linear infinite;
+}
+
+.final-logo-wrap {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  margin: 0 auto 40px;
+  display: grid;
+  place-items: center;
+}
+
+.final-logo-ring {
+  position: absolute;
+  inset: 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(204, 255, 0, 0.18);
+  box-shadow: inset 0 0 26px rgba(204, 255, 0, 0.06);
+  animation: finalLogoRing 4.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.final-logo-ring.ring-two {
+  inset: -8px;
+  opacity: 0.55;
+  animation-delay: 1.4s;
+}
+
+.final-store-buttons {
+  position: relative;
+}
+
+.final-store-buttons::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(560px, 90vw);
+  height: 88px;
+  pointer-events: none;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(204, 255, 0, 0.11), transparent);
+  transform: translate(-50%, -50%);
+  filter: blur(16px);
+  animation: finalStoreGlow 5.6s ease-in-out infinite;
+}
+
+@keyframes finalAuraBreathe {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes finalGridDrift {
+  from {
+    background-position: 0 0, 0 0;
+  }
+  to {
+    background-position: 80px 80px, 80px 80px;
+  }
+}
+
+@keyframes finalLogoRing {
+  0% {
+    opacity: 0;
+    transform: scale(0.74);
+  }
+  24% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.34);
+  }
+}
+
+@keyframes finalStoreGlow {
+  0%, 100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.78;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .final-cta-section::after,
+  .final-cta-grid,
+  .final-logo-ring,
+  .final-store-buttons::before {
+    animation: none;
+  }
+}
+</style>
