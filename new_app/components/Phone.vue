@@ -6,11 +6,15 @@ const props = withDefaults(defineProps<{
   glow?: boolean
   scale?: number
   tiltDelayMs?: number
+  screenTransition?: boolean
+  screenTransitionDirection?: 'up' | 'down'
   style?: Record<string, string>
 }>(), {
   glow: false,
   scale: 1,
   tiltDelayMs: 0,
+  screenTransition: false,
+  screenTransitionDirection: 'up',
 })
 </script>
 
@@ -26,7 +30,12 @@ const props = withDefaults(defineProps<{
     }"
   >
     <ClientOnly v-if="props.src">
-      <Phone3D :screenshot-src="props.src" :tilt-delay-ms="props.tiltDelayMs" />
+      <Phone3D
+        :screenshot-src="props.src"
+        :tilt-delay-ms="props.tiltDelayMs"
+        :screen-transition="props.screenTransition"
+        :screen-transition-direction="props.screenTransitionDirection"
+      />
       <template #fallback>
         <img :src="props.src" alt="LIFTAG screen" />
       </template>

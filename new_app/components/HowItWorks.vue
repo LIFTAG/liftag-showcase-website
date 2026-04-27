@@ -7,6 +7,7 @@ const weightEl  = ref<HTMLElement | null>(null)
 const repsEl    = ref<HTMLElement | null>(null)
 const chartClipRect = ref<SVGRectElement | null>(null)
 const chartDot      = ref<SVGCircleElement | null>(null)
+const chartSvg      = ref<SVGSVGElement | null>(null)
 const statStrength  = ref<HTMLElement | null>(null)
 const statSessions  = ref<HTMLElement | null>(null)
 const statPRs       = ref<HTMLElement | null>(null)
@@ -48,6 +49,9 @@ let scanTargetX = 0
 let scanTargetY = 0
 let scanCurrentX = 0
 let scanCurrentY = 0
+let chartHovered = false
+let chartHoverTargetP = 1
+let chartDisplayP = 0
 
 // ─── Curve data ───────────────────────────────────────────────────────────
 const curvePoints: [number, number][] = [
@@ -372,11 +376,14 @@ function updateHIW(p: number) {
     chartP = (p - chartStart) / (chartEnd - chartStart)
   }
   const baseEasedP = 1 - Math.pow(1 - chartP, 3) // ease-out cubic
-  const easedP     = Math.max(0, Math.min(1, baseEasedP))
+  const targetChartP = chartHovered ? chartHoverTargetP : Math.max(0, Math.min(1, baseEasedP))
+  chartDisplayP += (targetChartP - chartDisplayP) * 0.14
+  if (Math.abs(targetChartP - chartDisplayP) < 0.001) chartDisplayP = targetChartP
+  const easedP = Math.max(0, Math.min(1, chartDisplayP))
 
   const dot = chartDot.value
   const clipRect = chartClipRect.value
-  if (dot && chartP > 0) {
+  if (dot && easedP > 0.001) {
     const totalLen = chartPts.length - 1
     const idx = Math.min(easedP * totalLen, totalLen)
     const i0  = Math.floor(idx)
@@ -386,7 +393,7 @@ function updateHIW(p: number) {
     const cy  = chartPts[i0][1] + (chartPts[i1][1] - chartPts[i0][1]) * t
     dot.setAttribute('cx', String(cx))
     dot.setAttribute('cy', String(cy))
-    dot.setAttribute('opacity', chartP > 0.02 ? '1' : '0')
+    dot.setAttribute('opacity', easedP > 0.02 ? '1' : '0')
     if (clipRect) clipRect.setAttribute('width', String(cx + 10))
   } else if (dot) {
     dot.setAttribute('opacity', '0')
@@ -452,16 +459,34 @@ function updateScanHoverEffect(p: number) {
   if (scanDesc.value) setScannerWindow(scanDesc.value)
 }
 
+function updateGlassPaneCursor(event: MouseEvent) {
+  const pane = event.currentTarget as HTMLElement
+  const rect = pane.getBoundingClientRect()
+  const x = (event.clientX - rect.left) / rect.width
+  const y = (event.clientY - rect.top) / rect.height
+  pane.style.setProperty('--mx', `${x * 100}%`)
+  pane.style.setProperty('--my', `${y * 100}%`)
+}
+
+function handleGlassPaneEnter(event: MouseEvent) {
+  const pane = event.currentTarget as HTMLElement
+  pane.classList.add('glass-hovered')
+  updateGlassPaneCursor(event)
+}
+
+function handleGlassPaneLeave(event: MouseEvent) {
+  const pane = event.currentTarget as HTMLElement
+  pane.classList.remove('glass-hovered')
+  pane.style.setProperty('--mx', '50%')
+  pane.style.setProperty('--my', '50%')
+}
+
 function handleScanPaneMove(event: MouseEvent) {
   const pane = scanPane.value
   const area = scanArea.value
   if (!pane || !area) return
 
-  const paneRect = pane.getBoundingClientRect()
-  const x = (event.clientX - paneRect.left) / paneRect.width
-  const y = (event.clientY - paneRect.top) / paneRect.height
-  pane.style.setProperty('--mx', `${x * 100}%`)
-  pane.style.setProperty('--my', `${y * 100}%`)
+  updateGlassPaneCursor(event)
 
   const areaRect = area.getBoundingClientRect()
   const scanCenterX = areaRect.left + areaRect.width / 2
@@ -472,15 +497,26 @@ function handleScanPaneMove(event: MouseEvent) {
 
 function handleScanPaneEnter(event: MouseEvent) {
   scanHovered.value = true
+  handleGlassPaneEnter(event)
   handleScanPaneMove(event)
 }
 
-function handleScanPaneLeave() {
+function handleScanPaneLeave(event: MouseEvent) {
   scanHovered.value = false
   scanTargetX = 0
   scanTargetY = 0
-  scanPane.value?.style.setProperty('--mx', '50%')
-  scanPane.value?.style.setProperty('--my', '50%')
+  handleGlassPaneLeave(event)
+}
+
+function handleHIWChartMove(event: PointerEvent) {
+  const rect = chartSvg.value?.getBoundingClientRect()
+    ?? (event.currentTarget as HTMLElement).getBoundingClientRect()
+  chartHovered = true
+  chartHoverTargetP = Math.max(0.02, Math.min(1, (event.clientX - rect.left) / Math.max(1, rect.width)))
+}
+
+function resetHIWChartHover() {
+  chartHovered = false
 }
 
 // ─── rAF loop ─────────────────────────────────────────────────────────────
@@ -598,7 +634,12 @@ onBeforeUnmount(() => {
         <!-- Panel 02: Track -->
         <div class="hiw-panel">
           <div class="hiw-panel-number">02</div>
-          <div class="hiw-glass-pane">
+          <div
+            class="hiw-glass-pane"
+            @mouseenter="handleGlassPaneEnter"
+            @mousemove="updateGlassPaneCursor"
+            @mouseleave="handleGlassPaneLeave"
+          >
             <div class="hiw-panel-visual">
               <div class="hiw-log-card" :class="{ 'pr-unlocked': prVisible }">
                 <div class="hiw-log-exercise">Bench Press</div>
@@ -668,11 +709,26 @@ onBeforeUnmount(() => {
         <!-- Panel 03: Progress -->
         <div class="hiw-panel">
           <div class="hiw-panel-number">03</div>
-          <div class="hiw-glass-pane">
+          <div
+            class="hiw-glass-pane"
+            @mouseenter="handleGlassPaneEnter"
+            @mousemove="updateGlassPaneCursor"
+            @mouseleave="handleGlassPaneLeave"
+          >
             <div class="hiw-panel-visual">
-              <div class="hiw-chart-card">
+              <div
+                class="hiw-chart-card"
+                @pointermove="handleHIWChartMove"
+                @pointerleave="resetHIWChartHover"
+                @pointercancel="resetHIWChartHover"
+              >
                 <div class="hiw-chart-title">Bench Press · 12 weeks</div>
-                <svg class="hiw-chart-svg" viewBox="-5 -15 310 150" fill="none">
+                <svg
+                  ref="chartSvg"
+                  class="hiw-chart-svg"
+                  viewBox="-5 -15 310 150"
+                  fill="none"
+                >
                   <defs>
                     <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stop-color="var(--liftag-primary)" stop-opacity="0.3" />
@@ -866,7 +922,7 @@ onBeforeUnmount(() => {
   position: absolute;
   z-index: 3;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 30vw;
+  font-size: 34vw;
   font-weight: 900;
   color: rgba(255, 255, 255, 0.035);
   line-height: 1;
@@ -1356,6 +1412,8 @@ onBeforeUnmount(() => {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 24px;
+  cursor: crosshair;
+  touch-action: pan-y;
 }
 
 .hiw-chart-title {

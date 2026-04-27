@@ -31,6 +31,7 @@ const rmData: RmItem[] = [
       { label: 'Routines + Plans',   i: 2, angle: '-8deg',  len: '44px' },
       { label: 'Exercise Library',   i: 3, angle: '10deg',  len: '36px' },
       { label: 'Trainer Directory',  i: 4, angle: '-5deg',  len: '52px' },
+      { label: 'Dashboard',          i: 5, angle: '7deg',   len: '42px' },
     ],
   },
   {

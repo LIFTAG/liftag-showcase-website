@@ -10,6 +10,7 @@ const screen = ref(0)
 const screenPulse = ref(0)
 const activeVolumeBar = ref<number | null>(null)
 const lineProgress = ref(1)
+const lineChartRef = ref<SVGSVGElement | null>(null)
 let volumeResetTimer: ReturnType<typeof setTimeout> | null = null
 let lineTargetProgress = 1
 let lineProgressRaf = 0
@@ -114,7 +115,8 @@ function setLineTargetProgress(progress: number) {
 }
 
 function handleLineChartMove(event: PointerEvent) {
-  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  const rect = lineChartRef.value?.getBoundingClientRect()
+    ?? (event.currentTarget as HTMLElement).getBoundingClientRect()
   setLineTargetProgress((event.clientX - rect.left) / Math.max(1, rect.width))
 }
 
@@ -426,6 +428,7 @@ onBeforeUnmount(() => {
             class="progress-line-card"
             @pointermove="handleLineChartMove"
             @pointerleave="resetLineChart"
+            @pointercancel="resetLineChart"
             @blur="resetLineChart"
             :style="{
               background: '#0a0a0a',
@@ -438,7 +441,12 @@ onBeforeUnmount(() => {
             <div class="protocol" :style="{ color: '#666', fontSize: '9px', marginBottom: '10px' }">
               1RM PROGRESSION
             </div>
-            <svg class="progress-line-chart" viewBox="0 0 100 36" :style="{ width: '100%', height: '36px' }">
+            <svg
+              ref="lineChartRef"
+              class="progress-line-chart"
+              viewBox="0 0 100 36"
+              :style="{ width: '100%', height: '36px' }"
+            >
               <defs>
                 <clipPath id="progress-line-clip">
                   <rect x="0" y="-4" :width="lineClipWidth" height="44" />
@@ -620,12 +628,14 @@ onBeforeUnmount(() => {
 }
 
 .progress-line-chart {
+  cursor: crosshair;
   overflow: visible;
+  touch-action: pan-y;
 }
 
 .progress-line-card {
-  touch-action: pan-y;
   cursor: crosshair;
+  touch-action: manipulation;
 }
 
 .progress-line-path {
@@ -636,6 +646,8 @@ onBeforeUnmount(() => {
 .progress-line-dot {
   filter: drop-shadow(0 0 8px rgba(204, 255, 0, 0.8));
   animation: progressDotPulse 2600ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 .progress-stat-card::after {
@@ -680,10 +692,12 @@ onBeforeUnmount(() => {
 
 @keyframes progressDotPulse {
   0%, 100% {
-    transform: scale(1);
+    opacity: 0.86;
+    filter: drop-shadow(0 0 7px rgba(204, 255, 0, 0.72));
   }
   45% {
-    transform: scale(1.45);
+    opacity: 1;
+    filter: drop-shadow(0 0 14px rgba(204, 255, 0, 0.92));
   }
 }
 

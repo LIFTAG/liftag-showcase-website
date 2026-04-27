@@ -5,6 +5,8 @@ interface FeatureCardProps {
   img?: string
   imgPosition?: string
   imgScale?: number
+  imgPanTo?: string
+  imgPanBackTo?: string
   visualHeight?: string
   tag: string
   title: string
@@ -19,6 +21,8 @@ const cards: FeatureCardProps[] = [
     img: '/assets/screens/progression.png',
     imgPosition: '50% 74%',
     imgScale: 1.12,
+    imgPanTo: '84%',
+    imgPanBackTo: '68%',
     visualHeight: '64%',
     tag: 'PROGRESS INSIGHTS',
     title: 'Progress, not vibes.',
@@ -29,6 +33,7 @@ const cards: FeatureCardProps[] = [
     tall: true,
     img: '/assets/screens/log-set.png',
     imgPosition: '50% 48%',
+    imgPanTo: '82%',
     visualHeight: '64%',
     tag: 'LOG SET',
     title: 'Two taps. Set logged.',
@@ -38,6 +43,7 @@ const cards: FeatureCardProps[] = [
     span: 'span 5',
     img: '/assets/screens/active-session.png',
     imgPosition: '50% 53%',
+    imgPanTo: '83%',
     visualHeight: '220px',
     tag: 'ROUTINES + SUPERSETS',
     title: 'Plans that flex with you.',
@@ -47,6 +53,7 @@ const cards: FeatureCardProps[] = [
     span: 'span 4',
     img: '/assets/screens/history.png',
     imgPosition: '50% 29%',
+    imgPanTo: '83%',
     visualHeight: '220px',
     tag: 'HISTORY',
     title: 'Every session, dated.',
@@ -56,6 +63,7 @@ const cards: FeatureCardProps[] = [
     span: 'span 3',
     img: '/assets/screens/exercises.png',
     imgPosition: '50% 17%',
+    imgPanTo: '100%',
     visualHeight: '230px',
     tag: 'LIBRARY',
     title: '250+ exercises. Form videos.',
@@ -83,6 +91,14 @@ function imgPanY(card: FeatureCardProps, delta: number) {
   const y = Number.parseFloat(imgPositionY(card))
   if (Number.isNaN(y)) return imgPositionY(card)
   return `${Math.min(100, Math.max(0, y + delta))}%`
+}
+
+function imgPanTo(card: FeatureCardProps) {
+  return card.imgPanTo ?? imgPanY(card, 20)
+}
+
+function imgPanBackTo(card: FeatureCardProps) {
+  return card.imgPanBackTo ?? imgPanY(card, -4)
 }
 
 // Per-card hover state
@@ -202,24 +218,24 @@ const hovered = ref<Record<number, boolean>>({})
             <img
               :src="card.img"
               alt=""
-              class="lifters-card-image"
-              :style="{
-                '--img-x': imgPositionX(card),
-                '--img-y': imgPositionY(card),
-                '--img-pan-a': imgPanY(card, 5),
-                '--img-pan-b': imgPanY(card, -4),
-                '--img-pan-duration': `${5.2 + (i % 3) * 0.5}s`,
-                position: 'absolute',
-                inset: 0,
-                transform: `scale(${card.imgScale ?? 1})`,
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                transformOrigin: card.imgPosition ?? '50% 50%',
-                willChange: 'transform',
-                backfaceVisibility: 'hidden',
-                borderRadius: '0',
-              }"
+                class="lifters-card-image"
+                :style="{
+                  '--img-x': imgPositionX(card),
+                  '--img-y': imgPositionY(card),
+                  '--img-pan-a': imgPanTo(card),
+                  '--img-pan-b': imgPanBackTo(card),
+                  '--img-pan-duration': `${5.2 + (i % 3) * 0.5}s`,
+                  position: 'absolute',
+                  inset: 0,
+                  transform: `scale(${card.imgScale ?? 1})`,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  transformOrigin: card.imgPosition ?? '50% 50%',
+                  willChange: 'transform',
+                  backfaceVisibility: 'hidden',
+                  borderRadius: '0',
+                }"
             />
             <div
               :style="{

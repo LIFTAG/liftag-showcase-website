@@ -5,8 +5,12 @@ import * as THREE from 'three'
 const props = withDefaults(defineProps<{
   screenshotSrc: string
   tiltDelayMs?: number
+  screenTransition?: boolean
+  screenTransitionDirection?: 'up' | 'down'
 }>(), {
   tiltDelayMs: 0,
+  screenTransition: false,
+  screenTransitionDirection: 'up',
 })
 
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -126,9 +130,132 @@ function initPhone() {
 
   screenGeo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2))
 
-  const textureLoader = new THREE.TextureLoader()
-  let activeTexture = textureLoader.load(props.screenshotSrc)
-  activeTexture.colorSpace = THREE.SRGBColorSpace
+  function configureScreenTexture(texture: THREE.Texture) {
+    texture.colorSpace = THREE.SRGBColorSpace
+    texture.wrapS = THREE.ClampToEdgeWrapping
+    texture.wrapT = THREE.ClampToEdgeWrapping
+    texture.repeat.set(1, 1)
+    texture.offset.set(0, 0)
+  }
+
+  type ScreenImage = HTMLImageElement | HTMLCanvasElement
+
+  const screenTextureCanvas = document.createElement('canvas')
+  screenTextureCanvas.width = 393
+  screenTextureCanvas.height = 852
+  const screenTextureCtx = screenTextureCanvas.getContext('2d')
+  if (screenTextureCtx) {
+    screenTextureCtx.fillStyle = '#050505'
+    screenTextureCtx.fillRect(0, 0, screenTextureCanvas.width, screenTextureCanvas.height)
+  }
+
+  const imageCache = new Map<string, Promise<HTMLImageElement>>()
+  let currentSrc = props.screenshotSrc
+  let currentScreenImage: ScreenImage | null = null
+  let textureRequestId = 0
+  let screenTransition: {
+    from: ScreenImage
+    to: ScreenImage
+    direction: 'up' | 'down'
+    start: number
+    duration: number
+  } | null = null
+
+  function imageSize(image: ScreenImage) {
+    if (image instanceof HTMLImageElement) {
+      return {
+        width: image.naturalWidth || image.width,
+        height: image.naturalHeight || image.height,
+      }
+    }
+
+    return {
+      width: image.width,
+      height: image.height,
+    }
+  }
+
+  function drawScreenImage(image: ScreenImage, y = 0) {
+    if (!screenTextureCtx) return
+
+    const { width: imageW, height: imageH } = imageSize(image)
+    const canvasW = screenTextureCanvas.width
+    const canvasH = screenTextureCanvas.height
+    const scale = Math.max(canvasW / imageW, canvasH / imageH)
+    const drawW = imageW * scale
+    const drawH = imageH * scale
+    const drawX = (canvasW - drawW) / 2
+    const drawY = (canvasH - drawH) / 2 + y
+
+    screenTextureCtx.drawImage(image, drawX, drawY, drawW, drawH)
+  }
+
+  function drawStaticScreen(image: ScreenImage | null = currentScreenImage) {
+    if (!screenTextureCtx || !image) return
+
+    screenTextureCtx.clearRect(0, 0, screenTextureCanvas.width, screenTextureCanvas.height)
+    drawScreenImage(image)
+    activeTexture.needsUpdate = true
+  }
+
+  function snapshotScreen() {
+    const snapshot = document.createElement('canvas')
+    snapshot.width = screenTextureCanvas.width
+    snapshot.height = screenTextureCanvas.height
+    snapshot.getContext('2d')?.drawImage(screenTextureCanvas, 0, 0)
+    return snapshot
+  }
+
+  function loadScreenImage(src: string) {
+    const cached = imageCache.get(src)
+    if (cached) return cached
+
+    const promise = new Promise<HTMLImageElement>((resolve, reject) => {
+      const image = new Image()
+      image.decoding = 'async'
+      image.onload = () => resolve(image)
+      image.onerror = reject
+      image.src = src
+    })
+
+    imageCache.set(src, promise)
+    return promise
+  }
+
+  function renderScreenTransition(now: number) {
+    if (!screenTransition || !screenTextureCtx) return
+
+    const progress = Math.min(1, (now - screenTransition.start) / screenTransition.duration)
+    const eased = 1 - Math.pow(1 - progress, 3)
+    const y = screenTextureCanvas.height * eased * (screenTransition.direction === 'up' ? -1 : 1)
+
+    screenTextureCtx.clearRect(0, 0, screenTextureCanvas.width, screenTextureCanvas.height)
+    drawScreenImage(screenTransition.to)
+    drawScreenImage(screenTransition.from, y)
+
+    const edgeY = screenTransition.direction === 'up'
+      ? screenTextureCanvas.height + y
+      : y
+    if (edgeY > 0 && edgeY < screenTextureCanvas.height) {
+      const gradient = screenTextureCtx.createLinearGradient(0, edgeY - 24, 0, edgeY + 24)
+      gradient.addColorStop(0, 'rgba(0,0,0,0)')
+      gradient.addColorStop(0.5, 'rgba(0,0,0,0.32)')
+      gradient.addColorStop(1, 'rgba(0,0,0,0)')
+      screenTextureCtx.fillStyle = gradient
+      screenTextureCtx.fillRect(0, edgeY - 24, screenTextureCanvas.width, 48)
+    }
+
+    activeTexture.needsUpdate = true
+
+    if (progress >= 1) {
+      currentScreenImage = screenTransition.to
+      screenTransition = null
+      drawStaticScreen()
+    }
+  }
+
+  let activeTexture = new THREE.CanvasTexture(screenTextureCanvas)
+  configureScreenTexture(activeTexture)
   const screenMat = new THREE.MeshBasicMaterial({ map: activeTexture, toneMapped: false })
 
   const screen = new THREE.Mesh(
@@ -233,15 +360,46 @@ function initPhone() {
   phone.rotation.y = -0.12
   scene.add(phone)
 
-  updateTexture = (src: string) => {
-    const previousTexture = activeTexture
-    activeTexture = textureLoader.load(src, () => {
-      screenMat.map = activeTexture
-      screenMat.needsUpdate = true
-      previousTexture.dispose()
+  loadScreenImage(currentSrc)
+    .then((image) => {
+      if (currentSrc !== props.screenshotSrc) return
+      currentScreenImage = image
+      drawStaticScreen(image)
       renderer.render(scene, camera)
     })
-    activeTexture.colorSpace = THREE.SRGBColorSpace
+    .catch(() => {})
+
+  updateTexture = (src: string) => {
+    if (src === currentSrc) return
+
+    const requestId = textureRequestId + 1
+    textureRequestId = requestId
+    const previousImage = screenTransition ? snapshotScreen() : currentScreenImage
+    currentSrc = src
+
+    loadScreenImage(src)
+      .then((nextImage) => {
+        if (requestId !== textureRequestId || src !== currentSrc) return
+
+        if (!props.screenTransition || !previousImage || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          currentScreenImage = nextImage
+          screenTransition = null
+          drawStaticScreen(nextImage)
+          renderer.render(scene, camera)
+          return
+        }
+
+        screenTransition = {
+          from: previousImage,
+          to: nextImage,
+          direction: props.screenTransitionDirection,
+          start: performance.now(),
+          duration: 760,
+        }
+
+        if (isVisible && !animId) animate()
+      })
+      .catch(() => {})
   }
 
   let gyroActive = false
@@ -353,6 +511,7 @@ function initPhone() {
     currentRotY += (targetRotY - currentRotY) * 0.06
     phone.rotation.x = currentRotX
     phone.rotation.y = currentRotY
+    renderScreenTransition(performance.now())
     renderer.render(scene, camera)
   }
 

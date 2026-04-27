@@ -42,8 +42,8 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #1cff7a 0%, #0c9f61 48%, #052a1d 100%)',
     accent: '#d7ffe8',
     glow: 'rgba(28,255,122,0.35)',
-    x: -279,
-    y: -166,
+    x: -239,
+    y: -180,
     rotate: -10,
     delay: 0,
     depth: 1.05,
@@ -55,9 +55,9 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #fff27a 0%, #ffb32c 50%, #7a3000 100%)',
     accent: '#fff8d2',
     glow: 'rgba(255,179,44,0.34)',
-    x: -116,
-    y: -273,
-    rotate: 7,
+    x: 42,
+    y: -248,
+    rotate: 5,
     delay: 1,
     depth: 0.92,
   },
@@ -68,9 +68,9 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #69d6ff 0%, #1763ff 52%, #081541 100%)',
     accent: '#d9f5ff',
     glow: 'rgba(76,151,255,0.34)',
-    x: 116,
-    y: -273,
-    rotate: -5,
+    x: 260,
+    y: -164,
+    rotate: -6,
     delay: 2,
     depth: 1.08,
   },
@@ -81,9 +81,9 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #ff75ad 0%, #ff2d55 50%, #4f0617 100%)',
     accent: '#ffe7ef',
     glow: 'rgba(255,45,85,0.34)',
-    x: 339,
-    y: 25,
-    rotate: -8,
+    x: 341,
+    y: 30,
+    rotate: -7,
     delay: 3,
     depth: 0.96,
   },
@@ -94,8 +94,8 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #d8ff7a 0%, #ccff00 48%, #415200 100%)',
     accent: '#0b0f02',
     glow: 'rgba(204,255,0,0.38)',
-    x: 253,
-    y: 194,
+    x: 226,
+    y: 189,
     rotate: 8,
     delay: 4,
     depth: 1.1,
@@ -107,9 +107,9 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #b77cff 0%, #7c3cff 48%, #190b3d 100%)',
     accent: '#f1e7ff',
     glow: 'rgba(124,60,255,0.34)',
-    x: 47,
-    y: 287,
-    rotate: -6,
+    x: -65,
+    y: 246,
+    rotate: -5,
     delay: 5,
     depth: 0.94,
   },
@@ -120,8 +120,8 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #ffcb6b 0%, #f59e0b 46%, #5b2200 100%)',
     accent: '#fff5d8',
     glow: 'rgba(245,158,11,0.34)',
-    x: -160,
-    y: 255,
+    x: -278,
+    y: 147,
     rotate: 9,
     delay: 6,
     depth: 1.02,
@@ -133,9 +133,9 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #ff9b6b 0%, #ef4444 48%, #4b0808 100%)',
     accent: '#ffe5dc',
     glow: 'rgba(239,68,68,0.3)',
-    x: -335,
-    y: -50,
-    rotate: -12,
+    x: -343,
+    y: -22,
+    rotate: -8,
     delay: 7,
     depth: 0.9,
   },
@@ -288,13 +288,14 @@ function applyLiftagStyle(merge: number, finale: number) {
   const liftag = liftagRef.value
   if (!liftag) return
 
+  const appear = smootherstep((merge - 0.2) / 0.48)
   const spin = logoSpinDegrees(merge)
   const tiltX = -(pointerY - 50) * 0.035 * (0.2 + merge)
   const tiltY = (pointerX - 50) * 0.04 * (0.2 + merge)
-  const scale = 0.72 + merge * 0.3 + finale * 0.08
+  const scale = 0.66 + appear * 0.36 + finale * 0.08
 
   liftag.style.setProperty('--logo-spin', `${spin}deg`)
-  liftag.style.opacity = String(0.34 + merge * 0.66)
+  liftag.style.opacity = String(appear)
   liftag.style.transform = `translate3d(-50%, -50%, 0) perspective(900px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${scale})`
 }
 
@@ -362,8 +363,8 @@ function vectorBaseStyle(app: MockApp) {
 
 const liftagBaseStyle = {
   '--logo-spin': '0deg',
-  opacity: 0.34,
-  transform: 'translate3d(-50%, -50%, 0) perspective(900px) rotateX(0deg) rotateY(0deg) scale(0.72)',
+  opacity: 0,
+  transform: 'translate3d(-50%, -50%, 0) perspective(900px) rotateX(0deg) rotateY(0deg) scale(0.66)',
 }
 
 function handlePointerMove(event: PointerEvent) {

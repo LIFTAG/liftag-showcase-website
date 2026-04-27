@@ -1,6 +1,18 @@
 <script setup lang="ts">
+interface FooterLink {
+  label: string
+  href: string
+}
+
+const productLinks: FooterLink[] = [
+  { label: 'For Lifters', href: '#lifters' },
+  { label: 'For Trainers', href: '#trainers' },
+  { label: 'For Gyms', href: '#gyms' },
+  { label: 'Pricing', href: '#pricing' },
+  { label: 'Roadmap', href: '#roadmap' },
+]
+
 const linkColumns: [string, string[]][] = [
-  ['Product', ['For Lifters', 'For Trainers', 'For Gyms', 'Pricing', 'Roadmap']],
   ['Company', ['About', 'Press', 'Careers', 'Contact']],
   ['Legal', ['Terms', 'Privacy', 'Security', 'Cookies']],
 ]
@@ -27,6 +39,15 @@ const linkColumns: [string, string[]][] = [
         <p class="footer-tagline">
           Because serious training deserves more than a notes app and a spreadsheet.
         </p>
+      </div>
+
+      <div>
+        <a href="#all-in-one" class="protocol footer-col-heading footer-heading-link">Product</a>
+        <ul class="footer-link-list">
+          <li v-for="item in productLinks" :key="item.label">
+            <a :href="item.href" class="footer-link">{{ item.label }}</a>
+          </li>
+        </ul>
       </div>
 
       <!-- Link columns -->
@@ -101,8 +122,18 @@ const linkColumns: [string, string[]][] = [
 }
 
 .footer-col-heading {
+  display: inline-block;
   color: #CCFF00;
   margin-bottom: 16px;
+}
+
+.footer-heading-link {
+  text-decoration: none;
+  transition: color 200ms ease;
+}
+
+.footer-heading-link:hover {
+  color: #fff;
 }
 
 .footer-link-list {

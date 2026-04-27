@@ -1,5 +1,7 @@
 <script setup lang="ts">
 const step = ref(0)
+const phoneSwipeDirection = ref<'up' | 'down'>('up')
+const hoveredStep = ref<number | null>(null)
 const inView = ref(false)
 const sectionRef = ref<HTMLElement | null>(null)
 
@@ -23,6 +25,21 @@ const steps = [
   },
 ]
 
+function setStep(nextStep: number) {
+  if (nextStep === step.value) return
+  phoneSwipeDirection.value = nextStep > step.value ? 'up' : 'down'
+  step.value = nextStep
+}
+
+function setHoveredStep(nextStep: number) {
+  hoveredStep.value = nextStep
+  setStep(nextStep)
+}
+
+function clearHoveredStep(stepIndex: number) {
+  if (hoveredStep.value === stepIndex) hoveredStep.value = null
+}
+
 onMounted(() => {
   if (!sectionRef.value) return
 
@@ -44,7 +61,8 @@ let cycleInterval: ReturnType<typeof setInterval> | null = null
 watch(inView, (val) => {
   if (val) {
     cycleInterval = setInterval(() => {
-      step.value = (step.value + 1) % 2
+      if (hoveredStep.value !== null) return
+      setStep((step.value + 1) % 2)
     }, 3200)
   } else {
     if (cycleInterval !== null) {
@@ -121,8 +139,13 @@ onBeforeUnmount(() => {
             }"
           >
             <div class="scan-phone-float">
-              <div class="scan-phone-camera" :class="{ 'is-scanning': step === 0 }">
-                <Phone :src="steps[step].screen" :scale="1.05" />
+              <div class="scan-phone-camera">
+                <Phone
+                  :src="steps[step].screen"
+                  :scale="1.05"
+                  screen-transition
+                  :screen-transition-direction="phoneSwipeDirection"
+                />
                 <div v-if="step === 0" class="scan-phone-laser-overlay" aria-hidden="true">
                   <span class="scan-phone-laser-line" />
                 </div>
@@ -180,6 +203,7 @@ onBeforeUnmount(() => {
             <div
               v-for="(s, i) in steps"
               :key="i"
+              class="scan-step-row"
               :style="{
                 display: 'grid',
                 gridTemplateColumns: '80px 1fr',
@@ -187,11 +211,17 @@ onBeforeUnmount(() => {
                 padding: '32px 0',
                 borderTop: '1px solid rgba(255,255,255,0.08)',
                 opacity: step === i ? 1 : 0.4,
-                transition: 'opacity 400ms ease',
+                transform: step === i
+                  ? 'translate3d(0,0,0)'
+                  : i < step
+                    ? 'translate3d(0,-28px,0)'
+                    : 'translate3d(0,28px,0)',
+                transition: 'opacity 520ms ease, transform 680ms cubic-bezier(0.16,1,0.3,1)',
                 cursor: 'pointer',
               }"
-              @click="step = i"
-              @mouseenter="step = i"
+              @click="setStep(i)"
+              @mouseenter="setHoveredStep(i)"
+              @mouseleave="clearHoveredStep(i)"
             >
               <!-- Left col: tag + indicator line -->
               <div>
@@ -269,7 +299,7 @@ onBeforeUnmount(() => {
                     v-if="i === 0"
                     :style="{
                       position: 'absolute',
-                      top: '32%',
+                      top: '35.5%',
                       left: '20%',
                       right: '20%',
                       aspectRatio: '1',
@@ -339,6 +369,10 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.scan-step-row {
+  will-change: transform, opacity;
+}
+
 .scan-phone-float {
   animation: float-y 5s ease-in-out infinite;
   transform-origin: center;
@@ -352,13 +386,9 @@ onBeforeUnmount(() => {
   will-change: transform;
 }
 
-.scan-phone-camera.is-scanning {
-  animation: scan-camera-wobble 4.8s ease-in-out infinite;
-}
-
 .scan-phone-laser-overlay {
   position: absolute;
-  top: 31%;
+  top: 35.5%;
   left: 20%;
   right: 20%;
   aspect-ratio: 1;
@@ -432,28 +462,13 @@ onBeforeUnmount(() => {
   }
 }
 
-@keyframes scan-camera-wobble {
-  0%,
-  100% {
-    transform: scale(1.035) translate3d(0, 0, 0) rotate(0deg);
-  }
-
-  24% {
-    transform: scale(1.047) translate3d(3px, -2px, 0) rotate(0.22deg);
-  }
-
-  52% {
-    transform: scale(1.041) translate3d(-2px, 2px, 0) rotate(-0.18deg);
-  }
-
-  78% {
-    transform: scale(1.049) translate3d(2px, 1px, 0) rotate(0.14deg);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
+  .scan-step-row {
+    transition: none !important;
+    transform: none !important;
+  }
+
   .scan-phone-float,
-  .scan-phone-camera.is-scanning,
   .scan-phone-laser-line {
     animation: none;
   }

@@ -16,6 +16,7 @@ useReveal()
     <ProgressSection />
     <TrainersSection />
     <GymsSection />
+    <DashboardSection />
     <Roadmap />
     <FinalCta />
     <SiteFooter />

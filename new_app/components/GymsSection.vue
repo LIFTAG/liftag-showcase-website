@@ -149,7 +149,7 @@ onMounted(() => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                marginBottom: '12px',
+                marginBottom: '10px',
               }"
             >
               <div :style="{ display: 'flex', alignItems: 'center', gap: '5px' }">
@@ -178,7 +178,7 @@ onMounted(() => {
             </div>
 
             <!-- QR image -->
-            <div class="gyms-qr-code" :style="{ width: '100%', aspectRatio: '1', marginBottom: '12px', position: 'relative', overflow: 'hidden' }">
+            <div class="gyms-qr-code" :style="{ width: 'calc(100% - 12px)', aspectRatio: '1', margin: '0 auto 7px', position: 'relative', overflow: 'hidden' }">
               <img
                 src="/uploads/telegram-cloud-photo-size-4-5904481809322413580-y.jpg"
                 alt="LIFTAG QR Code"
@@ -193,7 +193,7 @@ onMounted(() => {
                 fontWeight: 700,
                 letterSpacing: '0.15em',
                 color: '#999',
-                marginTop: '10px',
+                marginTop: 0,
               }"
             >SCAN TO START</div>
           </div>
@@ -308,7 +308,7 @@ onMounted(() => {
               animationDelay: '1s',
             }"
           >
-            <Phone src="/assets/screens/gym-detail.png" :scale="0.82" />
+            <Phone src="/assets/screens/gym-detail.png" :scale="0.72" />
           </div>
 
           <!-- Front phone — explore map, rotates -3deg -->
@@ -425,6 +425,7 @@ onMounted(() => {
 
       <!-- Numbers row -->
       <div
+        id="pricing"
         class="gyms-numbers reveal"
         :style="{
           marginTop: '80px',
@@ -476,6 +477,10 @@ onMounted(() => {
 .gyms-live-badge,
 .gyms-benefit-row {
   position: relative;
+}
+
+.gyms-numbers {
+  scroll-margin-top: calc(50vh - 96px);
 }
 
 .gyms-qr-code::after {

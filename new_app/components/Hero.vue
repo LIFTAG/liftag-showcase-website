@@ -6,14 +6,8 @@
 const rawMouse = { x: 0, y: 0 }
 const scrollY = ref(0)
 const entered = ref(false)
-const cursorGlowEnergy = ref(0)
-const lastPointer = {
-  x: 0,
-  y: 0,
-  time: 0,
-  speed: 0,
-  initialized: false,
-}
+const cursorGlowX = ref(-9999)
+const cursorGlowY = ref(-9999)
 
 // smooth lerp (factor 0.06 matches React source)
 const mouse = useLerp(rawMouse, 0.06)
@@ -88,6 +82,10 @@ const refL4 = ref<SVGPolylineElement | null>(null)
 // ─── hero words ───────────────────────────────────────────────────────────────
 const words = ['FOR', 'LIFTERS.', 'BY', 'LIFTERS.']
 function isLime(word: string) { return word === 'LIFTERS.' }
+const heroLaserGroups = [
+  [0, 2],
+  [1, 3],
+]
 const heroLaserDone = ref(false)
 const heroDetailsEntered = computed(() => entered.value && heroLaserDone.value)
 const heroTitleEls: HTMLElement[] = []
@@ -167,7 +165,10 @@ function runHeroLaserReveal(
 
   const isGreen = el.classList.contains('hero-laser-green')
   const rect = el.getBoundingClientRect()
-  const chargeX = fromRight ? rect.right : rect.left
+  const fontSize = Number.parseFloat(window.getComputedStyle(el).fontSize) || rect.height
+  const rightClipPad = isGreen && fromRight ? fontSize * 0.14 : 0
+  const rightClipInset = rightClipPad > 0 ? `${-rightClipPad}px` : '0'
+  const chargeX = fromRight ? rect.right + rightClipPad : rect.left
   const beam = document.createElement('div')
 
   beam.className = `hero-laser-charge-beam ${isGreen ? 'green' : 'red'}`
@@ -190,13 +191,14 @@ function runHeroLaserReveal(
       const beamPercent = fromRight ? 100 - pos : pos
 
       if (fromRight) {
-        el.style.clipPath = `inset(-20% 0 -20% ${100 - Math.min(pos, 100)}%)`
+        el.style.clipPath = `inset(-20% ${rightClipInset} -20% ${100 - Math.min(pos, 100)}%)`
       } else {
         el.style.clipPath = `inset(-20% ${100 - Math.min(pos, 100)}% -20% 0)`
       }
 
       el.style.setProperty('--laser-pos', `${beamPercent}%`)
-      beam.style.left = `${rect.left + (beamPercent / 100) * rect.width}px`
+      const beamTravelWidth = rect.width + (fromRight ? rightClipPad : 0)
+      beam.style.left = `${rect.left + (beamPercent / 100) * beamTravelWidth}px`
 
       if (now - lastSparkTime > 70 && t > 0.04 && t < 0.92) {
         lastSparkTime = now
@@ -210,7 +212,7 @@ function runHeroLaserReveal(
 
       el.classList.remove('sweeping')
       el.classList.add('reveal-done')
-      el.style.clipPath = 'inset(-20% 0 -20% 0)'
+      el.style.clipPath = `inset(-20% ${rightClipInset} -20% 0)`
       beam.style.animation = 'heroLaserChargeShrink 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards'
       queueHeroLaserTimer(() => {
         beam.remove()
@@ -233,15 +235,26 @@ function runAllHeroLaserReveals() {
     return
   }
 
-  const revealNext = (index: number) => {
-    if (index >= words.length) {
+  const revealGroup = (groupIndex: number) => {
+    const group = heroLaserGroups[groupIndex]
+
+    if (!group) {
       heroLaserDone.value = true
       return
     }
-    runHeroLaserReveal(heroTitleEls[index], index % 2 === 1, 540, () => revealNext(index + 1))
+
+    let completed = 0
+    group.forEach((index) => {
+      runHeroLaserReveal(heroTitleEls[index], index % 2 === 1, 620, () => {
+        completed += 1
+        if (completed === group.length) {
+          queueHeroLaserTimer(() => revealGroup(groupIndex + 1), 140)
+        }
+      })
+    })
   }
 
-  revealNext(0)
+  revealGroup(0)
 }
 
 function cleanupHeroLasers() {
@@ -257,7 +270,6 @@ function cleanupHeroLasers() {
 // ─── hero stats ───────────────────────────────────────────────────────────────
 const stat1 = useCountUp(250, 1600)
 const stat2 = useCountUp(11,  1600)
-const stat3 = useCountUp(20,  1600)
 const stat4 = useCountUp(100, 1600)
 
 function fmtStat(val: number, target: number, suffix: string, compact: boolean) {
@@ -291,24 +303,8 @@ onMounted(async () => {
     // mutate in-place — useLerp holds a reference to this object
     rawMouse.x = (e.clientX / window.innerWidth - 0.5) * 2
     rawMouse.y = (e.clientY / window.innerHeight - 0.5) * 2
-
-    const now = performance.now()
-    if (lastPointer.initialized) {
-      const dt = Math.max(16, now - lastPointer.time)
-      const dx = e.clientX - lastPointer.x
-      const dy = e.clientY - lastPointer.y
-      const speed = Math.hypot(dx, dy) / dt
-      const acceleration = Math.abs(speed - lastPointer.speed) / dt
-      const energy = Math.min(1, acceleration * 180 + speed * 0.18)
-      cursorGlowEnergy.value = Math.max(cursorGlowEnergy.value, energy)
-      lastPointer.speed = speed
-    } else {
-      lastPointer.initialized = true
-    }
-
-    lastPointer.x = e.clientX
-    lastPointer.y = e.clientY
-    lastPointer.time = now
+    cursorGlowX.value = e.clientX
+    cursorGlowY.value = e.clientY
   }
   const onScroll = () => { scrollY.value = window.scrollY }
 
@@ -318,7 +314,6 @@ onMounted(async () => {
   // dot tick RAF
   const runTick = () => {
     tick.value++
-    cursorGlowEnergy.value += (0 - cursorGlowEnergy.value) * 0.075
     tickRaf = requestAnimationFrame(runTick)
   }
   tickRaf = requestAnimationFrame(runTick)
@@ -530,17 +525,16 @@ const p3 = computed(() => ({
     <div
       :style="{
         position: 'fixed',
-        left: `calc(50% + ${mouse.x * 40}vw)`,
-        top: `calc(50% + ${mouse.y * 30}vh)`,
-        width: `${420 + cursorGlowEnergy * 540}px`,
-        height: `${420 + cursorGlowEnergy * 540}px`,
+        left: `${cursorGlowX}px`,
+        top: `${cursorGlowY}px`,
+        width: '420px',
+        height: '420px',
         borderRadius: '50%',
-        background: `radial-gradient(circle, rgba(204,255,0,${0.08 + cursorGlowEnergy * 0.12}) 0%, transparent ${58 + cursorGlowEnergy * 10}%)`,
+        background: 'radial-gradient(circle, rgba(204,255,0,0.08) 0%, transparent 58%)',
         transform: 'translate(-50%, -50%)',
         pointerEvents: 'none',
         zIndex: 1,
-        filter: `blur(${2 + cursorGlowEnergy * 8}px)`,
-        transition: 'none',
+        filter: 'blur(2px)',
       }"
     />
 
@@ -657,16 +651,25 @@ const p3 = computed(() => ({
           <span
             v-for="(word, i) in words"
             :key="i"
-            :ref="(el) => setHeroTitleEl(el as Element | null, i)"
             class="hero-title-line"
-            :class="heroLaserClass(word, i)"
-            :style="{
-              color: isLime(word) ? '#CCFF00' : '#fff',
-              textShadow: isLime(word)
-                ? '0 0 60px rgba(204,255,0,0.55), 0 0 120px rgba(204,255,0,0.2)'
-                : 'none',
-            }"
-          >{{ word }}</span>
+          >
+            <span
+              :ref="(el) => setHeroTitleEl(el as Element | null, i)"
+              :class="heroLaserClass(word, i)"
+              :style="{
+                color: isLime(word) ? '#CCFF00' : '#fff',
+              }"
+            >
+              {{ word }}
+            </span>
+            <span
+              v-if="isLime(word)"
+              class="hero-title-glow"
+              aria-hidden="true"
+            >
+              {{ word }}
+            </span>
+          </span>
         </h1>
 
         <!-- Sub-headline -->
@@ -709,7 +712,7 @@ const p3 = computed(() => ({
           class="hero-stats"
           :style="{
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
+            gridTemplateColumns: 'repeat(3, 1fr)',
             gap: '24px',
             paddingTop: '28px',
             borderTop: '1px solid rgba(255,255,255,0.08)',
@@ -744,20 +747,6 @@ const p3 = computed(() => ({
               }"
             >{{ fmtStat(stat2.val.value, 11, '', false) }}</div>
             <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">Muscle groups</div>
-          </div>
-
-          <div :ref="(el) => (stat3.el.value = el as HTMLElement | null)">
-            <div
-              :style="{
-                fontFamily: '\'JetBrains Mono\', monospace',
-                fontWeight: 800,
-                fontSize: 'clamp(22px, 2.4vw, 32px)',
-                color: '#fff',
-                letterSpacing: '-0.02em',
-                lineHeight: 1,
-              }"
-            >{{ fmtStat(stat3.val.value, 20, '+', false) }}</div>
-            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">20+ yrs combined founder lifting experience</div>
           </div>
 
           <div :ref="(el) => (stat4.el.value = el as HTMLElement | null)">
