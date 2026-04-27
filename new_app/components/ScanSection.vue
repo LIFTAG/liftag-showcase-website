@@ -118,10 +118,16 @@ onBeforeUnmount(() => {
               top: 0,
               left: '50%',
               transform: 'translateX(-50%)',
-              animation: 'float-y 5s ease-in-out infinite',
             }"
           >
-            <Phone :src="steps[step].screen" :scale="1.05" />
+            <div class="scan-phone-float">
+              <div class="scan-phone-camera" :class="{ 'is-scanning': step === 0 }">
+                <Phone :src="steps[step].screen" :scale="1.05" />
+                <div v-if="step === 0" class="scan-phone-laser-overlay" aria-hidden="true">
+                  <span class="scan-phone-laser-line" />
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Decorative QR sticker — rotated -8deg -->
@@ -331,3 +337,125 @@ onBeforeUnmount(() => {
     </div>
   </section>
 </template>
+
+<style scoped>
+.scan-phone-float {
+  animation: float-y 5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.scan-phone-camera {
+  position: relative;
+  width: 280px;
+  aspect-ratio: 393 / 852;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.scan-phone-camera.is-scanning {
+  animation: scan-camera-wobble 4.8s ease-in-out infinite;
+}
+
+.scan-phone-laser-overlay {
+  position: absolute;
+  top: 31%;
+  left: 20%;
+  right: 20%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 14;
+  border-radius: 18px;
+  mix-blend-mode: screen;
+}
+
+.scan-phone-laser-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(204, 255, 0, 0.34);
+  border-radius: 16px;
+  box-shadow:
+    inset 0 0 18px rgba(204, 255, 0, 0.12),
+    0 0 22px rgba(204, 255, 0, 0.14);
+}
+
+.scan-phone-laser-line {
+  position: absolute;
+  top: 8%;
+  left: 7%;
+  right: 7%;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.9),
+    #ccff00,
+    rgba(255, 255, 255, 0.9),
+    transparent
+  );
+  box-shadow:
+    0 0 10px rgba(204, 255, 0, 0.95),
+    0 0 26px rgba(204, 255, 0, 0.58);
+  animation: scan-phone-laser-sweep 1.85s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+}
+
+.scan-phone-laser-line::after {
+  content: '';
+  position: absolute;
+  top: -22px;
+  left: 0;
+  right: 0;
+  height: 46px;
+  background: linear-gradient(180deg, rgba(204, 255, 0, 0.16), transparent);
+  filter: blur(7px);
+}
+
+@keyframes scan-phone-laser-sweep {
+  0%,
+  100% {
+    top: 8%;
+    opacity: 0.32;
+    transform: scaleX(0.78);
+  }
+
+  13%,
+  87% {
+    opacity: 1;
+  }
+
+  50% {
+    top: 88%;
+    opacity: 0.95;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes scan-camera-wobble {
+  0%,
+  100% {
+    transform: scale(1.035) translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  24% {
+    transform: scale(1.047) translate3d(3px, -2px, 0) rotate(0.22deg);
+  }
+
+  52% {
+    transform: scale(1.041) translate3d(-2px, 2px, 0) rotate(-0.18deg);
+  }
+
+  78% {
+    transform: scale(1.049) translate3d(2px, 1px, 0) rotate(0.14deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-phone-float,
+  .scan-phone-camera.is-scanning,
+  .scan-phone-laser-line {
+    animation: none;
+  }
+}
+</style>

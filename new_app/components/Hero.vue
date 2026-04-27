@@ -6,6 +6,14 @@
 const rawMouse = { x: 0, y: 0 }
 const scrollY = ref(0)
 const entered = ref(false)
+const cursorGlowEnergy = ref(0)
+const lastPointer = {
+  x: 0,
+  y: 0,
+  time: 0,
+  speed: 0,
+  initialized: false,
+}
 
 // smooth lerp (factor 0.06 matches React source)
 const mouse = useLerp(rawMouse, 0.06)
@@ -80,10 +88,170 @@ const refL4 = ref<SVGPolylineElement | null>(null)
 // ─── hero words ───────────────────────────────────────────────────────────────
 const words = ['FOR', 'LIFTERS.', 'BY', 'LIFTERS.']
 function isLime(word: string) { return word === 'LIFTERS.' }
-function wordMarginRight(i: number) {
-  if (i === 0 || i === 2) return '0.25em'
-  if (i === 1) return '0.15em'
-  return '0'
+const heroLaserDone = ref(false)
+const heroDetailsEntered = computed(() => entered.value && heroLaserDone.value)
+const heroTitleEls: HTMLElement[] = []
+let heroLaserStarted = false
+let heroLaserCancelled = false
+const heroLaserTimers: ReturnType<typeof setTimeout>[] = []
+const heroLaserRafs: number[] = []
+const heroLaserNodes = new Set<HTMLElement>()
+
+function setHeroTitleEl(el: Element | null, index: number) {
+  if (el instanceof HTMLElement) heroTitleEls[index] = el
+}
+
+function heroLaserClass(word: string, index: number) {
+  return {
+    'hero-laser-reveal': true,
+    'hero-laser-green': isLime(word),
+    'hero-laser-red': !isLime(word),
+    'from-right': index % 2 === 1,
+  }
+}
+
+function queueHeroLaserTimer(fn: () => void, delay: number) {
+  const timer = setTimeout(() => {
+    if (!heroLaserCancelled) fn()
+  }, delay)
+  heroLaserTimers.push(timer)
+}
+
+function queueHeroLaserRaf(fn: (now: number) => void) {
+  const raf = requestAnimationFrame((now) => {
+    if (!heroLaserCancelled) fn(now)
+  })
+  heroLaserRafs.push(raf)
+}
+
+function emitHeroLaserSparks(el: HTMLElement, posPercent: number, isGreen: boolean) {
+  const rect = el.getBoundingClientRect()
+  const x = rect.left + (posPercent / 100) * rect.width
+  const y = rect.top + rect.height / 2
+  const count = 1 + Math.floor(Math.random() * 2)
+
+  for (let i = 0; i < count; i++) {
+    const spark = document.createElement('div')
+    const angle = (Math.random() - 0.5) * Math.PI * 0.9
+    const dist = 12 + Math.random() * 28
+
+    spark.className = 'hero-laser-spark'
+    spark.style.left = `${x}px`
+    spark.style.top = `${y}px`
+    spark.style.background = isGreen ? 'var(--liftag-primary)' : 'var(--liftag-red-neon)'
+    spark.style.boxShadow = isGreen
+      ? '0 0 4px var(--liftag-primary), 0 0 8px var(--liftag-primary-glow)'
+      : '0 0 4px var(--liftag-red-neon), 0 0 8px var(--liftag-red-neon-glow)'
+    spark.style.setProperty('--sx', `${Math.cos(angle) * dist * 0.4}px`)
+    spark.style.setProperty('--sy', `${Math.sin(angle) * dist}px`)
+    document.body.appendChild(spark)
+    heroLaserNodes.add(spark)
+
+    queueHeroLaserTimer(() => {
+      spark.remove()
+      heroLaserNodes.delete(spark)
+    }, 450)
+  }
+}
+
+function runHeroLaserReveal(
+  el: HTMLElement | undefined,
+  fromRight: boolean,
+  duration: number,
+  onDone?: () => void,
+) {
+  if (!el || el.classList.contains('reveal-done')) {
+    onDone?.()
+    return
+  }
+
+  const isGreen = el.classList.contains('hero-laser-green')
+  const rect = el.getBoundingClientRect()
+  const chargeX = fromRight ? rect.right : rect.left
+  const beam = document.createElement('div')
+
+  beam.className = `hero-laser-charge-beam ${isGreen ? 'green' : 'red'}`
+  beam.style.left = `${chargeX}px`
+  beam.style.top = `${rect.top - rect.height * 0.2}px`
+  beam.style.height = `${rect.height * 1.4}px`
+  document.body.appendChild(beam)
+  heroLaserNodes.add(beam)
+
+  queueHeroLaserTimer(() => {
+    el.classList.add('sweeping')
+    el.style.setProperty('--laser-pos', fromRight ? '100%' : '0%')
+    const start = performance.now()
+    let lastSparkTime = 0
+
+    const animate = (now: number) => {
+      const t = Math.min((now - start) / duration, 1)
+      const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
+      const pos = eased * 100
+      const beamPercent = fromRight ? 100 - pos : pos
+
+      if (fromRight) {
+        el.style.clipPath = `inset(-20% 0 -20% ${100 - Math.min(pos, 100)}%)`
+      } else {
+        el.style.clipPath = `inset(-20% ${100 - Math.min(pos, 100)}% -20% 0)`
+      }
+
+      el.style.setProperty('--laser-pos', `${beamPercent}%`)
+      beam.style.left = `${rect.left + (beamPercent / 100) * rect.width}px`
+
+      if (now - lastSparkTime > 70 && t > 0.04 && t < 0.92) {
+        lastSparkTime = now
+        emitHeroLaserSparks(el, beamPercent, isGreen)
+      }
+
+      if (t < 1) {
+        queueHeroLaserRaf(animate)
+        return
+      }
+
+      el.classList.remove('sweeping')
+      el.classList.add('reveal-done')
+      el.style.clipPath = 'inset(-20% 0 -20% 0)'
+      beam.style.animation = 'heroLaserChargeShrink 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards'
+      queueHeroLaserTimer(() => {
+        beam.remove()
+        heroLaserNodes.delete(beam)
+      }, 300)
+      onDone?.()
+    }
+
+    queueHeroLaserRaf(animate)
+  }, 250)
+}
+
+function runAllHeroLaserReveals() {
+  if (heroLaserStarted) return
+  heroLaserStarted = true
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    heroTitleEls.forEach((el) => el?.classList.add('reveal-done'))
+    heroLaserDone.value = true
+    return
+  }
+
+  const revealNext = (index: number) => {
+    if (index >= words.length) {
+      heroLaserDone.value = true
+      return
+    }
+    runHeroLaserReveal(heroTitleEls[index], index % 2 === 1, 540, () => revealNext(index + 1))
+  }
+
+  revealNext(0)
+}
+
+function cleanupHeroLasers() {
+  heroLaserCancelled = true
+  heroLaserTimers.forEach(clearTimeout)
+  heroLaserTimers.length = 0
+  heroLaserRafs.forEach(cancelAnimationFrame)
+  heroLaserRafs.length = 0
+  heroLaserNodes.forEach((node) => node.remove())
+  heroLaserNodes.clear()
 }
 
 // ─── hero stats ───────────────────────────────────────────────────────────────
@@ -100,6 +268,9 @@ function fmtStat(val: number, target: number, suffix: string, compact: boolean) 
 
 // ─── lifecycle ────────────────────────────────────────────────────────────────
 onMounted(async () => {
+  heroLaserStarted = false
+  heroLaserCancelled = false
+  heroLaserDone.value = false
   // entrance delay
   const t = setTimeout(() => { entered.value = true }, 80)
 
@@ -120,6 +291,24 @@ onMounted(async () => {
     // mutate in-place — useLerp holds a reference to this object
     rawMouse.x = (e.clientX / window.innerWidth - 0.5) * 2
     rawMouse.y = (e.clientY / window.innerHeight - 0.5) * 2
+
+    const now = performance.now()
+    if (lastPointer.initialized) {
+      const dt = Math.max(16, now - lastPointer.time)
+      const dx = e.clientX - lastPointer.x
+      const dy = e.clientY - lastPointer.y
+      const speed = Math.hypot(dx, dy) / dt
+      const acceleration = Math.abs(speed - lastPointer.speed) / dt
+      const energy = Math.min(1, acceleration * 180 + speed * 0.18)
+      cursorGlowEnergy.value = Math.max(cursorGlowEnergy.value, energy)
+      lastPointer.speed = speed
+    } else {
+      lastPointer.initialized = true
+    }
+
+    lastPointer.x = e.clientX
+    lastPointer.y = e.clientY
+    lastPointer.time = now
   }
   const onScroll = () => { scrollY.value = window.scrollY }
 
@@ -129,6 +318,7 @@ onMounted(async () => {
   // dot tick RAF
   const runTick = () => {
     tick.value++
+    cursorGlowEnergy.value += (0 - cursorGlowEnergy.value) * 0.075
     tickRaf = requestAnimationFrame(runTick)
   }
   tickRaf = requestAnimationFrame(runTick)
@@ -152,8 +342,11 @@ onMounted(async () => {
     }, delay)
   })
 
+  queueHeroLaserTimer(runAllHeroLaserReveals, 280)
+
   onBeforeUnmount(() => {
     clearTimeout(t)
+    cleanupHeroLasers()
     window.removeEventListener('mousemove', onMove)
     window.removeEventListener('scroll', onScroll)
     cancelAnimationFrame(tickRaf)
@@ -339,14 +532,14 @@ const p3 = computed(() => ({
         position: 'fixed',
         left: `calc(50% + ${mouse.x * 40}vw)`,
         top: `calc(50% + ${mouse.y * 30}vh)`,
-        width: '700px',
-        height: '700px',
+        width: `${420 + cursorGlowEnergy * 540}px`,
+        height: `${420 + cursorGlowEnergy * 540}px`,
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(204,255,0,0.13) 0%, transparent 65%)',
+        background: `radial-gradient(circle, rgba(204,255,0,${0.08 + cursorGlowEnergy * 0.12}) 0%, transparent ${58 + cursorGlowEnergy * 10}%)`,
         transform: 'translate(-50%, -50%)',
         pointerEvents: 'none',
         zIndex: 1,
-        filter: 'blur(2px)',
+        filter: `blur(${2 + cursorGlowEnergy * 8}px)`,
         transition: 'none',
       }"
     />
@@ -447,8 +640,9 @@ const p3 = computed(() => ({
           <span class="protocol" :style="{ color: '#CCFF00', fontSize: '11px' }">PUBLIC BETA · LAUNCHING SOON</span>
         </div>
 
-        <!-- Headline — word-by-word entrance -->
+        <!-- Headline — laser reveal entrance -->
         <h1
+          class="hero-title-laser"
           :style="{
             margin: '0 0 28px',
             fontFamily: '\'Space Grotesk\', system-ui, sans-serif',
@@ -463,16 +657,14 @@ const p3 = computed(() => ({
           <span
             v-for="(word, i) in words"
             :key="i"
+            :ref="(el) => setHeroTitleEl(el as Element | null, i)"
+            class="hero-title-line"
+            :class="heroLaserClass(word, i)"
             :style="{
-              display: 'inline-block',
               color: isLime(word) ? '#CCFF00' : '#fff',
               textShadow: isLime(word)
                 ? '0 0 60px rgba(204,255,0,0.55), 0 0 120px rgba(204,255,0,0.2)'
                 : 'none',
-              opacity: entered ? 1 : 0,
-              transform: entered ? 'translateY(0) skewX(0deg)' : 'translateY(40px) skewX(-4deg)',
-              transition: `opacity 900ms ${160 + i * 90}ms cubic-bezier(0.16,1,0.3,1), transform 900ms ${160 + i * 90}ms cubic-bezier(0.16,1,0.3,1)`,
-              marginRight: wordMarginRight(i),
             }"
           >{{ word }}</span>
         </h1>
@@ -486,8 +678,8 @@ const p3 = computed(() => ({
             color: 'rgba(255,255,255,0.7)',
             maxWidth: '520px',
             margin: '0 0 36px',
-            opacity: entered ? 1 : 0,
-            transform: entered ? 'translateY(0)' : 'translateY(20px)',
+            opacity: heroDetailsEntered ? 1 : 0,
+            transform: heroDetailsEntered ? 'translateY(0)' : 'translateY(20px)',
             transition: 'opacity 900ms 500ms cubic-bezier(0.16,1,0.3,1), transform 900ms 500ms cubic-bezier(0.16,1,0.3,1)',
           }"
         >
@@ -503,8 +695,8 @@ const p3 = computed(() => ({
             gap: '12px',
             flexWrap: 'wrap',
             marginBottom: '60px',
-            opacity: entered ? 1 : 0,
-            transform: entered ? 'translateY(0)' : 'translateY(16px)',
+            opacity: heroDetailsEntered ? 1 : 0,
+            transform: heroDetailsEntered ? 'translateY(0)' : 'translateY(16px)',
             transition: 'opacity 900ms 640ms cubic-bezier(0.16,1,0.3,1), transform 900ms 640ms cubic-bezier(0.16,1,0.3,1)',
           }"
         >
@@ -521,8 +713,8 @@ const p3 = computed(() => ({
             gap: '24px',
             paddingTop: '28px',
             borderTop: '1px solid rgba(255,255,255,0.08)',
-            opacity: entered ? 1 : 0,
-            transform: entered ? 'translateY(0)' : 'translateY(16px)',
+            opacity: heroDetailsEntered ? 1 : 0,
+            transform: heroDetailsEntered ? 'translateY(0)' : 'translateY(16px)',
             transition: 'opacity 900ms 800ms cubic-bezier(0.16,1,0.3,1), transform 900ms 800ms cubic-bezier(0.16,1,0.3,1)',
           }"
         >

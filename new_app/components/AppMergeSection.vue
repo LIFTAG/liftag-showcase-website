@@ -15,18 +15,22 @@ interface MockApp {
 
 const sectionRef = ref<HTMLElement | null>(null)
 const stageRef = ref<HTMLElement | null>(null)
+const liftagRef = ref<HTMLElement | null>(null)
 
-const scrollP = ref(0)
-const pointerX = ref(50)
-const pointerY = ref(50)
-const time = ref(0)
+const iconEls: HTMLElement[] = []
+const captionEls: HTMLElement[] = []
+const vectorEls: HTMLElement[] = []
 
 let targetP = 0
 let targetPointerX = 50
 let targetPointerY = 50
+let scrollP = 0
+let pointerX = 50
+let pointerY = 50
 let stageScale = 1
 let rafId = 0
 let observer: IntersectionObserver | null = null
+let stageResizeObserver: ResizeObserver | null = null
 let isVisible = false
 let reduceMotion = false
 
@@ -71,19 +75,6 @@ const mockApps: MockApp[] = [
     depth: 1.08,
   },
   {
-    key: 'weight',
-    name: 'Weight Logger',
-    replaces: 'Bodyweight',
-    gradient: 'linear-gradient(145deg, #f8f8ff 0%, #8992a8 48%, #252a36 100%)',
-    accent: '#ffffff',
-    glow: 'rgba(190,205,230,0.28)',
-    x: 279,
-    y: -166,
-    rotate: 11,
-    delay: 3,
-    depth: 1,
-  },
-  {
     key: 'guides',
     name: 'Exercise Guides',
     replaces: 'Form videos',
@@ -93,7 +84,7 @@ const mockApps: MockApp[] = [
     x: 339,
     y: 25,
     rotate: -8,
-    delay: 4,
+    delay: 3,
     depth: 0.96,
   },
   {
@@ -106,7 +97,7 @@ const mockApps: MockApp[] = [
     x: 253,
     y: 194,
     rotate: 8,
-    delay: 5,
+    delay: 4,
     depth: 1.1,
   },
   {
@@ -119,7 +110,7 @@ const mockApps: MockApp[] = [
     x: 47,
     y: 287,
     rotate: -6,
-    delay: 6,
+    delay: 5,
     depth: 0.94,
   },
   {
@@ -132,21 +123,8 @@ const mockApps: MockApp[] = [
     x: -160,
     y: 255,
     rotate: 9,
-    delay: 7,
+    delay: 6,
     depth: 1.02,
-  },
-  {
-    key: 'plates',
-    name: 'Plate Calculator',
-    replaces: 'Bar math',
-    gradient: 'linear-gradient(145deg, #7fffd4 0%, #15b8a6 50%, #063331 100%)',
-    accent: '#defdf6',
-    glow: 'rgba(21,184,166,0.34)',
-    x: -323,
-    y: 90,
-    rotate: 4,
-    delay: 8,
-    depth: 0.98,
   },
   {
     key: 'body',
@@ -158,10 +136,27 @@ const mockApps: MockApp[] = [
     x: -335,
     y: -50,
     rotate: -12,
-    delay: 9,
+    delay: 7,
     depth: 0.9,
   },
 ]
+
+function setElementRef(collection: HTMLElement[], index: number, el: unknown) {
+  if (typeof HTMLElement === 'undefined' || !(el instanceof HTMLElement)) return
+  collection[index] = el
+}
+
+function setIconRef(el: unknown, index: number) {
+  setElementRef(iconEls, index, el)
+}
+
+function setCaptionRef(el: unknown, index: number) {
+  setElementRef(captionEls, index, el)
+}
+
+function setVectorRef(el: unknown, index: number) {
+  setElementRef(vectorEls, index, el)
+}
 
 function clamp(v: number, min = 0, max = 1) {
   return Math.min(max, Math.max(min, v))
@@ -190,17 +185,6 @@ function logoSpinDegrees(merge: number) {
   return t * 360 + overshoot
 }
 
-const mergeP = computed(() => smoothstep((scrollP.value - 0.22) / 0.58))
-const finaleP = computed(() => smoothstep((scrollP.value - 0.7) / 0.24))
-
-const sectionVars = computed(() => ({
-  '--merge-p': String(mergeP.value),
-  '--finale-p': String(finaleP.value),
-  '--pointer-x': `${pointerX.value}%`,
-  '--pointer-y': `${pointerY.value}%`,
-  '--energy': String(0.28 + mergeP.value * 0.72),
-}))
-
 function getScrollProgress() {
   const section = sectionRef.value
   if (!section) return 0
@@ -218,82 +202,66 @@ function updateStageScale() {
   stageScale = clamp(rect.width / 860, 0.58, 1)
 }
 
-function appMergeProgress(app: MockApp) {
-  return smoothstep((scrollP.value - 0.24 - app.delay * 0.008) / 0.52)
+function mergeProgress(p: number) {
+  return smoothstep((p - 0.22) / 0.58)
 }
 
-function appMotion(app: MockApp) {
-  const merge = appMergeProgress(app)
+function finaleProgress(p: number) {
+  return smoothstep((p - 0.7) / 0.24)
+}
+
+function appMergeProgress(app: MockApp, p: number) {
+  return smoothstep((p - 0.24 - app.delay * 0.008) / 0.52)
+}
+
+function appMotion(app: MockApp, p: number, finale: number, now: number) {
+  const merge = appMergeProgress(app, p)
   const unmerged = 1 - merge
-  const orbitBreath = 1 + Math.sin(time.value * 0.0009 + app.delay * 0.74) * 0.012 * unmerged
-  const pointerDriftX = (pointerX.value - 50) * app.depth * 0.28 * unmerged
-  const pointerDriftY = (pointerY.value - 50) * app.depth * 0.22 * unmerged
-  const floatX = Math.cos(time.value * 0.0011 + app.delay) * 3.5 * unmerged
-  const floatY = Math.sin(time.value * 0.0014 + app.delay * 0.8) * 6 * unmerged
+  const orbitBreath = 1 + Math.sin(now * 0.0009 + app.delay * 0.74) * 0.012 * unmerged
+  const pointerDriftX = (pointerX - 50) * app.depth * 0.28 * unmerged
+  const pointerDriftY = (pointerY - 50) * app.depth * 0.22 * unmerged
+  const floatX = Math.cos(now * 0.0011 + app.delay) * 3.5 * unmerged
+  const floatY = Math.sin(now * 0.0014 + app.delay * 0.8) * 6 * unmerged
   const x = (app.x * stageScale * orbitBreath + pointerDriftX + floatX) * unmerged
   const y = (app.y * stageScale * orbitBreath + pointerDriftY + floatY) * unmerged
-  const scale = 0.98 - merge * 0.46 + finaleP.value * 0.035
-  const rotate = app.rotate * unmerged + (pointerX.value - 50) * 0.03 * app.depth * unmerged
+  const scale = 0.98 - merge * 0.46 + finale * 0.035
+  const rotate = app.rotate * unmerged + (pointerX - 50) * 0.03 * app.depth * unmerged
 
   return { merge, x, y, scale, rotate }
 }
 
-function tick(now: number) {
-  if (!isVisible && Math.abs(targetP - scrollP.value) < 0.001) return
-
-  targetP = reduceMotion ? (isVisible ? 1 : targetP) : getScrollProgress()
-  const ease = reduceMotion ? 1 : 0.12
-  scrollP.value = lerp(scrollP.value, targetP, ease)
-  pointerX.value = lerp(pointerX.value, targetPointerX, 0.16)
-  pointerY.value = lerp(pointerY.value, targetPointerY, 0.16)
-  time.value = now
-  updateStageScale()
-
-  rafId = requestAnimationFrame(tick)
-}
-
-function iconStyle(app: MockApp) {
-  const p = scrollP.value
-  const motion = appMotion(app)
+function applyAppStyles(app: MockApp, index: number, p: number, finale: number, now: number) {
+  const motion = appMotion(app, p, finale, now)
   const merge = motion.merge
   const fade = smoothstep((p - 0.67) / 0.22)
   const opacity = 0.98 * (1 - fade * 0.94)
   const blur = merge * 0.7 + fade * 1.8
+  const icon = iconEls[index]
 
-  return {
-    '--icon-gradient': app.gradient,
-    '--icon-accent': app.accent,
-    '--icon-glow': app.glow,
-    opacity,
-    filter: `blur(${blur}px) saturate(${1 + merge * 0.25})`,
-    transform: `translate3d(calc(-50% + ${motion.x}px), calc(-50% + ${motion.y}px), 0) rotate(${motion.rotate}deg) scale(${motion.scale})`,
-    zIndex: String(Math.round(20 + app.depth * 10 - merge * 5)),
+  if (icon) {
+    icon.style.opacity = String(opacity)
+    icon.style.filter = `blur(${blur}px) saturate(${1 + merge * 0.25})`
+    icon.style.transform = `translate3d(calc(-50% + ${motion.x}px), calc(-50% + ${motion.y}px), 0) rotate(${motion.rotate}deg) scale(${motion.scale})`
+    icon.style.zIndex = String(Math.round(20 + app.depth * 10 - merge * 5))
   }
-}
 
-function captionStyle(app: MockApp) {
-  const motion = appMotion(app)
-  const merge = motion.merge
-  const fade = smoothstep((scrollP.value - 0.67) / 0.22)
-  const opacity = clamp(1 - merge * 1.65) * (1 - fade * 0.88)
-  const y = motion.y + 50 + merge * 12
-  const scale = 0.98 - merge * 0.16
+  const caption = captionEls[index]
+  if (caption) {
+    const captionOpacity = clamp(1 - merge * 1.65) * (1 - fade * 0.88)
+    const captionY = motion.y + 50 + merge * 12
+    const captionScale = 0.98 - merge * 0.16
 
-  return {
-    left: `calc(50% + ${motion.x}px)`,
-    top: `calc(50% + ${y}px)`,
-    opacity,
-    transform: `translate3d(-50%, 0, 0) rotate(${motion.rotate}deg) scale(${scale})`,
-    zIndex: '43',
+    caption.style.left = `calc(50% + ${motion.x}px)`
+    caption.style.top = `calc(50% + ${captionY}px)`
+    caption.style.opacity = String(captionOpacity)
+    caption.style.transform = `translate3d(-50%, 0, 0) rotate(${motion.rotate}deg) scale(${captionScale})`
   }
-}
 
-function vectorStyle(app: MockApp) {
-  const p = scrollP.value
-  const motion = appMotion(app)
-  const merge = motion.merge
+  const vector = vectorEls[index]
+  if (!vector) return
+
   const show = smoothstep((p - 0.06 - app.delay * 0.006) / 0.2)
-  const fade = smoothstep((p - 0.74) / 0.16)
+  const vectorFade = smoothstep((p - 0.74) / 0.16)
   const len = Math.hypot(motion.x, motion.y)
   const angle = Math.atan2(motion.y, motion.x) * 180 / Math.PI
   const unitX = len > 0.001 ? motion.x / len : 1
@@ -303,38 +271,100 @@ function vectorStyle(app: MockApp) {
   const lineLen = Math.max(0, len - startGap - endGap)
   const startX = unitX * startGap
   const startY = unitY * startGap
-  const draw = show * (1 - fade) * (1 - merge * 0.1)
-  const sparkTravel = clamp(0.15 + merge * 0.78 + Math.sin(time.value * 0.003 + app.delay) * 0.05)
-  const sparkOpacity = show * (1 - fade) * (0.34 + merge * 0.5)
-  const alpha = show * (1 - fade) * (0.34 + merge * 0.26)
+  const draw = show * (1 - vectorFade) * (1 - merge * 0.1)
+  const sparkTravel = clamp(0.15 + merge * 0.78 + Math.sin(now * 0.003 + app.delay) * 0.05)
+  const sparkOpacity = show * (1 - vectorFade) * (0.34 + merge * 0.5)
+  const alpha = show * (1 - vectorFade) * (0.34 + merge * 0.26)
 
+  vector.style.setProperty('--spark-x', `${sparkTravel}px`)
+  vector.style.setProperty('--spark-opacity', String(sparkOpacity))
+  vector.style.left = `calc(50% + ${startX}px)`
+  vector.style.top = `calc(50% + ${startY}px)`
+  vector.style.opacity = String(alpha)
+  vector.style.transform = `rotate(${angle}deg) scaleX(${lineLen * draw})`
+}
+
+function applyLiftagStyle(merge: number, finale: number) {
+  const liftag = liftagRef.value
+  if (!liftag) return
+
+  const spin = logoSpinDegrees(merge)
+  const tiltX = -(pointerY - 50) * 0.035 * (0.2 + merge)
+  const tiltY = (pointerX - 50) * 0.04 * (0.2 + merge)
+  const scale = 0.72 + merge * 0.3 + finale * 0.08
+
+  liftag.style.setProperty('--logo-spin', `${spin}deg`)
+  liftag.style.opacity = String(0.34 + merge * 0.66)
+  liftag.style.transform = `translate3d(-50%, -50%, 0) perspective(900px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${scale})`
+}
+
+function updateAnimatedStyles(now = performance.now()) {
+  const merge = mergeProgress(scrollP)
+  const finale = finaleProgress(scrollP)
+  const section = sectionRef.value
+
+  if (section) {
+    section.style.setProperty('--merge-p', String(merge))
+    section.style.setProperty('--finale-p', String(finale))
+    section.style.setProperty('--pointer-x', `${pointerX}%`)
+    section.style.setProperty('--pointer-y', `${pointerY}%`)
+    section.style.setProperty('--energy', String(0.28 + merge * 0.72))
+  }
+
+  mockApps.forEach((app, index) => applyAppStyles(app, index, scrollP, finale, now))
+  applyLiftagStyle(merge, finale)
+}
+
+function tick(now: number) {
+  if (!isVisible && Math.abs(targetP - scrollP) < 0.001) return
+
+  targetP = reduceMotion ? (isVisible ? 1 : targetP) : getScrollProgress()
+  const ease = reduceMotion ? 1 : 0.12
+  scrollP = lerp(scrollP, targetP, ease)
+  pointerX = lerp(pointerX, targetPointerX, 0.16)
+  pointerY = lerp(pointerY, targetPointerY, 0.16)
+  updateAnimatedStyles(now)
+
+  rafId = requestAnimationFrame(tick)
+}
+
+function iconBaseStyle(app: MockApp) {
   return {
-    '--line-glow': app.glow,
-    '--line-draw': String(draw),
-    '--spark-x': `${lineLen * sparkTravel}px`,
-    '--spark-opacity': String(sparkOpacity),
-    left: `calc(50% + ${startX}px)`,
-    top: `calc(50% + ${startY}px)`,
-    width: `${lineLen}px`,
-    opacity: alpha,
-    transform: `rotate(${angle}deg) scaleX(${draw})`,
+    '--icon-gradient': app.gradient,
+    '--icon-accent': app.accent,
+    '--icon-glow': app.glow,
+    opacity: 0.98,
+    filter: 'blur(0px) saturate(1)',
+    transform: `translate3d(calc(-50% + ${app.x}px), calc(-50% + ${app.y}px), 0) rotate(${app.rotate}deg) scale(0.98)`,
+    zIndex: String(Math.round(20 + app.depth * 10)),
   }
 }
 
-const liftagStyle = computed(() => {
-  const merge = mergeP.value
-  const finale = finaleP.value
-  const spin = logoSpinDegrees(merge)
-  const tiltX = -(pointerY.value - 50) * 0.035 * (0.2 + merge)
-  const tiltY = (pointerX.value - 50) * 0.04 * (0.2 + merge)
-  const scale = 0.72 + merge * 0.3 + finale * 0.08
-
+function captionBaseStyle(app: MockApp) {
   return {
-    '--logo-spin': `${spin}deg`,
-    opacity: 0.34 + merge * 0.66,
-    transform: `translate3d(-50%, -50%, 0) perspective(900px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${scale})`,
+    left: `calc(50% + ${app.x}px)`,
+    top: `calc(50% + ${app.y + 50}px)`,
+    opacity: 1,
+    transform: `translate3d(-50%, 0, 0) rotate(${app.rotate}deg) scale(0.98)`,
+    zIndex: '43',
   }
-})
+}
+
+function vectorBaseStyle(app: MockApp) {
+  return {
+    '--line-glow': app.glow,
+    '--spark-x': '0px',
+    '--spark-opacity': '0',
+    opacity: 0,
+    transform: 'rotate(0deg) scaleX(0)',
+  }
+}
+
+const liftagBaseStyle = {
+  '--logo-spin': '0deg',
+  opacity: 0.34,
+  transform: 'translate3d(-50%, -50%, 0) perspective(900px) rotateX(0deg) rotateY(0deg) scale(0.72)',
+}
 
 function handlePointerMove(event: PointerEvent) {
   targetPointerX = clamp(event.clientX / Math.max(window.innerWidth, 1), 0, 1) * 100
@@ -349,6 +379,7 @@ function handlePointerLeave() {
 onMounted(() => {
   reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   updateStageScale()
+  updateAnimatedStyles()
 
   observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
@@ -362,13 +393,19 @@ onMounted(() => {
 
   if (sectionRef.value) observer.observe(sectionRef.value)
 
-  window.addEventListener('resize', updateStageScale, { passive: true })
+  if (stageRef.value && typeof ResizeObserver !== 'undefined') {
+    stageResizeObserver = new ResizeObserver(() => {
+      updateStageScale()
+      updateAnimatedStyles()
+    })
+    stageResizeObserver.observe(stageRef.value)
+  }
 })
 
 onBeforeUnmount(() => {
   cancelAnimationFrame(rafId)
   observer?.disconnect()
-  window.removeEventListener('resize', updateStageScale)
+  stageResizeObserver?.disconnect()
 })
 </script>
 
@@ -377,7 +414,6 @@ onBeforeUnmount(() => {
     id="all-in-one"
     ref="sectionRef"
     class="app-merge-section"
-    :style="sectionVars"
     @pointermove="handlePointerMove"
     @pointerleave="handlePointerLeave"
   >
@@ -398,7 +434,7 @@ onBeforeUnmount(() => {
             All the little gym apps, <span class="lime">folded into LIFTAG.</span>
           </SectionTitle>
           <p class="merge-copy-text reveal">
-            Set logging, rest timing, PRs, bodyweight, form guides, progress charts, routines, and plate math finally live in one place.
+            Set logging, rest timing, PRs, body metrics, form guides, progress charts, and routines finally live in one place.
           </p>
         </div>
 
@@ -410,18 +446,20 @@ onBeforeUnmount(() => {
           </div>
 
           <div
-            v-for="app in mockApps"
+            v-for="(app, i) in mockApps"
             :key="`${app.key}-line`"
+            :ref="(el) => setVectorRef(el, i)"
             class="merge-vector"
-            :style="vectorStyle(app)"
+            :style="vectorBaseStyle(app)"
             aria-hidden="true"
           ></div>
 
           <div
-            v-for="app in mockApps"
+            v-for="(app, i) in mockApps"
             :key="app.key"
+            :ref="(el) => setIconRef(el, i)"
             class="mergeable-app"
-            :style="iconStyle(app)"
+            :style="iconBaseStyle(app)"
           >
             <div class="mock-icon">
               <svg class="mock-icon-glyph" viewBox="0 0 48 48" fill="none" aria-hidden="true">
@@ -439,11 +477,6 @@ onBeforeUnmount(() => {
                   <circle cx="24" cy="26" r="14" stroke="currentColor" stroke-width="3" />
                   <path d="M24 26V16M24 26h8M19 7h10M24 7v5" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
                   <path d="M24 40a14 14 0 0 1-12-7" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity="0.45" />
-                </template>
-                <template v-else-if="app.key === 'weight'">
-                  <path d="M9 29h30" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
-                  <path d="M12 21v16M17 18v22M36 21v16M31 18v22" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                  <path d="M19 12h10l3 8H16l3-8Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round" />
                 </template>
                 <template v-else-if="app.key === 'guides'">
                   <path d="M12 12h11c4 0 7 3 7 7v17H19c-4 0-7-3-7-7V12Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round" />
@@ -465,10 +498,6 @@ onBeforeUnmount(() => {
                   <path d="M17 13h14v6c0 7-3 12-7 12s-7-5-7-12v-6Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round" />
                   <path d="M17 16h-6v3c0 4 3 7 7 7M31 16h6v3c0 4-3 7-7 7M24 31v6M18 38h12" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
                 </template>
-                <template v-else-if="app.key === 'plates'">
-                  <rect x="11" y="10" width="26" height="28" rx="6" stroke="currentColor" stroke-width="3" />
-                  <path d="M17 17h14M17 24h3M24 24h3M31 24h1M17 31h3M24 31h3M31 31h1" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                </template>
                 <template v-else>
                   <path d="M24 10c6 0 11 5 11 11 0 8-11 17-11 17s-11-9-11-17c0-6 5-11 11-11Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round" />
                   <path d="M18 23h4l3-6 3 12 2-6h4" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
@@ -478,16 +507,17 @@ onBeforeUnmount(() => {
           </div>
 
           <div
-            v-for="app in mockApps"
+            v-for="(app, i) in mockApps"
             :key="`${app.key}-caption`"
+            :ref="(el) => setCaptionRef(el, i)"
             class="mock-app-caption"
-            :style="captionStyle(app)"
+            :style="captionBaseStyle(app)"
           >
             <span>{{ app.name }}</span>
             <small>{{ app.replaces }}</small>
           </div>
 
-          <div class="liftag-target" :style="liftagStyle" aria-label="LIFTAG app icon">
+          <div ref="liftagRef" class="liftag-target" :style="liftagBaseStyle" aria-label="LIFTAG app icon">
             <div class="liftag-icon-aura"></div>
             <div class="liftag-icon-shell">
               <img src="/logo.svg" alt="LIFTAG" />
@@ -506,6 +536,11 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .app-merge-section {
+  --merge-p: 0;
+  --finale-p: 0;
+  --pointer-x: 50%;
+  --pointer-y: 50%;
+  --energy: 0.28;
   position: relative;
   min-height: 260vh;
   background: #000;
@@ -660,6 +695,7 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 50%;
   left: 50%;
+  width: 1px;
   height: 2px;
   pointer-events: none;
   transform-origin: 0 50%;
@@ -670,7 +706,7 @@ onBeforeUnmount(() => {
     0 0 12px var(--line-glow),
     0 0 30px rgba(204, 255, 0, 0.06);
   mix-blend-mode: screen;
-  will-change: transform, width, opacity;
+  will-change: transform, opacity;
 }
 
 .merge-vector::before {
@@ -769,7 +805,7 @@ onBeforeUnmount(() => {
     calc(-50% + var(--label-x, 0px)),
     calc(-50% + var(--label-y, 72px) + var(--caption-y, 0px))
   );
-  transition: opacity 180ms linear;
+  transition: none;
   transform-origin: 50% 0;
   white-space: normal;
 }

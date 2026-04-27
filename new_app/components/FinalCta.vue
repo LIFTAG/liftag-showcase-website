@@ -47,7 +47,6 @@
           height="100"
           :style="{
             filter: 'drop-shadow(0 0 40px rgba(204,255,0,0.7))',
-            animation: 'float-y 4s ease-in-out infinite',
           }"
           alt="LIFTAG logo"
         />
@@ -120,6 +119,7 @@
   margin: 0 auto 40px;
   display: grid;
   place-items: center;
+  animation: float-y 4s ease-in-out infinite;
 }
 
 .final-logo-ring {

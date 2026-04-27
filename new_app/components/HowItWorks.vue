@@ -5,7 +5,6 @@ const trackRef   = ref<HTMLElement | null>(null)
 const curveCanvas = ref<HTMLCanvasElement | null>(null)
 const weightEl  = ref<HTMLElement | null>(null)
 const repsEl    = ref<HTMLElement | null>(null)
-const prEl      = ref<HTMLElement | null>(null)
 const chartClipRect = ref<SVGRectElement | null>(null)
 const chartDot      = ref<SVGCircleElement | null>(null)
 const statStrength  = ref<HTMLElement | null>(null)
@@ -20,6 +19,17 @@ const qrIcon        = ref<SVGSVGElement | null>(null)
 const scanTitle     = ref<HTMLElement | null>(null)
 const scanDesc      = ref<HTMLElement | null>(null)
 const scanHovered   = ref(false)
+const prVisible     = ref(false)
+const prBurstKey    = ref(0)
+
+const prBurstParticles = [
+  { x: '-42px', y: '-34px', rotate: '-22deg', delay: '0ms', color: 'var(--liftag-primary)' },
+  { x: '-28px', y: '28px', rotate: '26deg', delay: '45ms', color: 'var(--liftag-primary)' },
+  { x: '0px', y: '-42px', rotate: '4deg', delay: '20ms', color: '#fff' },
+  { x: '32px', y: '-28px', rotate: '30deg', delay: '70ms', color: 'var(--liftag-primary)' },
+  { x: '46px', y: '24px', rotate: '-18deg', delay: '95ms', color: 'var(--liftag-red-neon)' },
+  { x: '6px', y: '38px', rotate: '-4deg', delay: '120ms', color: 'var(--liftag-primary)' },
+]
 
 // ─── Canvas context + mutable state ──────────────────────────────────────
 let ctx: CanvasRenderingContext2D | null = null
@@ -496,11 +506,10 @@ function scrollToPanel(i: number) {
 function handleLogSet() {
   const w = weightEl.value
   const r = repsEl.value
-  const pr = prEl.value
-  if (w?.textContent === '85' && r?.textContent === '9' && pr) {
-    pr.style.visibility = 'visible'
-    pr.style.opacity = '1'
-  }
+  if (w?.textContent !== '85' || r?.textContent !== '9') return
+
+  prVisible.value = true
+  prBurstKey.value += 1
 }
 
 // ─── Lifecycle ───────────────────────────────────────────────────────────
@@ -591,7 +600,7 @@ onBeforeUnmount(() => {
           <div class="hiw-panel-number">02</div>
           <div class="hiw-glass-pane">
             <div class="hiw-panel-visual">
-              <div class="hiw-log-card">
+              <div class="hiw-log-card" :class="{ 'pr-unlocked': prVisible }">
                 <div class="hiw-log-exercise">Bench Press</div>
                 <div class="hiw-log-previous">Last session: 80kg × 10</div>
                 <div class="hiw-log-inputs">
@@ -609,15 +618,44 @@ onBeforeUnmount(() => {
                     </div>
                   </div>
                 </div>
-                <div class="hiw-log-btn" role="button" tabindex="0"
+                <div
+                  class="hiw-log-btn"
+                  :class="{ 'is-confirmed': prVisible }"
+                  role="button"
+                  tabindex="0"
+                  aria-label="Log set"
                   @click="handleLogSet"
                   @keydown.enter.prevent="handleLogSet"
-                  @keydown.space.prevent="handleLogSet">
+                  @keydown.space.prevent="handleLogSet"
+                >
                   LOG SET
                 </div>
-                <div ref="prEl" class="hiw-log-pb"
-                  style="visibility: hidden; opacity: 0; transition: opacity 0.4s ease, visibility 0.4s ease;">
-                  NEW PR! <span style="color: var(--liftag-primary);">+5kg</span>
+                <div class="hiw-log-pr-stage" :class="{ 'is-visible': prVisible }" aria-live="polite">
+                  <div
+                    v-if="prVisible"
+                    :key="`burst-${prBurstKey}`"
+                    class="hiw-log-pr-burst"
+                    aria-hidden="true"
+                  >
+                    <span
+                      v-for="(particle, particleIndex) in prBurstParticles"
+                      :key="particleIndex"
+                      class="hiw-log-pr-spark"
+                      :style="{
+                        '--spark-x': particle.x,
+                        '--spark-y': particle.y,
+                        '--spark-rotate': particle.rotate,
+                        '--spark-delay': particle.delay,
+                        '--spark-color': particle.color,
+                      }"
+                    ></span>
+                  </div>
+                  <div v-if="prVisible" :key="`pr-${prBurstKey}`" class="hiw-log-pb">
+                    NEW PR! <span>+5kg</span>
+                  </div>
+                  <div v-else class="hiw-log-pb hiw-log-pb-placeholder" aria-hidden="true">
+                    NEW PR! <span>+5kg</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1077,6 +1115,34 @@ onBeforeUnmount(() => {
   border-radius: 16px;
   padding: 24px;
   text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 260ms ease, box-shadow 260ms ease, transform 260ms ease;
+}
+
+.hiw-log-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(120px 80px at 50% 78%, rgba(204, 255, 0, 0.16), transparent 70%),
+    linear-gradient(115deg, transparent 10%, rgba(255, 255, 255, 0.12), transparent 34%);
+  opacity: 0;
+  transform: translateX(-36%);
+}
+
+.hiw-log-card.pr-unlocked {
+  border-color: rgba(204, 255, 0, 0.42);
+  box-shadow:
+    0 18px 46px rgba(0, 0, 0, 0.36),
+    0 0 34px rgba(204, 255, 0, 0.1),
+    inset 0 0 24px rgba(204, 255, 0, 0.035);
+}
+
+.hiw-log-card.pr-unlocked::before {
+  animation: prCardSheen 920ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .hiw-log-exercise {
@@ -1119,6 +1185,10 @@ onBeforeUnmount(() => {
   color: var(--accent);
 }
 
+.hiw-log-card.pr-unlocked .hiw-log-value {
+  animation: prValuePop 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 .hiw-log-unit {
   font-size: 0.9rem;
   font-weight: 400;
@@ -1142,18 +1212,138 @@ onBeforeUnmount(() => {
   margin-bottom: 12px;
   cursor: pointer;
   user-select: none;
+  position: relative;
+  overflow: hidden;
+  transition: transform 180ms ease, box-shadow 220ms ease, filter 180ms ease;
 }
 .hiw-log-btn:hover {
   filter: brightness(1.1);
 }
+.hiw-log-btn:active {
+  transform: scale(0.96);
+}
+.hiw-log-btn.is-confirmed {
+  box-shadow:
+    0 0 18px rgba(204, 255, 0, 0.48),
+    0 0 34px rgba(204, 255, 0, 0.16);
+  animation: logSetButtonPop 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hiw-log-pr-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 20px;
+  margin-top: 2px;
+}
+
+.hiw-log-pr-burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hiw-log-pr-burst::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(204, 255, 0, 0.8);
+  box-shadow:
+    0 0 18px rgba(204, 255, 0, 0.5),
+    inset 0 0 12px rgba(204, 255, 0, 0.18);
+  transform: translate(-50%, -50%);
+  animation: prRingOut 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hiw-log-pr-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--spark-color);
+  box-shadow: 0 0 10px var(--spark-color);
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(var(--spark-rotate)) scaleY(0.4);
+  animation: prSparkOut 780ms cubic-bezier(0.16, 1, 0.3, 1) var(--spark-delay) both;
+}
 
 .hiw-log-pb {
+  position: relative;
+  z-index: 1;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
-  font-weight: 700;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--text);
-  animation: pbPulse 1.5s ease-in-out infinite;
+  text-shadow:
+    0 0 10px rgba(255, 255, 255, 0.24),
+    0 0 20px rgba(204, 255, 0, 0.16);
+  animation:
+    prTextPop 780ms cubic-bezier(0.16, 1, 0.3, 1) both,
+    pbPulse 1.5s ease-in-out 780ms infinite;
 }
+
+.hiw-log-pb span {
+  color: var(--liftag-primary);
+  text-shadow: 0 0 12px rgba(204, 255, 0, 0.62);
+}
+
+.hiw-log-pb-placeholder {
+  visibility: hidden;
+  animation: none;
+}
+
+@keyframes prCardSheen {
+  0% { opacity: 0; transform: translateX(-44%); }
+  18% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(60%); }
+}
+
+@keyframes logSetButtonPop {
+  0% { transform: scale(0.96); }
+  42% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes prValuePop {
+  0% { transform: translateY(0) scale(1); text-shadow: none; }
+  34% { transform: translateY(-2px) scale(1.08); text-shadow: 0 0 16px rgba(204, 255, 0, 0.56); }
+  100% { transform: translateY(0) scale(1); text-shadow: none; }
+}
+
+@keyframes prTextPop {
+  0% { opacity: 0; transform: translateY(10px) scale(0.82); filter: blur(3px); }
+  46% { opacity: 1; transform: translateY(-3px) scale(1.14); filter: blur(0); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+@keyframes prRingOut {
+  0% { opacity: 0.85; transform: translate(-50%, -50%) scale(0.4); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(7.4); }
+}
+
+@keyframes prSparkOut {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--spark-rotate)) scaleY(0.35);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--spark-x)), calc(-50% + var(--spark-y))) rotate(var(--spark-rotate)) scaleY(0.12);
+  }
+}
+
 @keyframes pbPulse {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.4; }

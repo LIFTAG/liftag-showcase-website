@@ -17,7 +17,7 @@ const cards: FeatureCardProps[] = [
     span: 'span 7',
     tall: true,
     img: '/assets/screens/progression.png',
-    imgPosition: '50% 79%',
+    imgPosition: '50% 74%',
     imgScale: 1.12,
     visualHeight: '64%',
     tag: 'PROGRESS INSIGHTS',
@@ -37,7 +37,7 @@ const cards: FeatureCardProps[] = [
   {
     span: 'span 5',
     img: '/assets/screens/active-session.png',
-    imgPosition: '50% 45%',
+    imgPosition: '50% 53%',
     visualHeight: '220px',
     tag: 'ROUTINES + SUPERSETS',
     title: 'Plans that flex with you.',

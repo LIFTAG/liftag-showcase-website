@@ -9,7 +9,10 @@ const screens = [
 const screen = ref(0)
 const screenPulse = ref(0)
 const activeVolumeBar = ref<number | null>(null)
+const lineProgress = ref(1)
 let volumeResetTimer: ReturnType<typeof setTimeout> | null = null
+let lineTargetProgress = 1
+let lineProgressRaf = 0
 
 function setScreen(next: number) {
   screen.value = next
@@ -53,6 +56,8 @@ const linePts = [
   [60, 14], [70, 12], [80, 8], [90, 6], [100, 2],
 ]
 const polyline = linePts.map(([x, y]) => `${x},${y}`).join(' ')
+const lineClipWidth = computed(() => Math.max(0, lineProgress.value * 100))
+const lineDot = computed(() => linePointAtProgress(lineProgress.value))
 
 function chipBorder(accent: string) {
   if (accent === '#CCFF00') return '1px solid rgba(204,255,0,0.12)'
@@ -70,6 +75,51 @@ function chipGlint(accent: string) {
   if (accent === '#CCFF00') return 'rgba(204,255,0,0.18)'
   if (accent === '#22C55E') return 'rgba(34,197,94,0.16)'
   return 'rgba(255,255,255,0.1)'
+}
+
+function linePointAtProgress(progress: number) {
+  const x = Math.max(0, Math.min(100, progress * 100))
+
+  for (let i = 0; i < linePts.length - 1; i += 1) {
+    const [x0, y0] = linePts[i]
+    const [x1, y1] = linePts[i + 1]
+    if (x < x0 || x > x1) continue
+
+    const t = (x - x0) / Math.max(1, x1 - x0)
+    return {
+      x,
+      y: y0 + (y1 - y0) * t,
+    }
+  }
+
+  const last = linePts[linePts.length - 1]
+  return { x: last[0], y: last[1] }
+}
+
+function animateLineProgress() {
+  lineProgressRaf = 0
+  lineProgress.value += (lineTargetProgress - lineProgress.value) * 0.14
+
+  if (Math.abs(lineTargetProgress - lineProgress.value) < 0.001) {
+    lineProgress.value = lineTargetProgress
+    return
+  }
+
+  lineProgressRaf = requestAnimationFrame(animateLineProgress)
+}
+
+function setLineTargetProgress(progress: number) {
+  lineTargetProgress = Math.max(0.02, Math.min(1, progress))
+  if (!lineProgressRaf) lineProgressRaf = requestAnimationFrame(animateLineProgress)
+}
+
+function handleLineChartMove(event: PointerEvent) {
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  setLineTargetProgress((event.clientX - rect.left) / Math.max(1, rect.width))
+}
+
+function resetLineChart() {
+  setLineTargetProgress(1)
 }
 
 function clearVolumeResetTimer() {
@@ -97,7 +147,10 @@ function clearVolumeBar(event?: PointerEvent | FocusEvent) {
   activeVolumeBar.value = null
 }
 
-onBeforeUnmount(clearVolumeResetTimer)
+onBeforeUnmount(() => {
+  clearVolumeResetTimer()
+  cancelAnimationFrame(lineProgressRaf)
+})
 </script>
 
 <template>
@@ -370,6 +423,10 @@ onBeforeUnmount(clearVolumeResetTimer)
 
           <!-- Mini line chart -->
           <div
+            class="progress-line-card"
+            @pointermove="handleLineChartMove"
+            @pointerleave="resetLineChart"
+            @blur="resetLineChart"
             :style="{
               background: '#0a0a0a',
               border: '1px solid rgba(255,255,255,0.07)',
@@ -382,16 +439,36 @@ onBeforeUnmount(clearVolumeResetTimer)
               1RM PROGRESSION
             </div>
             <svg class="progress-line-chart" viewBox="0 0 100 36" :style="{ width: '100%', height: '36px' }">
+              <defs>
+                <clipPath id="progress-line-clip">
+                  <rect x="0" y="-4" :width="lineClipWidth" height="44" />
+                </clipPath>
+              </defs>
+              <polyline
+                points="0,32 100,32"
+                fill="none"
+                stroke="rgba(204,255,0,0.12)"
+                stroke-width="1"
+                stroke-linecap="round"
+              />
               <polyline
                 class="progress-line-path"
                 :points="polyline"
                 fill="none"
                 stroke="#CCFF00"
                 stroke-width="1.5"
+                stroke-linecap="round"
                 stroke-linejoin="round"
+                clip-path="url(#progress-line-clip)"
                 opacity="0.7"
               />
-              <circle class="progress-line-dot" cx="100" cy="2" r="2.5" fill="#CCFF00" />
+              <circle
+                class="progress-line-dot"
+                :cx="lineDot.x"
+                :cy="lineDot.y"
+                r="2.5"
+                fill="#CCFF00"
+              />
             </svg>
           </div>
         </div>
@@ -546,18 +623,17 @@ onBeforeUnmount(clearVolumeResetTimer)
   overflow: visible;
 }
 
+.progress-line-card {
+  touch-action: pan-y;
+  cursor: crosshair;
+}
+
 .progress-line-path {
   filter: drop-shadow(0 0 7px rgba(204, 255, 0, 0.38));
-  stroke-dasharray: 150;
-  stroke-dashoffset: 150;
-  animation:
-    progressLineDraw 2200ms cubic-bezier(0.16, 1, 0.3, 1) 220ms both,
-    progressLineBreathe 3600ms ease-in-out 2500ms infinite;
+  animation: progressLineBreathe 3600ms ease-in-out 500ms infinite;
 }
 
 .progress-line-dot {
-  transform-box: fill-box;
-  transform-origin: center;
   filter: drop-shadow(0 0 8px rgba(204, 255, 0, 0.8));
   animation: progressDotPulse 2600ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
@@ -590,12 +666,6 @@ onBeforeUnmount(clearVolumeResetTimer)
   to {
     opacity: 0;
     transform: scale(1.12);
-  }
-}
-
-@keyframes progressLineDraw {
-  to {
-    stroke-dashoffset: 0;
   }
 }
 
