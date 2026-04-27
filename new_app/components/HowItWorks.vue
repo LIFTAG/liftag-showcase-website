@@ -852,7 +852,7 @@ onBeforeUnmount(() => {
   padding: 48px 40px 40px;
   border-radius: 28px;
   max-width: 440px;
-  background: rgba(18, 20, 19, 0.58);
+  background: rgba(4, 5, 5, 0.66);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -883,9 +883,9 @@ onBeforeUnmount(() => {
   background:
     linear-gradient(
       135deg,
-      rgba(32, 34, 32, 0.42) 0%,
-      rgba(14, 16, 17, 0.34) 42%,
-      rgba(22, 24, 22, 0.46) 100%
+      rgba(12, 14, 13, 0.38) 0%,
+      rgba(2, 3, 4, 0.3) 42%,
+      rgba(8, 10, 9, 0.42) 100%
     ),
     linear-gradient(
       180deg,
