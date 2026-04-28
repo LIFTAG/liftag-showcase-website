@@ -169,17 +169,8 @@ onBeforeUnmount(() => {
   >
     <!-- Center glow -->
     <div
-      :style="{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        width: '800px',
-        height: '800px',
-        background: 'radial-gradient(circle, rgba(204,255,0,0.07), transparent 65%)',
-        filter: 'blur(80px)',
-        pointerEvents: 'none',
-        transform: 'translate(-50%,-50%)',
-      }"
+      class="section-glow is-green is-centered"
+      style="--glow-top: 50%; --glow-left: 50%; --glow-right: auto; --glow-size: 800px; --glow-blur: 80px; --glow-falloff: 65%;"
     />
 
     <div class="container" style="position: relative;">
@@ -342,7 +333,6 @@ onBeforeUnmount(() => {
           <Phone
             :src="screens[screen]"
             :scale="1.05"
-            :tilt-delay-ms="180"
             :style="{ position: 'relative', zIndex: '2' }"
           />
 
@@ -519,20 +509,12 @@ onBeforeUnmount(() => {
           }"
         >
           <div
-            :style="{
-              fontFamily: '\'JetBrains Mono\', monospace',
-              fontWeight: 800,
-              fontSize: 'clamp(24px, 2.8vw, 40px)',
-              color: '#CCFF00',
-              letterSpacing: '-0.02em',
-              lineHeight: 1,
-            }"
+            class="stat-num"
+            style="--stat-num-size: clamp(24px, 2.8vw, 40px);"
           >
             {{ s.n }}
           </div>
-          <div class="protocol" :style="{ color: '#fff', fontSize: '10px', marginTop: '10px' }">
-            {{ s.l }}
-          </div>
+          <div class="stat-label" style="color: var(--liftag-fg);">{{ s.l }}</div>
           <div :style="{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', marginTop: '4px' }">
             {{ s.sub }}
           </div>

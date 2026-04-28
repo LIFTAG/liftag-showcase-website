@@ -175,53 +175,17 @@ onBeforeUnmount(() => {
     }"
   >
     <!-- Background glow -->
-    <div
-      :style="{
-        position: 'absolute',
-        top: '20%',
-        right: '-10%',
-        width: '600px',
-        height: '600px',
-        background: 'radial-gradient(circle, rgba(204,255,0,0.08), transparent 60%)',
-        filter: 'blur(60px)',
-        pointerEvents: 'none',
-      }"
-    />
+    <div class="section-glow is-green" style="--glow-blur: 60px;" />
 
     <div class="container" style="position: relative;">
-      <!-- Header -->
-      <div
-        class="section-header-2col"
-        :style="{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-end',
-          flexWrap: 'wrap',
-          gap: '32px',
-          marginBottom: '80px',
-        }"
-      >
-        <div style="flex: 1 1 600px;">
-          <Eyebrow>▸ FOR LIFTERS</Eyebrow>
-          <SectionTitle>
-            Train smarter.<br /><span class="lime">Lift heavier.</span> Compound everything.
-          </SectionTitle>
-        </div>
-        <p
-          class="reveal"
-          :style="{
-            color: 'rgba(255,255,255,0.6)',
-            fontSize: '17px',
-            fontWeight: 300,
-            lineHeight: 1.55,
-            maxWidth: '380px',
-            margin: 0,
-          }"
-        >
-          Progressive overload, made obvious. Goals, PRs, history, and clean charts that show, at a
-          glance, whether you're getting stronger or stalling.
-        </p>
-      </div>
+      <SectionHeader :cols="'1.6fr 1fr'" :copy-max="380">
+        <template #title>
+          Train smarter.<br /><span class="lime">Lift heavier.</span> Compound everything.
+        </template>
+        <template #eyebrow>▸ FOR LIFTERS</template>
+        Progressive overload, made obvious. Goals, PRs, history, and clean charts that show, at a
+        glance, whether you're getting stronger or stalling.
+      </SectionHeader>
 
       <!-- Bento grid -->
       <div
@@ -290,7 +254,7 @@ onBeforeUnmount(() => {
                   height: '100%',
                   objectFit: 'cover',
                   transformOrigin: card.imgPosition ?? '50% 50%',
-                  willChange: 'transform',
+                  willChange: 'object-position, transform',
                   backfaceVisibility: 'hidden',
                   borderRadius: '0',
                 }"
@@ -361,25 +325,17 @@ onBeforeUnmount(() => {
           gridTemplateColumns: 'repeat(4, 1fr)',
           gap: '24px',
           paddingTop: '60px',
-          borderTop: '1px solid rgba(255,255,255,0.08)',
+          borderTop: '1px solid var(--liftag-border-strong)',
         }"
       >
         <div v-for="(pair, i) in numbers" :key="i" class="reveal">
           <div
-            :style="{
-              fontFamily: '\'JetBrains Mono\', monospace',
-              fontWeight: 800,
-              fontSize: 'clamp(32px, 3.6vw, 48px)',
-              color: '#CCFF00',
-              letterSpacing: '-0.02em',
-              lineHeight: 1,
-            }"
+            class="stat-num"
+            style="--stat-num-size: clamp(32px, 3.6vw, 48px);"
           >
             {{ pair.n }}
           </div>
-          <div class="protocol" :style="{ color: '#666', marginTop: '10px', fontSize: '10px' }">
-            {{ pair.l }}
-          </div>
+          <div class="stat-label">{{ pair.l }}</div>
         </div>
       </div>
     </div>
@@ -398,6 +354,23 @@ onBeforeUnmount(() => {
     box-shadow 350ms cubic-bezier(0.16, 1, 0.3, 1),
     border-color 220ms ease;
   transition-delay: 0ms, 0ms, 0ms, 0ms, 0ms;
+}
+
+.lifters-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.42)),
+    rgba(0, 0, 0, 0.22);
+  opacity: 1;
+  transition: opacity 460ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lifters-card:hover::after {
+  opacity: 0.18;
 }
 
 .lifters-card.is-visible {
@@ -421,10 +394,12 @@ onBeforeUnmount(() => {
 
 .lifters-card-image {
   object-position: var(--img-x, 50%) var(--img-y, 50%);
+  animation: liftersScreenshotPan var(--img-pan-duration, 5.8s) cubic-bezier(0.45, 0, 0.2, 1) infinite;
+  animation-play-state: paused;
 }
 
 .lifters-card:hover .lifters-card-image {
-  animation: liftersScreenshotPan var(--img-pan-duration, 5.8s) cubic-bezier(0.45, 0, 0.2, 1) infinite;
+  animation-play-state: running;
 }
 
 @keyframes liftersScreenshotPan {

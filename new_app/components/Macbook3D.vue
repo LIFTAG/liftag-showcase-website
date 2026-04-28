@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
+import { useSharedMouse } from '../composables/useSharedMouse'
 
 const props = withDefaults(defineProps<{
   screenshotSrc: string
@@ -421,13 +422,10 @@ function initMacbook() {
 
   setVideoSource(props.videoSrc)
 
-  const onMouseMove = (event: MouseEvent) => {
-    const mx = (event.clientX / window.innerWidth - 0.5) * 2
-    const my = (event.clientY / window.innerHeight - 0.5) * 2
-    targetTiltY = -0.06 + mx * 0.18
-    targetTiltX = -my * 0.05
-  }
-  window.addEventListener('mousemove', onMouseMove, { passive: true })
+  // Shared singleton — replaces a per-instance window mousemove listener.
+  // animate() reads sharedMouse.latest each frame; tilt result is identical
+  // because targetTilt is lerped, not driven by per-event deltas.
+  const sharedMouse = useSharedMouse()
 
   const animate = () => {
     if (!isVisible) {
@@ -435,6 +433,13 @@ function initMacbook() {
       return
     }
     animId = requestAnimationFrame(animate)
+
+    // Skip until first real mouse event — otherwise (0,0) pulls the laptop
+    // away from its -0.06 rest yaw immediately on visibility.
+    if (sharedMouse.samples.length > 0) {
+      targetTiltY = -0.06 + sharedMouse.latest.mx * 0.18
+      targetTiltX = -sharedMouse.latest.my * 0.05
+    }
 
     currentOpen += (targetOpen - currentOpen) * 0.14
     currentTiltX += (targetTiltX - currentTiltX) * 0.06
@@ -473,7 +478,6 @@ function initMacbook() {
   window.addEventListener('resize', onResize, { passive: true })
 
   cleanup = () => {
-    window.removeEventListener('mousemove', onMouseMove)
     window.removeEventListener('resize', onResize)
     visObserver.disconnect()
     isVisible = false

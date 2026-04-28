@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
+import { useSharedMouse, delayedSampleAt } from '../composables/useSharedMouse'
 
 const props = withDefaults(defineProps<{
   screenshotSrc: string
   tiltDelayMs?: number
   screenTransition?: boolean
   screenTransitionDirection?: 'up' | 'down' | 'left' | 'right'
+  // Skip shadow casting and lower DPR cap for cheaper rendering on background
+  // phones where the visual fidelity loss is imperceptible.
+  lite?: boolean
 }>(), {
   tiltDelayMs: 0,
   screenTransition: false,
   screenTransitionDirection: 'up',
+  lite: false,
 })
 
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -28,15 +33,18 @@ function initPhone() {
   const width = Math.max(container.clientWidth, 1)
   const height = Math.max(container.clientHeight, 1)
 
+  const isLite = props.lite
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
     alpha: true,
   })
   renderer.setSize(width, height)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+  // Background phones cap at 1.25 DPR — they're at scale 0.6-0.7 and lower
+  // opacity, so the resolution drop is invisible. Main phone keeps DPR 2.
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isLite ? 1.25 : 2))
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.4
-  renderer.shadowMap.enabled = true
+  renderer.shadowMap.enabled = !isLite
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
   container.appendChild(renderer.domElement)
 
@@ -48,29 +56,33 @@ function initPhone() {
 
   const keyLight = new THREE.DirectionalLight(0xffffff, 1.5)
   keyLight.position.set(2, 3, 5)
-  keyLight.castShadow = true
-  keyLight.shadow.mapSize.width = 1024
-  keyLight.shadow.mapSize.height = 1024
-  keyLight.shadow.camera.near = 0.5
-  keyLight.shadow.camera.far = 15
-  keyLight.shadow.camera.left = -2
-  keyLight.shadow.camera.right = 2
-  keyLight.shadow.camera.top = 3
-  keyLight.shadow.camera.bottom = -3
-  keyLight.shadow.radius = 6
+  keyLight.castShadow = !isLite
+  if (!isLite) {
+    keyLight.shadow.mapSize.width = 1024
+    keyLight.shadow.mapSize.height = 1024
+    keyLight.shadow.camera.near = 0.5
+    keyLight.shadow.camera.far = 15
+    keyLight.shadow.camera.left = -2
+    keyLight.shadow.camera.right = 2
+    keyLight.shadow.camera.top = 3
+    keyLight.shadow.camera.bottom = -3
+    keyLight.shadow.radius = 6
+  }
   scene.add(keyLight)
 
   const fillLight = new THREE.DirectionalLight(0x8899cc, 0.3)
   fillLight.position.set(-3, 1, 3)
   scene.add(fillLight)
 
-  const shadowPlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(4, 6),
-    new THREE.ShadowMaterial({ opacity: 0.35 }),
-  )
-  shadowPlane.position.z = -0.15
-  shadowPlane.receiveShadow = true
-  scene.add(shadowPlane)
+  if (!isLite) {
+    const shadowPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(4, 6),
+      new THREE.ShadowMaterial({ opacity: 0.35 }),
+    )
+    shadowPlane.position.z = -0.15
+    shadowPlane.receiveShadow = true
+    scene.add(shadowPlane)
+  }
 
   const W = 0.95
   const H = 1.95
@@ -114,7 +126,7 @@ function initPhone() {
     clearcoatRoughness: 0.15,
   })
   const body = new THREE.Mesh(bodyGeo, bodyMat)
-  body.castShadow = true
+  body.castShadow = !isLite
 
   const scrW = W - BEZEL * 2
   const scrH = H - BEZEL * 2
@@ -426,7 +438,11 @@ function initPhone() {
   let currentRotY = -0.12
   let animId = 0
   let isVisible = false
-  const pointerSamples: Array<{ time: number, mx: number, my: number }> = []
+  // Shared singleton — replaces a per-instance window mousemove listener.
+  // animate() reads from sharedMouse.latest (delay = 0) or interpolates from
+  // sharedMouse.samples (delay > 0), so behaviour matches the original to
+  // within one rAF frame.
+  const sharedMouse = useSharedMouse()
 
   function applyPointerTilt(mx: number, my: number) {
     targetRotY = mx * 0.35
@@ -434,43 +450,6 @@ function initPhone() {
     keyLight.position.x = 2 + mx * 1.5
     keyLight.position.y = 3 - my
   }
-
-  function delayedPointerSample(time: number) {
-    if (!pointerSamples.length) return null
-
-    while (pointerSamples.length > 2 && pointerSamples[1].time <= time) {
-      pointerSamples.shift()
-    }
-
-    const previous = pointerSamples[0]
-    const next = pointerSamples[1]
-    if (time < previous.time) return null
-    if (!next) return previous
-
-    const t = Math.min(1, Math.max(0, (time - previous.time) / Math.max(1, next.time - previous.time)))
-    return {
-      time,
-      mx: previous.mx + (next.mx - previous.mx) * t,
-      my: previous.my + (next.my - previous.my) * t,
-    }
-  }
-
-  const onMouseMove = (event: MouseEvent) => {
-    if (gyroActive) return
-
-    const mx = (event.clientX / window.innerWidth - 0.5) * 2
-    const my = (event.clientY / window.innerHeight - 0.5) * 2
-    const delay = Math.max(0, props.tiltDelayMs)
-
-    if (delay > 0) {
-      pointerSamples.push({ time: performance.now(), mx, my })
-      if (pointerSamples.length > 80) pointerSamples.shift()
-      return
-    }
-
-    applyPointerTilt(mx, my)
-  }
-  window.addEventListener('mousemove', onMouseMove)
 
   const onDeviceOrientation = (event: DeviceOrientationEvent) => {
     if (event.gamma == null || event.beta == null) return
@@ -517,10 +496,16 @@ function initPhone() {
     }
 
     animId = requestAnimationFrame(animate)
-    const delay = Math.max(0, props.tiltDelayMs)
-    if (!gyroActive && delay > 0) {
-      const delayed = delayedPointerSample(performance.now() - delay)
-      if (delayed) applyPointerTilt(delayed.mx, delayed.my)
+    if (!gyroActive) {
+      const delay = Math.max(0, props.tiltDelayMs)
+      if (delay > 0) {
+        const delayed = delayedSampleAt(sharedMouse.samples, performance.now() - delay)
+        if (delayed) applyPointerTilt(delayed.mx, delayed.my)
+      } else if (sharedMouse.samples.length > 0) {
+        // Skip until first real mouse event — otherwise (0,0) pulls the phone
+        // away from its rest pose immediately on visibility.
+        applyPointerTilt(sharedMouse.latest.mx, sharedMouse.latest.my)
+      }
     }
 
     currentRotX += (targetRotX - currentRotX) * 0.06
@@ -551,7 +536,6 @@ function initPhone() {
   window.addEventListener('resize', onResize, { passive: true })
 
   cleanup = () => {
-    window.removeEventListener('mousemove', onMouseMove)
     window.removeEventListener('resize', onResize)
     gyroCleanup?.()
     visObserver.disconnect()

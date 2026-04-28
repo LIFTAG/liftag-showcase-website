@@ -5,7 +5,11 @@ const stageRef = ref<HTMLElement | null>(null)
 const openProgress = ref(0)
 const entered = ref(false)
 
-const rawMouse = { x: 0, y: 0 }
+// Shared singleton — no per-component window listener. useLerp's rAF reads
+// rawMouse.x/y each frame, so pointing it at the shared `latest` object
+// (whose .x/.y are kept in sync by the single global handler) gives identical
+// behaviour at zero per-component cost.
+const rawMouse = useSharedMouse().latest
 const mouse = useLerp(rawMouse, 0.06)
 
 const c1 = computed(() => ({
@@ -21,7 +25,12 @@ const c3 = computed(() => ({
   y: mouse.value.y * -12,
 }))
 
-const chipSpread = computed(() => smoothstep((openProgress.value - 0.02) / 0.34))
+const chipSpreadStart = 0.12
+const chipSpreadEnd = 0.92
+
+const chipSpread = computed(() => smootherstep(
+  (openProgress.value - chipSpreadStart) / (chipSpreadEnd - chipSpreadStart),
+))
 
 let observer: IntersectionObserver | null = null
 let rafId = 0
@@ -36,6 +45,11 @@ function clamp01(v: number) {
 function smoothstep(v: number) {
   const t = clamp01(v)
   return t * t * (3 - 2 * t)
+}
+
+function smootherstep(v: number) {
+  const t = clamp01(v)
+  return t * t * t * (t * (t * 6 - 15) + 10)
 }
 
 function exitSlice(p: number, start: number, duration: number) {
@@ -126,11 +140,6 @@ const features = [
   },
 ]
 
-function onMouseMove(e: MouseEvent) {
-  rawMouse.x = (e.clientX / window.innerWidth - 0.5) * 2
-  rawMouse.y = (e.clientY / window.innerHeight - 0.5) * 2
-}
-
 onMounted(() => {
   reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -150,8 +159,6 @@ onMounted(() => {
 
   if (sectionRef.value) observer.observe(sectionRef.value)
 
-  window.addEventListener('mousemove', onMouseMove, { passive: true })
-
   // Set initial value once mounted
   tick()
 })
@@ -159,7 +166,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   cancelAnimationFrame(rafId)
   observer?.disconnect()
-  window.removeEventListener('mousemove', onMouseMove)
 })
 </script>
 

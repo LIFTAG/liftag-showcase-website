@@ -47,6 +47,7 @@ const active = ref(0)
 const coachPulse = ref(0)
 const sectionRef = ref<HTMLElement | null>(null)
 const sectionInView = ref(false)
+const cursorGlowActive = ref(false)
 const trainerScreenCycleMs = 4200
 const f = computed(() => features[active.value])
 
@@ -76,6 +77,13 @@ const exitingTrainer = ref<number | null>(null)
 
 let autoCycle: ReturnType<typeof setInterval> | null = null
 let exitTimer: ReturnType<typeof setTimeout> | null = null
+
+function emitCursorGlowTone(active: boolean) {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new CustomEvent('liftag:cursor-glow-tone', {
+    detail: { tone: active ? 'red' : 'green' },
+  }))
+}
 
 function setActive(index: number) {
   if (active.value === index) return
@@ -133,8 +141,18 @@ onMounted(() => {
     { threshold: 0.34 },
   )
   observer.observe(sectionRef.value)
+  const cursorObserver = new IntersectionObserver(
+    ([entry]) => {
+      cursorGlowActive.value = entry?.isIntersecting ?? false
+    },
+    { rootMargin: '-42% 0px -42% 0px', threshold: 0 },
+  )
+  cursorObserver.observe(sectionRef.value)
 
-  onBeforeUnmount(() => observer.disconnect())
+  onBeforeUnmount(() => {
+    observer.disconnect()
+    cursorObserver.disconnect()
+  })
 })
 
 watch(sectionInView, (visible) => {
@@ -142,8 +160,11 @@ watch(sectionInView, (visible) => {
   else clearAutoCycle()
 }, { immediate: true })
 
+watch(cursorGlowActive, emitCursorGlowTone, { immediate: true })
+
 onBeforeUnmount(() => {
   clearAutoCycle()
+  emitCursorGlowTone(false)
   if (exitTimer) clearTimeout(exitTimer)
 })
 </script>
@@ -176,50 +197,19 @@ onBeforeUnmount(() => {
     />
     <!-- Left ambient glow -->
     <div
-      :style="{
-        position: 'absolute',
-        top: '20%',
-        left: '-10%',
-        width: '500px',
-        height: '500px',
-        background: 'radial-gradient(circle, rgba(255,45,85,0.08), transparent 60%)',
-        filter: 'blur(80px)',
-      }"
+      class="section-glow is-red"
+      style="--glow-left: -10%; --glow-right: auto; --glow-size: 500px; --glow-blur: 80px;"
     />
 
     <div class="container" style="position: relative; z-index: 1;">
-      <!-- Header -->
-      <div
-        class="section-header-2col"
-        :style="{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '60px',
-          alignItems: 'end',
-          marginBottom: '80px',
-        }"
-      >
-        <div>
-          <Eyebrow color="#FF2D55">▸ FOR TRAINERS &amp; COACHES</Eyebrow>
-          <SectionTitle>
-            Your clients,<br /><span style="color: #FF2D55;">quantified.</span>
-          </SectionTitle>
-        </div>
-        <p
-          class="reveal"
-          :style="{
-            color: 'rgba(255,255,255,0.6)',
-            fontSize: '17px',
-            fontWeight: 300,
-            lineHeight: 1.6,
-            maxWidth: '440px',
-            margin: 0,
-          }"
-        >
-          LIFTAG is a full coaching platform, not just a directory. Build your profile, get
-          discovered, share plans, and track every client's progress in one place.
-        </p>
-      </div>
+      <SectionHeader eyebrow-color="#FF2D55" :copy-max="440">
+        <template #eyebrow>▸ FOR TRAINERS &amp; COACHES</template>
+        <template #title>
+          Your clients,<br /><span style="color: #FF2D55;">quantified.</span>
+        </template>
+        LIFTAG is a full coaching platform, not just a directory. Build your profile, get
+        discovered, share plans, and track every client's progress in one place.
+      </SectionHeader>
 
       <!-- Mobile horizontal tab strip — only visible on mobile -->
       <div

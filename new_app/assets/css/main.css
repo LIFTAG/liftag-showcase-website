@@ -24,7 +24,13 @@
   --liftag-fg-muted: #ADAAAA;
   --liftag-fg-tertiary: #A1A1A1;
   --liftag-fg-dim: rgba(255, 255, 255, 0.5);
+  --liftag-fg-soft: rgba(255, 255, 255, 0.6);
   --liftag-fg-mid: rgba(255, 255, 255, 0.7);
+
+  /* Hairlines on dark surfaces — ascending visibility */
+  --liftag-border-faint: rgba(255, 255, 255, 0.04);
+  --liftag-border-soft: rgba(255, 255, 255, 0.06);
+  --liftag-border-strong: rgba(255, 255, 255, 0.08);
 
   /* Status */
   --liftag-success: #22C55E;
@@ -219,6 +225,68 @@ section {
   max-width: 1240px;
   margin: 0 auto;
   padding: 0 32px;
+}
+
+/* ── Section atoms ── */
+
+/* Soft body paragraph used in section headers */
+.copy-soft {
+  color: var(--liftag-fg-soft);
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Ambient radial-glow blob inside a section.
+   Size + position via custom props; color via .is-green / .is-red modifiers.
+   Default: 600px green blob in the upper-right. */
+.section-glow {
+  position: absolute;
+  top: var(--glow-top, 20%);
+  left: var(--glow-left, auto);
+  right: var(--glow-right, -10%);
+  width: var(--glow-size, 600px);
+  height: var(--glow-size, 600px);
+  filter: blur(var(--glow-blur, 70px));
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    var(--glow-color, rgba(204, 255, 0, 0.08)),
+    transparent var(--glow-falloff, 60%)
+  );
+}
+.section-glow.is-green {
+  --glow-color: rgba(204, 255, 0, 0.08);
+}
+.section-glow.is-red {
+  --glow-color: rgba(255, 45, 85, 0.08);
+}
+.section-glow.is-centered {
+  /* Position the glow's *center* at --glow-top / --glow-left. */
+  transform: translate(-50%, -50%);
+}
+
+/* Stat number — JB Mono 800, accent color, clamped scale.
+   Override size with --stat-num-size, color with --stat-color. */
+.stat-num {
+  font-family: var(--liftag-font-mono);
+  font-weight: 800;
+  font-size: var(--stat-num-size, clamp(28px, 3.4vw, 46px));
+  color: var(--stat-color, var(--liftag-primary));
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+/* Stat caption — pairs with .stat-num. Override color via inline style if needed. */
+.stat-label {
+  font-family: var(--liftag-font-mono);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--liftag-fg-tertiary);
+  margin-top: 10px;
 }
 
 /* Reveal-on-scroll */
@@ -437,14 +505,44 @@ section {
   .nav-mobile-toggle {
     display: flex !important;
   }
+  /* Let the hero grow with stacked content instead of clamping to 100vh —
+     otherwise the phone column gets clipped under `overflow: hidden`. */
+  .hero-section {
+    min-height: auto !important;
+    padding-top: 88px !important;
+    padding-bottom: 64px !important;
+  }
   .hero-grid {
     grid-template-columns: 1fr !important;
+    gap: 24px !important;
+    min-height: 0 !important;
   }
+  /* Hero phone showcase on mobile: keep ONE phone (front-center, nth-child 3),
+     drop the side phones, floating chips and parallax math. The right grid
+     cell becomes a flat container so the lone phone sits centered below the
+     copy without needing the desktop's absolute-positioning calculus. */
   .hero-phones {
+    height: 460px !important;
+    perspective: none !important;
+    transform: none !important;
+    margin: 0 !important;
+  }
+  .hero-phones > div:nth-child(1),
+  .hero-phones > div:nth-child(2),
+  .hero-phones > div:nth-child(4),
+  .hero-phones > div:nth-child(5),
+  .hero-phones > div:nth-child(6) {
     display: none !important;
   }
+  .hero-phones > div:nth-child(3) {
+    top: 0 !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    opacity: 1 !important;
+  }
   .hero-stats {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 12px !important;
   }
   .hero-badges {
     flex-direction: row !important;
@@ -470,7 +568,8 @@ section {
     display: none !important;
   }
   .footer-grid {
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
   }
   .display {
     font-size: clamp(44px, 12vw, 72px) !important;
@@ -548,16 +647,6 @@ section {
     border-right: none !important;
   }
 
-  /* ScanSection — stack image above steps, shrink phone area */
-  .scan-grid-2col {
-    grid-template-columns: 1fr !important;
-    gap: 32px !important;
-    margin-top: 48px !important;
-  }
-  .scan-phone-area {
-    height: 480px !important;
-  }
-
   /* GymsSection — center phone column shrink + clip overflow */
   .gyms-phones-center {
     height: 440px !important;
@@ -570,27 +659,29 @@ section {
     display: flex !important;
   }
 
-  /* HowItWorks — runway shorter on mobile, glass pane fits viewport */
+  /* HowItWorks — one-screen horizontal snap carousel on mobile */
   .hiw-section {
-    height: 240vh !important;
+    height: 100svh !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
   }
   .hiw-glass-pane {
-    max-width: 92vw !important;
-    padding: 32px 20px 28px !important;
+    max-width: min(88vw, 360px) !important;
+    padding: 26px 18px 24px !important;
   }
   .hiw-chart-card {
     width: 100% !important;
-    max-width: 280px !important;
+    max-width: 260px !important;
   }
   .hiw-panel {
-    padding: 0 16px !important;
+    padding: 82px 18px 74px !important;
   }
   .hiw-header {
-    top: 24px !important;
+    top: max(20px, calc(env(safe-area-inset-top) + 14px)) !important;
     left: 20px !important;
   }
   .hiw-dots {
-    bottom: 24px !important;
+    bottom: max(18px, calc(env(safe-area-inset-bottom) + 12px)) !important;
   }
 
   /* Roadmap — slightly tighter padding */
@@ -659,5 +750,37 @@ section {
   .hiw-log-card {
     width: 100% !important;
     max-width: 240px !important;
+  }
+  .hero-phones {
+    height: 420px !important;
+  }
+  .hero-stats {
+    gap: 8px !important;
+  }
+}
+
+/* Touch / no-hover devices — hide pointer-driven decoration that just burns
+   GPU on mobile, and unpause hover-gated animations that would otherwise
+   never play without a cursor. */
+@media (hover: none) {
+  .cursor-glow {
+    display: none !important;
+  }
+  .lifters-card-image {
+    animation-play-state: running !important;
+  }
+}
+
+/* Tighter touch targets — bump small interactive bits to ≥44px on mobile.
+   Targets the few obvious offenders without sweeping every button. */
+@media (max-width: 768px) {
+  .lifters-card {
+    min-height: 320px !important;
+  }
+  .nav-mobile-toggle {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 }

@@ -2,11 +2,12 @@
 const step = ref(0)
 const phoneSwipeDirection = ref<'left' | 'right'>('left')
 const hoveredStep = ref<number | null>(null)
-const cyclePulse = ref(0)
+const exitingStep = ref<number | null>(null)
 const scanCycleMs = 3200
 const inView = ref(false)
 const sectionRef = ref<HTMLElement | null>(null)
 let cycleInterval: ReturnType<typeof setInterval> | null = null
+let exitTimer: ReturnType<typeof setTimeout> | null = null
 
 const steps = [
   {
@@ -30,9 +31,14 @@ const steps = [
 
 function setStep(nextStep: number) {
   if (nextStep === step.value) return
+  exitingStep.value = step.value
+  if (exitTimer) clearTimeout(exitTimer)
+  exitTimer = setTimeout(() => {
+    exitingStep.value = null
+    exitTimer = null
+  }, 320)
   phoneSwipeDirection.value = nextStep > step.value ? 'left' : 'right'
   step.value = nextStep
-  cyclePulse.value += 1
 }
 
 function setHoveredStep(nextStep: number) {
@@ -71,7 +77,6 @@ function clearCycleInterval() {
 
 function startCycleInterval() {
   clearCycleInterval()
-  cyclePulse.value += 1
   cycleInterval = setInterval(() => {
     if (hoveredStep.value !== null) return
     setStep((step.value + 1) % 2)
@@ -85,6 +90,7 @@ watch(inView, (val) => {
 
 onBeforeUnmount(() => {
   clearCycleInterval()
+  if (exitTimer) clearTimeout(exitTimer)
 })
 </script>
 
@@ -92,6 +98,8 @@ onBeforeUnmount(() => {
   <section
     id="scan"
     ref="sectionRef"
+    class="scan-section"
+    :class="{ 'is-live': inView, 'is-hover-locked': hoveredStep !== null }"
     :style="{
       background: '#000',
       padding: '160px 0',
@@ -160,14 +168,6 @@ onBeforeUnmount(() => {
                 <div v-if="step === 0" class="scan-phone-laser-overlay" aria-hidden="true">
                   <span class="scan-phone-laser-line" />
                 </div>
-                <div
-                  class="scan-cycle-indicator"
-                  :class="{ 'is-paused': hoveredStep !== null }"
-                  :style="{ '--cycle-ms': `${scanCycleMs}ms` }"
-                  aria-hidden="true"
-                >
-                  <span :key="`scan-cycle-${cyclePulse}`" />
-                </div>
               </div>
             </div>
           </div>
@@ -223,11 +223,13 @@ onBeforeUnmount(() => {
               v-for="(s, i) in steps"
               :key="i"
               class="scan-step-row"
+              :class="{ 'is-active': step === i, 'is-exiting': exitingStep === i, 'has-row-below': i < steps.length - 1 }"
               :style="{
+                '--cycle-ms': `${scanCycleMs}ms`,
                 display: 'grid',
                 gridTemplateColumns: '80px 1fr',
                 gap: '24px',
-                padding: '32px 0',
+                padding: '32px 0 32px 20px',
                 borderTop: '1px solid rgba(255,255,255,0.08)',
                 opacity: step === i ? 1 : 0.4,
                 transform: step === i
@@ -389,7 +391,68 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .scan-step-row {
+  position: relative;
+  overflow: visible;
+  border-left: 2px solid transparent;
   will-change: transform, opacity;
+}
+
+.scan-step-row::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  left: 6px;
+  width: 2px;
+  border-radius: 999px;
+  pointer-events: none;
+  background: rgba(204, 255, 0, 0.2);
+  opacity: 0;
+  transform: translateZ(0);
+  clip-path: inset(0 0 55% 0);
+  transition: opacity 260ms ease, clip-path 260ms ease, background 260ms ease;
+}
+
+/* Rows below the active one are translated down 28px while inactive,
+   creating a visual gap below the bar. Extend the bar past the row's
+   bottom so it kisses the visually-shifted next row's top border.
+   (-29px = 28px shift + 1px original overshoot.) */
+.scan-step-row.has-row-below::before {
+  bottom: -29px;
+}
+
+.scan-step-row.is-active::before {
+  opacity: 1;
+  background: linear-gradient(180deg, #f0ff8a 0%, #ccff00 72%, rgba(204, 255, 0, 0.4) 100%);
+  box-shadow:
+    0 0 10px rgba(204, 255, 0, 0.62),
+    0 0 22px rgba(204, 255, 0, 0.24);
+  clip-path: inset(0 0 100% 0);
+  animation: scanStepLineLoad calc(var(--cycle-ms, 3200ms) - 160ms) linear forwards;
+}
+
+.scan-step-row.is-exiting::before {
+  opacity: 1;
+  background: linear-gradient(180deg, #f0ff8a 0%, #ccff00 72%, rgba(204, 255, 0, 0.28) 100%);
+  box-shadow:
+    0 0 8px rgba(204, 255, 0, 0.44),
+    0 0 18px rgba(204, 255, 0, 0.18);
+  transform: translateZ(0);
+  clip-path: inset(0 0 0 0);
+  animation: scanStepLineExit 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.scan-section:not(.is-live) .scan-step-row.is-active::before {
+  animation-play-state: paused;
+}
+
+.scan-section.is-hover-locked .scan-step-row.is-active::before {
+  animation: none;
+  opacity: 0.46;
+  clip-path: inset(0 0 0 0);
+  box-shadow:
+    0 0 8px rgba(204, 255, 0, 0.32),
+    0 0 16px rgba(204, 255, 0, 0.14);
 }
 
 .scan-phone-float {
@@ -405,48 +468,11 @@ onBeforeUnmount(() => {
   will-change: transform;
 }
 
-.scan-cycle-indicator {
-  position: absolute;
-  left: 50%;
-  bottom: -26px;
-  z-index: 15;
-  width: 92px;
-  height: 3px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  opacity: 1;
-  transform: translateX(-50%);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-  transition: opacity 260ms ease, filter 260ms ease;
-}
-
-.scan-cycle-indicator span {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, rgba(204, 255, 0, 0.48), #ccff00);
-  box-shadow: 0 0 12px rgba(204, 255, 0, 0.44);
-  transform: scaleX(0);
-  transform-origin: left center;
-  animation: scanCycleFill var(--cycle-ms, 3200ms) linear forwards;
-}
-
-.scan-cycle-indicator.is-paused {
-  opacity: 0.34;
-  filter: saturate(0.65);
-}
-
-.scan-cycle-indicator.is-paused span {
-  animation-play-state: paused;
-}
-
 .scan-phone-laser-overlay {
   position: absolute;
-  top: 35.5%;
-  left: 20%;
-  right: 20%;
+  top: 34.8%;
+  left: 21%;
+  right: 21%;
   aspect-ratio: 1;
   overflow: hidden;
   pointer-events: none;
@@ -518,9 +544,27 @@ onBeforeUnmount(() => {
   }
 }
 
-@keyframes scanCycleFill {
+@keyframes scanStepLineLoad {
   to {
-    transform: scaleX(1);
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes scanStepLineExit {
+  0% {
+    opacity: 1;
+    transform: translateZ(0);
+    clip-path: inset(0 0 0 0);
+  }
+
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateZ(0);
+    clip-path: inset(100% 0 0 0);
   }
 }
 
@@ -531,9 +575,18 @@ onBeforeUnmount(() => {
   }
 
   .scan-phone-float,
-  .scan-cycle-indicator span,
   .scan-phone-laser-line {
     animation: none;
+  }
+
+  .scan-step-row.is-active::before {
+    animation: none;
+    clip-path: inset(0 0 0 0);
+  }
+
+  .scan-step-row.is-exiting::before {
+    animation: none;
+    opacity: 0;
   }
 }
 </style>

@@ -1,0 +1,13 @@
+{
+  "name": "liftag-showcase-website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm --dir new_app build",
+    "dev": "pnpm --dir new_app dev",
+    "generate": "pnpm --dir new_app generate",
+    "preview": "pnpm --dir new_app preview",
+    "start": "pnpm --dir new_app start",
+    "typecheck": "pnpm --dir new_app typecheck"
+  }
+}

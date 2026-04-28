@@ -28,6 +28,7 @@ let scrollP = 0
 let pointerX = 50
 let pointerY = 50
 let stageScale = 1
+let mobileMergeLayout = false
 let rafId = 0
 let observer: IntersectionObserver | null = null
 let stageResizeObserver: ResizeObserver | null = null
@@ -35,6 +36,22 @@ let isVisible = false
 let reduceMotion = false
 let lastMergeCss = -1
 let lastFinaleCss = -1
+let lastExitVarsKey = ''
+
+// Per-element last-applied style cache — avoids re-serializing identical
+// transform/opacity strings to ~24 elements every rAF frame.
+const lastIconTransform: string[] = []
+const lastIconOpacity: string[] = []
+const lastIconZ: string[] = []
+const lastCaptionTransform: string[] = []
+const lastCaptionOpacity: string[] = []
+const lastVectorTransform: string[] = []
+const lastVectorOpacity: string[] = []
+const lastVectorSparkX: string[] = []
+const lastVectorSparkOpacity: string[] = []
+let lastLogoTransform = ''
+let lastLogoOpacity = ''
+let lastLogoSpin = ''
 
 const mockApps: MockApp[] = [
   {
@@ -178,13 +195,17 @@ function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t
 }
 
-function logoSpinDegrees(merge: number) {
-  const t = smootherstep((merge - 0.68) / 0.36)
-  if (t >= 0.985) return 0
+function logoIntroProgress(p: number) {
+  return smootherstep((p - 0.68) / 0.18)
+}
 
-  const settle = smoothstep((t - 0.72) / 0.28)
+function logoSpinDegrees(intro: number) {
+  if (intro <= 0) return 0
+  if (intro >= 0.995) return 360
+
+  const settle = smoothstep((intro - 0.72) / 0.28)
   const overshoot = Math.sin(settle * Math.PI * 2.4) * 8 * (1 - settle)
-  return t * 360 + overshoot
+  return intro * 360 + overshoot
 }
 
 function getScrollProgress() {
@@ -202,14 +223,11 @@ function updateStageScale() {
 
   const rect = stage.getBoundingClientRect()
   stageScale = clamp(rect.width / 860, 0.58, 1)
+  mobileMergeLayout = window.innerWidth <= 620
 }
 
 function mergeProgress(p: number) {
   return smoothstep((p - 0.22) / 0.58)
-}
-
-function finaleProgress(p: number) {
-  return smoothstep((p - 0.7) / 0.24)
 }
 
 function appMergeProgress(app: MockApp, p: number) {
@@ -224,8 +242,10 @@ function appMotion(app: MockApp, p: number, finale: number, now: number) {
   const pointerDriftY = (pointerY - 50) * app.depth * 0.22 * unmerged
   const floatX = Math.cos(now * 0.0011 + app.delay) * 3.5 * unmerged
   const floatY = Math.sin(now * 0.0014 + app.delay * 0.8) * 6 * unmerged
-  const x = (app.x * stageScale * orbitBreath + pointerDriftX + floatX) * unmerged
-  const y = (app.y * stageScale * orbitBreath + pointerDriftY + floatY) * unmerged
+  const orbitXScale = mobileMergeLayout ? 0.62 : 1
+  const orbitYScale = mobileMergeLayout ? 1.14 : 1
+  const x = (app.x * stageScale * orbitXScale * orbitBreath + pointerDriftX + floatX) * unmerged
+  const y = (app.y * stageScale * orbitYScale * orbitBreath + pointerDriftY + floatY) * unmerged
   const scale = 0.98 - merge * 0.46 + finale * 0.035
   const rotate = app.rotate * unmerged + (pointerX - 50) * 0.03 * app.depth * unmerged
 
@@ -241,9 +261,21 @@ function applyAppStyles(app: MockApp, index: number, p: number, finale: number, 
   const icon = iconEls[index]
 
   if (icon) {
-    icon.style.opacity = String(opacity)
-    icon.style.transform = `translate3d(calc(-50% + ${motion.x}px), calc(-50% + ${motion.y}px), 0) rotate(${motion.rotate}deg) scale(${motion.scale})`
-    icon.style.zIndex = String(Math.round(20 + app.depth * 10 - merge * 5))
+    const iconOpacityStr = String(opacity)
+    const iconTransformStr = `translate3d(calc(-50% + ${motion.x}px), calc(-50% + ${motion.y}px), 0) rotate(${motion.rotate}deg) scale(${motion.scale})`
+    const iconZStr = String(Math.round(20 + app.depth * 10 - merge * 5))
+    if (lastIconOpacity[index] !== iconOpacityStr) {
+      icon.style.opacity = iconOpacityStr
+      lastIconOpacity[index] = iconOpacityStr
+    }
+    if (lastIconTransform[index] !== iconTransformStr) {
+      icon.style.transform = iconTransformStr
+      lastIconTransform[index] = iconTransformStr
+    }
+    if (lastIconZ[index] !== iconZStr) {
+      icon.style.zIndex = iconZStr
+      lastIconZ[index] = iconZStr
+    }
   }
 
   const caption = captionEls[index]
@@ -252,8 +284,16 @@ function applyAppStyles(app: MockApp, index: number, p: number, finale: number, 
     const captionY = motion.y + 50 + merge * 12
     const captionScale = 0.98 - merge * 0.16
 
-    caption.style.opacity = String(captionOpacity)
-    caption.style.transform = `translate3d(calc(-50% + ${motion.x}px), ${captionY}px, 0) rotate(${motion.rotate}deg) scale(${captionScale})`
+    const captionOpacityStr = String(captionOpacity)
+    const captionTransformStr = `translate3d(calc(-50% + ${motion.x}px), ${captionY}px, 0) rotate(${motion.rotate}deg) scale(${captionScale})`
+    if (lastCaptionOpacity[index] !== captionOpacityStr) {
+      caption.style.opacity = captionOpacityStr
+      lastCaptionOpacity[index] = captionOpacityStr
+    }
+    if (lastCaptionTransform[index] !== captionTransformStr) {
+      caption.style.transform = captionTransformStr
+      lastCaptionTransform[index] = captionTransformStr
+    }
   }
 
   const vector = vectorEls[index]
@@ -275,35 +315,75 @@ function applyAppStyles(app: MockApp, index: number, p: number, finale: number, 
   const sparkOpacity = show * (1 - vectorFade) * (0.34 + merge * 0.5)
   const alpha = show * (1 - vectorFade) * (0.34 + merge * 0.26)
 
-  vector.style.setProperty('--spark-x', `${sparkTravel}px`)
-  vector.style.setProperty('--spark-opacity', String(sparkOpacity))
-  vector.style.opacity = String(alpha)
-  vector.style.transform = `translate3d(${startX}px, ${startY}px, 0) rotate(${angle}deg) scaleX(${lineLen * draw})`
+  const sparkXStr = `${sparkTravel}px`
+  const sparkOpacityStr = String(sparkOpacity)
+  const vectorAlphaStr = String(alpha)
+  const vectorTransformStr = `translate3d(${startX}px, ${startY}px, 0) rotate(${angle}deg) scaleX(${lineLen * draw})`
+  if (lastVectorSparkX[index] !== sparkXStr) {
+    vector.style.setProperty('--spark-x', sparkXStr)
+    lastVectorSparkX[index] = sparkXStr
+  }
+  if (lastVectorSparkOpacity[index] !== sparkOpacityStr) {
+    vector.style.setProperty('--spark-opacity', sparkOpacityStr)
+    lastVectorSparkOpacity[index] = sparkOpacityStr
+  }
+  if (lastVectorOpacity[index] !== vectorAlphaStr) {
+    vector.style.opacity = vectorAlphaStr
+    lastVectorOpacity[index] = vectorAlphaStr
+  }
+  if (lastVectorTransform[index] !== vectorTransformStr) {
+    vector.style.transform = vectorTransformStr
+    lastVectorTransform[index] = vectorTransformStr
+  }
 }
 
-function applyLiftagStyle(merge: number, finale: number) {
+function applyLiftagStyle(merge: number, logoIntro: number, exitLogo: number) {
   const liftag = liftagRef.value
   if (!liftag) return
 
-  const appear = smootherstep((merge - 0.2) / 0.48)
-  const spin = logoSpinDegrees(merge)
+  const spin = logoSpinDegrees(logoIntro)
   const tiltX = -(pointerY - 50) * 0.035 * (0.2 + merge)
   const tiltY = (pointerX - 50) * 0.04 * (0.2 + merge)
-  const scale = 0.66 + appear * 0.36 + finale * 0.08
+  const scale = 0.62 + logoIntro * 0.44
 
-  liftag.style.setProperty('--logo-spin', `${spin}deg`)
-  liftag.style.opacity = String(appear)
-  liftag.style.transform = `translate3d(-50%, -50%, 0) perspective(900px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${scale})`
+  const spinStr = `${spin}deg`
+  const opacityStr = String(logoIntro * (1 - exitLogo))
+  const transformStr = `translate3d(-50%, -50%, 0) perspective(900px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${scale})`
+  if (lastLogoSpin !== spinStr) {
+    liftag.style.setProperty('--logo-spin', spinStr)
+    lastLogoSpin = spinStr
+  }
+  if (lastLogoOpacity !== opacityStr) {
+    liftag.style.opacity = opacityStr
+    lastLogoOpacity = opacityStr
+  }
+  if (lastLogoTransform !== transformStr) {
+    liftag.style.transform = transformStr
+    lastLogoTransform = transformStr
+  }
 }
 
 function updateAnimatedStyles(now = performance.now()) {
   const merge = mergeProgress(scrollP)
-  const finale = finaleProgress(scrollP)
+  const logoIntro = reduceMotion ? 1 : logoIntroProgress(scrollP)
+  const exit = reduceMotion ? 0 : smoothstep((scrollP - 0.94) / 0.06)
+  const copyEyebrowExit = reduceMotion ? 0 : smoothstep((scrollP - 0.9) / 0.08)
+  const copyTitleExit = reduceMotion ? 0 : smoothstep((scrollP - 0.91) / 0.08)
+  const copyTextExit = reduceMotion ? 0 : smoothstep((scrollP - 0.92) / 0.07)
+  const stageExit = reduceMotion ? 0 : smoothstep((scrollP - 0.96) / 0.04)
+  const logoExit = reduceMotion ? 0 : smoothstep((scrollP - 0.97) / 0.03)
+  const bgExit = reduceMotion ? 0 : smoothstep((scrollP - 0.92) / 0.08)
   const section = sectionRef.value
 
   if (section) {
     const mergeCss = Math.round(merge * 200) / 200
-    const finaleCss = Math.round(finale * 200) / 200
+    const finaleCss = Math.round(logoIntro * 200) / 200
+    const exitCss = Math.round(exit * 200) / 200
+    const copyEyebrowExitCss = Math.round(copyEyebrowExit * 200) / 200
+    const copyTitleExitCss = Math.round(copyTitleExit * 200) / 200
+    const copyTextExitCss = Math.round(copyTextExit * 200) / 200
+    const stageExitCss = Math.round(stageExit * 200) / 200
+    const bgExitCss = Math.round(bgExit * 200) / 200
 
     if (mergeCss !== lastMergeCss) {
       section.style.setProperty('--merge-p', String(mergeCss))
@@ -314,10 +394,23 @@ function updateAnimatedStyles(now = performance.now()) {
       section.style.setProperty('--finale-p', String(finaleCss))
       lastFinaleCss = finaleCss
     }
+
+    const exitVarsKey = `${exitCss}|${copyEyebrowExitCss}|${copyTitleExitCss}|${copyTextExitCss}|${stageExitCss}|${bgExitCss}`
+    if (exitVarsKey !== lastExitVarsKey) {
+      section.style.setProperty('--merge-exit-p', String(exitCss))
+      section.style.setProperty('--merge-exit-y', `${exitCss * -220}px`)
+      section.style.setProperty('--merge-exit-scale', String(1 - exitCss * 0.02))
+      section.style.setProperty('--merge-copy-eyebrow-exit', String(copyEyebrowExitCss))
+      section.style.setProperty('--merge-copy-title-exit', String(copyTitleExitCss))
+      section.style.setProperty('--merge-copy-text-exit', String(copyTextExitCss))
+      section.style.setProperty('--merge-stage-exit', String(stageExitCss))
+      section.style.setProperty('--merge-bg-exit', String(bgExitCss))
+      lastExitVarsKey = exitVarsKey
+    }
   }
 
-  mockApps.forEach((app, index) => applyAppStyles(app, index, scrollP, finale, now))
-  applyLiftagStyle(merge, finale)
+  mockApps.forEach((app, index) => applyAppStyles(app, index, scrollP, 0, now))
+  applyLiftagStyle(merge, logoIntro, logoExit)
 }
 
 function tick(now: number) {
@@ -388,6 +481,8 @@ onMounted(() => {
   observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       isVisible = entry.isIntersecting
+      const section = sectionRef.value
+      if (section) section.classList.toggle('is-offscreen', !isVisible)
       if (isVisible) {
         cancelAnimationFrame(rafId)
         rafId = requestAnimationFrame(tick)
@@ -433,8 +528,8 @@ onBeforeUnmount(() => {
 
       <div class="container app-merge-layout">
         <div class="merge-copy">
-          <Eyebrow>▸ ONE APP INSTEAD OF TEN</Eyebrow>
-          <SectionTitle :max="560">
+          <Eyebrow class="merge-copy-eyebrow">▸ ONE APP INSTEAD OF EIGHT</Eyebrow>
+          <SectionTitle class="merge-copy-title" :max="560">
             All the little gym apps, <span class="lime">folded into LIFTAG.</span>
           </SectionTitle>
           <p class="merge-copy-text reveal">
@@ -478,7 +573,7 @@ onBeforeUnmount(() => {
                 <g v-if="app.key === 'set'">
                   <rect x="12" y="9" width="24" height="30" rx="7" stroke-width="3.8" />
                   <path d="M19 18h10M19 25h10" stroke-width="3.8" />
-                  <path d="M18.5 33l4 4 8-9" stroke-width="3.4" />
+                  <path d="M20 33.5l3.1 3.1 6.4-7.2" stroke-width="3" />
                 </g>
                 <g v-else-if="app.key === 'timer'">
                   <circle cx="24" cy="26" r="14" stroke-width="4" />
@@ -547,6 +642,14 @@ onBeforeUnmount(() => {
 .app-merge-section {
   --merge-p: 0;
   --finale-p: 0;
+  --merge-exit-p: 0;
+  --merge-exit-y: 0px;
+  --merge-exit-scale: 1;
+  --merge-copy-eyebrow-exit: 0;
+  --merge-copy-title-exit: 0;
+  --merge-copy-text-exit: 0;
+  --merge-stage-exit: 0;
+  --merge-bg-exit: 0;
   position: relative;
   min-height: 260vh;
   background: #000;
@@ -567,10 +670,13 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  opacity: calc(1 - var(--merge-bg-exit) * 0.7);
   background:
     radial-gradient(520px circle at 66% 48%, rgba(204, 255, 0, calc(0.04 + var(--merge-p) * 0.08)), transparent 64%),
     radial-gradient(720px circle at 72% 50%, rgba(204, 255, 0, calc(0.05 + var(--merge-p) * 0.12)), transparent 68%),
     radial-gradient(580px circle at 20% 65%, rgba(255, 45, 85, 0.045), transparent 70%);
+  transform: translate3d(0, calc(var(--merge-exit-y) * 0.24), 0);
+  will-change: opacity, transform;
 }
 
 .merge-background-grid {
@@ -642,28 +748,52 @@ onBeforeUnmount(() => {
   gap: clamp(40px, 6vw, 92px);
   align-items: center;
   width: 100%;
+  transform: translate3d(0, var(--merge-exit-y), 0) scale(var(--merge-exit-scale));
+  transform-origin: center center;
+  will-change: transform;
 }
 
 .merge-copy {
   max-width: 620px;
 }
 
-.merge-copy-text {
+.app-merge-section .merge-copy-eyebrow,
+.app-merge-section .merge-copy-title,
+.app-merge-section .merge-copy-text,
+.app-merge-section .merge-stage {
+  will-change: opacity, transform;
+}
+
+.app-merge-section .merge-copy-eyebrow {
+  opacity: calc(1 - var(--merge-copy-eyebrow-exit));
+  transform: translate3d(0, calc(var(--merge-copy-eyebrow-exit) * -22px), 0);
+}
+
+.app-merge-section .merge-copy-title {
+  opacity: calc(1 - var(--merge-copy-title-exit));
+  transform: translate3d(0, calc(var(--merge-copy-title-exit) * -34px), 0);
+}
+
+.app-merge-section .merge-copy-text {
   max-width: 520px;
   margin: 28px 0 0;
   color: rgba(255, 255, 255, 0.62);
   font-size: 17px;
   font-weight: 300;
   line-height: 1.6;
+  opacity: calc(1 - var(--merge-copy-text-exit));
+  transform: translate3d(0, calc(var(--merge-copy-text-exit) * -26px), 0);
 }
 
-.merge-stage {
+.app-merge-section .merge-stage {
   position: relative;
   height: 690px;
   min-height: 590px;
   isolation: isolate;
   transform-style: preserve-3d;
   contain: layout paint style;
+  opacity: calc(1 - var(--merge-stage-exit) * 0.88);
+  transform: translate3d(0, calc(var(--merge-stage-exit) * -56px), 0);
 }
 
 .merge-rings {
@@ -940,12 +1070,12 @@ onBeforeUnmount(() => {
     max-width: 620px;
   }
 
-  .merge-copy-text {
+  .app-merge-section .merge-copy-text {
     max-width: 560px;
     font-size: 16px;
   }
 
-  .merge-stage {
+  .app-merge-section .merge-stage {
     height: 500px;
     min-height: 500px;
   }
@@ -964,9 +1094,26 @@ onBeforeUnmount(() => {
     min-height: 820px;
   }
 
-  .merge-stage {
+  .app-merge-section .merge-stage {
     height: 410px;
     min-height: 410px;
+  }
+
+  .merge-rings span {
+    width: 178px;
+    height: 250px;
+    aspect-ratio: auto;
+    border-radius: 50%;
+  }
+
+  .merge-rings span:nth-child(2) {
+    width: 246px;
+    height: 340px;
+  }
+
+  .merge-rings span:nth-child(3) {
+    width: 310px;
+    height: 430px;
   }
 
   .mock-icon {
@@ -999,5 +1146,11 @@ onBeforeUnmount(() => {
   .merge-particle {
     animation: none;
   }
+}
+
+/* Pause looping particle keyframes whenever the section is offscreen so the
+   compositor isn't repainting the layer for invisible animations. */
+.app-merge-section.is-offscreen .merge-particle {
+  animation-play-state: paused;
 }
 </style>

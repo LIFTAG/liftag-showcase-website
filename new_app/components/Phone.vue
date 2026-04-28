@@ -9,12 +9,14 @@ const props = withDefaults(defineProps<{
   screenTransition?: boolean
   screenTransitionDirection?: 'up' | 'down' | 'left' | 'right'
   style?: Record<string, string>
+  lite?: boolean
 }>(), {
   glow: false,
   scale: 1,
   tiltDelayMs: 0,
   screenTransition: false,
   screenTransitionDirection: 'up',
+  lite: false,
 })
 </script>
 
@@ -35,6 +37,7 @@ const props = withDefaults(defineProps<{
         :tilt-delay-ms="props.tiltDelayMs"
         :screen-transition="props.screenTransition"
         :screen-transition-direction="props.screenTransitionDirection"
+        :lite="props.lite"
       />
       <template #fallback>
         <img :src="props.src" alt="LIFTAG screen" />

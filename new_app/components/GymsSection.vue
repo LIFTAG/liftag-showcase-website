@@ -63,52 +63,20 @@ onMounted(() => {
   >
     <!-- Background glow -->
     <div
-      :style="{
-        position: 'absolute',
-        top: '40%',
-        right: '-20%',
-        width: '700px',
-        height: '700px',
-        background: 'radial-gradient(circle, rgba(204,255,0,0.08), transparent 60%)',
-        filter: 'blur(80px)',
-        pointerEvents: 'none',
-      }"
+      class="section-glow is-green"
+      style="--glow-top: 40%; --glow-right: -20%; --glow-size: 700px; --glow-blur: 80px;"
     />
 
     <div class="container" style="position: relative;">
-      <!-- Top: headline + copy -->
-      <div
-        class="section-header-2col"
-        :style="{
-          display: 'grid',
-          gridTemplateColumns: '1.1fr 1fr',
-          gap: '60px',
-          alignItems: 'end',
-          marginBottom: '80px',
-        }"
-      >
-        <div>
-          <Eyebrow>▸ FOR GYMS</Eyebrow>
-          <SectionTitle>
-            Put your gym<br />on the <span class="lime">map.</span>
-          </SectionTitle>
-        </div>
-        <p
-          class="reveal"
-          :style="{
-            fontSize: '17px',
-            fontWeight: 300,
-            lineHeight: 1.6,
-            color: 'rgba(255,255,255,0.65)',
-            maxWidth: '480px',
-            margin: 0,
-          }"
-        >
-          Sticker your floor. Members scan a QR, instantly open the right exercise, and watch a setup
-          video your trainers recorded. Get discovered by thousands of nearby lifters looking for
-          their next gym.
-        </p>
-      </div>
+      <SectionHeader :cols="'1.1fr 1fr'" :copy-max="480">
+        <template #eyebrow>▸ FOR GYMS</template>
+        <template #title>
+          Put your gym<br />on the <span class="lime">map.</span>
+        </template>
+        Sticker your floor. Members scan a QR, instantly open the right exercise, and watch a setup
+        video your trainers recorded. Get discovered by thousands of nearby lifters looking for
+        their next gym.
+      </SectionHeader>
 
       <!-- Middle: 3-col layout -->
       <div

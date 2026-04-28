@@ -12,7 +12,16 @@ const navLinks: [string, string][] = [
 let _onScroll: (() => void) | null = null
 
 onMounted(() => {
-  _onScroll = () => { scrolled.value = window.scrollY > 40 }
+  let queued = false
+  _onScroll = () => {
+    if (queued) return
+    queued = true
+    requestAnimationFrame(() => {
+      queued = false
+      const next = window.scrollY > 40
+      if (next !== scrolled.value) scrolled.value = next
+    })
+  }
   window.addEventListener('scroll', _onScroll, { passive: true })
 })
 
@@ -24,6 +33,8 @@ onBeforeUnmount(() => {
 <template>
   <!-- Sticky header -->
   <header
+    class="site-nav"
+    :class="{ 'is-open': open, 'is-scrolled': scrolled }"
     :style="{
       position: 'fixed',
       top: 0,
@@ -34,21 +45,25 @@ onBeforeUnmount(() => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      background: scrolled || open ? 'rgba(0,0,0,0.9)' : 'transparent',
-      backdropFilter: scrolled || open ? 'blur(20px) saturate(1.4)' : 'none',
-      borderBottom: scrolled || open ? '1px solid rgba(255,255,255,0.05)' : '1px solid transparent',
-      transition: 'all .35s cubic-bezier(0.16,1,0.3,1)',
+        background: scrolled || open ? 'rgba(0,0,0,0.68)' : 'transparent',
+        backdropFilter: scrolled || open ? 'blur(20px) saturate(1.5)' : 'none',
+      borderBottom: scrolled || open ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent',
+      transition: 'background-color .35s cubic-bezier(0.16,1,0.3,1), border-color .35s cubic-bezier(0.16,1,0.3,1)',
     }"
   >
+    <span class="nav-entry-beam" aria-hidden="true"></span>
+
     <!-- Logo -->
     <a href="#" class="nav-logo">
-      <img
-        src="/assets/logo.svg"
-        width="28"
-        height="28"
-        class="nav-logo__img"
-        alt="LIFTAG logo"
-      />
+      <span class="nav-logo__mark">
+        <img
+          src="/assets/logo.svg"
+          width="28"
+          height="28"
+          class="nav-logo__img"
+          alt="LIFTAG logo"
+        />
+      </span>
       <span class="nav-logo__wordmark">LIFTAG</span>
     </a>
 
@@ -63,7 +78,7 @@ onBeforeUnmount(() => {
     </nav>
 
     <!-- Right side: CTA + hamburger -->
-    <div style="display: flex; align-items: center; gap: 12px;">
+    <div class="nav-actions" style="display: flex; align-items: center; gap: 12px;">
       <!-- Desktop CTA -->
       <a
         href="#dashboard"
@@ -72,7 +87,7 @@ onBeforeUnmount(() => {
         Dashboard
       </a>
       <button
-        class="btn-primary nav-desktop"
+        class="btn-primary nav-desktop nav-app-cta"
         style="padding: 10px 20px; font-size: 11px; box-shadow: 0 0 24px rgba(204,255,0,0.4);"
       >
         Get the app
@@ -170,18 +185,98 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.site-nav {
+  overflow: hidden;
+  animation: navShellIn 860ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.site-nav::before,
+.site-nav::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+.site-nav::before {
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(204, 255, 0, 0.1) 46%, rgba(255, 255, 255, 0.14) 50%, rgba(204, 255, 0, 0.08) 54%, transparent 100%);
+  transform: translateX(-120%);
+  animation: navLightSweep 1180ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+}
+
+.site-nav::after {
+  left: 32px;
+  right: 32px;
+  bottom: 0;
+  z-index: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(204, 255, 0, 0.78), rgba(255, 255, 255, 0.35), transparent);
+  transform: scaleX(0);
+  transform-origin: center;
+  animation: navLineIn 900ms cubic-bezier(0.16, 1, 0.3, 1) 180ms both;
+}
+
+.nav-entry-beam {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  z-index: 0;
+  width: min(420px, 42vw);
+  height: 72px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center bottom, rgba(204, 255, 0, 0.18), transparent 66%);
+  opacity: 0;
+  transform: translateX(-50%) scaleX(0.42);
+  animation: navBeamBloom 980ms cubic-bezier(0.16, 1, 0.3, 1) 260ms both;
+}
+
+.nav-logo,
+.nav-center-links,
+.nav-actions,
+.nav-mobile-toggle {
+  position: relative;
+  z-index: 2;
+}
+
 .nav-logo {
   display: flex;
   align-items: center;
   gap: 10px;
   text-decoration: none;
+  opacity: 0;
+  transform: translate3d(-18px, -10px, 0) rotate(-3deg);
+  animation: navLogoIn 780ms cubic-bezier(0.16, 1, 0.3, 1) 220ms both;
+}
+
+.nav-logo__mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.nav-logo__mark::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 999px;
+  border: 1px solid rgba(204, 255, 0, 0.34);
+  box-shadow: 0 0 18px rgba(204, 255, 0, 0.18);
+  opacity: 0;
+  transform: scale(0.5) rotate(-28deg);
+  animation: navMarkRing 880ms cubic-bezier(0.16, 1, 0.3, 1) 300ms both;
 }
 
 .nav-logo__img {
   filter: drop-shadow(0 0 14px rgba(204, 255, 0, 0.5));
+  animation: navMarkSnap 760ms cubic-bezier(0.16, 1, 0.3, 1) 260ms both;
 }
 
 .nav-logo__wordmark {
+  display: inline-block;
+  padding-right: 0.16em;
+  margin-right: -0.16em;
   font-family: 'Space Grotesk', system-ui, sans-serif;
   font-weight: 700;
   font-style: italic;
@@ -189,6 +284,8 @@ onBeforeUnmount(() => {
   letter-spacing: -0.04em;
   text-transform: uppercase;
   color: #fff;
+  clip-path: inset(0 100% 0 0);
+  animation: navWordReveal 680ms cubic-bezier(0.16, 1, 0.3, 1) 390ms both;
 }
 
 .nav-link {
@@ -199,7 +296,28 @@ onBeforeUnmount(() => {
   font-size: 11px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
+  position: relative;
+  opacity: 0;
+  transform: translate3d(0, -14px, 0) skewX(-9deg);
+  animation: navItemIn 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
   transition: color 200ms ease;
+}
+
+.nav-link:nth-child(1) { animation-delay: 360ms; }
+.nav-link:nth-child(2) { animation-delay: 430ms; }
+.nav-link:nth-child(3) { animation-delay: 500ms; }
+.nav-link:nth-child(4) { animation-delay: 570ms; }
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  right: 50%;
+  bottom: -10px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #CCFF00, transparent);
+  opacity: 0;
+  transition: left 240ms ease, right 240ms ease, opacity 240ms ease;
 }
 
 .nav-center-links {
@@ -214,6 +332,33 @@ onBeforeUnmount(() => {
 
 .nav-link:hover {
   color: #CCFF00;
+}
+
+.nav-link:hover::after {
+  left: -8px;
+  right: -8px;
+  opacity: 1;
+}
+
+.nav-actions {
+  opacity: 0;
+  transform: translate3d(22px, -12px, 0);
+  animation: navActionsIn 760ms cubic-bezier(0.16, 1, 0.3, 1) 640ms both;
+}
+
+.nav-app-cta {
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-app-cta::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 15%, rgba(255, 255, 255, 0.5), transparent 42%);
+  transform: translateX(-150%);
+  animation: navCtaSheen 1100ms cubic-bezier(0.16, 1, 0.3, 1) 900ms both;
 }
 
 .nav-dashboard-cta {
@@ -259,6 +404,79 @@ onBeforeUnmount(() => {
   text-transform: uppercase;
 }
 
+@keyframes navShellIn {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -22px, 0) scaleX(0.92);
+    clip-path: inset(0 46% 100% 46% round 999px);
+  }
+  48% {
+    opacity: 1;
+    clip-path: inset(0 12% 0 12% round 999px);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scaleX(1);
+    clip-path: inset(0 0 0 0 round 0);
+  }
+}
+
+@keyframes navLightSweep {
+  0% { opacity: 0; transform: translateX(-120%); }
+  22% { opacity: 0.9; }
+  100% { opacity: 0; transform: translateX(120%); }
+}
+
+@keyframes navLineIn {
+  0% { opacity: 0; transform: scaleX(0); }
+  58% { opacity: 0.95; }
+  100% { opacity: 0.38; transform: scaleX(1); }
+}
+
+@keyframes navBeamBloom {
+  0% { opacity: 0; transform: translateX(-50%) scaleX(0.42); }
+  45% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) scaleX(1.25); }
+}
+
+@keyframes navLogoIn {
+  0% { opacity: 0; transform: translate3d(-18px, -10px, 0) rotate(-3deg); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0); }
+}
+
+@keyframes navMarkRing {
+  0% { opacity: 0; transform: scale(0.5) rotate(-28deg); }
+  50% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.25) rotate(18deg); }
+}
+
+@keyframes navMarkSnap {
+  0% { transform: scale(0.62) rotate(-24deg); filter: drop-shadow(0 0 0 rgba(204, 255, 0, 0)); }
+  62% { transform: scale(1.12) rotate(5deg); }
+  100% { transform: scale(1) rotate(0); filter: drop-shadow(0 0 14px rgba(204, 255, 0, 0.5)); }
+}
+
+@keyframes navWordReveal {
+  0% { clip-path: inset(0 100% 0 0); transform: translateX(-8px); }
+  100% { clip-path: inset(0 -0.16em 0 0); transform: translateX(0); }
+}
+
+@keyframes navItemIn {
+  0% { opacity: 0; transform: translate3d(0, -14px, 0) skewX(-9deg); filter: blur(5px); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) skewX(0); filter: blur(0); }
+}
+
+@keyframes navActionsIn {
+  0% { opacity: 0; transform: translate3d(22px, -12px, 0); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes navCtaSheen {
+  0% { opacity: 0; transform: translateX(-150%); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(150%); }
+}
+
 @media (max-width: 1080px) {
   .nav-center-links {
     gap: 24px;
@@ -267,6 +485,32 @@ onBeforeUnmount(() => {
   .nav-link {
     font-size: 10px;
     letter-spacing: 0.16em;
+  }
+}
+
+@media (max-width: 768px) {
+  .nav-actions {
+    animation-delay: 420ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-nav,
+  .site-nav::before,
+  .site-nav::after,
+  .nav-entry-beam,
+  .nav-logo,
+  .nav-logo__mark::before,
+  .nav-logo__img,
+  .nav-logo__wordmark,
+  .nav-link,
+  .nav-actions,
+  .nav-app-cta::before {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+    filter: none !important;
   }
 }
 </style>

@@ -1,13 +1,18 @@
 <script setup lang="ts">
 // ─── reactive mouse / scroll state ───────────────────────────────────────────
-// rawMouse is a plain object (not a ref) passed to useLerp by reference.
-// We mutate its x/y in-place so useLerp's RAF loop sees updates without
-// needing to re-subscribe.
-const rawMouse = { x: 0, y: 0 }
+// rawMouse is a reference into the shared singleton — useLerp's rAF reads
+// .x/.y each frame, so the page-wide single mousemove handler keeps it fresh
+// without us owning a per-component listener.
+const sharedMouse = useSharedMouse()
+const rawMouse = sharedMouse.latest
 const scrollY = ref(0)
 const entered = ref(false)
 const cursorGlowX = ref(-9999)
 const cursorGlowY = ref(-9999)
+const cursorGlowTone = ref<'green' | 'red'>('green')
+// Drop the WebGL Phone3D path on phones — we only render the front-center
+// phone on mobile and the lite path uses a static image instead of Three.js.
+const isMobile = ref(false)
 
 // smooth lerp (factor 0.06 matches React source)
 const mouse = useLerp(rawMouse, 0.06)
@@ -69,9 +74,12 @@ function areaD(pts: [number, number][]) {
 }
 const dotIdxs = [4, 8, 13, 17, 21]
 
-// dot-pulse tick (drives Math.sin animation each RAF)
-const tick = ref(0)
-let tickRaf = 0
+// Pulse cycle in seconds for the 5 SVG dots (matches the original
+// Math.sin(tick / 180 * 1.8 + …) period: 2π / (1.8/180) ≈ 628 frames ≈ 10.47s @60Hz)
+const heroDotCycleSec = 10.47
+function heroDotDelay(i: number) {
+  return `${(-(i * 1.4) / (Math.PI * 2)) * heroDotCycleSec}s`
+}
 
 // chart SVG refs for draw-on-load animation
 const refL1 = ref<SVGPolylineElement | null>(null)
@@ -286,6 +294,11 @@ onMounted(async () => {
   // entrance delay
   const t = setTimeout(() => { entered.value = true }, 80)
 
+  const mobileMql = window.matchMedia('(max-width: 768px)')
+  isMobile.value = mobileMql.matches
+  const onMobileChange = (e: MediaQueryListEvent) => { isMobile.value = e.matches }
+  mobileMql.addEventListener('change', onMobileChange)
+
   // particles — client only
   particles.value = Array.from({ length: 28 }, (_, i) => ({
     id: i,
@@ -298,53 +311,74 @@ onMounted(async () => {
   }))
   particlesReady.value = true
 
-  // mouse + scroll
-  const onMove = (e: MouseEvent) => {
-    // mutate in-place — useLerp holds a reference to this object
-    rawMouse.x = (e.clientX / window.innerWidth - 0.5) * 2
-    rawMouse.y = (e.clientY / window.innerHeight - 0.5) * 2
-    cursorGlowX.value = e.clientX
-    cursorGlowY.value = e.clientY
+  // Cursor orb position needs explicit reactive-ref writes to trigger Vue
+  // re-renders. Subscribe to the shared mousemove and rAF-coalesce so we don't
+  // bump refs hundreds of times per second on a 240Hz trackpad. Parallax
+  // (rawMouse via useLerp) updates without subscribing — useLerp's own rAF
+  // picks up sharedMouse.latest changes each frame.
+  let cursorRafQueued = false
+  const unsubMouse = onMouseEvent(() => {
+    if (cursorRafQueued) return
+    cursorRafQueued = true
+    requestAnimationFrame(() => {
+      cursorRafQueued = false
+      cursorGlowX.value = sharedMouse.latest.clientX
+      cursorGlowY.value = sharedMouse.latest.clientY
+    })
+  })
+  const onCursorGlowTone = (event: Event) => {
+    const tone = (event as CustomEvent<{ tone?: 'green' | 'red' }>).detail?.tone
+    cursorGlowTone.value = tone === 'red' ? 'red' : 'green'
   }
-  const onScroll = () => { scrollY.value = window.scrollY }
+  window.addEventListener('liftag:cursor-glow-tone', onCursorGlowTone as EventListener)
 
-  window.addEventListener('mousemove', onMove)
+  let scrollQueued = false
+  const onScroll = () => {
+    if (scrollQueued) return
+    scrollQueued = true
+    requestAnimationFrame(() => {
+      scrollQueued = false
+      scrollY.value = window.scrollY
+    })
+  }
+
   window.addEventListener('scroll', onScroll, { passive: true })
 
-  // dot tick RAF
-  const runTick = () => {
-    tick.value++
-    tickRaf = requestAnimationFrame(runTick)
-  }
-  tickRaf = requestAnimationFrame(runTick)
-
-  // chart draw-on-load: apply dash animation after DOM paint
+  // chart draw-on-load: defer the layout-forcing getTotalLength() calls past
+  // the initial paint so they don't compete with hero laser + 3D phone init.
   await nextTick()
-  const order = [
-    { el: refL4.value, delay: 200  },
-    { el: refL3.value, delay: 700  },
-    { el: refL2.value, delay: 1100 },
-    { el: refL1.value, delay: 1500 },
-  ]
-  order.forEach(({ el, delay }) => {
-    if (!el) return
-    const len = el.getTotalLength()
-    el.style.strokeDasharray  = String(len)
-    el.style.strokeDashoffset = String(len)
-    setTimeout(() => {
-      el.style.transition      = 'stroke-dashoffset 1600ms cubic-bezier(0.4, 0, 0.2, 1)'
-      el.style.strokeDashoffset = '0'
-    }, delay)
-  })
+  const scheduleChartReveal = () => {
+    const order = [
+      { el: refL4.value, delay: 200  },
+      { el: refL3.value, delay: 700  },
+      { el: refL2.value, delay: 1100 },
+      { el: refL1.value, delay: 1500 },
+    ]
+    order.forEach(({ el, delay }) => {
+      if (!el) return
+      const len = el.getTotalLength()
+      el.style.strokeDasharray  = String(len)
+      el.style.strokeDashoffset = String(len)
+      setTimeout(() => {
+        el.style.transition      = 'stroke-dashoffset 1600ms cubic-bezier(0.4, 0, 0.2, 1)'
+        el.style.strokeDashoffset = '0'
+      }, delay)
+    })
+  }
+  type IdleCb = (cb: () => void, opts?: { timeout: number }) => number
+  const ric = (window as unknown as { requestIdleCallback?: IdleCb }).requestIdleCallback
+  if (typeof ric === 'function') ric(scheduleChartReveal, { timeout: 600 })
+  else setTimeout(scheduleChartReveal, 0)
 
   queueHeroLaserTimer(runAllHeroLaserReveals, 280)
 
   onBeforeUnmount(() => {
     clearTimeout(t)
     cleanupHeroLasers()
-    window.removeEventListener('mousemove', onMove)
+    unsubMouse()
+    mobileMql.removeEventListener('change', onMobileChange)
+    window.removeEventListener('liftag:cursor-glow-tone', onCursorGlowTone as EventListener)
     window.removeEventListener('scroll', onScroll)
-    cancelAnimationFrame(tickRaf)
   })
 })
 
@@ -369,6 +403,7 @@ const p3 = computed(() => ({
 
 <template>
   <section
+    class="hero-section"
     :style="{
       position: 'relative',
       minHeight: '100vh',
@@ -483,7 +518,7 @@ const p3 = computed(() => ({
           stroke-linejoin="round"
         />
 
-        <!-- Pulsing dots along l1 -->
+        <!-- Pulsing dots along l1 — CSS-driven so we don't burn an always-on rAF -->
         <g
           v-for="(idx, i) in dotIdxs"
           :key="i"
@@ -494,20 +529,21 @@ const p3 = computed(() => ({
         >
           <template v-if="l1[idx]">
             <circle
+              class="hero-dot-outer"
               :cx="l1[idx][0]"
               :cy="l1[idx][1]"
-              :r="5 + (0.5 + Math.sin(tick / 180 * 1.8 + i * 1.4) * 0.5) * 3"
               fill="none"
               stroke="#CCFF00"
               stroke-width="1"
-              :opacity="0.04 + (0.5 + Math.sin(tick / 180 * 1.8 + i * 1.4) * 0.5) * 0.04"
+              :style="{ animationDelay: heroDotDelay(i) }"
             />
             <circle
+              class="hero-dot-mid"
               :cx="l1[idx][0]"
               :cy="l1[idx][1]"
               r="2.5"
               fill="#CCFF00"
-              :opacity="0.28 + (0.5 + Math.sin(tick / 180 * 1.8 + i * 1.4) * 0.5) * 0.12"
+              :style="{ animationDelay: heroDotDelay(i) }"
             />
             <circle
               :cx="l1[idx][0]"
@@ -523,18 +559,17 @@ const p3 = computed(() => ({
 
     <!-- ── Cursor orb ── -->
     <div
+      class="cursor-glow cursor-glow-green"
       :style="{
-        position: 'fixed',
-        left: `${cursorGlowX}px`,
-        top: `${cursorGlowY}px`,
-        width: '420px',
-        height: '420px',
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(204,255,0,0.08) 0%, transparent 58%)',
-        transform: 'translate(-50%, -50%)',
-        pointerEvents: 'none',
-        zIndex: 1,
-        filter: 'blur(2px)',
+        transform: `translate3d(${cursorGlowX - 210}px, ${cursorGlowY - 210}px, 0)`,
+        opacity: cursorGlowTone === 'red' ? 0 : 1,
+      }"
+    />
+    <div
+      class="cursor-glow cursor-glow-red"
+      :style="{
+        transform: `translate3d(${cursorGlowX - 210}px, ${cursorGlowY - 210}px, 0)`,
+        opacity: cursorGlowTone === 'red' ? 1 : 0,
       }"
     />
 
@@ -560,7 +595,6 @@ const p3 = computed(() => ({
         inset: 0,
         pointerEvents: 'none',
         background: `radial-gradient(ellipse 70% 55% at ${58 + mouse.x * 4}% ${40 + mouse.y * 4}%, rgba(204,255,0,0.12), transparent 65%)`,
-        transition: 'background 0.1s',
       }"
     />
 
@@ -574,15 +608,16 @@ const p3 = computed(() => ({
         :key="p.id"
         :style="{
           position: 'absolute',
-          left: `${p.x + mouse.x * p.depth * 2.5 - scrollY * p.depth * 0.03}%`,
-          top: `${p.y + mouse.y * p.depth * 2 - scrollY * p.speed * 0.04}%`,
+          left: `${p.x}%`,
+          top: `${p.y}%`,
           width: `${p.r * 2}px`,
           height: `${p.r * 2}px`,
           borderRadius: '50%',
           background: p.depth > 0.7 ? '#CCFF00' : 'rgba(255,255,255,0.6)',
           opacity: p.depth * 0.5,
           boxShadow: p.depth > 0.7 ? `0 0 ${p.r * 6}px rgba(204,255,0,0.8)` : 'none',
-          transition: 'left 200ms ease, top 200ms ease',
+          transform: `translate3d(${mouse.x * p.depth * 2.5 - scrollY * p.depth * 0.03}vw, ${mouse.y * p.depth * 2 - scrollY * p.speed * 0.04}vh, 0)`,
+          willChange: 'transform',
         }"
       />
     </div>
@@ -780,9 +815,10 @@ const p3 = computed(() => ({
             opacity: entered ? 0.75 : 0,
             transition: entered ? 'opacity 1200ms 300ms ease' : 'none',
             willChange: 'transform',
+            filter: 'drop-shadow(0 24px 40px rgba(0,0,0,0.55))',
           }"
         >
-          <Phone src="/assets/screens/progression.png" :scale="0.7" :tilt-delay-ms="140" />
+          <Phone src="/assets/screens/progression.png" :scale="0.7" :tilt-delay-ms="140" lite />
         </div>
 
         <!-- Back-right phone -->
@@ -794,9 +830,10 @@ const p3 = computed(() => ({
             opacity: entered ? 0.68 : 0,
             transition: entered ? 'opacity 1200ms 500ms ease' : 'none',
             willChange: 'transform',
+            filter: 'drop-shadow(0 22px 36px rgba(0,0,0,0.55))',
           }"
         >
-          <Phone src="/assets/screens/log-set.png" :scale="0.64" :tilt-delay-ms="230" />
+          <Phone src="/assets/screens/log-set.png" :scale="0.64" :tilt-delay-ms="230" lite />
         </div>
 
         <!-- Front center phone (main) -->
@@ -820,7 +857,7 @@ const p3 = computed(() => ({
               animation: 'pulse-glow 4s ease-in-out infinite',
             }"
           />
-          <Phone src="/assets/screens/home.png" :scale="0.92" :tilt-delay-ms="0" />
+          <Phone src="/assets/screens/home.png" :scale="0.92" :tilt-delay-ms="0" :lite="isMobile" />
           <!-- Reflection streak -->
           <div
             :style="{
@@ -991,3 +1028,42 @@ const p3 = computed(() => ({
     </div>
   </section>
 </template>
+
+<style scoped>
+.cursor-glow {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(2px);
+  transition: opacity 380ms ease;
+  will-change: transform, opacity;
+}
+
+.cursor-glow-green {
+  background: radial-gradient(circle, rgba(204, 255, 0, 0.08) 0%, transparent 58%);
+}
+
+.cursor-glow-red {
+  background: radial-gradient(circle, rgba(255, 45, 85, 0.11) 0%, transparent 58%);
+}
+
+/* Pulse the chart dots in pure CSS — replaces an always-on rAF that bumped a
+   reactive ref every frame just to drive sin-based opacity/r updates. Period
+   matches 2π / (1.8/180) ≈ 10.47s; per-dot animation-delay reproduces the
+   original i*1.4 rad phase offset. */
+@keyframes heroDotOuterPulse {
+  0%, 100% { r: 5; opacity: 0.04; }
+  50%      { r: 8; opacity: 0.08; }
+}
+@keyframes heroDotMidPulse {
+  0%, 100% { opacity: 0.28; }
+  50%      { opacity: 0.40; }
+}
+.hero-dot-outer { animation: heroDotOuterPulse 10.47s ease-in-out infinite; }
+.hero-dot-mid   { animation: heroDotMidPulse   10.47s ease-in-out infinite; }
+</style>

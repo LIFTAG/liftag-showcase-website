@@ -6,7 +6,7 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   app: {
     head: {
-      title: 'LIFTAG — For Lifters / By Lifters',
+      title: 'LIFTAG | For Lifters / By Lifters',
       htmlAttrs: { lang: 'en' },
       meta: [
         { charset: 'utf-8' },

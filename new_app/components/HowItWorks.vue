@@ -39,7 +39,10 @@ let ctx: CanvasRenderingContext2D | null = null
 let rafId = 0
 let isVisible = false
 let resizeCleanup: (() => void) | null = null
+let mobileQueryCleanup: (() => void) | null = null
+let trackScrollCleanup: (() => void) | null = null
 let intersectionObs: IntersectionObserver | null = null
+let mobileHIWLayout = false
 
 // Marker flash timestamps (non-reactive, mutated in rAF)
 const MARKER_COUNT = 10
@@ -54,6 +57,17 @@ let scanCurrentY = 0
 let chartHovered = false
 let chartHoverTargetP = 1
 let chartDisplayP = 0
+
+// Cached rects for scan effect — invalidated on resize / scroll-induced layout shift.
+// Reads in rAF previously thrashed layout each frame.
+let cachedPaneRect: DOMRect | null = null
+let cachedAreaRect: DOMRect | null = null
+let cachedTitleRect: DOMRect | null = null
+let cachedDescRect: DOMRect | null = null
+
+// Cached canvas gradients — depend only on canvas size, not per-frame state.
+let cachedAreaGrad: CanvasGradient | null = null
+let cachedAreaGradKey = ''
 
 const HIW_LAST_EXIT_VIEWPORT_BOTTOM = 0.86
 
@@ -122,6 +136,15 @@ function sizeHIWCurveCanvas() {
   canvas.width  = rect.width  * dpr
   canvas.height = rect.height * dpr
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  cachedAreaGrad = null
+  cachedAreaGradKey = ''
+}
+
+function refreshScanRects() {
+  cachedPaneRect = scanPane.value?.getBoundingClientRect() ?? null
+  cachedAreaRect = scanArea.value?.getBoundingClientRect() ?? null
+  cachedTitleRect = scanTitle.value?.getBoundingClientRect() ?? null
+  cachedDescRect = scanDesc.value?.getBoundingClientRect() ?? null
 }
 
 function drawHIWCurve(p: number) {
@@ -195,10 +218,16 @@ function drawHIWCurve(p: number) {
   const steps = Math.floor(drawProgress * 200)
   if (steps < 2) return
 
-  // Gradient fill
-  const grad = ctx.createLinearGradient(0, padTop, 0, padTop + graphH)
-  grad.addColorStop(0, 'rgba(200, 255, 0, 0.18)')
-  grad.addColorStop(1, 'rgba(200, 255, 0, 0)')
+  // Gradient fill — cached per canvas size (only depends on padTop/graphH).
+  const gradKey = `${padTop}|${graphH}`
+  if (!cachedAreaGrad || cachedAreaGradKey !== gradKey) {
+    const grad = ctx.createLinearGradient(0, padTop, 0, padTop + graphH)
+    grad.addColorStop(0, 'rgba(200, 255, 0, 0.18)')
+    grad.addColorStop(1, 'rgba(200, 255, 0, 0)')
+    cachedAreaGrad = grad
+    cachedAreaGradKey = gradKey
+  }
+  const grad = cachedAreaGrad
 
   ctx.beginPath()
   for (let i = 0; i <= steps; i++) {
@@ -226,12 +255,28 @@ function drawHIWCurve(p: number) {
     else ctx.lineTo(cx, cy)
   }
 
-  // Glow stroke
+  // Stacked-stroke glow under additive blending — approximates the original
+  // shadowBlur(20) halo without the per-frame canvas convolve. `lighter`
+  // composite makes overlapping strokes brighten toward the centre, giving a
+  // smooth Gaussian-ish falloff instead of visible concentric outlines.
   ctx.save()
-  ctx.shadowColor = 'rgba(200, 255, 0, 0.6)'
-  ctx.shadowBlur  = 20
-  ctx.strokeStyle = 'rgba(200, 255, 0, 0.35)'
-  ctx.lineWidth   = 1.5
+  ctx.globalCompositeOperation = 'lighter'
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  ctx.strokeStyle = 'rgba(200, 255, 0, 0.025)'
+  ctx.lineWidth   = 22
+  ctx.stroke()
+  ctx.strokeStyle = 'rgba(200, 255, 0, 0.04)'
+  ctx.lineWidth   = 14
+  ctx.stroke()
+  ctx.strokeStyle = 'rgba(200, 255, 0, 0.07)'
+  ctx.lineWidth   = 8
+  ctx.stroke()
+  ctx.strokeStyle = 'rgba(200, 255, 0, 0.13)'
+  ctx.lineWidth   = 4
+  ctx.stroke()
+  ctx.strokeStyle = 'rgba(200, 255, 0, 0.22)'
+  ctx.lineWidth   = 2
   ctx.stroke()
   ctx.restore()
 
@@ -333,6 +378,18 @@ function getScrollP(): number {
   return Math.max(0, Math.min(1, sectionTop / sectionH))
 }
 
+function getTrackP(): number {
+  const track = trackRef.value
+  if (!track) return 0
+  const maxScroll = track.scrollWidth - track.clientWidth
+  if (maxScroll <= 0) return 0
+  return Math.max(0, Math.min(1, track.scrollLeft / maxScroll))
+}
+
+function getHIWProgress(): number {
+  return mobileHIWLayout ? getTrackP() : getScrollP()
+}
+
 function updateHIW(p: number) {
   const track = trackRef.value
   if (!track) return
@@ -340,15 +397,19 @@ function updateHIW(p: number) {
   if (sectionRef.value) {
     const rect = sectionRef.value.getBoundingClientRect()
 
-    if (rect.top < window.innerHeight * 0.28 || p > 0.012) {
+    if (mobileHIWLayout || rect.top < window.innerHeight * 0.28 || p > 0.012) {
       hiwIntroEntered.value = true
     }
 
-    hiwLastExiting.value = rect.bottom < window.innerHeight * HIW_LAST_EXIT_VIEWPORT_BOTTOM
+    hiwLastExiting.value = mobileHIWLayout ? false : rect.bottom < window.innerHeight * HIW_LAST_EXIT_VIEWPORT_BOTTOM
   }
 
-  // Horizontal track translate
-  track.style.transform = `translateX(-${p * 66.667}%)`
+  if (mobileHIWLayout) {
+    track.style.transform = 'none'
+  } else {
+    // Horizontal track translate
+    track.style.transform = `translateX(-${p * 66.667}%)`
+  }
 
   updateScanHoverEffect(p)
 
@@ -444,13 +505,18 @@ function updateScanHoverEffect(p: number) {
     qrIcon.value.style.opacity = qrOnFrame ? '0.4' : '0.2'
   }
 
-  const pane = scanPane.value
-  const area = scanArea.value
   const title = scanTitle.value
-  if (!pane || !area || !title) return
+  if (!title) return
 
-  const paneRect = pane.getBoundingClientRect()
-  const areaRect = area.getBoundingClientRect()
+  // Use cached rects — getBoundingClientRect inside rAF causes forced reflows.
+  // Inner offsets (rect.left - paneRect.left) stay layout-stable through the
+  // section's horizontal track translate, so a snapshot on resize/init is safe.
+  if (!cachedPaneRect || !cachedAreaRect || !cachedTitleRect) refreshScanRects()
+  const paneRect = cachedPaneRect
+  const areaRect = cachedAreaRect
+  const titleRect = cachedTitleRect
+  if (!paneRect || !areaRect || !titleRect) return
+
   const frameCX = (areaRect.left + areaRect.width / 2 - paneRect.left) + scanCurrentX
   const frameCY = (areaRect.top + areaRect.height / 2 - paneRect.top) + scanCurrentY
   const scanPhase = (1 - Math.cos((performance.now() % 2000) / 2000 * Math.PI * 2)) / 2
@@ -458,8 +524,7 @@ function updateScanHoverEffect(p: number) {
 
   scanLine.value?.style.setProperty('--scan-line-y', `${scanLineY}px`)
 
-  const setScannerWindow = (el: HTMLElement) => {
-    const rect = el.getBoundingClientRect()
+  const setScannerWindow = (el: HTMLElement, rect: DOMRect) => {
     const localX = frameCX - (rect.left - paneRect.left)
     const localY = frameCY - (rect.top - paneRect.top)
 
@@ -469,8 +534,8 @@ function updateScanHoverEffect(p: number) {
     el.style.setProperty('--scan-top', `${localY - areaRect.height / 2}px`)
   }
 
-  setScannerWindow(title)
-  if (scanDesc.value) setScannerWindow(scanDesc.value)
+  setScannerWindow(title, titleRect)
+  if (scanDesc.value && cachedDescRect) setScannerWindow(scanDesc.value, cachedDescRect)
 }
 
 function updateGlassPaneCursor(event: MouseEvent) {
@@ -536,13 +601,21 @@ function resetHIWChartHover() {
 // ─── rAF loop ─────────────────────────────────────────────────────────────
 function tick() {
   if (!isVisible) return
-  const p = getScrollP()
+  const p = getHIWProgress()
   updateHIW(p)
   rafId = requestAnimationFrame(tick)
 }
 
 // ─── Dot click → smooth scroll to panel ──────────────────────────────────
 function scrollToPanel(i: number) {
+  if (mobileHIWLayout) {
+    const track = trackRef.value
+    if (!track) return
+    const targetLeft = (track.scrollWidth - track.clientWidth) * (i / 2)
+    track.scrollTo({ left: targetLeft, behavior: 'smooth' })
+    return
+  }
+
   const section = sectionRef.value
   if (!section) return
   const rect      = section.getBoundingClientRect()
@@ -572,9 +645,39 @@ onMounted(async () => {
     sizeHIWCurveCanvas()
   }
 
-  const onResize = () => sizeHIWCurveCanvas()
+  refreshScanRects()
+  // Fonts can shift title/desc Y after first paint; refresh once they're ready.
+  if (typeof document !== 'undefined' && document.fonts?.ready) {
+    document.fonts.ready.then(refreshScanRects).catch(() => {})
+  }
+  const onResize = () => {
+    sizeHIWCurveCanvas()
+    refreshScanRects()
+    updateHIW(getHIWProgress())
+  }
   window.addEventListener('resize', onResize, { passive: true })
   resizeCleanup = () => window.removeEventListener('resize', onResize)
+
+  const media = window.matchMedia('(max-width: 600px)')
+  const syncMobileLayout = () => {
+    mobileHIWLayout = media.matches
+    if (mobileHIWLayout) {
+      hiwIntroEntered.value = true
+      hiwLastExiting.value = false
+      trackRef.value?.style.setProperty('transform', 'none')
+    }
+    requestAnimationFrame(() => updateHIW(getHIWProgress()))
+  }
+  syncMobileLayout()
+  media.addEventListener('change', syncMobileLayout)
+  mobileQueryCleanup = () => media.removeEventListener('change', syncMobileLayout)
+
+  const onTrackScroll = () => {
+    if (!mobileHIWLayout) return
+    updateHIW(getTrackP())
+  }
+  trackRef.value?.addEventListener('scroll', onTrackScroll, { passive: true })
+  trackScrollCleanup = () => trackRef.value?.removeEventListener('scroll', onTrackScroll)
 
   intersectionObs = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -593,6 +696,8 @@ onBeforeUnmount(() => {
   cancelAnimationFrame(rafId)
   intersectionObs?.disconnect()
   resizeCleanup?.()
+  mobileQueryCleanup?.()
+  trackScrollCleanup?.()
 })
 </script>
 
@@ -1068,8 +1173,6 @@ onBeforeUnmount(() => {
       rgba(255, 255, 255, 0.04) 32%,
       transparent 58%
     );
-  backdrop-filter: blur(96px) saturate(1.55) brightness(1.08);
-  -webkit-backdrop-filter: blur(96px) saturate(1.55) brightness(1.08);
   pointer-events: none;
   z-index: 0;
 }
@@ -1099,13 +1202,6 @@ onBeforeUnmount(() => {
 
 .hiw-glass-pane.glass-hovered::after {
   opacity: 1;
-}
-
-@media (max-width: 768px) {
-  .hiw-glass-pane::before {
-    backdrop-filter: blur(40px) saturate(1.35) brightness(1.05);
-    -webkit-backdrop-filter: blur(40px) saturate(1.35) brightness(1.05);
-  }
 }
 
 /* ── Panel typography ─────────────────────────────────── */
@@ -1618,7 +1714,6 @@ onBeforeUnmount(() => {
 }
 
 /* Chart dot glow */
-:deep(#chartDotEl),
 circle[fill="var(--liftag-primary)"] {
   filter: drop-shadow(0 0 8px var(--accent)) drop-shadow(0 0 16px var(--accent));
   transition: opacity 0.3s ease;
@@ -1650,7 +1745,7 @@ circle[fill="var(--liftag-primary)"] {
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.15);
   cursor: pointer;
-  transition: all 0.4s ease;
+  transition: width 0.4s ease, background-color 0.4s ease, box-shadow 0.4s ease, border-radius 0.4s ease, transform 0.4s ease;
 }
 .hiw-dot:hover {
   background: rgba(255, 255, 255, 0.4);
@@ -1669,16 +1764,108 @@ circle[fill="var(--liftag-primary)"] {
 
 /* ── Mobile ───────────────────────────────────────────── */
 @media (max-width: 600px) {
+  .hiw-section {
+    height: 100svh !important;
+    min-height: 0;
+    padding: 0 !important;
+    overflow: hidden;
+  }
+  .hiw-sticky {
+    position: relative;
+    top: auto;
+    height: 100%;
+    overflow: hidden;
+  }
+  .hiw-sticky::before,
+  .hiw-sticky::after {
+    width: 28px;
+  }
+  .hiw-bg-glow {
+    inset: -32%;
+    opacity: 0.86;
+  }
+  .hiw-curve-canvas {
+    opacity: 0.62;
+  }
+  .hiw-header {
+    top: max(20px, calc(env(safe-area-inset-top) + 14px));
+    left: 20px;
+  }
+  .hiw-track {
+    width: 100% !important;
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+    transform: none !important;
+    will-change: scroll-position;
+  }
+  .hiw-track::-webkit-scrollbar {
+    display: none;
+  }
   .hiw-panel {
-    padding: 0 24px;
+    flex: 0 0 100%;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 82px 18px 74px !important;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+  }
+  .hiw-panel-number {
+    font-size: 44vw;
+    top: 54%;
+  }
+  .hiw-glass-pane {
+    width: min(88vw, 360px);
+    max-width: min(88vw, 360px) !important;
+    padding: 26px 18px 24px !important;
+    border-radius: 24px;
+  }
+  .hiw-glass-pane::before,
+  .hiw-glass-pane::after {
+    border-radius: 24px;
+  }
+  .hiw-panel-visual {
+    margin-bottom: 24px;
+  }
+  .hiw-panel-title {
+    font-size: clamp(1.45rem, 8vw, 2.05rem);
+    margin-bottom: 12px;
+  }
+  .hiw-panel-desc {
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+  .hiw-panel-line {
+    margin-top: 18px;
+  }
+  .hiw-phone-frame {
+    width: 150px;
+    height: 168px;
+  }
+  .hiw-scan-area {
+    width: 100px;
+    height: 100px;
   }
   .hiw-log-card {
     width: 100%;
-    max-width: 280px;
+    max-width: 250px;
+    padding: 20px;
   }
   .hiw-chart-card {
     width: 100%;
-    max-width: 280px;
+    max-width: 260px;
+    padding: 20px;
+    touch-action: pan-x;
+  }
+  .hiw-dots {
+    bottom: max(18px, calc(env(safe-area-inset-bottom) + 12px));
   }
 }
 </style>
