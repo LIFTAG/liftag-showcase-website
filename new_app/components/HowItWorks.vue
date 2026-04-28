@@ -40,7 +40,6 @@ let rafId = 0
 let isVisible = false
 let resizeCleanup: (() => void) | null = null
 let mobileQueryCleanup: (() => void) | null = null
-let trackScrollCleanup: (() => void) | null = null
 let intersectionObs: IntersectionObserver | null = null
 let mobileHIWLayout = false
 
@@ -378,16 +377,8 @@ function getScrollP(): number {
   return Math.max(0, Math.min(1, sectionTop / sectionH))
 }
 
-function getTrackP(): number {
-  const track = trackRef.value
-  if (!track) return 0
-  const maxScroll = track.scrollWidth - track.clientWidth
-  if (maxScroll <= 0) return 0
-  return Math.max(0, Math.min(1, track.scrollLeft / maxScroll))
-}
-
 function getHIWProgress(): number {
-  return mobileHIWLayout ? getTrackP() : getScrollP()
+  return getScrollP()
 }
 
 function updateHIW(p: number) {
@@ -397,17 +388,16 @@ function updateHIW(p: number) {
   if (sectionRef.value) {
     const rect = sectionRef.value.getBoundingClientRect()
 
-    if (mobileHIWLayout || rect.top < window.innerHeight * 0.28 || p > 0.012) {
+    if (rect.top < window.innerHeight * 0.28 || p > 0.012) {
       hiwIntroEntered.value = true
     }
 
-    hiwLastExiting.value = mobileHIWLayout ? false : rect.bottom < window.innerHeight * HIW_LAST_EXIT_VIEWPORT_BOTTOM
+    hiwLastExiting.value = rect.bottom < window.innerHeight * HIW_LAST_EXIT_VIEWPORT_BOTTOM
   }
 
   if (mobileHIWLayout) {
-    track.style.transform = 'none'
+    track.style.transform = `translateY(-${p * 66.667}%)`
   } else {
-    // Horizontal track translate
     track.style.transform = `translateX(-${p * 66.667}%)`
   }
 
@@ -608,14 +598,6 @@ function tick() {
 
 // ─── Dot click → smooth scroll to panel ──────────────────────────────────
 function scrollToPanel(i: number) {
-  if (mobileHIWLayout) {
-    const track = trackRef.value
-    if (!track) return
-    const targetLeft = (track.scrollWidth - track.clientWidth) * (i / 2)
-    track.scrollTo({ left: targetLeft, behavior: 'smooth' })
-    return
-  }
-
   const section = sectionRef.value
   if (!section) return
   const rect      = section.getBoundingClientRect()
@@ -658,26 +640,14 @@ onMounted(async () => {
   window.addEventListener('resize', onResize, { passive: true })
   resizeCleanup = () => window.removeEventListener('resize', onResize)
 
-  const media = window.matchMedia('(max-width: 600px)')
+  const media = window.matchMedia('(max-width: 768px)')
   const syncMobileLayout = () => {
     mobileHIWLayout = media.matches
-    if (mobileHIWLayout) {
-      hiwIntroEntered.value = true
-      hiwLastExiting.value = false
-      trackRef.value?.style.setProperty('transform', 'none')
-    }
     requestAnimationFrame(() => updateHIW(getHIWProgress()))
   }
   syncMobileLayout()
   media.addEventListener('change', syncMobileLayout)
   mobileQueryCleanup = () => media.removeEventListener('change', syncMobileLayout)
-
-  const onTrackScroll = () => {
-    if (!mobileHIWLayout) return
-    updateHIW(getTrackP())
-  }
-  trackRef.value?.addEventListener('scroll', onTrackScroll, { passive: true })
-  trackScrollCleanup = () => trackRef.value?.removeEventListener('scroll', onTrackScroll)
 
   intersectionObs = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -697,7 +667,6 @@ onBeforeUnmount(() => {
   intersectionObs?.disconnect()
   resizeCleanup?.()
   mobileQueryCleanup?.()
-  trackScrollCleanup?.()
 })
 </script>
 
@@ -1763,17 +1732,17 @@ circle[fill="var(--liftag-primary)"] {
 }
 
 /* ── Mobile ───────────────────────────────────────────── */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .hiw-section {
-    height: 100svh !important;
-    min-height: 0;
+    height: 300svh !important;
+    min-height: 300svh;
     padding: 0 !important;
-    overflow: hidden;
+    overflow-y: visible;
   }
   .hiw-sticky {
-    position: relative;
-    top: auto;
-    height: 100%;
+    position: sticky;
+    top: 0;
+    height: 100svh;
     overflow: hidden;
   }
   .hiw-sticky::before,
@@ -1788,34 +1757,23 @@ circle[fill="var(--liftag-primary)"] {
     opacity: 0.62;
   }
   .hiw-header {
-    top: max(20px, calc(env(safe-area-inset-top) + 14px));
+    top: max(88px, calc(env(safe-area-inset-top) + 82px));
     left: 20px;
   }
   .hiw-track {
+    flex-direction: column;
     width: 100% !important;
-    height: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-behavior: smooth;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    overscroll-behavior-x: contain;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-x;
-    transform: none !important;
-    will-change: scroll-position;
-  }
-  .hiw-track::-webkit-scrollbar {
-    display: none;
+    height: 300%;
+    overflow: visible;
+    touch-action: pan-y;
+    will-change: transform;
   }
   .hiw-panel {
-    flex: 0 0 100%;
+    flex: 0 0 100svh;
     width: 100%;
-    height: 100%;
-    min-height: 0;
+    height: 100svh;
+    min-height: 100svh;
     padding: 82px 18px 74px !important;
-    scroll-snap-align: center;
-    scroll-snap-stop: always;
   }
   .hiw-panel-number {
     font-size: 44vw;
@@ -1862,7 +1820,7 @@ circle[fill="var(--liftag-primary)"] {
     width: 100%;
     max-width: 260px;
     padding: 20px;
-    touch-action: pan-x;
+    touch-action: pan-y;
   }
   .hiw-dots {
     bottom: max(18px, calc(env(safe-area-inset-bottom) + 12px));

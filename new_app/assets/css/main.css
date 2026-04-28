@@ -83,7 +83,7 @@ html {
   }
 }
 /* Avoid `overflow-x: hidden` on body/html — it breaks `position: sticky`
-   for descendants like the HowItWorks horizontal-scroll section.
+   for descendants like the HowItWorks scrollytelling section.
    Sections that have decorative bleed (Hero parallax, Marquee, etc.) set
    their own `overflow: hidden` on the <section>. */
 
@@ -662,9 +662,9 @@ section {
     display: flex !important;
   }
 
-  /* HowItWorks — one-screen horizontal snap carousel on mobile */
+  /* HowItWorks — vertical scrollytelling on mobile */
   .hiw-section {
-    height: 100svh !important;
+    height: 300svh !important;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
   }
@@ -680,7 +680,7 @@ section {
     padding: 82px 18px 74px !important;
   }
   .hiw-header {
-    top: max(20px, calc(env(safe-area-inset-top) + 14px)) !important;
+    top: max(88px, calc(env(safe-area-inset-top) + 82px)) !important;
     left: 20px !important;
   }
   .hiw-dots {
