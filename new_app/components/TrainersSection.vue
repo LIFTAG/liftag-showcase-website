@@ -261,7 +261,7 @@ onBeforeUnmount(() => {
         }"
       >
         <!-- LEFT — copy + bullets + CTA -->
-        <div class="reveal">
+        <div class="reveal trainers-copy-panel">
           <div :style="{ marginBottom: '8px' }">
             <div class="protocol" :style="{ color: '#FF2D55', marginBottom: '12px', fontSize: '10px' }">
               {{ f.tag }}
@@ -336,7 +336,7 @@ onBeforeUnmount(() => {
 
         <!-- CENTER — phone + dynamic chips below -->
         <div
-          class="reveal"
+          class="reveal trainers-phone-panel"
           :style="{
             display: 'flex',
             flexDirection: 'column',
@@ -691,6 +691,59 @@ onBeforeUnmount(() => {
   .trainer-tab-row.is-exiting::before {
     animation: none;
     opacity: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .trainers-mobile-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px !important;
+    width: 100%;
+    max-width: 100%;
+    overflow: visible !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 28px !important;
+  }
+
+  .trainer-mobile-tab {
+    flex: initial !important;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 10px !important;
+    white-space: normal !important;
+    text-align: center;
+    line-height: 1.12;
+    font-size: 9px !important;
+    letter-spacing: 0.12em !important;
+  }
+
+  .trainers-3col {
+    gap: 30px !important;
+    align-items: start !important;
+  }
+
+  .trainer-phone-panel {
+    gap: 14px !important;
+  }
+
+  .trainer-phone-panel :deep(.phone) {
+    width: min(54vw, 198px) !important;
+  }
+
+  .trainer-stat-chip {
+    min-width: 0;
+    padding: 10px 12px !important;
+  }
+
+  .trainer-stat-chip .protocol {
+    font-size: 7px !important;
+    letter-spacing: 0.14em !important;
+  }
+
+  .trainers-copy-panel {
+    max-width: 100%;
   }
 }
 </style>

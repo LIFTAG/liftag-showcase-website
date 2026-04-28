@@ -702,25 +702,25 @@ onBeforeUnmount(() => {
 /* ─── Responsive (mobile: left-rail timeline) ────────────────────────────── */
 @media (max-width: 600px) {
   .section-inner {
-    padding: 80px 24px;
+    padding: 80px 18px;
   }
 
   .roadmap-line-ghost,
   .roadmap-line-active {
-    left: 16px;
+    left: 18px;
     transform: none;
   }
 
   .rm-item:nth-child(odd),
   .rm-item:nth-child(even) {
-    padding-left: 44px;
+    padding-left: 64px;
     padding-right: 0;
     flex-direction: row;
     text-align: left;
   }
 
   .rm-node {
-    left: 16px;
+    left: 18px;
     transform: translateX(-50%);
   }
 
@@ -730,6 +730,12 @@ onBeforeUnmount(() => {
 
   .rm-item {
     margin-bottom: 48px;
+  }
+
+  .rm-title {
+    font-size: 1.08rem;
+    line-height: 1.22;
+    text-wrap: balance;
   }
 }
 </style>

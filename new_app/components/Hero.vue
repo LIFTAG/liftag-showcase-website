@@ -344,8 +344,8 @@ onMounted(async () => {
 
   window.addEventListener('scroll', onScroll, { passive: true })
 
-  // chart draw-on-load: defer the layout-forcing getTotalLength() calls past
-  // the initial paint so they don't compete with hero laser + 3D phone init.
+  // Chart draw-on-load: the hidden dash state is authored in the SVG markup so
+  // first paint cannot flash the fully drawn graph before this reveal runs.
   await nextTick()
   const scheduleChartReveal = () => {
     const order = [
@@ -356,9 +356,6 @@ onMounted(async () => {
     ]
     order.forEach(({ el, delay }) => {
       if (!el) return
-      const len = el.getTotalLength()
-      el.style.strokeDasharray  = String(len)
-      el.style.strokeDashoffset = String(len)
       setTimeout(() => {
         el.style.transition      = 'stroke-dashoffset 1600ms cubic-bezier(0.4, 0, 0.2, 1)'
         el.style.strokeDashoffset = '0'
@@ -462,30 +459,69 @@ const p3 = computed(() => ({
         />
 
         <polyline
+          class="hero-chart-outline"
+          :points="poly(l4)"
+          fill="none"
+          stroke="#CCFF00"
+          stroke-width="1"
+          opacity="0.026"
+          stroke-linejoin="round"
+        />
+        <polyline
           ref="refL4"
+          class="hero-chart-draw"
           :points="poly(l4)"
           fill="none"
           stroke="#CCFF00"
           stroke-width="1"
           opacity="0.07"
+          pathLength="1"
+          stroke-dasharray="1"
+          stroke-dashoffset="1"
+          stroke-linejoin="round"
+        />
+        <polyline
+          class="hero-chart-outline"
+          :points="poly(l3)"
+          fill="none"
+          stroke="#ffffff"
+          stroke-width="1"
+          opacity="0.032"
           stroke-linejoin="round"
         />
         <polyline
           ref="refL3"
+          class="hero-chart-draw"
           :points="poly(l3)"
           fill="none"
           stroke="#ffffff"
           stroke-width="1"
           opacity="0.09"
+          pathLength="1"
+          stroke-dasharray="1"
+          stroke-dashoffset="1"
+          stroke-linejoin="round"
+        />
+        <polyline
+          class="hero-chart-outline"
+          :points="poly(l2)"
+          fill="none"
+          stroke="#CCFF00"
+          stroke-width="1"
+          opacity="0.042"
           stroke-linejoin="round"
         />
         <polyline
           ref="refL2"
+          class="hero-chart-draw"
           :points="poly(l2)"
           fill="none"
           stroke="#CCFF00"
           stroke-width="1"
           opacity="0.13"
+          pathLength="1"
+          stroke-dasharray="1"
+          stroke-dashoffset="1"
           stroke-linejoin="round"
         />
 
@@ -507,14 +543,28 @@ const p3 = computed(() => ({
           filter="url(#hglow)"
         />
 
+        <polyline
+          class="hero-chart-outline"
+          :points="poly(l1)"
+          fill="none"
+          stroke="#CCFF00"
+          stroke-width="1.5"
+          opacity="0.08"
+          stroke-linejoin="round"
+        />
+
         <!-- Main l1 line (draw-on-load) -->
         <polyline
           ref="refL1"
+          class="hero-chart-draw"
           :points="poly(l1)"
           fill="none"
           stroke="#CCFF00"
           stroke-width="1.5"
           opacity="0.32"
+          pathLength="1"
+          stroke-dasharray="1"
+          stroke-dashoffset="1"
           stroke-linejoin="round"
         />
 
@@ -639,7 +689,7 @@ const p3 = computed(() => ({
     >
 
       <!-- ── LEFT: copy ── -->
-      <div>
+      <div class="hero-copy">
 
         <!-- Beta badge -->
         <div
@@ -1006,8 +1056,67 @@ const p3 = computed(() => ({
       </div>
     </div>
 
+    <!-- ── Mobile-first hero composition ── -->
+    <div
+      class="container hero-mobile-layout"
+      :style="{
+        position: 'relative',
+        zIndex: 4,
+        opacity: scrollFade,
+      }"
+    >
+      <div
+        class="hero-mobile-copy"
+        :style="{
+          opacity: entered ? 1 : 0,
+          transform: entered ? 'translateY(0)' : 'translateY(14px)',
+          transition: 'opacity 700ms 120ms cubic-bezier(0.16,1,0.3,1), transform 700ms 120ms cubic-bezier(0.16,1,0.3,1)',
+        }"
+      >
+        <div class="hero-mobile-kicker">
+          <span class="hero-mobile-kicker-dot" />
+          <span>Public beta</span>
+        </div>
+
+        <h1 class="hero-mobile-title">
+          <span>Scan.</span>
+          <span>Lift.</span>
+          <span class="lime">Progress.</span>
+        </h1>
+
+        <p class="hero-mobile-copyline">
+          Open LIFTAG at the machine. Log the set. Watch real progress compound.
+        </p>
+
+        <div class="hero-mobile-actions">
+          <a href="#scan" class="hero-mobile-primary">See scan flow</a>
+          <span class="hero-mobile-note">Free in beta</span>
+        </div>
+      </div>
+
+      <div
+        class="hero-mobile-visual"
+        :style="{
+          opacity: entered ? 1 : 0,
+          transform: entered ? 'translateY(0)' : 'translateY(18px)',
+          transition: 'opacity 780ms 260ms cubic-bezier(0.16,1,0.3,1), transform 780ms 260ms cubic-bezier(0.16,1,0.3,1)',
+        }"
+      >
+        <div class="hero-mobile-device">
+          <div class="hero-mobile-device-glow" aria-hidden="true" />
+          <Phone src="/assets/screens/home.png" :scale="1" :tilt-delay-ms="0" lite />
+        </div>
+
+        <div class="hero-mobile-proof" aria-label="LIFTAG launch stats">
+          <span><strong>250+</strong> exercises</span>
+          <span><strong>QR</strong> machine sync</span>
+        </div>
+      </div>
+    </div>
+
     <!-- ── Scroll cue ── -->
     <div
+      class="hero-scroll-cue"
       :style="{
         position: 'absolute', bottom: '32px', left: '50%',
         transform: 'translateX(-50%)',
@@ -1050,6 +1159,235 @@ const p3 = computed(() => ({
 
 .cursor-glow-red {
   background: radial-gradient(circle, rgba(255, 45, 85, 0.11) 0%, transparent 58%);
+}
+
+.hero-chart-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.hero-chart-outline {
+  vector-effect: non-scaling-stroke;
+}
+
+.hero-mobile-layout {
+  display: none;
+}
+
+.hero-mobile-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  width: fit-content;
+  padding: 7px 12px;
+  border: 1px solid rgba(204, 255, 0, 0.26);
+  border-radius: 999px;
+  background: rgba(204, 255, 0, 0.055);
+  color: var(--liftag-primary);
+  font-family: var(--liftag-font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.19em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.hero-mobile-kicker-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--liftag-primary);
+  box-shadow: 0 0 16px rgba(204, 255, 0, 0.9);
+}
+
+.hero-mobile-title {
+  display: grid;
+  gap: 0;
+  margin: 18px 0 0;
+  font-family: var(--liftag-font-headline);
+  font-size: clamp(50px, 15.6vw, 68px);
+  font-style: italic;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 0.86;
+  text-transform: uppercase;
+}
+
+.hero-mobile-title span {
+  display: block;
+}
+
+.hero-mobile-copyline {
+  max-width: 22rem;
+  margin: 20px 0 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1.45;
+}
+
+.hero-mobile-actions {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-top: 22px;
+}
+
+.hero-mobile-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--liftag-primary);
+  color: var(--liftag-fg-on-primary);
+  box-shadow: 0 0 30px rgba(204, 255, 0, 0.34);
+  font-family: var(--liftag-font-body);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.hero-mobile-note {
+  color: rgba(255, 255, 255, 0.46);
+  font-family: var(--liftag-font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.hero-mobile-visual {
+  position: relative;
+  min-height: 286px;
+}
+
+.hero-mobile-device {
+  position: absolute;
+  top: 0;
+  right: clamp(4px, 4vw, 22px);
+  width: min(47vw, 184px);
+  aspect-ratio: 393 / 852;
+}
+
+.hero-mobile-device :deep(.phone) {
+  width: 100% !important;
+}
+
+.hero-mobile-device-glow {
+  position: absolute;
+  inset: 10% -28% 3%;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 52% 35%, rgba(204, 255, 0, 0.25), transparent 57%),
+    linear-gradient(180deg, rgba(204, 255, 0, 0.09), rgba(255, 45, 85, 0.08));
+  filter: blur(22px);
+  opacity: 0.95;
+}
+
+.hero-mobile-proof {
+  position: absolute;
+  left: 0;
+  bottom: 18px;
+  display: grid;
+  gap: 8px;
+  width: min(50vw, 184px);
+}
+
+.hero-mobile-proof span {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(8, 10, 6, 0.78);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.38);
+  color: rgba(255, 255, 255, 0.58);
+  font-family: var(--liftag-font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.hero-mobile-proof strong {
+  color: var(--liftag-primary);
+  font-size: 15px;
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    min-height: 100svh !important;
+    padding-top: 84px !important;
+    padding-bottom: max(20px, env(safe-area-inset-bottom)) !important;
+  }
+
+  .hero-grid {
+    display: none !important;
+  }
+
+  .hero-mobile-layout {
+    display: grid;
+    grid-template-rows: auto minmax(260px, 1fr);
+    gap: 20px;
+    min-height: calc(100svh - 112px);
+    padding-top: 22px;
+  }
+
+  .hero-scroll-cue {
+    display: none !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .hero-mobile-layout {
+    grid-template-rows: auto minmax(248px, 1fr);
+    gap: 16px;
+    min-height: calc(100svh - 106px);
+    padding-top: 18px;
+  }
+
+  .hero-mobile-title {
+    font-size: clamp(46px, 14.5vw, 58px);
+  }
+
+  .hero-mobile-copyline {
+    max-width: 19rem;
+    font-size: 15px;
+  }
+
+  .hero-mobile-device {
+    width: min(48vw, 166px);
+  }
+
+  .hero-mobile-proof {
+    width: min(51vw, 174px);
+  }
+}
+
+@media (max-width: 360px) {
+  .hero-mobile-title {
+    font-size: 46px;
+  }
+
+  .hero-mobile-actions {
+    gap: 10px;
+  }
+
+  .hero-mobile-primary {
+    padding: 0 14px;
+    font-size: 11px;
+  }
+
+  .hero-mobile-note {
+    font-size: 9px;
+  }
 }
 
 /* Pulse the chart dots in pure CSS — replaces an always-on rAF that bumped a

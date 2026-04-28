@@ -888,24 +888,111 @@ onBeforeUnmount(() => {
   }
 
   .dashboard-section {
-    min-height: 200vh;
+    min-height: 185vh;
   }
 
   .dashboard-sticky {
-    min-height: 820px;
+    top: 64px;
+    height: calc(100svh - 64px);
+    min-height: 0;
+    align-items: flex-start;
+    padding: 18px 0 max(18px, env(safe-area-inset-bottom));
+  }
+
+  .dashboard-layout {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 16px;
+    height: 100%;
+    overflow: hidden;
+    transform-origin: top center;
+  }
+
+  .dashboard-copy {
+    display: contents;
+    max-width: none;
+  }
+
+  .dashboard-copy-head {
+    order: 1;
+    max-width: 360px;
+  }
+
+  .dashboard-copy-head :deep(.display) {
+    font-size: clamp(34px, 10.8vw, 46px) !important;
+    line-height: 0.96 !important;
+    letter-spacing: 0 !important;
+    max-width: 330px !important;
+  }
+
+  .dashboard-copy-head :deep(.protocol) {
+    margin-bottom: 12px !important;
+  }
+
+  .dashboard-lede {
+    margin-top: 14px;
+    max-width: 20.5rem;
+    font-size: 14px;
+    line-height: 1.48;
   }
 
   .dashboard-stage {
-    height: 360px;
-    min-height: 360px;
+    order: 2;
+    width: calc(100% + 24px);
+    height: clamp(258px, 39svh, 320px);
+    min-height: 258px;
+    margin: -2px -12px 0;
+    align-items: flex-start;
+  }
+
+  .dashboard-stage-glow {
+    inset: -18px 0 -8px;
+  }
+
+  .dashboard-hint {
+    top: 0;
+  }
+
+  .dashboard-hint .protocol {
+    font-size: 8px;
+    letter-spacing: 0.18em;
+  }
+
+  .dashboard-macbook-mount {
+    width: min(116vw, 450px);
+    margin-top: 18px;
+  }
+
+  .dashboard-features {
+    order: 3;
+    width: 100%;
+    margin-top: 0;
+    gap: 0;
   }
 
   .dashboard-feature {
-    padding: 14px 0;
+    padding: 9px 0;
   }
 
   .dashboard-feature-title {
-    font-size: 16px;
+    margin-top: 4px;
+    font-size: 13px;
+    line-height: 1.12;
+    letter-spacing: 0;
+  }
+
+  .dashboard-feature-tag {
+    font-size: 7px;
+    letter-spacing: 0.2em;
+  }
+
+  .dashboard-feature-body {
+    display: none;
+  }
+
+  .dashboard-feature-scan {
+    width: 58px;
   }
 }
 </style>
