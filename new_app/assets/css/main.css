@@ -624,6 +624,7 @@ section {
   section {
     padding-top: 80px !important;
     padding-bottom: 80px !important;
+    overflow-x: clip !important;
   }
 
   /* Two-column section headers (Lifters, Trainers, Gyms) → stack on mobile */
