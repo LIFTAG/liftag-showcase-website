@@ -711,6 +711,21 @@ section {
   .scan-step-screen {
     display: block !important;
   }
+  /* Both scan steps always fully visible on mobile — the floating phone that
+     the desktop cycling drives is hidden, so dimming/shifting the inactive
+     step makes no sense. Override the inline opacity/transform. */
+  .scan-step-row {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    cursor: default !important;
+  }
+  /* Hide the animated left-bar progress indicator — it only makes sense
+     alongside the desktop cycling phone. */
+  .scan-step-row.is-active::before,
+  .scan-step-row.is-exiting::before {
+    display: none !important;
+  }
 
   /* Trainers: phone+chips column moves above the copy column on mobile.
      Tab pills are above both, so reading order is:
