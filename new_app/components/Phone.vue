@@ -111,7 +111,7 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 8px;
   z-index: 2;
-  border-radius: 44px;
+  border-radius: 24px;
   pointer-events: none;
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.07),

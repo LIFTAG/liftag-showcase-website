@@ -578,6 +578,11 @@ section {
   }
   .phone {
     width: 220px !important;
+    border-radius: 32px !important;
+    border-width: 2px !important;
+    box-shadow:
+      0 20px 50px rgba(0, 0, 0, 0.7),
+      0 0 30px rgba(204, 255, 0, 0.12) !important;
   }
   .scan-qr-sticker {
     display: none !important;
@@ -738,6 +743,7 @@ section {
   }
   .phone {
     width: 200px !important;
+    border-radius: 32px !important;
   }
   .scan-phone-area {
     height: 420px !important;
