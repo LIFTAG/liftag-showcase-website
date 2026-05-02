@@ -5,26 +5,35 @@ const hoveredStep = ref<number | null>(null)
 const exitingStep = ref<number | null>(null)
 const scanCycleMs = 3200
 const inView = ref(false)
+const reduceMotion = ref(false)
 const sectionRef = ref<HTMLElement | null>(null)
 let cycleInterval: ReturnType<typeof setInterval> | null = null
 let exitTimer: ReturnType<typeof setTimeout> | null = null
+let scanObserver: IntersectionObserver | null = null
+let motionMql: MediaQueryList | null = null
+
+const rawMouse = useSharedMouse().latest
+const mouse = useLerp(rawMouse, 0.06)
 
 const steps = [
   {
     tag: 'STEP 01',
     title: 'Point.',
     body: 'Open Liftag. Aim at any QR sticker on the machine. The exact exercise, variations, and a setup video load instantly. No menus, no searching.',
+    brief: 'Scan the machine QR. LIFTAG opens the exact exercise and setup video.',
     screen: '/assets/screens/qr-scan.png',
-    extra: null as null | { label: string; note: string },
+    extra: null as null | { label: string; note: string; brief: string },
   },
   {
     tag: 'STEP 02',
     title: 'Log.',
     body: 'Tap weight × reps. Timer auto-runs between sets. RPE optional. Every set is timestamped and saved to your history.',
+    brief: 'Tap weight and reps. Rest timer runs, then the set lands in history.',
     screen: '/assets/screens/log-set.png',
     extra: {
       label: 'OPTIONAL',
       note: "Watch the gym's own instruction video. Filmed by their trainers, on their machines.",
+      brief: "Gym's own trainer video is one tap away.",
     },
   },
 ]
@@ -53,20 +62,41 @@ function clearHoveredStep(stepIndex: number) {
   if (inView.value) startCycleInterval()
 }
 
+const scanPhoneMotionTransform = computed(() => {
+  if (reduceMotion.value) return 'translate3d(0, 0, 0)'
+  const x = mouse.value.x * 18
+  const y = mouse.value.y * 12
+  const rotateX = mouse.value.y * 2.4
+  const rotateY = mouse.value.x * -3.2
+  return `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg)`
+})
+
+const scanQrMotionTransform = computed(() => {
+  if (reduceMotion.value) return 'rotate(-8deg)'
+  const x = mouse.value.x * -28
+  const y = mouse.value.y * -18
+  const rotate = -8 + mouse.value.x * -2.2 + mouse.value.y * 0.8
+  return `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotate(${rotate.toFixed(2)}deg)`
+})
+
+function onMotionChange(e: MediaQueryListEvent) {
+  reduceMotion.value = e.matches
+}
+
 onMounted(() => {
+  motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
+  reduceMotion.value = motionMql.matches
+  motionMql.addEventListener('change', onMotionChange)
+
   if (!sectionRef.value) return
 
-  const io = new IntersectionObserver(
+  scanObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((e) => { inView.value = e.isIntersecting })
     },
     { threshold: 0.3 },
   )
-  io.observe(sectionRef.value)
-
-  onBeforeUnmount(() => {
-    io.disconnect()
-  })
+  scanObserver.observe(sectionRef.value)
 })
 
 function clearCycleInterval() {
@@ -91,6 +121,10 @@ watch(inView, (val) => {
 onBeforeUnmount(() => {
   clearCycleInterval()
   if (exitTimer) clearTimeout(exitTimer)
+  scanObserver?.disconnect()
+  scanObserver = null
+  motionMql?.removeEventListener('change', onMotionChange)
+  motionMql = null
 })
 </script>
 
@@ -123,7 +157,7 @@ onBeforeUnmount(() => {
       </SectionTitle>
 
       <p
-        class="reveal"
+        class="reveal scan-lede"
         :style="{
           fontSize: '18px',
           fontWeight: 300,
@@ -150,6 +184,7 @@ onBeforeUnmount(() => {
         <!-- LEFT: floating phone -->
         <div class="scan-phone-area" :style="{ position: 'relative', height: '680px' }">
           <div
+            class="scan-phone-wrap"
             :style="{
               position: 'absolute',
               top: 0,
@@ -157,16 +192,21 @@ onBeforeUnmount(() => {
               transform: 'translateX(-50%)',
             }"
           >
-            <div class="scan-phone-float">
-              <div class="scan-phone-camera">
-                <Phone
-                  :src="steps[step].screen"
-                  :scale="1.05"
-                  screen-transition
-                  :screen-transition-direction="phoneSwipeDirection"
-                />
-                <div v-if="step === 0" class="scan-phone-laser-overlay" aria-hidden="true">
-                  <span class="scan-phone-laser-line" />
+            <div
+              class="scan-phone-motion"
+              :style="{ transform: scanPhoneMotionTransform }"
+            >
+              <div class="scan-phone-float">
+                <div class="scan-phone-camera">
+                  <Phone
+                    :src="steps[step].screen"
+                    :scale="1.05"
+                    screen-transition
+                    :screen-transition-direction="phoneSwipeDirection"
+                  />
+                  <div v-if="step === 0" class="scan-phone-laser-overlay" aria-hidden="true">
+                    <span class="scan-phone-laser-line" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -185,7 +225,7 @@ onBeforeUnmount(() => {
               padding: '11px',
               borderRadius: '12px',
               boxShadow: '0 20px 50px rgba(0,0,0,0.6), 0 0 30px rgba(204,255,0,0.2)',
-              transform: 'rotate(-8deg)',
+              transform: scanQrMotionTransform,
               zIndex: 4,
             }"
           >
@@ -217,8 +257,8 @@ onBeforeUnmount(() => {
         </div>
 
         <!-- RIGHT: 2-step list -->
-        <div>
-          <div :style="{ display: 'flex', flexDirection: 'column', gap: 0 }">
+        <div class="scan-steps-panel">
+          <div class="scan-steps-stack" :style="{ display: 'flex', flexDirection: 'column', gap: 0 }">
             <div
               v-for="(s, i) in steps"
               :key="i"
@@ -271,8 +311,9 @@ onBeforeUnmount(() => {
               </div>
 
               <!-- Right col: title + body + optional extra -->
-              <div>
+              <div class="scan-step-copy">
                 <h3
+                  class="scan-step-title"
                   :style="{
                     margin: 0,
                     fontFamily: '\'Space Grotesk\', sans-serif',
@@ -332,6 +373,7 @@ onBeforeUnmount(() => {
                 </div>
 
                 <p
+                  class="scan-step-body"
                   :style="{
                     color: 'rgba(255,255,255,0.6)',
                     fontWeight: 300,
@@ -341,10 +383,12 @@ onBeforeUnmount(() => {
                     maxWidth: '440px',
                   }"
                 >
-                  {{ s.body }}
+                  <span class="scan-step-body-full">{{ s.body }}</span>
+                  <span class="scan-step-body-brief">{{ s.brief }}</span>
                 </p>
                 <div
                   v-if="s.extra"
+                  class="scan-step-extra"
                   :style="{
                     marginTop: '16px',
                     display: 'inline-flex',
@@ -368,13 +412,15 @@ onBeforeUnmount(() => {
                     {{ s.extra.label }}
                   </span>
                   <span
+                    class="scan-step-extra-note"
                     :style="{
                       color: 'rgba(255,255,255,0.6)',
                       fontSize: '13px',
                       lineHeight: 1.5,
                     }"
                   >
-                    {{ s.extra.note }}
+                    <span class="scan-step-extra-full">{{ s.extra.note }}</span>
+                    <span class="scan-step-extra-brief">{{ s.extra.brief }}</span>
                   </span>
                 </div>
               </div>
@@ -395,6 +441,11 @@ onBeforeUnmount(() => {
   overflow: visible;
   border-left: 2px solid transparent;
   will-change: transform, opacity;
+}
+
+.scan-step-body-brief,
+.scan-step-extra-brief {
+  display: none;
 }
 
 .scan-step-row::before {
@@ -458,6 +509,17 @@ onBeforeUnmount(() => {
 .scan-phone-float {
   animation: float-y 5s ease-in-out infinite;
   transform-origin: center;
+}
+
+.scan-phone-wrap {
+  perspective: 900px;
+}
+
+.scan-phone-motion,
+.scan-qr-sticker {
+  transform-origin: center;
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
 .scan-phone-camera {
@@ -575,6 +637,7 @@ onBeforeUnmount(() => {
   }
 
   .scan-phone-float,
+  .scan-phone-motion,
   .scan-phone-laser-line {
     animation: none;
   }
@@ -587,6 +650,240 @@ onBeforeUnmount(() => {
   .scan-step-row.is-exiting::before {
     animation: none;
     opacity: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .scan-section {
+    padding: 76px 0 104px !important;
+  }
+
+  .scan-section :deep(.display) {
+    max-width: 20rem !important;
+    font-size: clamp(30px, 8.8vw, 36px) !important;
+    line-height: 0.98 !important;
+  }
+
+  .scan-section :deep(.eyebrow) {
+    margin-bottom: 18px !important;
+  }
+
+  .scan-lede {
+    display: none !important;
+  }
+
+  .scan-grid-2col {
+    grid-template-columns: minmax(126px, 37vw) minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: clamp(14px, 4vw, 22px) !important;
+    margin-top: 30px !important;
+  }
+
+  .scan-phone-area {
+    display: block !important;
+    height: 332px !important;
+    min-height: 332px !important;
+  }
+
+  .scan-phone-wrap {
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: fit-content;
+    margin: 0 auto;
+    transform: none !important;
+  }
+
+  .scan-phone-float {
+    animation-duration: 6.5s;
+  }
+
+  .scan-phone-camera {
+    width: min(36vw, 142px) !important;
+  }
+
+  .scan-phone-camera :deep(.phone) {
+    width: 100% !important;
+    border-radius: 24px !important;
+    border-width: 2px !important;
+  }
+
+  .scan-phone-laser-overlay {
+    border-radius: 10px;
+  }
+
+  .scan-steps-panel {
+    min-width: 0;
+  }
+
+  .scan-steps-stack {
+    gap: 10px !important;
+  }
+
+  .scan-step-row {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    min-width: 0;
+    padding: 12px 12px 13px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 14px;
+    background: rgba(8, 10, 6, 0.58);
+    opacity: 1 !important;
+    transform: none !important;
+    transition:
+      border-color 260ms ease,
+      background 260ms ease,
+      box-shadow 260ms ease !important;
+  }
+
+  .scan-step-row.is-active {
+    border-color: rgba(204, 255, 0, 0.42) !important;
+    background: rgba(204, 255, 0, 0.075);
+    box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  .scan-step-row::before,
+  .scan-step-row.is-active::before,
+  .scan-step-row.is-exiting::before {
+    display: none !important;
+  }
+
+  .scan-step-row > div:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .scan-step-row > div:first-child > div:first-child {
+    min-width: 0;
+    font-size: 9px !important;
+    letter-spacing: 0.16em !important;
+    white-space: nowrap;
+  }
+
+  .scan-step-row > div:first-child > div:last-child {
+    flex: 1;
+    width: auto !important;
+    min-width: 18px;
+    max-width: 56px;
+    margin-top: 0 !important;
+  }
+
+  .scan-step-title {
+    font-size: clamp(28px, 8.4vw, 34px) !important;
+    line-height: 0.92 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .scan-step-body {
+    margin-top: 9px !important;
+    max-width: none !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 12px !important;
+    line-height: 1.38 !important;
+  }
+
+  .scan-step-body-full,
+  .scan-step-extra-full,
+  .scan-step-screen {
+    display: none !important;
+  }
+
+  .scan-step-body-brief,
+  .scan-step-extra-brief {
+    display: inline;
+  }
+
+  .scan-step-extra {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 8px !important;
+    margin-top: 10px !important;
+    padding: 9px 10px !important;
+    border-radius: 10px !important;
+  }
+
+  .scan-step-extra .protocol {
+    font-size: 8px !important;
+    letter-spacing: 0.12em !important;
+  }
+
+  .scan-step-extra-note {
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .scan-grid-2col {
+    grid-template-columns: minmax(116px, 34vw) minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .scan-phone-area {
+    height: 306px !important;
+    min-height: 306px !important;
+  }
+
+  .scan-phone-camera {
+    width: min(34vw, 126px) !important;
+  }
+
+  .scan-step-row {
+    padding: 11px 10px !important;
+  }
+
+  .scan-step-title {
+    font-size: 28px !important;
+  }
+
+  .scan-step-body {
+    font-size: 11px !important;
+  }
+}
+
+@media (max-width: 768px) and (max-height: 740px) {
+  .scan-section {
+    padding-top: 68px !important;
+  }
+
+  .scan-grid-2col {
+    margin-top: 24px !important;
+  }
+
+  .scan-phone-area {
+    height: 286px !important;
+    min-height: 286px !important;
+  }
+
+  .scan-phone-camera {
+    width: min(32vw, 118px) !important;
+  }
+
+  .scan-step-row {
+    gap: 7px !important;
+    padding: 9px !important;
+  }
+
+  .scan-step-title {
+    font-size: 24px !important;
+  }
+
+  .scan-step-body {
+    margin-top: 7px !important;
+    font-size: 10.5px !important;
+    line-height: 1.32 !important;
+  }
+
+  .scan-step-extra {
+    margin-top: 8px !important;
+    padding: 7px 8px !important;
+  }
+
+  .scan-step-extra-note {
+    font-size: 10px !important;
   }
 }
 </style>

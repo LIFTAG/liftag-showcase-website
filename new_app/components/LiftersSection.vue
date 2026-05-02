@@ -103,10 +103,13 @@ function imgPanBackTo(card: FeatureCardProps) {
 
 // Per-card hover state
 const hovered = ref<Record<number, boolean>>({})
+const tapPanCard = ref<number | null>(null)
+const isTapPanMode = ref(false)
 const cardStates = ref<Record<number, 'before' | 'visible' | 'after'>>({})
 const cardEls: HTMLElement[] = []
 
 let cardObserver: IntersectionObserver | null = null
+let tapPanModeCleanup: (() => void) | null = null
 
 function setCardRef(el: unknown, index: number) {
   if (typeof HTMLElement === 'undefined' || !(el instanceof HTMLElement)) return
@@ -115,6 +118,15 @@ function setCardRef(el: unknown, index: number) {
 
 function cardStateClass(index: number) {
   return `is-${cardStates.value[index] ?? 'after'}`
+}
+
+function isCardActive(index: number) {
+  return Boolean(hovered.value[index]) || tapPanCard.value === index
+}
+
+function toggleCardPan(index: number) {
+  if (!isTapPanMode.value) return
+  tapPanCard.value = tapPanCard.value === index ? null : index
 }
 
 function setCardState(index: number, state: 'before' | 'visible' | 'after') {
@@ -129,6 +141,20 @@ onMounted(async () => {
   }
 
   await nextTick()
+
+  const tapPanModeQuery = window.matchMedia('(hover: none), (pointer: coarse)')
+  const syncTapPanMode = () => {
+    isTapPanMode.value = tapPanModeQuery.matches
+    if (!tapPanModeQuery.matches) tapPanCard.value = null
+  }
+  syncTapPanMode()
+  if (tapPanModeQuery.addEventListener) {
+    tapPanModeQuery.addEventListener('change', syncTapPanMode)
+    tapPanModeCleanup = () => tapPanModeQuery.removeEventListener('change', syncTapPanMode)
+  } else {
+    tapPanModeQuery.addListener(syncTapPanMode)
+    tapPanModeCleanup = () => tapPanModeQuery.removeListener(syncTapPanMode)
+  }
 
   cardObserver = new IntersectionObserver(
     (entries) => {
@@ -160,6 +186,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   cardObserver?.disconnect()
+  tapPanModeCleanup?.()
 })
 </script>
 
@@ -200,15 +227,16 @@ onBeforeUnmount(() => {
           v-for="(card, i) in cards"
           :key="i"
           :ref="(el) => setCardRef(el, i)"
-          :class="['lifters-card', cardStateClass(i)]"
+          :class="['lifters-card', cardStateClass(i), { 'is-pan-active': tapPanCard === i }]"
           @mouseenter="hovered[i] = true"
           @mouseleave="hovered[i] = false"
+          @click="toggleCardPan(i)"
           :style="{
             '--card-delay': `${i * 70}ms`,
             gridColumn: card.span,
             gridRow: card.tall ? 'span 2' : 'auto',
             background: '#0a0a0a',
-            border: hovered[i]
+            border: isCardActive(i)
               ? '1px solid rgba(204,255,0,0.3)'
               : '1px solid rgba(255,255,255,0.06)',
             borderRadius: '28px',
@@ -220,7 +248,7 @@ onBeforeUnmount(() => {
             display: 'flex',
             flexDirection: 'column',
             cursor: 'pointer',
-            boxShadow: hovered[i]
+            boxShadow: isCardActive(i)
               ? '0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(204,255,0,0.1)'
               : 'none',
           }"
@@ -373,6 +401,10 @@ onBeforeUnmount(() => {
   opacity: 0.18;
 }
 
+.lifters-card.is-pan-active::after {
+  opacity: 0.18;
+}
+
 .lifters-card.is-visible {
   opacity: 1;
   transform: translate3d(0, 0, 0) scale(1);
@@ -402,6 +434,10 @@ onBeforeUnmount(() => {
   animation-play-state: running;
 }
 
+.lifters-card.is-pan-active .lifters-card-image {
+  animation-play-state: running;
+}
+
 @keyframes liftersScreenshotPan {
   0%, 100% {
     object-position: var(--img-x, 50%) var(--img-y, 50%);
@@ -425,8 +461,27 @@ onBeforeUnmount(() => {
     transition: none;
   }
 
-  .lifters-card:hover .lifters-card-image {
+  .lifters-card:hover .lifters-card-image,
+  .lifters-card.is-pan-active .lifters-card-image {
     animation: none;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .lifters-card:hover::after {
+    opacity: 1;
+  }
+
+  .lifters-card.is-pan-active::after {
+    opacity: 0.18;
+  }
+
+  .lifters-card:hover .lifters-card-image {
+    animation-play-state: paused;
+  }
+
+  .lifters-card.is-pan-active .lifters-card-image {
+    animation-play-state: running;
   }
 }
 </style>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const scrolled = ref(false)
 const open = ref(false)
+const isMobileNav = ref(false)
 
 const navLinks: [string, string][] = [
   ['Lifters', '#lifters'],
@@ -10,16 +11,36 @@ const navLinks: [string, string][] = [
 ]
 
 let _onScroll: (() => void) | null = null
+let _onViewportChange: (() => void) | null = null
+let _mobileQuery: MediaQueryList | null = null
+
+function updateScrolled() {
+  const threshold = isMobileNav.value ? 0 : 40
+  const next = window.scrollY > threshold
+  if (next !== scrolled.value) scrolled.value = next
+}
 
 onMounted(() => {
+  _mobileQuery = window.matchMedia('(max-width: 768px)')
+  _onViewportChange = () => {
+    isMobileNav.value = Boolean(_mobileQuery?.matches)
+    updateScrolled()
+  }
+  _onViewportChange()
+
+  if (_mobileQuery.addEventListener) {
+    _mobileQuery.addEventListener('change', _onViewportChange)
+  } else {
+    _mobileQuery.addListener(_onViewportChange)
+  }
+
   let queued = false
   _onScroll = () => {
     if (queued) return
     queued = true
     requestAnimationFrame(() => {
       queued = false
-      const next = window.scrollY > 40
-      if (next !== scrolled.value) scrolled.value = next
+      updateScrolled()
     })
   }
   window.addEventListener('scroll', _onScroll, { passive: true })
@@ -27,6 +48,13 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   if (_onScroll) window.removeEventListener('scroll', _onScroll)
+  if (_mobileQuery && _onViewportChange) {
+    if (_mobileQuery.removeEventListener) {
+      _mobileQuery.removeEventListener('change', _onViewportChange)
+    } else {
+      _mobileQuery.removeListener(_onViewportChange)
+    }
+  }
 })
 </script>
 
@@ -45,8 +73,9 @@ onBeforeUnmount(() => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-        background: scrolled || open ? 'rgba(0,0,0,0.68)' : 'transparent',
-        backdropFilter: scrolled || open ? 'blur(20px) saturate(1.5)' : 'none',
+      background: scrolled || open ? 'rgba(0,0,0,0.68)' : 'transparent',
+      backdropFilter: scrolled || open ? 'blur(20px) saturate(1.5)' : 'none',
+      WebkitBackdropFilter: scrolled || open ? 'blur(20px) saturate(1.5)' : 'none',
       borderBottom: scrolled || open ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent',
       transition: 'background-color .35s cubic-bezier(0.16,1,0.3,1), border-color .35s cubic-bezier(0.16,1,0.3,1)',
     }"
@@ -146,6 +175,7 @@ onBeforeUnmount(() => {
 
   <!-- Mobile drawer -->
   <div
+    class="nav-mobile-drawer"
     :style="{
       position: 'fixed',
       top: '60px',
@@ -154,10 +184,14 @@ onBeforeUnmount(() => {
       zIndex: 99,
       background: 'rgba(0,0,0,0.96)',
       backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
       borderBottom: '1px solid rgba(255,255,255,0.08)',
-      padding: open ? '24px 24px 32px' : '0 24px',
-      maxHeight: open ? '400px' : '0',
-      overflow: 'hidden',
+      boxSizing: 'border-box',
+      padding: open ? '20px 24px calc(24px + env(safe-area-inset-bottom))' : '0 24px',
+      maxHeight: open ? 'calc(100dvh - 60px)' : '0',
+      overflowX: 'hidden',
+      overflowY: open ? 'auto' : 'hidden',
+      overscrollBehavior: 'contain',
       transition: 'all 400ms cubic-bezier(0.16,1,0.3,1)',
     }"
   >
@@ -177,7 +211,7 @@ onBeforeUnmount(() => {
     >
       Dashboard
     </a>
-    <div style="display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;">
+    <div class="nav-store-buttons">
       <AppStoreBtn store="apple" />
       <AppStoreBtn store="google" />
     </div>
@@ -391,7 +425,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   width: fit-content;
-  margin-top: 24px;
+  margin-top: 20px;
   padding: 12px 18px;
   border: 1px solid rgba(204, 255, 0, 0.34);
   border-radius: 999px;
@@ -402,6 +436,23 @@ onBeforeUnmount(() => {
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+}
+
+.nav-store-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  padding-bottom: 2px;
+}
+
+.nav-store-buttons :deep(.app-store-btn) {
+  flex: 0 0 auto;
+}
+
+.nav-store-buttons :deep(.app-store-btn__img) {
+  height: 44px;
 }
 
 @keyframes navShellIn {
@@ -491,6 +542,16 @@ onBeforeUnmount(() => {
 @media (max-width: 768px) {
   .nav-actions {
     animation-delay: 420ms;
+  }
+}
+
+@media (max-width: 390px) {
+  .nav-store-buttons {
+    gap: 8px;
+  }
+
+  .nav-store-buttons :deep(.app-store-btn__img) {
+    height: 42px;
   }
 }
 

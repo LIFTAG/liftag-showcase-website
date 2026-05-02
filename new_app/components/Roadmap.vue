@@ -702,25 +702,37 @@ onBeforeUnmount(() => {
 /* ─── Responsive (mobile: left-rail timeline) ────────────────────────────── */
 @media (max-width: 600px) {
   .section-inner {
-    padding: 80px 18px;
+    padding: 88px 16px 96px;
+  }
+
+  .roadmap-timeline {
+    --rm-rail-x: clamp(12px, 3.5vw, 18px);
+    --rm-content-offset: clamp(88px, 25vw, 112px);
+    max-width: 100%;
+    padding: 48px 0 24px;
   }
 
   .roadmap-line-ghost,
   .roadmap-line-active {
-    left: 18px;
+    left: var(--rm-rail-x);
     transform: none;
   }
 
   .rm-item:nth-child(odd),
   .rm-item:nth-child(even) {
-    padding-left: 64px;
+    padding-left: var(--rm-content-offset);
     padding-right: 0;
     flex-direction: row;
     text-align: left;
+    transform: translate3d(0, 28px, 0);
+  }
+
+  .rm-item.visible {
+    transform: translate3d(0, 0, 0);
   }
 
   .rm-node {
-    left: 18px;
+    left: var(--rm-rail-x);
     transform: translateX(-50%);
   }
 
@@ -729,13 +741,33 @@ onBeforeUnmount(() => {
   }
 
   .rm-item {
-    margin-bottom: 48px;
+    margin-bottom: 68px;
+  }
+
+  .rm-item > div:last-child {
+    width: 100%;
+    max-width: 320px;
   }
 
   .rm-title {
     font-size: 1.08rem;
     line-height: 1.22;
     text-wrap: balance;
+  }
+
+  .rm-roots {
+    margin-top: 12px;
+    padding-top: 8px;
+  }
+
+  .rm-branch {
+    padding: 8px 0;
+  }
+
+  .rm-branch span {
+    display: inline-block;
+    max-width: 100%;
+    line-height: 1.35;
   }
 }
 </style>

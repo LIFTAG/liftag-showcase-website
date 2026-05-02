@@ -43,6 +43,7 @@ let lastExitVarsKey = ''
 const lastIconTransform: string[] = []
 const lastIconOpacity: string[] = []
 const lastIconZ: string[] = []
+const lastIconSpin: string[] = []
 const lastCaptionTransform: string[] = []
 const lastCaptionOpacity: string[] = []
 const lastVectorTransform: string[] = []
@@ -264,6 +265,8 @@ function applyAppStyles(app: MockApp, index: number, p: number, finale: number, 
     const iconOpacityStr = String(opacity)
     const iconTransformStr = `translate3d(calc(-50% + ${motion.x}px), calc(-50% + ${motion.y}px), 0) rotate(${motion.rotate}deg) scale(${motion.scale})`
     const iconZStr = String(Math.round(20 + app.depth * 10 - merge * 5))
+    const iconSpinIntro = reduceMotion ? 0 : smootherstep((merge - 0.42) / 0.42)
+    const iconSpinStr = `${logoSpinDegrees(iconSpinIntro)}deg`
     if (lastIconOpacity[index] !== iconOpacityStr) {
       icon.style.opacity = iconOpacityStr
       lastIconOpacity[index] = iconOpacityStr
@@ -275,6 +278,10 @@ function applyAppStyles(app: MockApp, index: number, p: number, finale: number, 
     if (lastIconZ[index] !== iconZStr) {
       icon.style.zIndex = iconZStr
       lastIconZ[index] = iconZStr
+    }
+    if (lastIconSpin[index] !== iconSpinStr) {
+      icon.style.setProperty('--app-spin', iconSpinStr)
+      lastIconSpin[index] = iconSpinStr
     }
   }
 
@@ -366,13 +373,13 @@ function applyLiftagStyle(merge: number, logoIntro: number, exitLogo: number) {
 function updateAnimatedStyles(now = performance.now()) {
   const merge = mergeProgress(scrollP)
   const logoIntro = reduceMotion ? 1 : logoIntroProgress(scrollP)
-  const exit = reduceMotion ? 0 : smoothstep((scrollP - 0.94) / 0.06)
-  const copyEyebrowExit = reduceMotion ? 0 : smoothstep((scrollP - 0.9) / 0.08)
-  const copyTitleExit = reduceMotion ? 0 : smoothstep((scrollP - 0.91) / 0.08)
-  const copyTextExit = reduceMotion ? 0 : smoothstep((scrollP - 0.92) / 0.07)
-  const stageExit = reduceMotion ? 0 : smoothstep((scrollP - 0.96) / 0.04)
-  const logoExit = reduceMotion ? 0 : smoothstep((scrollP - 0.97) / 0.03)
-  const bgExit = reduceMotion ? 0 : smoothstep((scrollP - 0.92) / 0.08)
+  const exit = reduceMotion ? 0 : smoothstep((scrollP - 0.975) / 0.025)
+  const copyEyebrowExit = reduceMotion ? 0 : smoothstep((scrollP - 0.952) / 0.04)
+  const copyTitleExit = reduceMotion ? 0 : smoothstep((scrollP - 0.958) / 0.036)
+  const copyTextExit = reduceMotion ? 0 : smoothstep((scrollP - 0.964) / 0.03)
+  const stageExit = reduceMotion ? 0 : smoothstep((scrollP - 0.986) / 0.014)
+  const logoExit = reduceMotion ? 0 : smoothstep((scrollP - 0.992) / 0.008)
+  const bgExit = reduceMotion ? 0 : smoothstep((scrollP - 0.966) / 0.034)
   const section = sectionRef.value
 
   if (section) {
@@ -431,6 +438,7 @@ function iconBaseStyle(app: MockApp) {
     '--icon-gradient': app.gradient,
     '--icon-accent': app.accent,
     '--icon-glow': app.glow,
+    '--app-spin': '0deg',
     opacity: 0.98,
     transform: `translate3d(calc(-50% + ${app.x}px), calc(-50% + ${app.y}px), 0) rotate(${app.rotate}deg) scale(0.98)`,
     zIndex: String(Math.round(20 + app.depth * 10)),
@@ -651,7 +659,7 @@ onBeforeUnmount(() => {
   --merge-stage-exit: 0;
   --merge-bg-exit: 0;
   position: relative;
-  min-height: 260vh;
+  min-height: 340vh;
   background: #000;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -905,6 +913,7 @@ onBeforeUnmount(() => {
     inset 0 -18px 30px rgba(0, 0, 0, 0.18);
   overflow: hidden;
   transform: translate(-50%, -50%);
+  transform-origin: center;
   backface-visibility: hidden;
   contain: paint;
 }
@@ -917,6 +926,10 @@ onBeforeUnmount(() => {
   color: currentColor;
   stroke-width: 3.2px;
   opacity: 1;
+  transform: rotate(var(--app-spin, 0deg));
+  transform-box: fill-box;
+  transform-origin: center;
+  will-change: transform;
 }
 
 .mock-icon-glyph * {
@@ -1087,7 +1100,7 @@ onBeforeUnmount(() => {
 
 @media (max-width: 620px) {
   .app-merge-section {
-    min-height: 245vh;
+    min-height: 315vh;
   }
 
   .app-merge-sticky {

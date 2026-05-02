@@ -31,19 +31,57 @@ const gymNumbers = [
 const muscleTags = ['BACK', 'LATS', 'BICEPS']
 const gymSectionRef = ref<HTMLElement | null>(null)
 const gymInView = ref(false)
+const reduceMotion = ref(false)
+let gymObserver: IntersectionObserver | null = null
+let motionMql: MediaQueryList | null = null
+
+const rawMouse = useSharedMouse().latest
+const mouse = useLerp(rawMouse, 0.06)
+
+function gymMotionTransform(
+  xFactor: number,
+  yFactor: number,
+  rotateFactor = 0,
+  base = '',
+) {
+  if (reduceMotion.value) return base || 'translate3d(0, 0, 0)'
+  const x = mouse.value.x * xFactor
+  const y = mouse.value.y * yFactor
+  const rotate = mouse.value.x * rotateFactor
+  return `${base}${base ? ' ' : ''}translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotate(${rotate.toFixed(2)}deg)`
+}
+
+const gymQrStickerMotion = computed(() => gymMotionTransform(-24, -16, -1.4))
+const gymMachineMotion = computed(() => gymMotionTransform(18, 12, 1.1))
+const gymBackPhoneMotion = computed(() => gymMotionTransform(14, 10, 0.7))
+const gymFrontPhoneMotion = computed(() => gymMotionTransform(-20, -14, -1.1))
+const gymQrKitMotion = computed(() => gymMotionTransform(12, -10, 0.45, 'translateX(-50%)'))
+
+function onMotionChange(e: MediaQueryListEvent) {
+  reduceMotion.value = e.matches
+}
 
 onMounted(() => {
+  motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
+  reduceMotion.value = motionMql.matches
+  motionMql.addEventListener('change', onMotionChange)
+
   if (!gymSectionRef.value) return
 
-  const observer = new IntersectionObserver(
+  gymObserver = new IntersectionObserver(
     ([entry]) => {
       gymInView.value = entry?.isIntersecting ?? false
     },
     { threshold: 0.28 },
   )
-  observer.observe(gymSectionRef.value)
+  gymObserver.observe(gymSectionRef.value)
+})
 
-  onBeforeUnmount(() => observer.disconnect())
+onBeforeUnmount(() => {
+  gymObserver?.disconnect()
+  gymObserver = null
+  motionMql?.removeEventListener('change', onMotionChange)
+  motionMql = null
 })
 </script>
 
@@ -95,11 +133,18 @@ onMounted(() => {
         >
           <!-- QR Sticker -->
           <div
-            class="gyms-qr-sticker-card"
+            class="gyms-motion-layer gyms-qr-sticker-motion"
             :style="{
               position: 'absolute',
               top: 0,
               left: '10px',
+              zIndex: 3,
+              transform: gymQrStickerMotion,
+            }"
+          >
+            <div
+              class="gyms-qr-sticker-card"
+              :style="{
               width: '180px',
               height: '210px',
               background: '#fff',
@@ -108,9 +153,8 @@ onMounted(() => {
               boxShadow: '0 30px 80px rgba(0,0,0,0.7), 0 0 60px rgba(204,255,0,0.15)',
               transform: 'rotate(4deg)',
               animation: 'float-y 6s ease-in-out infinite',
-              zIndex: 3,
-            }"
-          >
+              }"
+            >
             <!-- QR sticker header -->
             <div
               :style="{
@@ -164,15 +208,23 @@ onMounted(() => {
                 marginTop: 0,
               }"
             >SCAN TO START</div>
+            </div>
           </div>
 
           <!-- Machine card -->
           <div
-            class="gyms-machine-card"
+            class="gyms-motion-layer gyms-machine-motion"
             :style="{
               position: 'absolute',
               bottom: '20px',
               right: 0,
+              zIndex: 2,
+              transform: gymMachineMotion,
+            }"
+          >
+            <div
+              class="gyms-machine-card"
+              :style="{
               width: '220px',
               background: '#0a0a0a',
               border: '1px solid rgba(255,255,255,0.08)',
@@ -180,9 +232,8 @@ onMounted(() => {
               overflow: 'hidden',
               boxShadow: '0 30px 80px rgba(0,0,0,0.7)',
               transform: 'rotate(-3deg)',
-              zIndex: 2,
-            }"
-          >
+              }"
+            >
             <div :style="{ height: '110px', position: 'relative', overflow: 'hidden' }">
               <img
                 src="/assets/img/lat-pulldown.jpeg"
@@ -248,6 +299,7 @@ onMounted(() => {
                 >{{ tag }}</span>
               </div>
             </div>
+            </div>
           </div>
         </div>
 
@@ -265,41 +317,57 @@ onMounted(() => {
           <div class="gyms-map-ping ping-two" aria-hidden="true" />
           <!-- Back phone — gym detail, rotates 4deg -->
           <div
-            class="gyms-live-badge"
+            class="gyms-motion-layer gyms-back-phone-motion"
             :style="{
               position: 'absolute',
               top: '30px',
               right: '-10px',
+              transform: gymBackPhoneMotion,
+            }"
+          >
+            <div
+              class="gyms-live-badge"
+              :style="{
               transform: 'rotate(4deg)',
               opacity: 0.8,
               animation: 'float-y 7s ease-in-out infinite',
               animationDelay: '1s',
-            }"
-          >
-            <Phone src="/assets/screens/gym-detail.png" :scale="0.72" />
+              }"
+            >
+              <Phone src="/assets/screens/gym-detail.png" :scale="0.72" />
+            </div>
           </div>
 
           <!-- Front phone — explore map, rotates -3deg -->
           <div
+            class="gyms-motion-layer gyms-front-phone-motion"
             :style="{
               position: 'absolute',
               top: 0,
               left: '-10px',
-              transform: 'rotate(-3deg)',
-              animation: 'float-y 6s ease-in-out infinite',
               zIndex: 2,
+              transform: gymFrontPhoneMotion,
             }"
           >
-            <Phone src="/assets/screens/explore-map.png" :scale="0.88" />
+            <div
+              class="gyms-front-phone"
+              :style="{
+                transform: 'rotate(-3deg)',
+                animation: 'float-y 6s ease-in-out infinite',
+              }"
+            >
+              <Phone src="/assets/screens/explore-map.png" :scale="0.88" />
+            </div>
           </div>
 
           <!-- Live badge chip -->
           <div
+            class="gyms-motion-layer gyms-qr-kit-chip"
             :style="{
               position: 'absolute',
               bottom: '20px',
               left: '50%',
-              transform: 'translateX(-50%)',
+              transform: gymQrKitMotion,
               background: 'rgba(10,10,10,0.92)',
               border: '1px solid rgba(204,255,0,0.3)',
               borderRadius: '14px',
@@ -443,8 +511,15 @@ onMounted(() => {
 .gyms-qr-sticker-card,
 .gyms-machine-card,
 .gyms-live-badge,
+.gyms-front-phone,
 .gyms-benefit-row {
   position: relative;
+}
+
+.gyms-motion-layer {
+  transform-origin: center;
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
 .gyms-numbers {
@@ -589,8 +664,11 @@ onMounted(() => {
   .gyms-section.is-live .gyms-machine-card::after,
   .gyms-section.is-live .gyms-benefit-row::after,
   .gyms-section.is-live .gyms-map-ping,
-  .gyms-live-dot {
-    animation: none;
+  .gyms-live-dot,
+  .gyms-qr-sticker-card,
+  .gyms-live-badge,
+  .gyms-front-phone {
+    animation: none !important;
   }
 }
 </style>

@@ -784,14 +784,10 @@ section {
 }
 
 /* Touch / no-hover devices — hide pointer-driven decoration that just burns
-   GPU on mobile, and unpause hover-gated animations that would otherwise
-   never play without a cursor. */
+   GPU on mobile. Card screenshot pans are tap-controlled in LiftersSection. */
 @media (hover: none) {
   .cursor-glow {
     display: none !important;
-  }
-  .lifters-card-image {
-    animation-play-state: running !important;
   }
 }
 

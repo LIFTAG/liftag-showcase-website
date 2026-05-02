@@ -1324,6 +1324,8 @@ const p3 = computed(() => ({
 @media (max-width: 768px) {
   .hero-section {
     min-height: 100svh !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
     padding-top: 84px !important;
     padding-bottom: max(20px, env(safe-area-inset-bottom)) !important;
   }
@@ -1334,10 +1336,14 @@ const p3 = computed(() => ({
 
   .hero-mobile-layout {
     display: grid;
-    grid-template-rows: auto minmax(260px, 1fr);
+    grid-template-rows: auto minmax(360px, 1fr);
     gap: 20px;
     min-height: calc(100svh - 112px);
     padding-top: 22px;
+  }
+
+  .hero-mobile-visual {
+    min-height: 360px;
   }
 
   .hero-scroll-cue {
@@ -1347,7 +1353,7 @@ const p3 = computed(() => ({
 
 @media (max-width: 420px) {
   .hero-mobile-layout {
-    grid-template-rows: auto minmax(248px, 1fr);
+    grid-template-rows: auto minmax(360px, 1fr);
     gap: 16px;
     min-height: calc(100svh - 106px);
     padding-top: 18px;
@@ -1368,6 +1374,77 @@ const p3 = computed(() => ({
 
   .hero-mobile-proof {
     width: min(51vw, 174px);
+  }
+}
+
+@media (max-width: 768px) and (max-height: 740px) {
+  .hero-section {
+    padding-top: 76px !important;
+    padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
+  }
+
+  .hero-mobile-layout {
+    grid-template-rows: auto minmax(286px, 1fr);
+    gap: 8px;
+    min-height: calc(100svh - 92px);
+    padding-top: 12px;
+  }
+
+  .hero-mobile-kicker {
+    padding: 6px 10px;
+    font-size: 9px;
+  }
+
+  .hero-mobile-title {
+    margin-top: 14px;
+    font-size: clamp(42px, 12vw, 48px);
+    line-height: 0.84;
+  }
+
+  .hero-mobile-copyline {
+    max-width: 18rem;
+    margin-top: 14px;
+    font-size: 14px;
+    line-height: 1.36;
+  }
+
+  .hero-mobile-actions {
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .hero-mobile-primary {
+    min-height: 40px;
+    padding: 0 16px;
+    font-size: 11px;
+  }
+
+  .hero-mobile-note {
+    font-size: 9px;
+  }
+
+  .hero-mobile-visual {
+    min-height: 286px;
+    margin-top: -18px;
+  }
+
+  .hero-mobile-device {
+    right: clamp(0px, 3vw, 12px);
+    width: min(36vw, 126px);
+  }
+
+  .hero-mobile-proof {
+    bottom: 20px;
+    width: min(51vw, 160px);
+  }
+
+  .hero-mobile-proof span {
+    padding: 8px 10px;
+    font-size: 8px;
+  }
+
+  .hero-mobile-proof strong {
+    font-size: 14px;
   }
 }
 

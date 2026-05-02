@@ -67,6 +67,7 @@ let cachedDescRect: DOMRect | null = null
 // Cached canvas gradients — depend only on canvas size, not per-frame state.
 let cachedAreaGrad: CanvasGradient | null = null
 let cachedAreaGradKey = ''
+let scanEffectResetForMobile = false
 
 const HIW_LAST_EXIT_VIEWPORT_BOTTOM = 0.86
 
@@ -472,6 +473,12 @@ function updateHIW(p: number) {
 }
 
 function updateScanHoverEffect(p: number) {
+  if (mobileHIWLayout) {
+    resetMobileScanEffect()
+    return
+  }
+
+  scanEffectResetForMobile = false
   hiwLerpedP += (p - hiwLerpedP) * 0.12
   hiwQRLerpedP += (p - hiwQRLerpedP) * 0.06
 
@@ -528,6 +535,30 @@ function updateScanHoverEffect(p: number) {
   if (scanDesc.value && cachedDescRect) setScannerWindow(scanDesc.value, cachedDescRect)
 }
 
+function resetMobileScanEffect() {
+  if (scanEffectResetForMobile) return
+  scanEffectResetForMobile = true
+  scanHovered.value = false
+  scanTargetX = 0
+  scanTargetY = 0
+  scanCurrentX = 0
+  scanCurrentY = 0
+  scanCorners.value?.style.removeProperty('transform')
+  scanLine.value?.style.removeProperty('transform')
+  scanLine.value?.style.removeProperty('--scan-line-y')
+  qrIcon.value?.style.removeProperty('transform')
+  qrIcon.value?.style.removeProperty('stroke')
+  qrIcon.value?.style.removeProperty('opacity')
+  scanTitle.value?.style.removeProperty('--scan-left')
+  scanTitle.value?.style.removeProperty('--scan-top')
+  scanTitle.value?.style.removeProperty('--scan-w')
+  scanTitle.value?.style.removeProperty('--scan-h')
+  scanDesc.value?.style.removeProperty('--scan-left')
+  scanDesc.value?.style.removeProperty('--scan-top')
+  scanDesc.value?.style.removeProperty('--scan-w')
+  scanDesc.value?.style.removeProperty('--scan-h')
+}
+
 function updateGlassPaneCursor(event: MouseEvent) {
   const pane = event.currentTarget as HTMLElement
   const rect = pane.getBoundingClientRect()
@@ -551,6 +582,8 @@ function handleGlassPaneLeave(event: MouseEvent) {
 }
 
 function handleScanPaneMove(event: MouseEvent) {
+  if (mobileHIWLayout) return
+
   const pane = scanPane.value
   const area = scanArea.value
   if (!pane || !area) return
@@ -565,12 +598,19 @@ function handleScanPaneMove(event: MouseEvent) {
 }
 
 function handleScanPaneEnter(event: MouseEvent) {
+  if (mobileHIWLayout) return
+
   scanHovered.value = true
   handleGlassPaneEnter(event)
   handleScanPaneMove(event)
 }
 
 function handleScanPaneLeave(event: MouseEvent) {
+  if (mobileHIWLayout) {
+    resetMobileScanEffect()
+    return
+  }
+
   scanHovered.value = false
   scanTargetX = 0
   scanTargetY = 0
@@ -643,6 +683,8 @@ onMounted(async () => {
   const media = window.matchMedia('(max-width: 768px)')
   const syncMobileLayout = () => {
     mobileHIWLayout = media.matches
+    if (mobileHIWLayout) resetMobileScanEffect()
+    else scanEffectResetForMobile = false
     requestAnimationFrame(() => updateHIW(getHIWProgress()))
   }
   syncMobileLayout()
@@ -1799,6 +1841,22 @@ circle[fill="var(--liftag-primary)"] {
   .hiw-panel-desc {
     font-size: 0.92rem;
     line-height: 1.55;
+  }
+  .scan-interactive .hiw-panel-title,
+  .scan-interactive .hiw-panel-desc {
+    background-image: none;
+    background-clip: border-box;
+    -webkit-background-clip: border-box;
+    -webkit-text-fill-color: currentColor;
+  }
+  .hiw-scan-corners,
+  .hiw-scan-line {
+    transform: none !important;
+  }
+  .hiw-qr-icon {
+    transform: none !important;
+    stroke: var(--liftag-primary) !important;
+    opacity: 0.4 !important;
   }
   .hiw-panel-line {
     margin-top: 18px;
