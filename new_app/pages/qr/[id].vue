@@ -31,29 +31,26 @@ onMounted(() => {
       `#Intent;scheme=https;package=com.liftag.app;` +
       `S.browser_fallback_url=${encodeURIComponent(PLAY_STORE)};end`
     window.location.replace(intentUrl)
+  } else {
+    window.location.replace('/')
   }
 })
 </script>
 
 <template>
-  <main class="qr-fallback">
+  <main class="qr-redirect">
     <p>Opening Liftag…</p>
-    <p>Scan this code with your phone to open it in the Liftag app.</p>
-    <p>
-      <a :href="APP_STORE">App Store</a>
-      ·
-      <a :href="PLAY_STORE">Google Play</a>
-    </p>
   </main>
 </template>
 
 <style scoped>
-.qr-fallback {
-  padding: 24px;
+.qr-redirect {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  margin: 0;
   font-family: var(--liftag-font-body, system-ui, sans-serif);
-  color: #fff;
-}
-.qr-fallback a {
-  color: var(--liftag-primary, #ccff00);
+  color: rgba(255, 255, 255, 0.6);
+  background: var(--liftag-bg, #000);
 }
 </style>
