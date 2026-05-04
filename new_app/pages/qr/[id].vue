@@ -11,6 +11,7 @@ useHead({
   meta: [
     { charset: 'utf-8' },
     { name: 'viewport', content: 'width=device-width,initial-scale=1' },
+    { name: 'robots', content: 'noindex,nofollow' },
     {
       name: 'apple-itunes-app',
       content: `app-id=${APP_STORE_APP_ID}, app-argument=https://liftag.fit/qr/${id}`,
