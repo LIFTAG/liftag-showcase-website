@@ -1193,7 +1193,7 @@ onBeforeUnmount(() => {
   z-index: 2;
 }
 
-/* Cursor inner glow (static default) */
+/* Cursor inner glow */
 .hiw-glass-pane::after {
   content: '';
   position: absolute;
@@ -1205,7 +1205,7 @@ onBeforeUnmount(() => {
     rgba(200, 255, 0, 0.025) 42%,
     transparent 70%
   );
-  opacity: 0.72;
+  opacity: 0;
   transition: opacity 0.35s ease;
   pointer-events: none;
   z-index: 1;
@@ -1445,6 +1445,15 @@ onBeforeUnmount(() => {
 
 .hiw-qr-icon {
   transition: stroke 0.35s ease, opacity 0.35s ease;
+}
+
+@keyframes hiwMobileScanSweep {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, 78px, 0);
+  }
 }
 
 /* ── Panel 02: Logger ─────────────────────────────────── */
@@ -1849,9 +1858,12 @@ circle[fill="var(--liftag-primary)"] {
     -webkit-background-clip: border-box;
     -webkit-text-fill-color: currentColor;
   }
-  .hiw-scan-corners,
-  .hiw-scan-line {
+  .hiw-scan-corners {
     transform: none !important;
+  }
+  .hiw-scan-line {
+    animation: hiwMobileScanSweep 1.85s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+    will-change: transform;
   }
   .hiw-qr-icon {
     transform: none !important;

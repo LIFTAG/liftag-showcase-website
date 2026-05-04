@@ -26,7 +26,7 @@ const rmData: RmItem[] = [
     title: 'The Core Foundation',
     isLive: true,
     branches: [
-      { label: 'QR Scan-to-Track',   i: 0, angle: '-12deg', len: '38px' },
+      { label: 'NFC / QR Track',     i: 0, angle: '-12deg', len: '38px' },
       { label: '2-Tap Set Logger',   i: 1, angle: '4deg',   len: '50px' },
       { label: 'Routines + Plans',   i: 2, angle: '-8deg',  len: '44px' },
       { label: 'Exercise Library',   i: 3, angle: '10deg',  len: '36px' },

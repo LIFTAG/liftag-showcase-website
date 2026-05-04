@@ -62,8 +62,8 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #1cff7a 0%, #0c9f61 48%, #052a1d 100%)',
     accent: '#d7ffe8',
     glow: 'rgba(28,255,122,0.35)',
-    x: -239,
-    y: -180,
+    x: -242,
+    y: -166,
     rotate: -10,
     delay: 0,
     depth: 1.05,
@@ -75,8 +75,8 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #fff27a 0%, #ffb32c 50%, #7a3000 100%)',
     accent: '#fff8d2',
     glow: 'rgba(255,179,44,0.34)',
-    x: 42,
-    y: -248,
+    x: 12,
+    y: -240,
     rotate: 5,
     delay: 1,
     depth: 0.92,
@@ -88,8 +88,8 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #69d6ff 0%, #1763ff 52%, #081541 100%)',
     accent: '#d9f5ff',
     glow: 'rgba(76,151,255,0.34)',
-    x: 260,
-    y: -164,
+    x: 242,
+    y: -174,
     rotate: -6,
     delay: 2,
     depth: 1.08,
@@ -101,8 +101,8 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #ff75ad 0%, #ff2d55 50%, #4f0617 100%)',
     accent: '#ffe7ef',
     glow: 'rgba(255,45,85,0.34)',
-    x: 341,
-    y: 30,
+    x: 336,
+    y: 10,
     rotate: -7,
     delay: 3,
     depth: 0.96,
@@ -114,8 +114,8 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #d8ff7a 0%, #ccff00 48%, #415200 100%)',
     accent: '#0b0f02',
     glow: 'rgba(204,255,0,0.38)',
-    x: 226,
-    y: 189,
+    x: 232,
+    y: 176,
     rotate: 8,
     delay: 4,
     depth: 1.1,
@@ -127,8 +127,8 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #b77cff 0%, #7c3cff 48%, #190b3d 100%)',
     accent: '#f1e7ff',
     glow: 'rgba(124,60,255,0.34)',
-    x: -65,
-    y: 246,
+    x: -16,
+    y: 241,
     rotate: -5,
     delay: 5,
     depth: 0.94,
@@ -140,8 +140,8 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #ffcb6b 0%, #f59e0b 46%, #5b2200 100%)',
     accent: '#fff5d8',
     glow: 'rgba(245,158,11,0.34)',
-    x: -278,
-    y: 147,
+    x: -230,
+    y: 160,
     rotate: 9,
     delay: 6,
     depth: 1.02,
@@ -153,8 +153,8 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #ff9b6b 0%, #ef4444 48%, #4b0808 100%)',
     accent: '#ffe5dc',
     glow: 'rgba(239,68,68,0.3)',
-    x: -343,
-    y: -22,
+    x: -335,
+    y: -18,
     rotate: -8,
     delay: 7,
     depth: 0.9,
@@ -659,7 +659,7 @@ onBeforeUnmount(() => {
   --merge-stage-exit: 0;
   --merge-bg-exit: 0;
   position: relative;
-  min-height: 340vh;
+  min-height: 540vh;
   background: #000;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -1068,6 +1068,10 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 980px) {
+  .app-merge-section {
+    min-height: 470vh;
+  }
+
   .app-merge-sticky {
     height: 100svh;
     min-height: 880px;
@@ -1100,7 +1104,7 @@ onBeforeUnmount(() => {
 
 @media (max-width: 620px) {
   .app-merge-section {
-    min-height: 315vh;
+    min-height: 380vh;
   }
 
   .app-merge-sticky {

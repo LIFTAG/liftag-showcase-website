@@ -229,7 +229,9 @@ onBeforeUnmount(() => {
           @pointerdown="selectTrainer(i)"
           class="trainer-mobile-tab"
           :class="{ 'is-active': active === i }"
+          :aria-current="active === i ? 'true' : undefined"
           :style="{
+            '--cycle-ms': `${trainerScreenCycleMs}ms`,
             flex: '0 0 auto',
             padding: '10px 16px',
             borderRadius: '9999px',
@@ -246,7 +248,7 @@ onBeforeUnmount(() => {
             transition: 'all 250ms ease',
           }"
         >
-          {{ feat.tag }}
+          <span class="trainer-mobile-tab-label">{{ feat.tag }}</span>
         </button>
       </div>
 
@@ -530,6 +532,36 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
+.trainer-mobile-tab-label {
+  position: relative;
+  z-index: 2;
+}
+
+.trainer-mobile-tab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(255, 45, 85, 0.34), rgba(255, 45, 85, 0.18));
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.trainer-mobile-tab.is-active::before {
+  opacity: 1;
+}
+
+.trainers-section.is-live .trainer-mobile-tab.is-active::before {
+  animation: trainerMobileTabLoad var(--cycle-ms, 4200ms) linear forwards;
+}
+
+.trainers-section:not(.is-live) .trainer-mobile-tab.is-active::before {
+  animation: none;
+  transform: scaleX(0);
+}
+
 .trainer-tab-row {
   border-left: 2px solid transparent;
 }
@@ -657,6 +689,12 @@ onBeforeUnmount(() => {
   }
 }
 
+@keyframes trainerMobileTabLoad {
+  to {
+    transform: scaleX(1);
+  }
+}
+
 @keyframes trainerTabLineExit {
   0% {
     opacity: 1;
@@ -686,6 +724,11 @@ onBeforeUnmount(() => {
   .trainer-tab-row.is-active::before {
     animation: none;
     transform: scaleY(1);
+  }
+
+  .trainer-mobile-tab.is-active::before {
+    animation: none;
+    transform: scaleX(1);
   }
 
   .trainer-tab-row.is-exiting::before {

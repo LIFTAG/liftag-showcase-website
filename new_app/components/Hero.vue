@@ -87,6 +87,69 @@ const refL2 = ref<SVGPolylineElement | null>(null)
 const refL3 = ref<SVGPolylineElement | null>(null)
 const refL4 = ref<SVGPolylineElement | null>(null)
 
+const heroVolumeChartSvg = ref<SVGSVGElement | null>(null)
+const heroVolumeChartTargetP = ref(1)
+const heroVolumeChartDisplayP = ref(1)
+let heroVolumeChartRaf = 0
+
+const heroVolumeChartPts: [number, number][] = [
+  [0, 16], [12, 13], [24, 14], [36, 10],
+  [48, 11], [60, 7], [72, 4], [77, 2],
+]
+
+function heroVolumePointAt(p: number) {
+  const clampedP = Math.max(0, Math.min(1, p))
+  const totalLen = heroVolumeChartPts.length - 1
+  const idx = Math.min(clampedP * totalLen, totalLen)
+  const i0 = Math.floor(idx)
+  const i1 = Math.min(i0 + 1, totalLen)
+  const t = idx - i0
+  const [x0, y0] = heroVolumeChartPts[i0]
+  const [x1, y1] = heroVolumeChartPts[i1]
+
+  return {
+    x: x0 + (x1 - x0) * t,
+    y: y0 + (y1 - y0) * t,
+  }
+}
+
+const heroVolumeChartPoint = computed(() => heroVolumePointAt(heroVolumeChartDisplayP.value))
+const heroVolumeChartClipWidth = computed(() => heroVolumeChartPoint.value.x + 7)
+const heroVolumeChartDotOpacity = computed(() => heroVolumeChartDisplayP.value > 0.02 ? 1 : 0)
+
+function tickHeroVolumeChart() {
+  const target = heroVolumeChartTargetP.value
+  const next = heroVolumeChartDisplayP.value + (target - heroVolumeChartDisplayP.value) * 0.18
+
+  if (Math.abs(target - next) < 0.001) {
+    heroVolumeChartDisplayP.value = target
+    heroVolumeChartRaf = 0
+    return
+  }
+
+  heroVolumeChartDisplayP.value = next
+  heroVolumeChartRaf = requestAnimationFrame(tickHeroVolumeChart)
+}
+
+function setHeroVolumeChartTarget(p: number) {
+  heroVolumeChartTargetP.value = Math.max(0.02, Math.min(1, p))
+  if (!heroVolumeChartRaf) heroVolumeChartRaf = requestAnimationFrame(tickHeroVolumeChart)
+}
+
+function handleHeroVolumeChartMove(event: PointerEvent) {
+  const rect = heroVolumeChartSvg.value?.getBoundingClientRect()
+    ?? (event.currentTarget as HTMLElement).getBoundingClientRect()
+  setHeroVolumeChartTarget((event.clientX - rect.left) / Math.max(1, rect.width))
+}
+
+function resetHeroVolumeChartHover() {
+  setHeroVolumeChartTarget(1)
+}
+
+onBeforeUnmount(() => {
+  if (heroVolumeChartRaf) cancelAnimationFrame(heroVolumeChartRaf)
+})
+
 // ─── hero words ───────────────────────────────────────────────────────────────
 const words = ['FOR', 'LIFTERS.', 'BY', 'LIFTERS.']
 function isLime(word: string) { return word === 'LIFTERS.' }
@@ -243,6 +306,12 @@ function runAllHeroLaserReveals() {
   if (heroLaserStarted) return
   heroLaserStarted = true
 
+  if (isMobile.value || window.matchMedia('(max-width: 768px)').matches) {
+    heroTitleEls.forEach((el) => el?.classList.add('reveal-done'))
+    heroLaserDone.value = true
+    return
+  }
+
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     heroTitleEls.forEach((el) => el?.classList.add('reveal-done'))
     heroLaserDone.value = true
@@ -296,7 +365,13 @@ onMounted(async () => {
 
   const mobileMql = window.matchMedia('(max-width: 768px)')
   isMobile.value = mobileMql.matches
-  const onMobileChange = (e: MediaQueryListEvent) => { isMobile.value = e.matches }
+  const onMobileChange = (e: MediaQueryListEvent) => {
+    isMobile.value = e.matches
+    if (e.matches) {
+      cleanupHeroLasers()
+      heroLaserDone.value = true
+    }
+  }
   mobileMql.addEventListener('change', onMobileChange)
 
   // particles — client only
@@ -396,6 +471,30 @@ const p3 = computed(() => ({
   x: mouse.value.x * 26,
   y: mouse.value.y * 18  - scrollY.value * 0.22,
 }))
+const pNfc = computed(() => {
+  const lightVector = mouse.value.x * 0.68 - mouse.value.y * 0.44
+  const waveProgress = Math.max(0, Math.min(1, (lightVector + 0.74) / 1.48))
+  const angle = 124 + mouse.value.x * 10 - mouse.value.y * 7
+  const waveDistance = Math.abs(waveProgress - 0.58) / 0.24
+  const waveCatch = Math.max(0, 1 - waveDistance)
+  const holoPeak = waveCatch * waveCatch * (3 - 2 * waveCatch)
+
+  return {
+    x: mouse.value.x * -34,
+    y: mouse.value.y * 22 - scrollY.value * 0.1,
+    rotateX: -10 + mouse.value.y * -5,
+    rotateY: -18 + mouse.value.x * 8,
+    rotateZ: 10 + mouse.value.x * 2,
+    shineX: 42 + mouse.value.x * 14,
+    shineY: 36 + mouse.value.y * 10,
+    holoX: mouse.value.x * 10,
+    holoY: mouse.value.y * -8,
+    holoAngle: angle,
+    holoShift: -56 + waveProgress * 112,
+    holoOpacity: 0.018 + holoPeak * 0.42,
+    prismOpacity: 0.028 + holoPeak * 0.12,
+  }
+})
 </script>
 
 <template>
@@ -771,7 +870,7 @@ const p3 = computed(() => ({
             transition: 'opacity 900ms 500ms cubic-bezier(0.16,1,0.3,1), transform 900ms 500ms cubic-bezier(0.16,1,0.3,1)',
           }"
         >
-          Scan any machine. Track every set. Watch your numbers compound.<br />
+          Tap or scan any machine. Track every set. Watch your numbers compound.<br />
           <span :style="{ color: 'rgba(255,255,255,0.4)' }">Because serious training deserves more than a notes app.</span>
         </p>
 
@@ -907,7 +1006,7 @@ const p3 = computed(() => ({
               animation: 'pulse-glow 4s ease-in-out infinite',
             }"
           />
-          <Phone src="/assets/screens/home.png" :scale="0.92" :tilt-delay-ms="0" :lite="isMobile" />
+          <Phone src="/assets/screens/home-hero-no-qr.png" :scale="0.92" :tilt-delay-ms="0" :lite="isMobile" />
           <!-- Reflection streak -->
           <div
             :style="{
@@ -921,7 +1020,7 @@ const p3 = computed(() => ({
           />
         </div>
 
-        <!-- QR chip -->
+        <!-- Machine sync chip -->
         <div
           :style="{
             position: 'absolute', bottom: '20px', left: '-24px',
@@ -956,7 +1055,7 @@ const p3 = computed(() => ({
             />
           </div>
           <div>
-            <div class="protocol" :style="{ color: '#CCFF00', fontSize: '9px' }">QR · MACHINE SYNC</div>
+            <div class="protocol" :style="{ color: '#CCFF00', fontSize: '9px' }">NFC + QR · MACHINE SYNC</div>
             <div
               :style="{
                 fontFamily: '\'Space Grotesk\', sans-serif',
@@ -965,13 +1064,40 @@ const p3 = computed(() => ({
                 letterSpacing: '-0.02em', marginTop: '2px',
               }"
             >
-              SCAN → TRACK
+              TAP / SCAN → TRACK
+            </div>
+          </div>
+        </div>
+
+        <!-- Desktop-only dark NFC tag model -->
+        <div
+          class="hero-nfc-model"
+          aria-hidden="true"
+          :style="{
+            transform: `translate3d(${pNfc.x}px, ${pNfc.y}px, 96px) rotateX(${pNfc.rotateX}deg) rotateY(${pNfc.rotateY}deg) rotateZ(${pNfc.rotateZ}deg)`,
+            '--nfc-shine-x': `${pNfc.shineX}%`,
+            '--nfc-shine-y': `${pNfc.shineY}%`,
+            '--nfc-holo-x': `${pNfc.holoX}px`,
+            '--nfc-holo-y': `${pNfc.holoY}px`,
+            '--nfc-holo-angle': `${pNfc.holoAngle}deg`,
+            '--nfc-holo-shift': `${pNfc.holoShift}%`,
+            '--nfc-holo-opacity': pNfc.holoOpacity,
+            '--nfc-prism-opacity': pNfc.prismOpacity,
+            opacity: entered ? 1 : 0,
+            transition: entered ? 'opacity 1000ms 760ms ease' : 'none',
+          }"
+        >
+          <div class="hero-nfc-tag-3d">
+            <div class="hero-nfc-face hero-nfc-face-back" />
+            <div class="hero-nfc-face hero-nfc-face-front">
+              <span class="hero-nfc-text">NFC</span>
             </div>
           </div>
         </div>
 
         <!-- Live volume chip -->
         <div
+          class="hero-volume-chip"
           :style="{
             position: 'absolute', top: '100px', right: '-30px',
             transform: `translate3d(${p2.x * 1.2}px, ${p2.y * 0.5}px, 0)`,
@@ -986,6 +1112,9 @@ const p3 = computed(() => ({
             transition: 'opacity 1000ms 1100ms ease',
             minWidth: '160px',
           }"
+          @pointermove="handleHeroVolumeChartMove"
+          @pointerleave="resetHeroVolumeChartHover"
+          @pointercancel="resetHeroVolumeChartHover"
         >
           <div class="protocol" :style="{ color: 'rgba(255,255,255,0.35)', fontSize: '9px' }">VOLUME · TODAY</div>
           <div
@@ -1008,7 +1137,17 @@ const p3 = computed(() => ({
             <span :style="{ color: '#22C55E' }">↑</span> +18% vs last week
           </div>
           <!-- Mini sparkline -->
-          <svg viewBox="-3 -3 86 26" :style="{ width: '86px', height: '26px', marginTop: '8px', overflow: 'visible' }">
+          <svg
+            ref="heroVolumeChartSvg"
+            class="hero-volume-sparkline"
+            viewBox="-3 -3 86 26"
+            :style="{ width: '86px', height: '26px', marginTop: '8px', overflow: 'visible' }"
+          >
+            <defs>
+              <clipPath id="heroVolumeSparkClip">
+                <rect x="-3" y="-3" :width="heroVolumeChartClipWidth" height="32" />
+              </clipPath>
+            </defs>
             <polyline
               points="0,16 12,13 24,14 36,10 48,11 60,7 72,4 77,2"
               fill="none"
@@ -1017,8 +1156,25 @@ const p3 = computed(() => ({
               stroke-linecap="round"
               stroke-linejoin="round"
               opacity="0.7"
+              clip-path="url(#heroVolumeSparkClip)"
             />
-            <circle cx="77" cy="2" r="2.5" fill="#CCFF00" />
+            <polyline
+              points="0,16 12,13 24,14 36,10 48,11 60,7 72,4 77,2"
+              fill="none"
+              stroke="#CCFF00"
+              stroke-width="5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              opacity="0.12"
+              clip-path="url(#heroVolumeSparkClip)"
+            />
+            <circle
+              :cx="heroVolumeChartPoint.x"
+              :cy="heroVolumeChartPoint.y"
+              r="2.5"
+              fill="#CCFF00"
+              :opacity="heroVolumeChartDotOpacity"
+            />
           </svg>
         </div>
 
@@ -1079,17 +1235,16 @@ const p3 = computed(() => ({
         </div>
 
         <h1 class="hero-mobile-title">
-          <span>Scan.</span>
-          <span>Lift.</span>
-          <span class="lime">Progress.</span>
+          <span>For <span class="lime">lifters.</span></span>
+          <span>By <span class="lime">lifters.</span></span>
         </h1>
 
         <p class="hero-mobile-copyline">
-          Open LIFTAG at the machine. Log the set. Watch real progress compound.
+          Tap NFC or scan QR at the machine. Log the set. Watch real progress compound.
         </p>
 
         <div class="hero-mobile-actions">
-          <a href="#scan" class="hero-mobile-primary">See scan flow</a>
+          <a href="#scan" class="hero-mobile-primary">See sync flow</a>
           <span class="hero-mobile-note">Free in beta</span>
         </div>
       </div>
@@ -1104,12 +1259,13 @@ const p3 = computed(() => ({
       >
         <div class="hero-mobile-device">
           <div class="hero-mobile-device-glow" aria-hidden="true" />
-          <Phone src="/assets/screens/home.png" :scale="1" :tilt-delay-ms="0" lite />
+          <Phone src="/assets/screens/home-hero-no-qr.png" :scale="1" :tilt-delay-ms="0" lite />
         </div>
 
-        <div class="hero-mobile-proof" aria-label="LIFTAG launch stats">
-          <span><strong>250+</strong> exercises</span>
-          <span><strong>QR</strong> machine sync</span>
+        <div class="hero-mobile-proof" aria-label="LIFTAG tap, scan, and tracking flow">
+          <span><strong>Tap</strong> NFC tag</span>
+          <span><strong>Scan</strong> machine QR</span>
+          <span><strong>Log</strong> sets fast</span>
         </div>
       </div>
     </div>
@@ -1170,6 +1326,183 @@ const p3 = computed(() => ({
   vector-effect: non-scaling-stroke;
 }
 
+.hero-volume-chip {
+  cursor: crosshair;
+}
+
+.hero-volume-sparkline {
+  touch-action: none;
+}
+
+.hero-volume-sparkline polyline,
+.hero-volume-sparkline circle {
+  filter: drop-shadow(0 0 5px rgba(204, 255, 0, 0.42));
+}
+
+.hero-nfc-model {
+  --nfc-depth: 10px;
+  --nfc-shine-x: 42%;
+  --nfc-shine-y: 36%;
+  --nfc-holo-x: 0px;
+  --nfc-holo-y: 0px;
+  --nfc-holo-angle: 118deg;
+  --nfc-holo-shift: 0%;
+  --nfc-holo-opacity: 0.025;
+  --nfc-prism-opacity: 0.04;
+  position: absolute;
+  top: 380px;
+  left: 6px;
+  z-index: 8;
+  width: 128px;
+  height: 128px;
+  pointer-events: none;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+.hero-nfc-tag-3d {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  animation: heroNfcFloat 5.8s ease-in-out infinite;
+}
+
+.hero-nfc-tag-3d::before,
+.hero-nfc-tag-3d::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(145deg, #101817 0%, #050909 45%, #000 100%);
+  border: 1px solid rgba(255, 255, 255, 0.045);
+  box-shadow:
+    inset -5px -5px 12px rgba(0, 0, 0, 0.82),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.hero-nfc-tag-3d::before {
+  top: 15px;
+  right: -5px;
+  bottom: 15px;
+  width: var(--nfc-depth);
+  border-radius: 0 24px 24px 0;
+  transform: translateZ(-2px);
+}
+
+.hero-nfc-tag-3d::after {
+  left: 15px;
+  right: 15px;
+  bottom: -5px;
+  height: var(--nfc-depth);
+  border-radius: 0 0 24px 24px;
+  transform: translateZ(-2px);
+}
+
+.hero-nfc-face {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border-radius: 30px;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.hero-nfc-face-back {
+  z-index: 0;
+  inset: -5px -5px 0 0;
+  background: linear-gradient(145deg, #101817 0%, #050909 48%, #000 100%);
+  border: 1px solid rgba(255, 255, 255, 0.045);
+  transform: translate3d(5px, 5px, -10px);
+}
+
+.hero-nfc-face-front {
+  z-index: 2;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  background:
+    radial-gradient(circle at var(--nfc-shine-x) var(--nfc-shine-y), rgba(255, 255, 255, 0.12), transparent 36%),
+    radial-gradient(circle at 74% 18%, rgba(108, 255, 229, 0.08), transparent 34%),
+    linear-gradient(145deg, #121917 0%, #07100d 58%, #010202 100%);
+  box-shadow:
+    0 0 26px rgba(204, 255, 0, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset -10px -12px 22px rgba(0, 0, 0, 0.56);
+  transform: translateZ(5px);
+}
+
+.hero-nfc-face-front::before {
+  content: '';
+  position: absolute;
+  inset: -42%;
+  z-index: 1;
+  border-radius: 38px;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--nfc-holo-angle),
+      transparent calc(var(--nfc-holo-shift) + 19%),
+      rgba(255, 84, 188, 0.14) calc(var(--nfc-holo-shift) + 25%),
+      rgba(82, 178, 255, 0.22) calc(var(--nfc-holo-shift) + 31%),
+      rgba(255, 255, 255, 0.72) calc(var(--nfc-holo-shift) + 36%),
+      rgba(73, 255, 217, 0.24) calc(var(--nfc-holo-shift) + 40%),
+      rgba(204, 255, 0, 0.12) calc(var(--nfc-holo-shift) + 44%),
+      transparent calc(var(--nfc-holo-shift) + 52%)),
+    repeating-linear-gradient(calc(var(--nfc-holo-angle) + 90deg),
+      rgba(255, 255, 255, 0.12) 0 1px,
+      transparent 1px 11px);
+  background-blend-mode: screen, overlay;
+  mix-blend-mode: screen;
+  opacity: var(--nfc-holo-opacity);
+  filter: blur(0.35px) saturate(1.7) brightness(1.06);
+  transform: translate3d(var(--nfc-holo-x), var(--nfc-holo-y), 0);
+  will-change: transform, opacity;
+}
+
+.hero-nfc-face-front::after {
+  content: '';
+  position: absolute;
+  inset: 9px;
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 22px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at var(--nfc-shine-x) var(--nfc-shine-y), rgba(255, 255, 255, 0.12), transparent 28%),
+    conic-gradient(from var(--nfc-holo-angle) at var(--nfc-shine-x) var(--nfc-shine-y),
+      rgba(255, 84, 188, 0.15),
+      rgba(82, 178, 255, 0.13),
+      rgba(64, 255, 218, 0.15),
+      rgba(204, 255, 0, 0.08),
+      rgba(255, 255, 255, 0.1),
+      rgba(255, 84, 188, 0.15)),
+    repeating-linear-gradient(116deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 9px);
+  background-blend-mode: screen, screen, overlay;
+  mix-blend-mode: screen;
+  opacity: var(--nfc-prism-opacity);
+  transform: translate3d(calc(var(--nfc-holo-x) * -0.35), calc(var(--nfc-holo-y) * -0.35), 0);
+  will-change: transform, opacity;
+}
+
+.hero-nfc-text {
+  position: relative;
+  z-index: 3;
+  display: inline-block;
+  color: rgba(204, 255, 0, 0.82);
+  font-family: var(--liftag-font-mono);
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-indent: 0.14em;
+  text-shadow:
+    0 0 8px rgba(204, 255, 0, 0.34),
+    0 0 22px rgba(204, 255, 0, 0.22);
+  filter: drop-shadow(0 0 7px rgba(204, 255, 0, 0.36));
+  animation: heroNfcWavePulse 2.8s ease-in-out infinite;
+}
+
 .hero-mobile-layout {
   display: none;
 }
@@ -1205,16 +1538,20 @@ const p3 = computed(() => ({
   gap: 0;
   margin: 18px 0 0;
   font-family: var(--liftag-font-headline);
-  font-size: clamp(50px, 15.6vw, 68px);
+  font-size: clamp(48px, 13.6vw, 62px);
   font-style: italic;
   font-weight: 700;
   letter-spacing: 0;
-  line-height: 0.86;
+  line-height: 0.88;
   text-transform: uppercase;
 }
 
-.hero-mobile-title span {
+.hero-mobile-title > span {
   display: block;
+}
+
+.hero-mobile-title .lime {
+  display: inline;
 }
 
 .hero-mobile-copyline {
@@ -1267,9 +1604,9 @@ const p3 = computed(() => ({
 
 .hero-mobile-device {
   position: absolute;
-  top: 0;
-  right: clamp(4px, 4vw, 22px);
-  width: min(47vw, 184px);
+  top: 4px;
+  right: clamp(0px, 3.2vw, 18px);
+  width: min(46vw, 180px);
   aspect-ratio: 393 / 852;
 }
 
@@ -1291,18 +1628,16 @@ const p3 = computed(() => ({
 .hero-mobile-proof {
   position: absolute;
   left: 0;
-  bottom: 18px;
+  top: 22px;
   display: grid;
-  gap: 8px;
-  width: min(50vw, 184px);
+  gap: 9px;
+  width: min(46vw, 178px);
 }
 
 .hero-mobile-proof span {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+  padding: 11px 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 14px;
   background: rgba(8, 10, 6, 0.78);
@@ -1312,16 +1647,20 @@ const p3 = computed(() => ({
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.08em;
-  line-height: 1;
+  line-height: 1.08;
   text-transform: uppercase;
 }
 
 .hero-mobile-proof strong {
   color: var(--liftag-primary);
-  font-size: 15px;
+  font-size: 16px;
 }
 
 @media (max-width: 768px) {
+  .hero-nfc-model {
+    display: none !important;
+  }
+
   .hero-section {
     min-height: 100svh !important;
     overflow-x: clip !important;
@@ -1360,7 +1699,7 @@ const p3 = computed(() => ({
   }
 
   .hero-mobile-title {
-    font-size: clamp(46px, 14.5vw, 58px);
+    font-size: clamp(44px, 13vw, 54px);
   }
 
   .hero-mobile-copyline {
@@ -1369,11 +1708,11 @@ const p3 = computed(() => ({
   }
 
   .hero-mobile-device {
-    width: min(48vw, 166px);
+    width: min(45vw, 162px);
   }
 
   .hero-mobile-proof {
-    width: min(51vw, 174px);
+    width: min(47vw, 172px);
   }
 }
 
@@ -1385,7 +1724,7 @@ const p3 = computed(() => ({
 
   .hero-mobile-layout {
     grid-template-rows: auto minmax(286px, 1fr);
-    gap: 8px;
+    gap: 16px;
     min-height: calc(100svh - 92px);
     padding-top: 12px;
   }
@@ -1397,8 +1736,8 @@ const p3 = computed(() => ({
 
   .hero-mobile-title {
     margin-top: 14px;
-    font-size: clamp(42px, 12vw, 48px);
-    line-height: 0.84;
+    font-size: clamp(39px, 11.4vw, 46px);
+    line-height: 0.88;
   }
 
   .hero-mobile-copyline {
@@ -1425,17 +1764,18 @@ const p3 = computed(() => ({
 
   .hero-mobile-visual {
     min-height: 286px;
-    margin-top: -18px;
+    margin-top: 0;
   }
 
   .hero-mobile-device {
     right: clamp(0px, 3vw, 12px);
-    width: min(36vw, 126px);
+    width: min(38vw, 132px);
   }
 
   .hero-mobile-proof {
-    bottom: 20px;
-    width: min(51vw, 160px);
+    top: 10px;
+    width: min(48vw, 164px);
+    gap: 7px;
   }
 
   .hero-mobile-proof span {
@@ -1444,13 +1784,13 @@ const p3 = computed(() => ({
   }
 
   .hero-mobile-proof strong {
-    font-size: 14px;
+    font-size: 13px;
   }
 }
 
 @media (max-width: 360px) {
   .hero-mobile-title {
-    font-size: 46px;
+    font-size: 39px;
   }
 
   .hero-mobile-actions {
@@ -1464,6 +1804,30 @@ const p3 = computed(() => ({
 
   .hero-mobile-note {
     font-size: 9px;
+  }
+}
+
+@keyframes heroNfcFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -7px, 8px);
+  }
+}
+
+@keyframes heroNfcWavePulse {
+  0%,
+  100% {
+    opacity: 0.42;
+    transform: translateX(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateX(2px);
   }
 }
 

@@ -11,10 +11,25 @@ const screenPulse = ref(0)
 const activeVolumeBar = ref<number | null>(null)
 const lineProgress = ref(1)
 const lineChartRef = ref<SVGSVGElement | null>(null)
+const reduceMotion = ref(false)
+const paneMotionDisabled = ref(false)
 const progressScreenCycleMs = 2800
 let volumeResetTimer: ReturnType<typeof setTimeout> | null = null
 let lineTargetProgress = 1
 let lineProgressRaf = 0
+let motionMql: MediaQueryList | null = null
+let paneMotionMql: MediaQueryList | null = null
+
+const rawMouse = useSharedMouse().latest
+const paneMouse = useLerp(rawMouse, 0.075)
+
+const progressPanePaths = [
+  { outward: 1.28, cross: 0.44, vertical: 0.72, lane: -0.96 },
+  { outward: 0.86, cross: -0.72, vertical: 1.04, lane: -0.28 },
+  { outward: 1.08, cross: 0.86, vertical: 0.58, lane: 0.46 },
+  { outward: 0.74, cross: -0.38, vertical: 1.18, lane: 0.88 },
+  { outward: 1.38, cross: 0.28, vertical: 0.84, lane: 1.14 },
+]
 
 function setScreen(next: number) {
   screen.value = next
@@ -22,6 +37,14 @@ function setScreen(next: number) {
 }
 
 onMounted(() => {
+  motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
+  reduceMotion.value = motionMql.matches
+  motionMql.addEventListener('change', onMotionChange)
+
+  paneMotionMql = window.matchMedia('(max-width: 768px), (hover: none), (pointer: coarse)')
+  paneMotionDisabled.value = paneMotionMql.matches
+  paneMotionMql.addEventListener('change', onPaneMotionChange)
+
   const t = setInterval(() => {
     setScreen((screen.value + 1) % screens.length)
   }, progressScreenCycleMs)
@@ -150,9 +173,36 @@ function clearVolumeBar(event?: PointerEvent | FocusEvent) {
   activeVolumeBar.value = null
 }
 
+function onMotionChange(e: MediaQueryListEvent) {
+  reduceMotion.value = e.matches
+}
+
+function onPaneMotionChange(e: MediaQueryListEvent) {
+  paneMotionDisabled.value = e.matches
+}
+
+function progressPaneTransform(side: 'left' | 'right', index: number, kind: 'chip' | 'chart' = 'chip') {
+  if (reduceMotion.value || paneMotionDisabled.value) return 'translate3d(0, 0, 0)'
+
+  const sideSign = side === 'left' ? -1 : 1
+  const path = progressPanePaths[kind === 'chart' ? 4 : index] ?? progressPanePaths[0]
+  const x = sideSign * (
+    paneMouse.value.x * 11 * path.outward
+    + paneMouse.value.y * 5 * path.cross
+  )
+  const y = paneMouse.value.y * 7.4 * path.vertical
+    + paneMouse.value.x * sideSign * 4.2 * path.lane
+
+  return `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0)`
+}
+
 onBeforeUnmount(() => {
   clearVolumeResetTimer()
   cancelAnimationFrame(lineProgressRaf)
+  motionMql?.removeEventListener('change', onMotionChange)
+  motionMql = null
+  paneMotionMql?.removeEventListener('change', onPaneMotionChange)
+  paneMotionMql = null
 })
 </script>
 
@@ -219,7 +269,7 @@ onBeforeUnmount(() => {
           <div
             v-for="(chip, i) in leftChips"
             :key="i"
-            class="progress-chip"
+            class="progress-chip progress-motion-pane"
             :style="{
               background: '#0a0a0a',
               border: chipBorder(chip.accent),
@@ -230,6 +280,7 @@ onBeforeUnmount(() => {
               overflow: 'hidden',
               '--chip-glint': chipGlint(chip.accent),
               '--chip-delay': `${i * 120}ms`,
+              transform: progressPaneTransform('left', i),
             }"
           >
             <div
@@ -258,13 +309,14 @@ onBeforeUnmount(() => {
 
           <!-- Mini bar chart -->
           <div
-            class="weekly-volume-card"
+            class="weekly-volume-card progress-motion-pane"
             :style="{
               background: '#0a0a0a',
               border: '1px solid rgba(255,255,255,0.07)',
               borderRadius: '16px',
               padding: '14px 18px',
               width: '200px',
+              transform: progressPaneTransform('left', leftChips.length, 'chart'),
             }"
           >
             <div class="protocol" :style="{ color: '#666', fontSize: '9px', marginBottom: '10px' }">
@@ -346,27 +398,16 @@ onBeforeUnmount(() => {
 
           <!-- Dot indicators -->
           <div
-            :style="{
-              position: 'absolute',
-              bottom: '-28px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              display: 'flex',
-              gap: '6px',
-            }"
+            class="progress-screen-dots"
           >
             <div
               v-for="(_, i) in screens"
               :key="i"
+              class="progress-screen-dot"
+              :class="{ 'is-active': screen === i }"
               @click="setScreen(i)"
               :style="{
                 width: screen === i ? '20px' : '6px',
-                height: '6px',
-                borderRadius: '3px',
-                cursor: 'pointer',
-                background: screen === i ? '#CCFF00' : 'rgba(255,255,255,0.2)',
-                boxShadow: screen === i ? '0 0 8px #CCFF00' : 'none',
-                transition: 'all 400ms cubic-bezier(0.16,1,0.3,1)',
               }"
             />
           </div>
@@ -385,7 +426,7 @@ onBeforeUnmount(() => {
           <div
             v-for="(chip, i) in rightChips"
             :key="i"
-            class="progress-chip"
+            class="progress-chip progress-motion-pane"
             :style="{
               background: '#0a0a0a',
               border: chipBorder(chip.accent),
@@ -396,6 +437,7 @@ onBeforeUnmount(() => {
               overflow: 'hidden',
               '--chip-glint': chipGlint(chip.accent),
               '--chip-delay': `${(i + leftChips.length) * 120}ms`,
+              transform: progressPaneTransform('right', i),
             }"
           >
             <div
@@ -424,7 +466,7 @@ onBeforeUnmount(() => {
 
           <!-- Mini line chart -->
           <div
-            class="progress-line-card"
+            class="progress-line-card progress-motion-pane"
             @pointermove="handleLineChartMove"
             @pointerleave="resetLineChart"
             @pointercancel="resetLineChart"
@@ -435,6 +477,7 @@ onBeforeUnmount(() => {
               borderRadius: '16px',
               padding: '14px 18px',
               width: '200px',
+              transform: progressPaneTransform('right', rightChips.length, 'chart'),
             }"
           >
             <div class="protocol" :style="{ color: '#666', fontSize: '9px', marginBottom: '10px' }">
@@ -535,6 +578,11 @@ onBeforeUnmount(() => {
   opacity: 0.72;
   animation: progressChipGlint 6.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
   animation-delay: var(--chip-delay, 0ms);
+}
+
+.progress-motion-pane {
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .weekly-volume-card {
@@ -643,6 +691,31 @@ onBeforeUnmount(() => {
   animation: phoneCycleFill var(--cycle-ms, 2800ms) linear forwards;
 }
 
+.progress-screen-dots {
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  display: flex;
+  gap: 6px;
+  transform: translateX(-50%);
+}
+
+.progress-screen-dot {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition:
+    width 400ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 400ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.progress-screen-dot.is-active {
+  background: #ccff00;
+  box-shadow: 0 0 8px #ccff00;
+}
+
 .progress-line-chart {
   cursor: crosshair;
   overflow: visible;
@@ -744,6 +817,37 @@ onBeforeUnmount(() => {
 
   .weekly-volume-bar span {
     transition: none;
+  }
+
+  .progress-motion-pane {
+    transform: none !important;
+    will-change: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .progress-motion-pane {
+    transform: none !important;
+    will-change: auto;
+  }
+
+  .progress-cycle-indicator {
+    background: rgba(255, 255, 255, 0.075);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  }
+
+  .progress-cycle-indicator span {
+    background: linear-gradient(90deg, rgba(204, 255, 0, 0.32), rgba(204, 255, 0, 0.72));
+    box-shadow: 0 0 10px rgba(204, 255, 0, 0.28);
+  }
+
+  .progress-screen-dot {
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  .progress-screen-dot.is-active {
+    background: rgba(204, 255, 0, 0.72);
+    box-shadow: 0 0 10px rgba(204, 255, 0, 0.34);
   }
 }
 </style>

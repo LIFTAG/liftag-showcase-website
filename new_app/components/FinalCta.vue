@@ -75,7 +75,7 @@
           lineHeight: 1.55,
         }"
       >
-        Track real progress. Scan real machines. Skip the spreadsheet.<br />
+        Track real progress. Tap or scan real machines. Skip the spreadsheet.<br />
         Public beta. Open now on iOS, Android coming soon.
       </p>
 

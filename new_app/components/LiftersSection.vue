@@ -8,6 +8,7 @@ interface FeatureCardProps {
   imgPanTo?: string
   imgPanBackTo?: string
   visualHeight?: string
+  maskBottomEdge?: boolean
   tag: string
   title: string
   body: string
@@ -24,6 +25,7 @@ const cards: FeatureCardProps[] = [
     imgPanTo: '84%',
     imgPanBackTo: '68%',
     visualHeight: '64%',
+    maskBottomEdge: true,
     tag: 'PROGRESS INSIGHTS',
     title: 'Progress, not vibes.',
     body: 'Per-session weight, 1RM, and total volume, auto-aggregated across every workout. Watch the line climb.',
@@ -296,6 +298,11 @@ onBeforeUnmount(() => {
                 transform: 'translateZ(0)',
               }"
             />
+            <div
+              v-if="card.maskBottomEdge"
+              class="lifters-card-bottom-edge-mask"
+              aria-hidden="true"
+            />
           </div>
 
           <!-- Text content -->
@@ -428,6 +435,18 @@ onBeforeUnmount(() => {
   object-position: var(--img-x, 50%) var(--img-y, 50%);
   animation: liftersScreenshotPan var(--img-pan-duration, 5.8s) cubic-bezier(0.45, 0, 0.2, 1) infinite;
   animation-play-state: paused;
+}
+
+.lifters-card-bottom-edge-mask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  z-index: 2;
+  height: 5px;
+  pointer-events: none;
+  background: #0a0a0a;
+  transform: translateZ(0);
 }
 
 .lifters-card:hover .lifters-card-image {

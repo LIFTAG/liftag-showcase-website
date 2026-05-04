@@ -1,9 +1,9 @@
 <script setup lang="ts">
 const benefits = [
   {
-    tag: 'QR KIT',
+    tag: 'QR + NFC KIT',
     title: 'Every machine, explained.',
-    body: 'Stickers ship free. Members scan, watch, lift.',
+    body: 'Tags and stickers ship free. Members tap, scan, watch, lift.',
   },
   {
     tag: 'YOUR CONTENT',
@@ -24,7 +24,7 @@ const benefits = [
 
 const gymNumbers = [
   { n: '0€', l: 'Setup fee', sub: 'no subscription, ever' },
-  { n: 'FREE', l: 'QR sticker kit', sub: 'we ship it to you' },
+  { n: 'FREE', l: 'QR + NFC kit', sub: 'we ship it to you' },
   { n: 'MAP', l: 'Featured placement', sub: 'verified gym badge' },
 ]
 
@@ -32,8 +32,10 @@ const muscleTags = ['BACK', 'LATS', 'BICEPS']
 const gymSectionRef = ref<HTMLElement | null>(null)
 const gymInView = ref(false)
 const reduceMotion = ref(false)
+const phoneLayout = ref(false)
 let gymObserver: IntersectionObserver | null = null
 let motionMql: MediaQueryList | null = null
+let phoneLayoutMql: MediaQueryList | null = null
 
 const rawMouse = useSharedMouse().latest
 const mouse = useLerp(rawMouse, 0.06)
@@ -44,7 +46,7 @@ function gymMotionTransform(
   rotateFactor = 0,
   base = '',
 ) {
-  if (reduceMotion.value) return base || 'translate3d(0, 0, 0)'
+  if (reduceMotion.value || phoneLayout.value) return base || 'translate3d(0, 0, 0)'
   const x = mouse.value.x * xFactor
   const y = mouse.value.y * yFactor
   const rotate = mouse.value.x * rotateFactor
@@ -61,10 +63,18 @@ function onMotionChange(e: MediaQueryListEvent) {
   reduceMotion.value = e.matches
 }
 
+function onPhoneLayoutChange(e: MediaQueryListEvent) {
+  phoneLayout.value = e.matches
+}
+
 onMounted(() => {
   motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
   reduceMotion.value = motionMql.matches
   motionMql.addEventListener('change', onMotionChange)
+
+  phoneLayoutMql = window.matchMedia('(max-width: 768px)')
+  phoneLayout.value = phoneLayoutMql.matches
+  phoneLayoutMql.addEventListener('change', onPhoneLayoutChange)
 
   if (!gymSectionRef.value) return
 
@@ -82,6 +92,8 @@ onBeforeUnmount(() => {
   gymObserver = null
   motionMql?.removeEventListener('change', onMotionChange)
   motionMql = null
+  phoneLayoutMql?.removeEventListener('change', onPhoneLayoutChange)
+  phoneLayoutMql = null
 })
 </script>
 
@@ -111,8 +123,8 @@ onBeforeUnmount(() => {
         <template #title>
           Put your gym<br />on the <span class="lime">map.</span>
         </template>
-        Sticker your floor. Members scan a QR, instantly open the right exercise, and watch a setup
-        video your trainers recorded. Get discovered by thousands of nearby lifters looking for
+        Tag your floor. Members tap NFC or scan QR, instantly open the right exercise, and watch
+        a setup video your trainers recorded. Get discovered by thousands of nearby lifters looking for
         their next gym.
       </SectionHeader>
 
@@ -207,7 +219,7 @@ onBeforeUnmount(() => {
                 color: '#999',
                 marginTop: 0,
               }"
-            >SCAN TO START</div>
+            >TAP OR SCAN</div>
             </div>
           </div>
 
@@ -393,7 +405,7 @@ onBeforeUnmount(() => {
               }"
             />
             <span class="protocol" :style="{ color: '#CCFF00', fontSize: '9px' }">
-              FREE QR KIT · APPLY NOW
+              FREE QR + NFC KIT · APPLY NOW
             </span>
           </div>
         </div>
@@ -452,7 +464,7 @@ onBeforeUnmount(() => {
                 Partner with us
               </button>
               <button class="btn-ghost" style="padding: 14px 24px; font-size: 12px;">
-                Get the QR kit
+                Get the tag kit
               </button>
             </div>
           </div>

@@ -539,6 +539,33 @@ onBeforeUnmount(() => {
   }
 }
 
+@media (max-width: 1240px) {
+  .nav-logo,
+  .nav-actions {
+    flex: 0 0 auto;
+  }
+
+  .nav-center-links {
+    position: static;
+    flex: 1 1 auto;
+    justify-content: center;
+    min-width: 0;
+    margin: 0 clamp(18px, 3vw, 34px);
+    gap: clamp(18px, 2.3vw, 30px);
+    transform: none;
+  }
+}
+
+@media (max-width: 980px) {
+  .nav-center-links {
+    display: none;
+  }
+
+  .nav-mobile-toggle {
+    display: flex !important;
+  }
+}
+
 @media (max-width: 768px) {
   .nav-actions {
     animation-delay: 420ms;

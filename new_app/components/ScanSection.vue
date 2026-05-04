@@ -6,11 +6,13 @@ const exitingStep = ref<number | null>(null)
 const scanCycleMs = 3200
 const inView = ref(false)
 const reduceMotion = ref(false)
+const phoneLayout = ref(false)
 const sectionRef = ref<HTMLElement | null>(null)
 let cycleInterval: ReturnType<typeof setInterval> | null = null
 let exitTimer: ReturnType<typeof setTimeout> | null = null
 let scanObserver: IntersectionObserver | null = null
 let motionMql: MediaQueryList | null = null
+let phoneLayoutMql: MediaQueryList | null = null
 
 const rawMouse = useSharedMouse().latest
 const mouse = useLerp(rawMouse, 0.06)
@@ -18,9 +20,9 @@ const mouse = useLerp(rawMouse, 0.06)
 const steps = [
   {
     tag: 'STEP 01',
-    title: 'Point.',
-    body: 'Open Liftag. Aim at any QR sticker on the machine. The exact exercise, variations, and a setup video load instantly. No menus, no searching.',
-    brief: 'Scan the machine QR. LIFTAG opens the exact exercise and setup video.',
+    title: 'Tap/scan.',
+    body: 'Open Liftag. Tap the NFC tag or aim at the QR sticker on the machine. The exact exercise, variations, and a setup video load instantly. No menus, no searching.',
+    brief: 'Tap NFC or scan QR. LIFTAG opens the exact exercise and setup video.',
     screen: '/assets/screens/qr-scan.png',
     extra: null as null | { label: string; note: string; brief: string },
   },
@@ -63,7 +65,7 @@ function clearHoveredStep(stepIndex: number) {
 }
 
 const scanPhoneMotionTransform = computed(() => {
-  if (reduceMotion.value) return 'translate3d(0, 0, 0)'
+  if (reduceMotion.value || phoneLayout.value) return 'translate3d(0, 0, 0)'
   const x = mouse.value.x * 18
   const y = mouse.value.y * 12
   const rotateX = mouse.value.y * 2.4
@@ -72,7 +74,7 @@ const scanPhoneMotionTransform = computed(() => {
 })
 
 const scanQrMotionTransform = computed(() => {
-  if (reduceMotion.value) return 'rotate(-8deg)'
+  if (reduceMotion.value || phoneLayout.value) return 'rotate(-8deg)'
   const x = mouse.value.x * -28
   const y = mouse.value.y * -18
   const rotate = -8 + mouse.value.x * -2.2 + mouse.value.y * 0.8
@@ -83,10 +85,18 @@ function onMotionChange(e: MediaQueryListEvent) {
   reduceMotion.value = e.matches
 }
 
+function onPhoneLayoutChange(e: MediaQueryListEvent) {
+  phoneLayout.value = e.matches
+}
+
 onMounted(() => {
   motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
   reduceMotion.value = motionMql.matches
   motionMql.addEventListener('change', onMotionChange)
+
+  phoneLayoutMql = window.matchMedia('(max-width: 768px)')
+  phoneLayout.value = phoneLayoutMql.matches
+  phoneLayoutMql.addEventListener('change', onPhoneLayoutChange)
 
   if (!sectionRef.value) return
 
@@ -125,6 +135,8 @@ onBeforeUnmount(() => {
   scanObserver = null
   motionMql?.removeEventListener('change', onMotionChange)
   motionMql = null
+  phoneLayoutMql?.removeEventListener('change', onPhoneLayoutChange)
+  phoneLayoutMql = null
 })
 </script>
 
@@ -167,7 +179,7 @@ onBeforeUnmount(() => {
           marginTop: '28px',
         }"
       >
-        No more guessing how a cable stack works. Scan the QR code on any partner gym machine.
+        No more guessing how a cable stack works. Tap the NFC tag or scan the QR code on any partner gym machine.
         Liftag opens the right exercise, demo video, and tracking flow in seconds.
       </p>
 
@@ -251,7 +263,7 @@ onBeforeUnmount(() => {
                 textShadow: '0 0 14px rgba(204,255,0,0.32)',
               }"
             >
-              Easy to spot qr codes
+              QR + NFC machine tags
             </div>
           </div>
         </div>
@@ -299,6 +311,7 @@ onBeforeUnmount(() => {
                   {{ s.tag }}
                 </div>
                 <div
+                  class="scan-step-indicator"
                   :style="{
                     width: step === i ? '50px' : '16px',
                     height: '1px',
@@ -436,11 +449,34 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+@property --scan-mobile-border-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
 .scan-step-row {
   position: relative;
   overflow: visible;
   border-left: 2px solid transparent;
   will-change: transform, opacity;
+}
+
+.scan-step-indicator {
+  position: relative;
+  overflow: hidden;
+  border-radius: 999px;
+}
+
+.scan-step-indicator::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #ccff00;
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
 }
 
 .scan-step-body-brief,
@@ -532,9 +568,9 @@ onBeforeUnmount(() => {
 
 .scan-phone-laser-overlay {
   position: absolute;
-  top: 34.8%;
-  left: 21%;
-  right: 21%;
+  top: 36%;
+  left: 22.4%;
+  right: 22.4%;
   aspect-ratio: 1;
   overflow: hidden;
   pointer-events: none;
@@ -709,6 +745,9 @@ onBeforeUnmount(() => {
   }
 
   .scan-phone-laser-overlay {
+    top: 34.8%;
+    left: 21%;
+    right: 21%;
     border-radius: 10px;
   }
 
@@ -721,6 +760,7 @@ onBeforeUnmount(() => {
   }
 
   .scan-step-row {
+    --scan-mobile-border-angle: 0deg;
     grid-template-columns: 1fr !important;
     gap: 10px !important;
     min-width: 0;
@@ -737,22 +777,65 @@ onBeforeUnmount(() => {
   }
 
   .scan-step-row.is-active {
-    border-color: rgba(204, 255, 0, 0.42) !important;
+    border-color: rgba(204, 255, 0, 0.14) !important;
     background: rgba(204, 255, 0, 0.075);
-    box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    box-shadow:
+      0 18px 34px rgba(0, 0, 0, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      inset 0 0 0 1px rgba(204, 255, 0, 0.06);
   }
 
-  .scan-step-row::before,
+  .scan-step-row::before {
+    display: none !important;
+  }
+
   .scan-step-row.is-active::before,
   .scan-step-row.is-exiting::before {
-    display: none !important;
+    content: '';
+    display: block !important;
+    position: absolute;
+    inset: -1px;
+    width: auto;
+    padding: 2px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: conic-gradient(
+      from -90deg,
+      #f0ff8a 0deg,
+      #ccff00 var(--scan-mobile-border-angle),
+      transparent calc(var(--scan-mobile-border-angle) + 0.4deg),
+      transparent 360deg
+    );
+    box-shadow: none;
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+    animation: scanMobilePaneBorderLoad calc(var(--cycle-ms, 3200ms) - 160ms) linear forwards;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    filter:
+      drop-shadow(0 0 7px rgba(204, 255, 0, 0.66))
+      drop-shadow(0 0 16px rgba(204, 255, 0, 0.28));
+  }
+
+  .scan-step-row.is-exiting::before {
+    display: block !important;
+    --scan-mobile-border-angle: 360deg;
+    opacity: 0.7;
+    animation: scanMobilePaneBorderExit 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .scan-step-row > div:first-child {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+    justify-content: flex-start;
+    gap: 0;
     min-width: 0;
   }
 
@@ -764,11 +847,17 @@ onBeforeUnmount(() => {
   }
 
   .scan-step-row > div:first-child > div:last-child {
-    flex: 1;
-    width: auto !important;
-    min-width: 18px;
-    max-width: 56px;
-    margin-top: 0 !important;
+    display: none;
+  }
+
+  .scan-section:not(.is-live) .scan-step-row.is-active::before {
+    animation-play-state: paused;
+  }
+
+  .scan-section.is-hover-locked .scan-step-row.is-active::before {
+    --scan-mobile-border-angle: 360deg;
+    animation: none;
+    opacity: 0.72;
   }
 
   .scan-step-title {
@@ -884,6 +973,31 @@ onBeforeUnmount(() => {
 
   .scan-step-extra-note {
     font-size: 10px !important;
+  }
+}
+
+@keyframes scanMobilePaneBorderLoad {
+  to {
+    --scan-mobile-border-angle: 360deg;
+  }
+}
+
+@keyframes scanMobilePaneBorderExit {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .scan-step-row.is-active::before {
+    --scan-mobile-border-angle: 360deg;
+    animation: none;
+    opacity: 1;
+  }
+
+  .scan-step-row.is-exiting::before {
+    animation: none;
+    opacity: 0;
   }
 }
 </style>

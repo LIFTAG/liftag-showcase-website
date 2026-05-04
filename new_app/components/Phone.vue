@@ -2,6 +2,28 @@
 import Phone3D from './Phone3D.vue'
 
 const MOBILE_PHONE_MQL = '(max-width: 768px)'
+const staticScreenPreloadCache = new Map<string, Promise<void>>()
+
+function preloadStaticScreen(src: string) {
+  const cached = staticScreenPreloadCache.get(src)
+  if (cached) return cached
+
+  const promise = new Promise<void>((resolve) => {
+    const image = new Image()
+    image.decoding = 'async'
+    image.onload = () => {
+      const decodePromise = image.decode ? image.decode() : Promise.resolve()
+      decodePromise
+        .then(() => resolve())
+        .catch(() => resolve())
+    }
+    image.onerror = () => resolve()
+    image.src = src
+  })
+
+  staticScreenPreloadCache.set(src, promise)
+  return promise
+}
 
 const props = withDefaults(defineProps<{
   src?: string
@@ -23,6 +45,7 @@ const props = withDefaults(defineProps<{
 
 const hasMounted = ref(false)
 const renderStaticMockup = ref(false)
+const staticDisplaySrc = ref(props.src ?? '')
 
 const render3dPhone = computed(() => Boolean(props.src) && hasMounted.value && !renderStaticMockup.value)
 const renderStaticPhone = computed(() => Boolean(props.src) && !render3dPhone.value)
@@ -37,8 +60,29 @@ const staticTransitionName = computed(() => {
 
 let mobileMql: MediaQueryList | null = null
 let onMobileChange: ((event: MediaQueryListEvent) => void) | null = null
+let staticScreenRequestId = 0
+
+function queueStaticScreen(src: string | undefined) {
+  if (!src) {
+    staticDisplaySrc.value = ''
+    return
+  }
+
+  const requestId = ++staticScreenRequestId
+  preloadStaticScreen(src).finally(() => {
+    if (requestId === staticScreenRequestId) {
+      staticDisplaySrc.value = src
+    }
+  })
+}
+
+watch(() => props.src, (src) => {
+  queueStaticScreen(src)
+})
 
 onMounted(() => {
+  queueStaticScreen(props.src)
+
   if (props.src) {
     mobileMql = window.matchMedia(MOBILE_PHONE_MQL)
     renderStaticMockup.value = mobileMql.matches
@@ -83,13 +127,15 @@ onBeforeUnmount(() => {
     <Transition
       v-else-if="props.src"
       :name="staticTransitionName"
-      mode="out-in"
     >
       <img
-        :key="props.src"
+        :key="staticDisplaySrc"
         class="phone-static-screen"
-        :src="props.src"
+        :src="staticDisplaySrc"
         alt="LIFTAG screen"
+        loading="eager"
+        decoding="async"
+        :fetchpriority="renderStaticMockup ? 'high' : 'auto'"
       />
     </Transition>
     <slot v-else />
@@ -98,7 +144,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .phone-static-screen {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 1;
   width: 100%;
   height: 100%;

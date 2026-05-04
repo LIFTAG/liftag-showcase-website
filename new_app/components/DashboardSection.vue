@@ -4,6 +4,13 @@ const stageRef = ref<HTMLElement | null>(null)
 
 const openProgress = ref(0)
 const entered = ref(false)
+const shouldUseDashboardVideo = ref(false)
+
+const DASHBOARD_VIDEO_SRC = '/assets/videos/macbook-dashboard.mp4'
+
+const dashboardVideoSrc = computed(() => (
+  shouldUseDashboardVideo.value ? DASHBOARD_VIDEO_SRC : undefined
+))
 
 // Shared singleton — no per-component window listener. useLerp's rAF reads
 // rawMouse.x/y each frame, so pointing it at the shared `latest` object
@@ -37,6 +44,7 @@ let rafId = 0
 let isVisible = false
 let reduceMotion = false
 let hasEntered = false
+let dashboardVideoQuery: MediaQueryList | null = null
 
 function clamp01(v: number) {
   return Math.max(0, Math.min(1, v))
@@ -56,9 +64,10 @@ function exitSlice(p: number, start: number, duration: number) {
   return smoothstep((p - start) / duration)
 }
 
-function setExitMotion(section: HTMLElement, key: string, value: number, y: number, _blur: number) {
+function setExitMotion(section: HTMLElement, key: string, value: number, y: number, blur: number) {
   section.style.setProperty(`--exit-${key}`, String(value))
   section.style.setProperty(`--exit-${key}-y`, `${value * y}px`)
+  section.style.setProperty(`--exit-${key}-blur`, `${value * blur}px`)
 }
 
 function chipTransform(
@@ -80,6 +89,10 @@ function getScrollProgress() {
   const rect = section.getBoundingClientRect()
   const available = Math.max(1, rect.height - window.innerHeight)
   return clamp01(-rect.top / available)
+}
+
+function updateDashboardVideoPreference() {
+  shouldUseDashboardVideo.value = dashboardVideoQuery?.matches ?? false
 }
 
 function tick() {
@@ -142,6 +155,9 @@ const features = [
 
 onMounted(() => {
   reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  dashboardVideoQuery = window.matchMedia('(min-width: 621px) and (prefers-reduced-motion: no-preference)')
+  updateDashboardVideoPreference()
+  dashboardVideoQuery.addEventListener('change', updateDashboardVideoPreference)
 
   observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
@@ -166,6 +182,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   cancelAnimationFrame(rafId)
   observer?.disconnect()
+  dashboardVideoQuery?.removeEventListener('change', updateDashboardVideoPreference)
+  dashboardVideoQuery = null
 })
 </script>
 
@@ -224,6 +242,7 @@ onBeforeUnmount(() => {
             <ClientOnly>
               <Macbook3D
                 screenshot-src="/assets/screens/dashboard-web.png"
+                :video-src="dashboardVideoSrc"
                 :open-progress="openProgress"
               />
               <template #fallback>
@@ -531,14 +550,18 @@ onBeforeUnmount(() => {
     left: -90px;
     opacity: 0;
   }
-  12% {
+  14% {
     opacity: 1;
   }
-  88% {
+  68% {
     opacity: 1;
+  }
+  78% {
+    left: calc(100% - 18px);
+    opacity: 0.72;
   }
   100% {
-    left: calc(100% + 30px);
+    left: calc(100% + 58px);
     opacity: 0;
   }
 }
