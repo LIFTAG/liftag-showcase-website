@@ -482,9 +482,9 @@ const pNfc = computed(() => {
   return {
     x: mouse.value.x * -34,
     y: mouse.value.y * 22 - scrollY.value * 0.1,
-    rotateX: -10 + mouse.value.y * -5,
-    rotateY: -18 + mouse.value.x * 8,
-    rotateZ: 10 + mouse.value.x * 2,
+    rotateX: mouse.value.y * -5,
+    rotateY: mouse.value.x * 8,
+    rotateZ: mouse.value.x * 2,
     shineX: 42 + mouse.value.x * 14,
     shineY: 36 + mouse.value.y * 10,
     holoX: mouse.value.x * 10,
