@@ -5,11 +5,11 @@ interface FooterLink {
 }
 
 const productLinks: FooterLink[] = [
-  { label: 'For Lifters', href: '#lifters' },
-  { label: 'For Trainers', href: '#trainers' },
-  { label: 'For Gyms', href: '#gyms' },
-  { label: 'Pricing', href: '#pricing' },
-  { label: 'Roadmap', href: '#roadmap' },
+  { label: 'For Lifters', href: '/for-lifters' },
+  { label: 'For Trainers', href: '/for-trainers' },
+  { label: 'For Gyms', href: '/for-gyms' },
+  { label: 'NFC + QR Tags', href: '/qr-nfc-gym-tags' },
+  { label: 'Roadmap', href: '/#roadmap' },
 ]
 </script>
 

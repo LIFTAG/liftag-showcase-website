@@ -2,13 +2,16 @@
 const scrolled = ref(false)
 const open = ref(false)
 const isMobileNav = ref(false)
+const route = useRoute()
 
-const navLinks: [string, string][] = [
-  ['Lifters', '#lifters'],
-  ['Trainers', '#trainers'],
-  ['Gyms', '#gyms'],
-  ['How it works', '#how'],
-]
+const sectionHref = (hash: string) => route.path === '/' ? hash : `/${hash}`
+
+const navLinks = computed<[string, string][]>(() => [
+  ['Lifters', sectionHref('#lifters')],
+  ['Trainers', sectionHref('#trainers')],
+  ['Gyms', sectionHref('#gyms')],
+  ['How it works', sectionHref('#how')],
+])
 
 let _onScroll: (() => void) | null = null
 let _onViewportChange: (() => void) | null = null
@@ -83,7 +86,7 @@ onBeforeUnmount(() => {
     <span class="nav-entry-beam" aria-hidden="true"></span>
 
     <!-- Logo -->
-    <a href="#" class="nav-logo">
+    <a href="/" class="nav-logo">
       <span class="nav-logo__mark">
         <img
           src="/assets/logo.svg"
