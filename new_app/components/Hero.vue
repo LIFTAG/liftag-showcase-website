@@ -472,27 +472,12 @@ const p3 = computed(() => ({
   y: mouse.value.y * 18  - scrollY.value * 0.22,
 }))
 const pNfc = computed(() => {
-  const lightVector = mouse.value.x * 0.68 - mouse.value.y * 0.44
-  const waveProgress = Math.max(0, Math.min(1, (lightVector + 0.74) / 1.48))
-  const angle = 124 + mouse.value.x * 10 - mouse.value.y * 7
-  const waveDistance = Math.abs(waveProgress - 0.58) / 0.24
-  const waveCatch = Math.max(0, 1 - waveDistance)
-  const holoPeak = waveCatch * waveCatch * (3 - 2 * waveCatch)
-
   return {
-    x: mouse.value.x * -34,
-    y: mouse.value.y * 22 - scrollY.value * 0.1,
-    rotateX: mouse.value.y * -5,
-    rotateY: mouse.value.x * 8,
-    rotateZ: mouse.value.x * 2,
-    shineX: 42 + mouse.value.x * 14,
-    shineY: 36 + mouse.value.y * 10,
-    holoX: mouse.value.x * 10,
-    holoY: mouse.value.y * -8,
-    holoAngle: angle,
-    holoShift: -56 + waveProgress * 112,
-    holoOpacity: 0.018 + holoPeak * 0.42,
-    prismOpacity: 0.028 + holoPeak * 0.12,
+    x: mouse.value.x * 22,
+    y: mouse.value.y * 15 - scrollY.value * 0.12,
+    rotateX: mouse.value.y * 0.8,
+    rotateY: mouse.value.x * 0.8,
+    rotateZ: mouse.value.x * 0.35,
   }
 })
 </script>
@@ -1073,23 +1058,14 @@ const pNfc = computed(() => {
           aria-hidden="true"
           :style="{
             transform: `translate3d(${pNfc.x}px, ${pNfc.y}px, 96px) rotateX(${pNfc.rotateX}deg) rotateY(${pNfc.rotateY}deg) rotateZ(${pNfc.rotateZ}deg)`,
-            '--nfc-shine-x': `${pNfc.shineX}%`,
-            '--nfc-shine-y': `${pNfc.shineY}%`,
-            '--nfc-holo-x': `${pNfc.holoX}px`,
-            '--nfc-holo-y': `${pNfc.holoY}px`,
-            '--nfc-holo-angle': `${pNfc.holoAngle}deg`,
-            '--nfc-holo-shift': `${pNfc.holoShift}%`,
-            '--nfc-holo-opacity': pNfc.holoOpacity,
-            '--nfc-prism-opacity': pNfc.prismOpacity,
             opacity: entered ? 1 : 0,
             transition: entered ? 'opacity 1000ms 760ms ease' : 'none',
           }"
         >
           <div class="hero-nfc-tag-3d">
-            <div class="hero-nfc-face hero-nfc-face-back" />
-            <div class="hero-nfc-face hero-nfc-face-front">
-              <span class="hero-nfc-text">NFC</span>
-            </div>
+            <ClientOnly>
+              <NfcTag3D />
+            </ClientOnly>
           </div>
         </div>
 
@@ -1336,15 +1312,6 @@ const pNfc = computed(() => {
 }
 
 .hero-nfc-model {
-  --nfc-depth: 10px;
-  --nfc-shine-x: 42%;
-  --nfc-shine-y: 36%;
-  --nfc-holo-x: 0px;
-  --nfc-holo-y: 0px;
-  --nfc-holo-angle: 118deg;
-  --nfc-holo-shift: 0%;
-  --nfc-holo-opacity: 0.025;
-  --nfc-prism-opacity: 0.04;
   position: absolute;
   top: 380px;
   left: 6px;
@@ -1361,140 +1328,6 @@ const pNfc = computed(() => {
   inset: 0;
   transform-style: preserve-3d;
   animation: heroNfcFloat 5.8s ease-in-out infinite;
-}
-
-.hero-nfc-tag-3d::before,
-.hero-nfc-tag-3d::after {
-  content: '';
-  position: absolute;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(145deg, #101817 0%, #050909 45%, #000 100%);
-  border: 1px solid rgba(255, 255, 255, 0.045);
-  box-shadow:
-    inset -5px -5px 12px rgba(0, 0, 0, 0.82),
-    inset 1px 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.hero-nfc-tag-3d::before {
-  top: 15px;
-  right: -5px;
-  bottom: 15px;
-  width: var(--nfc-depth);
-  border-radius: 0 24px 24px 0;
-  transform: translateZ(-2px);
-}
-
-.hero-nfc-tag-3d::after {
-  left: 15px;
-  right: 15px;
-  bottom: -5px;
-  height: var(--nfc-depth);
-  border-radius: 0 0 24px 24px;
-  transform: translateZ(-2px);
-}
-
-.hero-nfc-face {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  border-radius: 30px;
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-}
-
-.hero-nfc-face-back {
-  z-index: 0;
-  inset: -5px -5px 0 0;
-  background: linear-gradient(145deg, #101817 0%, #050909 48%, #000 100%);
-  border: 1px solid rgba(255, 255, 255, 0.045);
-  transform: translate3d(5px, 5px, -10px);
-}
-
-.hero-nfc-face-front {
-  z-index: 2;
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.075);
-  background:
-    radial-gradient(circle at var(--nfc-shine-x) var(--nfc-shine-y), rgba(255, 255, 255, 0.12), transparent 36%),
-    radial-gradient(circle at 74% 18%, rgba(108, 255, 229, 0.08), transparent 34%),
-    linear-gradient(145deg, #121917 0%, #07100d 58%, #010202 100%);
-  box-shadow:
-    0 0 26px rgba(204, 255, 0, 0.07),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    inset -10px -12px 22px rgba(0, 0, 0, 0.56);
-  transform: translateZ(5px);
-}
-
-.hero-nfc-face-front::before {
-  content: '';
-  position: absolute;
-  inset: -42%;
-  z-index: 1;
-  border-radius: 38px;
-  pointer-events: none;
-  background:
-    linear-gradient(var(--nfc-holo-angle),
-      transparent calc(var(--nfc-holo-shift) + 19%),
-      rgba(255, 84, 188, 0.14) calc(var(--nfc-holo-shift) + 25%),
-      rgba(82, 178, 255, 0.22) calc(var(--nfc-holo-shift) + 31%),
-      rgba(255, 255, 255, 0.72) calc(var(--nfc-holo-shift) + 36%),
-      rgba(73, 255, 217, 0.24) calc(var(--nfc-holo-shift) + 40%),
-      rgba(204, 255, 0, 0.12) calc(var(--nfc-holo-shift) + 44%),
-      transparent calc(var(--nfc-holo-shift) + 52%)),
-    repeating-linear-gradient(calc(var(--nfc-holo-angle) + 90deg),
-      rgba(255, 255, 255, 0.12) 0 1px,
-      transparent 1px 11px);
-  background-blend-mode: screen, overlay;
-  mix-blend-mode: screen;
-  opacity: var(--nfc-holo-opacity);
-  filter: blur(0.35px) saturate(1.7) brightness(1.06);
-  transform: translate3d(var(--nfc-holo-x), var(--nfc-holo-y), 0);
-}
-
-.hero-nfc-face-front::after {
-  content: '';
-  position: absolute;
-  inset: 9px;
-  z-index: 2;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 22px;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at var(--nfc-shine-x) var(--nfc-shine-y), rgba(255, 255, 255, 0.12), transparent 28%),
-    conic-gradient(from var(--nfc-holo-angle) at var(--nfc-shine-x) var(--nfc-shine-y),
-      rgba(255, 84, 188, 0.15),
-      rgba(82, 178, 255, 0.13),
-      rgba(64, 255, 218, 0.15),
-      rgba(204, 255, 0, 0.08),
-      rgba(255, 255, 255, 0.1),
-      rgba(255, 84, 188, 0.15)),
-    repeating-linear-gradient(116deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 9px);
-  background-blend-mode: screen, screen, overlay;
-  mix-blend-mode: screen;
-  opacity: var(--nfc-prism-opacity);
-  transform: translate3d(calc(var(--nfc-holo-x) * -0.35), calc(var(--nfc-holo-y) * -0.35), 0);
-}
-
-.hero-nfc-text {
-  position: relative;
-  z-index: 3;
-  display: inline-block;
-  color: rgba(204, 255, 0, 0.82);
-  font-family: var(--liftag-font-mono);
-  font-size: 30px;
-  font-weight: 900;
-  letter-spacing: 0.14em;
-  line-height: 1;
-  text-indent: 0.14em;
-  text-shadow:
-    0 0 8px rgba(204, 255, 0, 0.34),
-    0 0 22px rgba(204, 255, 0, 0.22);
-  filter: drop-shadow(0 0 7px rgba(204, 255, 0, 0.36));
-  animation: heroNfcWavePulse 2.8s ease-in-out infinite;
 }
 
 .hero-mobile-layout {
@@ -1809,19 +1642,6 @@ const pNfc = computed(() => {
 
   50% {
     transform: translate3d(0, -7px, 8px);
-  }
-}
-
-@keyframes heroNfcWavePulse {
-  0%,
-  100% {
-    opacity: 0.42;
-    transform: translateX(0);
-  }
-
-  50% {
-    opacity: 1;
-    transform: translateX(2px);
   }
 }
 

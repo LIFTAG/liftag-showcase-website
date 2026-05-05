@@ -12,6 +12,67 @@ const dashboardVideoSrc = computed(() => (
   shouldUseDashboardVideo.value ? DASHBOARD_VIDEO_SRC : undefined
 ))
 
+const dashboardMetricChartSvg = ref<SVGSVGElement | null>(null)
+const dashboardMetricChartTargetP = ref(1)
+const dashboardMetricChartDisplayP = ref(1)
+let dashboardMetricChartRaf = 0
+
+const dashboardMetricChartPts: [number, number][] = [
+  [0, 18], [12, 15], [24, 16], [36, 11],
+  [48, 10], [60, 7], [72, 5], [80, 2],
+]
+
+function dashboardMetricPointAt(p: number) {
+  const clampedP = clamp01(p)
+  const totalLen = dashboardMetricChartPts.length - 1
+  const idx = Math.min(clampedP * totalLen, totalLen)
+  const i0 = Math.floor(idx)
+  const i1 = Math.min(i0 + 1, totalLen)
+  const t = idx - i0
+  const [x0, y0] = dashboardMetricChartPts[i0]
+  const [x1, y1] = dashboardMetricChartPts[i1]
+
+  return {
+    x: x0 + (x1 - x0) * t,
+    y: y0 + (y1 - y0) * t,
+  }
+}
+
+const dashboardMetricChartPoint = computed(() => dashboardMetricPointAt(dashboardMetricChartDisplayP.value))
+const dashboardMetricChartClipWidth = computed(() => dashboardMetricChartPoint.value.x + 7)
+const dashboardMetricChartDotOpacity = computed(() => dashboardMetricChartDisplayP.value > 0.02 ? 1 : 0)
+const dashboardMetricUnits = computed(() => Math.round(176 + dashboardMetricChartDisplayP.value * 72))
+const dashboardMetricDelta = computed(() => Math.round(4 + dashboardMetricChartDisplayP.value * 20))
+
+function tickDashboardMetricChart() {
+  const target = dashboardMetricChartTargetP.value
+  const next = dashboardMetricChartDisplayP.value + (target - dashboardMetricChartDisplayP.value) * 0.18
+
+  if (Math.abs(target - next) < 0.001) {
+    dashboardMetricChartDisplayP.value = target
+    dashboardMetricChartRaf = 0
+    return
+  }
+
+  dashboardMetricChartDisplayP.value = next
+  dashboardMetricChartRaf = requestAnimationFrame(tickDashboardMetricChart)
+}
+
+function setDashboardMetricChartTarget(p: number) {
+  dashboardMetricChartTargetP.value = Math.max(0.02, Math.min(1, p))
+  if (!dashboardMetricChartRaf) dashboardMetricChartRaf = requestAnimationFrame(tickDashboardMetricChart)
+}
+
+function handleDashboardMetricChartMove(event: PointerEvent) {
+  const rect = dashboardMetricChartSvg.value?.getBoundingClientRect()
+    ?? (event.currentTarget as HTMLElement).getBoundingClientRect()
+  setDashboardMetricChartTarget((event.clientX - rect.left) / Math.max(1, rect.width))
+}
+
+function resetDashboardMetricChartHover() {
+  setDashboardMetricChartTarget(1)
+}
+
 // Shared singleton — no per-component window listener. useLerp's rAF reads
 // rawMouse.x/y each frame, so pointing it at the shared `latest` object
 // (whose .x/.y are kept in sync by the single global handler) gives identical
@@ -181,6 +242,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   cancelAnimationFrame(rafId)
+  if (dashboardMetricChartRaf) cancelAnimationFrame(dashboardMetricChartRaf)
   observer?.disconnect()
   dashboardVideoQuery?.removeEventListener('change', updateDashboardVideoPreference)
   dashboardVideoQuery = null
@@ -283,15 +345,23 @@ onBeforeUnmount(() => {
               opacity: entered ? 'calc(1 - var(--exit-chip-metric))' : 0,
             }"
             aria-hidden="true"
+            @pointermove="handleDashboardMetricChartMove"
+            @pointerleave="resetDashboardMetricChartHover"
+            @pointercancel="resetDashboardMetricChartHover"
           >
             <div class="protocol dash-chip-mtag">MACHINES · LIVE</div>
             <div class="dash-chip-mvalue">
-              248<span class="dash-chip-munit"> units</span>
+              {{ dashboardMetricUnits }}<span class="dash-chip-munit"> units</span>
             </div>
             <div class="dash-chip-delta">
-              <span>↑</span> +24 this month
+              <span>↑</span> +{{ dashboardMetricDelta }} this month
             </div>
-            <svg viewBox="-3 -3 86 26" class="dash-chip-spark">
+            <svg ref="dashboardMetricChartSvg" viewBox="-3 -3 86 26" class="dash-chip-spark">
+              <defs>
+                <clipPath id="dashboardMetricSparkClip">
+                  <rect x="-3" y="-3" :width="dashboardMetricChartClipWidth" height="32" />
+                </clipPath>
+              </defs>
               <polyline
                 points="0,18 12,15 24,16 36,11 48,10 60,7 72,5 80,2"
                 fill="none"
@@ -300,8 +370,25 @@ onBeforeUnmount(() => {
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 opacity="0.75"
+                clip-path="url(#dashboardMetricSparkClip)"
               />
-              <circle cx="80" cy="2" r="2.5" fill="#CCFF00" />
+              <polyline
+                points="0,18 12,15 24,16 36,11 48,10 60,7 72,5 80,2"
+                fill="none"
+                stroke="#CCFF00"
+                stroke-width="5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                opacity="0.12"
+                clip-path="url(#dashboardMetricSparkClip)"
+              />
+              <circle
+                :cx="dashboardMetricChartPoint.x"
+                :cy="dashboardMetricChartPoint.y"
+                r="2.5"
+                fill="#CCFF00"
+                :opacity="dashboardMetricChartDotOpacity"
+              />
             </svg>
           </div>
 
@@ -729,6 +816,7 @@ onBeforeUnmount(() => {
   min-width: 168px;
   transition-delay: 900ms;
   translate: 0 var(--exit-chip-metric-y);
+  cursor: crosshair;
 }
 
 .dash-chip-metric .dash-chip-mtag {
@@ -769,6 +857,12 @@ onBeforeUnmount(() => {
   margin-top: 8px;
   display: block;
   overflow: visible;
+  touch-action: none;
+}
+
+.dash-chip-metric .dash-chip-spark polyline,
+.dash-chip-metric .dash-chip-spark circle {
+  filter: drop-shadow(0 0 5px rgba(204, 255, 0, 0.42));
 }
 
 /* Deploy badge — mid-right, lime accent like the PR badge */
