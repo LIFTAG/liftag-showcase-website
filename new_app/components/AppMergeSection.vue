@@ -1023,9 +1023,10 @@ onBeforeUnmount(() => {
   width: 73%;
   height: 73%;
   object-fit: contain;
-  filter:
-    drop-shadow(0 0 18px rgba(204, 255, 0, 0.35))
-    drop-shadow(0 12px 22px rgba(0, 0, 0, 0.4));
+  /* Per-frame drop-shadow on a rotating image was a major paint cost.
+     The shell's outer box-shadow already provides the lime halo; a single
+     small drop-shadow keeps the logo readable on top of bright shells. */
+  filter: drop-shadow(0 0 10px rgba(204, 255, 0, 0.25));
   transform: rotate(var(--logo-spin, 0deg)) scale(calc(0.92 + var(--finale-p) * 0.05));
   transform-origin: center;
   will-change: transform;

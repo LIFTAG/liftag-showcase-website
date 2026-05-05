@@ -1,9 +1,9 @@
 <script setup lang="ts">
 const screens = [
-  '/assets/screens/chest-progression.png',
-  '/assets/screens/bench-progress.png',
-  '/assets/screens/history.png',
-  '/assets/screens/progression.png',
+  '/assets/screens/chest-progression.webp',
+  '/assets/screens/bench-progress.webp',
+  '/assets/screens/history.webp',
+  '/assets/screens/progression.webp',
 ]
 
 const screen = ref(0)
@@ -421,8 +421,7 @@ onBeforeUnmount(() => {
               position: 'absolute',
               inset: '6px',
               borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(204,255,0,0.18), transparent 65%)',
-              filter: 'blur(18px)',
+              background: 'radial-gradient(circle, rgba(204,255,0,0.18), transparent 70%)',
               animation: 'pulse-glow 4s ease-in-out infinite',
             }"
           />
