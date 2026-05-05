@@ -241,13 +241,13 @@ onBeforeUnmount(() => {
           <div class="dashboard-macbook-mount">
             <ClientOnly>
               <Macbook3D
-                screenshot-src="/assets/screens/dashboard-web.webp"
+                screenshot-src="/assets/screens/dashboard-web.png"
                 :video-src="dashboardVideoSrc"
                 :open-progress="openProgress"
               />
               <template #fallback>
                 <img
-                  src="/assets/screens/dashboard-web.webp"
+                  src="/assets/screens/dashboard-web.png"
                   alt="Liftag dashboard"
                   loading="lazy"
                   decoding="async"

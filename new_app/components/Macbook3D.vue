@@ -60,18 +60,14 @@ function initMacbook() {
   const height = Math.max(container.clientHeight, 1)
 
   const renderer = new THREE.WebGLRenderer({
-    // MSAA disabled — the laptop sits against a dark background and the
-    // capped pixel ratio keeps edges acceptable without hardware AA.
-    antialias: false,
+    antialias: true,
     alpha: true,
   })
   renderer.setSize(width, height)
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.25
-  // Soft shadows on a 1024² map were the dominant per-frame cost. Disabled;
-  // a faint static shadow could be re-added below the laptop in CSS if needed.
-  renderer.shadowMap.enabled = false
+  renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
   container.appendChild(renderer.domElement)
 
@@ -86,6 +82,16 @@ function initMacbook() {
 
   const keyLight = new THREE.DirectionalLight(0xffffff, 1.4)
   keyLight.position.set(2.5, 4, 4.5)
+  keyLight.castShadow = true
+  keyLight.shadow.mapSize.width = 1024
+  keyLight.shadow.mapSize.height = 1024
+  keyLight.shadow.camera.near = 0.5
+  keyLight.shadow.camera.far = 18
+  keyLight.shadow.camera.left = -3
+  keyLight.shadow.camera.right = 3
+  keyLight.shadow.camera.top = 3
+  keyLight.shadow.camera.bottom = -3
+  keyLight.shadow.radius = 8
   scene.add(keyLight)
 
   const fillLight = new THREE.DirectionalLight(0x99aacc, 0.32)
@@ -95,6 +101,16 @@ function initMacbook() {
   const accentLight = new THREE.PointLight(0xccff00, 0.55, 10, 2)
   accentLight.position.set(0, 1.5, 1.6)
   scene.add(accentLight)
+
+  // Ground shadow plane (catches the laptop's shadow)
+  const shadowPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(8, 6),
+    new THREE.ShadowMaterial({ opacity: 0.32 }),
+  )
+  shadowPlane.rotation.x = -Math.PI / 2
+  shadowPlane.position.y = -0.18
+  shadowPlane.receiveShadow = true
+  scene.add(shadowPlane)
 
   // Dimensions
   const W = 2.8       // base + lid width
@@ -125,6 +141,8 @@ function initMacbook() {
   baseGeo.rotateX(-Math.PI / 2) // shape XY plane → XZ plane (top-down view)
 
   const base = new THREE.Mesh(baseGeo, aluMat)
+  base.castShadow = true
+  base.receiveShadow = true
   base.position.y = -T / 2
 
   // Keyboard well (recessed dark inset)
@@ -140,6 +158,7 @@ function initMacbook() {
   )
   keyboardWell.rotation.x = -Math.PI / 2
   keyboardWell.position.set(0, 0.001, -D * 0.12)
+  keyboardWell.receiveShadow = true
 
   // Subtle keyboard "key grid" via canvas texture
   const kbCanvas = document.createElement('canvas')
@@ -235,6 +254,8 @@ function initMacbook() {
   lidGeo.translate(0, LT / 2, H / 2)
 
   const lid = new THREE.Mesh(lidGeo, aluMat)
+  lid.castShadow = true
+  lid.receiveShadow = true
   lidGroup.add(lid)
 
   // Screen panel (inner side of lid) — thin bezels like M-series MacBook

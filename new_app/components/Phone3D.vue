@@ -35,10 +35,7 @@ function initPhone() {
 
   const isLite = props.lite
   const renderer = new THREE.WebGLRenderer({
-    // MSAA was a major fragment-shader cost on the foreground phone. With the
-    // capped DPR below the rasterised edges are smooth enough that disabling
-    // hardware AA is barely perceptible against the dark background.
-    antialias: false,
+    antialias: true,
     alpha: true,
   })
   renderer.setSize(width, height)
@@ -47,10 +44,7 @@ function initPhone() {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, isLite ? 1.25 : 2))
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.4
-  // Soft shadow maps were a per-frame fill-rate cost on every Phone3D
-  // instance. The shadow plane is dim (0.35 opacity) against a black
-  // background; dropping it removes a noticeable GPU load.
-  renderer.shadowMap.enabled = false
+  renderer.shadowMap.enabled = !isLite
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
   container.appendChild(renderer.domElement)
 
@@ -60,15 +54,35 @@ function initPhone() {
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.5))
 
-  // Shadows disabled globally on the renderer; keep the lights but skip
-  // shadow-camera setup and the receiver plane.
   const keyLight = new THREE.DirectionalLight(0xffffff, 1.5)
   keyLight.position.set(2, 3, 5)
+  keyLight.castShadow = !isLite
+  if (!isLite) {
+    keyLight.shadow.mapSize.width = 1024
+    keyLight.shadow.mapSize.height = 1024
+    keyLight.shadow.camera.near = 0.5
+    keyLight.shadow.camera.far = 15
+    keyLight.shadow.camera.left = -2
+    keyLight.shadow.camera.right = 2
+    keyLight.shadow.camera.top = 3
+    keyLight.shadow.camera.bottom = -3
+    keyLight.shadow.radius = 6
+  }
   scene.add(keyLight)
 
   const fillLight = new THREE.DirectionalLight(0x8899cc, 0.3)
   fillLight.position.set(-3, 1, 3)
   scene.add(fillLight)
+
+  if (!isLite) {
+    const shadowPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(4, 6),
+      new THREE.ShadowMaterial({ opacity: 0.35 }),
+    )
+    shadowPlane.position.z = -0.15
+    shadowPlane.receiveShadow = true
+    scene.add(shadowPlane)
+  }
 
   const W = 0.95
   const H = 1.95
@@ -112,6 +126,7 @@ function initPhone() {
     clearcoatRoughness: 0.15,
   })
   const body = new THREE.Mesh(bodyGeo, bodyMat)
+  body.castShadow = !isLite
 
   const scrW = W - BEZEL * 2
   const scrH = H - BEZEL * 2
