@@ -963,8 +963,7 @@ const pNfc = computed(() => {
             opacity: entered ? 0.75 : 0,
             transition: entered ? 'opacity 1200ms 300ms ease' : 'none',
             willChange: 'transform',
-            borderRadius: '52px',
-            boxShadow: '0 24px 40px rgba(0,0,0,0.55)',
+            filter: 'drop-shadow(0 24px 40px rgba(0,0,0,0.55))',
           }"
         >
           <Phone src="/assets/screens/progression.webp" :scale="0.7" :tilt-delay-ms="140" lite />
@@ -979,8 +978,7 @@ const pNfc = computed(() => {
             opacity: entered ? 0.68 : 0,
             transition: entered ? 'opacity 1200ms 500ms ease' : 'none',
             willChange: 'transform',
-            borderRadius: '52px',
-            boxShadow: '0 22px 36px rgba(0,0,0,0.55)',
+            filter: 'drop-shadow(0 22px 36px rgba(0,0,0,0.55))',
           }"
         >
           <Phone src="/assets/screens/log-set.webp" :scale="0.64" :tilt-delay-ms="230" lite />
@@ -996,14 +994,14 @@ const pNfc = computed(() => {
             transition: entered ? 'opacity 1000ms 100ms ease' : 'none',
           }"
         >
-          <!-- Glow behind phone — radial gradient already provides soft falloff;
-               filter:blur(24px) was repainting on every parallax tick. -->
+          <!-- Glow behind phone -->
           <div
             :style="{
               position: 'absolute',
               inset: '8px',
               borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(204,255,0,0.22) 0%, transparent 70%)',
+              background: 'radial-gradient(circle, rgba(204,255,0,0.22) 0%, transparent 65%)',
+              filter: 'blur(24px)',
               animation: 'pulse-glow 4s ease-in-out infinite',
             }"
           />
