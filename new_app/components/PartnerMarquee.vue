@@ -6,10 +6,45 @@ const features = [
   'EN · SK', 'FREE · FOREVER',
 ]
 const items = [...features, ...features]
+
+const sectionRef = ref<HTMLElement | null>(null)
+const inView = ref(false)
+const documentVisible = ref(true)
+
+const animationPlayState = computed(() =>
+  inView.value && documentVisible.value ? 'running' : 'paused',
+)
+
+let observer: IntersectionObserver | null = null
+
+function onDocumentVisibilityChange() {
+  documentVisible.value = !document.hidden
+}
+
+onMounted(() => {
+  documentVisible.value = !document.hidden
+  document.addEventListener('visibilitychange', onDocumentVisibilityChange)
+
+  if (!sectionRef.value) return
+  observer = new IntersectionObserver(
+    ([entry]) => {
+      inView.value = entry?.isIntersecting ?? false
+    },
+    { threshold: 0 },
+  )
+  observer.observe(sectionRef.value)
+})
+
+onBeforeUnmount(() => {
+  observer?.disconnect()
+  observer = null
+  document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
+})
 </script>
 
 <template>
   <section
+    ref="sectionRef"
     :style="{
       background: '#000',
       borderTop: '1px solid rgba(255,255,255,0.06)',
@@ -36,7 +71,7 @@ const items = [...features, ...features]
       }"
     />
 
-    <div class="marquee-track">
+    <div class="marquee-track" :style="{ animationPlayState }">
       <div
         v-for="(item, i) in items"
         :key="i"

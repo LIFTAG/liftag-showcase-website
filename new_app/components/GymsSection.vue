@@ -206,6 +206,8 @@ onBeforeUnmount(() => {
               <img
                 src="/uploads/telegram-cloud-photo-size-4-5904481809322413580-y.jpg"
                 alt="LIFTAG QR Code"
+                loading="lazy"
+                decoding="async"
                 :style="{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }"
               />
             </div>
@@ -250,6 +252,8 @@ onBeforeUnmount(() => {
               <img
                 src="/assets/img/lat-pulldown.jpeg"
                 alt="Lat Pulldown machine"
+                loading="lazy"
+                decoding="async"
                 :style="{
                   width: '100%',
                   height: '100%',

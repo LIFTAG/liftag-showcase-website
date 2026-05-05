@@ -270,6 +270,8 @@ onBeforeUnmount(() => {
             <img
               :src="card.img"
               alt=""
+              loading="lazy"
+              decoding="async"
                 class="lifters-card-image"
                 :style="{
                   '--img-x': imgPositionX(card),

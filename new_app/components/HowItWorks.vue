@@ -368,27 +368,29 @@ function drawHIWCurve(p: number) {
 }
 
 // ─── Scroll progress → section update ────────────────────────────────────
-function getScrollP(): number {
-  const section = sectionRef.value
-  if (!section) return 0
-  const rect     = section.getBoundingClientRect()
+function progressFromRect(rect: DOMRect): number {
   const sectionTop = -rect.top
   const sectionH   = rect.height - window.innerHeight
   if (sectionH <= 0) return 0
   return Math.max(0, Math.min(1, sectionTop / sectionH))
 }
 
+function getScrollP(): number {
+  const section = sectionRef.value
+  if (!section) return 0
+  return progressFromRect(section.getBoundingClientRect())
+}
+
 function getHIWProgress(): number {
   return getScrollP()
 }
 
-function updateHIW(p: number) {
+function updateHIW(p: number, sectionRect?: DOMRect) {
   const track = trackRef.value
   if (!track) return
 
-  if (sectionRef.value) {
-    const rect = sectionRef.value.getBoundingClientRect()
-
+  const rect = sectionRect ?? sectionRef.value?.getBoundingClientRect()
+  if (rect) {
     if (rect.top < window.innerHeight * 0.28 || p > 0.012) {
       hiwIntroEntered.value = true
     }
@@ -631,8 +633,16 @@ function resetHIWChartHover() {
 // ─── rAF loop ─────────────────────────────────────────────────────────────
 function tick() {
   if (!isVisible) return
-  const p = getHIWProgress()
-  updateHIW(p)
+  // Read the section rect once per tick and reuse it for both progress
+  // calculation and updateHIW's intro/exit checks.
+  const section = sectionRef.value
+  if (!section) {
+    rafId = requestAnimationFrame(tick)
+    return
+  }
+  const rect = section.getBoundingClientRect()
+  const p = progressFromRect(rect)
+  updateHIW(p, rect)
   rafId = requestAnimationFrame(tick)
 }
 

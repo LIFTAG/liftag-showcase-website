@@ -428,7 +428,7 @@ function initMacbook() {
   const sharedMouse = useSharedMouse()
 
   const animate = () => {
-    if (!isVisible) {
+    if (!isVisible || document.hidden) {
       animId = 0
       return
     }
@@ -458,8 +458,8 @@ function initMacbook() {
     (entries) => {
       isVisible = entries[0]?.isIntersecting ?? false
       if (isVisible) {
-        playVideo()
-        if (!animId) animate()
+        if (!document.hidden) playVideo()
+        if (!animId && !document.hidden) animate()
       } else {
         screenVideo?.pause()
       }
@@ -468,17 +468,42 @@ function initMacbook() {
   )
   visObserver.observe(container)
 
-  const onResize = () => {
+  const onDocumentVisibilityChange = () => {
+    if (document.hidden) {
+      screenVideo?.pause()
+      return
+    }
+    if (isVisible) {
+      playVideo()
+      if (!animId) animate()
+    }
+  }
+  document.addEventListener('visibilitychange', onDocumentVisibilityChange)
+
+  const applyResize = () => {
     const w = Math.max(container.clientWidth, 1)
     const h = Math.max(container.clientHeight, 1)
     camera.aspect = w / h
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
   }
+  let resizeRaf = 0
+  const onResize = () => {
+    if (resizeRaf) return
+    resizeRaf = requestAnimationFrame(() => {
+      resizeRaf = 0
+      applyResize()
+    })
+  }
   window.addEventListener('resize', onResize, { passive: true })
 
   cleanup = () => {
     window.removeEventListener('resize', onResize)
+    if (resizeRaf) {
+      cancelAnimationFrame(resizeRaf)
+      resizeRaf = 0
+    }
+    document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
     visObserver.disconnect()
     isVisible = false
     cancelAnimationFrame(animId)

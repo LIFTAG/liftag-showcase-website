@@ -14,11 +14,39 @@ const lineChartRef = ref<SVGSVGElement | null>(null)
 const reduceMotion = ref(false)
 const paneMotionDisabled = ref(false)
 const progressScreenCycleMs = 2800
+const sectionRef = ref<HTMLElement | null>(null)
+const sectionInView = ref(false)
+const documentVisible = ref(true)
 let volumeResetTimer: ReturnType<typeof setTimeout> | null = null
 let lineTargetProgress = 1
 let lineProgressRaf = 0
 let motionMql: MediaQueryList | null = null
 let paneMotionMql: MediaQueryList | null = null
+let progressCycleInterval: ReturnType<typeof setInterval> | null = null
+let progressObserver: IntersectionObserver | null = null
+
+function clearProgressCycle() {
+  if (progressCycleInterval === null) return
+  clearInterval(progressCycleInterval)
+  progressCycleInterval = null
+}
+
+function startProgressCycle() {
+  clearProgressCycle()
+  progressCycleInterval = setInterval(() => {
+    setScreen((screen.value + 1) % screens.length)
+  }, progressScreenCycleMs)
+}
+
+function syncProgressCycle() {
+  if (sectionInView.value && documentVisible.value) startProgressCycle()
+  else clearProgressCycle()
+}
+
+function onDocumentVisibilityChange() {
+  documentVisible.value = !document.hidden
+  syncProgressCycle()
+}
 
 const rawMouse = useSharedMouse().latest
 const paneMouse = useLerp(rawMouse, 0.075)
@@ -45,10 +73,26 @@ onMounted(() => {
   paneMotionDisabled.value = paneMotionMql.matches
   paneMotionMql.addEventListener('change', onPaneMotionChange)
 
-  const t = setInterval(() => {
-    setScreen((screen.value + 1) % screens.length)
-  }, progressScreenCycleMs)
-  onBeforeUnmount(() => clearInterval(t))
+  documentVisible.value = !document.hidden
+  document.addEventListener('visibilitychange', onDocumentVisibilityChange)
+
+  if (sectionRef.value) {
+    progressObserver = new IntersectionObserver(
+      ([entry]) => {
+        sectionInView.value = entry?.isIntersecting ?? false
+        syncProgressCycle()
+      },
+      { threshold: 0.25 },
+    )
+    progressObserver.observe(sectionRef.value)
+  }
+})
+
+onBeforeUnmount(() => {
+  clearProgressCycle()
+  progressObserver?.disconnect()
+  progressObserver = null
+  document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
 })
 
 const leftChips = [
@@ -209,6 +253,7 @@ onBeforeUnmount(() => {
 <template>
   <section
     id="progress"
+    ref="sectionRef"
     :style="{
       background: '#000',
       borderTop: '1px solid rgba(255,255,255,0.06)',

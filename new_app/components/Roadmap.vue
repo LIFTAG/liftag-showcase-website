@@ -104,7 +104,7 @@ function bezierPt(p0: number, p1: number, p2: number, p3: number, t: number): nu
 
 // ── drawRoots ─────────────────────────────────────────────────────────────────
 
-function drawRoots(rmItems: NodeListOf<Element>) {
+function drawRoots(rmItems: NodeListOf<Element>, providedTimelineRect?: DOMRect) {
   const canvas   = canvasRef.value
   const timeline = timelineRef.value
   if (!ctx || !canvas || !timeline) return
@@ -114,7 +114,7 @@ function drawRoots(rmItems: NodeListOf<Element>) {
   const h   = canvas.height / dpr
   ctx.clearRect(0, 0, w, h)
 
-  const timelineRect = timeline.getBoundingClientRect()
+  const timelineRect = providedTimelineRect ?? timeline.getBoundingClientRect()
   const now          = performance.now()
 
   // Ambient breathing radial glow on powered nodes
@@ -276,7 +276,8 @@ function updateRoadmap(rmItems: NodeListOf<Element>) {
     }
   })
 
-  drawRoots(rmItems)
+  // Pass timeline rect to drawRoots so it doesn't re-read it within the same tick.
+  drawRoots(rmItems, rect)
 }
 
 // ── rAF loop ──────────────────────────────────────────────────────────────────
