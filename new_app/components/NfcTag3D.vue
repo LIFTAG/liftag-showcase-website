@@ -44,20 +44,6 @@ function configureFaceUvs(geo: THREE.ShapeGeometry, w: number, h: number) {
   geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2))
 }
 
-function drawRoundedCanvasClip(ctx: CanvasRenderingContext2D, size: number, radius: number) {
-  ctx.beginPath()
-  ctx.moveTo(radius, 0)
-  ctx.lineTo(size - radius, 0)
-  ctx.quadraticCurveTo(size, 0, size, radius)
-  ctx.lineTo(size, size - radius)
-  ctx.quadraticCurveTo(size, size, size - radius, size)
-  ctx.lineTo(radius, size)
-  ctx.quadraticCurveTo(0, size, 0, size - radius)
-  ctx.lineTo(0, radius)
-  ctx.quadraticCurveTo(0, 0, radius, 0)
-  ctx.closePath()
-}
-
 function initTag() {
   const container = containerRef.value
   if (!container || initialized) return
@@ -128,15 +114,6 @@ function initTag() {
   faceTexture.wrapS = THREE.ClampToEdgeWrapping
   faceTexture.wrapT = THREE.ClampToEdgeWrapping
 
-  const holoCanvas = document.createElement('canvas')
-  holoCanvas.width = 512
-  holoCanvas.height = 512
-  const holoCtx = holoCanvas.getContext('2d')
-  const holoTexture = new THREE.CanvasTexture(holoCanvas)
-  holoTexture.colorSpace = THREE.SRGBColorSpace
-  holoTexture.wrapS = THREE.ClampToEdgeWrapping
-  holoTexture.wrapT = THREE.ClampToEdgeWrapping
-
   const textCanvas = document.createElement('canvas')
   textCanvas.width = 512
   textCanvas.height = 256
@@ -167,50 +144,6 @@ function initTag() {
 
     textCtx.shadowBlur = 0
     textTexture.needsUpdate = true
-  }
-
-  function drawHolo(mx = 0, my = 0) {
-    if (!holoCtx) return
-
-    const size = holoCanvas.width
-    holoCtx.clearRect(0, 0, size, size)
-    holoCtx.save()
-    drawRoundedCanvasClip(holoCtx, size, 90)
-    holoCtx.clip()
-
-    const lightVector = mx * 0.68 - my * 0.44
-    const waveProgress = Math.max(0, Math.min(1, (lightVector + 0.74) / 1.48))
-    const waveDistance = Math.abs(waveProgress - 0.58) / 0.24
-    const waveCatch = Math.max(0, 1 - waveDistance)
-    const holoPeak = waveCatch * waveCatch * (3 - 2 * waveCatch)
-    const opacity = 0.04 + holoPeak * 0.52
-
-    holoCtx.globalCompositeOperation = 'screen'
-    holoCtx.globalAlpha = opacity
-    holoCtx.translate(size / 2, size / 2)
-    holoCtx.rotate((124 + mx * 10 - my * 7) * Math.PI / 180)
-    holoCtx.translate(-size / 2, -size / 2)
-
-    const bandX = -size * 0.28 + waveProgress * size * 1.56
-    const holo = holoCtx.createLinearGradient(bandX - 120, 0, bandX + 120, 0)
-    holo.addColorStop(0, 'rgba(255,255,255,0)')
-    holo.addColorStop(0.18, 'rgba(255,84,188,0.42)')
-    holo.addColorStop(0.36, 'rgba(82,178,255,0.52)')
-    holo.addColorStop(0.5, 'rgba(255,255,255,0.92)')
-    holo.addColorStop(0.64, 'rgba(73,255,217,0.48)')
-    holo.addColorStop(0.78, 'rgba(204,255,0,0.28)')
-    holo.addColorStop(1, 'rgba(255,255,255,0)')
-    holoCtx.fillStyle = holo
-    holoCtx.fillRect(bandX - 180, -size * 0.3, 360, size * 1.6)
-
-    holoCtx.globalAlpha = Math.min(0.18, opacity * 0.36)
-    holoCtx.fillStyle = 'rgba(255,255,255,0.6)'
-    for (let x = -size; x < size * 2; x += 26) {
-      holoCtx.fillRect(x, -size * 0.2, 2, size * 1.4)
-    }
-
-    holoCtx.restore()
-    holoTexture.needsUpdate = true
   }
 
   function drawFace(mx = 0, my = 0) {
@@ -248,7 +181,6 @@ function initTag() {
   }
 
   drawFace()
-  drawHolo()
   drawText()
 
   const faceW = W - 0.07
@@ -267,20 +199,6 @@ function initTag() {
   face.position.z = D / 2 + 0.003
   face.renderOrder = 1
   tag.add(face)
-
-  const holo = new THREE.Mesh(
-    new THREE.PlaneGeometry(faceW, faceH),
-    new THREE.MeshBasicMaterial({
-      map: holoTexture,
-      transparent: true,
-      depthWrite: false,
-      toneMapped: false,
-      blending: THREE.AdditiveBlending,
-    }),
-  )
-  holo.position.z = D / 2 + 0.014
-  holo.renderOrder = 3
-  tag.add(holo)
 
   const text = new THREE.Mesh(
     new THREE.PlaneGeometry(0.76, 0.36),
@@ -332,7 +250,6 @@ function initTag() {
       lastMx = mx
       lastMy = my
       drawFace(mx, my)
-      drawHolo(mx, my)
     }
   }
 
@@ -397,7 +314,6 @@ function initTag() {
     cancelAnimationFrame(animId)
 
     faceTexture.dispose()
-    holoTexture.dispose()
     textTexture.dispose()
     renderer.dispose()
     scene.traverse((object) => {
