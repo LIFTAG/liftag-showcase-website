@@ -37,7 +37,7 @@ const steps = [
     title: 'Tap/scan.',
     body: 'Open Liftag. Tap the NFC tag or aim at the QR sticker on the machine. The exact exercise, variations, and a setup video load instantly. No menus, no searching.',
     brief: 'Tap NFC or scan QR. LIFTAG opens the exact exercise and setup video.',
-    screen: '/assets/screens/qr-scan.png',
+    screen: '/assets/screens/qr-scan.webp',
     extra: null as null | { label: string; note: string; brief: string },
   },
   {
@@ -45,7 +45,7 @@ const steps = [
     title: 'Log.',
     body: 'Tap weight × reps. Timer auto-runs between sets. RPE optional. Every set is timestamped and saved to your history.',
     brief: 'Tap weight and reps. Rest timer runs, then the set lands in history.',
-    screen: '/assets/screens/log-set.png',
+    screen: '/assets/screens/log-set.webp',
     extra: {
       label: 'OPTIONAL',
       note: "Watch the gym's own instruction video. Filmed by their trainers, on their machines.",
@@ -257,7 +257,7 @@ onBeforeUnmount(() => {
             }"
           >
             <img
-              src="/uploads/telegram-cloud-photo-size-4-5904481809322413580-y.jpg"
+              src="/uploads/qr-code.webp"
               alt="LIFTAG QR Code"
               loading="lazy"
               decoding="async"

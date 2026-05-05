@@ -32,16 +32,16 @@ useReveal()
     <SiteNav />
     <Hero />
     <PartnerMarquee />
-    <ScanSection />
-    <HowItWorks />
-    <LiftersSection />
-    <ProgressSection />
-    <AppMergeSection />
-    <TrainersSection />
-    <GymsSection />
-    <DashboardSection />
-    <Roadmap />
-    <FinalCta />
-    <SiteFooter />
+    <LazyScanSection />
+    <LazyHowItWorks />
+    <LazyLiftersSection />
+    <LazyProgressSection />
+    <LazyAppMergeSection />
+    <LazyTrainersSection />
+    <LazyGymsSection />
+    <LazyDashboardSection />
+    <LazyRoadmap />
+    <LazyFinalCta />
+    <LazySiteFooter />
   </div>
 </template>

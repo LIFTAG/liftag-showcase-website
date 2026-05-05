@@ -766,7 +766,6 @@ const pNfc = computed(() => {
           opacity: p.depth * 0.5,
           boxShadow: p.depth > 0.7 ? `0 0 ${p.r * 6}px rgba(204,255,0,0.8)` : 'none',
           transform: `translate3d(${mouse.x * p.depth * 2.5 - scrollY * p.depth * 0.03}vw, ${mouse.y * p.depth * 2 - scrollY * p.speed * 0.04}vh, 0)`,
-          willChange: 'transform',
         }"
       />
     </div>
@@ -964,10 +963,11 @@ const pNfc = computed(() => {
             opacity: entered ? 0.75 : 0,
             transition: entered ? 'opacity 1200ms 300ms ease' : 'none',
             willChange: 'transform',
-            filter: 'drop-shadow(0 24px 40px rgba(0,0,0,0.55))',
+            borderRadius: '52px',
+            boxShadow: '0 24px 40px rgba(0,0,0,0.55)',
           }"
         >
-          <Phone src="/assets/screens/progression.png" :scale="0.7" :tilt-delay-ms="140" lite />
+          <Phone src="/assets/screens/progression.webp" :scale="0.7" :tilt-delay-ms="140" lite />
         </div>
 
         <!-- Back-right phone -->
@@ -979,10 +979,11 @@ const pNfc = computed(() => {
             opacity: entered ? 0.68 : 0,
             transition: entered ? 'opacity 1200ms 500ms ease' : 'none',
             willChange: 'transform',
-            filter: 'drop-shadow(0 22px 36px rgba(0,0,0,0.55))',
+            borderRadius: '52px',
+            boxShadow: '0 22px 36px rgba(0,0,0,0.55)',
           }"
         >
-          <Phone src="/assets/screens/log-set.png" :scale="0.64" :tilt-delay-ms="230" lite />
+          <Phone src="/assets/screens/log-set.webp" :scale="0.64" :tilt-delay-ms="230" lite />
         </div>
 
         <!-- Front center phone (main) -->
@@ -995,18 +996,18 @@ const pNfc = computed(() => {
             transition: entered ? 'opacity 1000ms 100ms ease' : 'none',
           }"
         >
-          <!-- Glow behind phone -->
+          <!-- Glow behind phone — radial gradient already provides soft falloff;
+               filter:blur(24px) was repainting on every parallax tick. -->
           <div
             :style="{
               position: 'absolute',
               inset: '8px',
               borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(204,255,0,0.22) 0%, transparent 65%)',
-              filter: 'blur(24px)',
+              background: 'radial-gradient(circle, rgba(204,255,0,0.22) 0%, transparent 70%)',
               animation: 'pulse-glow 4s ease-in-out infinite',
             }"
           />
-          <Phone src="/assets/screens/home-hero-no-qr.png" :scale="0.92" :tilt-delay-ms="0" :lite="isMobile" />
+          <Phone src="/assets/screens/home-hero-no-qr.webp" :scale="0.92" :tilt-delay-ms="0" :lite="isMobile" />
           <!-- Reflection streak -->
           <div
             :style="{
@@ -1025,11 +1026,10 @@ const pNfc = computed(() => {
           :style="{
             position: 'absolute', bottom: '20px', left: '-24px',
             transform: `translate3d(${p1.x * 1.3}px, ${p1.y * 0.6}px, 0)`,
-            background: 'rgba(10,10,10,0.88)',
+            background: 'rgba(10,10,10,0.96)',
             border: '1px solid rgba(204,255,0,0.35)',
             borderRadius: '20px',
             padding: '14px 18px',
-            backdropFilter: 'blur(24px)',
             boxShadow: '0 16px 50px rgba(0,0,0,0.7), 0 0 40px rgba(204,255,0,0.18)',
             display: 'flex', alignItems: 'center', gap: '14px',
             zIndex: 6,
@@ -1049,7 +1049,7 @@ const pNfc = computed(() => {
             }"
           >
             <img
-              src="/uploads/telegram-cloud-photo-size-4-5904481809322413580-y.jpg"
+              src="/uploads/qr-code.webp"
               alt="LIFTAG QR Code"
               :style="{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }"
             />
@@ -1101,11 +1101,10 @@ const pNfc = computed(() => {
           :style="{
             position: 'absolute', top: '100px', right: '-30px',
             transform: `translate3d(${p2.x * 1.2}px, ${p2.y * 0.5}px, 0)`,
-            background: 'rgba(10,10,10,0.92)',
+            background: 'rgba(10,10,10,0.97)',
             border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: '18px',
             padding: '14px 18px',
-            backdropFilter: 'blur(24px)',
             boxShadow: '0 16px 50px rgba(0,0,0,0.7)',
             zIndex: 6,
             opacity: entered ? 1 : 0,
@@ -1259,7 +1258,7 @@ const pNfc = computed(() => {
       >
         <div class="hero-mobile-device">
           <div class="hero-mobile-device-glow" aria-hidden="true" />
-          <Phone src="/assets/screens/home-hero-no-qr.png" :scale="1" :tilt-delay-ms="0" lite />
+          <Phone src="/assets/screens/home-hero-no-qr.webp" :scale="1" :tilt-delay-ms="0" lite />
         </div>
 
         <div class="hero-mobile-proof" aria-label="LIFTAG tap, scan, and tracking flow">
@@ -1304,7 +1303,6 @@ const pNfc = computed(() => {
   height: 420px;
   border-radius: 50%;
   pointer-events: none;
-  filter: blur(2px);
   transition: opacity 380ms ease;
   will-change: transform, opacity;
 }
@@ -1457,7 +1455,6 @@ const pNfc = computed(() => {
   opacity: var(--nfc-holo-opacity);
   filter: blur(0.35px) saturate(1.7) brightness(1.06);
   transform: translate3d(var(--nfc-holo-x), var(--nfc-holo-y), 0);
-  will-change: transform, opacity;
 }
 
 .hero-nfc-face-front::after {
@@ -1482,7 +1479,6 @@ const pNfc = computed(() => {
   mix-blend-mode: screen;
   opacity: var(--nfc-prism-opacity);
   transform: translate3d(calc(var(--nfc-holo-x) * -0.35), calc(var(--nfc-holo-y) * -0.35), 0);
-  will-change: transform, opacity;
 }
 
 .hero-nfc-text {
