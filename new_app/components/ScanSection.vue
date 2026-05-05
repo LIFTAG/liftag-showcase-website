@@ -5,6 +5,7 @@ const hoveredStep = ref<number | null>(null)
 const exitingStep = ref<number | null>(null)
 const scanCycleMs = 3200
 const inView = ref(false)
+const documentVisible = ref(true)
 const reduceMotion = ref(false)
 const phoneLayout = ref(false)
 const sectionRef = ref<HTMLElement | null>(null)
@@ -13,6 +14,19 @@ let exitTimer: ReturnType<typeof setTimeout> | null = null
 let scanObserver: IntersectionObserver | null = null
 let motionMql: MediaQueryList | null = null
 let phoneLayoutMql: MediaQueryList | null = null
+
+function syncCycleInterval() {
+  if (inView.value && documentVisible.value && hoveredStep.value === null) {
+    startCycleInterval()
+  } else {
+    clearCycleInterval()
+  }
+}
+
+function onDocumentVisibilityChange() {
+  documentVisible.value = !document.hidden
+  syncCycleInterval()
+}
 
 const rawMouse = useSharedMouse().latest
 const mouse = useLerp(rawMouse, 0.06)
@@ -98,6 +112,9 @@ onMounted(() => {
   phoneLayout.value = phoneLayoutMql.matches
   phoneLayoutMql.addEventListener('change', onPhoneLayoutChange)
 
+  documentVisible.value = !document.hidden
+  document.addEventListener('visibilitychange', onDocumentVisibilityChange)
+
   if (!sectionRef.value) return
 
   scanObserver = new IntersectionObserver(
@@ -123,10 +140,7 @@ function startCycleInterval() {
   }, scanCycleMs)
 }
 
-watch(inView, (val) => {
-  if (val && hoveredStep.value === null) startCycleInterval()
-  else clearCycleInterval()
-})
+watch(inView, () => syncCycleInterval())
 
 onBeforeUnmount(() => {
   clearCycleInterval()
@@ -137,6 +151,7 @@ onBeforeUnmount(() => {
   motionMql = null
   phoneLayoutMql?.removeEventListener('change', onPhoneLayoutChange)
   phoneLayoutMql = null
+  document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
 })
 </script>
 
@@ -244,6 +259,8 @@ onBeforeUnmount(() => {
             <img
               src="/uploads/telegram-cloud-photo-size-4-5904481809322413580-y.jpg"
               alt="LIFTAG QR Code"
+              loading="lazy"
+              decoding="async"
               :style="{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }"
             />
             <div
@@ -361,6 +378,8 @@ onBeforeUnmount(() => {
                   <img
                     :src="s.screen"
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                     :style="{
                       width: '100%',
                       height: '100%',

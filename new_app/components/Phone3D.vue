@@ -490,7 +490,7 @@ function initPhone() {
   }
 
   const animate = () => {
-    if (!isVisible) {
+    if (!isVisible || document.hidden) {
       animId = 0
       return
     }
@@ -519,13 +519,18 @@ function initPhone() {
   const visObserver = new IntersectionObserver(
     (entries) => {
       isVisible = entries[0]?.isIntersecting ?? false
-      if (isVisible && !animId) animate()
+      if (isVisible && !animId && !document.hidden) animate()
     },
     { threshold: 0 },
   )
   visObserver.observe(container)
 
-  const onResize = () => {
+  const onDocumentVisibilityChange = () => {
+    if (!document.hidden && isVisible && !animId) animate()
+  }
+  document.addEventListener('visibilitychange', onDocumentVisibilityChange)
+
+  const applyResize = () => {
     const w = Math.max(container.clientWidth, 1)
     const h = Math.max(container.clientHeight, 1)
 
@@ -533,10 +538,23 @@ function initPhone() {
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
   }
+  let resizeRaf = 0
+  const onResize = () => {
+    if (resizeRaf) return
+    resizeRaf = requestAnimationFrame(() => {
+      resizeRaf = 0
+      applyResize()
+    })
+  }
   window.addEventListener('resize', onResize, { passive: true })
 
   cleanup = () => {
     window.removeEventListener('resize', onResize)
+    if (resizeRaf) {
+      cancelAnimationFrame(resizeRaf)
+      resizeRaf = 0
+    }
+    document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
     gyroCleanup?.()
     visObserver.disconnect()
     isVisible = false

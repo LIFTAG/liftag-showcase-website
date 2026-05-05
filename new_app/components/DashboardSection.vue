@@ -249,6 +249,8 @@ onBeforeUnmount(() => {
                 <img
                   src="/assets/screens/dashboard-web.png"
                   alt="Liftag dashboard"
+                  loading="lazy"
+                  decoding="async"
                   class="dashboard-fallback-img"
                 />
               </template>

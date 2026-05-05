@@ -104,12 +104,20 @@ function clearAutoCycle() {
 }
 
 function startAutoCycle() {
-  if (!sectionInView.value || hoveredTrainer.value !== null) return
+  if (!sectionInView.value || !documentVisible.value || hoveredTrainer.value !== null) return
   clearAutoCycle()
 
   autoCycle = setInterval(() => {
     setActive((active.value + 1) % features.length)
   }, trainerScreenCycleMs)
+}
+
+const documentVisible = ref(true)
+
+function onDocumentVisibilityChange() {
+  documentVisible.value = !document.hidden
+  if (documentVisible.value) startAutoCycle()
+  else clearAutoCycle()
 }
 
 function selectTrainer(index: number) {
@@ -132,6 +140,9 @@ function clearHoveredTrainer(index: number) {
 }
 
 onMounted(() => {
+  documentVisible.value = !document.hidden
+  document.addEventListener('visibilitychange', onDocumentVisibilityChange)
+
   if (!sectionRef.value) return
 
   const observer = new IntersectionObserver(
@@ -166,6 +177,7 @@ onBeforeUnmount(() => {
   clearAutoCycle()
   emitCursorGlowTone(false)
   if (exitTimer) clearTimeout(exitTimer)
+  document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
 })
 </script>
 
