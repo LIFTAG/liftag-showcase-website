@@ -19,7 +19,7 @@ const cards: FeatureCardProps[] = [
   {
     span: 'span 7',
     tall: true,
-    img: '/assets/screens/progression.webp',
+    img: '/assets/screens/progression.png',
     imgPosition: '50% 74%',
     imgScale: 1.12,
     imgPanTo: '84%',
@@ -33,7 +33,7 @@ const cards: FeatureCardProps[] = [
   {
     span: 'span 5',
     tall: true,
-    img: '/assets/screens/log-set.webp',
+    img: '/assets/screens/log-set.png',
     imgPosition: '50% 48%',
     imgPanTo: '82%',
     visualHeight: '64%',
@@ -43,7 +43,7 @@ const cards: FeatureCardProps[] = [
   },
   {
     span: 'span 5',
-    img: '/assets/screens/active-session.webp',
+    img: '/assets/screens/active-session.png',
     imgPosition: '50% 53%',
     imgPanTo: '83%',
     visualHeight: '220px',
@@ -53,7 +53,7 @@ const cards: FeatureCardProps[] = [
   },
   {
     span: 'span 4',
-    img: '/assets/screens/history.webp',
+    img: '/assets/screens/history.png',
     imgPosition: '50% 29%',
     imgPanTo: '83%',
     visualHeight: '220px',
@@ -63,7 +63,7 @@ const cards: FeatureCardProps[] = [
   },
   {
     span: 'span 3',
-    img: '/assets/screens/exercises.webp',
+    img: '/assets/screens/exercises.png',
     imgPosition: '50% 17%',
     imgPanTo: '100%',
     visualHeight: '230px',
