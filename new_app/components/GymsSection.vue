@@ -204,7 +204,7 @@ onBeforeUnmount(() => {
             <!-- QR image -->
             <div class="gyms-qr-code" :style="{ width: 'calc(100% - 12px)', aspectRatio: '1', margin: '0 auto 7px', position: 'relative', overflow: 'hidden' }">
               <img
-                src="/uploads/telegram-cloud-photo-size-4-5904481809322413580-y.jpg"
+                src="/uploads/qr-code.webp"
                 alt="LIFTAG QR Code"
                 loading="lazy"
                 decoding="async"
@@ -250,7 +250,7 @@ onBeforeUnmount(() => {
             >
             <div :style="{ height: '110px', position: 'relative', overflow: 'hidden' }">
               <img
-                src="/assets/img/lat-pulldown.jpeg"
+                src="/assets/img/lat-pulldown.webp"
                 alt="Lat Pulldown machine"
                 loading="lazy"
                 decoding="async"
@@ -350,7 +350,7 @@ onBeforeUnmount(() => {
               animationDelay: '1s',
               }"
             >
-              <Phone src="/assets/screens/gym-detail.png" :scale="0.72" />
+              <Phone src="/assets/screens/gym-detail.webp" :scale="0.72" />
             </div>
           </div>
 
@@ -372,7 +372,7 @@ onBeforeUnmount(() => {
                 animation: 'float-y 6s ease-in-out infinite',
               }"
             >
-              <Phone src="/assets/screens/explore-map.png" :scale="0.88" />
+              <Phone src="/assets/screens/explore-map.webp" :scale="0.88" />
             </div>
           </div>
 
@@ -384,11 +384,10 @@ onBeforeUnmount(() => {
               bottom: '20px',
               left: '50%',
               transform: gymQrKitMotion,
-              background: 'rgba(10,10,10,0.92)',
+              background: 'rgba(10,10,10,0.97)',
               border: '1px solid rgba(204,255,0,0.3)',
               borderRadius: '14px',
               padding: '10px 18px',
-              backdropFilter: 'blur(20px)',
               boxShadow: '0 12px 40px rgba(0,0,0,0.6), 0 0 20px rgba(204,255,0,0.15)',
               display: 'flex',
               alignItems: 'center',
