@@ -4,7 +4,7 @@
     "details": [
       {
         "appID": "6KTQT8472K.com.liftag.app",
-        "paths": ["/qr/*", "/auth/callback"]
+        "paths": ["/qr/*", "/trainer-invites/*", "/auth/callback"]
       }
     ]
   }
