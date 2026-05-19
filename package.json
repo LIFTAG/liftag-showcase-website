@@ -9,5 +9,8 @@
     "preview": "pnpm --dir new_app preview",
     "start": "pnpm --dir new_app start",
     "typecheck": "pnpm --dir new_app typecheck"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
   }
 }

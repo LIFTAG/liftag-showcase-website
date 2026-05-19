@@ -3,6 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-04-26',
   devtools: { enabled: true },
   ssr: true,
+  modules: ['@vercel/analytics'],
   css: ['~/assets/css/main.css'],
   app: {
     head: {
