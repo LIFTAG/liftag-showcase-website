@@ -70,6 +70,8 @@ let cachedAreaGradKey = ''
 let scanEffectResetForMobile = false
 
 const HIW_LAST_EXIT_VIEWPORT_BOTTOM = 0.86
+const HIW_MOBILE_TRACK_END_PROGRESS = 0.82
+const HIW_MOBILE_LAST_EXIT_PROGRESS = 0.9
 
 // ─── Curve data ───────────────────────────────────────────────────────────
 const curvePoints: [number, number][] = [
@@ -389,28 +391,34 @@ function updateHIW(p: number, sectionRect?: DOMRect) {
   const track = trackRef.value
   if (!track) return
 
+  const panelP = mobileHIWLayout
+    ? Math.min(1, p / HIW_MOBILE_TRACK_END_PROGRESS)
+    : p
+
   const rect = sectionRect ?? sectionRef.value?.getBoundingClientRect()
   if (rect) {
     if (rect.top < window.innerHeight * 0.28 || p > 0.012) {
       hiwIntroEntered.value = true
     }
 
-    hiwLastExiting.value = rect.bottom < window.innerHeight * HIW_LAST_EXIT_VIEWPORT_BOTTOM
+    hiwLastExiting.value = mobileHIWLayout
+      ? p >= HIW_MOBILE_LAST_EXIT_PROGRESS
+      : rect.bottom < window.innerHeight * HIW_LAST_EXIT_VIEWPORT_BOTTOM
   }
 
   if (mobileHIWLayout) {
-    track.style.transform = `translateY(-${p * 66.667}%)`
+    track.style.transform = `translateY(-${panelP * 66.667}%)`
   } else {
-    track.style.transform = `translateX(-${p * 66.667}%)`
+    track.style.transform = `translateX(-${panelP * 66.667}%)`
   }
 
-  updateScanHoverEffect(p)
+  updateScanHoverEffect(panelP)
 
   // Draw the strength curve (always — flash timings use perf.now())
-  drawHIWCurve(p)
+  drawHIWCurve(panelP)
 
   // Dots
-  const activeIdx = Math.min(2, Math.floor(p * 3))
+  const activeIdx = Math.min(2, Math.floor(panelP * 3))
   dotEls.value.forEach((dot, i) => {
     const isActive = i === activeIdx
     dot.classList.toggle('active', isActive)
@@ -420,11 +428,11 @@ function updateHIW(p: number, sectionRect?: DOMRect) {
   // Panel 2 weight / reps counter: ramp 0.25 → 0.45
   const rampStart = 0.25
   const rampEnd   = 0.45
-  if (p < rampStart) {
+  if (panelP < rampStart) {
     if (weightEl.value) weightEl.value.textContent = '0'
     if (repsEl.value)   repsEl.value.textContent   = '0'
-  } else if (p <= rampEnd) {
-    const localP = (p - rampStart) / (rampEnd - rampStart)
+  } else if (panelP <= rampEnd) {
+    const localP = (panelP - rampStart) / (rampEnd - rampStart)
     if (weightEl.value) weightEl.value.textContent = String(Math.round(localP * 85))
     if (repsEl.value)   repsEl.value.textContent   = String(Math.round(localP * 9))
   } else {
@@ -436,12 +444,12 @@ function updateHIW(p: number, sectionRect?: DOMRect) {
   const chartStart = 0.72
   const chartEnd   = 1.0
   let chartP = 0
-  if (p <= chartStart) {
+  if (panelP <= chartStart) {
     chartP = 0
-  } else if (p >= chartEnd) {
+  } else if (panelP >= chartEnd) {
     chartP = 1
   } else {
-    chartP = (p - chartStart) / (chartEnd - chartStart)
+    chartP = (panelP - chartStart) / (chartEnd - chartStart)
   }
   const baseEasedP = 1 - Math.pow(1 - chartP, 3) // ease-out cubic
   const targetChartP = chartHovered ? chartHoverTargetP : Math.max(0, Math.min(1, baseEasedP))
@@ -653,7 +661,9 @@ function scrollToPanel(i: number) {
   const rect      = section.getBoundingClientRect()
   const sectionH  = rect.height - window.innerHeight
   const sectionTop = window.scrollY + rect.top
-  const targetP   = i / 2
+  const targetP = mobileHIWLayout
+    ? [0, HIW_MOBILE_TRACK_END_PROGRESS / 2, HIW_MOBILE_TRACK_END_PROGRESS][i] ?? 0
+    : i / 2
   window.scrollTo({ top: sectionTop + targetP * sectionH, behavior: 'smooth' })
 }
 
@@ -1795,8 +1805,8 @@ circle[fill="var(--liftag-primary)"] {
 /* ── Mobile ───────────────────────────────────────────── */
 @media (max-width: 768px) {
   .hiw-section {
-    height: 300svh !important;
-    min-height: 300svh;
+    height: 340svh !important;
+    min-height: 340svh;
     padding: 0 !important;
     overflow-y: visible;
   }
