@@ -360,16 +360,7 @@ onBeforeUnmount(() => {
         >
           <div :style="{ position: 'relative' }">
             <!-- Red glow -->
-            <div
-              :style="{
-                position: 'absolute',
-                inset: '-40px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(255,45,85,0.12), transparent 75%)',
-                zIndex: 0,
-                pointerEvents: 'none',
-              }"
-            />
+            <div class="trainer-phone-glow" aria-hidden="true" />
             <div :key="coachPulse" class="trainer-phone-pulse" aria-hidden="true" />
             <div
               :style="{
@@ -649,6 +640,24 @@ onBeforeUnmount(() => {
   background: linear-gradient(110deg, transparent 18%, rgba(255, 255, 255, 0.11), transparent 46%);
 }
 
+.trainer-phone-glow {
+  position: absolute;
+  inset: -82px -112px;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 999px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 45, 85, 0.2) 0%,
+    rgba(255, 45, 85, 0.095) 32%,
+    rgba(255, 45, 85, 0.035) 55%,
+    rgba(255, 45, 85, 0.012) 72%,
+    rgba(255, 45, 85, 0) 88%
+  );
+  filter: blur(20px);
+  transform: translateZ(0);
+}
+
 .trainer-phone-pulse {
   position: absolute;
   inset: -34px;
@@ -778,6 +787,11 @@ onBeforeUnmount(() => {
 
   .trainer-phone-panel {
     gap: 14px !important;
+  }
+
+  .trainer-phone-glow {
+    inset: -58px -74px;
+    filter: blur(18px);
   }
 
   .trainer-phone-panel :deep(.phone) {
