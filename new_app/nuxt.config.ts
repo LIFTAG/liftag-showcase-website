@@ -3,10 +3,13 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-04-26',
   devtools: { enabled: true },
   ssr: true,
-  modules: ['@vercel/analytics', '@nuxtjs/turnstile'],
+  modules: ['@vercel/analytics', '@nuxtjs/turnstile', 'nuxt-gtag'],
   css: ['~/assets/css/main.css'],
   turnstile: {
     siteKey: '0x4AAAAAADV3ju2YEd8uiR-k',
+  },
+  gtag: {
+    id: 'G-GHP3YKQJG7',
   },
   runtimeConfig: {
     public: {
