@@ -10,6 +10,7 @@ const productLinks: FooterLink[] = [
   { label: 'For Gyms', href: '/for-gyms' },
   { label: 'NFC + QR Tags', href: '/qr-nfc-gym-tags' },
   { label: 'Roadmap', href: '/#roadmap' },
+  { label: 'Support', href: '/contact/support' },
 ]
 
 const guideLinks: FooterLink[] = [

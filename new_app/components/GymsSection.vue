@@ -463,12 +463,13 @@ onBeforeUnmount(() => {
             }"
           >
             <div :style="{ display: 'flex', gap: '12px', flexWrap: 'wrap' }">
-              <button class="btn-primary" style="padding: 14px 24px; font-size: 12px;">
+              <a
+                href="/contact/partner"
+                class="btn-primary"
+                style="padding: 14px 24px; font-size: 12px; text-decoration: none; display: inline-block;"
+              >
                 Partner with us
-              </button>
-              <button class="btn-ghost" style="padding: 14px 24px; font-size: 12px;">
-                Get the tag kit
-              </button>
+              </a>
             </div>
           </div>
         </div>
