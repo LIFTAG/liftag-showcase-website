@@ -10,10 +10,20 @@ useLiftagSeo({
 
 useLiftagStructuredData([
   liftagOrganization,
-  liftagSoftwareApplication,
+  liftagMobileApplication,
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
     { name: 'For Trainers', path: '/for-trainers' },
+  ]),
+  liftagFAQPage([
+    {
+      question: 'Is LIFTAG only a trainer directory?',
+      answer: 'No. The trainer surface is part of a broader coaching platform: profile, discovery, plan sharing, and client progress tracking live together.',
+    },
+    {
+      question: 'Can trainers see workout progress over time?',
+      answer: 'Yes. LIFTAG is built around set history, volume, PRs, estimated 1RM, and other progress signals that matter for coaching.',
+    },
   ]),
 ])
 

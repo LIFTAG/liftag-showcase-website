@@ -5,6 +5,17 @@ export default defineNuxtConfig({
   ssr: true,
   modules: ['@vercel/analytics'],
   css: ['~/assets/css/main.css'],
+  runtimeConfig: {
+    public: {
+      // Set on Vercel as:
+      //   NUXT_PUBLIC_GOOGLE_SITE_VERIFICATION=<code from Google Search Console>
+      //   NUXT_PUBLIC_BING_SITE_VERIFICATION=<code from Bing Webmaster Tools>
+      // After claiming the property, redeploy and the verification meta tags
+      // will appear on every page automatically.
+      googleSiteVerification: '',
+      bingSiteVerification: '',
+    },
+  },
   app: {
     head: {
       title: 'LIFTAG | NFC and QR Workout Tracking for Gyms',

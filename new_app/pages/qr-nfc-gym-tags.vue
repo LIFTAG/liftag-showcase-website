@@ -10,10 +10,20 @@ useLiftagSeo({
 
 useLiftagStructuredData([
   liftagOrganization,
-  liftagSoftwareApplication,
+  liftagMobileApplication,
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
     { name: 'NFC and QR Gym Tags', path: '/qr-nfc-gym-tags' },
+  ]),
+  liftagFAQPage([
+    {
+      question: 'What should a gym put on each machine?',
+      answer: 'A combined NFC tag and QR sticker is the strongest setup: NFC for tap-to-open speed, QR for universal scan access, and both pointing to the same machine-specific Liftag flow.',
+    },
+    {
+      question: 'Do NFC and QR tags help with member onboarding?',
+      answer: 'Yes. Tags reduce uncertainty at the machine by opening the correct exercise setup, variations, and gym-filmed instruction video directly from the equipment.',
+    },
   ]),
 ])
 

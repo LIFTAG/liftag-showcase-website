@@ -10,10 +10,20 @@ useLiftagSeo({
 
 useLiftagStructuredData([
   liftagOrganization,
-  liftagSoftwareApplication,
+  liftagMobileApplication,
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
     { name: 'For Gyms', path: '/for-gyms' },
+  ]),
+  liftagFAQPage([
+    {
+      question: 'Can LIFTAG work across multiple gym locations?',
+      answer: 'Yes. LIFTAG is designed for a shared equipment catalog that can be deployed across multiple locations, with machines and staff managed from one place.',
+    },
+    {
+      question: 'Do gyms need NFC or QR codes?',
+      answer: 'LIFTAG supports both. NFC creates a fast tap experience, while QR codes keep the same flow accessible on more phones and surfaces.',
+    },
   ]),
 ])
 

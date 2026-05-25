@@ -10,10 +10,20 @@ useLiftagSeo({
 
 useLiftagStructuredData([
   liftagOrganization,
-  liftagSoftwareApplication,
+  liftagMobileApplication,
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
     { name: 'For Lifters', path: '/for-lifters' },
+  ]),
+  liftagFAQPage([
+    {
+      question: 'Does LIFTAG replace a workout notes app?',
+      answer: 'Yes. LIFTAG is built to replace scattered notes, spreadsheets, and generic logging apps with a gym-aware workout tracker that opens the right exercise from the machine itself.',
+    },
+    {
+      question: 'Can lifters use QR codes and NFC tags?',
+      answer: 'Yes. Partner gyms can use both NFC tags and QR stickers so lifters can tap or scan depending on their phone and the machine setup.',
+    },
   ]),
 ])
 
