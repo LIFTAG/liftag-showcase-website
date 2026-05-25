@@ -424,6 +424,7 @@ onBeforeUnmount(() => {
               background: 'radial-gradient(circle, rgba(204,255,0,0.18), transparent 70%)',
               animation: 'pulse-glow 4s ease-in-out infinite',
             }"
+            aria-hidden="true"
           />
           <div :key="screenPulse" class="progress-phone-pulse" aria-hidden="true" />
           <Phone
@@ -704,6 +705,13 @@ onBeforeUnmount(() => {
   pointer-events: none;
   border-radius: 999px;
   border: 1px solid rgba(204, 255, 0, 0.24);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(204, 255, 0, 0.045) 0%,
+    rgba(204, 255, 0, 0.024) 46%,
+    rgba(204, 255, 0, 0.008) 66%,
+    rgba(204, 255, 0, 0) 80%
+  );
   box-shadow:
     0 0 28px rgba(204, 255, 0, 0.12),
     inset 0 0 34px rgba(204, 255, 0, 0.07);
