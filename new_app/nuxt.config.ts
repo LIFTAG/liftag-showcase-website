@@ -3,8 +3,11 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-04-26',
   devtools: { enabled: true },
   ssr: true,
-  modules: ['@vercel/analytics'],
+  modules: ['@vercel/analytics', '@nuxtjs/turnstile'],
   css: ['~/assets/css/main.css'],
+  turnstile: {
+    siteKey: '0x4AAAAAADV3ju2YEd8uiR-k',
+  },
   runtimeConfig: {
     public: {
       // Set on Vercel as:
@@ -14,6 +17,7 @@ export default defineNuxtConfig({
       // will appear on every page automatically.
       googleSiteVerification: '',
       bingSiteVerification: '',
+      apiBaseUrl: 'https://api.liftag.fit',
     },
   },
   app: {
