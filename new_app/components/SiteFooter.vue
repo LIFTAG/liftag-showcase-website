@@ -61,11 +61,66 @@ const guideLinks: FooterLink[] = [
 
     </div>
 
+    <!-- Feedback callout -->
+    <div class="container footer-feedback">
+      <p class="footer-feedback-text">
+        Do you have feedback? Feel free to share it on our subreddit.
+      </p>
+      <a
+        href="https://www.reddit.com/r/liftag/"
+        class="footer-reddit-btn"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="r/liftag subreddit"
+      >
+        <svg
+          class="footer-reddit-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden="true"
+        >
+          <line
+            x1="15.5"
+            y1="3.5"
+            x2="13.5"
+            y2="7.5"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+          />
+          <circle
+            cx="16"
+            cy="3.5"
+            r="1.2"
+            stroke="currentColor"
+            stroke-width="1.5"
+          />
+          <circle
+            cx="12"
+            cy="14"
+            r="7.5"
+            stroke="currentColor"
+            stroke-width="1.7"
+          />
+          <circle cx="9.2" cy="13.4" r="1.05" fill="currentColor" />
+          <circle cx="14.8" cy="13.4" r="1.05" fill="currentColor" />
+          <path
+            d="M8.6 16.5 Q12 18.6 15.4 16.5"
+            stroke="currentColor"
+            stroke-width="1.5"
+            fill="none"
+            stroke-linecap="round"
+          />
+        </svg>
+        <span class="protocol">r/LIFTAG</span>
+      </a>
+    </div>
+
     <!-- Bottom bar -->
     <div
       class="container"
       style="
-        margin-top: 48px;
+        margin-top: 24px;
         padding-top: 24px;
         border-top: 1px solid rgba(255,255,255,0.05);
         display: flex;
@@ -233,6 +288,56 @@ const guideLinks: FooterLink[] = [
 .footer-social-icon {
   width: 18px;
   height: 18px;
+  flex: 0 0 auto;
+}
+
+.footer-feedback {
+  margin-top: 48px;
+  padding: 18px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.footer-feedback-text {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.footer-reddit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.78);
+  text-decoration: none;
+  transition:
+    color 200ms ease,
+    border-color 200ms ease,
+    background 200ms ease,
+    transform 200ms ease;
+}
+
+.footer-reddit-btn:hover {
+  color: #CCFF00;
+  border-color: rgba(204, 255, 0, 0.45);
+  background: rgba(204, 255, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.footer-reddit-icon {
+  width: 20px;
+  height: 20px;
   flex: 0 0 auto;
 }
 </style>
