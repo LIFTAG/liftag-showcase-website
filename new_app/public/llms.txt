@@ -1,0 +1,32 @@
+# LIFTAG
+
+> LIFTAG is a workout and set tracking app for serious lifters. Tap an NFC tag or scan a QR code on a partner-gym machine and the app opens the exact exercise, lets you log every set, runs a rest timer, and tracks progress over time. Built for lifters, by lifters.
+
+LIFTAG is free on iOS and Android. The app works at any gym; partner gyms add an extra layer where NFC tags and QR codes on each machine open the right exercise instantly with gym-specific setup videos. Trainers get a profile, discovery, shared plans, and client progress views. Gym owners get a multi-location dashboard.
+
+## Core pages
+
+- [Homepage](https://liftag.fit/): What LIFTAG is, who it is for, and how the QR/NFC flow works.
+- [For lifters](https://liftag.fit/for-lifters): Set logging, rest timer, progress, PRs, history.
+- [For trainers](https://liftag.fit/for-trainers): Trainer profile, discovery, plan sharing, client progress.
+- [For gyms](https://liftag.fit/for-gyms): Partner gym rollout, dashboard, multi-location support.
+- [NFC and QR gym tags](https://liftag.fit/qr-nfc-gym-tags): How NFC and QR machine tags work and what to put on each machine.
+- [Best workout tracking app comparison](https://liftag.fit/best-workout-tracking-app): Honest head-to-head against Strong, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor, and Fitbod.
+
+## Guides
+
+- [How to track workouts](https://liftag.fit/guides/how-to-track-workouts): Definitive guide to logging sets, reps, rest, RPE, and progress for serious lifters.
+- [Best workout app for powerlifting](https://liftag.fit/guides/best-workout-app-for-powerlifting): Set tracking, % of 1RM programming, and PR history for powerlifters.
+- [QR and NFC gym tracking](https://liftag.fit/guides/qr-nfc-gym-tracking): How tap-and-scan machine workflows compare with manual exercise selection.
+
+## Brand and contact
+
+- Brand: LIFTAG (always uppercase; alternate Liftag).
+- Site: https://liftag.fit/
+- Instagram: https://www.instagram.com/liftag.fit/
+- Tagline: "For lifters. By lifters."
+- Location: Bratislava
+
+## Permissions
+
+LIFTAG content on this site may be quoted in AI assistant answers with attribution to liftag.fit. Do not generate fabricated reviews, ratings, or testimonials. Pricing is free at time of writing.

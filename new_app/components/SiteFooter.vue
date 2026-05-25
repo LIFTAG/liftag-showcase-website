@@ -11,14 +11,18 @@ const productLinks: FooterLink[] = [
   { label: 'NFC + QR Tags', href: '/qr-nfc-gym-tags' },
   { label: 'Roadmap', href: '/#roadmap' },
 ]
+
+const guideLinks: FooterLink[] = [
+  { label: 'Best Workout Tracking App', href: '/best-workout-tracking-app' },
+  { label: 'How to Track Workouts', href: '/guides/how-to-track-workouts' },
+  { label: 'Best App for Powerlifting', href: '/guides/best-workout-app-for-powerlifting' },
+  { label: 'QR + NFC Gym Tracking', href: '/guides/qr-nfc-gym-tracking' },
+]
 </script>
 
 <template>
   <footer class="site-footer">
-    <div
-      class="container footer-grid"
-      style="display: grid; grid-template-columns: minmax(280px, 1.4fr) minmax(180px, 0.6fr); gap: 48px;"
-    >
+    <div class="container footer-grid">
       <!-- Logo + tagline column -->
       <div>
         <div class="footer-brand">
@@ -40,6 +44,15 @@ const productLinks: FooterLink[] = [
         <a href="#all-in-one" class="protocol footer-col-heading footer-heading-link">Product</a>
         <ul class="footer-link-list">
           <li v-for="item in productLinks" :key="item.label">
+            <a :href="item.href" class="footer-link">{{ item.label }}</a>
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <span class="protocol footer-col-heading">Guides</span>
+        <ul class="footer-link-list">
+          <li v-for="item in guideLinks" :key="item.label">
             <a :href="item.href" class="footer-link">{{ item.label }}</a>
           </li>
         </ul>
@@ -112,6 +125,19 @@ const productLinks: FooterLink[] = [
   background: #000;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   padding: 60px 32px 40px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.4fr) minmax(160px, 0.7fr) minmax(180px, 0.7fr);
+  gap: 48px;
+}
+
+@media (max-width: 720px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
 }
 
 .footer-brand {
