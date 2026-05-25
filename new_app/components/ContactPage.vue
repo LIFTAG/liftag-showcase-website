@@ -170,7 +170,7 @@ function sendAnother() {
                 {{ successHeadline ?? 'Message sent.' }}
               </h2>
               <p class="contact-success-body">
-                Thanks for reaching out — we’ll get back to you at <strong>{{ email }}</strong> as soon as we can.
+                Thanks for reaching out. We’ll get back to you at <strong>{{ email }}</strong> as soon as we can.
               </p>
               <div class="contact-success-actions">
                 <a href="/" class="btn-ghost contact-success-btn">Back to home</a>

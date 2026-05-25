@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // ─── reactive mouse / scroll state ───────────────────────────────────────────
-// rawMouse is a reference into the shared singleton — useLerp's rAF reads
+// rawMouse is a reference into the shared singleton - useLerp's rAF reads
 // .x/.y each frame, so the page-wide single mousemove handler keeps it fresh
 // without us owning a per-component listener.
 const sharedMouse = useSharedMouse()
@@ -10,14 +10,14 @@ const entered = ref(false)
 const cursorGlowX = ref(-9999)
 const cursorGlowY = ref(-9999)
 const cursorGlowTone = ref<'green' | 'red'>('green')
-// Drop the WebGL Phone3D path on phones — we only render the front-center
+// Drop the WebGL Phone3D path on phones - we only render the front-center
 // phone on mobile and the lite path uses a static image instead of Three.js.
 const isMobile = ref(false)
 
 // smooth lerp (factor 0.06 matches React source)
 const mouse = useLerp(rawMouse, 0.06)
 
-// ─── particles — generated client-side only to avoid SSR mismatch ────────────
+// ─── particles - generated client-side only to avoid SSR mismatch ────────────
 interface Particle {
   id: number
   x: number
@@ -30,7 +30,7 @@ interface Particle {
 const particles = ref<Particle[]>([])
 const particlesReady = ref(false)
 
-// ─── chart background data (deterministic — safe on server) ──────────────────
+// ─── chart background data (deterministic - safe on server) ──────────────────
 const W = 1440, H = 860
 
 function makeChart(
@@ -374,7 +374,7 @@ onMounted(async () => {
   }
   mobileMql.addEventListener('change', onMobileChange)
 
-  // particles — client only
+  // particles - client only
   particles.value = Array.from({ length: 28 }, (_, i) => ({
     id: i,
     x: Math.random() * 100,
@@ -389,7 +389,7 @@ onMounted(async () => {
   // Cursor orb position needs explicit reactive-ref writes to trigger Vue
   // re-renders. Subscribe to the shared mousemove and rAF-coalesce so we don't
   // bump refs hundreds of times per second on a 240Hz trackpad. Parallax
-  // (rawMouse via useLerp) updates without subscribing — useLerp's own rAF
+  // (rawMouse via useLerp) updates without subscribing - useLerp's own rAF
   // picks up sharedMouse.latest changes each frame.
   let cursorRafQueued = false
   const unsubMouse = onMouseEvent(() => {
@@ -652,7 +652,7 @@ const pNfc = computed(() => {
           stroke-linejoin="round"
         />
 
-        <!-- Pulsing dots along l1 — CSS-driven so we don't burn an always-on rAF -->
+        <!-- Pulsing dots along l1 - CSS-driven so we don't burn an always-on rAF -->
         <g
           v-for="(idx, i) in dotIdxs"
           :key="i"
@@ -802,7 +802,7 @@ const pNfc = computed(() => {
           <span class="protocol" :style="{ color: '#CCFF00', fontSize: '11px' }">PUBLIC BETA · LAUNCHING SOON</span>
         </div>
 
-        <!-- Headline — laser reveal entrance -->
+        <!-- Headline - laser reveal entrance -->
         <h1
           class="hero-title-laser"
           :style="{
@@ -1645,7 +1645,7 @@ const pNfc = computed(() => {
   }
 }
 
-/* Pulse the chart dots in pure CSS — replaces an always-on rAF that bumped a
+/* Pulse the chart dots in pure CSS - replaces an always-on rAF that bumped a
    reactive ref every frame just to drive sin-based opacity/r updates. Period
    matches 2π / (1.8/180) ≈ 10.47s; per-dot animation-delay reproduces the
    original i*1.4 rad phase offset. */

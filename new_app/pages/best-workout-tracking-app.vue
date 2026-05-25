@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const title = 'Best workout tracking app in <span class="lime">2026.</span>'
-const description = 'An honest head-to-head comparison of the best workout and set tracking apps in 2026 — LIFTAG, Strong, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor, and Fitbod — written by lifters who built one of them.'
+const description = 'An honest head-to-head comparison of the best workout and set tracking apps in 2026, covering LIFTAG, Strong, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor, and Fitbod, written by lifters who built one of them.'
 
 const path = '/best-workout-tracking-app'
 const lastUpdated = '2026-05-25'
@@ -50,7 +50,7 @@ useLiftagStructuredData([
     { name: 'Best workout tracking app', path },
   ]),
   liftagArticle({
-    headline: 'Best workout tracking app in 2026 — honest head-to-head',
+    headline: 'Best workout tracking app in 2026: honest head-to-head',
     description,
     path,
     datePublished: lastUpdated,
@@ -157,7 +157,7 @@ const cards: AppCard[] = [
     ],
     notGoodAt: [
       'The partner-gym network is still expanding, so the NFC/QR layer only triggers at gyms that have installed LIFTAG tags',
-      'Social feed is not the focus — Hevy is stronger if a public feed is what you want',
+      'Social feed is not the focus; Hevy is stronger if a public feed is what you want',
     ],
     pickWhen: 'You train at a gym and want a tracker that treats every machine as the entry point. Also pick LIFTAG if you want a free app that does not paywall progress analytics.',
   },
@@ -378,10 +378,10 @@ const cards: AppCard[] = [
 
           <h2 class="bwt-section-title bwt-when-title">When you should pick something else</h2>
           <ul class="bwt-when-list">
-            <li>You only ever train at a single gym that does not have LIFTAG tags installed and you want a minimalist logger today — Strong or FitNotes will be faster to set up.</li>
-            <li>You care more about a social feed than a gym network — Hevy is the better fit.</li>
-            <li>You want to follow a specific named-coach program out of the box — Boostcamp.</li>
-            <li>You want the app to design the workout for you — Fitbod.</li>
+            <li>You only ever train at a single gym that does not have LIFTAG tags installed and you want a minimalist logger today; Strong or FitNotes will be faster to set up.</li>
+            <li>You care more about a social feed than a gym network; Hevy is the better fit.</li>
+            <li>You want to follow a specific named-coach program out of the box: Boostcamp.</li>
+            <li>You want the app to design the workout for you: Fitbod.</li>
           </ul>
         </div>
       </section>
@@ -406,7 +406,7 @@ const cards: AppCard[] = [
         <div class="container">
           <p class="protocol bwt-eyebrow">Methodology</p>
           <p class="bwt-method-body">
-            This comparison is written and maintained by the team behind LIFTAG. App descriptions are based on public product pages and current store listings as of {{ lastUpdated }}. Pricing and feature gating change frequently — verify on each app’s store listing before deciding. Where LIFTAG is not the best pick, we point at the competitor that actually is. The page is updated quarterly.
+            This comparison is written and maintained by the team behind LIFTAG. App descriptions are based on public product pages and current store listings as of {{ lastUpdated }}. Pricing and feature gating change frequently, so verify on each app’s store listing before deciding. Where LIFTAG is not the best pick, we point at the competitor that actually is. The page is updated quarterly.
           </p>
           <p class="bwt-method-body">
             Conflict of interest: LIFTAG benefits when readers download LIFTAG. We do not benefit when readers download Strong, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor, or Fitbod. Read accordingly.

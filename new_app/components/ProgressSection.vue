@@ -110,7 +110,7 @@ const rightChips = [
 ]
 
 const stats = [
-  { n: '4W–52W', l: 'Time windows', sub: 'Zoom in or out' },
+  { n: '4W-52W', l: 'Time windows', sub: 'Zoom in or out' },
   { n: 'PRs', l: 'Auto-detected', sub: 'Weight, reps & volume' },
   { n: '1RM', l: 'Estimated per set', sub: 'Every exercise' },
   { n: '∞', l: 'History stored', sub: 'Every set, forever' },

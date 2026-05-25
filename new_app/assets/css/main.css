@@ -1,4 +1,4 @@
-/* LIFTAG — Global tokens, typography, atomic primitives.
+/* LIFTAG - Global tokens, typography, atomic primitives.
    Ported from the design bundle's index.html <style> + styles/liftag.css. */
 
 :root {
@@ -27,7 +27,7 @@
   --liftag-fg-soft: rgba(255, 255, 255, 0.6);
   --liftag-fg-mid: rgba(255, 255, 255, 0.7);
 
-  /* Hairlines on dark surfaces — ascending visibility */
+  /* Hairlines on dark surfaces - ascending visibility */
   --liftag-border-faint: rgba(255, 255, 255, 0.04);
   --liftag-border-soft: rgba(255, 255, 255, 0.06);
   --liftag-border-strong: rgba(255, 255, 255, 0.08);
@@ -82,7 +82,7 @@ html {
     scroll-behavior: auto;
   }
 }
-/* Avoid `overflow-x: hidden` on body/html — it breaks `position: sticky`
+/* Avoid `overflow-x: hidden` on body/html - it breaks `position: sticky`
    for descendants like the HowItWorks scrollytelling section.
    Sections that have decorative bleed (Hero parallax, Marquee, etc.) set
    their own `overflow: hidden` on the <section>. */
@@ -188,7 +188,7 @@ button {
   color: var(--liftag-primary);
 }
 
-/* Phone bezel — screenshots already include Dynamic Island */
+/* Phone bezel - screenshots already include Dynamic Island */
 .phone {
   width: 280px;
   aspect-ratio: 393 / 852;
@@ -273,7 +273,7 @@ section {
   transform: translate(-50%, -50%);
 }
 
-/* Stat number — JB Mono 800, accent color, clamped scale.
+/* Stat number - JB Mono 800, accent color, clamped scale.
    Override size with --stat-num-size, color with --stat-color. */
 .stat-num {
   font-family: var(--liftag-font-mono);
@@ -284,7 +284,7 @@ section {
   line-height: 1;
 }
 
-/* Stat caption — pairs with .stat-num. Override color via inline style if needed. */
+/* Stat caption - pairs with .stat-num. Override color via inline style if needed. */
 .stat-label {
   font-family: var(--liftag-font-mono);
   font-weight: 700;
@@ -511,7 +511,7 @@ section {
   .nav-mobile-toggle {
     display: flex !important;
   }
-  /* Let the hero grow with stacked content instead of clamping to 100vh —
+  /* Let the hero grow with stacked content instead of clamping to 100vh -
      otherwise the phone column gets clipped under `overflow: hidden`. */
   .hero-section {
     min-height: auto !important;
@@ -661,19 +661,19 @@ section {
     border-right: none !important;
   }
 
-  /* GymsSection — center phone column shrink + clip overflow */
+  /* GymsSection - center phone column shrink + clip overflow */
   .gyms-phones-center {
     height: 440px !important;
     transform: scale(0.85) !important;
     transform-origin: top center !important;
   }
 
-  /* TrainersSection mobile horizontal tab strip — visible only on mobile */
+  /* TrainersSection mobile horizontal tab strip - visible only on mobile */
   .trainers-mobile-tabs {
     display: flex !important;
   }
 
-  /* HowItWorks — vertical scrollytelling on mobile */
+  /* HowItWorks - vertical scrollytelling on mobile */
   .hiw-section {
     height: 300svh !important;
     padding-top: 0 !important;
@@ -698,12 +698,12 @@ section {
     bottom: max(18px, calc(env(safe-area-inset-bottom) + 12px)) !important;
   }
 
-  /* Roadmap — slightly tighter padding */
+  /* Roadmap - slightly tighter padding */
   .rm-section-padding {
     padding: 80px 0 !important;
   }
 
-  /* Scan: hide the big phone area entirely on mobile — each step
+  /* Scan: hide the big phone area entirely on mobile - each step
      card has its own inline phone-screen preview (see ScanSection.vue). */
   .scan-phone-area {
     display: none !important;
@@ -713,11 +713,11 @@ section {
     gap: 0 !important;
     margin-top: 32px !important;
   }
-  /* Inline screen preview inside each step card — visible only on mobile */
+  /* Inline screen preview inside each step card - visible only on mobile */
   .scan-step-screen {
     display: block !important;
   }
-  /* Both scan steps always fully visible on mobile — the floating phone that
+  /* Both scan steps always fully visible on mobile - the floating phone that
      the desktop cycling drives is hidden, so dimming/shifting the inactive
      step makes no sense. Override the inline opacity/transform. */
   .scan-step-row {
@@ -726,7 +726,7 @@ section {
     transition: none !important;
     cursor: default !important;
   }
-  /* Hide the animated left-bar progress indicator — it only makes sense
+  /* Hide the animated left-bar progress indicator - it only makes sense
      alongside the desktop cycling phone. */
   .scan-step-row.is-active::before,
   .scan-step-row.is-exiting::before {
@@ -740,7 +740,7 @@ section {
     order: -1 !important;
   }
 
-  /* Progress: only the centre phone column is visible on mobile —
+  /* Progress: only the centre phone column is visible on mobile -
      centre it horizontally inside the grid cell. */
   .progress-triCol > :nth-child(2) {
     justify-self: center !important;
@@ -757,7 +757,7 @@ section {
   display: none;
 }
 
-/* Extra-narrow screens (≤420px) — squeeze more */
+/* Extra-narrow screens (≤420px) - squeeze more */
 @media (max-width: 420px) {
   .display {
     font-size: clamp(34px, 10.5vw, 52px) !important;
@@ -789,7 +789,7 @@ section {
   }
 }
 
-/* Touch / no-hover devices — hide pointer-driven decoration that just burns
+/* Touch / no-hover devices - hide pointer-driven decoration that just burns
    GPU on mobile. Card screenshot pans are tap-controlled in LiftersSection. */
 @media (hover: none) {
   .cursor-glow {
@@ -797,7 +797,7 @@ section {
   }
 }
 
-/* Tighter touch targets — bump small interactive bits to ≥44px on mobile.
+/* Tighter touch targets - bump small interactive bits to ≥44px on mobile.
    Targets the few obvious offenders without sweeping every button. */
 @media (max-width: 768px) {
   .lifters-card {

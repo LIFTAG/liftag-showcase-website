@@ -73,7 +73,7 @@ function resetDashboardMetricChartHover() {
   setDashboardMetricChartTarget(1)
 }
 
-// Shared singleton — no per-component window listener. useLerp's rAF reads
+// Shared singleton - no per-component window listener. useLerp's rAF reads
 // rawMouse.x/y each frame, so pointing it at the shared `latest` object
 // (whose .x/.y are kept in sync by the single global handler) gives identical
 // behaviour at zero per-component cost.
@@ -614,7 +614,7 @@ onBeforeUnmount(() => {
   will-change: left, opacity;
 }
 
-/* Override the global .reveal so we don't translateY — we drive our own motion */
+/* Override the global .reveal so we don't translateY - we drive our own motion */
 .dashboard-feature.reveal {
   opacity: 0;
   transform: none;
@@ -750,7 +750,7 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
-/* Catalog sync chip — bottom-left, like the QR chip */
+/* Catalog sync chip - bottom-left, like the QR chip */
 .dash-chip-sync {
   bottom: 176px;
   left: 42px;
@@ -809,7 +809,7 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
-/* Live machine count chip — top-right, like the volume chip */
+/* Live machine count chip - top-right, like the volume chip */
 .dash-chip-metric {
   top: 28px;
   right: -24px;
@@ -865,7 +865,7 @@ onBeforeUnmount(() => {
   filter: drop-shadow(0 0 5px rgba(204, 255, 0, 0.42));
 }
 
-/* Deploy badge — mid-right, lime accent like the PR badge */
+/* Deploy badge - mid-right, lime accent like the PR badge */
 .dash-chip-deploy {
   bottom: 138px;
   right: 24px;
