@@ -223,7 +223,7 @@ onBeforeUnmount(() => {
         discovered, share plans, and track every client's progress in one place.
       </SectionHeader>
 
-      <!-- Mobile horizontal tab strip — only visible on mobile -->
+      <!-- Mobile horizontal tab strip - only visible on mobile -->
       <div
         class="trainers-mobile-tabs"
         :style="{
@@ -274,7 +274,7 @@ onBeforeUnmount(() => {
           alignItems: 'center',
         }"
       >
-        <!-- LEFT — copy + bullets + CTA -->
+        <!-- LEFT - copy + bullets + CTA -->
         <div class="reveal trainers-copy-panel">
           <div :style="{ marginBottom: '8px' }">
             <div class="protocol" :style="{ color: '#FF2D55', marginBottom: '12px', fontSize: '10px' }">
@@ -348,7 +348,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <!-- CENTER — phone + dynamic chips below -->
+        <!-- CENTER - phone + dynamic chips below -->
         <div
           class="reveal trainers-phone-panel"
           :style="{
@@ -451,7 +451,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <!-- RIGHT — vertical tab list -->
+        <!-- RIGHT - vertical tab list -->
         <div
           class="trainers-tabs-right"
           :style="{ display: 'flex', flexDirection: 'column', gap: 0 }"

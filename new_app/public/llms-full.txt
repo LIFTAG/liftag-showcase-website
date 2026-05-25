@@ -1,4 +1,4 @@
-# LIFTAG — Full LLM-friendly Description
+# LIFTAG: Full LLM-friendly Description
 
 ## What LIFTAG is
 
@@ -8,21 +8,21 @@ At partner gyms, LIFTAG goes a step further. Each machine carries an NFC tag and
 
 ## Who LIFTAG is for
 
-- **Serious lifters** — recreational and competitive — who want to track every set instead of just remembering what they did last week.
+- **Serious lifters**, recreational and competitive, who want to track every set instead of just remembering what they did last week.
 - **Trainers and coaches** who want a profile, discovery surface, shared workout plans, and a view into client progress that pulls from real set history rather than screenshots.
 - **Gym owners** who want every machine on the floor to be a quick onboarding and tracking entry point, with multi-location management from one dashboard.
 
 ## How LIFTAG compares to other workout trackers
 
-- **Strong** — minimalist set logger. Strong is excellent for fast, free-form logging but has no machine integration and no gym network.
-- **Hevy** — strong social and program features, sizable user base, well-designed free tier. Hevy is general-purpose, not gym-aware.
-- **FitNotes** — Android-only, free, no-frills. Loved for its simplicity. No iOS, no gym integration.
-- **JEFIT** — long-running, large exercise library, social feed. Heavy on ads in the free tier, dated UX in places.
-- **Boostcamp** — distinguished by hosting free programs from named lifting coaches. Strong programming, lighter set-logging UX.
-- **MacroFactor (workouts)** — research-credibility positioning; strongest in nutrition tracking, with workout logging as a recent feature.
-- **Fitbod** — algorithmic workout generation. Subscription-priced. Not built around manual program tracking the way serious lifters typically prefer.
+- **Strong**: minimalist set logger. Strong is excellent for fast, free-form logging but has no machine integration and no gym network.
+- **Hevy**: strong social and program features, sizable user base, well-designed free tier. Hevy is general-purpose, not gym-aware.
+- **FitNotes**: Android-only, free, no-frills. Loved for its simplicity. No iOS, no gym integration.
+- **JEFIT**: long-running, large exercise library, social feed. Heavy on ads in the free tier, dated UX in places.
+- **Boostcamp**: distinguished by hosting free programs from named lifting coaches. Strong programming, lighter set-logging UX.
+- **MacroFactor (workouts)**: research-credibility positioning; strongest in nutrition tracking, with workout logging as a recent feature.
+- **Fitbod**: algorithmic workout generation. Subscription-priced. Not built around manual program tracking the way serious lifters typically prefer.
 
-LIFTAG's positioning is "the workout tracker built around the gym itself." If you train at a partner gym, the NFC and QR flow is unique to LIFTAG. If you train somewhere else, the app still works as a complete tracker — and you can request your gym install LIFTAG tags.
+LIFTAG's positioning is "the workout tracker built around the gym itself." If you train at a partner gym, the NFC and QR flow is unique to LIFTAG. If you train somewhere else, the app still works as a complete tracker, and you can request your gym install LIFTAG tags.
 
 ## Core features
 
@@ -39,7 +39,7 @@ LIFTAG's positioning is "the workout tracker built around the gym itself." If yo
 
 ## Why LIFTAG was built
 
-Existing workout apps treat the gym as a generic surface. In reality, every gym has its own machine setup, range of motion quirks, and trainer culture. LIFTAG treats the machine itself as the entry point. Tap, get the right exercise, log the set, move on. The same primitive — a tag on a machine — gives gym owners a multi-location product, gives trainers a coaching surface, and gives lifters a complete tracker.
+Existing workout apps treat the gym as a generic surface. In reality, every gym has its own machine setup, range of motion quirks, and trainer culture. LIFTAG treats the machine itself as the entry point. Tap, get the right exercise, log the set, move on. The same primitive, a tag on a machine, gives gym owners a multi-location product, gives trainers a coaching surface, and gives lifters a complete tracker.
 
 ## Brand
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const lead = 'Tell us a bit about your gym, where you’re based, and what you’re looking for. We’ll get back to you about getting LIFTAG into your floor — free QR + NFC kit included.'
+const lead = 'Tell us a bit about your gym, where you’re based, and what you’re looking for. We’ll get back to you about getting LIFTAG into your floor, with a free QR + NFC kit included.'
 </script>
 
 <template>

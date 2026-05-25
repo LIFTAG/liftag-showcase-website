@@ -235,7 +235,7 @@ export const liftagWebSite = {
   '@id': `${SITE_URL}/#website`,
   name: 'LIFTAG',
   url: `${SITE_URL}/`,
-  description: 'LIFTAG — workout tracking for serious lifters. NFC and QR for gym machines, set logging, progress tracking, trainers, and partner gyms.',
+  description: 'LIFTAG: workout tracking for serious lifters. NFC and QR for gym machines, set logging, progress tracking, trainers, and partner gyms.',
   publisher: { '@id': `${SITE_URL}/#organization` },
   inLanguage: 'en',
   potentialAction: {

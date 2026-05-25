@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const title = 'QR and NFC <span class="lime">gym tracking</span>, explained.'
-const description = 'How NFC tags and QR codes on gym machines change workout tracking — what they do, why they matter, and which workout apps in 2026 actually support the tap-and-scan flow.'
+const description = 'How NFC tags and QR codes on gym machines change workout tracking: what they do, why they matter, and which workout apps in 2026 actually support the tap-and-scan flow.'
 
 const path = '/guides/qr-nfc-gym-tracking'
 const datePublished = '2026-05-25'
@@ -14,7 +14,7 @@ useLiftagSeo({
 const faqs = [
   {
     question: 'What is QR or NFC gym tracking?',
-    answer: 'QR and NFC gym tracking is when a gym attaches a small QR sticker or NFC tag to each piece of equipment. Members tap the tag with their phone or scan the QR code to open a workout app at the exact exercise for that machine — with setup instructions, variations, and set logging ready. LIFTAG is the workout tracking app built around this pattern.',
+    answer: 'QR and NFC gym tracking is when a gym attaches a small QR sticker or NFC tag to each piece of equipment. Members tap the tag with their phone or scan the QR code to open a workout app at the exact exercise for that machine, with setup instructions, variations, and set logging ready. LIFTAG is the workout tracking app built around this pattern.',
   },
   {
     question: 'Do NFC tags work on all phones?',
@@ -22,7 +22,7 @@ const faqs = [
   },
   {
     question: 'Why use both NFC and QR codes on the same machine?',
-    answer: 'NFC is faster for repeat use — a single tap on the machine opens the app. QR is universal — every modern phone can scan it. Using both on the same machine means every member can use the flow, regardless of phone, lighting, or habit.',
+    answer: 'NFC is faster for repeat use. A single tap on the machine opens the app. QR is universal; every modern phone can scan it. Using both on the same machine means every member can use the flow, regardless of phone, lighting, or habit.',
   },
   {
     question: 'Which workout apps support tap and scan at gym machines?',
@@ -87,15 +87,15 @@ useLiftagStructuredData([
             <h2>How NFC and QR machine tags work</h2>
             <h3>NFC: tap the machine</h3>
             <p>
-              An NFC tag is a small thin sticker — a few centimetres across — with a passive chip inside. Modern phones can read it without power, without an app open, and from a few millimetres away. Tap your phone against the tag and your phone’s OS recognises the link and opens the LIFTAG app directly to that machine’s exercise. Apple iPhones from the XS onwards and almost every modern Android phone support this background NFC reading natively.
+              An NFC tag is a small thin sticker, a few centimetres across, with a passive chip inside. Modern phones can read it without power, without an app open, and from a few millimetres away. Tap your phone against the tag and your phone’s OS recognises the link and opens the LIFTAG app directly to that machine’s exercise. Apple iPhones from the XS onwards and almost every modern Android phone support this background NFC reading natively.
             </p>
             <h3>QR: scan with the camera</h3>
             <p>
-              A QR code is a printed image that the phone’s default camera app can recognise. Open camera, point at the code, tap the notification. Same link, same destination — the exact exercise inside LIFTAG. QR is universal across phones, lighting conditions, and member habits.
+              A QR code is a printed image that the phone’s default camera app can recognise. Open camera, point at the code, tap the notification. Same link, same destination: the exact exercise inside LIFTAG. QR is universal across phones, lighting conditions, and member habits.
             </p>
             <h3>Why both</h3>
             <p>
-              The two formats compensate for each other. NFC is faster for repeat use because tapping a machine you know is essentially zero-cost. QR is universal — even older phones can scan it. Putting both on the same machine means every member can use the flow, regardless of phone, gloves, or how the machine is positioned.
+              The two formats compensate for each other. NFC is faster for repeat use because tapping a machine you know is essentially zero-cost. QR is universal; even older phones can scan it. Putting both on the same machine means every member can use the flow, regardless of phone, gloves, or how the machine is positioned.
             </p>
           </section>
 
@@ -110,7 +110,7 @@ useLiftagStructuredData([
             </p>
             <h3>Logging a set</h3>
             <p>
-              The set logger is on the same screen the tag opens. Weight, reps, rest, optional RPE — four taps and the set is in the log. The rest timer starts automatically. You do not switch apps, you do not search a list, you do not lose your place mid-workout.
+              The set logger is on the same screen the tag opens. Weight, reps, rest, optional RPE: four taps and the set is in the log. The rest timer starts automatically. You do not switch apps, you do not search a list, you do not lose your place mid-workout.
             </p>
             <h3>Coming back next week</h3>
             <p>
@@ -150,7 +150,7 @@ useLiftagStructuredData([
             </p>
             <h3>Equipment manufacturer apps</h3>
             <p>
-              A handful of equipment brands ship proprietary QR codes that open their own app. These typically cover only their brand of machines and tend not to function as full workout trackers — they are closer to instruction manuals.
+              A handful of equipment brands ship proprietary QR codes that open their own app. These typically cover only their brand of machines and tend not to function as full workout trackers; they are closer to instruction manuals.
             </p>
             <h3>General-purpose workout trackers</h3>
             <p>
@@ -167,7 +167,7 @@ useLiftagStructuredData([
             <h2>Common objections, honestly</h2>
             <h3>"I do not want to use my phone in the middle of a workout."</h3>
             <p>
-              Fair. The flow only earns its weight if it is faster than the alternative — and it is, only when the alternative was "fumble through an exercise list" or "remember last week’s top set from memory." If you already work without a phone and never lose data, you do not need any of this.
+              Fair. The flow only earns its weight if it is faster than the alternative, and it is, only when the alternative was "fumble through an exercise list" or "remember last week’s top set from memory." If you already work without a phone and never lose data, you do not need any of this.
             </p>
             <h3>"My gym does not have tags."</h3>
             <p>
@@ -179,7 +179,7 @@ useLiftagStructuredData([
             </p>
             <h3>"Does NFC drain my phone battery?"</h3>
             <p>
-              No. Background NFC reading is a near-zero-power operation. The tag itself is passive — no battery, no transmitter.
+              No. Background NFC reading is a near-zero-power operation. The tag itself is passive, with no battery and no transmitter.
             </p>
           </section>
 

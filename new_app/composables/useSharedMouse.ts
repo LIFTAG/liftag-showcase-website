@@ -1,10 +1,10 @@
 // Single window-level mousemove listener shared across the entire page.
 // Previously each Phone3D / Macbook3D / DashboardSection / Hero installed its
-// own — at 6+ instances and up to 240Hz on modern trackpads, that was a real
+// own - at 6+ instances and up to 240Hz on modern trackpads, that was a real
 // per-event handler tax. This module owns one listener and exposes:
-//   • `latest`     — current mouse state (read-on-rAF consumers)
-//   • `samples`    — bounded ring buffer for delay-tilted phones
-//   • `onMouseEvent(cb)` — subscribe for event-driven consumers (e.g. Vue refs
+//   • `latest`     - current mouse state (read-on-rAF consumers)
+//   • `samples`    - bounded ring buffer for delay-tilted phones
+//   • `onMouseEvent(cb)` - subscribe for event-driven consumers (e.g. Vue refs
 //     that have to be set explicitly to trigger reactivity)
 //
 // `latest` exposes both `mx/my` (normalized -1..1, used by 3D tilts) and `x/y`
@@ -65,7 +65,7 @@ export function onMouseEvent(cb: () => void): () => void {
 }
 
 // Linear scan for the sample bracket at `time`. Samples is bounded (≤240),
-// so worst case ~240 comparisons per call — trivial. Mirrors the original
+// so worst case ~240 comparisons per call - trivial. Mirrors the original
 // per-instance helper but never shifts (consumers share the array).
 export function delayedSampleAt(buffer: MouseSample[], time: number): MouseSample | null {
   if (!buffer.length) return null

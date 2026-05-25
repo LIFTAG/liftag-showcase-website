@@ -38,7 +38,7 @@ let lastMergeCss = -1
 let lastFinaleCss = -1
 let lastExitVarsKey = ''
 
-// Per-element last-applied style cache — avoids re-serializing identical
+// Per-element last-applied style cache - avoids re-serializing identical
 // transform/opacity strings to ~24 elements every rAF frame.
 const lastIconTransform: string[] = []
 const lastIconOpacity: string[] = []

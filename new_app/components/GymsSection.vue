@@ -138,7 +138,7 @@ onBeforeUnmount(() => {
           alignItems: 'center',
         }"
       >
-        <!-- LEFT — QR sticker + machine card -->
+        <!-- LEFT - QR sticker + machine card -->
         <div
           class="reveal gyms-qr"
           :style="{ position: 'relative', height: '560px' }"
@@ -319,7 +319,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <!-- CENTER — 2 phones -->
+        <!-- CENTER - 2 phones -->
         <div
           class="gyms-phones-center"
           :style="{
@@ -331,7 +331,7 @@ onBeforeUnmount(() => {
         >
           <div class="gyms-map-ping ping-one" aria-hidden="true" />
           <div class="gyms-map-ping ping-two" aria-hidden="true" />
-          <!-- Back phone — gym detail, rotates 4deg -->
+          <!-- Back phone - gym detail, rotates 4deg -->
           <div
             class="gyms-motion-layer gyms-back-phone-motion"
             :style="{
@@ -354,7 +354,7 @@ onBeforeUnmount(() => {
             </div>
           </div>
 
-          <!-- Front phone — explore map, rotates -3deg -->
+          <!-- Front phone - explore map, rotates -3deg -->
           <div
             class="gyms-motion-layer gyms-front-phone-motion"
             :style="{
@@ -413,7 +413,7 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <!-- RIGHT — benefit list -->
+        <!-- RIGHT - benefit list -->
         <div class="reveal" :style="{ display: 'flex', flexDirection: 'column', gap: 0 }">
           <div
             v-for="(b, i) in benefits"

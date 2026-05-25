@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const title = 'How to track workouts <span class="lime">properly.</span>'
-const description = 'A definitive guide to tracking workouts as a serious lifter — what to log, what to ignore, how to read progress, and which workout tracking app actually helps. Written by lifters.'
+const description = 'A definitive guide to tracking workouts as a serious lifter: what to log, what to ignore, how to read progress, and which workout tracking app actually helps. Written by lifters.'
 
 const path = '/guides/how-to-track-workouts'
 const datePublished = '2026-05-25'
@@ -18,7 +18,7 @@ const faqs = [
   },
   {
     question: 'Should I track every set, or only my top set?',
-    answer: 'Track every working set. Warm-up sets can be skipped. The point is that you can read total weekly volume and progression weeks later, and you cannot recover data you never logged. The cost is low — a dedicated app makes it a few taps per set.',
+    answer: 'Track every working set. Warm-up sets can be skipped. The point is that you can read total weekly volume and progression weeks later, and you cannot recover data you never logged. The cost is low; a dedicated app makes it a few taps per set.',
   },
   {
     question: 'Do I need to log RPE or rest time?',
@@ -26,7 +26,7 @@ const faqs = [
   },
   {
     question: 'How long should I track workouts before I see progress?',
-    answer: 'Strength progress is visible inside four to eight weeks for most lifters who train hard and recover. Hypertrophy and muscle size shifts are slower — three to six months of consistent training is a realistic window before changes are obvious.',
+    answer: 'Strength progress is visible inside four to eight weeks for most lifters who train hard and recover. Hypertrophy and muscle size shifts are slower; three to six months of consistent training is a realistic window before changes are obvious.',
   },
   {
     question: 'Is a notes app or spreadsheet enough for tracking workouts?',
@@ -47,7 +47,7 @@ useLiftagStructuredData([
     { name: 'How to track workouts', path },
   ]),
   liftagArticle({
-    headline: 'How to track workouts properly — the lifter’s guide',
+    headline: 'How to track workouts properly: the lifter’s guide',
     description,
     path,
     datePublished,
@@ -104,11 +104,11 @@ useLiftagStructuredData([
               <li><strong>RPE or RIR (optional).</strong> How hard the set felt, on a one-to-ten scale. RPE 10 means a true grinder, no reps left. RPE 8 means roughly two reps in the tank.</li>
             </ol>
             <p>
-              Anything beyond those four is a bonus. Notes are helpful — a single line per session like "back tight on second set" or "switched grip" will save you in six weeks when you cannot remember why a lift suddenly felt different.
+              Anything beyond those four is a bonus. Notes are helpful; a single line per session like "back tight on second set" or "switched grip" will save you in six weeks when you cannot remember why a lift suddenly felt different.
             </p>
             <h3>Warm-up sets and ramp sets</h3>
             <p>
-              You do not need to log warm-up sets. Log the work sets — the sets at the intensity that drives the adaptation. If you ramp into your top set with progressive loads, log only the top set unless your program specifically calls for back-off sets, in which case log those too.
+              You do not need to log warm-up sets. Log the work sets, the sets at the intensity that drives the adaptation. If you ramp into your top set with progressive loads, log only the top set unless your program specifically calls for back-off sets, in which case log those too.
             </p>
             <h3>Cardio and conditioning</h3>
             <p>
@@ -145,7 +145,7 @@ useLiftagStructuredData([
             </p>
             <h3>Personal records and estimated 1RM</h3>
             <p>
-              PRs are the headline. Most workout trackers, LIFTAG included, surface PRs automatically whenever you outperform your previous best at a given rep range. Estimated one-rep max is a calculated number that smooths over rep ranges so you can compare a heavy triple to a set of eight at the same exercise. It is approximate — useful for trends, not for exact maxes.
+              PRs are the headline. Most workout trackers, LIFTAG included, surface PRs automatically whenever you outperform your previous best at a given rep range. Estimated one-rep max is a calculated number that smooths over rep ranges so you can compare a heavy triple to a set of eight at the same exercise. It is approximate: useful for trends, not for exact maxes.
             </p>
             <h3>Volume</h3>
             <p>
@@ -153,7 +153,7 @@ useLiftagStructuredData([
             </p>
             <h3>Frequency</h3>
             <p>
-              How often you hit each muscle. Hitting back twice a week beats once a week for most lifters once they are past their first year. Tracking exposes this fast — you can see at a glance that you skipped pulling movements for three weeks straight.
+              How often you hit each muscle. Hitting back twice a week beats once a week for most lifters once they are past their first year. Tracking exposes this fast; you can see at a glance that you skipped pulling movements for three weeks straight.
             </p>
             <h3>Trends, not single sessions</h3>
             <p>
@@ -188,10 +188,10 @@ useLiftagStructuredData([
               LIFTAG was built because we kept watching strong lifters fight their notes app between sets. The fastest possible path from "finished the set" to "logged the set" turns out to be tapping the machine itself. At partner gyms, a small NFC tag on each piece of equipment opens the exact exercise the moment your phone touches it. The set logger and rest timer are one screen away. Personal records, estimated 1RM, weekly volume, and frequency live in the same app.
             </p>
             <p>
-              At any other gym, LIFTAG still works as a complete tracker — you pick the exercise manually like in any other app. The tag is an accelerator, not a requirement. The free tier covers full set tracking and the analytics the other apps tend to paywall.
+              At any other gym, LIFTAG still works as a complete tracker; you pick the exercise manually like in any other app. The tag is an accelerator, not a requirement. The free tier covers full set tracking and the analytics the other apps tend to paywall.
             </p>
             <p>
-              If LIFTAG sounds like a fit, the install path is the App Store or Google Play. If a different tracker fits your training better, that is also fine — the honest version of this guide says <a href="/best-workout-tracking-app">we compared LIFTAG against Strong, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor, and Fitbod</a> and called out where each one wins.
+              If LIFTAG sounds like a fit, the install path is the App Store or Google Play. If a different tracker fits your training better, that is also fine. The honest version of this guide says <a href="/best-workout-tracking-app">we compared LIFTAG against Strong, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor, and Fitbod</a> and called out where each one wins.
             </p>
           </section>
 

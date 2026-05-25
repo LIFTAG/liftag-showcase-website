@@ -39,7 +39,7 @@ function initPhone() {
     alpha: true,
   })
   renderer.setSize(width, height)
-  // Background phones cap at 1.25 DPR — they're at scale 0.6-0.7 and lower
+  // Background phones cap at 1.25 DPR - they're at scale 0.6-0.7 and lower
   // opacity, so the resolution drop is invisible. Main phone keeps DPR 2.
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, isLite ? 1.25 : 2))
   renderer.toneMapping = THREE.ACESFilmicToneMapping
@@ -438,7 +438,7 @@ function initPhone() {
   let currentRotY = -0.12
   let animId = 0
   let isVisible = false
-  // Shared singleton — replaces a per-instance window mousemove listener.
+  // Shared singleton - replaces a per-instance window mousemove listener.
   // animate() reads from sharedMouse.latest (delay = 0) or interpolates from
   // sharedMouse.samples (delay > 0), so behaviour matches the original to
   // within one rAF frame.
@@ -502,7 +502,7 @@ function initPhone() {
         const delayed = delayedSampleAt(sharedMouse.samples, performance.now() - delay)
         if (delayed) applyPointerTilt(delayed.mx, delayed.my)
       } else if (sharedMouse.samples.length > 0) {
-        // Skip until first real mouse event — otherwise (0,0) pulls the phone
+        // Skip until first real mouse event - otherwise (0,0) pulls the phone
         // away from its rest pose immediately on visibility.
         applyPointerTilt(sharedMouse.latest.mx, sharedMouse.latest.my)
       }

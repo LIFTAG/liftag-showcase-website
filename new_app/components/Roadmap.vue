@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// All Vue APIs are auto-imported in Nuxt 3 — no import needed.
+// All Vue APIs are auto-imported in Nuxt 3 - no import needed.
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -73,7 +73,7 @@ const timelineRef   = ref<HTMLElement | null>(null)
 const canvasRef     = ref<HTMLCanvasElement | null>(null)
 const lineActiveRef = ref<HTMLElement | null>(null)
 
-// ── Animation state (plain arrays — NOT reactive) ─────────────────────────────
+// ── Animation state (plain arrays - NOT reactive) ─────────────────────────────
 
 let rmRootProgress: number[] = []
 let rmPoweredAt: number[]    = []
@@ -226,7 +226,7 @@ function drawRoots(rmItems: NodeListOf<Element>, providedTimelineRect?: DOMRect)
       ctx!.lineCap     = 'round'
       ctx!.stroke()
 
-      // Tip glow dot — stays at growth front, fades out as text appears
+      // Tip glow dot - stays at growth front, fades out as text appears
       {
         const tipT = eased
         const tipX = bezierPt(nodeX, cp1x, cp2x, endX, tipT)
@@ -352,7 +352,7 @@ onBeforeUnmount(() => {
         Built in public. Shipping fast. Here's what's coming next.
       </p>
 
-      <!-- Timeline container — canvas/ghost/active are children 1/2/3,
+      <!-- Timeline container - canvas/ghost/active are children 1/2/3,
            so rm-item:nth-child(odd) starts at child 4 (even index) = right side -->
       <div ref="timelineRef" class="roadmap-timeline">
         <canvas ref="canvasRef" class="rm-roots-canvas"></canvas>

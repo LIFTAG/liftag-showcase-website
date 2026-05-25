@@ -1,4 +1,4 @@
-// Smooth lerp composable — drives cursor orb and phone parallax in Hero.
+// Smooth lerp composable - drives cursor orb and phone parallax in Hero.
 // Returns a reactive `out` object whose x/y trail the given `target` each RAF frame.
 //
 // The rAF loop pauses once `val` has converged to `target` (delta below

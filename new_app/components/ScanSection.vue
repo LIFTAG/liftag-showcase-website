@@ -239,7 +239,7 @@ onBeforeUnmount(() => {
             </div>
           </div>
 
-          <!-- Decorative QR sticker — rotated -8deg -->
+          <!-- Decorative QR sticker - rotated -8deg -->
           <div
             class="scan-qr-sticker"
             :style="{
@@ -388,7 +388,7 @@ onBeforeUnmount(() => {
                     }"
                   />
 
-                  <!-- Scan overlay — only on step 0 -->
+                  <!-- Scan overlay - only on step 0 -->
                   <div
                     v-if="i === 0"
                     :style="{

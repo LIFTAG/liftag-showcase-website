@@ -28,7 +28,7 @@ function mapErrorMessage(status: number | undefined, retryAfter: string | null):
     case 403:
       return 'Verification failed. Please try again.'
     case 422:
-      return 'Some fields look off — please double-check and try again.'
+      return 'Some fields look off. Please double-check and try again.'
     case 429:
       return retryAfter
         ? `Too many requests. Please try again in ${retryAfter}.`
@@ -37,7 +37,7 @@ function mapErrorMessage(status: number | undefined, retryAfter: string | null):
     case 503:
       return 'We couldn’t send your message right now. Please try again in a few minutes.'
     default:
-      return 'Network error — please check your connection and try again.'
+      return 'Network error. Please check your connection and try again.'
   }
 }
 

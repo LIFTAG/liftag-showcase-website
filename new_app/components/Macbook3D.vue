@@ -72,7 +72,7 @@ function initMacbook() {
   container.appendChild(renderer.domElement)
 
   const scene = new THREE.Scene()
-  // FOV / position chosen so the lid stays in frame at every rotation angle —
+  // FOV / position chosen so the lid stays in frame at every rotation angle -
   // peak vertical reach is around -90° (mid-animation), not at -108° (fully open).
   const camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 100)
   camera.position.set(0, 0.75, 6.1)
@@ -258,7 +258,7 @@ function initMacbook() {
   lid.receiveShadow = true
   lidGroup.add(lid)
 
-  // Screen panel (inner side of lid) — thin bezels like M-series MacBook
+  // Screen panel (inner side of lid) - thin bezels like M-series MacBook
   const SW = 2.72
   const SH = 1.74
   const screenGeo = new THREE.PlaneGeometry(SW, SH)
@@ -422,7 +422,7 @@ function initMacbook() {
 
   setVideoSource(props.videoSrc)
 
-  // Shared singleton — replaces a per-instance window mousemove listener.
+  // Shared singleton - replaces a per-instance window mousemove listener.
   // animate() reads sharedMouse.latest each frame; tilt result is identical
   // because targetTilt is lerped, not driven by per-event deltas.
   const sharedMouse = useSharedMouse()
@@ -434,7 +434,7 @@ function initMacbook() {
     }
     animId = requestAnimationFrame(animate)
 
-    // Skip until first real mouse event — otherwise (0,0) pulls the laptop
+    // Skip until first real mouse event - otherwise (0,0) pulls the laptop
     // away from its -0.06 rest yaw immediately on visibility.
     if (sharedMouse.samples.length > 0) {
       targetTiltY = -0.06 + sharedMouse.latest.mx * 0.18

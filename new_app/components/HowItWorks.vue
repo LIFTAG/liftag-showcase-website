@@ -57,14 +57,14 @@ let chartHovered = false
 let chartHoverTargetP = 1
 let chartDisplayP = 0
 
-// Cached rects for scan effect — invalidated on resize / scroll-induced layout shift.
+// Cached rects for scan effect - invalidated on resize / scroll-induced layout shift.
 // Reads in rAF previously thrashed layout each frame.
 let cachedPaneRect: DOMRect | null = null
 let cachedAreaRect: DOMRect | null = null
 let cachedTitleRect: DOMRect | null = null
 let cachedDescRect: DOMRect | null = null
 
-// Cached canvas gradients — depend only on canvas size, not per-frame state.
+// Cached canvas gradients - depend only on canvas size, not per-frame state.
 let cachedAreaGrad: CanvasGradient | null = null
 let cachedAreaGradKey = ''
 let scanEffectResetForMobile = false
@@ -220,7 +220,7 @@ function drawHIWCurve(p: number) {
   const steps = Math.floor(drawProgress * 200)
   if (steps < 2) return
 
-  // Gradient fill — cached per canvas size (only depends on padTop/graphH).
+  // Gradient fill - cached per canvas size (only depends on padTop/graphH).
   const gradKey = `${padTop}|${graphH}`
   if (!cachedAreaGrad || cachedAreaGradKey !== gradKey) {
     const grad = ctx.createLinearGradient(0, padTop, 0, padTop + graphH)
@@ -257,7 +257,7 @@ function drawHIWCurve(p: number) {
     else ctx.lineTo(cx, cy)
   }
 
-  // Stacked-stroke glow under additive blending — approximates the original
+  // Stacked-stroke glow under additive blending - approximates the original
   // shadowBlur(20) halo without the per-frame canvas convolve. `lighter`
   // composite makes overlapping strokes brighten toward the centre, giving a
   // smooth Gaussian-ish falloff instead of visible concentric outlines.
@@ -414,7 +414,7 @@ function updateHIW(p: number, sectionRect?: DOMRect) {
 
   updateScanHoverEffect(panelP)
 
-  // Draw the strength curve (always — flash timings use perf.now())
+  // Draw the strength curve (always - flash timings use perf.now())
   drawHIWCurve(panelP)
 
   // Dots
@@ -515,7 +515,7 @@ function updateScanHoverEffect(p: number) {
   const title = scanTitle.value
   if (!title) return
 
-  // Use cached rects — getBoundingClientRect inside rAF causes forced reflows.
+  // Use cached rects - getBoundingClientRect inside rAF causes forced reflows.
   // Inner offsets (rect.left - paneRect.left) stay layout-stable through the
   // section's horizontal track translate, so a snapshot on resize/init is safe.
   if (!cachedPaneRect || !cachedAreaRect || !cachedTitleRect) refreshScanRects()
