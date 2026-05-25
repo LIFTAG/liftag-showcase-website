@@ -45,7 +45,7 @@ function initPhone() {
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.4
   renderer.shadowMap.enabled = !isLite
-  renderer.shadowMap.type = THREE.PCFShadowMap
+  renderer.shadowMap.type = THREE.VSMShadowMap
   container.appendChild(renderer.domElement)
 
   const scene = new THREE.Scene()
