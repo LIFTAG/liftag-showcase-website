@@ -19,6 +19,11 @@ const guideLinks: FooterLink[] = [
   { label: 'Best App for Powerlifting', href: '/guides/best-workout-app-for-powerlifting' },
   { label: 'QR + NFC Gym Tracking', href: '/guides/qr-nfc-gym-tracking' },
 ]
+
+const legalLinks: FooterLink[] = [
+  { label: 'Privacy Policy', href: '/privacy-policy' },
+  { label: 'Terms & Conditions', href: '/terms-and-conditions' },
+]
 </script>
 
 <template>
@@ -54,6 +59,15 @@ const guideLinks: FooterLink[] = [
         <span class="protocol footer-col-heading">Guides</span>
         <ul class="footer-link-list">
           <li v-for="item in guideLinks" :key="item.label">
+            <a :href="item.href" class="footer-link">{{ item.label }}</a>
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <span class="protocol footer-col-heading">Legal</span>
+        <ul class="footer-link-list">
+          <li v-for="item in legalLinks" :key="item.label">
             <a :href="item.href" class="footer-link">{{ item.label }}</a>
           </li>
         </ul>
@@ -156,11 +170,18 @@ const guideLinks: FooterLink[] = [
 
 .footer-grid {
   display: grid;
-  grid-template-columns: minmax(260px, 1.4fr) minmax(160px, 0.7fr) minmax(180px, 0.7fr);
+  grid-template-columns: minmax(240px, 1.4fr) minmax(150px, 0.7fr) minmax(170px, 0.7fr) minmax(150px, 0.6fr);
   gap: 48px;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 960px) {
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+  }
+}
+
+@media (max-width: 560px) {
   .footer-grid {
     grid-template-columns: 1fr;
     gap: 32px;
