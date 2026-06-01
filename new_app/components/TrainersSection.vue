@@ -339,12 +339,20 @@ onBeforeUnmount(() => {
           </div>
 
           <div :style="{ marginTop: '32px', display: 'flex', gap: '12px', flexWrap: 'wrap' }">
-            <button class="btn-primary" style="padding: 14px 24px; font-size: 12px;">
+            <NuxtLink
+              to="/become-a-coach"
+              class="btn-primary"
+              style="padding: 14px 24px; font-size: 12px; display: inline-flex; align-items: center; text-decoration: none;"
+            >
               Join as a coach
-            </button>
-            <button class="btn-ghost" style="padding: 14px 24px; font-size: 12px;">
+            </NuxtLink>
+            <NuxtLink
+              to="/become-a-coach#features"
+              class="btn-ghost"
+              style="padding: 14px 24px; font-size: 12px; display: inline-flex; align-items: center; text-decoration: none;"
+            >
               Learn more
-            </button>
+            </NuxtLink>
           </div>
         </div>
 

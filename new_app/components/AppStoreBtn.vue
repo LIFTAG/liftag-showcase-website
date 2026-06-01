@@ -1,16 +1,26 @@
 <script setup lang="ts">
 const props = defineProps<{
   store: 'apple' | 'google'
+  href?: string
 }>()
 
 const isApple = computed(() => props.store === 'apple')
 const label = computed(() => isApple.value ? 'Download on the App Store' : 'Get it on Google Play')
 const kicker = computed(() => isApple.value ? 'Download on the' : 'Get it on')
 const name = computed(() => isApple.value ? 'App Store' : 'Google Play')
+
+const resolvedHref = computed(() => props.href ?? '#')
+const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
 </script>
 
 <template>
-  <a href="#" class="app-store-btn" :aria-label="label">
+  <a
+    :href="resolvedHref"
+    :target="isExternal ? '_blank' : undefined"
+    :rel="isExternal ? 'noopener' : undefined"
+    class="app-store-btn"
+    :aria-label="label"
+  >
     <span class="app-store-btn__shine" aria-hidden="true" />
     <span class="app-store-btn__icon" aria-hidden="true">
       <img
