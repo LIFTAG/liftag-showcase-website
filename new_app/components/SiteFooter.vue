@@ -7,6 +7,7 @@ interface FooterLink {
 const productLinks: FooterLink[] = [
   { label: 'For Lifters', href: '/for-lifters' },
   { label: 'For Trainers', href: '/for-trainers' },
+  { label: 'Become a Coach', href: '/become-a-coach' },
   { label: 'For Gyms', href: '/for-gyms' },
   { label: 'NFC + QR Tags', href: '/qr-nfc-gym-tags' },
   { label: 'Roadmap', href: '/#roadmap' },

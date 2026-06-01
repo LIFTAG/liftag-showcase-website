@@ -3,6 +3,12 @@ const scrolled = ref(false)
 const open = ref(false)
 const isMobileNav = ref(false)
 const route = useRoute()
+const router = useRouter()
+
+const APP_STORE_NUDGE_EVENT = 'liftag:app-store-nudge'
+const TOP_SCROLL_THRESHOLD = 72
+const TOP_NUDGE_THRESHOLD = 12
+const SCROLL_NUDGE_TIMEOUT_MS = 1600
 
 const sectionHref = (hash: string) => route.path === '/' ? hash : `/${hash}`
 
@@ -16,11 +22,73 @@ const navLinks = computed<[string, string][]>(() => [
 let _onScroll: (() => void) | null = null
 let _onViewportChange: (() => void) | null = null
 let _mobileQuery: MediaQueryList | null = null
+let _nudgeTimer: ReturnType<typeof setTimeout> | null = null
+let _scrollNudgeRaf = 0
 
 function updateScrolled() {
   const threshold = isMobileNav.value ? 0 : 40
   const next = window.scrollY > threshold
   if (next !== scrolled.value) scrolled.value = next
+}
+
+function prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
+function nudgeAppStoreButtons() {
+  window.dispatchEvent(new CustomEvent(APP_STORE_NUDGE_EVENT))
+}
+
+function scheduleAppStoreNudge(delay: number) {
+  if (_nudgeTimer) clearTimeout(_nudgeTimer)
+  _nudgeTimer = setTimeout(() => {
+    _nudgeTimer = null
+    nudgeAppStoreButtons()
+  }, delay)
+}
+
+function cancelScrollNudge() {
+  if (!_scrollNudgeRaf) return
+  cancelAnimationFrame(_scrollNudgeRaf)
+  _scrollNudgeRaf = 0
+}
+
+function nudgeWhenScrolledToTop() {
+  cancelScrollNudge()
+
+  const start = performance.now()
+  const check = () => {
+    if (window.scrollY <= TOP_NUDGE_THRESHOLD || performance.now() - start >= SCROLL_NUDGE_TIMEOUT_MS) {
+      _scrollNudgeRaf = 0
+      nudgeAppStoreButtons()
+      return
+    }
+
+    _scrollNudgeRaf = requestAnimationFrame(check)
+  }
+
+  _scrollNudgeRaf = requestAnimationFrame(check)
+}
+
+async function handleGetAppClick() {
+  open.value = false
+
+  if (route.path !== '/') {
+    await router.push('/')
+    scheduleAppStoreNudge(prefersReducedMotion() ? 80 : 360)
+    return
+  }
+
+  if (window.scrollY <= TOP_SCROLL_THRESHOLD) {
+    nudgeAppStoreButtons()
+    return
+  }
+
+  window.scrollTo({
+    top: 0,
+    behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+  })
+  nudgeWhenScrolledToTop()
 }
 
 onMounted(() => {
@@ -51,6 +119,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   if (_onScroll) window.removeEventListener('scroll', _onScroll)
+  if (_nudgeTimer) clearTimeout(_nudgeTimer)
+  cancelScrollNudge()
   if (_mobileQuery && _onViewportChange) {
     if (_mobileQuery.removeEventListener) {
       _mobileQuery.removeEventListener('change', _onViewportChange)
@@ -117,8 +187,10 @@ onBeforeUnmount(() => {
         Dashboard
       </a>
       <button
+        type="button"
         class="btn-primary nav-desktop nav-app-cta"
         style="padding: 10px 20px; font-size: 11px; box-shadow: 0 0 24px rgba(204,255,0,0.4);"
+        @click="handleGetAppClick"
       >
         Get the app
       </button>

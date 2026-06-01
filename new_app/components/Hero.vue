@@ -10,9 +10,12 @@ const entered = ref(false)
 const cursorGlowX = ref(-9999)
 const cursorGlowY = ref(-9999)
 const cursorGlowTone = ref<'green' | 'red'>('green')
+const appStoreNudgeActive = ref(false)
 // Drop the WebGL Phone3D path on phones - we only render the front-center
 // phone on mobile and the lite path uses a static image instead of Three.js.
 const isMobile = ref(false)
+const APP_STORE_NUDGE_EVENT = 'liftag:app-store-nudge'
+let appStoreNudgeTimer: ReturnType<typeof setTimeout> | null = null
 
 // smooth lerp (factor 0.06 matches React source)
 const mouse = useLerp(rawMouse, 0.06)
@@ -146,8 +149,21 @@ function resetHeroVolumeChartHover() {
   setHeroVolumeChartTarget(1)
 }
 
+async function triggerAppStoreNudge() {
+  if (appStoreNudgeTimer) clearTimeout(appStoreNudgeTimer)
+
+  appStoreNudgeActive.value = false
+  await nextTick()
+  appStoreNudgeActive.value = true
+  appStoreNudgeTimer = setTimeout(() => {
+    appStoreNudgeActive.value = false
+    appStoreNudgeTimer = null
+  }, 980)
+}
+
 onBeforeUnmount(() => {
   if (heroVolumeChartRaf) cancelAnimationFrame(heroVolumeChartRaf)
+  if (appStoreNudgeTimer) clearTimeout(appStoreNudgeTimer)
 })
 
 // ─── hero words ───────────────────────────────────────────────────────────────
@@ -405,7 +421,11 @@ onMounted(async () => {
     const tone = (event as CustomEvent<{ tone?: 'green' | 'red' }>).detail?.tone
     cursorGlowTone.value = tone === 'red' ? 'red' : 'green'
   }
+  const onAppStoreNudge = () => {
+    void triggerAppStoreNudge()
+  }
   window.addEventListener('liftag:cursor-glow-tone', onCursorGlowTone as EventListener)
+  window.addEventListener(APP_STORE_NUDGE_EVENT, onAppStoreNudge)
 
   let scrollQueued = false
   const onScroll = () => {
@@ -450,6 +470,7 @@ onMounted(async () => {
     unsubMouse()
     mobileMql.removeEventListener('change', onMobileChange)
     window.removeEventListener('liftag:cursor-glow-tone', onCursorGlowTone as EventListener)
+    window.removeEventListener(APP_STORE_NUDGE_EVENT, onAppStoreNudge)
     window.removeEventListener('scroll', onScroll)
   })
 })
@@ -861,6 +882,7 @@ const pNfc = computed(() => {
         <!-- App store buttons -->
         <div
           class="hero-badges"
+          :class="{ 'is-nudged': appStoreNudgeActive }"
           :style="{
             display: 'flex',
             gap: '12px',
@@ -1311,6 +1333,14 @@ const pNfc = computed(() => {
   filter: drop-shadow(0 0 5px rgba(204, 255, 0, 0.42));
 }
 
+.hero-badges.is-nudged :deep(.app-store-btn) {
+  animation: heroAppStoreNudge 620ms linear both;
+}
+
+.hero-badges.is-nudged :deep(.app-store-btn:nth-child(2)) {
+  animation-delay: 64ms;
+}
+
 .hero-nfc-model {
   position: absolute;
   top: 380px;
@@ -1642,6 +1672,87 @@ const pNfc = computed(() => {
 
   50% {
     transform: translate3d(0, -7px, 8px);
+  }
+}
+
+@keyframes heroAppStoreNudge {
+  0% {
+    border-color: rgba(204, 255, 0, 0.22);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 14px 34px rgba(0, 0, 0, 0.34),
+      0 0 0 rgba(204, 255, 0, 0);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  18% {
+    border-color: rgba(204, 255, 0, 0.38);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 17px 38px rgba(0, 0, 0, 0.38),
+      0 0 13px rgba(204, 255, 0, 0.1);
+    transform: translate3d(0, -3px, 0) scale(1.008);
+  }
+
+  36% {
+    border-color: rgba(204, 255, 0, 0.7);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.16),
+      0 24px 54px rgba(0, 0, 0, 0.5),
+      0 0 32px rgba(204, 255, 0, 0.26);
+    transform: translate3d(0, -10px, 0) scale(1.03);
+  }
+
+  44% {
+    border-color: rgba(204, 255, 0, 0.78);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.18),
+      0 26px 58px rgba(0, 0, 0, 0.52),
+      0 0 40px rgba(204, 255, 0, 0.34);
+    transform: translate3d(0, -12px, 0) scale(1.035);
+  }
+
+  64% {
+    border-color: rgba(204, 255, 0, 0.44);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.11),
+      0 18px 40px rgba(0, 0, 0, 0.4),
+      0 0 16px rgba(204, 255, 0, 0.12);
+    transform: translate3d(0, -4px, 0) scale(1.01);
+  }
+
+  100% {
+    border-color: rgba(204, 255, 0, 0.22);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 14px 34px rgba(0, 0, 0, 0.34),
+      0 0 0 rgba(204, 255, 0, 0);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes heroAppStoreNudgeReduced {
+  0%,
+  100% {
+    border-color: rgba(204, 255, 0, 0.22);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 14px 34px rgba(0, 0, 0, 0.34),
+      0 0 0 rgba(204, 255, 0, 0);
+  }
+
+  42% {
+    border-color: rgba(204, 255, 0, 0.74);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      0 18px 46px rgba(0, 0, 0, 0.42),
+      0 0 34px rgba(204, 255, 0, 0.24);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-badges.is-nudged :deep(.app-store-btn) {
+    animation: heroAppStoreNudgeReduced 760ms ease-out both;
   }
 }
 
