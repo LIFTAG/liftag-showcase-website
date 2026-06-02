@@ -347,7 +347,7 @@ onBeforeUnmount(() => {
               Join as a coach
             </NuxtLink>
             <NuxtLink
-              to="/become-a-coach#features"
+              to="/become-a-coach#showcase"
               class="btn-ghost"
               style="padding: 14px 24px; font-size: 12px; display: inline-flex; align-items: center; text-decoration: none;"
             >
