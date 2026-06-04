@@ -5,8 +5,8 @@
       "namespace": "android_app",
       "package_name": "com.liftag.app",
       "sha256_cert_fingerprints": [
-        "REPLACE_WITH_EAS_UPLOAD_KEYSTORE_SHA256",
-        "REPLACE_WITH_PLAY_APP_SIGNING_SHA256"
+        "4E:A7:36:E3:A1:77:EC:16:67:79:DA:EF:52:D5:97:70:4A:DC:41:E7:40:D4:E0:CF:95:F3:3D:8A:E1:10:64:82",
+        "FA:CD:1B:B8:16:A1:70:CC:2B:6B:72:22:42:04:FB:8E:42:54:99:FA:F0:2E:BF:7F:71:C1:9D:AE:C6:CD:C4:31"
       ]
     }
   }
