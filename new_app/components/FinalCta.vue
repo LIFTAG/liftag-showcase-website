@@ -76,7 +76,7 @@
         }"
       >
         Track real progress. Tap or scan real machines. Skip the spreadsheet.<br />
-        Public beta. Open now on iOS, Android coming soon.
+        Public beta. Open now on iOS and Android.
       </p>
 
       <!-- Store buttons -->
@@ -90,8 +90,8 @@
           flexWrap: 'wrap',
         }"
       >
-        <AppStoreBtn store="apple" />
-        <AppStoreBtn store="google" />
+        <AppStoreBtn store="apple" href="https://apps.apple.com/app/id6761140080" />
+        <AppStoreBtn store="google" href="https://play.google.com/store/apps/details?id=com.liftag.app" />
       </div>
 
     </div>
