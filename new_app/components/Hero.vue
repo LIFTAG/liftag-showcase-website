@@ -893,8 +893,8 @@ const pNfc = computed(() => {
             transition: 'opacity 900ms 640ms cubic-bezier(0.16,1,0.3,1), transform 900ms 640ms cubic-bezier(0.16,1,0.3,1)',
           }"
         >
-          <AppStoreBtn store="apple" />
-          <AppStoreBtn store="google" />
+          <AppStoreBtn store="apple" href="https://apps.apple.com/app/id6761140080" />
+          <AppStoreBtn store="google" href="https://play.google.com/store/apps/details?id=com.liftag.app" />
         </div>
 
         <!-- Stats row -->
