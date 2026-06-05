@@ -2,24 +2,33 @@
 const props = defineProps<{
   store: 'apple' | 'google'
   href?: string
+  comingSoon?: boolean
 }>()
 
 const isApple = computed(() => props.store === 'apple')
-const label = computed(() => isApple.value ? 'Download on the App Store' : 'Get it on Google Play')
-const kicker = computed(() => isApple.value ? 'Download on the' : 'Get it on')
 const name = computed(() => isApple.value ? 'App Store' : 'Google Play')
+const kicker = computed(() => {
+  if (props.comingSoon) return 'Coming soon'
+  return isApple.value ? 'Download on the' : 'Get it on'
+})
+const label = computed(() => props.comingSoon
+  ? `${name.value} — coming soon`
+  : (isApple.value ? 'Download on the App Store' : 'Get it on Google Play'))
 
 const resolvedHref = computed(() => props.href ?? '#')
 const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
 </script>
 
 <template>
-  <a
-    :href="resolvedHref"
-    :target="isExternal ? '_blank' : undefined"
-    :rel="isExternal ? 'noopener' : undefined"
+  <component
+    :is="comingSoon ? 'div' : 'a'"
+    :href="comingSoon ? undefined : resolvedHref"
+    :target="!comingSoon && isExternal ? '_blank' : undefined"
+    :rel="!comingSoon && isExternal ? 'noopener' : undefined"
     class="app-store-btn"
+    :class="{ 'app-store-btn--soon': comingSoon }"
     :aria-label="label"
+    :aria-disabled="comingSoon ? 'true' : undefined"
   >
     <span class="app-store-btn__shine" aria-hidden="true" />
     <span class="app-store-btn__icon" aria-hidden="true">
@@ -45,7 +54,7 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
       <span class="app-store-btn__kicker">{{ kicker }}</span>
       <span class="app-store-btn__name">{{ name }}</span>
     </span>
-  </a>
+  </component>
 </template>
 
 <style scoped>
@@ -126,6 +135,39 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
   outline-offset: 3px;
 }
 
+/* Coming soon — disabled, non-interactive */
+.app-store-btn--soon {
+  cursor: default;
+  opacity: 0.74;
+  border-color: rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.04), transparent 38%),
+    rgba(7, 10, 8, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.app-store-btn--soon:hover,
+.app-store-btn--soon:focus-visible {
+  border-color: rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.04), transparent 38%),
+    rgba(7, 10, 8, 0.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transform: none;
+}
+
+.app-store-btn--soon::before {
+  opacity: 0 !important;
+}
+
+.app-store-btn--soon .app-store-btn__shine {
+  display: none;
+}
+
+.app-store-btn--soon .app-store-btn__kicker {
+  color: var(--liftag-primary);
+}
+
 .app-store-btn__icon {
   display: grid;
   place-items: center;
@@ -164,6 +206,7 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .app-store-btn__name {
@@ -172,6 +215,7 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
   font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {
