@@ -284,7 +284,7 @@ onBeforeUnmount(() => {
     </a>
     <div class="nav-store-buttons">
       <AppStoreBtn store="apple" href="https://apps.apple.com/app/id6761140080" />
-      <AppStoreBtn store="google" href="https://play.google.com/store/apps/details?id=com.liftag.app" />
+      <AppStoreBtn store="google" href="https://play.google.com/store/apps/details?id=com.liftag.app" coming-soon />
     </div>
   </div>
 </template>
@@ -492,38 +492,44 @@ onBeforeUnmount(() => {
 }
 
 .nav-dashboard-mobile {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: fit-content;
-  margin-top: 20px;
-  padding: 12px 18px;
-  border: 1px solid rgba(204, 255, 0, 0.34);
-  border-radius: 999px;
+  width: 100%;
+  max-width: 400px;
+  min-height: 52px;
+  margin-top: 22px;
+  padding: 0 18px;
+  border: 1px solid rgba(204, 255, 0, 0.5);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(204, 255, 0, 0.14), transparent 44%),
+    rgba(7, 10, 8, 0.78);
   color: #CCFF00;
   text-decoration: none;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 24px rgba(204, 255, 0, 0.12);
 }
 
 .nav-store-buttons {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 18px;
+  margin-top: 12px;
   padding-bottom: 2px;
+  max-width: 400px;
 }
 
 .nav-store-buttons :deep(.app-store-btn) {
-  flex: 0 0 auto;
-}
-
-.nav-store-buttons :deep(.app-store-btn__img) {
-  height: 44px;
+  width: 100%;
+  min-width: 0;
+  justify-content: center;
 }
 
 @keyframes navShellIn {
@@ -646,10 +652,6 @@ onBeforeUnmount(() => {
 @media (max-width: 390px) {
   .nav-store-buttons {
     gap: 8px;
-  }
-
-  .nav-store-buttons :deep(.app-store-btn__img) {
-    height: 42px;
   }
 }
 
