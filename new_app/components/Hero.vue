@@ -795,34 +795,6 @@ const pNfc = computed(() => {
       <!-- ── LEFT: copy ── -->
       <div class="hero-copy">
 
-        <!-- Beta badge -->
-        <div
-          :style="{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '10px',
-            padding: '8px 16px',
-            border: '1px solid rgba(204,255,0,0.3)',
-            borderRadius: '9999px',
-            background: 'rgba(204,255,0,0.05)',
-            marginBottom: '32px',
-            opacity: entered ? 1 : 0,
-            transform: entered ? 'translateY(0)' : 'translateY(16px)',
-            transition: 'opacity 800ms cubic-bezier(0.16,1,0.3,1), transform 800ms cubic-bezier(0.16,1,0.3,1)',
-          }"
-        >
-          <span
-            :style="{
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              background: '#CCFF00',
-              boxShadow: '0 0 10px #CCFF00, 0 0 20px #CCFF00',
-            }"
-          />
-          <span class="protocol" :style="{ color: '#CCFF00', fontSize: '11px' }">PUBLIC BETA · LAUNCHING SOON</span>
-        </div>
-
         <!-- Headline - laser reveal entrance -->
         <h1
           class="hero-title-laser"
@@ -894,7 +866,7 @@ const pNfc = computed(() => {
           }"
         >
           <AppStoreBtn store="apple" href="https://apps.apple.com/app/id6761140080" />
-          <AppStoreBtn store="google" href="https://play.google.com/store/apps/details?id=com.liftag.app" />
+          <AppStoreBtn store="google" href="https://play.google.com/store/apps/details?id=com.liftag.app" coming-soon />
         </div>
 
         <!-- Stats row -->
@@ -1224,11 +1196,6 @@ const pNfc = computed(() => {
           transition: 'opacity 700ms 120ms cubic-bezier(0.16,1,0.3,1), transform 700ms 120ms cubic-bezier(0.16,1,0.3,1)',
         }"
       >
-        <div class="hero-mobile-kicker">
-          <span class="hero-mobile-kicker-dot" />
-          <span>Public beta</span>
-        </div>
-
         <h1 class="hero-mobile-title">
           <span>For <span class="lime">lifters.</span></span>
           <span>By <span class="lime">lifters.</span></span>
@@ -1252,15 +1219,22 @@ const pNfc = computed(() => {
           transition: 'opacity 780ms 260ms cubic-bezier(0.16,1,0.3,1), transform 780ms 260ms cubic-bezier(0.16,1,0.3,1)',
         }"
       >
+        <div class="hero-mobile-rail">
+          <div class="hero-mobile-proof" aria-label="LIFTAG tap, scan, and tracking flow">
+            <span><strong>Tap</strong> NFC tag</span>
+            <span><strong>Scan</strong> machine QR</span>
+            <span><strong>Log</strong> sets fast</span>
+          </div>
+
+          <div class="hero-mobile-stores">
+            <AppStoreBtn store="apple" href="https://apps.apple.com/app/id6761140080" />
+            <AppStoreBtn store="google" href="https://play.google.com/store/apps/details?id=com.liftag.app" coming-soon />
+          </div>
+        </div>
+
         <div class="hero-mobile-device">
           <div class="hero-mobile-device-glow" aria-hidden="true" />
           <Phone src="/assets/screens/home-hero-no-qr.webp" :scale="1" :tilt-delay-ms="0" lite />
-        </div>
-
-        <div class="hero-mobile-proof" aria-label="LIFTAG tap, scan, and tracking flow">
-          <span><strong>Tap</strong> NFC tag</span>
-          <span><strong>Scan</strong> machine QR</span>
-          <span><strong>Log</strong> sets fast</span>
         </div>
       </div>
     </div>
@@ -1364,36 +1338,10 @@ const pNfc = computed(() => {
   display: none;
 }
 
-.hero-mobile-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  width: fit-content;
-  padding: 7px 12px;
-  border: 1px solid rgba(204, 255, 0, 0.26);
-  border-radius: 999px;
-  background: rgba(204, 255, 0, 0.055);
-  color: var(--liftag-primary);
-  font-family: var(--liftag-font-mono);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.19em;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.hero-mobile-kicker-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: var(--liftag-primary);
-  box-shadow: 0 0 16px rgba(204, 255, 0, 0.9);
-}
-
 .hero-mobile-title {
   display: grid;
   gap: 0;
-  margin: 18px 0 0;
+  margin: 0;
   font-family: var(--liftag-font-headline);
   font-size: clamp(48px, 13.6vw, 62px);
   font-style: italic;
@@ -1456,13 +1404,18 @@ const pNfc = computed(() => {
 
 .hero-mobile-visual {
   position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  max-width: 360px;
   min-height: 286px;
 }
 
 .hero-mobile-device {
-  position: absolute;
-  top: 4px;
-  right: clamp(0px, 3.2vw, 18px);
+  position: relative;
+  flex: 0 0 auto;
+  margin-top: 4px;
   width: min(46vw, 180px);
   aspect-ratio: 393 / 852;
 }
@@ -1482,13 +1435,50 @@ const pNfc = computed(() => {
   opacity: 0.95;
 }
 
+.hero-mobile-rail {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  width: clamp(132px, 39vw, 156px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 22px;
+}
+
 .hero-mobile-proof {
-  position: absolute;
-  left: 0;
-  top: 22px;
   display: grid;
   gap: 9px;
-  width: min(46vw, 178px);
+}
+
+.hero-mobile-stores {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hero-mobile-stores :deep(.app-store-btn) {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  gap: 9px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  justify-content: center;
+}
+
+.hero-mobile-stores :deep(.app-store-btn__icon) {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+}
+
+.hero-mobile-stores :deep(.app-store-btn__name) {
+  font-size: 15px;
+}
+
+.hero-mobile-stores :deep(.app-store-btn__kicker) {
+  font-size: 7px;
 }
 
 .hero-mobile-proof span {
@@ -1563,14 +1553,6 @@ const pNfc = computed(() => {
     max-width: 19rem;
     font-size: 15px;
   }
-
-  .hero-mobile-device {
-    width: min(45vw, 162px);
-  }
-
-  .hero-mobile-proof {
-    width: min(47vw, 172px);
-  }
 }
 
 @media (max-width: 768px) and (max-height: 740px) {
@@ -1586,13 +1568,8 @@ const pNfc = computed(() => {
     padding-top: 12px;
   }
 
-  .hero-mobile-kicker {
-    padding: 6px 10px;
-    font-size: 9px;
-  }
-
   .hero-mobile-title {
-    margin-top: 14px;
+    margin-top: 0;
     font-size: clamp(39px, 11.4vw, 46px);
     line-height: 0.88;
   }
@@ -1602,6 +1579,10 @@ const pNfc = computed(() => {
     margin-top: 14px;
     font-size: 14px;
     line-height: 1.36;
+  }
+
+  .hero-mobile-stores {
+    gap: 8px;
   }
 
   .hero-mobile-actions {
@@ -1625,13 +1606,17 @@ const pNfc = computed(() => {
   }
 
   .hero-mobile-device {
-    right: clamp(0px, 3vw, 12px);
-    width: min(38vw, 132px);
+    margin-top: 0;
+    width: min(44vw, 160px);
+  }
+
+  .hero-mobile-rail {
+    width: clamp(140px, 43vw, 166px);
+    padding-top: 10px;
+    gap: 10px;
   }
 
   .hero-mobile-proof {
-    top: 10px;
-    width: min(48vw, 164px);
     gap: 7px;
   }
 
