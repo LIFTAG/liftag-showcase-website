@@ -148,7 +148,8 @@ function getScrollProgress() {
   const section = sectionRef.value
   if (!section) return 0
   const rect = section.getBoundingClientRect()
-  const available = Math.max(1, rect.height - window.innerHeight)
+  const viewportH = useStableViewportHeight() || window.innerHeight
+  const available = Math.max(1, rect.height - viewportH)
   return clamp01(-rect.top / available)
 }
 
@@ -957,12 +958,12 @@ onBeforeUnmount(() => {
 
 @media (max-width: 980px) {
   .dashboard-section {
-    min-height: 220vh;
+    min-height: var(--liftag-stable-vh-220);
   }
 
   .dashboard-sticky {
     top: 64px;
-    height: calc(100svh - 64px);
+    height: calc(var(--liftag-stable-vh) - 64px);
     min-height: 820px;
   }
 
@@ -1006,12 +1007,12 @@ onBeforeUnmount(() => {
   }
 
   .dashboard-section {
-    min-height: 185vh;
+    min-height: var(--liftag-stable-vh-185);
   }
 
   .dashboard-sticky {
     top: 64px;
-    height: calc(100svh - 64px);
+    height: calc(var(--liftag-stable-vh) - 64px);
     min-height: 0;
     align-items: flex-start;
     padding: 18px 0 max(18px, env(safe-area-inset-bottom));
@@ -1058,7 +1059,7 @@ onBeforeUnmount(() => {
   .dashboard-stage {
     order: 2;
     width: calc(100% + 24px);
-    height: clamp(258px, 39svh, 320px);
+    height: clamp(258px, var(--liftag-stable-vh-39), 320px);
     min-height: 258px;
     margin: -2px -12px 0;
     align-items: flex-start;

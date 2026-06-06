@@ -26,7 +26,7 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
     :target="!comingSoon && isExternal ? '_blank' : undefined"
     :rel="!comingSoon && isExternal ? 'noopener' : undefined"
     class="app-store-btn"
-    :class="{ 'app-store-btn--soon': comingSoon }"
+    :class="{ 'app-store-btn--apple': isApple, 'app-store-btn--soon': comingSoon }"
     :aria-label="label"
     :aria-disabled="comingSoon ? 'true' : undefined"
   >
@@ -92,9 +92,41 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: radial-gradient(circle at 22% 12%, rgba(204, 255, 0, 0.16), transparent 46%);
+  background:
+    radial-gradient(circle at 22% 12%, rgba(255, 232, 72, 0.24), transparent 48%),
+    radial-gradient(circle at 86% 88%, rgba(255, 210, 42, 0.1), transparent 44%);
   opacity: 0;
   transition: opacity 280ms ease;
+}
+
+.app-store-btn::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: 1;
+  padding: 1px;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    conic-gradient(
+      from 14deg,
+      transparent 0deg,
+      transparent 205deg,
+      rgba(255, 247, 145, 0.92) 256deg,
+      rgba(255, 222, 48, 0.72) 292deg,
+      rgba(204, 255, 0, 0.38) 328deg,
+      transparent 354deg
+    );
+  opacity: 0;
+  transform: translate3d(0, 0, 0) rotate(0deg);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
 }
 
 .app-store-btn__shine {
@@ -102,7 +134,8 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
   inset: -42% auto -42% -34%;
   width: 42%;
   pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 248, 176, 0.28), transparent);
+  opacity: 1;
   transform: skewX(-18deg) translateX(-120%);
   transition: transform 560ms cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -158,6 +191,10 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
 
 .app-store-btn--soon::before {
   opacity: 0 !important;
+}
+
+.app-store-btn--soon::after {
+  display: none;
 }
 
 .app-store-btn--soon .app-store-btn__shine {
@@ -218,10 +255,129 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
   white-space: nowrap;
 }
 
+@media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .app-store-btn--apple:not(.app-store-btn--soon) {
+    animation: appStorePhoneBeacon 3.25s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    transform-origin: center;
+    will-change: border-color, box-shadow, transform;
+  }
+
+  .app-store-btn--apple:not(.app-store-btn--soon)::before {
+    animation: appStorePhoneAura 3.25s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  }
+
+  .app-store-btn--apple:not(.app-store-btn--soon)::after {
+    animation: appStorePhoneRim 3.25s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    will-change: opacity, transform;
+  }
+
+  .app-store-btn--apple:not(.app-store-btn--soon) .app-store-btn__shine {
+    animation: appStorePhoneGlint 3.25s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    will-change: opacity, transform;
+  }
+}
+
+@keyframes appStorePhoneBeacon {
+  0%,
+  62%,
+  100% {
+    border-color: rgba(204, 255, 0, 0.22);
+    background:
+      linear-gradient(135deg, rgba(204, 255, 0, 0.1), transparent 38%),
+      rgba(7, 10, 8, 0.78);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 14px 34px rgba(0, 0, 0, 0.34),
+      0 0 0 rgba(204, 255, 0, 0);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  7% {
+    border-color: rgba(255, 235, 72, 0.72);
+    background:
+      linear-gradient(135deg, rgba(255, 226, 56, 0.2), transparent 44%),
+      rgba(13, 14, 8, 0.9);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      0 17px 38px rgba(0, 0, 0, 0.4),
+      0 0 22px rgba(255, 229, 70, 0.3),
+      0 0 46px rgba(255, 222, 48, 0.2);
+    transform: translate3d(0, 0, 0) scale(1.018);
+  }
+
+  16% {
+    border-color: rgba(255, 228, 72, 0.4);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.11),
+      0 15px 35px rgba(0, 0, 0, 0.36),
+      0 0 18px rgba(255, 222, 48, 0.16);
+    transform: translate3d(0, 0, 0) scale(1.006);
+  }
+
+  28% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes appStorePhoneAura {
+  0%,
+  58%,
+  100% {
+    opacity: 0;
+  }
+
+  8% {
+    opacity: 1;
+  }
+
+  20% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes appStorePhoneRim {
+  0%,
+  58%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  6% {
+    opacity: 0.95;
+  }
+
+  22% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(252deg);
+  }
+}
+
+@keyframes appStorePhoneGlint {
+  0%,
+  10%,
+  58%,
+  100% {
+    opacity: 0;
+    transform: skewX(-18deg) translateX(-120%);
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  26% {
+    opacity: 0;
+    transform: skewX(-18deg) translateX(420%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .app-store-btn,
   .app-store-btn::before,
+  .app-store-btn::after,
   .app-store-btn__shine {
+    animation: none;
     transition: none;
   }
 

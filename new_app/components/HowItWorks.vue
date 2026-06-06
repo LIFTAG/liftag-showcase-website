@@ -372,7 +372,8 @@ function drawHIWCurve(p: number) {
 // ─── Scroll progress → section update ────────────────────────────────────
 function progressFromRect(rect: DOMRect): number {
   const sectionTop = -rect.top
-  const sectionH   = rect.height - window.innerHeight
+  const viewportH  = useStableViewportHeight() || window.innerHeight
+  const sectionH   = rect.height - viewportH
   if (sectionH <= 0) return 0
   return Math.max(0, Math.min(1, sectionTop / sectionH))
 }
@@ -397,13 +398,15 @@ function updateHIW(p: number, sectionRect?: DOMRect) {
 
   const rect = sectionRect ?? sectionRef.value?.getBoundingClientRect()
   if (rect) {
-    if (rect.top < window.innerHeight * 0.28 || p > 0.012) {
+    const viewportH = useStableViewportHeight() || window.innerHeight
+
+    if (rect.top < viewportH * 0.28 || p > 0.012) {
       hiwIntroEntered.value = true
     }
 
     hiwLastExiting.value = mobileHIWLayout
       ? p >= HIW_MOBILE_LAST_EXIT_PROGRESS
-      : rect.bottom < window.innerHeight * HIW_LAST_EXIT_VIEWPORT_BOTTOM
+      : rect.bottom < viewportH * HIW_LAST_EXIT_VIEWPORT_BOTTOM
   }
 
   if (mobileHIWLayout) {
@@ -659,7 +662,8 @@ function scrollToPanel(i: number) {
   const section = sectionRef.value
   if (!section) return
   const rect      = section.getBoundingClientRect()
-  const sectionH  = rect.height - window.innerHeight
+  const viewportH = useStableViewportHeight() || window.innerHeight
+  const sectionH  = rect.height - viewportH
   const sectionTop = window.scrollY + rect.top
   const targetP = mobileHIWLayout
     ? [0, HIW_MOBILE_TRACK_END_PROGRESS / 2, HIW_MOBILE_TRACK_END_PROGRESS][i] ?? 0
@@ -1805,15 +1809,15 @@ circle[fill="var(--liftag-primary)"] {
 /* ── Mobile ───────────────────────────────────────────── */
 @media (max-width: 768px) {
   .hiw-section {
-    height: 340svh !important;
-    min-height: 340svh;
+    height: var(--liftag-stable-vh-340) !important;
+    min-height: var(--liftag-stable-vh-340);
     padding: 0 !important;
     overflow-y: visible;
   }
   .hiw-sticky {
     position: sticky;
     top: 0;
-    height: 100svh;
+    height: var(--liftag-stable-vh);
     overflow: hidden;
   }
   .hiw-sticky::before,
@@ -1840,10 +1844,10 @@ circle[fill="var(--liftag-primary)"] {
     will-change: transform;
   }
   .hiw-panel {
-    flex: 0 0 100svh;
+    flex: 0 0 var(--liftag-stable-vh);
     width: 100%;
-    height: 100svh;
-    min-height: 100svh;
+    height: var(--liftag-stable-vh);
+    min-height: var(--liftag-stable-vh);
     padding: 82px 18px 74px !important;
   }
   .hiw-panel-number {

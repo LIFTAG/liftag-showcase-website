@@ -46,7 +46,7 @@ onMounted(() => {
 
 <style scoped>
 .qr-redirect {
-  min-height: 100dvh;
+  min-height: var(--liftag-stable-vh);
   display: grid;
   place-items: center;
   margin: 0;

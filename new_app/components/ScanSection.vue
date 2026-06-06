@@ -952,30 +952,30 @@ onBeforeUnmount(() => {
   }
 }
 
-@media (max-width: 768px) and (max-height: 740px) {
-  .scan-section {
+@media (max-width: 768px) {
+  :deep(html[data-liftag-short-viewport="true"] .scan-section) {
     padding-top: 68px !important;
   }
 
-  .scan-grid-2col {
+  :deep(html[data-liftag-short-viewport="true"] .scan-grid-2col) {
     margin-top: 24px !important;
   }
 
-  .scan-phone-area {
+  :deep(html[data-liftag-short-viewport="true"] .scan-phone-area) {
     height: 286px !important;
     min-height: 286px !important;
   }
 
-  .scan-phone-camera {
+  :deep(html[data-liftag-short-viewport="true"] .scan-phone-camera) {
     width: min(32vw, 118px) !important;
   }
 
-  .scan-step-row {
+  :deep(html[data-liftag-short-viewport="true"] .scan-step-row) {
     gap: 7px !important;
     padding: 9px !important;
   }
 
-  .scan-step-title {
+  :deep(html[data-liftag-short-viewport="true"] .scan-step-title) {
     font-size: 24px !important;
   }
 

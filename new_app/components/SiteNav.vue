@@ -259,7 +259,7 @@ onBeforeUnmount(() => {
       borderBottom: '1px solid rgba(255,255,255,0.08)',
       boxSizing: 'border-box',
       padding: open ? '20px 24px calc(24px + env(safe-area-inset-bottom))' : '0 24px',
-      maxHeight: open ? 'calc(100dvh - 60px)' : '0',
+      maxHeight: open ? 'calc(var(--liftag-stable-vh) - 60px)' : '0',
       overflowX: 'hidden',
       overflowY: open ? 'auto' : 'hidden',
       overscrollBehavior: 'contain',

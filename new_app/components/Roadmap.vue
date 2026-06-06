@@ -261,7 +261,7 @@ function updateRoadmap(rmItems: NodeListOf<Element>) {
   if (!timeline || !lineActive) return
 
   const rect    = timeline.getBoundingClientRect()
-  const viewH   = window.innerHeight
+  const viewH   = useStableViewportHeight() || window.innerHeight
   const progress = Math.max(0, Math.min(1, (viewH - rect.top) / (rect.height + viewH * 0.5)))
   lineActive.style.height = (progress * 100) + '%'
 

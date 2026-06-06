@@ -190,7 +190,7 @@ function sendAnother() {
 
 <style scoped>
 .contact-shell {
-  min-height: 100dvh;
+  min-height: var(--liftag-stable-vh);
   background: #000;
   color: #fff;
 }
