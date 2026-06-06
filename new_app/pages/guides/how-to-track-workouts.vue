@@ -225,7 +225,7 @@ useLiftagStructuredData([
 
 <style scoped>
 .seo-page {
-  min-height: 100dvh;
+  min-height: var(--liftag-stable-vh);
   background:
     radial-gradient(circle at 82% 18%, rgba(204, 255, 0, 0.09), transparent 34%),
     radial-gradient(circle at 18% 76%, rgba(255, 45, 85, 0.04), transparent 36%),

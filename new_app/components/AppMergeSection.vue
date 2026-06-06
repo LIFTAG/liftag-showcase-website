@@ -214,7 +214,8 @@ function getScrollProgress() {
   if (!section) return 0
 
   const rect = section.getBoundingClientRect()
-  const available = Math.max(1, rect.height - window.innerHeight)
+  const viewportH = useStableViewportHeight() || window.innerHeight
+  const available = Math.max(1, rect.height - viewportH)
   return clamp(-rect.top / available)
 }
 
@@ -1070,11 +1071,11 @@ onBeforeUnmount(() => {
 
 @media (max-width: 980px) {
   .app-merge-section {
-    min-height: 470vh;
+    min-height: var(--liftag-stable-vh-470);
   }
 
   .app-merge-sticky {
-    height: 100svh;
+    height: var(--liftag-stable-vh);
     min-height: 880px;
   }
 
@@ -1105,7 +1106,7 @@ onBeforeUnmount(() => {
 
 @media (max-width: 620px) {
   .app-merge-section {
-    min-height: 380vh;
+    min-height: var(--liftag-stable-vh-380);
   }
 
   .app-merge-sticky {

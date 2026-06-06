@@ -55,6 +55,32 @@
   --liftag-font-headline: 'Space Grotesk', system-ui, sans-serif;
   --liftag-font-body: 'Inter', system-ui, -apple-system, sans-serif;
   --liftag-font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+
+  /* Stable mobile viewport fallback. The client plugin fills the px values for
+     browsers that resize the visual viewport when in-app controls appear. */
+  --liftag-stable-vh: 100vh;
+  --liftag-stable-vh-px: 0px;
+  --liftag-stable-vh-unit: 1vh;
+  --liftag-stable-vh-39: 39vh;
+  --liftag-stable-vh-185: 185vh;
+  --liftag-stable-vh-220: 220vh;
+  --liftag-stable-vh-300: 300vh;
+  --liftag-stable-vh-340: 340vh;
+  --liftag-stable-vh-380: 380vh;
+  --liftag-stable-vh-470: 470vh;
+}
+
+@supports (height: 100lvh) {
+  :root {
+    --liftag-stable-vh: 100lvh;
+    --liftag-stable-vh-39: 39lvh;
+    --liftag-stable-vh-185: 185lvh;
+    --liftag-stable-vh-220: 220lvh;
+    --liftag-stable-vh-300: 300lvh;
+    --liftag-stable-vh-340: 340lvh;
+    --liftag-stable-vh-380: 380lvh;
+    --liftag-stable-vh-470: 470lvh;
+  }
 }
 
 *,
@@ -675,7 +701,7 @@ section {
 
   /* HowItWorks - vertical scrollytelling on mobile */
   .hiw-section {
-    height: 300svh !important;
+    height: var(--liftag-stable-vh-300) !important;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
   }

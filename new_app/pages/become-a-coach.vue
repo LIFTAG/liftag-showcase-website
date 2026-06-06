@@ -603,7 +603,7 @@ function toggleFaq(i: number) {
   --coach-accent-glow: rgba(255, 45, 85, 0.4);
   --coach-accent-soft: rgba(255, 45, 85, 0.12);
   --coach-accent-line: rgba(255, 45, 85, 0.3);
-  min-height: 100dvh;
+  min-height: var(--liftag-stable-vh);
   background: #000;
   color: #fff;
 }
@@ -637,7 +637,7 @@ function toggleFaq(i: number) {
 /* ───────── HERO ───────── */
 .coach-hero {
   position: relative;
-  min-height: 100vh;
+  min-height: var(--liftag-stable-vh);
   overflow: hidden;
   background: #000;
   padding: 132px 0 80px;
@@ -685,7 +685,7 @@ function toggleFaq(i: number) {
   grid-template-columns: 1.04fr 1fr;
   align-items: center;
   gap: 56px;
-  min-height: calc(100vh - 212px);
+  min-height: calc(var(--liftag-stable-vh) - 212px);
 }
 
 .coach-hero-title {

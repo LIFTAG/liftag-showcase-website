@@ -169,7 +169,8 @@ onMounted(async () => {
           return
         }
 
-        const isAboveViewportCenter = entry.boundingClientRect.top < window.innerHeight * 0.5
+        const viewportH = useStableViewportHeight() || window.innerHeight
+        const isAboveViewportCenter = entry.boundingClientRect.top < viewportH * 0.5
         setCardState(index, isAboveViewportCenter ? 'before' : 'after')
       })
     },
