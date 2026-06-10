@@ -125,7 +125,7 @@ const steps: Step[] = [
   {
     no: '01',
     title: 'Download the app',
-    body: 'Get LIFTAG free on iOS or Android and create your account. It is the same app your future clients use to train, so everything stays in one place.',
+    body: 'Get LIFTAG free on iOS (Android coming soon) and create your account. It is the same app your future clients use to train, so everything stays in one place.',
     store: true,
   },
   {
@@ -264,7 +264,7 @@ function toggleFaq(i: number) {
 
             <div class="coach-store-row enter h-badges">
               <AppStoreBtn store="apple" :href="APP_STORE" />
-              <AppStoreBtn store="google" :href="PLAY_STORE" />
+              <AppStoreBtn store="google" :href="PLAY_STORE" coming-soon />
             </div>
 
             <div class="coach-hero-links enter h-links">
@@ -422,7 +422,7 @@ function toggleFaq(i: number) {
                   <p class="coach-step-text">{{ step.body }}</p>
                   <div v-if="step.store" class="coach-store-row coach-store-row--inline">
                     <AppStoreBtn store="apple" :href="APP_STORE" />
-                    <AppStoreBtn store="google" :href="PLAY_STORE" />
+                    <AppStoreBtn store="google" :href="PLAY_STORE" coming-soon />
                   </div>
                 </div>
               </li>
@@ -583,7 +583,7 @@ function toggleFaq(i: number) {
           </p>
           <div class="coach-store-row coach-final-store">
             <AppStoreBtn store="apple" :href="APP_STORE" />
-            <AppStoreBtn store="google" :href="PLAY_STORE" />
+            <AppStoreBtn store="google" :href="PLAY_STORE" coming-soon />
           </div>
           <div class="coach-final-links">
             <a href="/for-trainers" class="coach-textlink">Explore trainer features →</a>
