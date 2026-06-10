@@ -1,5 +1,5 @@
 const SITE_URL = 'https://liftag.fit'
-const DEFAULT_IMAGE = `${SITE_URL}/logo.png`
+const DEFAULT_IMAGE = `${SITE_URL}/og-image.jpg`
 
 interface LiftagSeoOptions {
   title: string
