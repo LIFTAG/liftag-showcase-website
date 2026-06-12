@@ -37,6 +37,8 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
         src="/assets/badges/appstore-icon.svg"
         alt=""
         class="app-store-btn__apple"
+        width="31"
+        height="38"
       />
       <svg
         v-else

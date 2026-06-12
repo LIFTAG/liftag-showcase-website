@@ -204,8 +204,12 @@ onBeforeUnmount(() => {
             <!-- QR image -->
             <div class="gyms-qr-code" :style="{ width: 'calc(100% - 12px)', aspectRatio: '1', margin: '0 auto 7px', position: 'relative', overflow: 'hidden' }">
               <img
-                src="/uploads/qr-code.webp"
+                src="/uploads/qr-code-160.webp"
+                srcset="/uploads/qr-code-112.webp 112w, /uploads/qr-code-160.webp 160w, /uploads/qr-code-224.webp 224w, /uploads/qr-code.webp 400w"
+                sizes="160px"
                 alt="LIFTAG QR Code"
+                width="160"
+                height="160"
                 loading="lazy"
                 decoding="async"
                 :style="{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }"
