@@ -54,6 +54,13 @@ const steps = [
   },
 ]
 
+function screenSrcset(src: string) {
+  if (!src.startsWith('/assets/screens/') || !src.endsWith('.webp')) return undefined
+
+  const base = src.slice(0, -'.webp'.length)
+  return `${base}-360.webp 360w, ${base}-560.webp 560w, ${base}-640.webp 640w, ${src} 800w`
+}
+
 function setStep(nextStep: number) {
   if (nextStep === step.value) return
   exitingStep.value = step.value
@@ -228,6 +235,7 @@ onBeforeUnmount(() => {
                   <Phone
                     :src="steps[step].screen"
                     :scale="1.05"
+                    sizes="(max-width: 768px) 36vw, 280px"
                     screen-transition
                     :screen-transition-direction="phoneSwipeDirection"
                   />
@@ -257,8 +265,12 @@ onBeforeUnmount(() => {
             }"
           >
             <img
-              src="/uploads/qr-code.webp"
+              src="/uploads/qr-code-160.webp"
+              srcset="/uploads/qr-code-112.webp 112w, /uploads/qr-code-160.webp 160w, /uploads/qr-code-224.webp 224w, /uploads/qr-code.webp 400w"
+              sizes="100px"
               alt="LIFTAG QR Code"
+              width="160"
+              height="160"
               loading="lazy"
               decoding="async"
               :style="{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }"
@@ -377,6 +389,8 @@ onBeforeUnmount(() => {
                 >
                   <img
                     :src="s.screen"
+                    :srcset="screenSrcset(s.screen)"
+                    sizes="240px"
                     alt=""
                     loading="lazy"
                     decoding="async"

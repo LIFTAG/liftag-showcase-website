@@ -25,6 +25,15 @@ function preloadStaticScreen(src: string) {
   return promise
 }
 
+function screenVariant(src: string | undefined, width: 360 | 560 | 640) {
+  if (!src?.startsWith('/assets/screens/') || !src.endsWith('.webp')) return undefined
+  return `${src.slice(0, -'.webp'.length)}-${width}.webp`
+}
+
+function preferredScreenSrc(src: string | undefined) {
+  return screenVariant(src, 560) ?? src ?? ''
+}
+
 const props = withDefaults(defineProps<{
   src?: string
   glow?: boolean
@@ -34,6 +43,8 @@ const props = withDefaults(defineProps<{
   screenTransitionDirection?: 'up' | 'down' | 'left' | 'right'
   style?: Record<string, string>
   lite?: boolean
+  priority?: boolean
+  sizes?: string
 }>(), {
   glow: false,
   scale: 1,
@@ -41,11 +52,13 @@ const props = withDefaults(defineProps<{
   screenTransition: false,
   screenTransitionDirection: 'up',
   lite: false,
+  priority: false,
+  sizes: '(max-width: 768px) 46vw, 280px',
 })
 
 const hasMounted = ref(false)
 const renderStaticMockup = ref(false)
-const staticDisplaySrc = ref(props.src ?? '')
+const staticDisplaySrc = ref(preferredScreenSrc(props.src))
 
 const render3dPhone = computed(() => Boolean(props.src) && hasMounted.value && !renderStaticMockup.value)
 const renderStaticPhone = computed(() => Boolean(props.src) && !render3dPhone.value)
@@ -57,6 +70,17 @@ const staticTransitionName = computed(() => {
   if (!props.screenTransition) return 'phone-static-fade'
   return `phone-static-${props.screenTransitionDirection}`
 })
+const responsiveSrcset = computed(() => {
+  if (!props.src?.startsWith('/assets/screens/') || !props.src.endsWith('.webp')) return undefined
+
+  const base = props.src.slice(0, -'.webp'.length)
+  const originalWidth = props.src.includes('/home-hero-no-qr.webp') ? 1100 : 800
+
+  return `${base}-360.webp 360w, ${base}-560.webp 560w, ${base}-640.webp 640w, ${props.src} ${originalWidth}w`
+})
+const phone3dScreenshotSrc = computed(() => preferredScreenSrc(props.src))
+const imageLoading = computed(() => props.priority ? 'eager' : 'lazy')
+const imageFetchPriority = computed(() => props.priority ? 'high' : 'auto')
 
 let mobileMql: MediaQueryList | null = null
 let onMobileChange: ((event: MediaQueryListEvent) => void) | null = null
@@ -68,10 +92,11 @@ function queueStaticScreen(src: string | undefined) {
     return
   }
 
+  const displaySrc = preferredScreenSrc(src)
   const requestId = ++staticScreenRequestId
-  preloadStaticScreen(src).finally(() => {
+  preloadStaticScreen(displaySrc).finally(() => {
     if (requestId === staticScreenRequestId) {
-      staticDisplaySrc.value = src
+      staticDisplaySrc.value = displaySrc
     }
   })
 }
@@ -114,14 +139,25 @@ onBeforeUnmount(() => {
   >
     <ClientOnly v-if="props.src && render3dPhone">
       <Phone3D
-        :screenshot-src="props.src"
+        :screenshot-src="phone3dScreenshotSrc"
         :tilt-delay-ms="props.tiltDelayMs"
         :screen-transition="props.screenTransition"
         :screen-transition-direction="props.screenTransitionDirection"
         :lite="props.lite"
       />
       <template #fallback>
-        <img class="phone-static-screen" :src="props.src" alt="LIFTAG screen" />
+        <img
+          class="phone-static-screen"
+          :src="props.src"
+          :srcset="responsiveSrcset"
+          :sizes="props.sizes"
+          alt="LIFTAG screen"
+          width="393"
+          height="852"
+          :loading="imageLoading"
+          decoding="async"
+          :fetchpriority="imageFetchPriority"
+        />
       </template>
     </ClientOnly>
     <Transition
@@ -132,10 +168,14 @@ onBeforeUnmount(() => {
         :key="staticDisplaySrc"
         class="phone-static-screen"
         :src="staticDisplaySrc"
+        :srcset="responsiveSrcset"
+        :sizes="props.sizes"
         alt="LIFTAG screen"
-        loading="eager"
+        width="393"
+        height="852"
+        :loading="imageLoading"
         decoding="async"
-        :fetchpriority="renderStaticMockup ? 'high' : 'auto'"
+        :fetchpriority="imageFetchPriority"
       />
     </Transition>
     <slot v-else />

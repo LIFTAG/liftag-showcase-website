@@ -311,7 +311,11 @@ onBeforeUnmount(() => {
               <template #fallback>
                 <img
                   src="/assets/screens/dashboard-web.webp"
+                  srcset="/assets/screens/dashboard-web-360.webp 360w, /assets/screens/dashboard-web-560.webp 560w, /assets/screens/dashboard-web-640.webp 640w, /assets/screens/dashboard-web.webp 1440w"
+                  sizes="(max-width: 768px) 92vw, 980px"
                   alt="Liftag dashboard"
+                  width="1440"
+                  height="936"
                   loading="lazy"
                   decoding="async"
                   class="dashboard-fallback-img"

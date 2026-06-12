@@ -103,6 +103,13 @@ function imgPanBackTo(card: FeatureCardProps) {
   return card.imgPanBackTo ?? imgPanY(card, -4)
 }
 
+function screenSrcset(src: string | undefined) {
+  if (!src?.startsWith('/assets/screens/') || !src.endsWith('.webp')) return undefined
+
+  const base = src.slice(0, -'.webp'.length)
+  return `${base}-360.webp 360w, ${base}-560.webp 560w, ${base}-640.webp 640w, ${src} 800w`
+}
+
 // Per-card hover state
 const hovered = ref<Record<number, boolean>>({})
 const tapPanCard = ref<number | null>(null)
@@ -270,7 +277,11 @@ onBeforeUnmount(() => {
           >
             <img
               :src="card.img"
+              :srcset="screenSrcset(card.img)"
+              sizes="(max-width: 768px) 100vw, 50vw"
               alt=""
+              width="800"
+              height="1739"
               loading="lazy"
               decoding="async"
                 class="lifters-card-image"

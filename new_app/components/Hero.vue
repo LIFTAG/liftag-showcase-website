@@ -372,23 +372,31 @@ function fmtStat(val: number, target: number, suffix: string, compact: boolean) 
 }
 
 // ─── lifecycle ────────────────────────────────────────────────────────────────
+let heroEntranceTimer: ReturnType<typeof setTimeout> | null = null
+let heroMobileMql: MediaQueryList | null = null
+let onHeroMobileChange: ((event: MediaQueryListEvent) => void) | null = null
+let unsubHeroMouse: (() => void) | null = null
+let onHeroCursorGlowTone: EventListener | null = null
+let onHeroAppStoreNudge: (() => void) | null = null
+let onHeroScroll: (() => void) | null = null
+
 onMounted(async () => {
   heroLaserStarted = false
   heroLaserCancelled = false
   heroLaserDone.value = false
   // entrance delay
-  const t = setTimeout(() => { entered.value = true }, 80)
+  heroEntranceTimer = setTimeout(() => { entered.value = true }, 80)
 
-  const mobileMql = window.matchMedia('(max-width: 768px)')
-  isMobile.value = mobileMql.matches
-  const onMobileChange = (e: MediaQueryListEvent) => {
+  heroMobileMql = window.matchMedia('(max-width: 768px)')
+  isMobile.value = heroMobileMql.matches
+  onHeroMobileChange = (e: MediaQueryListEvent) => {
     isMobile.value = e.matches
     if (e.matches) {
       cleanupHeroLasers()
       heroLaserDone.value = true
     }
   }
-  mobileMql.addEventListener('change', onMobileChange)
+  heroMobileMql.addEventListener('change', onHeroMobileChange)
 
   // particles - client only
   particles.value = Array.from({ length: 28 }, (_, i) => ({
@@ -408,7 +416,7 @@ onMounted(async () => {
   // (rawMouse via useLerp) updates without subscribing - useLerp's own rAF
   // picks up sharedMouse.latest changes each frame.
   let cursorRafQueued = false
-  const unsubMouse = onMouseEvent(() => {
+  unsubHeroMouse = onMouseEvent(() => {
     if (cursorRafQueued) return
     cursorRafQueued = true
     requestAnimationFrame(() => {
@@ -417,18 +425,18 @@ onMounted(async () => {
       cursorGlowY.value = sharedMouse.latest.clientY
     })
   })
-  const onCursorGlowTone = (event: Event) => {
+  onHeroCursorGlowTone = (event: Event) => {
     const tone = (event as CustomEvent<{ tone?: 'green' | 'red' }>).detail?.tone
     cursorGlowTone.value = tone === 'red' ? 'red' : 'green'
   }
-  const onAppStoreNudge = () => {
+  onHeroAppStoreNudge = () => {
     void triggerAppStoreNudge()
   }
-  window.addEventListener('liftag:cursor-glow-tone', onCursorGlowTone as EventListener)
-  window.addEventListener(APP_STORE_NUDGE_EVENT, onAppStoreNudge)
+  window.addEventListener('liftag:cursor-glow-tone', onHeroCursorGlowTone)
+  window.addEventListener(APP_STORE_NUDGE_EVENT, onHeroAppStoreNudge)
 
   let scrollQueued = false
-  const onScroll = () => {
+  onHeroScroll = () => {
     if (scrollQueued) return
     scrollQueued = true
     requestAnimationFrame(() => {
@@ -437,7 +445,7 @@ onMounted(async () => {
     })
   }
 
-  window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('scroll', onHeroScroll, { passive: true })
 
   // Chart draw-on-load: the hidden dash state is authored in the SVG markup so
   // first paint cannot flash the fully drawn graph before this reveal runs.
@@ -463,16 +471,33 @@ onMounted(async () => {
   else setTimeout(scheduleChartReveal, 0)
 
   queueHeroLaserTimer(runAllHeroLaserReveals, 280)
+})
 
-  onBeforeUnmount(() => {
-    clearTimeout(t)
-    cleanupHeroLasers()
-    unsubMouse()
-    mobileMql.removeEventListener('change', onMobileChange)
-    window.removeEventListener('liftag:cursor-glow-tone', onCursorGlowTone as EventListener)
-    window.removeEventListener(APP_STORE_NUDGE_EVENT, onAppStoreNudge)
-    window.removeEventListener('scroll', onScroll)
-  })
+onBeforeUnmount(() => {
+  if (heroEntranceTimer) clearTimeout(heroEntranceTimer)
+  cleanupHeroLasers()
+  unsubHeroMouse?.()
+
+  if (heroMobileMql && onHeroMobileChange) {
+    heroMobileMql.removeEventListener('change', onHeroMobileChange)
+  }
+  if (onHeroCursorGlowTone) {
+    window.removeEventListener('liftag:cursor-glow-tone', onHeroCursorGlowTone)
+  }
+  if (onHeroAppStoreNudge) {
+    window.removeEventListener(APP_STORE_NUDGE_EVENT, onHeroAppStoreNudge)
+  }
+  if (onHeroScroll) {
+    window.removeEventListener('scroll', onHeroScroll)
+  }
+
+  heroEntranceTimer = null
+  heroMobileMql = null
+  onHeroMobileChange = null
+  unsubHeroMouse = null
+  onHeroCursorGlowTone = null
+  onHeroAppStoreNudge = null
+  onHeroScroll = null
 })
 
 // ─── derived scroll values ────────────────────────────────────────────────────
@@ -984,7 +1009,7 @@ const pNfc = computed(() => {
               animation: 'pulse-glow 4s ease-in-out infinite',
             }"
           />
-          <Phone src="/assets/screens/home-hero-no-qr.webp" :scale="0.92" :tilt-delay-ms="0" :lite="isMobile" />
+          <Phone src="/assets/screens/home-hero-no-qr.webp" :scale="0.92" :tilt-delay-ms="0" :lite="isMobile" priority />
           <!-- Reflection streak -->
           <div
             :style="{
@@ -1026,8 +1051,12 @@ const pNfc = computed(() => {
             }"
           >
             <img
-              src="/uploads/qr-code.webp"
+              src="/uploads/qr-code-112.webp"
+              srcset="/uploads/qr-code-112.webp 112w, /uploads/qr-code-160.webp 160w, /uploads/qr-code-224.webp 224w, /uploads/qr-code.webp 400w"
+              sizes="44px"
               alt="LIFTAG QR Code"
+              width="44"
+              height="44"
               :style="{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }"
             />
           </div>
@@ -1234,7 +1263,7 @@ const pNfc = computed(() => {
 
         <div class="hero-mobile-device">
           <div class="hero-mobile-device-glow" aria-hidden="true" />
-          <Phone src="/assets/screens/home-hero-no-qr.webp" :scale="1" :tilt-delay-ms="0" lite />
+          <Phone src="/assets/screens/home-hero-no-qr.webp" :scale="1" :tilt-delay-ms="0" lite priority />
         </div>
       </div>
     </div>
