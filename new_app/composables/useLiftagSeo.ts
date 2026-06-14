@@ -82,7 +82,7 @@ export const liftagOrganization = {
   '@id': `${SITE_URL}/#organization`,
   name: 'LIFTAG',
   url: `${SITE_URL}/`,
-  logo: `${SITE_URL}/assets/logo.svg`,
+  logo: `${SITE_URL}/logo-apple-touch.png`,
   sameAs: [
     'https://www.instagram.com/liftag.fit/',
   ],
