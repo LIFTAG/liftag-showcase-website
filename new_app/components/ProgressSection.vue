@@ -411,50 +411,63 @@ onBeforeUnmount(() => {
         <div
           :style="{
             position: 'relative',
-            animation: 'float-y 6s ease-in-out infinite',
             flexShrink: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
           }"
         >
-          <!-- Glow ring -->
+          <!-- Floating phone wrapper -->
           <div
             :style="{
-              position: 'absolute',
-              inset: '6px',
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(204,255,0,0.18), transparent 70%)',
-              animation: 'pulse-glow 4s ease-in-out infinite',
+              position: 'relative',
+              animation: 'float-y 6s ease-in-out infinite',
             }"
-            aria-hidden="true"
-          />
-          <div :key="screenPulse" class="progress-phone-pulse" aria-hidden="true" />
-          <Phone
-            :src="screens[screen]"
-            :scale="1.05"
-            :style="{ position: 'relative', zIndex: '2' }"
-          />
+          >
+            <!-- Glow behind phone -->
+            <div
+              :style="{
+                position: 'absolute',
+                inset: '8px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(204,255,0,0.22) 0%, transparent 65%)',
+                filter: 'blur(24px)',
+                animation: 'pulse-glow 4s ease-in-out infinite',
+              }"
+              aria-hidden="true"
+            />
+            <div :key="screenPulse" class="progress-phone-pulse" aria-hidden="true" />
+            <Phone
+              :src="screens[screen]"
+              :scale="1.05"
+              :style="{ position: 'relative', zIndex: '2' }"
+            />
 
+          </div>
+
+          <!-- Dot indicators — outside the float so they don't bob -->
+          <div class="progress-screen-dots">
+            <button
+              v-for="(_, i) in screens"
+              :key="i"
+              type="button"
+              class="progress-screen-dot"
+              :class="{ 'is-active': screen === i }"
+              :aria-label="`Screen ${i + 1}`"
+              @click="setScreen(i)"
+              :style="{
+                width: screen === i ? '24px' : '10px',
+              }"
+            />
+          </div>
+
+          <!-- Cycle progress bar — also outside the float -->
           <div
             class="progress-cycle-indicator"
             :style="{ '--cycle-ms': `${progressScreenCycleMs}ms` }"
             aria-hidden="true"
           >
             <span :key="`progress-cycle-${screenPulse}`" />
-          </div>
-
-          <!-- Dot indicators -->
-          <div
-            class="progress-screen-dots"
-          >
-            <div
-              v-for="(_, i) in screens"
-              :key="i"
-              class="progress-screen-dot"
-              :class="{ 'is-active': screen === i }"
-              @click="setScreen(i)"
-              :style="{
-                width: screen === i ? '20px' : '6px',
-              }"
-            />
           </div>
         </div>
 
@@ -719,15 +732,12 @@ onBeforeUnmount(() => {
 }
 
 .progress-cycle-indicator {
-  position: absolute;
-  left: 50%;
-  bottom: -48px;
   width: 92px;
   height: 3px;
   overflow: hidden;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.1);
-  transform: translateX(-50%);
+  margin-top: 12px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
@@ -744,28 +754,46 @@ onBeforeUnmount(() => {
 }
 
 .progress-screen-dots {
-  position: absolute;
-  bottom: -28px;
-  left: 50%;
   display: flex;
-  gap: 6px;
-  transform: translateX(-50%);
+  gap: 8px;
+  margin-top: 28px;
+  align-items: center;
 }
 
 .progress-screen-dot {
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.2);
+  appearance: none;
+  border: none;
+  background: transparent;
   cursor: pointer;
+  padding: 8px 0;
+  display: flex;
+  align-items: center;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: width 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.progress-screen-dot::before {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.2);
   transition:
-    width 400ms cubic-bezier(0.16, 1, 0.3, 1),
     background 400ms cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 400ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.progress-screen-dot.is-active {
+.progress-screen-dot:focus-visible {
+  outline: 2px solid rgba(204, 255, 0, 0.72);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.progress-screen-dot.is-active::before {
   background: #ccff00;
-  box-shadow: 0 0 8px #ccff00;
+  box-shadow: 0 0 10px #ccff00;
 }
 
 .progress-line-chart {
@@ -893,11 +921,11 @@ onBeforeUnmount(() => {
     box-shadow: 0 0 10px rgba(204, 255, 0, 0.28);
   }
 
-  .progress-screen-dot {
+  .progress-screen-dot::before {
     background: rgba(255, 255, 255, 0.14);
   }
 
-  .progress-screen-dot.is-active {
+  .progress-screen-dot.is-active::before {
     background: rgba(204, 255, 0, 0.72);
     box-shadow: 0 0 10px rgba(204, 255, 0, 0.34);
   }
