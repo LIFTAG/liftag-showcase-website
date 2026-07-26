@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /auth/
 Disallow: /qr/
+Disallow: /routines/
 
 Sitemap: https://liftag.fit/sitemap.xml
