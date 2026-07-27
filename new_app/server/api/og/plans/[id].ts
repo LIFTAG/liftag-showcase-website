@@ -1,9 +1,10 @@
 import type { OgCardModel } from '../../../utils/ogCard'
-import { serveOgCard, formatCount } from '../../../utils/ogShare'
+import { serveOgCard, formatCount, tileImageCandidates } from '../../../utils/ogShare'
 
 interface PlanDetailResponse {
   data: {
     name: string
+    thumbnailUrl: string | null
     creator: { fullName: string | null } | null
     createdByUserName?: string | null
     items: Array<{
@@ -43,7 +44,7 @@ async function firstExerciseImage(apiBaseUrl: string, routineId: string): Promis
   }
 }
 
-async function fetchPlanModel(apiBaseUrl: string, id: string): Promise<OgCardModel> {
+async function fetchPlanModel(apiBaseUrl: string, id: string, femaleVariant: boolean): Promise<OgCardModel> {
   const res = await $fetch<PlanDetailResponse>(`/v1/plans/${id}`, {
     baseURL: apiBaseUrl,
     timeout: 6000,
@@ -55,15 +56,20 @@ async function fetchPlanModel(apiBaseUrl: string, id: string): Promise<OgCardMod
   const author = plan.createdByUserName ?? plan.creator?.fullName ?? null
   const chips: string[] = [formatCount(routines.length, 'routine', 'routines')]
   if (author) chips.push(`by ${author}`)
-  const tiles = await Promise.all(routines.map(async (routine, index) => ({
-    label: routine.name,
-    imageUrl: routine.thumbnailUrl
-      ?? (index < MAX_ENRICHED ? await firstExerciseImage(apiBaseUrl, routine.id) : null),
-  })))
+  const tiles = await Promise.all(routines.map(async (routine, index) => {
+    // Routine thumbnails are user uploads with no gender variant; only the
+    // borrowed catalog exercise images participate in the female variant.
+    if (routine.thumbnailUrl) return { label: routine.name, imageUrls: [routine.thumbnailUrl] }
+    const exerciseImage = index < MAX_ENRICHED
+      ? await firstExerciseImage(apiBaseUrl, routine.id)
+      : null
+    return { label: routine.name, imageUrls: tileImageCandidates(exerciseImage, femaleVariant) }
+  }))
   return {
     caption: 'Training plan',
     name: plan.name,
     chips,
+    backdropImageUrl: plan.thumbnailUrl,
     tiles,
   }
 }

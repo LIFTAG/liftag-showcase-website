@@ -6,6 +6,9 @@ const APP_STORE_APP_ID = '6761140080'
 const APP_STORE = `https://apps.apple.com/app/id${APP_STORE_APP_ID}`
 const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.liftag.app'
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+// Share links from female users carry ?v=f; the card then prefers the female
+// exercise-image variants. Forwarded verbatim to the image route.
+const variantQuery = route.query.v === 'f' ? '?v=f' : ''
 
 // Server-side fetch so link previews carry the real routine name. Private or
 // missing routines resolve to null and the generic copy is used instead.
@@ -31,7 +34,7 @@ useLiftagSeo({
   title: routine.value ? `${routine.value.name} on LIFTAG` : 'Check out this routine on LIFTAG',
   description: 'Someone shared a workout routine with you. Open the link on your phone to view it in the LIFTAG app.',
   path: `/routines/${id}`,
-  image: `https://liftag.fit/api/og/routines/${id}`,
+  image: `https://liftag.fit/api/og/routines/${id}${variantQuery}`,
   noindex: true,
 })
 
