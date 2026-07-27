@@ -3,5 +3,6 @@ Allow: /
 Disallow: /auth/
 Disallow: /qr/
 Disallow: /routines/
+Disallow: /plans/
 
 Sitemap: https://liftag.fit/sitemap.xml
