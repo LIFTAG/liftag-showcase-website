@@ -13,6 +13,14 @@ import sharp from 'sharp'
 const CARD_WIDTH = 1200
 const CARD_HEIGHT = 630
 const MAX_TILES = 4
+/**
+ * Instagram's DM preview renders the card near-square and centre-crops it,
+ * eating ~285px off each side. Identity copy is therefore centred and capped to
+ * this width so the middle square stays self-contained; only the outer tiles
+ * and the domain, both expendable, fall outside it. Kept under the square's
+ * own CARD_HEIGHT width so copy still has margins after the crop.
+ */
+const SAFE_WIDTH = 580
 
 const COLORS = {
   bg: '#0E0E0E',
@@ -313,13 +321,13 @@ export async function renderOgCard(model: OgCardModel): Promise<Buffer> {
           left: 0,
           width: CARD_WIDTH,
           height: CARD_HEIGHT,
-          backgroundImage: 'radial-gradient(circle at 88% -18%, rgba(204,255,0,0.14), rgba(204,255,0,0) 52%)',
+          backgroundImage: 'radial-gradient(circle at 50% -18%, rgba(204,255,0,0.14), rgba(204,255,0,0) 52%)',
         }),
       ]
     : []
 
   const tilesRow = tileCount > 0
-    ? el('div', { display: 'flex', flexGrow: 1, gap: tileGap, marginTop: 30 }, [
+    ? el('div', { display: 'flex', width: '100%', flexGrow: 1, gap: tileGap, marginTop: 30 }, [
         ...shown.map((t, i) => tile({ label: t.label, imageDataUri: tileImages[i] }, tileWidth)),
         ...(overflow
           ? [tile({
@@ -333,14 +341,18 @@ export async function renderOgCard(model: OgCardModel): Promise<Buffer> {
   const root = el('div', {
     display: 'flex',
     flexDirection: 'column',
+    alignItems: 'center',
     width: '100%',
     height: '100%',
     backgroundColor: COLORS.bg,
-    backgroundImage: `radial-gradient(circle at 88% -18%, rgba(204,255,0,0.16), rgba(204,255,0,0) 52%)`,
+    backgroundImage: `radial-gradient(circle at 50% -18%, rgba(204,255,0,0.16), rgba(204,255,0,0) 52%)`,
     padding: '52px 56px 48px 56px',
   }, [
     ...backdropLayers,
-    el('div', { display: 'flex', alignItems: 'center' }, [
+    // Header: wordmark centered, domain parked at the right edge. Losing the
+    // domain to a square crop is harmless — preview UIs print the link's host
+    // as text under the image anyway.
+    el('div', { display: 'flex', position: 'relative', width: '100%', alignItems: 'center', justifyContent: 'center' }, [
       el('div', {
         color: COLORS.text,
         fontFamily: 'Space Grotesk',
@@ -357,8 +369,10 @@ export async function renderOgCard(model: OgCardModel): Promise<Buffer> {
         backgroundColor: COLORS.primary,
       }),
       el('div', {
+        position: 'absolute',
+        right: 0,
+        top: 12,
         display: 'flex',
-        marginLeft: 'auto',
         color: COLORS.textSecondary,
         fontFamily: 'Inter',
         fontWeight: 400,
@@ -367,6 +381,8 @@ export async function renderOgCard(model: OgCardModel): Promise<Buffer> {
     ]),
     el('div', {
       display: 'flex',
+      width: '100%',
+      justifyContent: 'center',
       marginTop: 34,
       color: COLORS.primary,
       fontFamily: 'Inter',
@@ -374,9 +390,12 @@ export async function renderOgCard(model: OgCardModel): Promise<Buffer> {
       fontSize: 20,
       letterSpacing: 5,
     }, model.caption.toUpperCase()),
+    // maxWidth (not width) so a short name shrinks to fit and root's
+    // alignItems centers it; textAlign only governs the wrapped lines.
     el('div', {
-      display: 'flex',
+      maxWidth: SAFE_WIDTH,
       marginTop: 10,
+      textAlign: 'center',
       color: COLORS.text,
       fontFamily: 'Space Grotesk',
       fontWeight: 700,
@@ -385,7 +404,14 @@ export async function renderOgCard(model: OgCardModel): Promise<Buffer> {
       lineClamp: 2,
     }, model.name),
     ...(model.chips.length > 0
-      ? [el('div', { display: 'flex', gap: 14, marginTop: 24, flexWrap: 'wrap' }, model.chips.map(chip))]
+      ? [el('div', {
+          display: 'flex',
+          width: SAFE_WIDTH,
+          justifyContent: 'center',
+          gap: 14,
+          marginTop: 24,
+          flexWrap: 'wrap',
+        }, model.chips.map(chip))]
       : []),
     tilesRow,
   ])
