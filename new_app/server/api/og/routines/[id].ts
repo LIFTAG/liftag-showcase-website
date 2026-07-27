@@ -1,9 +1,10 @@
 import type { OgCardModel } from '../../../utils/ogCard'
-import { serveOgCard, formatCount, capitalize } from '../../../utils/ogShare'
+import { serveOgCard, formatCount, capitalize, tileImageCandidates } from '../../../utils/ogShare'
 
 interface RoutineDetailResponse {
   data: {
     name: string
+    thumbnailUrl: string | null
     estimatedDurationMin: number | null
     difficulty: string | null
     creator: { fullName: string | null } | null
@@ -14,7 +15,7 @@ interface RoutineDetailResponse {
   }
 }
 
-async function fetchRoutineModel(apiBaseUrl: string, id: string): Promise<OgCardModel> {
+async function fetchRoutineModel(apiBaseUrl: string, id: string, femaleVariant: boolean): Promise<OgCardModel> {
   const res = await $fetch<RoutineDetailResponse>(`/v1/routines/${id}`, {
     baseURL: apiBaseUrl,
     timeout: 6000,
@@ -28,9 +29,10 @@ async function fetchRoutineModel(apiBaseUrl: string, id: string): Promise<OgCard
     caption: 'Workout routine',
     name: routine.name,
     chips,
+    backdropImageUrl: routine.thumbnailUrl,
     tiles: routine.items.map(item => ({
       label: item.exerciseName ?? 'Exercise',
-      imageUrl: item.exerciseImageUrl,
+      imageUrls: tileImageCandidates(item.exerciseImageUrl, femaleVariant),
     })),
   }
 }

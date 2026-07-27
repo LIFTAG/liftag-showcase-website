@@ -25,7 +25,8 @@ const COLORS = {
 
 export interface OgCardTile {
   label: string
-  imageUrl: string | null
+  /** Candidate image URLs, tried in order (e.g. female variant, then base). */
+  imageUrls: string[]
 }
 
 export interface OgCardModel {
@@ -33,6 +34,12 @@ export interface OgCardModel {
   name: string
   chips: string[]
   tiles: OgCardTile[]
+  /**
+   * Owner-uploaded cover image (routine/plan thumbnailUrl). Rendered as a
+   * blurred, dimmed full-bleed backdrop behind the card content, echoing the
+   * app's routine-detail media hero. Absent -> plain dark card.
+   */
+  backdropImageUrl?: string | null
 }
 
 interface VNode {
@@ -80,20 +87,23 @@ async function loadFonts() {
  * decode, so sharp re-encodes everything. Returns null on any failure; the
  * tile then falls back to an initial on a dark surface.
  */
-export async function fetchTileImage(url: string): Promise<string | null> {
-  try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
-    if (!res.ok) return null
-    const input = Buffer.from(await res.arrayBuffer())
-    const jpeg = await sharp(input)
-      .resize(360, 300, { fit: 'cover', position: 'attention' })
-      .jpeg({ quality: 78 })
-      .toBuffer()
-    return `data:image/jpeg;base64,${jpeg.toString('base64')}`
+export async function fetchTileImage(urls: string[]): Promise<string | null> {
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
+      if (!res.ok) continue
+      const input = Buffer.from(await res.arrayBuffer())
+      const jpeg = await sharp(input)
+        .resize(360, 300, { fit: 'cover', position: 'attention' })
+        .jpeg({ quality: 78 })
+        .toBuffer()
+      return `data:image/jpeg;base64,${jpeg.toString('base64')}`
+    }
+    catch {
+      // Try the next candidate.
+    }
   }
-  catch {
-    return null
-  }
+  return null
 }
 
 const BLANK_SVG_URI = `data:image/svg+xml;base64,${Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"/>').toString('base64')}`
@@ -128,6 +138,29 @@ async function loadEmoji(segment: string): Promise<string> {
   }
   emojiCache.set(segment, BLANK_SVG_URI)
   return BLANK_SVG_URI
+}
+
+/**
+ * Fetch the cover image and pre-process it into a hero backdrop: satori has no
+ * CSS filter support, so the blur and dimming happen in sharp. Kept darker
+ * than the app's hero because chips/tiles must stay legible on top of it.
+ */
+async function fetchBackdropImage(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) })
+    if (!res.ok) return null
+    const input = Buffer.from(await res.arrayBuffer())
+    const jpeg = await sharp(input)
+      .resize(CARD_WIDTH, CARD_HEIGHT, { fit: 'cover' })
+      .blur(6)
+      .modulate({ brightness: 0.58, saturation: 0.85 })
+      .jpeg({ quality: 66 })
+      .toBuffer()
+    return `data:image/jpeg;base64,${jpeg.toString('base64')}`
+  }
+  catch {
+    return null
+  }
 }
 
 function chip(text: string): VNode {
@@ -215,9 +248,43 @@ export async function renderOgCard(model: OgCardModel): Promise<Buffer> {
     ? Math.floor((CARD_WIDTH - 2 * 56 - (tileCount - 1) * tileGap) / tileCount)
     : 0
 
-  const tileImages = await Promise.all(
-    shown.map(t => (t.imageUrl ? fetchTileImage(t.imageUrl) : Promise.resolve(null))),
-  )
+  const [backdropUri, tileImages] = await Promise.all([
+    model.backdropImageUrl ? fetchBackdropImage(model.backdropImageUrl) : Promise.resolve(null),
+    Promise.all(
+      shown.map(t => (t.imageUrls.length > 0 ? fetchTileImage(t.imageUrls) : Promise.resolve(null))),
+    ),
+  ])
+
+  const backdropLayers: VNode[] = backdropUri
+    ? [
+        el('img', {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: CARD_WIDTH,
+          height: CARD_HEIGHT,
+          objectFit: 'cover',
+        }, undefined, { src: backdropUri }),
+        // Legibility scrim: light at the top so the cover shows through, and
+        // heavier toward the tile row so labels stay readable.
+        el('div', {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: CARD_WIDTH,
+          height: CARD_HEIGHT,
+          background: 'linear-gradient(to bottom, rgba(14,14,14,0.42), rgba(14,14,14,0.62) 46%, rgba(14,14,14,0.88))',
+        }),
+        el('div', {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: CARD_WIDTH,
+          height: CARD_HEIGHT,
+          backgroundImage: 'radial-gradient(circle at 88% -18%, rgba(204,255,0,0.14), rgba(204,255,0,0) 52%)',
+        }),
+      ]
+    : []
 
   const tilesRow = tileCount > 0
     ? el('div', { display: 'flex', flexGrow: 1, gap: tileGap, marginTop: 30 }, [
@@ -235,6 +302,7 @@ export async function renderOgCard(model: OgCardModel): Promise<Buffer> {
     backgroundImage: `radial-gradient(circle at 88% -18%, rgba(204,255,0,0.16), rgba(204,255,0,0) 52%)`,
     padding: '52px 56px 48px 56px',
   }, [
+    ...backdropLayers,
     el('div', { display: 'flex', alignItems: 'center' }, [
       el('div', {
         color: COLORS.text,
