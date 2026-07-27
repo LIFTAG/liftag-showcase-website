@@ -7,13 +7,13 @@ const APP_STORE = `https://apps.apple.com/app/id${APP_STORE_APP_ID}`
 const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.liftag.app'
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-// Server-side fetch so link previews carry the real routine name. Private or
-// missing routines resolve to null and the generic copy is used instead.
-const { data: routine } = await useAsyncData(`routine-share-${id}`, async () => {
+// Server-side fetch so link previews carry the real plan name. Private or
+// missing plans resolve to null and the generic copy is used instead.
+const { data: plan } = await useAsyncData(`plan-share-${id}`, async () => {
   if (!UUID_RE.test(id)) return null
   try {
     const { apiBaseUrl } = useRuntimeConfig().public
-    const res = await $fetch<{ data: { name: string } }>(`/v1/routines/${id}`, {
+    const res = await $fetch<{ data: { name: string } }>(`/v1/plans/${id}`, {
       baseURL: String(apiBaseUrl),
       timeout: 6000,
     })
@@ -25,13 +25,13 @@ const { data: routine } = await useAsyncData(`routine-share-${id}`, async () => 
 })
 
 // Share links are sent URL-only on iOS, so messaging apps build their preview
-// card from these OG tags. The image endpoint renders the routine's exercise
-// grid and falls back to the default og-image for non-public routines.
+// card from these OG tags. The image endpoint renders the plan's routine grid
+// and falls back to the default og-image for non-public plans.
 useLiftagSeo({
-  title: routine.value ? `${routine.value.name} on LIFTAG` : 'Check out this routine on LIFTAG',
-  description: 'Someone shared a workout routine with you. Open the link on your phone to view it in the LIFTAG app.',
-  path: `/routines/${id}`,
-  image: `https://liftag.fit/api/og/routines/${id}`,
+  title: plan.value ? `${plan.value.name} on LIFTAG` : 'Check out this training plan on LIFTAG',
+  description: 'Someone shared a training plan with you. Open the link on your phone to view it in the LIFTAG app.',
+  path: `/plans/${id}`,
+  image: `https://liftag.fit/api/og/plans/${id}`,
   noindex: true,
 })
 
@@ -41,7 +41,7 @@ useHead({
     { name: 'viewport', content: 'width=device-width,initial-scale=1' },
     {
       name: 'apple-itunes-app',
-      content: `app-id=${APP_STORE_APP_ID}, app-argument=https://liftag.fit/routines/${id}`,
+      content: `app-id=${APP_STORE_APP_ID}, app-argument=https://liftag.fit/plans/${id}`,
     },
   ],
 })
@@ -55,7 +55,7 @@ onMounted(() => {
     window.location.replace(APP_STORE)
   } else if (isAndroid) {
     const intentUrl =
-      `intent://liftag.fit/routines/${id}` +
+      `intent://liftag.fit/plans/${id}` +
       `#Intent;scheme=https;package=com.liftag.app;` +
       `S.browser_fallback_url=${encodeURIComponent(PLAY_STORE)};end`
     window.location.replace(intentUrl)
@@ -66,13 +66,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="routine-redirect">
-    <p>Opening LIFTAG routine...</p>
+  <main class="plan-redirect">
+    <p>Opening LIFTAG training plan...</p>
   </main>
 </template>
 
 <style scoped>
-.routine-redirect {
+.plan-redirect {
   min-height: var(--liftag-stable-vh);
   display: grid;
   place-items: center;
