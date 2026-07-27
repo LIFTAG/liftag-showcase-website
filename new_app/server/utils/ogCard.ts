@@ -205,13 +205,38 @@ function tile(t: { label?: string, imageDataUri?: string | null, plus?: number }
     overflow: 'hidden',
   }
   if (t.plus !== undefined) {
-    return el('div', { ...base, alignItems: 'center', justifyContent: 'center' },
-      el('div', {
-        color: COLORS.primary,
-        fontFamily: 'Space Grotesk',
-        fontWeight: 700,
-        fontSize: 52,
-      }, `+${t.plus}`))
+    // The counter sits on the next exercise's photo, dimmed, so the tile reads
+    // as "more of these" rather than an empty slot. Flat surface if it failed.
+    const overflowChildren: VNode[] = []
+    if (t.imageDataUri) {
+      overflowChildren.push(
+        el('img', {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+        }, undefined, { src: t.imageDataUri }),
+        el('div', {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: 'flex',
+          backgroundColor: 'rgba(14,14,14,0.66)',
+        }),
+      )
+    }
+    overflowChildren.push(el('div', {
+      display: 'flex',
+      color: COLORS.primary,
+      fontFamily: 'Space Grotesk',
+      fontWeight: 700,
+      fontSize: 52,
+    }, `+${t.plus}`))
+    return el('div', { ...base, alignItems: 'center', justifyContent: 'center' }, overflowChildren)
   }
   const children: VNode[] = []
   if (t.imageDataUri) {
@@ -242,6 +267,13 @@ export async function renderOgCard(model: OgCardModel): Promise<Buffer> {
 
   const overflow = model.tiles.length > MAX_TILES
   const shown = overflow ? model.tiles.slice(0, MAX_TILES - 1) : model.tiles.slice(0, MAX_TILES)
+  // The counter tile borrows a photo from the exercises it stands for. Pick the
+  // first hidden one that actually has an image, so a single image-less entry
+  // right after the cut doesn't drop the tile back to a flat panel.
+  const overflowSource = overflow
+    ? model.tiles.slice(MAX_TILES - 1).find(t => t.imageUrls.length > 0)
+    : undefined
+  const fetched = overflowSource ? [...shown, overflowSource] : shown
   const tileCount = shown.length + (overflow ? 1 : 0)
   const tileGap = 22
   const tileWidth = tileCount > 0
@@ -251,7 +283,7 @@ export async function renderOgCard(model: OgCardModel): Promise<Buffer> {
   const [backdropUri, tileImages] = await Promise.all([
     model.backdropImageUrl ? fetchBackdropImage(model.backdropImageUrl) : Promise.resolve(null),
     Promise.all(
-      shown.map(t => (t.imageUrls.length > 0 ? fetchTileImage(t.imageUrls) : Promise.resolve(null))),
+      fetched.map(t => (t.imageUrls.length > 0 ? fetchTileImage(t.imageUrls) : Promise.resolve(null))),
     ),
   ])
 
@@ -289,7 +321,12 @@ export async function renderOgCard(model: OgCardModel): Promise<Buffer> {
   const tilesRow = tileCount > 0
     ? el('div', { display: 'flex', flexGrow: 1, gap: tileGap, marginTop: 30 }, [
         ...shown.map((t, i) => tile({ label: t.label, imageDataUri: tileImages[i] }, tileWidth)),
-        ...(overflow ? [tile({ plus: model.tiles.length - shown.length }, tileWidth)] : []),
+        ...(overflow
+          ? [tile({
+              plus: model.tiles.length - shown.length,
+              imageDataUri: overflowSource ? tileImages[shown.length] : null,
+            }, tileWidth)]
+          : []),
       ])
     : el('div', { display: 'flex', flexGrow: 1 })
 
