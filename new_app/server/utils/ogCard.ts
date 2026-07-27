@@ -13,6 +13,14 @@ import sharp from 'sharp'
 const CARD_WIDTH = 1200
 const CARD_HEIGHT = 630
 const MAX_TILES = 4
+/**
+ * Instagram's DM preview renders the card near-square and centre-crops it,
+ * eating ~285px off each side. Identity copy is therefore centred and capped to
+ * this width so the middle square stays self-contained; only the outer tiles
+ * and the domain, both expendable, fall outside it. Kept under the square's
+ * own CARD_HEIGHT width so copy still has margins after the crop.
+ */
+const SAFE_WIDTH = 580
 
 const COLORS = {
   bg: '#0E0E0E',
@@ -205,13 +213,38 @@ function tile(t: { label?: string, imageDataUri?: string | null, plus?: number }
     overflow: 'hidden',
   }
   if (t.plus !== undefined) {
-    return el('div', { ...base, alignItems: 'center', justifyContent: 'center' },
-      el('div', {
-        color: COLORS.primary,
-        fontFamily: 'Space Grotesk',
-        fontWeight: 700,
-        fontSize: 52,
-      }, `+${t.plus}`))
+    // The counter sits on the next exercise's photo, dimmed, so the tile reads
+    // as "more of these" rather than an empty slot. Flat surface if it failed.
+    const overflowChildren: VNode[] = []
+    if (t.imageDataUri) {
+      overflowChildren.push(
+        el('img', {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+        }, undefined, { src: t.imageDataUri }),
+        el('div', {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          display: 'flex',
+          backgroundColor: 'rgba(14,14,14,0.66)',
+        }),
+      )
+    }
+    overflowChildren.push(el('div', {
+      display: 'flex',
+      color: COLORS.primary,
+      fontFamily: 'Space Grotesk',
+      fontWeight: 700,
+      fontSize: 52,
+    }, `+${t.plus}`))
+    return el('div', { ...base, alignItems: 'center', justifyContent: 'center' }, overflowChildren)
   }
   const children: VNode[] = []
   if (t.imageDataUri) {
@@ -242,6 +275,13 @@ export async function renderOgCard(model: OgCardModel): Promise<Buffer> {
 
   const overflow = model.tiles.length > MAX_TILES
   const shown = overflow ? model.tiles.slice(0, MAX_TILES - 1) : model.tiles.slice(0, MAX_TILES)
+  // The counter tile borrows a photo from the exercises it stands for. Pick the
+  // first hidden one that actually has an image, so a single image-less entry
+  // right after the cut doesn't drop the tile back to a flat panel.
+  const overflowSource = overflow
+    ? model.tiles.slice(MAX_TILES - 1).find(t => t.imageUrls.length > 0)
+    : undefined
+  const fetched = overflowSource ? [...shown, overflowSource] : shown
   const tileCount = shown.length + (overflow ? 1 : 0)
   const tileGap = 22
   const tileWidth = tileCount > 0
@@ -251,7 +291,7 @@ export async function renderOgCard(model: OgCardModel): Promise<Buffer> {
   const [backdropUri, tileImages] = await Promise.all([
     model.backdropImageUrl ? fetchBackdropImage(model.backdropImageUrl) : Promise.resolve(null),
     Promise.all(
-      shown.map(t => (t.imageUrls.length > 0 ? fetchTileImage(t.imageUrls) : Promise.resolve(null))),
+      fetched.map(t => (t.imageUrls.length > 0 ? fetchTileImage(t.imageUrls) : Promise.resolve(null))),
     ),
   ])
 
@@ -281,29 +321,38 @@ export async function renderOgCard(model: OgCardModel): Promise<Buffer> {
           left: 0,
           width: CARD_WIDTH,
           height: CARD_HEIGHT,
-          backgroundImage: 'radial-gradient(circle at 88% -18%, rgba(204,255,0,0.14), rgba(204,255,0,0) 52%)',
+          backgroundImage: 'radial-gradient(circle at 50% -18%, rgba(204,255,0,0.14), rgba(204,255,0,0) 52%)',
         }),
       ]
     : []
 
   const tilesRow = tileCount > 0
-    ? el('div', { display: 'flex', flexGrow: 1, gap: tileGap, marginTop: 30 }, [
+    ? el('div', { display: 'flex', width: '100%', flexGrow: 1, gap: tileGap, marginTop: 30 }, [
         ...shown.map((t, i) => tile({ label: t.label, imageDataUri: tileImages[i] }, tileWidth)),
-        ...(overflow ? [tile({ plus: model.tiles.length - shown.length }, tileWidth)] : []),
+        ...(overflow
+          ? [tile({
+              plus: model.tiles.length - shown.length,
+              imageDataUri: overflowSource ? tileImages[shown.length] : null,
+            }, tileWidth)]
+          : []),
       ])
     : el('div', { display: 'flex', flexGrow: 1 })
 
   const root = el('div', {
     display: 'flex',
     flexDirection: 'column',
+    alignItems: 'center',
     width: '100%',
     height: '100%',
     backgroundColor: COLORS.bg,
-    backgroundImage: `radial-gradient(circle at 88% -18%, rgba(204,255,0,0.16), rgba(204,255,0,0) 52%)`,
+    backgroundImage: `radial-gradient(circle at 50% -18%, rgba(204,255,0,0.16), rgba(204,255,0,0) 52%)`,
     padding: '52px 56px 48px 56px',
   }, [
     ...backdropLayers,
-    el('div', { display: 'flex', alignItems: 'center' }, [
+    // Header: wordmark centered, domain parked at the right edge. Losing the
+    // domain to a square crop is harmless — preview UIs print the link's host
+    // as text under the image anyway.
+    el('div', { display: 'flex', position: 'relative', width: '100%', alignItems: 'center', justifyContent: 'center' }, [
       el('div', {
         color: COLORS.text,
         fontFamily: 'Space Grotesk',
@@ -320,8 +369,10 @@ export async function renderOgCard(model: OgCardModel): Promise<Buffer> {
         backgroundColor: COLORS.primary,
       }),
       el('div', {
+        position: 'absolute',
+        right: 0,
+        top: 12,
         display: 'flex',
-        marginLeft: 'auto',
         color: COLORS.textSecondary,
         fontFamily: 'Inter',
         fontWeight: 400,
@@ -330,6 +381,8 @@ export async function renderOgCard(model: OgCardModel): Promise<Buffer> {
     ]),
     el('div', {
       display: 'flex',
+      width: '100%',
+      justifyContent: 'center',
       marginTop: 34,
       color: COLORS.primary,
       fontFamily: 'Inter',
@@ -337,9 +390,12 @@ export async function renderOgCard(model: OgCardModel): Promise<Buffer> {
       fontSize: 20,
       letterSpacing: 5,
     }, model.caption.toUpperCase()),
+    // maxWidth (not width) so a short name shrinks to fit and root's
+    // alignItems centers it; textAlign only governs the wrapped lines.
     el('div', {
-      display: 'flex',
+      maxWidth: SAFE_WIDTH,
       marginTop: 10,
+      textAlign: 'center',
       color: COLORS.text,
       fontFamily: 'Space Grotesk',
       fontWeight: 700,
@@ -348,7 +404,14 @@ export async function renderOgCard(model: OgCardModel): Promise<Buffer> {
       lineClamp: 2,
     }, model.name),
     ...(model.chips.length > 0
-      ? [el('div', { display: 'flex', gap: 14, marginTop: 24, flexWrap: 'wrap' }, model.chips.map(chip))]
+      ? [el('div', {
+          display: 'flex',
+          width: SAFE_WIDTH,
+          justifyContent: 'center',
+          gap: 14,
+          marginTop: 24,
+          flexWrap: 'wrap',
+        }, model.chips.map(chip))]
       : []),
     tilesRow,
   ])
