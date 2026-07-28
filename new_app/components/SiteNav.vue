@@ -181,7 +181,8 @@ onBeforeUnmount(() => {
     <div class="nav-actions" style="display: flex; align-items: center; gap: 12px;">
       <!-- Desktop CTA -->
       <a
-        href="https://app.liftag.fit"
+        href="https://app.liftag.fit/login"
+        rel="nofollow"
         class="btn-ghost nav-desktop nav-dashboard-cta"
       >
         Dashboard
@@ -276,7 +277,8 @@ onBeforeUnmount(() => {
       >{{ label }}</a>
     </nav>
     <a
-      href="https://app.liftag.fit"
+      href="https://app.liftag.fit/login"
+      rel="nofollow"
       class="nav-dashboard-mobile"
       @click="open = false"
     >
