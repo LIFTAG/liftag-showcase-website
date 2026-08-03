@@ -10,7 +10,8 @@
     "preview": "nuxt preview",
     "start": "node .output/server/index.mjs",
     "postinstall": "nuxt prepare",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "verify": "pnpm typecheck && pnpm build"
   },
   "dependencies": {
     "@nuxt/scripts": "^1.1.1",

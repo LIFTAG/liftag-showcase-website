@@ -8,7 +8,8 @@
     "generate": "pnpm --dir new_app generate",
     "preview": "pnpm --dir new_app preview",
     "start": "pnpm --dir new_app start",
-    "typecheck": "pnpm --dir new_app typecheck"
+    "typecheck": "pnpm --dir new_app typecheck",
+    "verify": "pnpm --dir new_app verify"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1"
