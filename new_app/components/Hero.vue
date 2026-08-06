@@ -1551,9 +1551,21 @@ const pNfc = computed(() => {
   .hero-mobile-layout {
     display: grid;
     grid-template-rows: auto auto;
-    gap: 30px;
+    gap: 36px;
     min-height: 0;
-    padding-top: 30px;
+    padding-top: 40px;
+  }
+
+  .hero-mobile-title {
+    line-height: 0.98;
+  }
+
+  .hero-mobile-copyline {
+    margin-top: 28px;
+  }
+
+  .hero-mobile-actions {
+    margin-top: 32px;
   }
 
   .hero-mobile-visual {
@@ -1568,7 +1580,7 @@ const pNfc = computed(() => {
   }
 
   .hero-mobile-device {
-    width: min(50vw, 196px);
+    width: min(46vw, 180px);
     margin-top: 0;
   }
 
@@ -1577,12 +1589,18 @@ const pNfc = computed(() => {
   }
 }
 
+@media (max-width: 699px) {
+  .hero-mobile-secondary {
+    display: none;
+  }
+}
+
 @media (max-width: 420px) {
   .hero-mobile-layout {
     grid-template-rows: auto auto;
-    gap: 26px;
+    gap: 34px;
     min-height: 0;
-    padding-top: 24px;
+    padding-top: 36px;
   }
 
   .hero-mobile-title {
@@ -1591,7 +1609,12 @@ const pNfc = computed(() => {
 
   .hero-mobile-copyline {
     max-width: 19rem;
+    margin-top: 26px;
     font-size: 15px;
+  }
+
+  .hero-mobile-actions {
+    margin-top: 30px;
   }
 }
 
@@ -1603,27 +1626,27 @@ const pNfc = computed(() => {
 
   .hero-mobile-layout {
     grid-template-rows: auto auto;
-    gap: 18px;
+    gap: 26px;
     min-height: 0;
-    padding-top: 16px;
+    padding-top: 24px;
   }
 
   .hero-mobile-title {
     margin-top: 0;
     font-size: clamp(39px, 11.4vw, 46px);
-    line-height: 0.92;
+    line-height: 0.96;
   }
 
   .hero-mobile-copyline {
     max-width: 18rem;
-    margin-top: 16px;
+    margin-top: 22px;
     font-size: 14px;
     line-height: 1.36;
   }
 
   .hero-mobile-actions {
     gap: 10px;
-    margin-top: 18px;
+    margin-top: 24px;
   }
 
   .hero-mobile-visual {
