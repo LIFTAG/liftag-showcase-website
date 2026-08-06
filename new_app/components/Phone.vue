@@ -206,16 +206,16 @@ onBeforeUnmount(() => {
   object-fit: cover;
 }
 
-.phone--static-mockup::after {
-  content: '';
-  position: absolute;
-  inset: 8px;
-  z-index: 2;
-  border-radius: 24px;
-  pointer-events: none;
+.phone--static-mockup {
+  border: 0;
+  background: transparent;
   box-shadow:
-    inset 0 10px 24px rgba(255, 255, 255, 0.04),
-    inset 0 -22px 34px rgba(0, 0, 0, 0.28);
+    0 30px 80px rgba(0, 0, 0, 0.8),
+    0 0 60px rgba(204, 255, 0, 0.08);
+}
+
+.phone--static-mockup::after {
+  display: none;
 }
 
 .phone-static-fade-enter-active,

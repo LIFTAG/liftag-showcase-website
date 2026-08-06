@@ -1460,15 +1460,9 @@ const pNfc = computed(() => {
 }
 
 .hero-mobile-device :deep(.phone--static-mockup) {
-  border: 0 !important;
-  background: transparent;
   box-shadow:
     0 26px 64px rgba(0, 0, 0, 0.72),
     0 0 40px rgba(204, 255, 0, 0.1) !important;
-}
-
-.hero-mobile-device :deep(.phone--static-mockup::after) {
-  display: none;
 }
 
 .hero-mobile-device :deep(.phone-static-screen) {
