@@ -429,15 +429,22 @@ onMounted(async () => {
       // instead re-rendered the whole hero — 28 particle style objects, four
       // phone parallax transforms and four opacity bindings — every frame,
       // which is what made the fade stutter on phones.
+      // Phones do none of this. Writing opacity per frame still repaints the
+      // faded subtree — it holds a blur(22px) glow and a masked full-viewport
+      // gradient, neither of which is cheap — so the fade there is handed to a
+      // CSS scroll timeline instead (see .hero-fades below), which the
+      // compositor runs off the main thread. Where that is unsupported the
+      // hero simply scrolls away without fading, which is the smooth outcome.
+      if (isMobile.value) return
+
       const root = heroRoot.value
       if (root) {
         root.style.setProperty('--hero-fade', String(Math.max(0, 1 - y / 500)))
         root.style.setProperty('--hero-lift', `${y * 0.35}px`)
       }
 
-      // Only the desktop parallax and particles read the ref, and neither is
-      // rendered on phones, so skip the write there entirely.
-      if (!isMobile.value) scrollY.value = y
+      // Only the desktop parallax and particles read the ref.
+      scrollY.value = y
     })
   }
 
@@ -1240,7 +1247,7 @@ const pNfc = computed(() => {
           </div>
 
           <div class="hero-mobile-stores">
-            <GetAppBtn />
+            <GetAppBtn compact label="Download" />
           </div>
         </div>
 
@@ -1287,6 +1294,26 @@ const pNfc = computed(() => {
 
 .hero-fades {
   opacity: var(--hero-fade);
+}
+
+/* Phones: same fade, driven by a scroll timeline so it runs on the compositor
+   rather than repainting the subtree from a per-frame JS opacity write. Gated
+   on @supports — where the timeline is unavailable the hero just scrolls away
+   at full opacity, which is preferable to a stuttering fade. */
+@media (max-width: 768px) {
+  @supports (animation-timeline: scroll()) {
+    .hero-fades {
+      will-change: opacity;
+      animation: heroScrollFade linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 500px;
+    }
+  }
+}
+
+@keyframes heroScrollFade {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 /* Hidden until the entrance finishes, then fades out with the rest of the hero. */

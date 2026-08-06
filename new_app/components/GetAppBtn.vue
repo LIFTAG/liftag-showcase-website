@@ -11,11 +11,25 @@
  * beside the QR, where naming the two stores IS the information), use
  * AppStoreBtn directly.
  */
-withDefaults(defineProps<{ label?: string }>(), { label: 'Download LIFTAG' })
+withDefaults(defineProps<{
+  label?: string
+  /**
+   * For narrow containers — notably the mobile hero rail, which is
+   * `clamp(132px, 39vw, 156px)` wide beside the phone. Drops the kicker and
+   * tightens everything; the two store marks already carry the availability
+   * signal the kicker spells out.
+   */
+  compact?: boolean
+}>(), { label: 'Download LIFTAG', compact: false })
 </script>
 
 <template>
-  <NuxtLink to="/get" class="get-app-btn" :aria-label="`${label} — available on the App Store and Google Play`">
+  <NuxtLink
+    to="/get"
+    class="get-app-btn"
+    :class="{ 'get-app-btn--compact': compact }"
+    :aria-label="`${label} — available on the App Store and Google Play`"
+  >
     <span class="get-app-btn__shine" aria-hidden="true" />
 
     <span class="get-app-btn__icons" aria-hidden="true">
@@ -36,7 +50,7 @@ withDefaults(defineProps<{ label?: string }>(), { label: 'Download LIFTAG' })
     </span>
 
     <span class="get-app-btn__copy">
-      <span class="get-app-btn__kicker">iOS and Android</span>
+      <span v-if="!compact" class="get-app-btn__kicker">iOS and Android</span>
       <span class="get-app-btn__name">{{ label }}</span>
     </span>
   </NuxtLink>
@@ -179,41 +193,74 @@ withDefaults(defineProps<{ label?: string }>(), { label: 'Download LIFTAG' })
   white-space: nowrap;
 }
 
+/* Compact: fits the narrow mobile hero rail. Measured against a 132px rail,
+   the tightest the clamp goes. */
+.get-app-btn--compact {
+  width: 100%;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 7px 10px;
+}
+
+.get-app-btn--compact .get-app-btn__icons {
+  height: 28px;
+  gap: 5px;
+  padding: 0 7px;
+  border-radius: 8px;
+}
+
+.get-app-btn--compact .get-app-btn__apple {
+  width: 13px;
+}
+
+.get-app-btn--compact .get-app-btn__play {
+  width: 14px;
+}
+
+.get-app-btn--compact .get-app-btn__divider {
+  height: 13px;
+}
+
+.get-app-btn--compact .get-app-btn__name {
+  font-size: 13px;
+}
+
 /* Phones: the CTA is wider than the single badge it replaced, and the copy is
    nowrap inside an overflow-hidden shell — so at narrow widths it clipped.
    Going full-width and centred also gives it a proper thumb target. */
 @media (max-width: 768px) {
-  .get-app-btn {
+  .get-app-btn:not(.get-app-btn--compact) {
     width: 100%;
     justify-content: center;
     gap: 11px;
     padding: 8px 16px;
   }
 
-  .get-app-btn__icons {
+  .get-app-btn:not(.get-app-btn--compact) .get-app-btn__icons {
     height: 32px;
     gap: 8px;
     padding: 0 9px;
   }
 
-  .get-app-btn__name {
+  .get-app-btn:not(.get-app-btn--compact) .get-app-btn__name {
     font-size: 16px;
   }
 }
 
 /* Small phones: drop to the essentials so the label never truncates. */
 @media (max-width: 380px) {
-  .get-app-btn {
+  .get-app-btn:not(.get-app-btn--compact) {
     gap: 9px;
     padding: 8px 12px;
   }
 
-  .get-app-btn__icons {
+  .get-app-btn:not(.get-app-btn--compact) .get-app-btn__icons {
     padding: 0 7px;
     gap: 6px;
   }
 
-  .get-app-btn__name {
+  .get-app-btn:not(.get-app-btn--compact) .get-app-btn__name {
     font-size: 15px;
   }
 
