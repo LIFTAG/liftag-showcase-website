@@ -49,10 +49,22 @@ useHead({
   ],
 })
 
+// iOS inside a social app's webview cannot complete Apple's
+// `301 -> itms-appss://` hand-off, so redirecting there hangs on a blank page.
+// Render the escape interstitial instead of redirecting. See utils/userAgent.ts.
+// Seeded from the request header so the escape page is what SSR renders —
+// deciding only in onMounted would flash the redirect shell first.
+const showEscape = ref(needsStoreEscape(useRequestHeaders(['user-agent'])['user-agent'] ?? ''))
+
 onMounted(() => {
   const ua = navigator.userAgent || ''
   const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as unknown as { MSStream?: unknown }).MSStream
   const isAndroid = /Android/.test(ua)
+
+  if (needsStoreEscape(ua)) {
+    showEscape.value = true
+    return
+  }
 
   if (isIOS) {
     window.location.replace(APP_STORE)
@@ -69,7 +81,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="routine-redirect">
+  <StoreEscape
+    v-if="showEscape"
+    :share-url="`https://liftag.fit/routines/${id}`"
+    heading="OPEN THIS ROUTINE."
+    body="Instagram’s browser can’t hand off to the App Store or the LIFTAG app. Either option below works."
+  />
+
+  <main v-else class="routine-redirect">
     <p>Opening LIFTAG routine...</p>
   </main>
 </template>
