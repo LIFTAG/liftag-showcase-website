@@ -27,6 +27,14 @@
     {
       "source": "/plans/:path*",
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/get",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" },
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "Vary", "value": "User-Agent" }
+      ]
     }
   ]
 }
