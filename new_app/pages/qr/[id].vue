@@ -55,7 +55,7 @@ onMounted(() => {
     v-if="showEscape"
     :share-url="`https://liftag.fit/qr/${id}`"
     heading="OPEN IN LIFTAG."
-    body="Instagram’s browser can’t hand off to the App Store or the LIFTAG app. Either option below works."
+    body="Instagram’s browser can’t open LIFTAG. Two seconds to get around it:"
   />
 
   <main v-else class="qr-redirect">

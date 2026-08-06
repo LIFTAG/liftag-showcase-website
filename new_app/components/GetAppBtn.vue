@@ -28,7 +28,7 @@ withDefaults(defineProps<{
     to="/get"
     class="get-app-btn"
     :class="{ 'get-app-btn--compact': compact }"
-    :aria-label="`${label} — available on the App Store and Google Play`"
+    :aria-label="`${label}, available on the App Store and Google Play`"
   >
     <span class="get-app-btn__shine" aria-hidden="true" />
 
