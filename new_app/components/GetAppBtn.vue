@@ -238,21 +238,46 @@ withDefaults(defineProps<{
   opacity: 1;
 }
 
+.get-app-btn--hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 1px;
+  pointer-events: none;
+  background: conic-gradient(
+    from 14deg,
+    transparent 0deg,
+    transparent 210deg,
+    oklch(0.56 0.14 78 / 0.88) 254deg,
+    oklch(0.78 0.16 91 / 0.96) 282deg,
+    oklch(0.62 0.16 80 / 0.82) 316deg,
+    transparent 350deg
+  );
+  opacity: 0;
+  transform: translate3d(0, 0, 0) rotate(0deg);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
 .get-app-btn--hero .get-app-btn__shine {
-  inset: -42% auto -42% -28%;
-  width: 24%;
+  inset: -42% auto -42% -24%;
+  width: 22%;
   background: linear-gradient(
     90deg,
-    transparent 0 20%,
-    rgba(250, 255, 224, 0.32) 20% 22%,
-    transparent 22% 40%,
-    rgba(255, 255, 242, 0.9) 40% 43%,
-    transparent 43% 61%,
-    rgba(250, 255, 224, 0.42) 61% 63%,
-    transparent 63% 100%
+    transparent 0 37%,
+    oklch(0.57 0.15 78 / 0.86) 40% 43%,
+    transparent 46% 59%,
+    oklch(0.76 0.16 91 / 0.8) 61% 63%,
+    transparent 66% 100%
   );
-  mix-blend-mode: screen;
-  filter: drop-shadow(0 0 4px rgba(248, 255, 214, 0.26));
+  mix-blend-mode: multiply;
   opacity: 0;
   transform: skewX(-18deg) translateX(-150%);
 }
@@ -333,33 +358,56 @@ withDefaults(defineProps<{
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  .get-app-btn--hero::after {
+    animation: getAppHeroRim 3.25s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    will-change: opacity, transform;
+  }
+
   .get-app-btn--hero .get-app-btn__shine {
-    animation: getAppHeroScan 3.25s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    animation: getAppHeroGlint 3.25s cubic-bezier(0.16, 1, 0.3, 1) infinite;
     will-change: opacity, transform;
   }
 }
 
-@keyframes getAppHeroScan {
+@keyframes getAppHeroRim {
   0%,
-  5%,
-  32%,
+  58%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  6% {
+    opacity: 0.9;
+  }
+
+  22% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(252deg);
+  }
+}
+
+@keyframes getAppHeroGlint {
+  0%,
+  10%,
+  58%,
   100% {
     opacity: 0;
     transform: skewX(-18deg) translateX(-150%);
   }
 
-  7% {
-    opacity: 0.82;
+  12% {
+    opacity: 0.92;
   }
 
-  19% {
-    opacity: 0.82;
-    transform: skewX(-18deg) translateX(560%);
+  25% {
+    opacity: 0.92;
+    transform: skewX(-18deg) translateX(650%);
   }
 
-  23% {
+  28% {
     opacity: 0;
-    transform: skewX(-18deg) translateX(620%);
+    transform: skewX(-18deg) translateX(720%);
   }
 }
 
@@ -500,6 +548,7 @@ withDefaults(defineProps<{
 @media (prefers-reduced-motion: reduce) {
   .get-app-btn,
   .get-app-btn::before,
+  .get-app-btn::after,
   .get-app-btn__shine {
     animation: none;
     transition: none;
