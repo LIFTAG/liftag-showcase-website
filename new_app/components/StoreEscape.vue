@@ -79,15 +79,17 @@ onBeforeUnmount(() => {
          Instagram's own chrome just above the page. -->
     <div v-if="isInstagram" class="escape__pointer" aria-hidden="true">
       <svg viewBox="0 0 64 72" fill="none">
+        <!-- Leaves the label at bottom left, travels right, then sweeps up
+             into the top-right corner where the ••• sits. -->
         <path
-          d="M10 68C6 44 14 20 40 12"
+          d="M7 64C34 70 52 54 52 20"
           stroke="var(--liftag-primary, #ccff00)"
           stroke-width="3.5"
           stroke-linecap="round"
           stroke-dasharray="0.1 9"
         />
         <path
-          d="M28 6l14 4-6 13"
+          d="M44 27L52 14l8 13"
           stroke="var(--liftag-primary, #ccff00)"
           stroke-width="3.5"
           stroke-linecap="round"
@@ -106,8 +108,8 @@ onBeforeUnmount(() => {
       <ol class="escape__steps">
         <li>
           <span class="escape__step-no">1</span>
-          <span v-if="isInstagram">Tap the <strong>•••</strong> in the top right of this browser.</span>
-          <span v-else>Tap the <strong>•••</strong> menu in this browser’s toolbar.</span>
+          <span v-if="isInstagram">Tap the <strong>•••</strong> at the top right.</span>
+          <span v-else>Tap the <strong>•••</strong> in this browser.</span>
         </li>
         <li>
           <span class="escape__step-no">2</span>
@@ -151,8 +153,10 @@ onBeforeUnmount(() => {
   right: 10px;
   z-index: 2;
   display: flex;
-  align-items: flex-start;
-  gap: 6px;
+  /* The arrow's tail is at its bottom left, so the label sits level with the
+     tail rather than beside the head. */
+  align-items: flex-end;
+  gap: 4px;
   pointer-events: none;
   animation: escapePointerNudge 1.9s cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
@@ -166,7 +170,7 @@ onBeforeUnmount(() => {
 
 .escape__pointer-label {
   order: 1;
-  margin-top: 12px;
+  margin-bottom: 6px;
   color: var(--liftag-primary, #ccff00);
   font-family: var(--liftag-font-mono);
   font-size: 10px;
