@@ -140,37 +140,27 @@ onBeforeUnmount(() => {
           gap: '5px',
         }"
         aria-label="Toggle menu"
+        :aria-expanded="open"
+        aria-controls="mobile-navigation"
       >
         <span
+          class="nav-mobile-toggle__line"
           :style="{
-            display: 'block',
-            width: '24px',
-            height: '2px',
             background: open ? '#CCFF00' : '#fff',
-            borderRadius: '2px',
             transform: open ? 'translateY(7px) rotate(45deg)' : 'none',
-            transition: 'all 300ms ease',
           }"
         />
         <span
+          class="nav-mobile-toggle__line"
           :style="{
-            display: 'block',
-            width: '24px',
-            height: '2px',
-            background: open ? 'transparent' : '#fff',
-            borderRadius: '2px',
-            transition: 'all 300ms ease',
+            opacity: open ? 0 : 1,
           }"
         />
         <span
+          class="nav-mobile-toggle__line"
           :style="{
-            display: 'block',
-            width: '24px',
-            height: '2px',
             background: open ? '#CCFF00' : '#fff',
-            borderRadius: '2px',
             transform: open ? 'translateY(-7px) rotate(-45deg)' : 'none',
-            transition: 'all 300ms ease',
           }"
         />
       </button>
@@ -179,23 +169,10 @@ onBeforeUnmount(() => {
 
   <!-- Mobile drawer -->
   <div
+    id="mobile-navigation"
     class="nav-mobile-drawer"
-    :style="{
-      position: 'fixed',
-      top: '60px',
-      left: 0,
-      right: 0,
-      zIndex: 99,
-      background: 'rgba(0,0,0,0.98)',
-      borderBottom: '1px solid rgba(255,255,255,0.08)',
-      boxSizing: 'border-box',
-      padding: open ? '20px 24px calc(24px + env(safe-area-inset-bottom))' : '0 24px',
-      maxHeight: open ? 'calc(var(--liftag-stable-vh) - 60px)' : '0',
-      overflowX: 'hidden',
-      overflowY: open ? 'auto' : 'hidden',
-      overscrollBehavior: 'contain',
-      transition: 'all 400ms cubic-bezier(0.16,1,0.3,1)',
-    }"
+    :class="{ 'is-open': open }"
+    :aria-hidden="!open"
   >
     <nav style="display: flex; flex-direction: column; gap: 0;">
       <a
@@ -409,6 +386,51 @@ onBeforeUnmount(() => {
   text-decoration: none;
 }
 
+.nav-mobile-toggle__line {
+  display: block;
+  width: 24px;
+  height: 2px;
+  border-radius: 2px;
+  background: #fff;
+  transition:
+    transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 160ms ease-out,
+    background-color 160ms ease-out;
+}
+
+.nav-mobile-drawer {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  z-index: 99;
+  box-sizing: border-box;
+  max-height: calc(var(--liftag-stable-vh) - 60px);
+  padding: 20px 24px calc(24px + env(safe-area-inset-bottom));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.98);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate3d(0, -12px, 0);
+  transition:
+    transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 160ms ease-out,
+    visibility 0s linear 240ms;
+  contain: paint;
+}
+
+.nav-mobile-drawer.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate3d(0, 0, 0);
+  transition-delay: 0s;
+}
+
 .nav-drawer-link {
   color: #fff;
   text-decoration: none;
@@ -607,6 +629,11 @@ onBeforeUnmount(() => {
     transform: none !important;
     clip-path: none !important;
     filter: none !important;
+  }
+
+  .nav-mobile-toggle__line,
+  .nav-mobile-drawer {
+    transition-duration: 0.01ms !important;
   }
 }
 </style>
