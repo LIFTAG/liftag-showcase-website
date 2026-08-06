@@ -1226,8 +1226,8 @@ const pNfc = computed(() => {
         </p>
 
         <div class="hero-mobile-actions">
-          <a href="#scan" class="hero-mobile-primary">See sync flow</a>
-          <span class="hero-mobile-note">Free to download</span>
+          <GetAppBtn label="Download LIFTAG" />
+          <a href="#scan" class="hero-mobile-secondary">See how it works</a>
         </div>
       </div>
 
@@ -1246,9 +1246,6 @@ const pNfc = computed(() => {
             <span><strong>Log</strong> sets fast</span>
           </div>
 
-          <div class="hero-mobile-stores">
-            <GetAppBtn compact label="Download" />
-          </div>
         </div>
 
         <div class="hero-mobile-device">
@@ -1425,38 +1422,41 @@ const pNfc = computed(() => {
   line-height: 1.45;
 }
 
+/* The install CTA is the page's conversion action, so on phones it leads:
+   full width, directly under the lead, with the scroll link demoted beneath it.
+   It used to sit in the 132px proof rail beside the phone, where it was both
+   the smallest control on screen and the least reachable. */
 .hero-mobile-actions {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  margin-top: 22px;
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
 }
 
-.hero-mobile-primary {
-  display: inline-flex;
-  align-items: center;
+.hero-mobile-actions :deep(.get-app-btn) {
+  width: 100%;
+  min-height: 54px;
   justify-content: center;
-  min-height: 44px;
-  padding: 0 18px;
-  border-radius: 999px;
-  background: var(--liftag-primary);
-  color: var(--liftag-fg-on-primary);
-  box-shadow: 0 0 30px rgba(204, 255, 0, 0.34);
-  font-family: var(--liftag-font-body);
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-decoration: none;
-  text-transform: uppercase;
+  border-color: rgba(204, 255, 0, 0.55);
+  background:
+    linear-gradient(135deg, rgba(204, 255, 0, 0.22), transparent 46%),
+    rgba(10, 14, 8, 0.92);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 16px 40px rgba(0, 0, 0, 0.45),
+    0 0 34px rgba(204, 255, 0, 0.28);
 }
 
-.hero-mobile-note {
-  color: rgba(255, 255, 255, 0.46);
+.hero-mobile-secondary {
+  justify-self: start;
+  color: rgba(255, 255, 255, 0.56);
   font-family: var(--liftag-font-mono);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(204, 255, 0, 0.34);
+  padding-bottom: 3px;
 }
 
 .hero-mobile-visual {
@@ -1506,18 +1506,6 @@ const pNfc = computed(() => {
 .hero-mobile-proof {
   display: grid;
   gap: 9px;
-}
-
-.hero-mobile-stores {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.hero-mobile-stores :deep(.get-app-btn) {
-  width: 100%;
-  min-height: 46px;
-  justify-content: center;
 }
 
 .hero-mobile-proof span {
@@ -1620,23 +1608,9 @@ const pNfc = computed(() => {
     line-height: 1.36;
   }
 
-  :deep(html[data-liftag-short-viewport="true"] .hero-mobile-stores) {
-    gap: 8px;
-  }
-
   :deep(html[data-liftag-short-viewport="true"] .hero-mobile-actions) {
     gap: 10px;
     margin-top: 16px;
-  }
-
-  :deep(html[data-liftag-short-viewport="true"] .hero-mobile-primary) {
-    min-height: 40px;
-    padding: 0 16px;
-    font-size: 11px;
-  }
-
-  :deep(html[data-liftag-short-viewport="true"] .hero-mobile-note) {
-    font-size: 9px;
   }
 
   :deep(html[data-liftag-short-viewport="true"] .hero-mobile-visual) {
@@ -1758,14 +1732,6 @@ const pNfc = computed(() => {
     gap: 10px;
   }
 
-  .hero-mobile-primary {
-    padding: 0 14px;
-    font-size: 11px;
-  }
-
-  .hero-mobile-note {
-    font-size: 9px;
-  }
 }
 
 @keyframes heroNfcFloat {
@@ -1778,8 +1744,6 @@ const pNfc = computed(() => {
     transform: translate3d(0, -7px, 8px);
   }
 }
-
-
 
 /* Pulse the chart dots in pure CSS - replaces an always-on rAF that bumped a
    reactive ref every frame just to drive sin-based opacity/r updates. Period
