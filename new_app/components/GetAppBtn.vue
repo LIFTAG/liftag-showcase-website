@@ -232,26 +232,25 @@ withDefaults(defineProps<{
 }
 
 .get-app-btn--hero::before {
-  background:
-    linear-gradient(110deg, rgba(248, 255, 214, 0.34), transparent 38%),
-    repeating-linear-gradient(90deg, transparent 0 22px, rgba(7, 13, 4, 0.035) 22px 23px);
+  background: linear-gradient(110deg, rgba(248, 255, 214, 0.34), transparent 38%);
   opacity: 1;
 }
 
 .get-app-btn--hero .get-app-btn__shine {
   inset: -42% auto -42% -28%;
-  width: 28%;
+  width: 24%;
   background: linear-gradient(
     90deg,
-    transparent 0 18%,
-    rgba(10, 16, 6, 0.16) 18% 21%,
-    transparent 21% 38%,
-    rgba(10, 16, 6, 0.42) 38% 41%,
-    rgba(248, 255, 216, 0.58) 41% 42%,
-    transparent 42% 62%,
-    rgba(10, 16, 6, 0.22) 62% 65%,
-    transparent 65% 100%
+    transparent 0 20%,
+    rgba(250, 255, 224, 0.32) 20% 22%,
+    transparent 22% 40%,
+    rgba(255, 255, 242, 0.9) 40% 43%,
+    transparent 43% 61%,
+    rgba(250, 255, 224, 0.42) 61% 63%,
+    transparent 63% 100%
   );
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 4px rgba(248, 255, 214, 0.26));
   opacity: 0;
   transform: skewX(-18deg) translateX(-150%);
 }
@@ -348,11 +347,11 @@ withDefaults(defineProps<{
   }
 
   7% {
-    opacity: 0.92;
+    opacity: 0.82;
   }
 
   19% {
-    opacity: 0.92;
+    opacity: 0.82;
     transform: skewX(-18deg) translateX(560%);
   }
 
