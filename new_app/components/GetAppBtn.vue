@@ -50,6 +50,7 @@ withDefaults(defineProps<{ label?: string }>(), { label: 'Download LIFTAG' })
   align-items: center;
   gap: 14px;
   min-height: 56px;
+  max-width: 100%;
   padding: 9px 20px 9px 14px;
   overflow: hidden;
   isolation: isolate;
@@ -176,6 +177,50 @@ withDefaults(defineProps<{ label?: string }>(), { label: 'Download LIFTAG' })
   font-weight: 800;
   letter-spacing: -0.01em;
   white-space: nowrap;
+}
+
+/* Phones: the CTA is wider than the single badge it replaced, and the copy is
+   nowrap inside an overflow-hidden shell — so at narrow widths it clipped.
+   Going full-width and centred also gives it a proper thumb target. */
+@media (max-width: 768px) {
+  .get-app-btn {
+    width: 100%;
+    justify-content: center;
+    gap: 11px;
+    padding: 8px 16px;
+  }
+
+  .get-app-btn__icons {
+    height: 32px;
+    gap: 8px;
+    padding: 0 9px;
+  }
+
+  .get-app-btn__name {
+    font-size: 16px;
+  }
+}
+
+/* Small phones: drop to the essentials so the label never truncates. */
+@media (max-width: 380px) {
+  .get-app-btn {
+    gap: 9px;
+    padding: 8px 12px;
+  }
+
+  .get-app-btn__icons {
+    padding: 0 7px;
+    gap: 6px;
+  }
+
+  .get-app-btn__name {
+    font-size: 15px;
+  }
+
+  .get-app-btn__kicker {
+    font-size: 7px;
+    letter-spacing: 0.09em;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
