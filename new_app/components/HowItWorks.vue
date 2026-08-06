@@ -418,6 +418,8 @@ function updateHIW(p: number, sectionRect?: DOMRect) {
     section.style.setProperty('--hiw-exit-pane-scale', String(1 - easedExitP * 0.025))
     section.style.setProperty('--hiw-exit-blur', `${7 * easedExitP}px`)
     section.style.setProperty('--hiw-exit-content-shift', `${-18 * easedExitP}px`)
+    section.style.setProperty('--hiw-dots-opacity', String(1 - easedExitP))
+    section.style.setProperty('--hiw-dots-shift', `${8 * easedExitP}px`)
   }
 
   if (mobileHIWLayout) {
@@ -432,7 +434,7 @@ function updateHIW(p: number, sectionRect?: DOMRect) {
   drawHIWCurve(panelP)
 
   // Dots
-  const activeIdx = Math.min(2, Math.floor(panelP * 3))
+  const activeIdx = Math.min(2, Math.round(panelP * 2))
   dotEls.value.forEach((dot, i) => {
     const isActive = i === activeIdx
     dot.classList.toggle('active', isActive)
@@ -990,6 +992,8 @@ onBeforeUnmount(() => {
   --hiw-exit-pane-scale: 1;
   --hiw-exit-blur: 0px;
   --hiw-exit-content-shift: 0px;
+  --hiw-dots-opacity: 1;
+  --hiw-dots-shift: 0px;
 }
 
 /* ── Section shell ─────────────────────────────────────── */
@@ -1772,10 +1776,11 @@ circle[fill="var(--liftag-primary)"] {
   position: absolute;
   bottom: 40px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate3d(-50%, var(--hiw-dots-shift), 0);
   display: flex;
   gap: 12px;
   z-index: 10;
+  opacity: var(--hiw-dots-opacity);
   pointer-events: auto;
 }
 
@@ -1800,6 +1805,10 @@ circle[fill="var(--liftag-primary)"] {
 .hiw-dot.active:hover {
   background: var(--liftag-primary);
   transform: scale(1.1);
+}
+.hiw-dot:focus-visible {
+  outline: 2px solid rgba(204, 255, 0, 0.82);
+  outline-offset: 5px;
 }
 
 /* ── Mobile ───────────────────────────────────────────── */
@@ -1913,7 +1922,75 @@ circle[fill="var(--liftag-primary)"] {
     touch-action: pan-y;
   }
   .hiw-dots {
-    bottom: max(18px, calc(env(safe-area-inset-bottom) + 12px));
+    --hiw-dots-bottom-gap: max(18px, calc(env(safe-area-inset-bottom) + 12px));
+    top: calc(var(--liftag-stable-vh) - var(--hiw-dots-bottom-gap) - 30px);
+    bottom: auto;
+    align-items: center;
+    gap: 2px;
+    height: 30px;
+    padding: 0 8px;
+    border: 1px solid rgba(204, 255, 0, 0.16);
+    background: rgba(6, 9, 5, 0.94);
+    box-shadow:
+      inset 0 1px 0 rgba(246, 255, 212, 0.06),
+      0 12px 32px rgba(0, 0, 0, 0.52),
+      0 0 20px rgba(204, 255, 0, 0.06);
+    clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  }
+  .hiw-dots::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 24px;
+    right: 24px;
+    height: 1px;
+    background: rgba(204, 255, 0, 0.12);
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  .hiw-dot,
+  .hiw-dot.active {
+    position: relative;
+    z-index: 1;
+    width: 32px;
+    height: 28px;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+  }
+  .hiw-dot::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 3px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.28);
+    box-shadow: 0 0 0 3px rgba(6, 9, 5, 0.94);
+    transform: translate(-50%, -50%);
+    transition:
+      width 320ms cubic-bezier(0.16, 1, 0.3, 1),
+      background-color 320ms cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 320ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .hiw-dot.active::before {
+    width: 24px;
+    background: var(--liftag-primary);
+    box-shadow:
+      0 0 0 3px rgba(6, 9, 5, 0.94),
+      0 0 12px rgba(204, 255, 0, 0.46);
+  }
+  .hiw-dot:hover,
+  .hiw-dot.active:hover {
+    background: transparent;
+    transform: none;
+  }
+  @supports (height: 100svh) {
+    .hiw-dots {
+      top: calc(100svh - var(--hiw-dots-bottom-gap) - 30px);
+    }
   }
 }
 </style>
