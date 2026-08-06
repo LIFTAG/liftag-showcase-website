@@ -97,7 +97,7 @@ onMounted(() => {
             class="get__code"
           >
           <span class="get__mark" aria-hidden="true">
-            <img src="/logo-apple-touch.png" width="56" height="56" alt="">
+            <img src="/assets/qr/app-icon.png" width="60" height="60" alt="">
           </span>
         </div>
         <p class="protocol get__url">liftag.fit/get</p>
@@ -197,24 +197,26 @@ onMounted(() => {
   height: auto;
 }
 
-/* Safe over the modules: the code is error-correction level H and was verified
-   to decode with the whole 23% disc below treated as lost. The logo carries its
-   own dark circle, so it needs a light ring to separate it from the modules —
-   hence the backdrop is slightly wider than the mark itself. */
+/* The app icon itself, on a light pad that separates its dark ground from the
+   modules. Safe over the code: error correction is level H, and this was
+   verified to still decode with the whole 23% square below treated as lost —
+   a square is the worst case, covering more area than a disc of equal width. */
 .get__mark {
   position: absolute;
   display: grid;
   place-items: center;
   width: 23%;
   aspect-ratio: 1;
-  border-radius: 999px;
+  border-radius: 24%;
   background: #fbfdf5;
 }
 
 .get__mark img {
-  width: 84%;
+  width: 86%;
   height: auto;
   display: block;
+  /* Matches the squircle the stores mask the icon with. */
+  border-radius: 22%;
 }
 
 .get__url {
