@@ -429,12 +429,9 @@ onMounted(async () => {
       // instead re-rendered the whole hero — 28 particle style objects, four
       // phone parallax transforms and four opacity bindings — every frame,
       // which is what made the fade stutter on phones.
-      // Phones do none of this. Writing opacity per frame still repaints the
-      // faded subtree — it holds a blur(22px) glow and a masked full-viewport
-      // gradient, neither of which is cheap — so the fade there is handed to a
-      // CSS scroll timeline instead (see .hero-fades below), which the
-      // compositor runs off the main thread. Where that is unsupported the
-      // hero simply scrolls away without fading, which is the smooth outcome.
+      // Phones do none of this. The full hero scrolls normally so the device
+      // remains fully visible on short viewports, and we avoid repainting its
+      // blur and masked background while the user scrolls.
       if (isMobile.value) return
 
       const root = heroRoot.value
@@ -1293,26 +1290,6 @@ const pNfc = computed(() => {
   opacity: var(--hero-fade);
 }
 
-/* Phones: same fade, driven by a scroll timeline so it runs on the compositor
-   rather than repainting the subtree from a per-frame JS opacity write. Gated
-   on @supports — where the timeline is unavailable the hero just scrolls away
-   at full opacity, which is preferable to a stuttering fade. */
-@media (max-width: 768px) {
-  @supports (animation-timeline: scroll()) {
-    .hero-fades {
-      will-change: opacity;
-      animation: heroScrollFade linear both;
-      animation-timeline: scroll(root block);
-      animation-range: 0 500px;
-    }
-  }
-}
-
-@keyframes heroScrollFade {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
-
 /* Hidden until the entrance finishes, then fades out with the rest of the hero. */
 .hero-scroll-cue {
   opacity: 0;
@@ -1481,6 +1458,22 @@ const pNfc = computed(() => {
   width: 100% !important;
 }
 
+.hero-mobile-device :deep(.phone--static-mockup) {
+  border: 0 !important;
+  background: transparent;
+  box-shadow:
+    0 26px 64px rgba(0, 0, 0, 0.72),
+    0 0 40px rgba(204, 255, 0, 0.1) !important;
+}
+
+.hero-mobile-device :deep(.phone--static-mockup::after) {
+  display: none;
+}
+
+.hero-mobile-device :deep(.phone-static-screen) {
+  object-fit: contain;
+}
+
 .hero-mobile-device-glow {
   position: absolute;
   inset: 10% -28% 3%;
@@ -1549,14 +1542,26 @@ const pNfc = computed(() => {
 
   .hero-mobile-layout {
     display: grid;
-    grid-template-rows: auto minmax(360px, 1fr);
-    gap: 20px;
-    min-height: calc(var(--liftag-stable-vh) - 112px);
+    grid-template-rows: auto auto;
+    gap: 24px;
+    min-height: 0;
     padding-top: 22px;
   }
 
   .hero-mobile-visual {
-    min-height: 360px;
+    justify-content: center;
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+  }
+
+  .hero-mobile-rail {
+    display: none;
+  }
+
+  .hero-mobile-device {
+    width: min(50vw, 196px);
+    margin-top: 0;
   }
 
   .hero-scroll-cue {
@@ -1566,9 +1571,9 @@ const pNfc = computed(() => {
 
 @media (max-width: 420px) {
   .hero-mobile-layout {
-    grid-template-rows: auto minmax(360px, 1fr);
-    gap: 16px;
-    min-height: calc(var(--liftag-stable-vh) - 106px);
+    grid-template-rows: auto auto;
+    gap: 22px;
+    min-height: 0;
     padding-top: 18px;
   }
 
@@ -1582,63 +1587,63 @@ const pNfc = computed(() => {
   }
 }
 
-@media (max-width: 768px) {
-  :deep(html[data-liftag-short-viewport="true"] .hero-section) {
+@media (max-width: 768px) and (max-height: 740px) {
+  .hero-section {
     padding-top: 76px !important;
     padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
   }
 
-  :deep(html[data-liftag-short-viewport="true"] .hero-mobile-layout) {
-    grid-template-rows: auto minmax(286px, 1fr);
-    gap: 16px;
-    min-height: calc(var(--liftag-stable-vh) - 92px);
+  .hero-mobile-layout {
+    grid-template-rows: auto auto;
+    gap: 14px;
+    min-height: 0;
     padding-top: 12px;
   }
 
-  :deep(html[data-liftag-short-viewport="true"] .hero-mobile-title) {
+  .hero-mobile-title {
     margin-top: 0;
     font-size: clamp(39px, 11.4vw, 46px);
     line-height: 0.88;
   }
 
-  :deep(html[data-liftag-short-viewport="true"] .hero-mobile-copyline) {
+  .hero-mobile-copyline {
     max-width: 18rem;
     margin-top: 14px;
     font-size: 14px;
     line-height: 1.36;
   }
 
-  :deep(html[data-liftag-short-viewport="true"] .hero-mobile-actions) {
+  .hero-mobile-actions {
     gap: 10px;
     margin-top: 16px;
   }
 
-  :deep(html[data-liftag-short-viewport="true"] .hero-mobile-visual) {
-    min-height: 286px;
+  .hero-mobile-visual {
+    min-height: 0;
     margin-top: 0;
   }
 
-  :deep(html[data-liftag-short-viewport="true"] .hero-mobile-device) {
+  .hero-mobile-device {
     margin-top: 0;
-    width: min(44vw, 160px);
+    width: min(39vw, 150px);
   }
 
-  :deep(html[data-liftag-short-viewport="true"] .hero-mobile-rail) {
+  .hero-mobile-rail {
     width: clamp(140px, 43vw, 166px);
     padding-top: 10px;
     gap: 10px;
   }
 
-  :deep(html[data-liftag-short-viewport="true"] .hero-mobile-proof) {
+  .hero-mobile-proof {
     gap: 7px;
   }
 
-  :deep(html[data-liftag-short-viewport="true"] .hero-mobile-proof span) {
+  .hero-mobile-proof span {
     padding: 8px 10px;
     font-size: 8px;
   }
 
-  :deep(html[data-liftag-short-viewport="true"] .hero-mobile-proof strong) {
+  .hero-mobile-proof strong {
     font-size: 13px;
   }
 }
@@ -1689,6 +1694,7 @@ const pNfc = computed(() => {
   }
 
   .hero-mobile-rail {
+    display: flex;
     width: clamp(138px, 20vw, 156px);
     padding-top: 0;
     gap: 12px;
@@ -1699,26 +1705,29 @@ const pNfc = computed(() => {
     margin-top: 0;
   }
 
-  :deep(html[data-liftag-short-viewport="true"] .hero-mobile-layout) {
+}
+
+@media (min-width: 700px) and (max-width: 768px) and (max-height: 740px) {
+  .hero-mobile-layout {
     grid-template-columns: minmax(0, 0.92fr) minmax(304px, 1.08fr);
     grid-template-rows: 1fr;
     min-height: calc(var(--liftag-stable-vh) - 84px);
     padding-top: 0;
   }
 
-  :deep(html[data-liftag-short-viewport="true"] .hero-mobile-title) {
+  .hero-mobile-title {
     font-size: clamp(40px, 6.3vw, 48px);
   }
 
-  :deep(html[data-liftag-short-viewport="true"] .hero-mobile-copy) {
+  .hero-mobile-copy {
     padding-top: clamp(42px, 7vw, 54px);
   }
 
-  :deep(html[data-liftag-short-viewport="true"] .hero-mobile-copyline) {
+  .hero-mobile-copyline {
     max-width: 18.5rem;
   }
 
-  :deep(html[data-liftag-short-viewport="true"] .hero-mobile-visual) {
+  .hero-mobile-visual {
     min-height: 420px;
   }
 }
