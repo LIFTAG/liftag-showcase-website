@@ -270,6 +270,33 @@ withDefaults(defineProps<{
   }
 }
 
+/* The rail bottoms out at 132px (clamp min) on a 320px viewport, where the
+   compact button measured 134px — 2px of clipping. Trim the last few pixels
+   there rather than everywhere. */
+@media (max-width: 380px) {
+  .get-app-btn--compact {
+    gap: 6px;
+    padding: 7px 7px;
+  }
+
+  .get-app-btn--compact .get-app-btn__icons {
+    gap: 4px;
+    padding: 0 6px;
+  }
+
+  .get-app-btn--compact .get-app-btn__apple {
+    width: 12px;
+  }
+
+  .get-app-btn--compact .get-app-btn__play {
+    width: 13px;
+  }
+
+  .get-app-btn--compact .get-app-btn__name {
+    font-size: 12px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .get-app-btn,
   .get-app-btn::before,
