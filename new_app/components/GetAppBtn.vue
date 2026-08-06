@@ -239,7 +239,21 @@ withDefaults(defineProps<{
 }
 
 .get-app-btn--hero .get-app-btn__shine {
-  background: linear-gradient(90deg, transparent, rgba(248, 255, 218, 0.58), transparent);
+  inset: -42% auto -42% -28%;
+  width: 28%;
+  background: linear-gradient(
+    90deg,
+    transparent 0 18%,
+    rgba(10, 16, 6, 0.16) 18% 21%,
+    transparent 21% 38%,
+    rgba(10, 16, 6, 0.42) 38% 41%,
+    rgba(248, 255, 216, 0.58) 41% 42%,
+    transparent 42% 62%,
+    rgba(10, 16, 6, 0.22) 62% 65%,
+    transparent 65% 100%
+  );
+  opacity: 0;
+  transform: skewX(-18deg) translateX(-150%);
 }
 
 .get-app-btn--hero .get-app-btn__icons {
@@ -315,6 +329,37 @@ withDefaults(defineProps<{
 .get-app-btn--hero:active {
   transform: translate3d(0, 0, 0) scale(0.985);
   transition-duration: 90ms;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .get-app-btn--hero .get-app-btn__shine {
+    animation: getAppHeroScan 3.25s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    will-change: opacity, transform;
+  }
+}
+
+@keyframes getAppHeroScan {
+  0%,
+  5%,
+  32%,
+  100% {
+    opacity: 0;
+    transform: skewX(-18deg) translateX(-150%);
+  }
+
+  7% {
+    opacity: 0.92;
+  }
+
+  19% {
+    opacity: 0.92;
+    transform: skewX(-18deg) translateX(560%);
+  }
+
+  23% {
+    opacity: 0;
+    transform: skewX(-18deg) translateX(620%);
+  }
 }
 
 /* Compact: fits the narrow mobile hero rail. Measured against a 132px rail,
