@@ -150,7 +150,7 @@ onBeforeUnmount(() => {
 .escape__pointer {
   position: fixed;
   top: 6px;
-  right: 10px;
+  right: 26px;
   z-index: 2;
   display: flex;
   /* The arrow's tail is at its bottom left, so the label sits level with the
