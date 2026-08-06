@@ -1,0 +1,50 @@
+# Pull-request quality gate.
+#
+# Runs the single authoritative verification entrypoint `pnpm verify`
+# (typecheck -> Nuxt build). It is the same command developers and coding agents
+# run locally, so CI and local checks cannot drift.
+#
+# The root package.json only delegates into new_app/ (`pnpm --dir new_app ...`),
+# which is where the Nuxt app and its pnpm lockfile live — hence the install
+# below targets new_app rather than the repo root. The root package-lock.json is
+# a leftover from the retired Next.js app and is deliberately not used here.
+#
+# There is no lint or test step because this repository has no ESLint config and
+# no test suite. Add them to new_app/package.json's `verify` script when it does.
+
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  verify:
+    name: pnpm verify (typecheck, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: pnpm --dir new_app install --frozen-lockfile
+
+      # Keep this a single `pnpm verify` call so CI cannot check less than the
+      # command contributors are told to run locally.
+      - name: Verify
+        run: pnpm verify
