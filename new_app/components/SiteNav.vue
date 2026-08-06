@@ -285,8 +285,7 @@ onBeforeUnmount(() => {
       Dashboard
     </a>
     <div class="nav-store-buttons">
-      <AppStoreBtn store="apple" href="https://apps.apple.com/app/id6761140080" />
-      <AppStoreBtn store="google" href="https://play.google.com/store/apps/details?id=com.liftag.app" />
+      <GetAppBtn label="Get the app" />
     </div>
   </div>
 </template>

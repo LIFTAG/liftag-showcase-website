@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { useReveal } from '~/composables/useReveal'
 
-const APP_STORE = 'https://apps.apple.com/app/id6761140080'
-const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.liftag.app'
-
 const description
   = 'Coach where your clients already train. Build your profile inside LIFTAG, get discovered by lifters, share routines, and track real progress.'
 
@@ -258,8 +255,7 @@ function toggleFaq(i: number) {
             </div>
 
             <div class="coach-store-row enter h-badges">
-              <AppStoreBtn store="apple" :href="APP_STORE" />
-              <AppStoreBtn store="google" :href="PLAY_STORE" />
+              <GetAppBtn />
             </div>
 
             <div class="coach-hero-links enter h-links">
@@ -416,8 +412,7 @@ function toggleFaq(i: number) {
                   <h3 class="coach-step-title">{{ step.title }}</h3>
                   <p class="coach-step-text">{{ step.body }}</p>
                   <div v-if="step.store" class="coach-store-row coach-store-row--inline">
-                    <AppStoreBtn store="apple" :href="APP_STORE" />
-                    <AppStoreBtn store="google" :href="PLAY_STORE" />
+                    <GetAppBtn />
                   </div>
                 </div>
               </li>
@@ -577,8 +572,7 @@ function toggleFaq(i: number) {
             Download the app, open your application, and start building your roster.
           </p>
           <div class="coach-store-row coach-final-store">
-            <AppStoreBtn store="apple" :href="APP_STORE" />
-            <AppStoreBtn store="google" :href="PLAY_STORE" />
+            <GetAppBtn />
           </div>
           <div class="coach-final-links">
             <a href="/for-trainers" class="coach-textlink">Explore trainer features →</a>
