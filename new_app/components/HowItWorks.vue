@@ -23,7 +23,6 @@ const scanHovered   = ref(false)
 const prVisible     = ref(false)
 const prBurstKey    = ref(0)
 const hiwIntroEntered = ref(false)
-const hiwLastExiting = ref(false)
 
 const prBurstParticles = [
   { x: '-42px', y: '-34px', rotate: '-22deg', delay: '0ms', color: 'var(--liftag-primary)' },
@@ -69,7 +68,8 @@ let cachedAreaGrad: CanvasGradient | null = null
 let cachedAreaGradKey = ''
 let scanEffectResetForMobile = false
 
-const HIW_LAST_EXIT_VIEWPORT_BOTTOM = 0.86
+const HIW_DESKTOP_TRACK_END_PROGRESS = 0.86
+const HIW_DESKTOP_LAST_EXIT_PROGRESS = 0.92
 const HIW_MOBILE_TRACK_END_PROGRESS = 0.82
 const HIW_MOBILE_LAST_EXIT_PROGRESS = 0.9
 
@@ -394,19 +394,30 @@ function updateHIW(p: number, sectionRect?: DOMRect) {
 
   const panelP = mobileHIWLayout
     ? Math.min(1, p / HIW_MOBILE_TRACK_END_PROGRESS)
-    : p
+    : Math.min(1, p / HIW_DESKTOP_TRACK_END_PROGRESS)
 
   const rect = sectionRect ?? sectionRef.value?.getBoundingClientRect()
-  if (rect) {
+  const section = sectionRef.value
+  if (rect && section) {
     const viewportH = useStableViewportHeight() || window.innerHeight
 
     if (rect.top < viewportH * 0.28 || p > 0.012) {
       hiwIntroEntered.value = true
     }
 
-    hiwLastExiting.value = mobileHIWLayout
-      ? p >= HIW_MOBILE_LAST_EXIT_PROGRESS
-      : rect.bottom < viewportH * HIW_LAST_EXIT_VIEWPORT_BOTTOM
+    const exitStart = mobileHIWLayout
+      ? HIW_MOBILE_LAST_EXIT_PROGRESS
+      : HIW_DESKTOP_LAST_EXIT_PROGRESS
+    const exitP = Math.max(0, Math.min(1, (p - exitStart) / (1 - exitStart)))
+    const easedExitP = exitP * exitP * (3 - 2 * exitP)
+
+    section.style.setProperty('--hiw-exit-opacity', String(1 - easedExitP))
+    section.style.setProperty('--hiw-exit-number-y', `${-50 - easedExitP * 6}%`)
+    section.style.setProperty('--hiw-exit-number-scale', String(1 - easedExitP * 0.06))
+    section.style.setProperty('--hiw-exit-pane-shift', `${-34 * easedExitP}px`)
+    section.style.setProperty('--hiw-exit-pane-scale', String(1 - easedExitP * 0.025))
+    section.style.setProperty('--hiw-exit-blur', `${7 * easedExitP}px`)
+    section.style.setProperty('--hiw-exit-content-shift', `${-18 * easedExitP}px`)
   }
 
   if (mobileHIWLayout) {
@@ -667,7 +678,7 @@ function scrollToPanel(i: number) {
   const sectionTop = window.scrollY + rect.top
   const targetP = mobileHIWLayout
     ? [0, HIW_MOBILE_TRACK_END_PROGRESS / 2, HIW_MOBILE_TRACK_END_PROGRESS][i] ?? 0
-    : i / 2
+    : [0, HIW_DESKTOP_TRACK_END_PROGRESS / 2, HIW_DESKTOP_TRACK_END_PROGRESS][i] ?? 0
   window.scrollTo({ top: sectionTop + targetP * sectionH, behavior: 'smooth' })
 }
 
@@ -741,7 +752,7 @@ onBeforeUnmount(() => {
     id="how"
     ref="sectionRef"
     class="hiw-section"
-    :class="{ 'hiw-intro-in': hiwIntroEntered, 'hiw-last-exit': hiwLastExiting }"
+    :class="{ 'hiw-intro-in': hiwIntroEntered }"
   >
     <div class="hiw-sticky">
       <div class="hiw-bg-glow"></div>
@@ -972,6 +983,13 @@ onBeforeUnmount(() => {
   --surface-hover: var(--liftag-surface-card);
   --text:         var(--liftag-fg);
   --border:       rgba(255, 255, 255, 0.08);
+  --hiw-exit-opacity: 1;
+  --hiw-exit-number-y: -50%;
+  --hiw-exit-number-scale: 1;
+  --hiw-exit-pane-shift: 0px;
+  --hiw-exit-pane-scale: 1;
+  --hiw-exit-blur: 0px;
+  --hiw-exit-content-shift: 0px;
 }
 
 /* ── Section shell ─────────────────────────────────────── */
@@ -1110,16 +1128,9 @@ onBeforeUnmount(() => {
 }
 
 .hiw-panel:last-child .hiw-panel-number {
-  transition:
-    opacity 620ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 720ms cubic-bezier(0.16, 1, 0.3, 1),
-    filter 620ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.hiw-section.hiw-last-exit .hiw-panel:last-child .hiw-panel-number {
-  opacity: 0;
-  transform: translate(-50%, -56%) scale(0.94);
-  filter: blur(8px);
+  opacity: var(--hiw-exit-opacity);
+  transform: translate(-50%, var(--hiw-exit-number-y)) scale(var(--hiw-exit-number-scale));
+  filter: blur(var(--hiw-exit-blur));
 }
 
 /* ── Glass pane ───────────────────────────────────────── */
@@ -1167,18 +1178,12 @@ onBeforeUnmount(() => {
 }
 
 .hiw-panel:last-child .hiw-glass-pane {
+  opacity: var(--hiw-exit-opacity);
+  transform: translate3d(0, var(--hiw-exit-pane-shift), 0) scale(var(--hiw-exit-pane-scale));
+  filter: blur(var(--hiw-exit-blur));
   transition:
-    opacity 560ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 700ms cubic-bezier(0.16, 1, 0.3, 1),
-    filter 560ms cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 0.4s ease,
     border-color 0.4s ease;
-}
-
-.hiw-section.hiw-last-exit .hiw-panel:last-child .hiw-glass-pane {
-  opacity: 0;
-  transform: translate3d(0, -34px, 0) scale(0.975);
-  filter: blur(7px);
 }
 
 .hiw-glass-pane.glass-hovered {
@@ -1337,17 +1342,8 @@ onBeforeUnmount(() => {
 .hiw-panel:last-child .hiw-panel-title,
 .hiw-panel:last-child .hiw-panel-desc,
 .hiw-panel:last-child .hiw-panel-line {
-  transition:
-    opacity 460ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.hiw-section.hiw-last-exit .hiw-panel:last-child .hiw-panel-visual,
-.hiw-section.hiw-last-exit .hiw-panel:last-child .hiw-panel-title,
-.hiw-section.hiw-last-exit .hiw-panel:last-child .hiw-panel-desc,
-.hiw-section.hiw-last-exit .hiw-panel:last-child .hiw-panel-line {
-  opacity: 0;
-  transform: translateY(-18px);
+  opacity: var(--hiw-exit-opacity);
+  transform: translateY(var(--hiw-exit-content-shift));
 }
 
 .hiw-panel-visual {
