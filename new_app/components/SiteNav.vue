@@ -384,7 +384,12 @@ onBeforeUnmount(() => {
 
 .nav-app-cta {
   position: relative;
+  display: inline-flex;
+  align-items: center;
   overflow: hidden;
+  /* Was a <button> until it gained a real destination; as a link it picks up
+     the global anchor underline, which .btn-primary never had to suppress. */
+  text-decoration: none;
 }
 
 .nav-app-cta::before {
