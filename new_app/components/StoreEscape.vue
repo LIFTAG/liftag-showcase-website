@@ -5,22 +5,25 @@
  *
  * Apple's https listing answers `301 -> itms-appss://` for iPhone user-agents.
  * Safari forwards that scheme to the App Store; an embedded WKWebView cannot,
- * so the redirect ends on a blank page that never resolves. No server-side
- * redirect can fix that — the hop lands in the same webview and hits the same
- * wall — so the page has to render and offer a way out instead.
+ * so the redirect ends on a blank page that never resolves. No redirect fixes
+ * that — every variant lands in the same webview and hits the same wall.
  *
- * Two routes out, both shown at once rather than one behind the other's
- * failure, because neither can be relied on:
- *   1. Tapping the itms-apps:// scheme directly. Skips Apple's HTTP redirect
- *      and gives the host app something it can forward to the OS. Works in
- *      most embedded browsers, on a real tap.
- *   2. The host app's own "open in browser" action, which lands the visitor in
- *      Safari where the normal link works. Always available, needs no
- *      cooperation from anyone, so it is spelled out rather than hidden.
+ * Tapping `itms-apps://` directly was tried and confirmed NOT to work from
+ * Instagram: the scheme is swallowed like the rest. `x-safari-https://` is
+ * blocked too, and non-gesture redirects are ignored outright. There is no
+ * reliable automatic escape, and offering one as the primary action is worse
+ * than offering none — a button that silently does nothing reads as a broken
+ * site and costs the install.
  *
- * Deliberately does not auto-navigate on mount. Redirects not tied to a user
- * gesture are ignored by these webviews, and attempting one only risks
- * re-creating the blank frame this page exists to replace.
+ * So this page leads with the two things that actually work:
+ *   1. The host app's own "open in external browser" action, spelled out as
+ *      the main instruction. Confirmed working, needs nobody's cooperation.
+ *   2. Copying the link to paste into Safari, for when that menu is hard to
+ *      find or worded differently.
+ *
+ * The plain https App Store link is kept at the bottom as a last resort: it is
+ * correct everywhere else, and costs nothing if this page is ever reached from
+ * a webview that does handle the hand-off.
  */
 const props = withDefaults(defineProps<{
   /** Where the visitor should end up once they escape the webview. */
@@ -28,8 +31,8 @@ const props = withDefaults(defineProps<{
   heading?: string
   body?: string
 }>(), {
-  heading: 'ONE MORE TAP.',
-  body: 'Instagram’s browser can’t open the App Store. Either button below gets you there.',
+  heading: 'ONE MORE STEP.',
+  body: 'Instagram’s built-in browser can’t open the App Store — that’s an Apple and Instagram limitation, not a broken link. Two seconds to get around it:',
 })
 
 const copied = ref(false)
@@ -65,20 +68,25 @@ onBeforeUnmount(() => {
       <h1 class="display escape__title">{{ heading }}</h1>
       <p class="escape__body">{{ body }}</p>
 
-      <a :href="APP_STORE_SCHEME_URL" class="escape__primary">Open the App Store</a>
+      <ol class="escape__steps">
+        <li>
+          <span class="escape__step-no">1</span>
+          <span>Tap the <strong>•••</strong> menu in this browser’s toolbar.</span>
+        </li>
+        <li>
+          <span class="escape__step-no">2</span>
+          <span>Choose <strong>Open in external browser</strong>.</span>
+        </li>
+      </ol>
 
-      <div class="escape__hint">
-        <p class="protocol escape__hint-label">If that does nothing</p>
-        <p class="escape__hint-body">
-          Tap <strong>•••</strong> at the top right of this browser, then
-          <strong>Open in external browser</strong>. The App Store opens normally from there.
-        </p>
-      </div>
+      <p class="escape__or">or</p>
 
-      <button type="button" class="escape__copy" @click="copyLink">
-        {{ copied ? 'Link copied' : 'Copy link instead' }}
+      <button type="button" class="escape__primary" @click="copyLink">
+        {{ copied ? 'Copied — now paste it in Safari' : 'Copy link' }}
       </button>
       <p class="protocol escape__url">{{ shareUrl.replace(/^https:\/\//, '') }}</p>
+
+      <a :href="APP_STORE_URL" class="escape__last">Try the App Store link anyway</a>
     </div>
   </main>
 </template>
@@ -105,6 +113,7 @@ onBeforeUnmount(() => {
   position: relative;
   width: min(440px, calc(100% - 44px));
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   text-align: center;
 }
@@ -117,19 +126,80 @@ onBeforeUnmount(() => {
 }
 
 .escape__title {
+  max-width: 100%;
   margin-top: 26px;
-  font-size: clamp(34px, 10vw, 46px);
+  font-size: clamp(28px, 8vw, 40px);
   line-height: 0.98;
   color: var(--liftag-fg, #fff);
 }
 
 .escape__body {
-  max-width: 34ch;
+  max-width: min(34ch, 100%);
   margin-top: 14px;
   color: var(--liftag-fg-soft, rgba(255, 255, 255, 0.6));
   font-size: 15px;
   font-weight: 300;
   line-height: 1.55;
+}
+
+.escape__steps {
+  width: 100%;
+  margin-top: 24px;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  text-align: left;
+}
+
+.escape__steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--liftag-border-strong, rgba(255, 255, 255, 0.08));
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--liftag-fg-soft, rgba(255, 255, 255, 0.66));
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 1.45;
+}
+
+.escape__steps strong {
+  color: var(--liftag-fg, #fff);
+  font-weight: 700;
+}
+
+.escape__step-no {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--liftag-primary, #ccff00);
+  color: #0e0e0e;
+  font-family: var(--liftag-font-mono);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.escape__or {
+  margin-top: 20px;
+  color: var(--liftag-fg-dim, rgba(255, 255, 255, 0.4));
+  font-family: var(--liftag-font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.escape__last {
+  margin-top: 22px;
+  color: var(--liftag-fg-dim, rgba(255, 255, 255, 0.45));
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .escape__primary {
@@ -138,8 +208,10 @@ onBeforeUnmount(() => {
   justify-content: center;
   width: 100%;
   min-height: 54px;
-  margin-top: 28px;
+  margin-top: 10px;
   padding: 0 22px;
+  border: none;
+  cursor: pointer;
   border-radius: 14px;
   background: var(--liftag-primary, #ccff00);
   color: #0e0e0e;
@@ -149,45 +221,6 @@ onBeforeUnmount(() => {
   letter-spacing: -0.01em;
   text-decoration: none;
   box-shadow: 0 0 34px rgba(204, 255, 0, 0.4);
-}
-
-.escape__hint {
-  width: 100%;
-  margin-top: 18px;
-  padding: 16px 18px;
-  border: 1px solid var(--liftag-border-strong, rgba(255, 255, 255, 0.08));
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.escape__hint-label {
-  color: var(--liftag-primary, #ccff00);
-}
-
-.escape__hint-body {
-  margin-top: 8px;
-  color: var(--liftag-fg-soft, rgba(255, 255, 255, 0.62));
-  font-size: 14px;
-  font-weight: 300;
-  line-height: 1.5;
-}
-
-.escape__hint-body strong {
-  color: var(--liftag-fg, #fff);
-  font-weight: 700;
-}
-
-.escape__copy {
-  margin-top: 18px;
-  padding: 10px 16px;
-  border: 1px solid var(--liftag-border-strong, rgba(255, 255, 255, 0.1));
-  border-radius: 999px;
-  background: transparent;
-  color: var(--liftag-fg-mid, rgba(255, 255, 255, 0.7));
-  font-family: var(--liftag-font-body, system-ui, sans-serif);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
 }
 
 .escape__url {
