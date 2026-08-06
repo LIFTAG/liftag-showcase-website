@@ -415,11 +415,11 @@ onBeforeUnmount(() => {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transform: translate3d(0, -12px, 0);
+  transform: translate3d(0, calc(-100% - 2px), 0);
   transition:
-    transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 160ms ease-out,
-    visibility 0s linear 240ms;
+    transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 180ms ease-out,
+    visibility 0s linear 320ms;
   contain: paint;
 }
 
