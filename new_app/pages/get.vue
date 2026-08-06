@@ -1,42 +1,46 @@
 <script setup lang="ts">
 /**
  * Single install endpoint — the URL that goes in an Instagram bio, a printed
- * flyer, or a DM. One link, three outcomes, decided from the User-Agent:
+ * flyer, or a DM. One link, four outcomes, decided from the User-Agent:
  *
- *   iOS      302 straight to the App Store listing
- *   Android  302 straight to the Play Store listing
- *   desktop  a QR that points back here, so the phone re-enters this same
- *            route and takes one of the store branches
+ *   iOS                302 straight to the App Store listing
+ *   iOS, in-app browser  the StoreEscape interstitial (see below)
+ *   Android            302 straight to the Play Store listing
+ *   desktop            a QR pointing back here, so the phone re-enters this
+ *                      same route and takes one of the store branches
  *
- * The redirect is done during SSR rather than in onMounted because the traffic
- * this page exists for arrives inside social in-app browsers, where a
- * client-side hop costs a visible blank frame.
+ * Redirects happen during SSR rather than in onMounted because this traffic
+ * arrives from social apps, where a client-side hop costs a visible blank frame.
+ *
+ * The iOS exception is the whole reason this route is not just a redirect.
+ * With an iPhone user-agent Apple answers the https listing with
+ * `301 -> itms-appss://`, which Safari forwards to the App Store but an
+ * embedded WKWebView cannot forward anywhere — so redirecting an in-app browser
+ * lands it on a blank page that never resolves. Rendering an escape page is the
+ * only fix; another redirect, server-side or not, hits the same wall.
  *
  * Android deliberately uses the plain https Play URL, not `intent://`. In-app
  * WebViews commonly fail the intent scheme outright with ERR_UNKNOWN_URL_SCHEME,
  * whereas the https listing is claimed by the Play Store app via App Links and
  * resolves from inside a WebView.
  */
-const APP_STORE = 'https://apps.apple.com/app/id6761140080'
-const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.liftag.app'
+const SHARE_URL = 'https://liftag.fit/get'
 
-type Target = 'ios' | 'android' | 'desktop'
+type View = Platform | 'escape'
 
-function detect(ua: string): Target {
-  if (/iPhone|iPad|iPod/i.test(ua)) return 'ios'
-  if (/Android/i.test(ua)) return 'android'
-  return 'desktop'
+function classify(ua: string): View {
+  return needsStoreEscape(ua) ? 'escape' : detectPlatform(ua)
 }
 
-const storeUrl: Record<Exclude<Target, 'desktop'>, string> = {
-  ios: APP_STORE,
-  android: PLAY_STORE,
+const storeUrl: Record<'ios' | 'android', string> = {
+  ios: APP_STORE_URL,
+  android: PLAY_STORE_URL,
 }
 
-const target = ref<Target>(detect(useRequestHeaders(['user-agent'])['user-agent'] ?? ''))
+const view = ref<View>(classify(useRequestHeaders(['user-agent'])['user-agent'] ?? ''))
 
-if (import.meta.server && target.value !== 'desktop') {
-  await navigateTo(storeUrl[target.value], { external: true, redirectCode: 302 })
+if (import.meta.server && (view.value === 'ios' || view.value === 'android')) {
+  await navigateTo(storeUrl[view.value], { external: true, redirectCode: 302 })
 }
 
 useLiftagSeo({
@@ -52,24 +56,26 @@ onMounted(() => {
   // where there are no request headers at all.
   const ua = navigator.userAgent || ''
   const isDesktopModeIPad = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1
-  const detected = isDesktopModeIPad ? 'ios' : detect(ua)
+  const detected: View = isDesktopModeIPad && !isInAppBrowser(ua) ? 'ios' : classify(ua)
 
-  if (detected !== 'desktop') {
+  if (detected === 'ios' || detected === 'android') {
     window.location.replace(storeUrl[detected])
     return
   }
-  target.value = detected
+  view.value = detected
 })
 </script>
 
 <template>
-  <main class="get">
+  <StoreEscape v-if="view === 'escape'" :share-url="SHARE_URL" />
+
+  <main v-else class="get">
     <div class="get__aura" aria-hidden="true" />
     <div class="get__grid" aria-hidden="true" />
 
     <!--
-      Only the desktop state ever renders: phones are redirected to their store
-      during SSR, before this markup is reached.
+      Only the desktop state renders here: phones are either redirected to their
+      store during SSR or shown StoreEscape above.
     -->
     <div class="get__inner">
       <div class="get__copy">
@@ -82,8 +88,8 @@ onMounted(() => {
           opens on your device.
         </p>
         <div class="get__stores">
-          <AppStoreBtn store="apple" :href="APP_STORE" />
-          <AppStoreBtn store="google" :href="PLAY_STORE" />
+          <AppStoreBtn store="apple" :href="APP_STORE_URL" />
+          <AppStoreBtn store="google" :href="PLAY_STORE_URL" />
         </div>
       </div>
 
