@@ -45,6 +45,8 @@ const props = withDefaults(defineProps<{
   lite?: boolean
   enableMobile3d?: boolean
   interactive3d?: boolean
+  crisp3d?: boolean
+  idle3d?: boolean
   priority?: boolean
   sizes?: string
 }>(), {
@@ -56,6 +58,8 @@ const props = withDefaults(defineProps<{
   lite: false,
   enableMobile3d: false,
   interactive3d: true,
+  crisp3d: false,
+  idle3d: false,
   priority: false,
   sizes: '(max-width: 768px) 46vw, 280px',
 })
@@ -82,7 +86,9 @@ const responsiveSrcset = computed(() => {
 
   return `${base}-360.webp 360w, ${base}-560.webp 560w, ${base}-640.webp 640w, ${props.src} ${originalWidth}w`
 })
-const phone3dScreenshotSrc = computed(() => preferredScreenSrc(props.src))
+const phone3dScreenshotSrc = computed(() => (
+  props.crisp3d ? props.src ?? '' : preferredScreenSrc(props.src)
+))
 const imageLoading = computed(() => props.priority ? 'eager' : 'lazy')
 const imageFetchPriority = computed(() => props.priority ? 'high' : 'auto')
 
@@ -149,6 +155,8 @@ onBeforeUnmount(() => {
         :screen-transition-direction="props.screenTransitionDirection"
         :lite="props.lite"
         :interactive="props.interactive3d"
+        :crisp-screen="props.crisp3d"
+        :idle-motion="props.idle3d"
       />
       <template #fallback>
         <img

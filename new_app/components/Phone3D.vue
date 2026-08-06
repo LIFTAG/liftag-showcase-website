@@ -14,12 +14,20 @@ const props = withDefaults(defineProps<{
   // Static 3D keeps the real geometry and lighting but renders only when the
   // texture or viewport changes. It avoids pointer, gyro, and idle rAF work.
   interactive?: boolean
+  // Main hero phones can retain lite lighting while using a sharper source,
+  // texture canvas, and framebuffer.
+  crispScreen?: boolean
+  // A short, throttled real-3D sweep followed by a long idle pause. This is
+  // deliberately separate from the continuously interactive pointer path.
+  idleMotion?: boolean
 }>(), {
   tiltDelayMs: 0,
   screenTransition: false,
   screenTransitionDirection: 'up',
   lite: false,
   interactive: true,
+  crispScreen: false,
+  idleMotion: false,
 })
 
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -44,9 +52,10 @@ function initPhone() {
     powerPreference: isLite ? 'low-power' : 'high-performance',
   })
   renderer.setSize(width, height)
-  // Background phones cap at 1.25 DPR - they're at scale 0.6-0.7 and lower
-  // opacity, so the resolution drop is invisible. Main phone keeps DPR 2.
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isLite ? 1.25 : 2))
+  // Background phones cap at 1.25 DPR. A crisp lite phone still skips shadows
+  // and uses the low-power GPU preference, but keeps the main-phone DPR.
+  const pixelRatioCap = isLite && !props.crispScreen ? 1.25 : 2
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioCap))
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.4
   renderer.shadowMap.enabled = !isLite
@@ -153,15 +162,21 @@ function initPhone() {
     texture.wrapT = THREE.ClampToEdgeWrapping
     texture.repeat.set(1, 1)
     texture.offset.set(0, 0)
+    texture.magFilter = THREE.LinearFilter
+    texture.minFilter = THREE.LinearMipmapLinearFilter
+    texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy())
   }
 
   type ScreenImage = HTMLImageElement | HTMLCanvasElement
 
   const screenTextureCanvas = document.createElement('canvas')
-  screenTextureCanvas.width = 393
-  screenTextureCanvas.height = 852
+  const screenTextureScale = props.crispScreen ? 2 : 1
+  screenTextureCanvas.width = 393 * screenTextureScale
+  screenTextureCanvas.height = 852 * screenTextureScale
   const screenTextureCtx = screenTextureCanvas.getContext('2d')
   if (screenTextureCtx) {
+    screenTextureCtx.imageSmoothingEnabled = true
+    screenTextureCtx.imageSmoothingQuality = 'high'
     screenTextureCtx.fillStyle = '#050505'
     screenTextureCtx.fillRect(0, 0, screenTextureCanvas.width, screenTextureCanvas.height)
   }
@@ -443,11 +458,50 @@ function initPhone() {
   let currentRotY = -0.12
   let animId = 0
   let isVisible = false
+  let idleTimer = 0
+  let idleMotionActive = false
+  let idleMotionStart = 0
+  let lastIdleRender = 0
+  const restRotX = 0.08
+  const restRotY = -0.12
+  const idleDuration = 1200
+  const idlePause = 7800
+  const idleFrameInterval = 1000 / 20
+  const reducedMotionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
   // Shared singleton - replaces a per-instance window mousemove listener.
   // animate() reads from sharedMouse.latest (delay = 0) or interpolates from
   // sharedMouse.samples (delay > 0), so behaviour matches the original to
   // within one rAF frame.
   const sharedMouse = props.interactive ? useSharedMouse() : null
+
+  function clearIdleTimer() {
+    if (!idleTimer) return
+    window.clearTimeout(idleTimer)
+    idleTimer = 0
+  }
+
+  function resetIdlePose() {
+    idleMotionActive = false
+    currentRotX = restRotX
+    currentRotY = restRotY
+    phone.rotation.x = restRotX
+    phone.rotation.y = restRotY
+  }
+
+  function scheduleIdleMotion(delay = 1600) {
+    clearIdleTimer()
+    if (!props.idleMotion || props.interactive || reducedMotionMql.matches || !isVisible || document.hidden) return
+
+    idleTimer = window.setTimeout(() => {
+      idleTimer = 0
+      if (!isVisible || document.hidden || reducedMotionMql.matches) return
+
+      idleMotionActive = true
+      idleMotionStart = performance.now()
+      lastIdleRender = 0
+      if (!animId) animate()
+    }, delay)
+  }
 
   function applyPointerTilt(mx: number, my: number) {
     targetRotY = mx * 0.35
@@ -500,11 +554,14 @@ function initPhone() {
       return
     }
 
-    if (props.interactive || screenTransition) {
+    if (props.interactive || screenTransition || idleMotionActive) {
       animId = requestAnimationFrame(animate)
     } else {
       animId = 0
     }
+
+    const now = performance.now()
+    let shouldRender = props.interactive || Boolean(screenTransition)
 
     if (props.interactive && !gyroActive && sharedMouse) {
       const delay = Math.max(0, props.tiltDelayMs)
@@ -518,12 +575,32 @@ function initPhone() {
       }
     }
 
-    currentRotX += (targetRotX - currentRotX) * 0.06
-    currentRotY += (targetRotY - currentRotY) * 0.06
+    if (props.interactive) {
+      currentRotX += (targetRotX - currentRotX) * 0.06
+      currentRotY += (targetRotY - currentRotY) * 0.06
+    } else if (idleMotionActive) {
+      const progress = Math.min(1, (now - idleMotionStart) / idleDuration)
+      const envelope = Math.sin(progress * Math.PI)
+      const sweep = Math.sin(progress * Math.PI * 2) * envelope
+
+      currentRotX = restRotX + envelope * 0.012
+      currentRotY = restRotY + sweep * 0.045
+
+      if (now - lastIdleRender >= idleFrameInterval || progress >= 1) {
+        lastIdleRender = now
+        shouldRender = true
+      }
+
+      if (progress >= 1) {
+        resetIdlePose()
+        scheduleIdleMotion(idlePause)
+      }
+    }
+
     phone.rotation.x = currentRotX
     phone.rotation.y = currentRotY
-    renderScreenTransition(performance.now())
-    renderer.render(scene, camera)
+    renderScreenTransition(now)
+    if (shouldRender) renderer.render(scene, camera)
   }
 
   const visObserver = new IntersectionObserver(
@@ -534,7 +611,11 @@ function initPhone() {
           if (!animId) animate()
         } else {
           renderer.render(scene, camera)
+          scheduleIdleMotion()
         }
+      } else {
+        clearIdleTimer()
+        resetIdlePose()
       }
     },
     { threshold: 0 },
@@ -542,15 +623,29 @@ function initPhone() {
   visObserver.observe(container)
 
   const onDocumentVisibilityChange = () => {
-    if (!document.hidden && isVisible) {
+    if (document.hidden) {
+      clearIdleTimer()
+      resetIdlePose()
+    } else if (isVisible) {
       if (props.interactive || screenTransition) {
         if (!animId) animate()
       } else {
         renderer.render(scene, camera)
+        scheduleIdleMotion()
       }
     }
   }
   document.addEventListener('visibilitychange', onDocumentVisibilityChange)
+
+  const onReducedMotionChange = () => {
+    clearIdleTimer()
+    resetIdlePose()
+    if (isVisible) {
+      renderer.render(scene, camera)
+      scheduleIdleMotion()
+    }
+  }
+  reducedMotionMql.addEventListener('change', onReducedMotionChange)
 
   const applyResize = () => {
     const w = Math.max(container.clientWidth, 1)
@@ -578,6 +673,9 @@ function initPhone() {
       resizeRaf = 0
     }
     document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
+    reducedMotionMql.removeEventListener('change', onReducedMotionChange)
+    clearIdleTimer()
+    idleMotionActive = false
     gyroCleanup?.()
     visObserver.disconnect()
     isVisible = false

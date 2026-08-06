@@ -1254,6 +1254,8 @@ const pNfc = computed(() => {
             lite
             enable-mobile3d
             :interactive3d="false"
+            crisp3d
+            idle3d
             priority
           />
         </div>
