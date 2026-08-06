@@ -45,7 +45,7 @@ if (import.meta.server && (view.value === 'ios' || view.value === 'android')) {
 
 useLiftagSeo({
   title: 'Get LIFTAG',
-  description: 'Install LIFTAG — scan gym machines, load the right exercise, and track every set.',
+  description: 'Install LIFTAG. Scan gym machines, load the right exercise, and track every set.',
   path: '/get',
   noindex: true,
 })
