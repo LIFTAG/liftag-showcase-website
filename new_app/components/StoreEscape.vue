@@ -32,7 +32,20 @@ const props = withDefaults(defineProps<{
   body?: string
 }>(), {
   heading: 'ONE MORE STEP.',
-  body: 'Instagram’s built-in browser can’t open the App Store — that’s an Apple and Instagram limitation, not a broken link. Two seconds to get around it:',
+  body: 'Instagram’s browser can’t open the App Store. Two seconds to get around it:',
+})
+
+/**
+ * Instagram on iOS keeps "Open in external browser" behind a ••• in the top
+ * right, and has across redesigns — so for Instagram specifically the page
+ * points at it. Other embedded browsers put that control elsewhere, so they
+ * get wording without a direction.
+ */
+const host = ref(inAppBrowserHost(useRequestHeaders(['user-agent'])['user-agent'] ?? ''))
+const isInstagram = computed(() => host.value === 'instagram')
+
+onMounted(() => {
+  host.value = inAppBrowserHost(navigator.userAgent || '')
 })
 
 const copied = ref(false)
@@ -62,6 +75,28 @@ onBeforeUnmount(() => {
   <main class="escape">
     <div class="escape__aura" aria-hidden="true" />
 
+    <!-- Points off the top-right of the viewport, at the ••• sitting in
+         Instagram's own chrome just above the page. -->
+    <div v-if="isInstagram" class="escape__pointer" aria-hidden="true">
+      <svg viewBox="0 0 64 72" fill="none">
+        <path
+          d="M10 68C6 44 14 20 40 12"
+          stroke="var(--liftag-primary, #ccff00)"
+          stroke-width="3.5"
+          stroke-linecap="round"
+          stroke-dasharray="0.1 9"
+        />
+        <path
+          d="M28 6l14 4-6 13"
+          stroke="var(--liftag-primary, #ccff00)"
+          stroke-width="3.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+      <span class="escape__pointer-label">the ••• is up here</span>
+    </div>
+
     <div class="escape__inner">
       <img src="/assets/qr/app-icon.png" width="72" height="72" alt="" class="escape__icon">
 
@@ -71,7 +106,8 @@ onBeforeUnmount(() => {
       <ol class="escape__steps">
         <li>
           <span class="escape__step-no">1</span>
-          <span>Tap the <strong>•••</strong> menu in this browser’s toolbar.</span>
+          <span v-if="isInstagram">Tap the <strong>•••</strong> in the top right of this browser.</span>
+          <span v-else>Tap the <strong>•••</strong> menu in this browser’s toolbar.</span>
         </li>
         <li>
           <span class="escape__step-no">2</span>
@@ -82,7 +118,7 @@ onBeforeUnmount(() => {
       <p class="escape__or">or</p>
 
       <button type="button" class="escape__primary" @click="copyLink">
-        {{ copied ? 'Copied — now paste it in Safari' : 'Copy link' }}
+        {{ copied ? 'Copied. Paste it in Safari' : 'Copy link' }}
       </button>
       <p class="protocol escape__url">{{ shareUrl.replace(/^https:\/\//, '') }}</p>
 
@@ -109,6 +145,49 @@ onBeforeUnmount(() => {
   background: radial-gradient(ellipse 70% 45% at 50% 34%, rgba(204, 255, 0, 0.16), transparent 64%);
 }
 
+.escape__pointer {
+  position: fixed;
+  top: 6px;
+  right: 10px;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  pointer-events: none;
+  animation: escapePointerNudge 1.9s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.escape__pointer svg {
+  order: 2;
+  width: 42px;
+  height: 48px;
+  flex: 0 0 auto;
+}
+
+.escape__pointer-label {
+  order: 1;
+  margin-top: 12px;
+  color: var(--liftag-primary, #ccff00);
+  font-family: var(--liftag-font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+@keyframes escapePointerNudge {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(3px, -5px, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .escape__pointer {
+    animation: none;
+  }
+}
+
+/* Clear the pointer so it never sits on top of the icon. */
 .escape__inner {
   position: relative;
   width: min(440px, calc(100% - 44px));

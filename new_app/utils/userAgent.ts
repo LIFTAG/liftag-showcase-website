@@ -53,6 +53,19 @@ export function isInAppBrowser(ua: string): boolean {
 }
 
 /**
+ * Which host app's webview we are in, when it is one we can give precise
+ * instructions for. Only Instagram is singled out: its "open in external
+ * browser" sits behind a ••• in the top right on iOS and has stayed there
+ * across redesigns, so pointing at it is safe. Every other embedded browser
+ * puts that control somewhere else, so they get generic wording instead of a
+ * confidently wrong arrow.
+ */
+export function inAppBrowserHost(ua: string): 'instagram' | 'other' | null {
+  if (!isInAppBrowser(ua)) return null
+  return /Instagram/i.test(ua) ? 'instagram' : 'other'
+}
+
+/**
  * True when an automatic redirect to the App Store would strand the visitor on
  * a blank page: iOS, inside someone else's webview. Everywhere else the normal
  * redirect still works and is faster.
