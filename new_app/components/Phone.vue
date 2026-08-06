@@ -43,6 +43,8 @@ const props = withDefaults(defineProps<{
   screenTransitionDirection?: 'up' | 'down' | 'left' | 'right'
   style?: Record<string, string>
   lite?: boolean
+  enableMobile3d?: boolean
+  interactive3d?: boolean
   priority?: boolean
   sizes?: string
 }>(), {
@@ -52,6 +54,8 @@ const props = withDefaults(defineProps<{
   screenTransition: false,
   screenTransitionDirection: 'up',
   lite: false,
+  enableMobile3d: false,
+  interactive3d: true,
   priority: false,
   sizes: '(max-width: 768px) 46vw, 280px',
 })
@@ -110,9 +114,9 @@ onMounted(() => {
 
   if (props.src) {
     mobileMql = window.matchMedia(MOBILE_PHONE_MQL)
-    renderStaticMockup.value = mobileMql.matches
+    renderStaticMockup.value = mobileMql.matches && !props.enableMobile3d
     onMobileChange = (event) => {
-      renderStaticMockup.value = event.matches
+      renderStaticMockup.value = event.matches && !props.enableMobile3d
     }
     mobileMql.addEventListener('change', onMobileChange)
   }
@@ -144,6 +148,7 @@ onBeforeUnmount(() => {
         :screen-transition="props.screenTransition"
         :screen-transition-direction="props.screenTransitionDirection"
         :lite="props.lite"
+        :interactive="props.interactive3d"
       />
       <template #fallback>
         <img

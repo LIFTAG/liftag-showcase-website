@@ -10,8 +10,8 @@ const entered = ref(false)
 const cursorGlowX = ref(-9999)
 const cursorGlowY = ref(-9999)
 const cursorGlowTone = ref<'green' | 'red'>('green')
-// Drop the WebGL Phone3D path on phones - we only render the front-center
-// phone on mobile and the lite path uses a static image instead of Three.js.
+// Phones render only the front-center device. Its Three.js path runs in lite,
+// non-interactive mode so the stronger 3D framing does not add an idle loop.
 const isMobile = ref(false)
 const heroRoot = ref<HTMLElement | null>(null)
 
@@ -1247,7 +1247,15 @@ const pNfc = computed(() => {
 
         <div class="hero-mobile-device">
           <div class="hero-mobile-device-glow" aria-hidden="true" />
-          <Phone src="/assets/screens/home-hero-no-qr.webp" :scale="1" :tilt-delay-ms="0" lite priority />
+          <Phone
+            src="/assets/screens/home-hero-no-qr.webp"
+            :scale="1"
+            :tilt-delay-ms="0"
+            lite
+            enable-mobile3d
+            :interactive3d="false"
+            priority
+          />
         </div>
       </div>
     </div>
@@ -1378,7 +1386,7 @@ const pNfc = computed(() => {
   font-style: italic;
   font-weight: 700;
   letter-spacing: 0;
-  line-height: 0.88;
+  line-height: 0.94;
   text-transform: uppercase;
 }
 
@@ -1392,7 +1400,7 @@ const pNfc = computed(() => {
 
 .hero-mobile-copyline {
   max-width: 22rem;
-  margin: 20px 0 0;
+  margin: 24px 0 0;
   color: rgba(255, 255, 255, 0.68);
   font-size: 16px;
   font-weight: 300;
@@ -1406,7 +1414,7 @@ const pNfc = computed(() => {
 .hero-mobile-actions {
   display: grid;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 28px;
 }
 
 .hero-mobile-actions :deep(.get-app-btn) {
@@ -1543,9 +1551,9 @@ const pNfc = computed(() => {
   .hero-mobile-layout {
     display: grid;
     grid-template-rows: auto auto;
-    gap: 24px;
+    gap: 30px;
     min-height: 0;
-    padding-top: 22px;
+    padding-top: 30px;
   }
 
   .hero-mobile-visual {
@@ -1572,9 +1580,9 @@ const pNfc = computed(() => {
 @media (max-width: 420px) {
   .hero-mobile-layout {
     grid-template-rows: auto auto;
-    gap: 22px;
+    gap: 26px;
     min-height: 0;
-    padding-top: 18px;
+    padding-top: 24px;
   }
 
   .hero-mobile-title {
@@ -1595,27 +1603,27 @@ const pNfc = computed(() => {
 
   .hero-mobile-layout {
     grid-template-rows: auto auto;
-    gap: 14px;
+    gap: 18px;
     min-height: 0;
-    padding-top: 12px;
+    padding-top: 16px;
   }
 
   .hero-mobile-title {
     margin-top: 0;
     font-size: clamp(39px, 11.4vw, 46px);
-    line-height: 0.88;
+    line-height: 0.92;
   }
 
   .hero-mobile-copyline {
     max-width: 18rem;
-    margin-top: 14px;
+    margin-top: 16px;
     font-size: 14px;
     line-height: 1.36;
   }
 
   .hero-mobile-actions {
     gap: 10px;
-    margin-top: 16px;
+    margin-top: 18px;
   }
 
   .hero-mobile-visual {
@@ -1625,7 +1633,7 @@ const pNfc = computed(() => {
 
   .hero-mobile-device {
     margin-top: 0;
-    width: min(39vw, 150px);
+    width: min(37vw, 142px);
   }
 
   .hero-mobile-rail {

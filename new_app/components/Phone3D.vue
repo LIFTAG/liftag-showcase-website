@@ -11,11 +11,15 @@ const props = withDefaults(defineProps<{
   // Skip shadow casting and lower DPR cap for cheaper rendering on background
   // phones where the visual fidelity loss is imperceptible.
   lite?: boolean
+  // Static 3D keeps the real geometry and lighting but renders only when the
+  // texture or viewport changes. It avoids pointer, gyro, and idle rAF work.
+  interactive?: boolean
 }>(), {
   tiltDelayMs: 0,
   screenTransition: false,
   screenTransitionDirection: 'up',
   lite: false,
+  interactive: true,
 })
 
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -37,6 +41,7 @@ function initPhone() {
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
     alpha: true,
+    powerPreference: isLite ? 'low-power' : 'high-performance',
   })
   renderer.setSize(width, height)
   // Background phones cap at 1.25 DPR - they're at scale 0.6-0.7 and lower
@@ -442,7 +447,7 @@ function initPhone() {
   // animate() reads from sharedMouse.latest (delay = 0) or interpolates from
   // sharedMouse.samples (delay > 0), so behaviour matches the original to
   // within one rAF frame.
-  const sharedMouse = useSharedMouse()
+  const sharedMouse = props.interactive ? useSharedMouse() : null
 
   function applyPointerTilt(mx: number, my: number) {
     targetRotY = mx * 0.35
@@ -470,7 +475,7 @@ function initPhone() {
     requestPermission?: () => Promise<PermissionState>
   }) | undefined
 
-  if (deviceOrientation && typeof deviceOrientation.requestPermission === 'function') {
+  if (props.interactive && deviceOrientation && typeof deviceOrientation.requestPermission === 'function') {
     const requestOnTap = () => {
       deviceOrientation.requestPermission?.()
         .then((state) => {
@@ -484,7 +489,7 @@ function initPhone() {
       container.removeEventListener('touchend', requestOnTap)
       window.removeEventListener('deviceorientation', onDeviceOrientation)
     }
-  } else if (deviceOrientation) {
+  } else if (props.interactive && deviceOrientation) {
     enableGyro()
     gyroCleanup = () => window.removeEventListener('deviceorientation', onDeviceOrientation)
   }
@@ -495,8 +500,13 @@ function initPhone() {
       return
     }
 
-    animId = requestAnimationFrame(animate)
-    if (!gyroActive) {
+    if (props.interactive || screenTransition) {
+      animId = requestAnimationFrame(animate)
+    } else {
+      animId = 0
+    }
+
+    if (props.interactive && !gyroActive && sharedMouse) {
       const delay = Math.max(0, props.tiltDelayMs)
       if (delay > 0) {
         const delayed = delayedSampleAt(sharedMouse.samples, performance.now() - delay)
@@ -519,14 +529,26 @@ function initPhone() {
   const visObserver = new IntersectionObserver(
     (entries) => {
       isVisible = entries[0]?.isIntersecting ?? false
-      if (isVisible && !animId && !document.hidden) animate()
+      if (isVisible && !document.hidden) {
+        if (props.interactive || screenTransition) {
+          if (!animId) animate()
+        } else {
+          renderer.render(scene, camera)
+        }
+      }
     },
     { threshold: 0 },
   )
   visObserver.observe(container)
 
   const onDocumentVisibilityChange = () => {
-    if (!document.hidden && isVisible && !animId) animate()
+    if (!document.hidden && isVisible) {
+      if (props.interactive || screenTransition) {
+        if (!animId) animate()
+      } else {
+        renderer.render(scene, camera)
+      }
+    }
   }
   document.addEventListener('visibilitychange', onDocumentVisibilityChange)
 
@@ -537,6 +559,7 @@ function initPhone() {
     camera.aspect = w / h
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
+    renderer.render(scene, camera)
   }
   let resizeRaf = 0
   const onResize = () => {
