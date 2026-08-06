@@ -10,12 +10,10 @@ const entered = ref(false)
 const cursorGlowX = ref(-9999)
 const cursorGlowY = ref(-9999)
 const cursorGlowTone = ref<'green' | 'red'>('green')
-const appStoreNudgeActive = ref(false)
 // Drop the WebGL Phone3D path on phones - we only render the front-center
 // phone on mobile and the lite path uses a static image instead of Three.js.
 const isMobile = ref(false)
-const APP_STORE_NUDGE_EVENT = 'liftag:app-store-nudge'
-let appStoreNudgeTimer: ReturnType<typeof setTimeout> | null = null
+const heroRoot = ref<HTMLElement | null>(null)
 
 // smooth lerp (factor 0.06 matches React source)
 const mouse = useLerp(rawMouse, 0.06)
@@ -149,21 +147,8 @@ function resetHeroVolumeChartHover() {
   setHeroVolumeChartTarget(1)
 }
 
-async function triggerAppStoreNudge() {
-  if (appStoreNudgeTimer) clearTimeout(appStoreNudgeTimer)
-
-  appStoreNudgeActive.value = false
-  await nextTick()
-  appStoreNudgeActive.value = true
-  appStoreNudgeTimer = setTimeout(() => {
-    appStoreNudgeActive.value = false
-    appStoreNudgeTimer = null
-  }, 980)
-}
-
 onBeforeUnmount(() => {
   if (heroVolumeChartRaf) cancelAnimationFrame(heroVolumeChartRaf)
-  if (appStoreNudgeTimer) clearTimeout(appStoreNudgeTimer)
 })
 
 // ─── hero words ───────────────────────────────────────────────────────────────
@@ -377,7 +362,6 @@ let heroMobileMql: MediaQueryList | null = null
 let onHeroMobileChange: ((event: MediaQueryListEvent) => void) | null = null
 let unsubHeroMouse: (() => void) | null = null
 let onHeroCursorGlowTone: EventListener | null = null
-let onHeroAppStoreNudge: (() => void) | null = null
 let onHeroScroll: (() => void) | null = null
 
 onMounted(async () => {
@@ -429,11 +413,7 @@ onMounted(async () => {
     const tone = (event as CustomEvent<{ tone?: 'green' | 'red' }>).detail?.tone
     cursorGlowTone.value = tone === 'red' ? 'red' : 'green'
   }
-  onHeroAppStoreNudge = () => {
-    void triggerAppStoreNudge()
-  }
   window.addEventListener('liftag:cursor-glow-tone', onHeroCursorGlowTone)
-  window.addEventListener(APP_STORE_NUDGE_EVENT, onHeroAppStoreNudge)
 
   let scrollQueued = false
   onHeroScroll = () => {
@@ -441,7 +421,23 @@ onMounted(async () => {
     scrollQueued = true
     requestAnimationFrame(() => {
       scrollQueued = false
-      scrollY.value = window.scrollY
+      const y = window.scrollY
+
+      // The fade and lift are CSS custom properties, not reactive state. One
+      // style write on one element per frame, inherited by everything that
+      // reads them, and opacity/transform stay on the compositor. Bumping a ref
+      // instead re-rendered the whole hero — 28 particle style objects, four
+      // phone parallax transforms and four opacity bindings — every frame,
+      // which is what made the fade stutter on phones.
+      const root = heroRoot.value
+      if (root) {
+        root.style.setProperty('--hero-fade', String(Math.max(0, 1 - y / 500)))
+        root.style.setProperty('--hero-lift', `${y * 0.35}px`)
+      }
+
+      // Only the desktop parallax and particles read the ref, and neither is
+      // rendered on phones, so skip the write there entirely.
+      if (!isMobile.value) scrollY.value = y
     })
   }
 
@@ -484,9 +480,6 @@ onBeforeUnmount(() => {
   if (onHeroCursorGlowTone) {
     window.removeEventListener('liftag:cursor-glow-tone', onHeroCursorGlowTone)
   }
-  if (onHeroAppStoreNudge) {
-    window.removeEventListener(APP_STORE_NUDGE_EVENT, onHeroAppStoreNudge)
-  }
   if (onHeroScroll) {
     window.removeEventListener('scroll', onHeroScroll)
   }
@@ -496,13 +489,8 @@ onBeforeUnmount(() => {
   onHeroMobileChange = null
   unsubHeroMouse = null
   onHeroCursorGlowTone = null
-  onHeroAppStoreNudge = null
   onHeroScroll = null
 })
-
-// ─── derived scroll values ────────────────────────────────────────────────────
-const scrollFade = computed(() => Math.max(0, 1 - scrollY.value / 500))
-const scrollUp   = computed(() => scrollY.value * 0.35)
 
 // parallax per-phone (updated reactively from mouse + scroll)
 const p1 = computed(() => ({
@@ -530,6 +518,7 @@ const pNfc = computed(() => {
 
 <template>
   <section
+    ref="heroRoot"
     class="hero-section"
     :style="{
       position: 'relative',
@@ -764,8 +753,8 @@ const pNfc = computed(() => {
           'linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)',
         backgroundSize: '80px 80px',
         maskImage: 'radial-gradient(ellipse 90% 80% at 60% 40%, black 20%, transparent 80%)',
-        opacity: scrollFade,
       }"
+      class="hero-fades"
     />
 
     <!-- ── Lime atmosphere glow ── -->
@@ -780,7 +769,7 @@ const pNfc = computed(() => {
 
     <!-- ── Particle dots (client-only to avoid SSR mismatch) ── -->
     <div
-      v-if="particlesReady"
+      v-if="particlesReady && !isMobile"
       :style="{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2, overflow: 'hidden' }"
     >
       <div
@@ -803,7 +792,7 @@ const pNfc = computed(() => {
 
     <!-- ── Main content grid ── -->
     <div
-      class="container hero-grid"
+      class="container hero-grid hero-fades hero-lifts"
       :style="{
         display: 'grid',
         gridTemplateColumns: '1.1fr 1fr',
@@ -812,8 +801,6 @@ const pNfc = computed(() => {
         minHeight: 'calc(100vh - 180px)',
         position: 'relative',
         zIndex: 3,
-        transform: `translateY(-${scrollUp}px)`,
-        opacity: scrollFade,
       }"
     >
 
@@ -879,7 +866,6 @@ const pNfc = computed(() => {
         <!-- App store buttons -->
         <div
           class="hero-badges"
-          :class="{ 'is-nudged': appStoreNudgeActive }"
           :style="{
             display: 'flex',
             gap: '12px',
@@ -1209,11 +1195,10 @@ const pNfc = computed(() => {
 
     <!-- ── Mobile-first hero composition ── -->
     <div
-      class="container hero-mobile-layout"
+      class="container hero-mobile-layout hero-fades"
       :style="{
         position: 'relative',
         zIndex: 4,
-        opacity: scrollFade,
       }"
     >
       <div
@@ -1269,11 +1254,11 @@ const pNfc = computed(() => {
     <!-- ── Scroll cue ── -->
     <div
       class="hero-scroll-cue"
+      :class="{ 'is-visible': entered }"
       :style="{
         position: 'absolute', bottom: '32px', left: '50%',
         transform: 'translateX(-50%)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px',
-        opacity: entered ? scrollFade * 0.7 : 0,
         transition: 'opacity 1200ms 1600ms ease',
         zIndex: 5,
       }"
@@ -1291,6 +1276,32 @@ const pNfc = computed(() => {
 </template>
 
 <style scoped>
+/* Scroll-driven hero exit. The two values are written straight to the section's
+   inline style once per rAF (see onHeroScroll) rather than flowing through Vue,
+   so scrolling costs one property write instead of a full component re-render.
+   Defaults here keep first paint and SSR correct before any scroll happens. */
+.hero-section {
+  --hero-fade: 1;
+  --hero-lift: 0px;
+}
+
+.hero-fades {
+  opacity: var(--hero-fade);
+}
+
+/* Hidden until the entrance finishes, then fades out with the rest of the hero. */
+.hero-scroll-cue {
+  opacity: 0;
+}
+
+.hero-scroll-cue.is-visible {
+  opacity: calc(var(--hero-fade) * 0.7);
+}
+
+.hero-lifts {
+  transform: translate3d(0, calc(var(--hero-lift) * -1), 0);
+}
+
 .cursor-glow {
   position: fixed;
   left: 0;
@@ -1332,14 +1343,6 @@ const pNfc = computed(() => {
 .hero-volume-sparkline polyline,
 .hero-volume-sparkline circle {
   filter: drop-shadow(0 0 5px rgba(204, 255, 0, 0.42));
-}
-
-.hero-badges.is-nudged :deep(.app-store-btn) {
-  animation: heroAppStoreNudge 620ms linear both;
-}
-
-.hero-badges.is-nudged :deep(.app-store-btn:nth-child(2)) {
-  animation-delay: 64ms;
 }
 
 .hero-nfc-model {
@@ -1484,28 +1487,10 @@ const pNfc = computed(() => {
   gap: 10px;
 }
 
-.hero-mobile-stores :deep(.app-store-btn) {
+.hero-mobile-stores :deep(.get-app-btn) {
   width: 100%;
-  min-width: 0;
-  min-height: 44px;
-  gap: 9px;
-  padding: 6px 10px;
-  border-radius: 12px;
+  min-height: 46px;
   justify-content: center;
-}
-
-.hero-mobile-stores :deep(.app-store-btn__icon) {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-}
-
-.hero-mobile-stores :deep(.app-store-btn__name) {
-  font-size: 15px;
-}
-
-.hero-mobile-stores :deep(.app-store-btn__kicker) {
-  font-size: 7px;
 }
 
 .hero-mobile-proof span {
@@ -1767,86 +1752,7 @@ const pNfc = computed(() => {
   }
 }
 
-@keyframes heroAppStoreNudge {
-  0% {
-    border-color: rgba(204, 255, 0, 0.22);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 14px 34px rgba(0, 0, 0, 0.34),
-      0 0 0 rgba(204, 255, 0, 0);
-    transform: translate3d(0, 0, 0) scale(1);
-  }
 
-  18% {
-    border-color: rgba(204, 255, 0, 0.38);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.1),
-      0 17px 38px rgba(0, 0, 0, 0.38),
-      0 0 13px rgba(204, 255, 0, 0.1);
-    transform: translate3d(0, -3px, 0) scale(1.008);
-  }
-
-  36% {
-    border-color: rgba(204, 255, 0, 0.7);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.16),
-      0 24px 54px rgba(0, 0, 0, 0.5),
-      0 0 32px rgba(204, 255, 0, 0.26);
-    transform: translate3d(0, -10px, 0) scale(1.03);
-  }
-
-  44% {
-    border-color: rgba(204, 255, 0, 0.78);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.18),
-      0 26px 58px rgba(0, 0, 0, 0.52),
-      0 0 40px rgba(204, 255, 0, 0.34);
-    transform: translate3d(0, -12px, 0) scale(1.035);
-  }
-
-  64% {
-    border-color: rgba(204, 255, 0, 0.44);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.11),
-      0 18px 40px rgba(0, 0, 0, 0.4),
-      0 0 16px rgba(204, 255, 0, 0.12);
-    transform: translate3d(0, -4px, 0) scale(1.01);
-  }
-
-  100% {
-    border-color: rgba(204, 255, 0, 0.22);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 14px 34px rgba(0, 0, 0, 0.34),
-      0 0 0 rgba(204, 255, 0, 0);
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-}
-
-@keyframes heroAppStoreNudgeReduced {
-  0%,
-  100% {
-    border-color: rgba(204, 255, 0, 0.22);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 14px 34px rgba(0, 0, 0, 0.34),
-      0 0 0 rgba(204, 255, 0, 0);
-  }
-
-  42% {
-    border-color: rgba(204, 255, 0, 0.74);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.14),
-      0 18px 46px rgba(0, 0, 0, 0.42),
-      0 0 34px rgba(204, 255, 0, 0.24);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-badges.is-nudged :deep(.app-store-btn) {
-    animation: heroAppStoreNudgeReduced 760ms ease-out both;
-  }
-}
 
 /* Pulse the chart dots in pure CSS - replaces an always-on rAF that bumped a
    reactive ref every frame just to drive sin-based opacity/r updates. Period

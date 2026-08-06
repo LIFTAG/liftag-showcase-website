@@ -97,7 +97,7 @@ onMounted(() => {
             class="get__code"
           >
           <span class="get__mark" aria-hidden="true">
-            <img src="/assets/logo.svg" width="40" height="40" alt="">
+            <img src="/logo-apple-touch.png" width="56" height="56" alt="">
           </span>
         </div>
         <p class="protocol get__url">liftag.fit/get</p>
@@ -198,20 +198,23 @@ onMounted(() => {
 }
 
 /* Safe over the modules: the code is error-correction level H and was verified
-   to decode with a hole up to 24% of its width. This mark sits at ~19%. */
+   to decode with the whole 23% disc below treated as lost. The logo carries its
+   own dark circle, so it needs a light ring to separate it from the modules —
+   hence the backdrop is slightly wider than the mark itself. */
 .get__mark {
   position: absolute;
   display: grid;
   place-items: center;
-  width: 19%;
+  width: 23%;
   aspect-ratio: 1;
-  border-radius: 12px;
+  border-radius: 999px;
   background: #fbfdf5;
 }
 
 .get__mark img {
-  width: 76%;
+  width: 84%;
   height: auto;
+  display: block;
 }
 
 .get__url {
