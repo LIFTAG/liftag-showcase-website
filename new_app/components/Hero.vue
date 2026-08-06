@@ -880,7 +880,7 @@ const pNfc = computed(() => {
             transition: 'opacity 900ms 640ms cubic-bezier(0.16,1,0.3,1), transform 900ms 640ms cubic-bezier(0.16,1,0.3,1)',
           }"
         >
-          <GetAppBtn />
+          <GetAppBtn hero label="Get LIFTAG" />
         </div>
 
         <!-- Stats row -->
@@ -1223,7 +1223,7 @@ const pNfc = computed(() => {
         </p>
 
         <div class="hero-mobile-actions">
-          <GetAppBtn label="Download LIFTAG" />
+          <GetAppBtn hero label="Get LIFTAG" />
           <a href="#scan" class="hero-mobile-secondary">See how it works</a>
         </div>
       </div>
@@ -1421,16 +1421,7 @@ const pNfc = computed(() => {
 
 .hero-mobile-actions :deep(.get-app-btn) {
   width: 100%;
-  min-height: 54px;
-  justify-content: center;
-  border-color: rgba(204, 255, 0, 0.55);
-  background:
-    linear-gradient(135deg, rgba(204, 255, 0, 0.22), transparent 46%),
-    rgba(10, 14, 8, 0.92);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 16px 40px rgba(0, 0, 0, 0.45),
-    0 0 34px rgba(204, 255, 0, 0.28);
+  max-width: none;
 }
 
 .hero-mobile-secondary {

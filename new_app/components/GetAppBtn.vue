@@ -20,14 +20,19 @@ withDefaults(defineProps<{
    * signal the kicker spells out.
    */
   compact?: boolean
-}>(), { label: 'Download LIFTAG', compact: false })
+  /** High-contrast equipment-plate treatment for primary hero placement. */
+  hero?: boolean
+}>(), { label: 'Download LIFTAG', compact: false, hero: false })
 </script>
 
 <template>
   <NuxtLink
     to="/get"
     class="get-app-btn"
-    :class="{ 'get-app-btn--compact': compact }"
+    :class="{
+      'get-app-btn--compact': compact,
+      'get-app-btn--hero': hero,
+    }"
     :aria-label="`${label}, available on the App Store and Google Play`"
   >
     <span class="get-app-btn__shine" aria-hidden="true" />
@@ -50,8 +55,16 @@ withDefaults(defineProps<{
     </span>
 
     <span class="get-app-btn__copy">
-      <span v-if="!compact" class="get-app-btn__kicker">iOS and Android</span>
+      <span v-if="!compact" class="get-app-btn__kicker">
+        {{ hero ? 'Free on iOS + Android' : 'iOS and Android' }}
+      </span>
       <span class="get-app-btn__name">{{ label }}</span>
+    </span>
+
+    <span v-if="hero" class="get-app-btn__download" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 4v11m0 0 4-4m-4 4-4-4M5 20h14" />
+      </svg>
     </span>
   </NuxtLink>
 </template>
@@ -193,6 +206,117 @@ withDefaults(defineProps<{
   white-space: nowrap;
 }
 
+/* Hero: an acid-lime equipment plate rather than another dark app-store badge. */
+.get-app-btn--hero {
+  width: min(100%, 360px);
+  min-height: 60px;
+  gap: 12px;
+  padding: 8px 9px 8px 10px;
+  border-color: rgba(12, 18, 7, 0.22);
+  border-radius: 0;
+  background: var(--liftag-primary);
+  color: oklch(0.16 0.018 125);
+  box-shadow:
+    inset 0 1px 0 rgba(246, 255, 212, 0.5),
+    inset 0 -1px 0 rgba(7, 13, 4, 0.22),
+    0 14px 34px rgba(0, 0, 0, 0.38),
+    0 0 26px rgba(204, 255, 0, 0.2);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 13px) 0,
+    100% 13px,
+    100% 100%,
+    13px 100%,
+    0 calc(100% - 13px)
+  );
+}
+
+.get-app-btn--hero::before {
+  background:
+    linear-gradient(110deg, rgba(248, 255, 214, 0.34), transparent 38%),
+    repeating-linear-gradient(90deg, transparent 0 22px, rgba(7, 13, 4, 0.035) 22px 23px);
+  opacity: 1;
+}
+
+.get-app-btn--hero .get-app-btn__shine {
+  background: linear-gradient(90deg, transparent, rgba(248, 255, 218, 0.58), transparent);
+}
+
+.get-app-btn--hero .get-app-btn__icons {
+  height: 42px;
+  gap: 7px;
+  padding: 0 9px;
+  border-radius: 6px;
+  background: oklch(0.16 0.018 125);
+  box-shadow:
+    inset 0 0 0 1px rgba(238, 255, 170, 0.08),
+    0 2px 0 rgba(7, 13, 4, 0.2);
+}
+
+.get-app-btn--hero .get-app-btn__divider {
+  background: rgba(238, 255, 193, 0.2);
+}
+
+.get-app-btn--hero .get-app-btn__copy {
+  flex: 1 1 auto;
+  gap: 3px;
+}
+
+.get-app-btn--hero .get-app-btn__kicker {
+  color: rgba(10, 16, 6, 0.58);
+  font-size: 7px;
+  letter-spacing: 0.16em;
+}
+
+.get-app-btn--hero .get-app-btn__name {
+  color: oklch(0.16 0.018 125);
+  font-family: var(--liftag-font-headline);
+  font-size: 18px;
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.get-app-btn__download {
+  display: grid;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 6px;
+  background: oklch(0.16 0.018 125);
+  box-shadow:
+    inset 0 0 0 1px rgba(238, 255, 170, 0.08),
+    0 2px 0 rgba(7, 13, 4, 0.2);
+}
+
+.get-app-btn__download svg {
+  width: 20px;
+  height: 20px;
+  stroke: var(--liftag-primary);
+  stroke-width: 1.8;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+.get-app-btn--hero:hover,
+.get-app-btn--hero:focus-visible {
+  border-color: rgba(12, 18, 7, 0.36);
+  background: oklch(0.92 0.24 121);
+  box-shadow:
+    inset 0 1px 0 rgba(246, 255, 212, 0.62),
+    inset 0 -1px 0 rgba(7, 13, 4, 0.22),
+    0 18px 42px rgba(0, 0, 0, 0.44),
+    0 0 32px rgba(204, 255, 0, 0.28);
+}
+
+.get-app-btn--hero:active {
+  transform: translate3d(0, 0, 0) scale(0.985);
+  transition-duration: 90ms;
+}
+
 /* Compact: fits the narrow mobile hero rail. Measured against a 132px rail,
    the tightest the clamp goes. */
 .get-app-btn--compact {
@@ -246,6 +370,22 @@ withDefaults(defineProps<{
   .get-app-btn:not(.get-app-btn--compact) .get-app-btn__name {
     font-size: 16px;
   }
+
+  .get-app-btn--hero:not(.get-app-btn--compact) {
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 8px 9px 8px 10px;
+  }
+
+  .get-app-btn--hero:not(.get-app-btn--compact) .get-app-btn__icons {
+    height: 42px;
+    gap: 7px;
+    padding: 0 9px;
+  }
+
+  .get-app-btn--hero:not(.get-app-btn--compact) .get-app-btn__name {
+    font-size: 17px;
+  }
 }
 
 /* Small phones: drop to the essentials so the label never truncates. */
@@ -267,6 +407,20 @@ withDefaults(defineProps<{
   .get-app-btn__kicker {
     font-size: 7px;
     letter-spacing: 0.09em;
+  }
+
+  .get-app-btn--hero:not(.get-app-btn--compact) {
+    gap: 8px;
+    padding-inline: 8px;
+  }
+
+  .get-app-btn--hero:not(.get-app-btn--compact) .get-app-btn__icons {
+    padding-inline: 7px;
+  }
+
+  .get-app-btn--hero .get-app-btn__download {
+    width: 40px;
+    height: 40px;
   }
 }
 
