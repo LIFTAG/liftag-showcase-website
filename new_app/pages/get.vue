@@ -4,17 +4,21 @@
  * flyer, or a DM. One link, three outcomes, decided from the User-Agent:
  *
  *   iOS      302 straight to the App Store listing
- *   Android  the "not yet" state — the Play listing is NOT published, so
- *            sending Android traffic there would land on a dead page
+ *   Android  302 straight to the Play Store listing
  *   desktop  a QR that points back here, so the phone re-enters this same
- *            route and takes the iOS branch
+ *            route and takes one of the store branches
  *
  * The redirect is done during SSR rather than in onMounted because the traffic
  * this page exists for arrives inside social in-app browsers, where a
- * client-side hop costs a visible blank frame. Deliberately no `intent://`
- * anywhere: in-app WebViews commonly fail that scheme outright.
+ * client-side hop costs a visible blank frame.
+ *
+ * Android deliberately uses the plain https Play URL, not `intent://`. In-app
+ * WebViews commonly fail the intent scheme outright with ERR_UNKNOWN_URL_SCHEME,
+ * whereas the https listing is claimed by the Play Store app via App Links and
+ * resolves from inside a WebView.
  */
 const APP_STORE = 'https://apps.apple.com/app/id6761140080'
+const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.liftag.app'
 
 type Target = 'ios' | 'android' | 'desktop'
 
@@ -24,10 +28,15 @@ function detect(ua: string): Target {
   return 'desktop'
 }
 
+const storeUrl: Record<Exclude<Target, 'desktop'>, string> = {
+  ios: APP_STORE,
+  android: PLAY_STORE,
+}
+
 const target = ref<Target>(detect(useRequestHeaders(['user-agent'])['user-agent'] ?? ''))
 
-if (import.meta.server && target.value === 'ios') {
-  await navigateTo(APP_STORE, { external: true, redirectCode: 302 })
+if (import.meta.server && target.value !== 'desktop') {
+  await navigateTo(storeUrl[target.value], { external: true, redirectCode: 302 })
 }
 
 useLiftagSeo({
@@ -43,12 +52,13 @@ onMounted(() => {
   // where there are no request headers at all.
   const ua = navigator.userAgent || ''
   const isDesktopModeIPad = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1
+  const detected = isDesktopModeIPad ? 'ios' : detect(ua)
 
-  if (detect(ua) === 'ios' || isDesktopModeIPad) {
-    window.location.replace(APP_STORE)
+  if (detected !== 'desktop') {
+    window.location.replace(storeUrl[detected])
     return
   }
-  target.value = detect(ua)
+  target.value = detected
 })
 </script>
 
@@ -57,53 +67,41 @@ onMounted(() => {
     <div class="get__aura" aria-hidden="true" />
     <div class="get__grid" aria-hidden="true" />
 
-    <div class="get__inner" :class="{ 'get__inner--single': target === 'android' }">
-      <!-- Android: the honest dead-end. No link to an unpublished listing. -->
-      <template v-if="target === 'android'">
-        <p class="protocol get__kicker">Android · in build</p>
+    <!--
+      Only the desktop state ever renders: phones are redirected to their store
+      during SSR, before this markup is reached.
+    -->
+    <div class="get__inner">
+      <div class="get__copy">
+        <p class="protocol get__kicker">Install · iOS and Android</p>
         <h1 class="display get__title">
-          NOT ON <span class="lime">ANDROID</span><br />YET.
+          POINT YOUR<br /><span class="lime">PHONE</span> HERE.
         </h1>
         <p class="get__body">
-          LIFTAG is in public beta on iOS while the Android build catches up. It is
-          coming, and this link will start the install the day it lands.
+          LIFTAG lives on the phone you train with. Scan the code and your store
+          opens on your device.
         </p>
-        <NuxtLink to="/" class="btn-primary get__home">See what LIFTAG does</NuxtLink>
-      </template>
-
-      <!-- Desktop: the app only exists on a phone, so hand the visitor a phone. -->
-      <template v-else>
-        <div class="get__copy">
-          <p class="protocol get__kicker">Install · iOS public beta</p>
-          <h1 class="display get__title">
-            POINT YOUR<br /><span class="lime">PHONE</span> HERE.
-          </h1>
-          <p class="get__body">
-            LIFTAG lives on the phone you train with. Scan the code and the App
-            Store opens on your device.
-          </p>
-          <div class="get__stores">
-            <AppStoreBtn store="apple" :href="APP_STORE" />
-            <AppStoreBtn store="google" coming-soon />
-          </div>
+        <div class="get__stores">
+          <AppStoreBtn store="apple" :href="APP_STORE" />
+          <AppStoreBtn store="google" :href="PLAY_STORE" />
         </div>
+      </div>
 
-        <div class="get__qr">
-          <div class="get__panel">
-            <img
-              src="/assets/qr/get.svg"
-              width="260"
-              height="260"
-              alt="QR code that opens the LIFTAG install page"
-              class="get__code"
-            >
-            <span class="get__mark" aria-hidden="true">
-              <img src="/assets/logo.svg" width="40" height="40" alt="">
-            </span>
-          </div>
-          <p class="protocol get__url">liftag.fit/get</p>
+      <div class="get__qr">
+        <div class="get__panel">
+          <img
+            src="/assets/qr/get.svg"
+            width="260"
+            height="260"
+            alt="QR code that opens the LIFTAG install page"
+            class="get__code"
+          >
+          <span class="get__mark" aria-hidden="true">
+            <img src="/assets/logo.svg" width="40" height="40" alt="">
+          </span>
         </div>
-      </template>
+        <p class="protocol get__url">liftag.fit/get</p>
+      </div>
     </div>
   </main>
 </template>
@@ -147,12 +145,6 @@ onMounted(() => {
   gap: clamp(40px, 7vw, 96px);
 }
 
-/* Android state is a single column of copy — no QR to sit beside. */
-.get__inner--single {
-  grid-template-columns: minmax(0, 1fr);
-  max-width: 620px;
-}
-
 .get__kicker {
   color: var(--liftag-primary);
   margin-bottom: 20px;
@@ -177,11 +169,6 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
-  margin-top: 40px;
-}
-
-.get__home {
-  display: inline-flex;
   margin-top: 40px;
 }
 

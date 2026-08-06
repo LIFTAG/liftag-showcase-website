@@ -156,7 +156,7 @@ const legalLinks: FooterLink[] = [
           </svg>
           <span class="protocol">INSTAGRAM</span>
         </a>
-        <span class="protocol" style="color: #666;">v1.0 · NOW IN BETA</span>
+        <span class="protocol" style="color: #666;">v1.0 · IOS AND ANDROID</span>
       </div>
     </div>
   </footer>
