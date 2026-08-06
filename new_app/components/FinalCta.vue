@@ -90,8 +90,7 @@
           flexWrap: 'wrap',
         }"
       >
-        <AppStoreBtn store="apple" href="https://apps.apple.com/app/id6761140080" />
-        <AppStoreBtn store="google" href="https://play.google.com/store/apps/details?id=com.liftag.app" />
+        <GetAppBtn />
       </div>
 
     </div>

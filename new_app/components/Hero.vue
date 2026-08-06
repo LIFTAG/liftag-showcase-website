@@ -890,8 +890,7 @@ const pNfc = computed(() => {
             transition: 'opacity 900ms 640ms cubic-bezier(0.16,1,0.3,1), transform 900ms 640ms cubic-bezier(0.16,1,0.3,1)',
           }"
         >
-          <AppStoreBtn store="apple" href="https://apps.apple.com/app/id6761140080" />
-          <AppStoreBtn store="google" href="https://play.google.com/store/apps/details?id=com.liftag.app" />
+          <GetAppBtn />
         </div>
 
         <!-- Stats row -->
@@ -1256,8 +1255,7 @@ const pNfc = computed(() => {
           </div>
 
           <div class="hero-mobile-stores">
-            <AppStoreBtn store="apple" href="https://apps.apple.com/app/id6761140080" />
-            <AppStoreBtn store="google" href="https://play.google.com/store/apps/details?id=com.liftag.app" />
+            <GetAppBtn />
           </div>
         </div>
 
