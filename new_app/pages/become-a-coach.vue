@@ -5,7 +5,7 @@ const APP_STORE = 'https://apps.apple.com/app/id6761140080'
 const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.liftag.app'
 
 const description
-  = 'Coach where your clients already train. Build your profile inside LIFTAG, get discovered by lifters, share routines, and track real progress. Free while we are in beta.'
+  = 'Coach where your clients already train. Build your profile inside LIFTAG, get discovered by lifters, share routines, and track real progress.'
 
 useLiftagSeo({
   title: 'Become a Coach on LIFTAG | Train Clients Where They Lift',
@@ -21,10 +21,6 @@ useLiftagStructuredData([
     { name: 'Become a Coach', path: '/become-a-coach' },
   ]),
   liftagFAQPage([
-    {
-      question: 'Does it cost anything to coach on LIFTAG?',
-      answer: 'No. Coaching on LIFTAG is free while we are in beta. You can build your profile, manage clients, share routines, and track their progress at no cost.',
-    },
     {
       question: 'How do I apply to become a coach?',
       answer: 'Download the LIFTAG app, then open Profile and tap Become a Trainer. Fill out your coach application with your bio, specializations, experience, and location. It takes a couple of minutes, then our team reviews it.',
@@ -66,7 +62,7 @@ onBeforeUnmount(() => {
 })
 
 const heroPills: Array<{ label: string, hot: boolean }> = [
-  { label: 'Free while in beta', hot: true },
+  { label: 'Listed in the directory', hot: true },
   { label: 'Online & in-person', hot: false },
   { label: 'Verified coach badge', hot: false },
 ]
@@ -75,7 +71,7 @@ const heroPills: Array<{ label: string, hot: boolean }> = [
 interface WhyCard {
   title: string
   body: string
-  icon: 'chart' | 'coin' | 'badge' | 'devices'
+  icon: 'chart' | 'bolt' | 'badge' | 'devices'
   lime: boolean
 }
 
@@ -87,9 +83,9 @@ const whyCards: WhyCard[] = [
     lime: false,
   },
   {
-    title: 'Free while we are in beta',
-    body: 'Build your whole roster, online and in person, without a subscription gating your growth. You start coaching today, not after a paywall.',
-    icon: 'coin',
+    title: 'Start coaching today',
+    body: 'Build your profile, submit it, and our team reviews it. Once approved you are live in the directory lifters browse. No website, no booking stack, no setup call.',
+    icon: 'bolt',
     lime: true,
   },
   {
@@ -125,7 +121,7 @@ const steps: Step[] = [
   {
     no: '01',
     title: 'Download the app',
-    body: 'Get LIFTAG free on iOS (Android coming soon) and create your account. It is the same app your future clients use to train, so everything stays in one place.',
+    body: 'Get LIFTAG free on iOS or Android and create your account. It is the same app your future clients use to train, so everything stays in one place.',
     store: true,
   },
   {
@@ -171,9 +167,9 @@ const features: Feature[] = [
     title: 'Clients find you.',
     body: 'Appear in the in-app LIFTAG trainer directory. Lifters browse and filter verified coaches by specialty, experience, gym, and location, then contact you directly.',
     screen: '/assets/screens/trainer-discover.webp',
-    bullets: ['Listed in the searchable directory', 'Filtered by specialty & location', 'Lifters reach out directly, no fee'],
+    bullets: ['Listed in the searchable directory', 'Filtered by specialty & location', 'Lifters reach out directly'],
     chip1: { label: 'DIRECTORY', value: 'Filter by specialty', sub: 'specialty · gym · location' },
-    chip2: { label: 'CONTACT', value: 'Direct to you', sub: 'no paywall, no cut' },
+    chip2: { label: 'CONTACT', value: 'Direct to you', sub: 'from the directory' },
   },
   {
     tag: 'CLIENT PROGRESS',
@@ -201,18 +197,17 @@ const f = computed(() => features[active.value])
 interface Essential {
   title: string
   body: string
-  icon: 'badge' | 'video' | 'coin'
+  icon: 'badge' | 'video' | 'chart'
 }
 
 const essentials: Essential[] = [
   { title: 'Verified coach badge', body: 'Approved coaches get a verified badge so clients know they are reaching a real, reviewed trainer.', icon: 'badge' },
   { title: 'Custom exercises & videos', body: 'Add your own exercises with instructional videos, then share them inside the routines you build.', icon: 'video' },
-  { title: 'Free while in beta', body: 'No subscription, no per-client fee. Build your roster now and grow it without a paywall in the way.', icon: 'coin' },
+  { title: 'Client progress at a glance', body: 'Volume trends, PRs, and estimated 1RM for every client, pulled from the sets they actually logged.', icon: 'chart' },
 ]
 
 /* ── FAQ ── */
 const faqs = [
-  { q: 'Does it cost anything to coach on LIFTAG?', a: 'No. Coaching on LIFTAG is free while we are in beta. You can build your profile, manage clients, share routines, and track their progress at no cost.' },
   { q: 'How do I apply to become a coach?', a: 'Download the LIFTAG app, then open Profile and tap Become a Trainer. Fill out your application with your bio, specializations, experience, and location. It takes a couple of minutes, then our team reviews it.' },
   { q: 'How long does approval take?', a: 'Each application is reviewed by our team. You get a notification the moment a decision is made, and you can keep editing your application while it is still pending.' },
   { q: 'Can I coach online and in person?', a: 'Yes. You choose whether you offer online coaching, in-person coaching, or both, and set your location so nearby lifters can find you in the directory.' },
@@ -241,7 +236,7 @@ function toggleFaq(i: number) {
           <div class="coach-hero-copy">
             <p class="protocol coach-eyebrow enter h-eyebrow">
               <span class="coach-eyebrow-tick" aria-hidden="true" />
-              Join as a coach · Free in beta
+              Join as a coach
             </p>
 
             <h1 class="display coach-hero-title">
@@ -264,7 +259,7 @@ function toggleFaq(i: number) {
 
             <div class="coach-store-row enter h-badges">
               <AppStoreBtn store="apple" :href="APP_STORE" />
-              <AppStoreBtn store="google" :href="PLAY_STORE" coming-soon />
+              <AppStoreBtn store="google" :href="PLAY_STORE" />
             </div>
 
             <div class="coach-hero-links enter h-links">
@@ -346,7 +341,7 @@ function toggleFaq(i: number) {
                 <span class="coach-why-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                     <template v-if="card.icon === 'chart'"><path d="M4 4v16h16" /><path d="M7.5 14.5 11 11l2.5 2.5L20 7" /></template>
-                    <template v-else-if="card.icon === 'coin'"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5v9M9.5 10.2c0-1.2 1.1-2 2.5-2s2.5.8 2.5 2-1.1 1.7-2.5 1.7-2.5.6-2.5 1.8 1.1 2 2.5 2 2.5-.8 2.5-2" /></template>
+                    <template v-else-if="card.icon === 'bolt'"><path d="M13 2.5 4.5 13.5H11l-1 8 8.5-11H12z" /></template>
                     <template v-else-if="card.icon === 'badge'"><path d="M12 3l2.3 1.6 2.8.2 1 2.6 2 2-1 2.6.2 2.8L19 19l-2.8.2L14 21l-2-1.5L9 21l-2.2-1.8L4 19l-1.5-2.3.2-2.8-1-2.6 2-2 1-2.6 2.8-.2z" /><path d="M9 12l2 2 4-4" /></template>
                     <template v-else><rect x="3" y="4.5" width="13" height="9" rx="1.6" /><path d="M9.5 17.5h-3M18 9.5h3v8a1.5 1.5 0 0 1-1.5 1.5H17a1.5 1.5 0 0 1-1.5-1.5V11" /></template>
                   </svg>
@@ -422,7 +417,7 @@ function toggleFaq(i: number) {
                   <p class="coach-step-text">{{ step.body }}</p>
                   <div v-if="step.store" class="coach-store-row coach-store-row--inline">
                     <AppStoreBtn store="apple" :href="APP_STORE" />
-                    <AppStoreBtn store="google" :href="PLAY_STORE" coming-soon />
+                    <AppStoreBtn store="google" :href="PLAY_STORE" />
                   </div>
                 </div>
               </li>
@@ -529,7 +524,7 @@ function toggleFaq(i: number) {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                   <template v-if="e.icon === 'badge'"><path d="M12 3l2.3 1.6 2.8.2 1 2.6 2 2-1 2.6.2 2.8L19 19l-2.8.2L14 21l-2-1.5L9 21l-2.2-1.8L4 19l-1.5-2.3.2-2.8-1-2.6 2-2 1-2.6 2.8-.2z" /><path d="M9 12l2 2 4-4" /></template>
                   <template v-else-if="e.icon === 'video'"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m10 9 5 3-5 3z" /></template>
-                  <template v-else><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5v9M9.5 10.2c0-1.2 1.1-2 2.5-2s2.5.8 2.5 2-1.1 1.7-2.5 1.7-2.5.6-2.5 1.8 1.1 2 2.5 2 2.5-.8 2.5-2" /></template>
+                  <template v-else><path d="M4 4v16h16" /><path d="M7.5 14.5 11 11l2.5 2.5L20 7" /></template>
                 </svg>
               </span>
               <h3 class="coach-essential-title">{{ e.title }}</h3>
@@ -579,11 +574,11 @@ function toggleFaq(i: number) {
             Ready to coach<br >on <span class="accent coach-final-accent">LIFTAG?</span>
           </h2>
           <p class="coach-final-lead">
-            Download the app, open your application, and start building your roster. Free while we are in beta.
+            Download the app, open your application, and start building your roster.
           </p>
           <div class="coach-store-row coach-final-store">
             <AppStoreBtn store="apple" :href="APP_STORE" />
-            <AppStoreBtn store="google" :href="PLAY_STORE" coming-soon />
+            <AppStoreBtn store="google" :href="PLAY_STORE" />
           </div>
           <div class="coach-final-links">
             <a href="/for-trainers" class="coach-textlink">Explore trainer features →</a>

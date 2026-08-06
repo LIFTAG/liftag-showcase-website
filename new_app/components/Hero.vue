@@ -891,7 +891,7 @@ const pNfc = computed(() => {
           }"
         >
           <AppStoreBtn store="apple" href="https://apps.apple.com/app/id6761140080" />
-          <AppStoreBtn store="google" href="https://play.google.com/store/apps/details?id=com.liftag.app" coming-soon />
+          <AppStoreBtn store="google" href="https://play.google.com/store/apps/details?id=com.liftag.app" />
         </div>
 
         <!-- Stats row -->
@@ -1236,7 +1236,7 @@ const pNfc = computed(() => {
 
         <div class="hero-mobile-actions">
           <a href="#scan" class="hero-mobile-primary">See sync flow</a>
-          <span class="hero-mobile-note">Free in beta</span>
+          <span class="hero-mobile-note">Free to download</span>
         </div>
       </div>
 
@@ -1257,7 +1257,7 @@ const pNfc = computed(() => {
 
           <div class="hero-mobile-stores">
             <AppStoreBtn store="apple" href="https://apps.apple.com/app/id6761140080" />
-            <AppStoreBtn store="google" href="https://play.google.com/store/apps/details?id=com.liftag.app" coming-soon />
+            <AppStoreBtn store="google" href="https://play.google.com/store/apps/details?id=com.liftag.app" />
           </div>
         </div>
 
