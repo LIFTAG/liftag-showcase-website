@@ -232,7 +232,9 @@ withDefaults(defineProps<{
 }
 
 .get-app-btn--hero::before {
-  background: linear-gradient(110deg, rgba(248, 255, 214, 0.34), transparent 38%);
+  background:
+    linear-gradient(110deg, rgba(248, 255, 214, 0.34), transparent 38%),
+    repeating-linear-gradient(90deg, transparent 0 22px, rgba(7, 13, 4, 0.035) 22px 23px);
   opacity: 1;
 }
 
