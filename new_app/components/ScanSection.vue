@@ -482,12 +482,6 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-@property --scan-mobile-border-angle {
-  syntax: '<angle>';
-  inherits: false;
-  initial-value: 0deg;
-}
-
 .scan-step-row {
   position: relative;
   overflow: visible;
@@ -793,7 +787,6 @@ onBeforeUnmount(() => {
   }
 
   .scan-step-row {
-    --scan-mobile-border-angle: 0deg;
     grid-template-columns: 1fr !important;
     gap: 10px !important;
     min-width: 0;
@@ -802,6 +795,9 @@ onBeforeUnmount(() => {
     border-radius: 14px;
     background: rgba(8, 10, 6, 0.58);
     opacity: 1 !important;
+    overflow: hidden;
+    isolation: isolate;
+    contain: paint;
     transform: none !important;
     transition:
       border-color 260ms ease,
@@ -811,7 +807,7 @@ onBeforeUnmount(() => {
 
   .scan-step-row.is-active {
     border-color: rgba(204, 255, 0, 0.14) !important;
-    background: rgba(204, 255, 0, 0.075);
+    background: rgb(15, 19, 0);
     box-shadow:
       0 18px 34px rgba(0, 0, 0, 0.28),
       inset 0 1px 0 rgba(255, 255, 255, 0.06),
@@ -822,46 +818,48 @@ onBeforeUnmount(() => {
     display: none !important;
   }
 
-  .scan-step-row.is-active::before,
-  .scan-step-row.is-exiting::before {
+  .scan-step-row.is-active::before {
     content: '';
     display: block !important;
     position: absolute;
-    inset: -1px;
-    width: auto;
-    padding: 2px;
-    border-radius: inherit;
+    z-index: 0;
+    top: 50%;
+    left: 50%;
+    width: 190%;
+    aspect-ratio: 1;
+    border-radius: 0;
     pointer-events: none;
     background: conic-gradient(
-      from -90deg,
-      #f0ff8a 0deg,
-      #ccff00 var(--scan-mobile-border-angle),
-      transparent calc(var(--scan-mobile-border-angle) + 0.4deg),
-      transparent 360deg
+      from 0turn,
+      transparent 0turn 0.7turn,
+      rgba(204, 255, 0, 0.08) 0.79turn,
+      rgba(204, 255, 0, 0.72) 0.92turn,
+      #f0ff8a 0.985turn,
+      transparent 1turn
     );
     box-shadow: none;
     opacity: 1;
-    transform: none;
+    transform: translate3d(-50%, -50%, 0) rotate(0turn);
+    transform-origin: center;
+    backface-visibility: hidden;
+    will-change: transform;
     clip-path: none;
-    animation: scanMobilePaneBorderLoad calc(var(--cycle-ms, 3200ms) - 160ms) linear forwards;
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    mask-composite: exclude;
-    filter:
-      drop-shadow(0 0 7px rgba(204, 255, 0, 0.66))
-      drop-shadow(0 0 16px rgba(204, 255, 0, 0.28));
+    animation: scanMobilePaneBorderSpin 1.8s linear infinite;
   }
 
-  .scan-step-row.is-exiting::before {
-    display: block !important;
-    --scan-mobile-border-angle: 360deg;
-    opacity: 0.7;
-    animation: scanMobilePaneBorderExit 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  .scan-step-row.is-active::after {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    inset: 2px;
+    border-radius: 12px;
+    background: rgb(15, 19, 0);
+    pointer-events: none;
+  }
+
+  .scan-step-row > * {
+    position: relative;
+    z-index: 2;
   }
 
   .scan-step-row > div:first-child {
@@ -885,12 +883,6 @@ onBeforeUnmount(() => {
 
   .scan-section:not(.is-live) .scan-step-row.is-active::before {
     animation-play-state: paused;
-  }
-
-  .scan-section.is-hover-locked .scan-step-row.is-active::before {
-    --scan-mobile-border-angle: 360deg;
-    animation: none;
-    opacity: 0.72;
   }
 
   .scan-step-title {
@@ -1009,28 +1001,16 @@ onBeforeUnmount(() => {
   }
 }
 
-@keyframes scanMobilePaneBorderLoad {
+@keyframes scanMobilePaneBorderSpin {
   to {
-    --scan-mobile-border-angle: 360deg;
-  }
-}
-
-@keyframes scanMobilePaneBorderExit {
-  to {
-    opacity: 0;
+    transform: translate3d(-50%, -50%, 0) rotate(1turn);
   }
 }
 
 @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
   .scan-step-row.is-active::before {
-    --scan-mobile-border-angle: 360deg;
     animation: none;
-    opacity: 1;
-  }
-
-  .scan-step-row.is-exiting::before {
-    animation: none;
-    opacity: 0;
+    transform: translate3d(-50%, -50%, 0) rotate(0.96turn);
   }
 }
 </style>
