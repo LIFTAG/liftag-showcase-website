@@ -5,12 +5,13 @@
  *
  * Apple's https listing does not reliably hand off from embedded WKWebViews,
  * which can leave visitors on a blank page. Instagram is a special case: its
- * own `instagram://extbrowser/?url=...` route can hand an explicitly tapped URL
- * to the external browser. From there, the normal App Store https URL can be
- * claimed by iOS and opened in the App Store.
+ * own `instagram://extbrowser/?url=...` route can hand a URL to the external
+ * browser. From there, the normal App Store https URL can be claimed by iOS and
+ * opened in the App Store.
  *
- * Keep the handoff behind a real user tap. Browsers and host apps may reject a
- * custom-scheme navigation that is fired automatically without user activation.
+ * We attempt that handoff automatically on mount for Instagram. Because host
+ * apps may reject custom-scheme navigation without a user gesture, the working
+ * button remains visible as the reliable fallback.
  *
  * For other in-app browsers, and as a fallback if Instagram changes this route,
  * the page still explains how to use the host app's external-browser menu and
@@ -33,14 +34,20 @@ const props = withDefaults(defineProps<{
 const host = ref(inAppBrowserHost(useRequestHeaders(['user-agent'])['user-agent'] ?? ''))
 const isInstagram = computed(() => host.value === 'instagram')
 
-onMounted(() => {
-  host.value = inAppBrowserHost(navigator.userAgent || '')
-})
-
 function openInstagramExternalBrowser() {
   if (!import.meta.client) return
   window.location.href = `instagram://extbrowser/?url=${encodeURIComponent(APP_STORE_URL)}`
 }
+
+onMounted(() => {
+  host.value = inAppBrowserHost(navigator.userAgent || '')
+
+  // Best-effort zero-tap path. If Instagram blocks custom-scheme navigation
+  // without a user gesture, this is simply ignored and the button below remains.
+  if (host.value === 'instagram') {
+    openInstagramExternalBrowser()
+  }
+})
 
 const copied = ref(false)
 let copyTimer: ReturnType<typeof setTimeout> | null = null
