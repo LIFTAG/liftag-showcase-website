@@ -16,7 +16,8 @@ let motionMql: MediaQueryList | null = null
 let phoneLayoutMql: MediaQueryList | null = null
 
 function syncCycleInterval() {
-  if (inView.value && documentVisible.value && hoveredStep.value === null) {
+  const borderDrivesCycle = phoneLayout.value && !reduceMotion.value
+  if (inView.value && documentVisible.value && hoveredStep.value === null && !borderDrivesCycle) {
     startCycleInterval()
   } else {
     clearCycleInterval()
@@ -73,16 +74,30 @@ function setStep(nextStep: number) {
   step.value = nextStep
 }
 
+function selectStep(nextStep: number) {
+  setStep(nextStep)
+  syncCycleInterval()
+}
+
 function setHoveredStep(nextStep: number) {
+  if (phoneLayout.value) return
   hoveredStep.value = nextStep
   clearCycleInterval()
   setStep(nextStep)
 }
 
 function clearHoveredStep(stepIndex: number) {
+  if (phoneLayout.value) return
   if (hoveredStep.value !== stepIndex) return
   hoveredStep.value = null
-  if (inView.value) startCycleInterval()
+  syncCycleInterval()
+}
+
+function onStepBorderAnimationEnd(stepIndex: number, event: AnimationEvent) {
+  if (!phoneLayout.value || reduceMotion.value) return
+  if (event.pseudoElement !== '::before' || !event.animationName.includes('scanMobilePaneBorderSpin')) return
+  if (step.value !== stepIndex || !inView.value || !documentVisible.value || hoveredStep.value !== null) return
+  setStep((step.value + 1) % steps.length)
 }
 
 const scanPhoneMotionTransform = computed(() => {
@@ -104,10 +119,12 @@ const scanQrMotionTransform = computed(() => {
 
 function onMotionChange(e: MediaQueryListEvent) {
   reduceMotion.value = e.matches
+  syncCycleInterval()
 }
 
 function onPhoneLayoutChange(e: MediaQueryListEvent) {
   phoneLayout.value = e.matches
+  syncCycleInterval()
 }
 
 onMounted(() => {
@@ -321,7 +338,8 @@ onBeforeUnmount(() => {
                 transition: 'opacity 520ms ease, transform 680ms cubic-bezier(0.16,1,0.3,1)',
                 cursor: 'pointer',
               }"
-              @click="setStep(i)"
+              @click="selectStep(i)"
+              @animationend="onStepBorderAnimationEnd(i, $event)"
               @mouseenter="setHoveredStep(i)"
               @mouseleave="clearHoveredStep(i)"
             >
@@ -831,11 +849,14 @@ onBeforeUnmount(() => {
     pointer-events: none;
     background: conic-gradient(
       from 0turn,
-      transparent 0turn 0.7turn,
-      rgba(204, 255, 0, 0.08) 0.79turn,
-      rgba(204, 255, 0, 0.72) 0.92turn,
+      transparent 0turn 0.56turn,
+      rgba(204, 255, 0, 0.03) 0.62turn,
+      rgba(204, 255, 0, 0.12) 0.73turn,
+      rgba(204, 255, 0, 0.34) 0.84turn,
+      rgba(204, 255, 0, 0.68) 0.93turn,
       #f0ff8a 0.985turn,
-      transparent 1turn
+      #f0ff8a 0.995turn,
+      transparent 0.995turn 1turn
     );
     box-shadow: none;
     opacity: 1;
@@ -844,7 +865,7 @@ onBeforeUnmount(() => {
     backface-visibility: hidden;
     will-change: transform;
     clip-path: none;
-    animation: scanMobilePaneBorderSpin 1.8s linear infinite;
+    animation: scanMobilePaneBorderSpin var(--cycle-ms, 3200ms) linear 1 both;
   }
 
   .scan-step-row.is-active::after {
