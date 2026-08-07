@@ -3,27 +3,18 @@
  * Shown when an automatic App Store redirect would strand the visitor: iOS,
  * inside a social app's embedded browser.
  *
- * Apple's https listing answers `301 -> itms-appss://` for iPhone user-agents.
- * Safari forwards that scheme to the App Store; an embedded WKWebView cannot,
- * so the redirect ends on a blank page that never resolves. No redirect fixes
- * that — every variant lands in the same webview and hits the same wall.
+ * Apple's https listing does not reliably hand off from embedded WKWebViews,
+ * which can leave visitors on a blank page. Instagram is a special case: its
+ * own `instagram://extbrowser/?url=...` route can hand an explicitly tapped URL
+ * to the external browser. From there, the normal App Store https URL can be
+ * claimed by iOS and opened in the App Store.
  *
- * Tapping `itms-apps://` directly was tried and confirmed NOT to work from
- * Instagram: the scheme is swallowed like the rest. `x-safari-https://` is
- * blocked too, and non-gesture redirects are ignored outright. There is no
- * reliable automatic escape, and offering one as the primary action is worse
- * than offering none — a button that silently does nothing reads as a broken
- * site and costs the install.
+ * Keep the handoff behind a real user tap. Browsers and host apps may reject a
+ * custom-scheme navigation that is fired automatically without user activation.
  *
- * So this page leads with the two things that actually work:
- *   1. The host app's own "open in external browser" action, spelled out as
- *      the main instruction. Confirmed working, needs nobody's cooperation.
- *   2. Copying the link to paste into Safari, for when that menu is hard to
- *      find or worded differently.
- *
- * The plain https App Store link is kept at the bottom as a last resort: it is
- * correct everywhere else, and costs nothing if this page is ever reached from
- * a webview that does handle the hand-off.
+ * For other in-app browsers, and as a fallback if Instagram changes this route,
+ * the page still explains how to use the host app's external-browser menu and
+ * lets the visitor copy the /get URL into Safari.
  */
 const props = withDefaults(defineProps<{
   /** Where the visitor should end up once they escape the webview. */
@@ -32,14 +23,12 @@ const props = withDefaults(defineProps<{
   body?: string
 }>(), {
   heading: 'ONE MORE STEP.',
-  body: 'Instagram’s browser can’t open the App Store. Two seconds to get around it:',
+  body: 'Instagram’s browser can’t open the App Store directly. Use the button below to open it outside Instagram.',
 })
 
 /**
- * Instagram on iOS keeps "Open in external browser" behind a ••• in the top
- * right, and has across redesigns — so for Instagram specifically the page
- * points at it. Other embedded browsers put that control elsewhere, so they
- * get wording without a direction.
+ * Instagram is singled out because it exposes a working external-browser URL
+ * scheme. Other embedded browsers keep the manual escape instructions.
  */
 const host = ref(inAppBrowserHost(useRequestHeaders(['user-agent'])['user-agent'] ?? ''))
 const isInstagram = computed(() => host.value === 'instagram')
@@ -47,6 +36,11 @@ const isInstagram = computed(() => host.value === 'instagram')
 onMounted(() => {
   host.value = inAppBrowserHost(navigator.userAgent || '')
 })
+
+function openInstagramExternalBrowser() {
+  if (!import.meta.client) return
+  window.location.href = `instagram://extbrowser/?url=${encodeURIComponent(APP_STORE_URL)}`
+}
 
 const copied = ref(false)
 let copyTimer: ReturnType<typeof setTimeout> | null = null
@@ -76,11 +70,9 @@ onBeforeUnmount(() => {
     <div class="escape__aura" aria-hidden="true" />
 
     <!-- Points off the top-right of the viewport, at the ••• sitting in
-         Instagram's own chrome just above the page. -->
+         Instagram's own chrome just above the page. Kept as a fallback cue. -->
     <div v-if="isInstagram" class="escape__pointer" aria-hidden="true">
       <svg viewBox="0 0 64 72" fill="none">
-        <!-- Leaves the label at bottom left, travels right, then sweeps up
-             into the top-right corner where the ••• sits. -->
         <path
           d="M7 64C34 70 52 54 52 20"
           stroke="var(--liftag-primary, #ccff00)"
@@ -96,7 +88,7 @@ onBeforeUnmount(() => {
           stroke-linejoin="round"
         />
       </svg>
-      <span class="escape__pointer-label">the ••• is up here</span>
+      <span class="escape__pointer-label">fallback: ••• is up here</span>
     </div>
 
     <div class="escape__inner">
@@ -104,6 +96,20 @@ onBeforeUnmount(() => {
 
       <h1 class="display escape__title">{{ heading }}</h1>
       <p class="escape__body">{{ body }}</p>
+
+      <button
+        v-if="isInstagram"
+        type="button"
+        class="escape__primary"
+        @click="openInstagramExternalBrowser"
+      >
+        Open LIFTAG in App Store
+      </button>
+
+      <template v-if="isInstagram">
+        <p class="escape__hint">Opens the App Store through your external browser.</p>
+        <p class="escape__or">if that doesn’t work</p>
+      </template>
 
       <ol class="escape__steps">
         <li>
@@ -119,7 +125,7 @@ onBeforeUnmount(() => {
 
       <p class="escape__or">or</p>
 
-      <button type="button" class="escape__primary" @click="copyLink">
+      <button type="button" class="escape__secondary" @click="copyLink">
         {{ copied ? 'Copied. Paste it in Safari' : 'Copy link' }}
       </button>
       <p class="protocol escape__url">{{ shareUrl.replace(/^https:\/\//, '') }}</p>
@@ -153,8 +159,6 @@ onBeforeUnmount(() => {
   right: 26px;
   z-index: 2;
   display: flex;
-  /* The arrow's tail is at its bottom left, so the label sits level with the
-     tail rather than beside the head. */
   align-items: flex-end;
   gap: 4px;
   pointer-events: none;
@@ -191,7 +195,6 @@ onBeforeUnmount(() => {
   }
 }
 
-/* Clear the pointer so it never sits on top of the icon. */
 .escape__inner {
   position: relative;
   width: min(440px, calc(100% - 44px));
@@ -277,6 +280,13 @@ onBeforeUnmount(() => {
   text-transform: uppercase;
 }
 
+.escape__hint {
+  margin-top: 10px;
+  color: var(--liftag-fg-dim, rgba(255, 255, 255, 0.5));
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .escape__last {
   margin-top: 22px;
   color: var(--liftag-fg-dim, rgba(255, 255, 255, 0.45));
@@ -285,25 +295,36 @@ onBeforeUnmount(() => {
   text-underline-offset: 3px;
 }
 
-.escape__primary {
+.escape__primary,
+.escape__secondary {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   min-height: 54px;
-  margin-top: 10px;
   padding: 0 22px;
   border: none;
   cursor: pointer;
   border-radius: 14px;
-  background: var(--liftag-primary, #ccff00);
-  color: #0e0e0e;
   font-family: var(--liftag-font-body, system-ui, sans-serif);
   font-size: 16px;
   font-weight: 800;
   letter-spacing: -0.01em;
   text-decoration: none;
+}
+
+.escape__primary {
+  margin-top: 24px;
+  background: var(--liftag-primary, #ccff00);
+  color: #0e0e0e;
   box-shadow: 0 0 34px rgba(204, 255, 0, 0.4);
+}
+
+.escape__secondary {
+  margin-top: 10px;
+  border: 1px solid var(--liftag-border-strong, rgba(255, 255, 255, 0.08));
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--liftag-fg, #fff);
 }
 
 .escape__url {
