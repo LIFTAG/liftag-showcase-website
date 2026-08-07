@@ -1456,6 +1456,8 @@ const pNfc = computed(() => {
 }
 
 .hero-mobile-device :deep(.phone) {
+  position: relative;
+  z-index: 2;
   width: 100% !important;
 }
 
@@ -1471,6 +1473,7 @@ const pNfc = computed(() => {
 
 .hero-mobile-device-glow {
   position: absolute;
+  z-index: 0;
   inset: 10% -28% 3%;
   border-radius: 999px;
   background:
@@ -1569,6 +1572,39 @@ const pNfc = computed(() => {
   .hero-mobile-device {
     width: min(46vw, 180px);
     margin-top: 0;
+    isolation: isolate;
+  }
+
+  /* The centre device remains the single lightweight Three.js scene. These
+     two rear devices are pre-rendered 180px WebPs, so the mobile cluster adds
+     no canvases, input listeners, or animation loops. */
+  .hero-mobile-device::before,
+  .hero-mobile-device::after {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    content: '';
+    pointer-events: none;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    backface-visibility: hidden;
+    filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.58));
+  }
+
+  .hero-mobile-device::before {
+    background-image: url('/assets/screens/mobile-hero-rear-left.webp');
+    opacity: 0.62;
+    transform: translate3d(-100%, 8%, 0) perspective(900px) rotateY(19deg) rotateZ(-6deg) scale(0.84);
+  }
+
+  .hero-mobile-device::after {
+    background-image: url('/assets/screens/mobile-hero-rear-right.webp');
+    opacity: 0.56;
+    transform: translate3d(0, 5%, 0) perspective(900px) rotateY(-19deg) rotateZ(6deg) scale(0.84);
   }
 
   .hero-scroll-cue {
