@@ -1570,8 +1570,8 @@ const pNfc = computed(() => {
   }
 
   .hero-mobile-device {
-    --hero-phone-cycle: 9s;
-    --hero-phone-motion-delay: 1.6s;
+    --hero-phone-cycle: 10.5s;
+    --hero-phone-motion-delay: 3.2s;
 
     width: min(46vw, 180px);
     margin-top: 0;
@@ -1587,10 +1587,14 @@ const pNfc = computed(() => {
     top: 0;
     left: 50%;
     z-index: 1;
+    box-sizing: border-box;
     width: 100%;
     height: 100%;
+    border: 1px solid oklch(0.28 0.008 120 / 0.96);
+    border-radius: 15.5% / 7.2%;
     content: '';
     pointer-events: none;
+    background-clip: padding-box;
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
@@ -1618,51 +1622,41 @@ const pNfc = computed(() => {
   }
 }
 
-/* One shared nine-second phrase: the centre 3D phone leads, the left phone
-   opens the composition, and the right phone answers a fraction later. Each
-   returns to its own resting pose for the long quiet part of the cycle. */
+/* The rear devices make one quiet out-and-back drift while the centre phone
+   turns through its glare. Two-keyframe arcs keep velocity continuous and the
+   smaller deltas stop the background phones competing with the real model. */
 @keyframes heroRearLeftIdle {
   0%,
-  18%,
+  24%,
   100% {
     transform: translate3d(-100%, 8%, 0) perspective(900px) rotateY(19deg) rotateZ(-6deg) scale(0.84);
   }
 
   0% {
-    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  6% {
-    transform: translate3d(-102%, 5.5%, 0) perspective(900px) rotateY(15deg) rotateZ(-7.2deg) scale(0.855);
-    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
   }
 
   12% {
-    transform: translate3d(-101%, 7%, 0) perspective(900px) rotateY(17deg) rotateZ(-6.5deg) scale(0.848);
-    animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+    transform: translate3d(-100.6%, 7.2%, 0) perspective(900px) rotateY(17.8deg) rotateZ(-6.3deg) scale(0.844);
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
   }
 }
 
 @keyframes heroRearRightIdle {
   0%,
   3%,
-  18%,
+  27%,
   100% {
     transform: translate3d(0, 5%, 0) perspective(900px) rotateY(-19deg) rotateZ(6deg) scale(0.84);
   }
 
   3% {
-    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  9% {
-    transform: translate3d(1.5%, 3.5%, 0) perspective(900px) rotateY(-15.5deg) rotateZ(7deg) scale(0.852);
-    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
   }
 
   14% {
-    transform: translate3d(0.5%, 4.5%, 0) perspective(900px) rotateY(-17.5deg) rotateZ(6.4deg) scale(0.846);
-    animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+    transform: translate3d(0.4%, 4.4%, 0) perspective(900px) rotateY(-17.9deg) rotateZ(6.25deg) scale(0.844);
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
   }
 }
 

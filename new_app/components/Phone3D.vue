@@ -325,6 +325,48 @@ function initPhone() {
   )
   glass.position.z = D / 2 + 0.014
 
+  // A controlled reflection pass makes the phone's idle turn legible on a
+  // small screen. The band only appears during idle motion and travels across
+  // the same rounded screen geometry, so it reads as glass rather than a DOM
+  // overlay floating above the device.
+  const screenGlareMaterial = new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    toneMapped: false,
+    uniforms: {
+      uGlareProgress: { value: 0 },
+      uGlareIntensity: { value: 0 },
+    },
+    vertexShader: `
+      varying vec2 vUv;
+
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform float uGlareProgress;
+      uniform float uGlareIntensity;
+      varying vec2 vUv;
+
+      void main() {
+        float diagonal = vUv.x + (1.0 - vUv.y) * 0.28;
+        float centre = mix(-0.18, 1.46, uGlareProgress);
+        float distanceToBand = abs(diagonal - centre);
+        float core = 1.0 - smoothstep(0.0, 0.075, distanceToBand);
+        float halo = 1.0 - smoothstep(0.06, 0.24, distanceToBand);
+        float alpha = (core * 0.3 + halo * 0.12) * uGlareIntensity;
+
+        gl_FragColor = vec4(0.92, 1.0, 0.86, alpha);
+      }
+    `,
+  })
+  const screenGlare = new THREE.Mesh(screenGeo.clone(), screenGlareMaterial)
+  screenGlare.position.z = D / 2 + 0.015
+  screenGlare.renderOrder = 3
+
   const diW = 0.26
   const diH = 0.065
   const diShape = new THREE.Shape()
@@ -402,7 +444,7 @@ function initPhone() {
   const [l3, r3] = makeLens(-0.15, 0.52)
 
   const phone = new THREE.Group()
-  phone.add(body, screen, glass, dynamicIsland, powerBtn, volUp, volDown, muteSwitch)
+  phone.add(body, screen, glass, screenGlare, dynamicIsland, powerBtn, volUp, volDown, muteSwitch)
   phone.add(camHousing, l1, r1, l2, r2, l3, r3)
   phone.rotation.x = 0.08
   phone.rotation.y = -0.12
@@ -464,11 +506,11 @@ function initPhone() {
   let lastIdleRender = 0
   const restRotX = 0.08
   const restRotY = -0.12
-  // The 1.6s sweep and 7.4s rest form the same 9s cadence used by the
+  // The 2.4s sweep and 8.1s rest form the same 10.5s cadence used by the
   // mobile hero's two CSS rear phones.
-  const idleDuration = 1600
-  const idlePause = 7400
-  const idleFrameInterval = 1000 / 20
+  const idleDuration = 2400
+  const idlePause = 8100
+  const idleFrameInterval = 1000 / 60
   const reducedMotionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
   // Shared singleton - replaces a per-instance window mousemove listener.
   // animate() reads from sharedMouse.latest (delay = 0) or interpolates from
@@ -488,9 +530,12 @@ function initPhone() {
     currentRotY = restRotY
     phone.rotation.x = restRotX
     phone.rotation.y = restRotY
+    keyLight.position.set(2, 3, 5)
+    screenGlareMaterial.uniforms.uGlareProgress.value = 0
+    screenGlareMaterial.uniforms.uGlareIntensity.value = 0
   }
 
-  function scheduleIdleMotion(delay = 1600) {
+  function scheduleIdleMotion(delay = 3200) {
     clearIdleTimer()
     if (!props.idleMotion || props.interactive || reducedMotionMql.matches || !isVisible || document.hidden) return
 
@@ -587,11 +632,16 @@ function initPhone() {
       const turnOut = 1 - Math.pow(1 - outbound, 4)
       const settle = 1 - settleProgress * settleProgress * (3 - 2 * settleProgress)
       const arc = progress <= 0.42 ? turnOut : settle
+      const glareWindow = Math.max(0, 1 - Math.abs(progress - 0.5) / 0.42)
+      const glareIntensity = glareWindow * glareWindow * (3 - 2 * glareWindow)
 
-      // One confident turn and return reads as intentional. The previous
-      // two-sided oscillation felt disconnected from the static rear pair.
-      currentRotX = restRotX + arc * 0.011
-      currentRotY = restRotY + arc * 0.038
+      // Turn far enough to expose the body edge and carry the glare across the
+      // screen, then ease back without overshoot.
+      currentRotX = restRotX + arc * 0.022
+      currentRotY = restRotY + arc * 0.17
+      keyLight.position.x = 2 - arc * 1.15
+      screenGlareMaterial.uniforms.uGlareProgress.value = progress
+      screenGlareMaterial.uniforms.uGlareIntensity.value = glareIntensity
 
       if (now - lastIdleRender >= idleFrameInterval || progress >= 1) {
         lastIdleRender = now
