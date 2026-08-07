@@ -753,12 +753,7 @@ section {
     display: flex !important;
   }
 
-  /* HowItWorks - vertical scrollytelling on mobile */
-  .hiw-section {
-    height: var(--liftag-stable-vh-300) !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-  }
+  /* HowItWorks - compact static cards on mobile */
   .hiw-glass-pane {
     max-width: min(88vw, 360px) !important;
     padding: 26px 18px 24px !important;
@@ -768,14 +763,11 @@ section {
     max-width: 260px !important;
   }
   .hiw-panel {
-    padding: 82px 18px 74px !important;
+    padding: 0 18px !important;
   }
   .hiw-header {
-    top: max(88px, calc(env(safe-area-inset-top) + 82px)) !important;
-    left: 20px !important;
-  }
-  .hiw-dots {
-    bottom: max(18px, calc(env(safe-area-inset-bottom) + 12px)) !important;
+    top: auto !important;
+    left: auto !important;
   }
 
   /* Roadmap - slightly tighter padding */

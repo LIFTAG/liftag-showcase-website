@@ -70,8 +70,6 @@ let scanEffectResetForMobile = false
 
 const HIW_DESKTOP_TRACK_END_PROGRESS = 0.86
 const HIW_DESKTOP_LAST_EXIT_PROGRESS = 0.92
-const HIW_MOBILE_TRACK_END_PROGRESS = 0.82
-const HIW_MOBILE_LAST_EXIT_PROGRESS = 0.9
 
 // ─── Curve data ───────────────────────────────────────────────────────────
 const curvePoints: [number, number][] = [
@@ -390,11 +388,9 @@ function getHIWProgress(): number {
 
 function updateHIW(p: number, sectionRect?: DOMRect) {
   const track = trackRef.value
-  if (!track) return
+  if (!track || mobileHIWLayout) return
 
-  const panelP = mobileHIWLayout
-    ? Math.min(1, p / HIW_MOBILE_TRACK_END_PROGRESS)
-    : Math.min(1, p / HIW_DESKTOP_TRACK_END_PROGRESS)
+  const panelP = Math.min(1, p / HIW_DESKTOP_TRACK_END_PROGRESS)
 
   const rect = sectionRect ?? sectionRef.value?.getBoundingClientRect()
   const section = sectionRef.value
@@ -405,9 +401,7 @@ function updateHIW(p: number, sectionRect?: DOMRect) {
       hiwIntroEntered.value = true
     }
 
-    const exitStart = mobileHIWLayout
-      ? HIW_MOBILE_LAST_EXIT_PROGRESS
-      : HIW_DESKTOP_LAST_EXIT_PROGRESS
+    const exitStart = HIW_DESKTOP_LAST_EXIT_PROGRESS
     const exitP = Math.max(0, Math.min(1, (p - exitStart) / (1 - exitStart)))
     const easedExitP = exitP * exitP * (3 - 2 * exitP)
 
@@ -422,11 +416,7 @@ function updateHIW(p: number, sectionRect?: DOMRect) {
     section.style.setProperty('--hiw-dots-shift', `${8 * easedExitP}px`)
   }
 
-  if (mobileHIWLayout) {
-    track.style.transform = `translateY(-${panelP * 66.667}%)`
-  } else {
-    track.style.transform = `translateX(-${panelP * 66.667}%)`
-  }
+  track.style.transform = `translateX(-${panelP * 66.667}%)`
 
   updateScanHoverEffect(panelP)
 
@@ -656,7 +646,7 @@ function resetHIWChartHover() {
 
 // ─── rAF loop ─────────────────────────────────────────────────────────────
 function tick() {
-  if (!isVisible) return
+  if (!isVisible || mobileHIWLayout) return
   // Read the section rect once per tick and reuse it for both progress
   // calculation and updateHIW's intro/exit checks.
   const section = sectionRef.value
@@ -678,10 +668,26 @@ function scrollToPanel(i: number) {
   const viewportH = useStableViewportHeight() || window.innerHeight
   const sectionH  = rect.height - viewportH
   const sectionTop = window.scrollY + rect.top
-  const targetP = mobileHIWLayout
-    ? [0, HIW_MOBILE_TRACK_END_PROGRESS / 2, HIW_MOBILE_TRACK_END_PROGRESS][i] ?? 0
-    : [0, HIW_DESKTOP_TRACK_END_PROGRESS / 2, HIW_DESKTOP_TRACK_END_PROGRESS][i] ?? 0
+  const targetP = [0, HIW_DESKTOP_TRACK_END_PROGRESS / 2, HIW_DESKTOP_TRACK_END_PROGRESS][i] ?? 0
   window.scrollTo({ top: sectionTop + targetP * sectionH, behavior: 'smooth' })
+}
+
+function showStaticMobileState() {
+  hiwIntroEntered.value = true
+  resetMobileScanEffect()
+
+  trackRef.value?.style.removeProperty('transform')
+  if (weightEl.value) weightEl.value.textContent = '85'
+  if (repsEl.value) repsEl.value.textContent = '9'
+  if (chartClipRect.value) chartClipRect.value.setAttribute('width', '290')
+  if (chartDot.value) {
+    chartDot.value.setAttribute('cx', '280')
+    chartDot.value.setAttribute('cy', '20')
+    chartDot.value.setAttribute('opacity', '1')
+  }
+  if (statStrength.value) statStrength.value.textContent = '+32%'
+  if (statSessions.value) statSessions.value.textContent = '24'
+  if (statPRs.value) statPRs.value.textContent = '7'
 }
 
 // ─── LOG SET button ───────────────────────────────────────────────────────
@@ -710,6 +716,10 @@ onMounted(async () => {
     document.fonts.ready.then(refreshScanRects).catch(() => {})
   }
   const onResize = () => {
+    if (mobileHIWLayout) {
+      showStaticMobileState()
+      return
+    }
     sizeHIWCurveCanvas()
     refreshScanRects()
     updateHIW(getHIWProgress())
@@ -720,9 +730,20 @@ onMounted(async () => {
   const media = window.matchMedia('(max-width: 768px)')
   const syncMobileLayout = () => {
     mobileHIWLayout = media.matches
-    if (mobileHIWLayout) resetMobileScanEffect()
-    else scanEffectResetForMobile = false
-    requestAnimationFrame(() => updateHIW(getHIWProgress()))
+    cancelAnimationFrame(rafId)
+
+    if (mobileHIWLayout) {
+      showStaticMobileState()
+      return
+    }
+
+    scanEffectResetForMobile = false
+    sizeHIWCurveCanvas()
+    refreshScanRects()
+    requestAnimationFrame(() => {
+      updateHIW(getHIWProgress())
+      if (isVisible) rafId = requestAnimationFrame(tick)
+    })
   }
   syncMobileLayout()
   media.addEventListener('change', syncMobileLayout)
@@ -731,7 +752,7 @@ onMounted(async () => {
   intersectionObs = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       isVisible = entry.isIntersecting
-      if (isVisible) {
+      if (isVisible && !mobileHIWLayout) {
         cancelAnimationFrame(rafId)
         rafId = requestAnimationFrame(tick)
       }
@@ -1814,46 +1835,52 @@ circle[fill="var(--liftag-primary)"] {
 /* ── Mobile ───────────────────────────────────────────── */
 @media (max-width: 768px) {
   .hiw-section {
-    height: var(--liftag-stable-vh-340) !important;
-    min-height: var(--liftag-stable-vh-340);
+    height: auto !important;
+    min-height: 0;
     padding: 0 !important;
-    overflow-y: visible;
+    overflow: hidden;
   }
   .hiw-sticky {
-    position: sticky;
-    top: 0;
-    height: var(--liftag-stable-vh);
+    position: relative;
+    top: auto;
+    height: auto;
     overflow: hidden;
+    padding: 88px 0 80px;
   }
   .hiw-sticky::before,
   .hiw-sticky::after {
-    width: 28px;
+    display: none;
   }
   .hiw-bg-glow {
     inset: -32%;
     opacity: 0.86;
+    animation: none;
   }
   .hiw-curve-canvas {
-    opacity: 0.62;
+    display: none;
   }
   .hiw-header {
-    top: max(88px, calc(env(safe-area-inset-top) + 82px));
-    left: 20px;
+    position: relative;
+    top: auto;
+    left: auto;
+    margin: 0 20px 36px;
   }
   .hiw-track {
     flex-direction: column;
     width: 100% !important;
-    height: 300%;
+    height: auto;
+    gap: 28px;
     overflow: visible;
     touch-action: pan-y;
-    will-change: transform;
+    transform: none !important;
+    will-change: auto;
   }
   .hiw-panel {
-    flex: 0 0 var(--liftag-stable-vh);
+    flex: none;
     width: 100%;
-    height: var(--liftag-stable-vh);
-    min-height: var(--liftag-stable-vh);
-    padding: 82px 18px 74px !important;
+    height: auto;
+    min-height: 0;
+    padding: 0 18px !important;
   }
   .hiw-panel-number {
     font-size: 44vw;
@@ -1864,6 +1891,7 @@ circle[fill="var(--liftag-primary)"] {
     max-width: min(88vw, 360px) !important;
     padding: 26px 18px 24px !important;
     border-radius: 24px;
+    will-change: auto;
   }
   .hiw-glass-pane::before,
   .hiw-glass-pane::after {
@@ -1922,75 +1950,7 @@ circle[fill="var(--liftag-primary)"] {
     touch-action: pan-y;
   }
   .hiw-dots {
-    --hiw-dots-bottom-gap: max(18px, calc(env(safe-area-inset-bottom) + 12px));
-    top: calc(var(--liftag-stable-vh) - var(--hiw-dots-bottom-gap) - 30px);
-    bottom: auto;
-    align-items: center;
-    gap: 2px;
-    height: 30px;
-    padding: 0 8px;
-    border: 1px solid rgba(204, 255, 0, 0.16);
-    background: rgba(6, 9, 5, 0.94);
-    box-shadow:
-      inset 0 1px 0 rgba(246, 255, 212, 0.06),
-      0 12px 32px rgba(0, 0, 0, 0.52),
-      0 0 20px rgba(204, 255, 0, 0.06);
-    clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
-  }
-  .hiw-dots::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 24px;
-    right: 24px;
-    height: 1px;
-    background: rgba(204, 255, 0, 0.12);
-    transform: translateY(-50%);
-    pointer-events: none;
-  }
-  .hiw-dot,
-  .hiw-dot.active {
-    position: relative;
-    z-index: 1;
-    width: 32px;
-    height: 28px;
-    border-radius: 0;
-    background: transparent;
-    box-shadow: none;
-    transform: none;
-  }
-  .hiw-dot::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 8px;
-    height: 3px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.28);
-    box-shadow: 0 0 0 3px rgba(6, 9, 5, 0.94);
-    transform: translate(-50%, -50%);
-    transition:
-      width 320ms cubic-bezier(0.16, 1, 0.3, 1),
-      background-color 320ms cubic-bezier(0.16, 1, 0.3, 1),
-      box-shadow 320ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .hiw-dot.active::before {
-    width: 24px;
-    background: var(--liftag-primary);
-    box-shadow:
-      0 0 0 3px rgba(6, 9, 5, 0.94),
-      0 0 12px rgba(204, 255, 0, 0.46);
-  }
-  .hiw-dot:hover,
-  .hiw-dot.active:hover {
-    background: transparent;
-    transform: none;
-  }
-  @supports (height: 100svh) {
-    .hiw-dots {
-      top: calc(100svh - var(--hiw-dots-bottom-gap) - 30px);
-    }
+    display: none;
   }
 }
 </style>
