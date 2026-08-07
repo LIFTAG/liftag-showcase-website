@@ -603,8 +603,8 @@ function initPhone() {
       // Tilt toward the fixed key light so the real clear-coated top and right
       // edges catch a brief white specular highlight. No screen overlay or
       // synthetic reflection is involved.
-      currentRotX = restRotX + arc * 0.06
-      currentRotY = restRotY - arc * 0.22
+      currentRotX = restRotX + arc * 0.03
+      currentRotY = restRotY - arc * 0.11
 
       if (now - lastIdleRender >= idleFrameInterval || progress >= 1) {
         lastIdleRender = now
