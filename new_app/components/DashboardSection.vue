@@ -271,7 +271,7 @@ onBeforeUnmount(() => {
               Run your gyms from <span class="lime">one dashboard.</span>
             </SectionTitle>
             <p class="dashboard-lede reveal">
-              Locations, machines, and managers. Run your whole brand from one screen.
+              Locations, machines, and managers. The core dashboard is free forever; advanced business tools are optional.
             </p>
           </div>
 

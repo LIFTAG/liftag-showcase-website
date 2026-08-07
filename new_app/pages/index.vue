@@ -20,7 +20,7 @@ useLiftagStructuredData([
     },
     {
       question: 'Is LIFTAG free?',
-      answer: 'Yes. LIFTAG is free to download on iOS and Android, with no required paid subscription to log workouts and track progress.',
+      answer: 'Yes. Core workout tracking is free forever, including logging workouts and tracking progress. Premium intelligence is optional.',
     },
     {
       question: 'How is LIFTAG different from Strong, Hevy, FitNotes, or JEFIT?',

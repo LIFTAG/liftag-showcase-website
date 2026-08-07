@@ -71,7 +71,7 @@ const rows: AppRow[] = [
   {
     name: 'LIFTAG',
     platforms: 'iOS, Android',
-    free: 'Free',
+    free: 'Core tracking free forever; optional premium intelligence',
     bestFor: 'Serious lifters at a gym with NFC/QR machine tags',
     weakSpot: 'Partner-gym network is still expanding',
     unique: 'Tap or scan a machine to open the exact exercise with setup videos',

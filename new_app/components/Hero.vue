@@ -864,7 +864,7 @@ const pNfc = computed(() => {
           }"
         >
           Tap or scan any machine. Track every set. Watch your numbers compound.<br />
-          <span :style="{ color: 'rgba(255,255,255,0.4)' }">Because serious training deserves more than a notes app.</span>
+          <span :style="{ color: 'rgba(255,255,255,0.4)' }">Core workout tracking is free forever. Premium intelligence is optional.</span>
         </p>
 
         <!-- App store buttons -->
@@ -936,7 +936,7 @@ const pNfc = computed(() => {
                 lineHeight: 1,
               }"
             >{{ fmtStat(stat4.val.value, 100, '%', false) }}</div>
-            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">Free · forever</div>
+            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">Core tracking · free forever</div>
           </div>
         </div>
       </div>
@@ -1219,7 +1219,7 @@ const pNfc = computed(() => {
         </h1>
 
         <p class="hero-mobile-copyline">
-          Tap NFC or scan QR at the machine. Log the set. Watch real progress compound.
+          Tap NFC or scan QR at the machine. Core workout tracking is free forever. Premium intelligence is optional.
         </p>
 
         <div class="hero-mobile-actions">

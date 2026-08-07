@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const title = 'NFC and QR tags for <span class="lime">gym machines.</span>'
-const description = 'LIFTAG helps gyms attach NFC tags and QR codes to machines so members can open exercise instructions, setup videos, and tracking flows directly from the equipment.'
+const description = 'LIFTAG gives gyms free NFC and QR tags, listing, machine setup, and a core dashboard. Advanced business tools are optional.'
 
 useLiftagSeo({
   title: 'NFC and QR Gym Machine Tags | LIFTAG for Gyms',
@@ -24,6 +24,10 @@ useLiftagStructuredData([
       question: 'Do gyms need NFC or QR codes?',
       answer: 'LIFTAG supports both. NFC creates a fast tap experience, while QR codes keep the same flow accessible on more phones and surfaces.',
     },
+    {
+      question: 'What does LIFTAG cost for gyms?',
+      answer: 'Tags, listing, machine setup, and the core dashboard are free forever. Advanced business tools are optional.',
+    },
   ]),
 ])
 
@@ -44,7 +48,7 @@ const sections = [
   },
   {
     title: 'Manage locations from one dashboard',
-    body: 'Keep machines, locations, staff access, and rollout status organized from a central dashboard instead of rebuilding the same catalog for every gym.',
+    body: 'Keep machines, locations, staff access, and rollout status organized from a central dashboard. The core dashboard is free forever; advanced business tools are optional.',
   },
 ]
 
@@ -56,6 +60,10 @@ const faqs = [
   {
     question: 'Do gyms need NFC or QR codes?',
     answer: 'LIFTAG supports both. NFC creates a fast tap experience, while QR codes keep the same flow accessible on more phones and surfaces.',
+  },
+  {
+    question: 'What does LIFTAG cost for gyms?',
+    answer: 'Tags, listing, machine setup, and the core dashboard are free forever. Advanced business tools are optional.',
   },
 ]
 </script>

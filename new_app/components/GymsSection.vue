@@ -17,13 +17,13 @@ const benefits = [
   },
   {
     tag: 'FREE',
-    title: '100% free for partner gyms.',
-    body: 'No subscription. No setup fee. Just results.',
+    title: 'Core gym tools. Free forever.',
+    body: 'Tags, listing, machine setup, and the core dashboard stay free. Advanced business tools are optional.',
   },
 ]
 
 const gymNumbers = [
-  { n: '0€', l: 'Setup fee', sub: 'no subscription, ever' },
+  { n: '0€', l: 'Core gym tools', sub: 'free forever' },
   { n: 'FREE', l: 'QR + NFC kit', sub: 'we ship it to you' },
   { n: 'MAP', l: 'Featured placement', sub: 'verified gym badge' },
 ]
