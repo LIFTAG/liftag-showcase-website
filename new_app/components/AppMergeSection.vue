@@ -316,8 +316,8 @@ function applyAppStyles(app: MockApp, index: number, p: number, finale: number, 
   const vector = vectorEls[index]
   if (!vector) return
 
-  const show = smoothstep((p - 0.06 - app.delay * 0.006) / 0.2)
-  const vectorFade = smoothstep((p - 0.74) / 0.16)
+  const show = smoothstep((p - 0.015 - app.delay * 0.003) / 0.12)
+  const vectorFade = smoothstep((p - 0.8) / 0.14)
   const len = Math.hypot(motion.x, motion.y)
   const angle = Math.atan2(motion.y, motion.x) * 180 / Math.PI
   const unitX = len > 0.001 ? motion.x / len : 1
@@ -327,10 +327,10 @@ function applyAppStyles(app: MockApp, index: number, p: number, finale: number, 
   const lineLen = Math.max(0, len - startGap - endGap)
   const startX = unitX * startGap
   const startY = unitY * startGap
-  const draw = show * (1 - vectorFade) * (1 - merge * 0.1)
+  const draw = show * (1 - vectorFade)
   const sparkTravel = clamp(0.15 + merge * 0.78 + Math.sin(now * 0.003 + app.delay) * 0.05)
-  const sparkOpacity = show * (1 - vectorFade) * (0.34 + merge * 0.5)
-  const alpha = show * (1 - vectorFade) * (0.34 + merge * 0.26)
+  const sparkOpacity = show * (1 - vectorFade) * (0.42 + merge * 0.48)
+  const alpha = show * (1 - vectorFade) * (0.46 + merge * 0.22)
 
   const sparkXStr = `${sparkTravel}px`
   const sparkOpacityStr = String(sparkOpacity)

@@ -959,7 +959,7 @@ const pNfc = computed(() => {
             filter: 'drop-shadow(0 24px 40px rgba(0,0,0,0.55))',
           }"
         >
-          <Phone src="/assets/screens/progression.webp" :scale="0.7" :tilt-delay-ms="140" lite />
+          <Phone src="/assets/screens/progression.webp" :scale="0.7" :tilt-delay-ms="140" :static-bezel="false" lite />
         </div>
 
         <!-- Back-right phone -->
@@ -974,7 +974,7 @@ const pNfc = computed(() => {
             filter: 'drop-shadow(0 22px 36px rgba(0,0,0,0.55))',
           }"
         >
-          <Phone src="/assets/screens/log-set.webp" :scale="0.64" :tilt-delay-ms="230" lite />
+          <Phone src="/assets/screens/log-set.webp" :scale="0.64" :tilt-delay-ms="230" :static-bezel="false" lite />
         </div>
 
         <!-- Front center phone (main) -->
@@ -998,7 +998,7 @@ const pNfc = computed(() => {
               animation: 'pulse-glow 4s ease-in-out infinite',
             }"
           />
-          <Phone src="/assets/screens/home-hero-no-qr.webp" :scale="0.92" :tilt-delay-ms="0" :lite="isMobile" priority />
+          <Phone src="/assets/screens/home-hero-no-qr.webp" :scale="0.92" :tilt-delay-ms="0" :static-bezel="false" :lite="isMobile" priority />
           <!-- Reflection streak -->
           <div
             :style="{
@@ -1254,6 +1254,7 @@ const pNfc = computed(() => {
             lite
             enable-mobile3d
             :interactive3d="false"
+            :static-bezel="false"
             crisp3d
             idle3d
             priority

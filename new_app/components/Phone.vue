@@ -50,6 +50,7 @@ const props = withDefaults(defineProps<{
   idle3d?: boolean
   priority?: boolean
   sizes?: string
+  staticBezel?: boolean
 }>(), {
   glow: false,
   scale: 1,
@@ -63,6 +64,7 @@ const props = withDefaults(defineProps<{
   idle3d: false,
   priority: false,
   sizes: '(max-width: 768px) 46vw, 280px',
+  staticBezel: true,
 })
 
 const hasMounted = ref(false)
@@ -83,6 +85,7 @@ const renderStaticPhone = computed(() => Boolean(props.src) && !render3dPhone.va
 const phoneClasses = computed(() => ({
   'phone--3d': render3dPhone.value,
   'phone--static-mockup': renderStaticPhone.value,
+  'phone--static-frameless': renderStaticPhone.value && !props.staticBezel,
 }))
 const staticTransitionName = computed(() => {
   if (!props.screenTransition) return 'phone-static-fade'
@@ -311,6 +314,15 @@ onBeforeUnmount(() => {
 }
 
 .phone--static-mockup {
+  border: 2px solid #050605;
+  background: #050605;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 30px 80px rgba(0, 0, 0, 0.8),
+    0 0 60px rgba(204, 255, 0, 0.08);
+}
+
+.phone--static-mockup.phone--static-frameless {
   border: 0;
   background: transparent;
   box-shadow:
