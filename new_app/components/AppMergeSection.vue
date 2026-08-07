@@ -224,8 +224,17 @@ function updateStageScale() {
   if (!stage) return
 
   const rect = stage.getBoundingClientRect()
-  stageScale = clamp(rect.width / 860, 0.58, 1)
   mobileMergeLayout = window.innerWidth <= 620
+
+  if (mobileMergeLayout) {
+    // Keep the complete orbit inside short, narrow phone viewports. The
+    // desktop composition only needs a width constraint, while mobile also
+    // needs to respect the stage height below the copy.
+    stageScale = clamp(Math.min(rect.width / 620, rect.height / 520), 0.46, 0.62)
+    return
+  }
+
+  stageScale = clamp(rect.width / 860, 0.58, 1)
 }
 
 function mergeProgress(p: number) {
@@ -244,8 +253,8 @@ function appMotion(app: MockApp, p: number, finale: number, now: number) {
   const pointerDriftY = (pointerY - 50) * app.depth * 0.22 * unmerged
   const floatX = Math.cos(now * 0.0011 + app.delay) * 3.5 * unmerged
   const floatY = Math.sin(now * 0.0014 + app.delay * 0.8) * 6 * unmerged
-  const orbitXScale = mobileMergeLayout ? 0.62 : 1
-  const orbitYScale = mobileMergeLayout ? 1.14 : 1
+  const orbitXScale = mobileMergeLayout ? 0.68 : 1
+  const orbitYScale = mobileMergeLayout ? 0.8 : 1
   const x = (app.x * stageScale * orbitXScale * orbitBreath + pointerDriftX + floatX) * unmerged
   const y = (app.y * stageScale * orbitYScale * orbitBreath + pointerDriftY + floatY) * unmerged
   const scale = 0.98 - merge * 0.46 + finale * 0.035
@@ -1110,12 +1119,22 @@ onBeforeUnmount(() => {
   }
 
   .app-merge-sticky {
-    min-height: 820px;
+    min-height: 0;
+  }
+
+  .app-merge-layout {
+    gap: clamp(8px, 2vh, 18px);
+  }
+
+  .app-merge-section .merge-copy-text {
+    margin-top: 14px;
+    font-size: 14px;
+    line-height: 1.45;
   }
 
   .app-merge-section .merge-stage {
-    height: 410px;
-    min-height: 410px;
+    height: clamp(290px, var(--liftag-stable-vh-39), 360px);
+    min-height: 290px;
   }
 
   .merge-rings span {
@@ -1158,6 +1177,42 @@ onBeforeUnmount(() => {
 
   .liftag-target-label {
     padding: 9px 12px;
+  }
+}
+
+@media (max-width: 620px) and (max-height: 700px) {
+  .app-merge-layout {
+    padding-top: 16px;
+  }
+
+  .app-merge-section .merge-copy-eyebrow {
+    display: none !important;
+  }
+}
+
+@media (max-width: 620px) and (max-height: 600px) {
+  .app-merge-layout {
+    gap: 0;
+  }
+
+  .app-merge-section .merge-copy-text {
+    display: none !important;
+  }
+
+  .app-merge-section .merge-stage {
+    height: 260px;
+    min-height: 260px;
+  }
+
+  .mock-icon {
+    width: 58px;
+    height: 58px;
+    border-radius: 15px;
+  }
+
+  .mock-icon-glyph {
+    width: 35px;
+    height: 35px;
   }
 }
 
