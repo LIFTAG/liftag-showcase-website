@@ -464,8 +464,10 @@ function initPhone() {
   let lastIdleRender = 0
   const restRotX = 0.08
   const restRotY = -0.12
-  const idleDuration = 1200
-  const idlePause = 7800
+  // The 1.6s sweep and 7.4s rest form the same 9s cadence used by the
+  // mobile hero's two CSS rear phones.
+  const idleDuration = 1600
+  const idlePause = 7400
   const idleFrameInterval = 1000 / 20
   const reducedMotionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
   // Shared singleton - replaces a per-instance window mousemove listener.
@@ -580,11 +582,16 @@ function initPhone() {
       currentRotY += (targetRotY - currentRotY) * 0.06
     } else if (idleMotionActive) {
       const progress = Math.min(1, (now - idleMotionStart) / idleDuration)
-      const envelope = Math.sin(progress * Math.PI)
-      const sweep = Math.sin(progress * Math.PI * 2) * envelope
+      const outbound = Math.min(1, progress / 0.42)
+      const settleProgress = Math.max(0, (progress - 0.42) / 0.58)
+      const turnOut = 1 - Math.pow(1 - outbound, 4)
+      const settle = 1 - settleProgress * settleProgress * (3 - 2 * settleProgress)
+      const arc = progress <= 0.42 ? turnOut : settle
 
-      currentRotX = restRotX + envelope * 0.012
-      currentRotY = restRotY + sweep * 0.045
+      // One confident turn and return reads as intentional. The previous
+      // two-sided oscillation felt disconnected from the static rear pair.
+      currentRotX = restRotX + arc * 0.011
+      currentRotY = restRotY + arc * 0.038
 
       if (now - lastIdleRender >= idleFrameInterval || progress >= 1) {
         lastIdleRender = now

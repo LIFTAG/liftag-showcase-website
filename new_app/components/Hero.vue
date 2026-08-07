@@ -1570,14 +1570,17 @@ const pNfc = computed(() => {
   }
 
   .hero-mobile-device {
+    --hero-phone-cycle: 9s;
+    --hero-phone-motion-delay: 1.6s;
+
     width: min(46vw, 180px);
     margin-top: 0;
     isolation: isolate;
   }
 
   /* The centre device remains the single lightweight Three.js scene. These
-     two rear devices are pre-rendered 180px WebPs, so the mobile cluster adds
-     no canvases, input listeners, or animation loops. */
+     two rear devices are pre-rendered 180px WebPs, so their choreography adds
+     no canvases, input listeners, or JavaScript animation loops. */
   .hero-mobile-device::before,
   .hero-mobile-device::after {
     position: absolute;
@@ -1593,22 +1596,81 @@ const pNfc = computed(() => {
     background-size: contain;
     backface-visibility: hidden;
     filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.58));
+    will-change: transform;
   }
 
   .hero-mobile-device::before {
     background-image: url('/assets/screens/mobile-hero-rear-left.webp');
     opacity: 0.62;
     transform: translate3d(-100%, 8%, 0) perspective(900px) rotateY(19deg) rotateZ(-6deg) scale(0.84);
+    animation: heroRearLeftIdle var(--hero-phone-cycle) var(--hero-phone-motion-delay) linear infinite;
   }
 
   .hero-mobile-device::after {
     background-image: url('/assets/screens/mobile-hero-rear-right.webp');
     opacity: 0.56;
     transform: translate3d(0, 5%, 0) perspective(900px) rotateY(-19deg) rotateZ(6deg) scale(0.84);
+    animation: heroRearRightIdle var(--hero-phone-cycle) var(--hero-phone-motion-delay) linear infinite;
   }
 
   .hero-scroll-cue {
     display: none !important;
+  }
+}
+
+/* One shared nine-second phrase: the centre 3D phone leads, the left phone
+   opens the composition, and the right phone answers a fraction later. Each
+   returns to its own resting pose for the long quiet part of the cycle. */
+@keyframes heroRearLeftIdle {
+  0%,
+  18%,
+  100% {
+    transform: translate3d(-100%, 8%, 0) perspective(900px) rotateY(19deg) rotateZ(-6deg) scale(0.84);
+  }
+
+  0% {
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  6% {
+    transform: translate3d(-102%, 5.5%, 0) perspective(900px) rotateY(15deg) rotateZ(-7.2deg) scale(0.855);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  12% {
+    transform: translate3d(-101%, 7%, 0) perspective(900px) rotateY(17deg) rotateZ(-6.5deg) scale(0.848);
+    animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+  }
+}
+
+@keyframes heroRearRightIdle {
+  0%,
+  3%,
+  18%,
+  100% {
+    transform: translate3d(0, 5%, 0) perspective(900px) rotateY(-19deg) rotateZ(6deg) scale(0.84);
+  }
+
+  3% {
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  9% {
+    transform: translate3d(1.5%, 3.5%, 0) perspective(900px) rotateY(-15.5deg) rotateZ(7deg) scale(0.852);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  14% {
+    transform: translate3d(0.5%, 4.5%, 0) perspective(900px) rotateY(-17.5deg) rotateZ(6.4deg) scale(0.846);
+    animation-timing-function: cubic-bezier(0.25, 1, 0.5, 1);
+  }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .hero-mobile-device::before,
+  .hero-mobile-device::after {
+    animation: none;
+    will-change: auto;
   }
 }
 
