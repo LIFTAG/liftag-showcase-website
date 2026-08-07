@@ -3,6 +3,10 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { useSharedMouse, delayedSampleAt } from '../composables/useSharedMouse'
 
+const emit = defineEmits<{
+  ready: []
+}>()
+
 const props = withDefaults(defineProps<{
   screenshotSrc: string
   tiltDelayMs?: number
@@ -245,7 +249,12 @@ function initPhone() {
     const promise = new Promise<HTMLImageElement>((resolve, reject) => {
       const image = new Image()
       image.decoding = 'async'
-      image.onload = () => resolve(image)
+      image.onload = () => {
+        const decodePromise = image.decode ? image.decode() : Promise.resolve()
+        decodePromise
+          .then(() => resolve(image))
+          .catch(() => resolve(image))
+      }
       image.onerror = reject
       image.src = src
     })
@@ -408,12 +417,14 @@ function initPhone() {
   phone.rotation.y = -0.12
   scene.add(phone)
 
-  loadScreenImage(currentSrc)
+  const initialSrc = currentSrc
+  loadScreenImage(initialSrc)
     .then((image) => {
-      if (currentSrc !== props.screenshotSrc) return
+      if (initialSrc !== currentSrc || initialSrc !== props.screenshotSrc) return
       currentScreenImage = image
       drawStaticScreen(image)
       renderer.render(scene, camera)
+      emit('ready')
     })
     .catch(() => {})
 
