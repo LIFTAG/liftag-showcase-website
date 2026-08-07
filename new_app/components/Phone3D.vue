@@ -334,48 +334,6 @@ function initPhone() {
   )
   glass.position.z = D / 2 + 0.014
 
-  // A controlled reflection pass makes the phone's idle turn legible on a
-  // small screen. The band only appears during idle motion and travels across
-  // the same rounded screen geometry, so it reads as glass rather than a DOM
-  // overlay floating above the device.
-  const screenGlareMaterial = new THREE.ShaderMaterial({
-    transparent: true,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending,
-    toneMapped: false,
-    uniforms: {
-      uGlareProgress: { value: 0 },
-      uGlareIntensity: { value: 0 },
-    },
-    vertexShader: `
-      varying vec2 vUv;
-
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `
-      uniform float uGlareProgress;
-      uniform float uGlareIntensity;
-      varying vec2 vUv;
-
-      void main() {
-        float diagonal = vUv.x + (1.0 - vUv.y) * 0.28;
-        float centre = mix(-0.18, 1.46, uGlareProgress);
-        float distanceToBand = abs(diagonal - centre);
-        float core = 1.0 - smoothstep(0.0, 0.075, distanceToBand);
-        float halo = 1.0 - smoothstep(0.06, 0.24, distanceToBand);
-        float alpha = (core * 0.3 + halo * 0.12) * uGlareIntensity;
-
-        gl_FragColor = vec4(0.92, 1.0, 0.86, alpha);
-      }
-    `,
-  })
-  const screenGlare = new THREE.Mesh(screenGeo.clone(), screenGlareMaterial)
-  screenGlare.position.z = D / 2 + 0.015
-  screenGlare.renderOrder = 3
-
   const diW = 0.26
   const diH = 0.065
   const diShape = new THREE.Shape()
@@ -453,7 +411,7 @@ function initPhone() {
   const [l3, r3] = makeLens(-0.15, 0.52)
 
   const phone = new THREE.Group()
-  phone.add(body, screen, glass, screenGlare, dynamicIsland, powerBtn, volUp, volDown, muteSwitch)
+  phone.add(body, screen, glass, dynamicIsland, powerBtn, volUp, volDown, muteSwitch)
   phone.add(camHousing, l1, r1, l2, r2, l3, r3)
   phone.rotation.x = 0.08
   phone.rotation.y = -0.12
@@ -542,8 +500,6 @@ function initPhone() {
     phone.rotation.x = restRotX
     phone.rotation.y = restRotY
     keyLight.position.set(2, 3, 5)
-    screenGlareMaterial.uniforms.uGlareProgress.value = 0
-    screenGlareMaterial.uniforms.uGlareIntensity.value = 0
   }
 
   function scheduleIdleMotion(delay = 3200) {
@@ -643,16 +599,12 @@ function initPhone() {
       const turnOut = 1 - Math.pow(1 - outbound, 4)
       const settle = 1 - settleProgress * settleProgress * (3 - 2 * settleProgress)
       const arc = progress <= 0.42 ? turnOut : settle
-      const glareWindow = Math.max(0, 1 - Math.abs(progress - 0.5) / 0.42)
-      const glareIntensity = glareWindow * glareWindow * (3 - 2 * glareWindow)
 
-      // Turn far enough to expose the body edge and carry the glare across the
-      // screen, then ease back without overshoot.
-      currentRotX = restRotX + arc * 0.022
-      currentRotY = restRotY + arc * 0.17
-      keyLight.position.x = 2 - arc * 1.15
-      screenGlareMaterial.uniforms.uGlareProgress.value = progress
-      screenGlareMaterial.uniforms.uGlareIntensity.value = glareIntensity
+      // Tilt toward the fixed key light so the real clear-coated top and right
+      // edges catch a brief white specular highlight. No screen overlay or
+      // synthetic reflection is involved.
+      currentRotX = restRotX + arc * 0.06
+      currentRotY = restRotY - arc * 0.22
 
       if (now - lastIdleRender >= idleFrameInterval || progress >= 1) {
         lastIdleRender = now
