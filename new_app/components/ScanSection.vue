@@ -95,7 +95,7 @@ function clearHoveredStep(stepIndex: number) {
 
 function onStepBorderAnimationEnd(stepIndex: number, event: AnimationEvent) {
   if (!phoneLayout.value || reduceMotion.value) return
-  if (event.pseudoElement !== '::before' || !event.animationName.includes('scanMobilePaneBorderSpin')) return
+  if (event.pseudoElement !== '::before' || !event.animationName.includes('scanMobilePaneBorderLoad')) return
   if (step.value !== stepIndex || !inView.value || !documentVisible.value || hoveredStep.value !== null) return
   setStep((step.value + 1) % steps.length)
 }
@@ -500,6 +500,12 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+@property --scan-border-progress {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
 .scan-step-row {
   position: relative;
   overflow: visible;
@@ -847,25 +853,26 @@ onBeforeUnmount(() => {
     aspect-ratio: 1;
     border-radius: 0;
     pointer-events: none;
+    --scan-border-progress: 0deg;
     background: conic-gradient(
-      from 0turn,
-      transparent 0turn 0.56turn,
-      rgba(204, 255, 0, 0.03) 0.62turn,
-      rgba(204, 255, 0, 0.12) 0.73turn,
-      rgba(204, 255, 0, 0.34) 0.84turn,
-      rgba(204, 255, 0, 0.68) 0.93turn,
-      #f0ff8a 0.985turn,
-      #f0ff8a 0.995turn,
-      transparent 0.995turn 1turn
+      from -0.25turn,
+      rgba(204, 255, 0, 0.1) 0turn,
+      rgba(204, 255, 0, 0.22) calc(var(--scan-border-progress) - 0.075turn),
+      rgba(204, 255, 0, 0.42) calc(var(--scan-border-progress) - 0.028turn),
+      rgba(204, 255, 0, 0.68) calc(var(--scan-border-progress) - 0.012turn),
+      #f0ff8a calc(var(--scan-border-progress) - 0.004turn),
+      #ccff00 var(--scan-border-progress),
+      transparent var(--scan-border-progress),
+      transparent 1turn
     );
     box-shadow: none;
     opacity: 1;
-    transform: translate3d(-50%, -50%, 0) rotate(0turn);
+    transform: translate3d(-50%, -50%, 0);
     transform-origin: center;
     backface-visibility: hidden;
-    will-change: transform;
+    will-change: --scan-border-progress;
     clip-path: none;
-    animation: scanMobilePaneBorderSpin var(--cycle-ms, 3200ms) linear 1 both;
+    animation: scanMobilePaneBorderLoad var(--cycle-ms, 3200ms) linear 1 both;
   }
 
   .scan-step-row.is-active::after {
@@ -1022,16 +1029,16 @@ onBeforeUnmount(() => {
   }
 }
 
-@keyframes scanMobilePaneBorderSpin {
+@keyframes scanMobilePaneBorderLoad {
   to {
-    transform: translate3d(-50%, -50%, 0) rotate(1turn);
+    --scan-border-progress: 1turn;
   }
 }
 
 @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
   .scan-step-row.is-active::before {
     animation: none;
-    transform: translate3d(-50%, -50%, 0) rotate(0.96turn);
+    --scan-border-progress: 1turn;
   }
 }
 </style>
