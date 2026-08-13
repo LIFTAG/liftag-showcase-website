@@ -377,7 +377,7 @@ onBeforeUnmount(() => {
                 zIndex: 2,
               }"
             >
-              <Phone :src="f.screen" :scale="1.0" />
+              <Phone :src="f.screen" :scale="1.05" />
             </div>
           </div>
 
@@ -800,10 +800,6 @@ onBeforeUnmount(() => {
   .trainer-phone-glow {
     inset: -58px -74px;
     filter: blur(18px);
-  }
-
-  .trainer-phone-panel :deep(.phone) {
-    width: min(54vw, 198px) !important;
   }
 
   .trainer-stat-chip {
