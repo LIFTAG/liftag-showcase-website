@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const path = '/privacy-policy'
-const lastUpdated = 'May 2026'
+const lastUpdated = 'August 2026'
 
 useLiftagSeo({
   title: 'Privacy Policy | LIFTAG',
@@ -36,7 +36,11 @@ const sections = [
   },
   {
     title: 'Third-Party Services',
-    body: 'We use third-party services including Supabase for authentication, database, and storage; Google and Apple for sign-in; Sentry, including session replay, for diagnostics; Resend for email; Cloudflare Turnstile for abuse prevention; Strava if you connect it; YouTube/WebView for video content; maps/location providers for gym discovery; and S3/AWS-style storage for uploaded media.',
+    body: 'We use third-party services including Supabase for authentication, database, and storage; Google and Apple for sign-in; Meta/Facebook SDK for app ads attribution and campaign measurement; Sentry, including session replay, for diagnostics; Resend for email; Cloudflare Turnstile for abuse prevention; Strava if you connect it; YouTube/WebView for video content; maps/location providers for gym discovery; and S3/AWS-style storage for uploaded media.',
+  },
+  {
+    title: 'AI-Assisted Features',
+    body: 'Liftag offers optional AI-assisted features that generate workout routines and training plans. When you use them, the details you provide for a request, such as selected goals, target muscle groups, available equipment, difficulty, session length, and any free-text limitations or instructions you enter, are sent to AI providers acting as our sub-processors, currently OpenAI and Google Generative AI, which process them on our behalf to return a draft routine or plan. Free-text limitations may describe injuries or other health context, so please enter only what you are comfortable sharing. Generation requests and the drafts they produce are stored with your account for a limited period and then deleted. These features are optional and you can use Liftag without them.',
   },
   {
     title: 'Your Rights',

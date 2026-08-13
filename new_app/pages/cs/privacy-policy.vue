@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const path = '/cs/privacy-policy'
-const lastUpdated = 'květen 2026'
+const lastUpdated = 'srpen 2026'
 
 useLiftagSeo({
   title: 'Zásady ochrany osobních údajů | LIFTAG',
@@ -36,7 +36,11 @@ const sections = [
   },
   {
     title: 'Služby třetích stran',
-    body: 'Používáme služby třetích stran včetně Supabase pro autentizaci, databázi a úložiště; Google a Apple pro přihlášení; Sentry, včetně session replay, pro diagnostiku; Resend pro e-mail; Cloudflare Turnstile pro prevenci zneužití; Strava, pokud ji připojíte; YouTube/WebView pro video obsah; mapové a lokalizační služby pro vyhledávání posiloven; a úložiště S3/AWS pro nahrávaná média.',
+    body: 'Používáme služby třetích stran včetně Supabase pro autentizaci, databázi a úložiště; Google a Apple pro přihlášení; Meta/Facebook SDK pro atribuci reklam v aplikaci a měření kampaní; Sentry, včetně session replay, pro diagnostiku; Resend pro e-mail; Cloudflare Turnstile pro prevenci zneužití; Strava, pokud ji připojíte; YouTube/WebView pro video obsah; mapové a lokalizační služby pro vyhledávání posiloven; a úložiště S3/AWS pro nahrávaná média.',
+  },
+  {
+    title: 'Funkce využívající umělou inteligenci',
+    body: 'Liftag nabízí volitelné funkce využívající umělou inteligenci, které generují tréninkové rutiny a plány. Když je použijete, údaje, které pro požadavek zadáte, například vybrané cíle, cílové svalové partie, dostupné vybavení, obtížnost, délku tréninku a volný text s omezeními nebo pokyny, odesíláme poskytovatelům umělé inteligence, kteří pro nás vystupují jako zpracovatelé, aktuálně OpenAI a Google Generative AI. Ti je zpracovávají naším jménem a vracejí návrh rutiny nebo plánu. Volný text s omezeními může popisovat zranění nebo jiný zdravotní kontext, proto uvádějte pouze to, co jste ochotni odeslat. Požadavky na generování a návrhy, které z nich vzniknou, uchováváme u vašeho účtu po omezenou dobu a poté je mažeme. Tyto funkce jsou volitelné a Liftag můžete používat i bez nich.',
   },
   {
     title: 'Vaše práva',
