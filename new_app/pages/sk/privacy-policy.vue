@@ -40,7 +40,7 @@ const sections = [
   },
   {
     title: 'Funkcie s umelou inteligenciou',
-    body: 'Liftag ponúka voliteľné funkcie s umelou inteligenciou, ktoré generujú tréningové rutiny a plány. Keď ich použijete, údaje, ktoré pre požiadavku zadáte, napríklad vybrané ciele, cieľové svalové partie, dostupné vybavenie, náročnosť, dĺžku tréningu a voľný text s obmedzeniami alebo pokynmi, odosielame poskytovateľom umelej inteligencie, ktorí pre nás vystupujú ako sprostredkovatelia, aktuálne OpenAI, Anthropic a Google Generative AI. Tí ich spracúvajú v našom mene a vrátia návrh rutiny alebo plánu. Voľný text s obmedzeniami môže opisovať zranenia alebo iný zdravotný kontext, preto uvádzajte len to, čo ste ochotní odoslať. Požiadavky na generovanie a návrhy, ktoré z nich vzniknú, uchovávame pri vašom účte obmedzený čas a potom ich vymažeme. Tieto funkcie sú voliteľné a Liftag môžete používať aj bez nich.',
+    body: 'Liftag ponúka voliteľné funkcie s umelou inteligenciou, ktoré generujú tréningové rutiny a plány. Keď ich použijete, údaje, ktoré pre požiadavku zadáte, napríklad vybrané ciele, cieľové svalové partie, dostupné vybavenie, náročnosť, dĺžku tréningu a voľný text s obmedzeniami alebo pokynmi, odosielame poskytovateľom umelej inteligencie, ktorí pre nás vystupujú ako sprostredkovatelia, aktuálne OpenAI a Google Generative AI. Tí ich spracúvajú v našom mene a vrátia návrh rutiny alebo plánu. Voľný text s obmedzeniami môže opisovať zranenia alebo iný zdravotný kontext, preto uvádzajte len to, čo ste ochotní odoslať. Požiadavky na generovanie a návrhy, ktoré z nich vzniknú, uchovávame pri vašom účte obmedzený čas a potom ich vymažeme. Tieto funkcie sú voliteľné a Liftag môžete používať aj bez nich.',
   },
   {
     title: 'Vaše práva',

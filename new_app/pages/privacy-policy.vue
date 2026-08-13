@@ -40,7 +40,7 @@ const sections = [
   },
   {
     title: 'AI-Assisted Features',
-    body: 'Liftag offers optional AI-assisted features that generate workout routines and training plans. When you use them, the details you provide for a request, such as selected goals, target muscle groups, available equipment, difficulty, session length, and any free-text limitations or instructions you enter, are sent to AI providers acting as our sub-processors, currently OpenAI, Anthropic, and Google Generative AI, which process them on our behalf to return a draft routine or plan. Free-text limitations may describe injuries or other health context, so please enter only what you are comfortable sharing. Generation requests and the drafts they produce are stored with your account for a limited period and then deleted. These features are optional and you can use Liftag without them.',
+    body: 'Liftag offers optional AI-assisted features that generate workout routines and training plans. When you use them, the details you provide for a request, such as selected goals, target muscle groups, available equipment, difficulty, session length, and any free-text limitations or instructions you enter, are sent to AI providers acting as our sub-processors, currently OpenAI and Google Generative AI, which process them on our behalf to return a draft routine or plan. Free-text limitations may describe injuries or other health context, so please enter only what you are comfortable sharing. Generation requests and the drafts they produce are stored with your account for a limited period and then deleted. These features are optional and you can use Liftag without them.',
   },
   {
     title: 'Your Rights',
