@@ -108,7 +108,6 @@ const field = {
   bodies: Array.from({ length: MERGE_BODY_COUNT }, emptyBody),
   well: emptyWell(),
   storm: emptyStorm(),
-  pinned: false,
 }
 
 export function useMergeParticleField() {
@@ -119,7 +118,6 @@ export function resetMergeParticleField() {
   for (const body of field.bodies) writeBody(body, emptyBody())
   writeWell(field.well, emptyWell())
   writeStorm(field.storm, emptyStorm())
-  field.pinned = false
 }
 
 export function publishMergeBody(index: number, body: MergeFieldBody) {
@@ -135,18 +133,6 @@ export function publishMergeWell(well: MergeFieldWell) {
 
 export function publishMergeStorm(storm: MergeFieldStorm) {
   writeStorm(field.storm, storm)
-}
-
-export function publishMergePinned(pinned: boolean) {
-  field.pinned = pinned
-}
-
-export function mergeSectionPinned(
-  sectionTop: number,
-  sectionBottom: number,
-  viewportH: number,
-) {
-  return sectionTop <= 0.5 && sectionBottom > Math.max(viewportH, 1)
 }
 
 export function mergeStormFromProgress(

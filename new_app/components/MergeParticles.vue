@@ -1,13 +1,12 @@
 <script setup lang="ts">
 // GPU particle field for the app-merge background. Same single-draw-call
-// point field as the hero, but it only exists while the merge section is
-// sticky. Particles fly in from the edges, swirl lightly with the icons,
-// then burst and settle into a halo as LIFTAG appears.
+// point field as the hero. Particles fly in when the sticky stage is on
+// screen, swirl lightly with the icons, then burst and settle as LIFTAG
+// appears.
 //
 // Lifecycle contract:
 //   • never initializes under prefers-reduced-motion
-//   • never allocates a GL context until the section is pinned
-//   • disposes fully when the sticky range ends or the host leaves view
+//   • lazy-inits when the sticky stage is on screen, disposes when it leaves
 //   • pauses while the document is hidden
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import * as THREE from 'three'
@@ -53,7 +52,6 @@ let contextBroken = false
 let lastFrame = 0
 let enterLinear = 0
 let uniformsCleared = true
-let watching = false
 
 let io: IntersectionObserver | null = null
 let resizeObserver: ResizeObserver | null = null
@@ -405,25 +403,12 @@ function syncBodyUniforms() {
   uniformsCleared = false
 }
 
-function releaseField() {
-  stopLoop()
-  disposeScene()
-  contextBroken = false
-}
-
 function frame(now: number) {
   if (!running || !renderer || !scene || !camera || !material) {
     rafId = 0
     running = false
     return
   }
-
-  if (!mergeParticleField.pinned) {
-    releaseField()
-    if (intersecting) startWatch()
-    return
-  }
-
   rafId = requestAnimationFrame(frame)
 
   const dt = lastFrame === 0 ? 16 : Math.min(now - lastFrame, 48)
@@ -450,36 +435,15 @@ function frame(now: number) {
   renderer.render(scene, camera)
 }
 
-function watch() {
-  watching = false
-  rafId = 0
-  if (!intersecting || document.hidden) return
-  if (mergeParticleField.pinned) {
-    if (disposed) init()
-    startLoop()
-    return
-  }
-  if (!disposed) releaseField()
-  startWatch()
-}
-
-function startWatch() {
-  if (watching || running || document.hidden || !intersecting) return
-  watching = true
-  rafId = requestAnimationFrame(watch)
-}
-
 function startLoop() {
   if (running || disposed || document.hidden) return
   running = true
-  watching = false
   lastFrame = 0
   rafId = requestAnimationFrame(frame)
 }
 
 function stopLoop() {
   running = false
-  watching = false
   if (rafId) cancelAnimationFrame(rafId)
   rafId = 0
 }
@@ -503,8 +467,14 @@ onMounted(() => {
     (entries) => {
       const entry = entries[entries.length - 1]
       intersecting = Boolean(entry?.isIntersecting)
-      if (intersecting) startWatch()
-      else releaseField()
+      if (intersecting) {
+        if (disposed) init()
+        startLoop()
+      } else {
+        stopLoop()
+        disposeScene()
+        contextBroken = false
+      }
     },
     { threshold: 0 },
   )
@@ -512,7 +482,7 @@ onMounted(() => {
 
   onVisibility = () => {
     if (document.hidden) stopLoop()
-    else if (intersecting) startWatch()
+    else if (intersecting) startLoop()
   }
   document.addEventListener('visibilitychange', onVisibility)
 

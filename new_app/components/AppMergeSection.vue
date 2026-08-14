@@ -3,10 +3,8 @@ import {
   MERGE_BODY_COUNT,
   MERGE_LOGO_INDEX,
   mergeBodyVelocity,
-  mergeSectionPinned,
   mergeStormFromProgress,
   publishMergeBody,
-  publishMergePinned,
   publishMergeStorm,
   publishMergeWell,
   resetMergeParticleField,
@@ -314,22 +312,6 @@ function publishMergePhysics(now: number) {
     }
     return
   }
-
-  const section = sectionRef.value
-  const viewportH = useStableViewportHeight() || window.innerHeight
-  const sectionRect = section?.getBoundingClientRect()
-  const pinned = Boolean(
-    sectionRect && mergeSectionPinned(sectionRect.top, sectionRect.bottom, viewportH),
-  )
-  if (!pinned) {
-    resetMergeParticleField()
-    publishMergePinned(false)
-    bodiesArmed = false
-    lastPublishAt = 0
-    return
-  }
-
-  publishMergePinned(true)
 
   const stage = stageRef.value
   if (!stage) return
