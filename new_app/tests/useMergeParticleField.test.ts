@@ -147,14 +147,14 @@ test('mergeStormFromProgress keeps the suck-in as the logo first appears', () =>
   assert.ok(storm.settle < 0.05)
 })
 
-test('mergeStormFromProgress peaks at a screen-wide burst as LIFTAG appears', () => {
-  const peakBurst = Math.max(
-    ...[0.18, 0.24, 0.28, 0.34, 0.40].map((intro) => mergeStormFromProgress(1, intro, 0).burst),
-  )
-  const storm = mergeStormFromProgress(1, 0.28, 0)
-  assert.ok(peakBurst > 0.65)
-  assert.ok(storm.burst > 0.65)
-  assert.ok(storm.settle < 0.12)
+test('mergeStormFromProgress expands once as LIFTAG appears, then freezes', () => {
+  const rising = mergeStormFromProgress(1, 0.2, 0)
+  assert.ok(rising.burst > 0.65)
+  assert.ok(rising.settle < 0.08)
+  const held = mergeStormFromProgress(1, 0.32, 0)
+  assert.ok(held.settle > 0.8)
+  assert.ok(held.burst < 0.2)
+  assert.ok(held.tornado < 0.05)
 })
 
 test('mergeStormFromProgress holds the dispersed field after the burst', () => {

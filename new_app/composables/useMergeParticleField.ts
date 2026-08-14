@@ -145,21 +145,13 @@ export function mergeStormFromProgress(
   const exit = clamp01(logoExit)
   const live = 1 - exit
 
-  // Hold the blown-out field in place (not a return-to-logo halo).
-  // Twist quiets on the same window as logoSpinDegrees() locking to 360.
-  const spinDown = smootherstep((intro - 0.72) / 0.28)
-
-  // Pulse as LIFTAG first becomes visible (intro ~0.12–0.45). The shader
-  // carries that mix from the core to a mid-field ring, not the frustum edge.
-  const burstGate = clamp01((intro - 0.08) / 0.40)
-  const burstPeak = Math.sin(burstGate * Math.PI)
-  const burst = burstPeak * 0.84 * live
-
-  // Suck-in starts with icon collapse and does not come back after the
-  // blow-out — that return trip was reading as a settle around the logo.
-  const tornado = m * 0.82 * (1 - smootherstep((intro - 0.06) / 0.22)) * live
-  const settle = smootherstep((intro - 0.22) / 0.3) * live
-  const spin = tornado * 0.48 + burst * 0.7 + (1 - spinDown) * settle * 0.08
+  // One-way expand, then freeze. A sine pulse fell after the peak and
+  // the leftover twist read as a second, rotated disperse phase.
+  const expand = smootherstep((intro - 0.08) / 0.16)
+  const settle = smootherstep((intro - 0.2) / 0.1) * live
+  const burst = expand * (1 - settle) * 0.84 * live
+  const tornado = m * 0.82 * (1 - expand) * live
+  const spin = tornado * 0.48
 
   return { tornado, burst, settle, spin }
 }

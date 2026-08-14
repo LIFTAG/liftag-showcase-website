@@ -136,14 +136,14 @@ const vertexShader = /* glsl */ `
     float suck = min(storm.x * 1.22, 1.0) * cover;
     float contracted = mix(dist, coreRadius, suck);
 
-    // Explode from the core, but stop short of the frustum edge.
-    // Settle must not mix back to a logo halo.
+    // Radial expand only, then hold. No time-twist on burst/settle — that
+    // was the second phase where the field changed direction.
     float screenSpread = screenR * (0.52 + 0.12 * seed);
     float blown = mix(contracted, screenSpread, storm.y);
     float settled = mix(blown, screenSpread, storm.z);
 
-    float twist = uTime * storm.w * (0.22 + 0.38 * storm.x + 0.50 * storm.y) + seed * 1.4;
-    float finalAng = ang + twist * (storm.x * 0.40 + storm.y * 0.20 + storm.z * 0.04);
+    float twist = uTime * storm.w * storm.x * 0.62 + seed * 0.22 * storm.x;
+    float finalAng = ang + twist;
     vec2 target = well.xy + vec2(cos(finalAng), sin(finalAng)) * settled;
 
     float hold = storm.z * (1.0 - storm.x) * (1.0 - storm.y);
