@@ -63,7 +63,7 @@ useLiftagStructuredData([
     <main>
       <article class="guide">
         <header class="guide-hero container">
-          <p class="protocol guide-eyebrow">GUIDE · MACHINE SYNC · UPDATED MAY 2026</p>
+          <p class="protocol guide-eyebrow"><a href="/guides">GUIDES</a> · MACHINE SYNC · UPDATED MAY 2026</p>
           <h1 class="display guide-title" v-html="title"></h1>
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
@@ -242,6 +242,11 @@ useLiftagStructuredData([
 .guide-eyebrow {
   color: var(--liftag-primary);
   margin: 0 0 18px;
+}
+
+.guide-eyebrow a {
+  color: inherit;
+  text-decoration: none;
 }
 
 .guide-title {

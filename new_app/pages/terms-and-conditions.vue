@@ -7,6 +7,9 @@ useLiftagSeo({
   description:
     'The terms governing your use of the LIFTAG workout tracking app — eligibility, account responsibility, content, and acceptable use.',
   path,
+  lang: 'en',
+  locale: 'en_US',
+  alternates: liftagLegalAlternates('terms'),
 })
 
 useLiftagStructuredData([
@@ -81,6 +84,7 @@ const contactEmail = 'support@liftag.fit'
           <p class="protocol legal-eyebrow">▸ TERMS & CONDITIONS</p>
           <h1 class="display legal-title">Terms & <span class="lime">Conditions.</span></h1>
           <p class="legal-updated">Last updated: {{ lastUpdated }}</p>
+          <LegalLangLinks kind="terms" />
         </header>
 
         <div class="container legal-body">

@@ -1213,10 +1213,10 @@ const pNfc = computed(() => {
           transition: 'opacity 700ms 120ms cubic-bezier(0.16,1,0.3,1), transform 700ms 120ms cubic-bezier(0.16,1,0.3,1)',
         }"
       >
-        <h1 class="hero-mobile-title">
+        <p class="hero-mobile-title">
           <span>For <span class="lime">lifters.</span></span>
           <span>By <span class="lime">lifters.</span></span>
-        </h1>
+        </p>
 
         <p class="hero-mobile-copyline">
           Tap NFC or scan QR at the machine. Core workout tracking is free forever. Premium intelligence is optional.

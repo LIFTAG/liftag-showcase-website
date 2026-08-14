@@ -177,7 +177,7 @@ onBeforeUnmount(() => {
               }"
             >
               <div :style="{ display: 'flex', alignItems: 'center', gap: '5px' }">
-                <img src="/assets/logo.svg" width="18" height="18" alt="" />
+                <img src="/assets/logo.svg" width="18" height="18" alt="LIFTAG logo" />
                 <span
                   :style="{
                     fontFamily: '\'Space Grotesk\', sans-serif',

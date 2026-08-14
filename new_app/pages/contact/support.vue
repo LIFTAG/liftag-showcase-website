@@ -12,5 +12,6 @@ const lead = 'Got a question, hit a bug, or need help with your account? Drop us
     seo-title="Support | LIFTAG"
     seo-description="Need help with LIFTAG? Send us a message about your account, a bug, or any other question."
     seo-path="/contact/support"
+    breadcrumb-name="Support"
   />
 </template>

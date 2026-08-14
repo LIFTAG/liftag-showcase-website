@@ -389,6 +389,7 @@ const cards: AppCard[] = [
       <section class="bwt-faq">
         <div class="container">
           <p class="protocol bwt-eyebrow">Common questions</p>
+          <h2 class="bwt-section-title">Common questions</h2>
           <div class="bwt-faq-list">
             <details
               v-for="item in faqs"

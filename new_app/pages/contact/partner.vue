@@ -12,5 +12,6 @@ const lead = 'Tell us a bit about your gym, where youâ€™re based, and what youâ€
     seo-title="Partner with LIFTAG | Get your gym on the map"
     seo-description="Apply for the free LIFTAG QR + NFC kit. Tell us about your gym and we'll get in touch about partnering with you."
     seo-path="/contact/partner"
+    breadcrumb-name="Partner"
   />
 </template>

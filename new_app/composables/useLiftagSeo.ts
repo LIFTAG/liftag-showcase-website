@@ -1,5 +1,7 @@
 const SITE_URL = 'https://liftag.fit'
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.jpg`
+const APP_STORE_URL = 'https://apps.apple.com/app/id6761140080'
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.liftag.app'
 
 /**
  * Every image this site advertises is a 1200x630 card: the static og-image and
@@ -16,12 +18,20 @@ function ogImageMimeType(url: string): 'image/jpeg' | 'image/png' {
   return /\.jpe?g(\?|$)/i.test(url) ? 'image/jpeg' : 'image/png'
 }
 
+export interface LiftagAlternate {
+  hreflang: string
+  path: string
+}
+
 interface LiftagSeoOptions {
   title: string
   description: string
   path?: string
   image?: string
   noindex?: boolean
+  lang?: string
+  locale?: string
+  alternates?: LiftagAlternate[]
 }
 
 export function useLiftagSeo(options: LiftagSeoOptions) {
@@ -29,6 +39,7 @@ export function useLiftagSeo(options: LiftagSeoOptions) {
   const url = new URL(path, SITE_URL).toString()
   const image = options.image ?? DEFAULT_IMAGE
   const robots = options.noindex ? 'noindex,nofollow' : 'index,follow'
+  const locale = options.locale ?? 'en_US'
 
   useSeoMeta({
     title: options.title,
@@ -39,6 +50,7 @@ export function useLiftagSeo(options: LiftagSeoOptions) {
     ogType: 'website',
     ogUrl: url,
     ogSiteName: 'LIFTAG',
+    ogLocale: locale,
     ogImage: image,
     ogImageSecureUrl: image,
     ogImageType: ogImageMimeType(image),
@@ -63,9 +75,17 @@ export function useLiftagSeo(options: LiftagSeoOptions) {
     verificationMeta.push({ name: 'msvalidate.01', content: bingVerify })
   }
 
+  const alternateLinks = (options.alternates ?? []).map(item => ({
+    rel: 'alternate' as const,
+    hreflang: item.hreflang,
+    href: new URL(item.path, SITE_URL).toString(),
+  }))
+
   useHead({
+    ...(options.lang ? { htmlAttrs: { lang: options.lang } } : {}),
     link: [
       { rel: 'canonical', href: url },
+      ...alternateLinks,
     ],
     ...(verificationMeta.length ? { meta: verificationMeta } : {}),
   })
@@ -102,10 +122,43 @@ export const liftagOrganization = {
   '@type': 'Organization',
   '@id': `${SITE_URL}/#organization`,
   name: 'LIFTAG',
+  legalName: 'LIFTAG',
+  alternateName: ['Liftag', 'liftag.fit', 'LIFTAG Workout Tracker'],
   url: `${SITE_URL}/`,
-  logo: `${SITE_URL}/logo-apple-touch.png`,
+  description: 'LIFTAG is a workout and set tracking app for serious lifters. Tap NFC tags or scan QR codes on gym machines to open the right exercise, log sets, and track progress.',
+  email: 'support@liftag.fit',
+  logo: {
+    '@type': 'ImageObject',
+    url: `${SITE_URL}/logo-apple-touch.png`,
+    width: 180,
+    height: 180,
+  },
+  image: DEFAULT_IMAGE,
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Bratislava',
+    addressCountry: 'SK',
+  },
+  contactPoint: [
+    {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      email: 'support@liftag.fit',
+      url: `${SITE_URL}/contact/support`,
+      availableLanguage: ['en', 'sk', 'cs'],
+    },
+    {
+      '@type': 'ContactPoint',
+      contactType: 'sales',
+      url: `${SITE_URL}/contact/partner`,
+      availableLanguage: ['en', 'sk', 'cs'],
+    },
+  ],
   sameAs: [
     'https://www.instagram.com/liftag.fit/',
+    'https://www.reddit.com/r/liftag/',
+    APP_STORE_URL,
+    PLAY_STORE_URL,
   ],
 }
 
@@ -133,6 +186,14 @@ export const liftagMobileApplication = {
   applicationCategory: 'HealthApplication',
   applicationSubCategory: 'Fitness',
   operatingSystem: 'iOS, Android',
+  softwareVersion: '1.0',
+  downloadUrl: [APP_STORE_URL, PLAY_STORE_URL],
+  installUrl: APP_STORE_URL,
+  screenshot: [
+    `${SITE_URL}/assets/screens/log-set.webp`,
+    `${SITE_URL}/assets/screens/qr-scan.webp`,
+    `${SITE_URL}/assets/screens/progression.webp`,
+  ],
   description: 'LIFTAG is a workout and set tracking app for serious lifters. Tap NFC tags or scan QR codes on gym machines to open the right exercise, log every set, run rest timers, and track progress over time.',
   featureList: [
     'NFC tap and QR scan to open the right exercise on any partner-gym machine',
@@ -145,11 +206,12 @@ export const liftagMobileApplication = {
     'Partner-gym discovery on a map',
     'Gym-specific exercise instruction videos filmed on the actual equipment',
   ],
-  inLanguage: ['en'],
+  inLanguage: ['en', 'sk'],
   offers: {
     '@type': 'Offer',
     price: '0',
     priceCurrency: 'EUR',
+    availability: 'https://schema.org/InStock',
   },
   publisher: {
     '@id': `${SITE_URL}/#organization`,
@@ -255,13 +317,33 @@ export const liftagWebSite = {
   '@type': 'WebSite',
   '@id': `${SITE_URL}/#website`,
   name: 'LIFTAG',
+  alternateName: ['Liftag', 'liftag.fit'],
   url: `${SITE_URL}/`,
   description: 'LIFTAG: workout tracking for serious lifters. NFC and QR for gym machines, set logging, progress tracking, trainers, and partner gyms.',
   publisher: { '@id': `${SITE_URL}/#organization` },
-  inLanguage: 'en',
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: `${SITE_URL}/?q={search_term_string}`,
-    'query-input': 'required name=search_term_string',
-  },
+  inLanguage: ['en', 'sk', 'cs'],
+}
+
+export function liftagLegalAlternates(kind: 'privacy' | 'terms'): LiftagAlternate[] {
+  const slug = kind === 'privacy' ? 'privacy-policy' : 'terms-and-conditions'
+  return [
+    { hreflang: 'en', path: `/${slug}` },
+    { hreflang: 'sk', path: `/sk/${slug}` },
+    { hreflang: 'cs', path: `/cs/${slug}` },
+    { hreflang: 'x-default', path: `/${slug}` },
+  ]
+}
+
+export function liftagContactPage(opts: { name: string, path: string, description: string }) {
+  const url = new URL(opts.path, SITE_URL).toString()
+  return {
+    '@type': 'ContactPage',
+    '@id': `${url}#page`,
+    name: opts.name,
+    url,
+    description: opts.description,
+    isPartOf: { '@id': `${SITE_URL}/#website` },
+    about: { '@id': `${SITE_URL}/#organization` },
+    inLanguage: 'en',
+  }
 }

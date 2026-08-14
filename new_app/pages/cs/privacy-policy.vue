@@ -7,6 +7,9 @@ useLiftagSeo({
   description:
     'Jak LIFTAG shromažďuje, používá, ukládá a chrání vaše osobní údaje při používání tréninkové aplikace LIFTAG.',
   path,
+  lang: 'cs',
+  locale: 'cs_CZ',
+  alternates: liftagLegalAlternates('privacy'),
 })
 
 useLiftagStructuredData([
@@ -77,6 +80,7 @@ const contactEmail = 'support@liftag.fit'
           <p class="protocol legal-eyebrow">▸ OCHRANA OSOBNÍCH ÚDAJŮ</p>
           <h1 class="display legal-title">Ochrana osobních <span class="lime">údajů.</span></h1>
           <p class="legal-updated">Poslední aktualizace: {{ lastUpdated }}</p>
+          <LegalLangLinks kind="privacy" />
         </header>
 
         <div class="container legal-body">
