@@ -796,12 +796,15 @@ onBeforeUnmount(() => {
   background: linear-gradient(to top, var(--liftag-primary), transparent);
   border-radius: 3px;
   filter: blur(4px);
+  transform-origin: bottom center;
   animation: rmTrailPulse 1.5s ease-in-out infinite;
 }
 
+/* scaleY instead of height: the stretch is invisible on a 6px blurred
+   gradient stub, and the pulse stops triggering layout every frame. */
 @keyframes rmTrailPulse {
-  0%, 100% { opacity: 0.8; height: 30px; }
-  50%       { opacity: 1;   height: 50px; }
+  0%, 100% { opacity: 0.8; transform: translateX(-50%) scaleY(1); }
+  50%       { opacity: 1;   transform: translateX(-50%) scaleY(1.6667); }
 }
 
 /* ─── Items ──────────────────────────────────────────────────────────────── */
