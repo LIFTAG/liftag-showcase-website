@@ -1,7 +1,17 @@
+<script lang="ts">
+// Module scope on purpose: `<script setup>` runs per instance, and the desktop
+// page mounts ~8 phones that pull from the same small screenshot set. Sharing
+// the cache means each screenshot is fetched and decoded once for the whole
+// page. Entries are plain decoded HTMLImageElements with nothing
+// renderer-specific about them, so they are safe to hand to any instance. The
+// screenshot set is small and stays on the page, so nothing is evicted.
+const imageCache = new Map<string, Promise<HTMLImageElement>>()
+</script>
+
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
-import { useSharedMouse, delayedSampleAt } from '../composables/useSharedMouse'
+import { useSharedMouse, delayedSampleAt, onMouseEvent } from '../composables/useSharedMouse'
 
 const emit = defineEmits<{
   ready: []
@@ -64,6 +74,15 @@ function initPhone() {
   renderer.toneMappingExposure = 1.4
   renderer.shadowMap.enabled = !isLite
   renderer.shadowMap.type = THREE.PCFShadowMap
+
+  // Mirrors HeroParticles: a lost context must not be force-lost again on
+  // unmount, so track it and let cleanup skip forceContextLoss.
+  let contextBroken = false
+  const onContextLost = (event: Event) => {
+    event.preventDefault()
+    contextBroken = true
+  }
+  renderer.domElement.addEventListener('webglcontextlost', onContextLost, false)
   container.appendChild(renderer.domElement)
 
   const scene = new THREE.Scene()
@@ -185,7 +204,6 @@ function initPhone() {
     screenTextureCtx.fillRect(0, 0, screenTextureCanvas.width, screenTextureCanvas.height)
   }
 
-  const imageCache = new Map<string, Promise<HTMLImageElement>>()
   let currentSrc = props.screenshotSrc
   let currentScreenImage: ScreenImage | null = null
   let textureRequestId = 0
@@ -480,6 +498,9 @@ function initPhone() {
   const idleDuration = 2400
   const idlePause = 8100
   const idleFrameInterval = 1000 / 60
+  // Below this the tilt left to travel is far under a pixel on screen, so the
+  // interactive loop parks instead of redrawing identical frames forever.
+  const tiltConvergeEpsilon = 0.0001
   const reducedMotionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
   // Shared singleton - replaces a per-instance window mousemove listener.
   // animate() reads from sharedMouse.latest (delay = 0) or interpolates from
@@ -529,10 +550,14 @@ function initPhone() {
 
     gyroActive = true
 
+    // Reduced motion keeps the interactive phone at its rest pose.
+    if (reducedMotionMql.matches) return
+
     const mx = Math.max(-1, Math.min(1, event.gamma / 30))
     const my = Math.max(-1, Math.min(1, (event.beta - 45) / 30))
 
     applyPointerTilt(mx, my)
+    wakeTilt()
   }
 
   function enableGyro() {
@@ -577,7 +602,7 @@ function initPhone() {
     const now = performance.now()
     let shouldRender = props.interactive || Boolean(screenTransition)
 
-    if (props.interactive && !gyroActive && sharedMouse) {
+    if (props.interactive && !gyroActive && !reducedMotionMql.matches && sharedMouse) {
       const delay = Math.max(0, props.tiltDelayMs)
       if (delay > 0) {
         const delayed = delayedSampleAt(sharedMouse.samples, performance.now() - delay)
@@ -589,9 +614,26 @@ function initPhone() {
       }
     }
 
+    let parkTilt = false
+
     if (props.interactive) {
       currentRotX += (targetRotX - currentRotX) * 0.06
       currentRotY += (targetRotY - currentRotY) * 0.06
+
+      // Render-on-demand: once the tilt has converged and nothing else is
+      // animating, every further frame would be identical. Snap onto the
+      // target, draw it once below, then park - wakeTilt() restarts the loop
+      // on the next pointer or gyro event, and the visibility/texture paths
+      // restart it for their own reasons.
+      const tiltDelta = Math.max(
+        Math.abs(targetRotX - currentRotX),
+        Math.abs(targetRotY - currentRotY),
+      )
+      if (tiltDelta < tiltConvergeEpsilon && !screenTransition && !idleMotionActive) {
+        currentRotX = targetRotX
+        currentRotY = targetRotY
+        parkTilt = true
+      }
     } else if (idleMotionActive) {
       const progress = Math.min(1, (now - idleMotionStart) / idleDuration)
       const outbound = Math.min(1, progress / 0.42)
@@ -621,7 +663,23 @@ function initPhone() {
     phone.rotation.y = currentRotY
     renderScreenTransition(now)
     if (shouldRender) renderer.render(scene, camera)
+
+    if (parkTilt) {
+      cancelAnimationFrame(animId)
+      animId = 0
+    }
   }
+
+  // The keyLight position is set directly in applyPointerTilt rather than
+  // lerped, so a parked loop is already showing the pose it would settle on.
+  // Under reduced motion the tilt is never applied, so waking would only
+  // redraw the same rest pose once per pointer event.
+  const wakeTilt = () => {
+    if (animId || !isVisible || document.hidden || reducedMotionMql.matches) return
+    animate()
+  }
+
+  const unsubscribeMouse = props.interactive ? onMouseEvent(wakeTilt) : null
 
   const visObserver = new IntersectionObserver(
     (entries) => {
@@ -660,6 +718,12 @@ function initPhone() {
   const onReducedMotionChange = () => {
     clearIdleTimer()
     resetIdlePose()
+    // resetIdlePose() only rewinds the current pose. Rewinding the targets too
+    // keeps an interactive phone from lerping back onto a stale pointer tilt
+    // that is no longer being refreshed, and leaves it converged so it parks.
+    // Turning the preference back off restores tilt on the next mouse event.
+    targetRotX = restRotX
+    targetRotY = restRotY
     if (isVisible) {
       renderer.render(scene, camera)
       scheduleIdleMotion()
@@ -696,6 +760,7 @@ function initPhone() {
     reducedMotionMql.removeEventListener('change', onReducedMotionChange)
     clearIdleTimer()
     idleMotionActive = false
+    unsubscribeMouse?.()
     gyroCleanup?.()
     visObserver.disconnect()
     isVisible = false
@@ -703,7 +768,9 @@ function initPhone() {
 
     updateTexture = null
     activeTexture.dispose()
+    renderer.domElement.removeEventListener('webglcontextlost', onContextLost)
     renderer.dispose()
+    if (!contextBroken) renderer.forceContextLoss()
 
     scene.traverse((object) => {
       if (!(object instanceof THREE.Mesh)) return

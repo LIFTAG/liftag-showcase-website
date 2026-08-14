@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
-import { useSharedMouse } from '../composables/useSharedMouse'
+import { onMouseEvent, useSharedMouse } from '../composables/useSharedMouse'
 
 const props = withDefaults(defineProps<{
   screenshotSrc: string
@@ -59,16 +59,29 @@ function initMacbook() {
   const width = Math.max(container.clientWidth, 1)
   const height = Math.max(container.clientHeight, 1)
 
+  // Phones/tablets pay the most for pixel-ratio and shadow-map area, and see it
+  // the least at this size. Only those two dials move - geometry, materials and
+  // lighting stay identical everywhere.
+  const isLowPower = window.matchMedia('(pointer: coarse), (max-width: 620px)').matches
+  const motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
+
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
     alpha: true,
   })
   renderer.setSize(width, height)
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isLowPower ? 1.5 : 2))
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.25
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.PCFShadowMap
+
+  let contextBroken = false
+  const onContextLost = (e: Event) => {
+    e.preventDefault()
+    contextBroken = true
+  }
+  renderer.domElement.addEventListener('webglcontextlost', onContextLost, false)
   container.appendChild(renderer.domElement)
 
   const scene = new THREE.Scene()
@@ -83,8 +96,8 @@ function initMacbook() {
   const keyLight = new THREE.DirectionalLight(0xffffff, 1.4)
   keyLight.position.set(2.5, 4, 4.5)
   keyLight.castShadow = true
-  keyLight.shadow.mapSize.width = 1024
-  keyLight.shadow.mapSize.height = 1024
+  keyLight.shadow.mapSize.width = isLowPower ? 512 : 1024
+  keyLight.shadow.mapSize.height = isLowPower ? 512 : 1024
   keyLight.shadow.camera.near = 0.5
   keyLight.shadow.camera.far = 18
   keyLight.shadow.camera.left = -3
@@ -282,6 +295,7 @@ function initMacbook() {
   posterTexture.anisotropy = renderer.capabilities.getMaxAnisotropy?.() ?? 1
   let screenVideo: HTMLVideoElement | null = null
   let videoTexture: THREE.VideoTexture | null = null
+  let onVideoPlaying: (() => void) | null = null
 
   const screenMat = new THREE.MeshBasicMaterial({
     map: posterTexture,
@@ -347,6 +361,7 @@ function initMacbook() {
 
   setOpenProgress = (p: number) => {
     targetOpen = clamp01(p)
+    wake()
   }
 
   let targetTiltX = 0
@@ -359,9 +374,11 @@ function initMacbook() {
   function disposeVideo() {
     screenVideo?.pause()
     if (screenVideo) {
+      if (onVideoPlaying) screenVideo.removeEventListener('playing', onVideoPlaying)
       screenVideo.removeAttribute('src')
       screenVideo.load()
     }
+    onVideoPlaying = null
     videoTexture?.dispose()
     screenVideo = null
     videoTexture = null
@@ -418,6 +435,11 @@ function initMacbook() {
     screenVideo = video
     videoTexture = texture
 
+    // A playing VideoTexture needs a render per frame, so playback has to pull
+    // the idle loop (see animate) back out of its parked state.
+    onVideoPlaying = () => wake()
+    video.addEventListener('playing', onVideoPlaying)
+
     video.addEventListener('loadeddata', () => {
       if (videoTexture !== texture) return
       screenMat.map = texture
@@ -437,32 +459,89 @@ function initMacbook() {
   // because targetTilt is lerped, not driven by per-event deltas.
   const sharedMouse = useSharedMouse()
 
-  const animate = () => {
-    if (!isVisible || document.hidden) {
-      animId = 0
-      return
-    }
-    animId = requestAnimationFrame(animate)
-
-    // Skip until first real mouse event - otherwise (0,0) pulls the laptop
-    // away from its -0.06 rest yaw immediately on visibility.
-    if (sharedMouse.samples.length > 0) {
-      targetTiltY = -0.06 + sharedMouse.latest.mx * 0.18
-      targetTiltX = -sharedMouse.latest.my * 0.05
-    }
-
-    currentOpen += (targetOpen - currentOpen) * 0.14
-    currentTiltX += (targetTiltX - currentTiltX) * 0.06
-    currentTiltY += (targetTiltY - currentTiltY) * 0.06
-
+  const applyPose = () => {
     const eased = smoothstep(currentOpen)
     lidGroup.rotation.x = closedAngle + (openAngle - closedAngle) * eased
 
     macbook.rotation.x = currentTiltX
     macbook.rotation.y = currentTiltY
+  }
+
+  const animate = () => {
+    if (contextBroken || !isVisible || document.hidden) {
+      animId = 0
+      return
+    }
+
+    // Skip until first real mouse event - otherwise (0,0) pulls the laptop
+    // away from its -0.06 rest yaw immediately on visibility.
+    if (!motionMql.matches && sharedMouse.samples.length > 0) {
+      targetTiltY = -0.06 + sharedMouse.latest.mx * 0.18
+      targetTiltX = -sharedMouse.latest.my * 0.05
+    }
+
+    // Reduced motion: the lid snaps to the scroll position instead of easing,
+    // which (with the convergence check below) means one static frame per
+    // scroll update rather than a running loop.
+    if (motionMql.matches) currentOpen = targetOpen
+
+    // Nothing left to interpolate and no video frames arriving - draw the
+    // settled pose once and park. The video guard is load-bearing: a playing
+    // VideoTexture needs a render every frame or the screen freezes.
+    const settled = Math.abs(targetOpen - currentOpen) < 1e-4
+      && Math.abs(targetTiltX - currentTiltX) < 1e-4
+      && Math.abs(targetTiltY - currentTiltY) < 1e-4
+      && (!screenVideo || screenVideo.paused)
+
+    if (settled) {
+      animId = 0
+      currentOpen = targetOpen
+      currentTiltX = targetTiltX
+      currentTiltY = targetTiltY
+      applyPose()
+      renderer.render(scene, camera)
+      return
+    }
+
+    animId = requestAnimationFrame(animate)
+
+    currentOpen += (targetOpen - currentOpen) * 0.14
+    currentTiltX += (targetTiltX - currentTiltX) * 0.06
+    currentTiltY += (targetTiltY - currentTiltY) * 0.06
+
+    applyPose()
 
     renderer.render(scene, camera)
   }
+
+  // Every wake source funnels through here: only restart when the loop is
+  // actually parked and the laptop is on screen.
+  const wake = () => {
+    if (animId === 0 && isVisible && !document.hidden) animate()
+  }
+
+  // Mouse tilt is the one continuously-changing input, so subscribing is what
+  // lets the loop park at all. Under reduced motion there is no tilt to drive,
+  // so we do not subscribe or read the pointer.
+  let unsubscribeMouse: (() => void) | null = null
+  if (!motionMql.matches) unsubscribeMouse = onMouseEvent(wake)
+
+  const onMotionChange = () => {
+    if (motionMql.matches) {
+      // Snap back to the rest pose rather than easing there - the whole point
+      // of the setting is that nothing animates.
+      unsubscribeMouse?.()
+      unsubscribeMouse = null
+      targetTiltX = 0
+      targetTiltY = -0.06
+      currentTiltX = targetTiltX
+      currentTiltY = targetTiltY
+    } else if (!unsubscribeMouse) {
+      unsubscribeMouse = onMouseEvent(wake)
+    }
+    wake()
+  }
+  motionMql.addEventListener('change', onMotionChange)
 
   const videoObserver = new IntersectionObserver(
     (entries) => {
@@ -480,7 +559,7 @@ function initMacbook() {
       isVisible = entries[0]?.isIntersecting ?? false
       if (isVisible) {
         if (!document.hidden) playVideo()
-        if (!animId && !document.hidden) animate()
+        wake()
       } else {
         screenVideo?.pause()
       }
@@ -496,7 +575,7 @@ function initMacbook() {
     }
     if (isVisible) {
       playVideo()
-      if (!animId) animate()
+      wake()
     }
   }
   document.addEventListener('visibilitychange', onDocumentVisibilityChange)
@@ -507,6 +586,9 @@ function initMacbook() {
     camera.aspect = w / h
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
+    // setSize clears the drawing buffer and the loop may be parked (see
+    // animate), so redraw the settled pose at the new size.
+    renderer.render(scene, camera)
   }
   let resizeRaf = 0
   const onResize = () => {
@@ -525,10 +607,16 @@ function initMacbook() {
       resizeRaf = 0
     }
     document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
+    motionMql.removeEventListener('change', onMotionChange)
+    unsubscribeMouse?.()
+    unsubscribeMouse = null
+    // Removed before dispose so forceContextLoss below cannot re-enter it.
+    renderer.domElement.removeEventListener('webglcontextlost', onContextLost)
     videoObserver.disconnect()
     visObserver.disconnect()
     isVisible = false
     cancelAnimationFrame(animId)
+    animId = 0
 
     updateTexture = null
     setVideoSource = null
@@ -537,6 +625,7 @@ function initMacbook() {
     posterTexture.dispose()
     kbTex.dispose()
     renderer.dispose()
+    if (!contextBroken) renderer.forceContextLoss()
 
     scene.traverse((object) => {
       if (!(object instanceof THREE.Mesh)) return

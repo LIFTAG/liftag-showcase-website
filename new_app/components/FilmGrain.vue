@@ -5,12 +5,13 @@
 <style scoped>
 /* Full-page animated film grain. Sits above everything (pointer-events: none)
    at ~5% opacity: it masks gradient banding in the neon glows on pure black
-   and gives the page a physical texture. The element is oversized by the max
-   translate offset so the steps() jitter never exposes an edge, and because
-   only transform animates, the layer stays on the compositor. */
+   and gives the page a physical texture. The element is oversized past the max
+   keyframe translate (176px x / 154px y) so the steps() jitter never exposes an
+   edge, and because only transform animates, the layer stays on the
+   compositor. */
 .film-grain {
   position: fixed;
-  inset: -300px;
+  inset: -180px;
   z-index: 99998;
   pointer-events: none;
   opacity: 0.05;
