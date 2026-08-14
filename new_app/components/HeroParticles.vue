@@ -14,6 +14,10 @@ import * as THREE from 'three'
 import { useSharedMouse } from '../composables/useSharedMouse'
 import {
   decayHeroParticleWake,
+  emptyDisplayedWall,
+  shouldTransferLiveWall,
+  stepDisplayedWall,
+  transferDisplayedWall,
   useHeroParticleField,
   wallToParticleWorld,
 } from '../composables/useHeroParticleField'
@@ -67,15 +71,12 @@ const wallWorld0 = new THREE.Vector4()
 const wallWorld1 = new THREE.Vector4()
 const wallVel0 = new THREE.Vector2()
 const wallVel1 = new THREE.Vector2()
-const wallTarget0 = new THREE.Vector4()
-const wallTarget1 = new THREE.Vector4()
-const wallVelTarget0 = new THREE.Vector2()
-const wallVelTarget1 = new THREE.Vector2()
 const heroParticleField = useHeroParticleField()
-let wall0Live = false
-let wall1Live = false
-const WALL_LERP = 0.07
-const WAKE_DECAY_MS = 500
+let displayed0 = emptyDisplayedWall()
+let displayed1 = emptyDisplayedWall()
+let previousLiveStrength = 0
+const WALL_LERP = 0.1
+const WAKE_DECAY_MS = 700
 
 function halfExtentsAt(distance: number, aspect: number) {
   const halfH = Math.tan((FOV * Math.PI) / 360) * distance
@@ -102,47 +103,33 @@ const vertexShader = /* glsl */ `
   varying float vAlpha;
   varying float vTint;
 
-  float sdBox(vec2 p, vec2 c, vec2 h) {
-    vec2 q = abs(p - c) - h;
-    return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
-  }
-
-  vec2 sdBoxNormal(vec2 p, vec2 c, vec2 h) {
-    vec2 rel = p - c;
-    vec2 q = abs(rel) - h;
-    vec2 s = vec2(rel.x >= 0.0 ? 1.0 : -1.0, rel.y >= 0.0 ? 1.0 : -1.0);
-    if (q.x > 0.0 && q.y > 0.0) {
-      return normalize(s * q);
-    }
-    return q.x > q.y ? vec2(s.x, 0.0) : vec2(0.0, s.y);
-  }
-
   vec2 vortexOffset(vec2 p, vec2 vortex, float circ) {
     vec2 d = p - vortex;
     float dist = length(d);
-    float g = exp(-(dist * dist) * 0.0138889);
+    float g = exp(-(dist * dist) * 0.02);
     vec2 perp = vec2(-d.y, d.x) / max(dist, 0.0001);
-    return perp * g * circ * 5.0;
+    return perp * g * circ * 1.6;
   }
 
   vec3 applyWall(vec2 p, vec4 wall, vec2 vel, float k, float depth01) {
     if (k < 0.001) return vec3(0.0);
     vec2 c = wall.xy;
     vec2 h = max(wall.zw, vec2(0.08));
-    float sd = sdBox(p, c, h);
-    float infl = (1.0 - smoothstep(0.0, 15.0, max(sd, 0.0))) * k;
-    vec2 n = sdBoxNormal(p, c, h);
-    float occ = sd < 0.0 ? 1.4 : 1.0;
+    float facing = vel.y == 0.0 ? 1.0 : sign(vel.y);
+    float leadX = c.x + facing * h.x;
+    float closestY = clamp(p.y, c.y - h.y, c.y + h.y);
+    vec2 toLead = p - vec2(leadX, closestY);
+    float dist = length(toLead);
+    float infl = (1.0 - smoothstep(0.0, 13.0, dist)) * k;
     float depth = 0.35 + 0.65 * depth01;
-    vec2 off = n * infl * 4.0 * occ * depth;
-    float travel = vel.x == 0.0 ? 0.0 : sign(vel.x);
-    off.x += travel * infl * 3.0 * depth;
-    float leadX = c.x + travel * h.x;
-    float speed = clamp(abs(vel.x) / 40.0, 0.15, 1.35);
-    float circ = (travel == 0.0 ? 1.0 : travel) * speed * infl;
+    vec2 dir = toLead / max(dist, 0.0001);
+    vec2 off = dir * infl * 2.1 * depth;
+    off.x += facing * infl * 1.1 * depth;
+    float speed = clamp(abs(vel.x) / 50.0, 0.2, 0.75);
+    float circ = facing * speed * infl;
     off += vortexOffset(p, vec2(leadX, c.y + h.y), circ);
     off += vortexOffset(p, vec2(leadX, c.y - h.y), -circ);
-    return vec3(off, infl);
+    return vec3(off, infl * 0.45);
   }
 
   void main() {
@@ -316,8 +303,9 @@ function init() {
   revealLinear = everInitialized ? REENTRY_REVEAL_FLOOR : 0
   everInitialized = true
   lastFrame = 0
-  wall0Live = false
-  wall1Live = false
+  displayed0 = emptyDisplayedWall()
+  displayed1 = emptyDisplayedWall()
+  previousLiveStrength = 0
   wallWorld0.set(0, 0, 0, 0)
   wallWorld1.set(0, 0, 0, 0)
   wallVel0.set(0, 0)
@@ -347,8 +335,9 @@ function disposeScene() {
   material = null
   points = null
   disposed = true
-  wall0Live = false
-  wall1Live = false
+  displayed0 = emptyDisplayedWall()
+  displayed1 = emptyDisplayedWall()
+  previousLiveStrength = 0
 }
 
 function frame(now: number) {
@@ -380,31 +369,15 @@ function frame(now: number) {
   renderer.render(scene, camera)
 }
 
-function syncWallSlot(
-  live: boolean,
-  strength: number,
-  target: THREE.Vector4,
-  velTarget: THREE.Vector2,
+function writeDisplayedWall(
+  displayed: ReturnType<typeof emptyDisplayedWall>,
   world: THREE.Vector4,
   vel: THREE.Vector2,
   kUniform: { value: number },
 ) {
-  if (strength <= 0.001) {
-    world.set(0, 0, 0, 0)
-    vel.set(0, 0)
-    kUniform.value = 0
-    return false
-  }
-  if (!live) {
-    world.copy(target)
-    vel.copy(velTarget)
-    kUniform.value = strength
-    return true
-  }
-  world.lerp(target, WALL_LERP)
-  vel.lerp(velTarget, WALL_LERP)
-  kUniform.value += (strength - kUniform.value) * WALL_LERP
-  return true
+  world.set(displayed.cx, displayed.cy, displayed.hw, displayed.hh)
+  vel.set(displayed.vx, displayed.facing)
+  kUniform.value = displayed.k
 }
 
 function syncWallUniforms(dt: number, u: THREE.ShaderMaterial['uniforms']) {
@@ -412,10 +385,20 @@ function syncWallUniforms(dt: number, u: THREE.ShaderMaterial['uniforms']) {
 
   const slot0 = heroParticleField.walls[0]
   const slot1 = heroParticleField.walls[1]
-  if (slot0.strength <= 0.001 && slot1.strength <= 0.001) {
+
+  if (shouldTransferLiveWall(previousLiveStrength, slot0.strength, slot1.strength)) {
+    const next = transferDisplayedWall(displayed0)
+    displayed0 = next.live
+    displayed1 = next.wake
+  }
+  previousLiveStrength = slot0.strength
+
+  const anySource = slot0.strength > 0.001 || slot1.strength > 0.001
+  const anyDisplay = displayed0.k > 0.001 || displayed1.k > 0.001
+  if (!anySource && !anyDisplay) {
     if (u.uWall0K.value !== 0 || u.uWall1K.value !== 0) {
-      wall0Live = false
-      wall1Live = false
+      displayed0 = emptyDisplayedWall()
+      displayed1 = emptyDisplayedWall()
       wallWorld0.set(0, 0, 0, 0)
       wallWorld1.set(0, 0, 0, 0)
       wallVel0.set(0, 0)
@@ -433,13 +416,27 @@ function syncWallUniforms(dt: number, u: THREE.ShaderMaterial['uniforms']) {
   const world0 = wallToParticleWorld(slot0, canvas, halfW, halfH)
   const world1 = wallToParticleWorld(slot1, canvas, halfW, halfH)
 
-  wallTarget0.set(world0.cx, world0.cy, world0.hw, world0.hh)
-  wallTarget1.set(world1.cx, world1.cy, world1.hw, world1.hh)
-  wallVelTarget0.set(world0.vx, 0)
-  wallVelTarget1.set(world1.vx, 0)
+  displayed0 = stepDisplayedWall(displayed0, {
+    cx: world0.cx,
+    cy: world0.cy,
+    hw: world0.hw,
+    hh: world0.hh,
+    vx: world0.vx,
+    facing: world0.facing,
+    k: world0.strength,
+  }, WALL_LERP)
+  displayed1 = stepDisplayedWall(displayed1, {
+    cx: world1.cx,
+    cy: world1.cy,
+    hw: world1.hw,
+    hh: world1.hh,
+    vx: world1.vx,
+    facing: world1.facing,
+    k: world1.strength,
+  }, WALL_LERP)
 
-  wall0Live = syncWallSlot(wall0Live, world0.strength, wallTarget0, wallVelTarget0, wallWorld0, wallVel0, u.uWall0K)
-  wall1Live = syncWallSlot(wall1Live, world1.strength, wallTarget1, wallVelTarget1, wallWorld1, wallVel1, u.uWall1K)
+  writeDisplayedWall(displayed0, wallWorld0, wallVel0, u.uWall0K)
+  writeDisplayedWall(displayed1, wallWorld1, wallVel1, u.uWall1K)
 }
 
 function startLoop() {

@@ -8,6 +8,17 @@ export type HeroFieldWall = {
   hh: number
   vx: number
   strength: number
+  facing: number
+}
+
+export type DisplayedWall = {
+  cx: number
+  cy: number
+  hw: number
+  hh: number
+  vx: number
+  facing: number
+  k: number
 }
 
 export type HeroFieldBox = {
@@ -28,7 +39,7 @@ export type ClientRect = {
 const MIN_HALF_WIDTH = 2
 
 function emptyWall(): HeroFieldWall {
-  return { cx: 0, cy: 0, hw: 0, hh: 0, vx: 0, strength: 0 }
+  return { cx: 0, cy: 0, hw: 0, hh: 0, vx: 0, strength: 0, facing: 0 }
 }
 
 function writeWall(target: HeroFieldWall, source: HeroFieldWall) {
@@ -38,6 +49,7 @@ function writeWall(target: HeroFieldWall, source: HeroFieldWall) {
   target.hh = source.hh
   target.vx = source.vx
   target.strength = source.strength
+  target.facing = source.facing
 }
 
 const field = {
@@ -73,7 +85,12 @@ export function revealedWordBox(
   }
 }
 
-export function publishHeroLaserWall(box: HeroFieldBox, vx: number, strength: number) {
+export function publishHeroLaserWall(
+  box: HeroFieldBox,
+  vx: number,
+  strength: number,
+  facing = vx < 0 ? -1 : 1,
+) {
   writeWall(field.walls[0], {
     cx: box.cx,
     cy: box.cy,
@@ -81,6 +98,7 @@ export function publishHeroLaserWall(box: HeroFieldBox, vx: number, strength: nu
     hh: box.hh,
     vx,
     strength,
+    facing,
   })
 }
 
@@ -121,5 +139,59 @@ export function wallToParticleWorld(
     hh: (wall.hh / Math.max(canvas.height, 1)) * 2 * halfH,
     vx: (wall.vx / Math.max(canvas.width, 1)) * 2 * halfW,
     strength: wall.strength,
+    facing: wall.facing,
+  }
+}
+
+export function emptyDisplayedWall(): DisplayedWall {
+  return { cx: 0, cy: 0, hw: 0, hh: 0, vx: 0, facing: 0, k: 0 }
+}
+
+export function shouldTransferLiveWall(
+  previousLiveStrength: number,
+  liveStrength: number,
+  wakeStrength: number,
+) {
+  return previousLiveStrength > 0.001 && liveStrength <= 0.001 && wakeStrength > 0.001
+}
+
+export function transferDisplayedWall(live: DisplayedWall) {
+  return {
+    live: { ...live, k: 0 },
+    wake: { ...live },
+  }
+}
+
+export function stepDisplayedWall(
+  displayed: DisplayedWall,
+  target: DisplayedWall,
+  lerp: number,
+): DisplayedWall {
+  const t = Math.min(1, Math.max(0, lerp))
+  const mix = (from: number, to: number) => from + (to - from) * t
+
+  if (target.k <= 0.001) {
+    return {
+      ...displayed,
+      vx: mix(displayed.vx, 0),
+      k: mix(displayed.k, 0),
+    }
+  }
+
+  if (displayed.k <= 0.001) {
+    return {
+      ...target,
+      k: mix(displayed.k, target.k),
+    }
+  }
+
+  return {
+    cx: mix(displayed.cx, target.cx),
+    cy: mix(displayed.cy, target.cy),
+    hw: mix(displayed.hw, target.hw),
+    hh: mix(displayed.hh, target.hh),
+    vx: mix(displayed.vx, target.vx),
+    facing: target.facing,
+    k: mix(displayed.k, target.k),
   }
 }

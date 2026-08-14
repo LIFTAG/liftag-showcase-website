@@ -202,7 +202,7 @@ function publishHeroLaserWallFromEl(
   const vx = track && now > track.now
     ? (box.leadingX - track.leadX) / ((now - track.now) / 1000)
     : 0
-  publishHeroLaserWall(box, vx, strength)
+  publishHeroLaserWall(box, vx, strength, fromRight ? -1 : 1)
   return { leadX: box.leadingX, now }
 }
 
