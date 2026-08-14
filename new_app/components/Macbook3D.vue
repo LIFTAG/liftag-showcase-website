@@ -3,6 +3,8 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { useSharedMouse } from '../composables/useSharedMouse'
 import {
+  MACBOOK_DASHBOARD_TOP_CROP,
+  coverFitScreenUVs,
   createNotchedScreenGeometry,
   createRoundedRectGeometry,
   layoutMacbookScreen,
@@ -249,6 +251,36 @@ function initMacbook() {
   // in the display mesh so the screenshot wraps the housing like a 14" MacBook.
   const screenLayout = layoutMacbookScreen(W, H, R)
   const screenGeo = createNotchedScreenGeometry(screenLayout)
+
+  function applyFootageTransform(
+    texture: THREE.Texture,
+    sourceWidth: number,
+    sourceHeight: number,
+    topCrop = 0,
+  ) {
+    const uv = coverFitScreenUVs({
+      sourceWidth,
+      sourceHeight,
+      screenWidth: screenLayout.width,
+      screenHeight: screenLayout.height,
+      topCrop,
+    })
+    texture.wrapS = THREE.ClampToEdgeWrapping
+    texture.wrapT = THREE.ClampToEdgeWrapping
+    texture.repeat.set(uv.repeatX, uv.repeatY)
+    texture.offset.set(uv.offsetX, uv.offsetY)
+  }
+
+  function applyImageFootageTransform(texture: THREE.Texture, topCrop = 0) {
+    const image = texture.image as { naturalWidth?: number, width?: number, naturalHeight?: number, height?: number } | undefined
+    if (!image) return
+    applyFootageTransform(
+      texture,
+      image.naturalWidth || image.width || 1,
+      image.naturalHeight || image.height || 1,
+      topCrop,
+    )
+  }
   // Default shape normal +Z; rotate so it faces -Y (the inner/keyboard-facing side of the lid).
   // After rotation, plane sits in lid-local XZ plane with normal pointing -Y.
   // v=1 (originally at +Y) maps to +Z → ends up at the FRONT of the lid (top of screen when open).
@@ -257,7 +289,8 @@ function initMacbook() {
   const textureLoader = new THREE.TextureLoader()
   let posterTexture = textureLoader.load(
     props.screenshotSrc,
-    () => {
+    (texture) => {
+      applyImageFootageTransform(texture)
       renderer.render(scene, camera)
     },
     undefined,
@@ -318,7 +351,8 @@ function initMacbook() {
 
   updateTexture = (src: string) => {
     const previous = posterTexture
-    posterTexture = textureLoader.load(src, () => {
+    posterTexture = textureLoader.load(src, (texture) => {
+      applyImageFootageTransform(texture)
       if (!videoTexture) {
         screenMat.map = posterTexture
         screenMat.needsUpdate = true
@@ -401,6 +435,12 @@ function initMacbook() {
 
     video.addEventListener('loadeddata', () => {
       if (videoTexture !== texture) return
+      applyFootageTransform(
+        texture,
+        video.videoWidth,
+        video.videoHeight,
+        MACBOOK_DASHBOARD_TOP_CROP,
+      )
       screenMat.map = texture
       screenMat.needsUpdate = true
       renderer.render(scene, camera)

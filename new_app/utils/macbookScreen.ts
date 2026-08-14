@@ -15,6 +15,60 @@ export const MACBOOK_BEZEL_INSET = 0.008
 export const MACBOOK_NOTCH_WIDTH_RATIO = 0.0646
 export const MACBOOK_NOTCH_HEIGHT_RATIO = 0.0584
 
+/**
+ * Solid black menu-bar letterbox on `macbook-dashboard.mp4` (31px of 936).
+ * Cropped in UV space so the file is not re-encoded.
+ */
+export const MACBOOK_DASHBOARD_TOP_CROP = 31 / 936
+
+export type ScreenTextureUVs = {
+  offsetX: number
+  offsetY: number
+  repeatX: number
+  repeatY: number
+}
+
+/**
+ * Cover-fit a recording onto the display after dropping a top letterbox.
+ * Uniform scale only: leftover aspect is cropped from the sides or bottom
+ * so the footage fills the screen without stretching.
+ */
+export function coverFitScreenUVs(options: {
+  sourceWidth: number
+  sourceHeight: number
+  screenWidth: number
+  screenHeight: number
+  topCrop?: number
+}): ScreenTextureUVs {
+  const sourceWidth = Math.max(1, options.sourceWidth)
+  const sourceHeight = Math.max(1, options.sourceHeight)
+  const screenWidth = Math.max(1e-6, options.screenWidth)
+  const screenHeight = Math.max(1e-6, options.screenHeight)
+  const topCrop = Math.min(Math.max(options.topCrop ?? 0, 0), 1 - 1e-6)
+
+  const usableV = 1 - topCrop
+  const croppedAspect = sourceWidth / (sourceHeight * usableV)
+  const screenAspect = screenWidth / screenHeight
+
+  if (croppedAspect > screenAspect) {
+    const repeatX = screenAspect / croppedAspect
+    return {
+      offsetX: (1 - repeatX) / 2,
+      offsetY: 0,
+      repeatX,
+      repeatY: usableV,
+    }
+  }
+
+  const repeatY = usableV * (croppedAspect / screenAspect)
+  return {
+    offsetX: 0,
+    offsetY: usableV - repeatY,
+    repeatX: 1,
+    repeatY,
+  }
+}
+
 export type MacbookScreenLayout = {
   width: number
   height: number

@@ -2,8 +2,10 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
   MACBOOK_BEZEL_INSET,
+  MACBOOK_DASHBOARD_TOP_CROP,
   MACBOOK_SCREEN_INSET,
   applyRectUVs,
+  coverFitScreenUVs,
   createNotchedScreenGeometry,
   createNotchedScreenShape,
   isInsideNotchCavity,
@@ -134,4 +136,55 @@ test('applyRectUVs maps the display bounds to the full screenshot', () => {
   assert.ok(bottomEdgeV < 0.05)
 
   geometry.dispose()
+})
+
+test('coverFitScreenUVs is identity when the source already matches the screen', () => {
+  const uv = coverFitScreenUVs({
+    sourceWidth: 1540,
+    sourceHeight: 1000,
+    screenWidth: 1.54,
+    screenHeight: 1,
+  })
+
+  assert.equal(uv.offsetX, 0)
+  assert.equal(uv.offsetY, 0)
+  assert.equal(uv.repeatX, 1)
+  assert.equal(uv.repeatY, 1)
+})
+
+test('coverFitScreenUVs drops the dashboard menu-bar letterbox and cover-fits without stretching', () => {
+  const layout = layoutMacbookScreen(LID_W, LID_H, LID_R)
+  const uv = coverFitScreenUVs({
+    sourceWidth: 1440,
+    sourceHeight: 936,
+    screenWidth: layout.width,
+    screenHeight: layout.height,
+    topCrop: MACBOOK_DASHBOARD_TOP_CROP,
+  })
+
+  const mappedW = 1440 * uv.repeatX
+  const mappedH = 936 * uv.repeatY
+  assert.ok(Math.abs(mappedW / mappedH - layout.width / layout.height) < 1e-6)
+  assert.ok(Math.abs(uv.offsetY + uv.repeatY - (1 - MACBOOK_DASHBOARD_TOP_CROP)) < 1e-6)
+  assert.ok(uv.offsetX > 0)
+  assert.ok(uv.repeatX < 1)
+  assert.ok(uv.repeatX > 0.95)
+  assert.equal(MACBOOK_DASHBOARD_TOP_CROP, 31 / 936)
+})
+
+test('coverFitScreenUVs keeps the top and crops the bottom when the source is taller', () => {
+  const uv = coverFitScreenUVs({
+    sourceWidth: 1000,
+    sourceHeight: 2000,
+    screenWidth: 16,
+    screenHeight: 10,
+  })
+
+  assert.equal(uv.repeatX, 1)
+  assert.ok(uv.repeatY < 1)
+  assert.ok(Math.abs(uv.offsetY + uv.repeatY - 1) < 1e-9)
+
+  const mappedW = 1000 * uv.repeatX
+  const mappedH = 2000 * uv.repeatY
+  assert.ok(Math.abs(mappedW / mappedH - 16 / 10) < 1e-6)
 })
