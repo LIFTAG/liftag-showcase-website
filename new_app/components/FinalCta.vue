@@ -213,7 +213,7 @@ onBeforeUnmount(() => {
         }"
       >
         <div ref="chargeAnchor" data-magnetic="16" class="final-cta-magnet">
-          <GetAppBtn />
+          <GetAppBtn idle-rim />
         </div>
       </div>
 
