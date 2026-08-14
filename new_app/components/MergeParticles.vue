@@ -136,9 +136,9 @@ const vertexShader = /* glsl */ `
     float suck = min(storm.x * 1.22, 1.0) * cover;
     float contracted = mix(dist, coreRadius, suck);
 
-    // Explode from the core to the frustum, then hold that pose.
+    // Explode from the core, but stop short of the frustum edge.
     // Settle must not mix back to a logo halo.
-    float screenSpread = screenR * (0.82 + 0.18 * seed);
+    float screenSpread = screenR * (0.52 + 0.12 * seed);
     float blown = mix(contracted, screenSpread, storm.y);
     float settled = mix(blown, screenSpread, storm.z);
 

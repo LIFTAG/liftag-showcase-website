@@ -149,9 +149,8 @@ export function mergeStormFromProgress(
   // Twist quiets on the same window as logoSpinDegrees() locking to 360.
   const spinDown = smootherstep((intro - 0.72) / 0.28)
 
-  // Pulse as LIFTAG first becomes visible (intro ~0.12–0.45). Amplitude
-  // is high enough that the shader mix from the core to screenR reaches
-  // the frustum edges.
+  // Pulse as LIFTAG first becomes visible (intro ~0.12–0.45). The shader
+  // carries that mix from the core to a mid-field ring, not the frustum edge.
   const burstGate = clamp01((intro - 0.08) / 0.40)
   const burstPeak = Math.sin(burstGate * Math.PI)
   const burst = burstPeak * 0.84 * live
