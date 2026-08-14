@@ -2,6 +2,16 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { onMouseEvent, useSharedMouse } from '../composables/useSharedMouse'
+import {
+  MACBOOK_DASHBOARD_CONTENT_ASPECT,
+  MACBOOK_DASHBOARD_TOP_CROP,
+  MACBOOK_SCREEN_INSET,
+  coverFitScreenUVs,
+  createNotchedScreenGeometry,
+  createRoundedRectGeometry,
+  layoutMacbookScreen,
+  roundedRectShape,
+} from '../utils/macbookScreen'
 
 const props = withDefaults(defineProps<{
   screenshotSrc: string
@@ -29,25 +39,6 @@ function clamp01(v: number) {
 function smoothstep(v: number) {
   const t = clamp01(v)
   return t * t * (3 - 2 * t)
-}
-
-function roundedRect(w: number, h: number, r: number) {
-  const shape = new THREE.Shape()
-  const hw = w / 2
-  const hh = h / 2
-  const rr = Math.min(r, hw, hh)
-
-  shape.moveTo(-hw + rr, -hh)
-  shape.lineTo(hw - rr, -hh)
-  shape.quadraticCurveTo(hw, -hh, hw, -hh + rr)
-  shape.lineTo(hw, hh - rr)
-  shape.quadraticCurveTo(hw, hh, hw - rr, hh)
-  shape.lineTo(-hw + rr, hh)
-  shape.quadraticCurveTo(-hw, hh, -hw, hh - rr)
-  shape.lineTo(-hw, -hh + rr)
-  shape.quadraticCurveTo(-hw, -hh, -hw + rr, -hh)
-
-  return shape
 }
 
 function initMacbook() {
@@ -85,11 +76,11 @@ function initMacbook() {
   container.appendChild(renderer.domElement)
 
   const scene = new THREE.Scene()
-  // FOV / position chosen so the lid stays in frame at every rotation angle -
-  // peak vertical reach is around -90° (mid-animation), not at -108° (fully open).
+  // Pulled back so the open lid's full width stays inside the frustum.
+  // Peak vertical reach is around -90° (mid-animation), not at -108° (fully open).
   const camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 100)
-  camera.position.set(0, 0.75, 6.1)
-  camera.lookAt(0, 0.25, 0)
+  camera.position.set(0, 0.7, 6.85)
+  camera.lookAt(0, 0.22, 0)
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.55))
 
@@ -125,13 +116,14 @@ function initMacbook() {
   shadowPlane.receiveShadow = true
   scene.add(shadowPlane)
 
-  // Dimensions
+  // Dimensions. Lid height follows the cropped dashboard footage so the
+  // recording cover-fits without slicing the left/right of the UI.
   const W = 2.8       // base + lid width
   const D = 1.92      // base depth
   const T = 0.085     // base thickness
   const R = 0.09      // base corner radius
   const LT = 0.038    // lid thickness
-  const H = 1.83      // lid height (when laid flat = depth)
+  const H = (W - MACBOOK_SCREEN_INSET * 2) / MACBOOK_DASHBOARD_CONTENT_ASPECT + MACBOOK_SCREEN_INSET * 2
 
   const aluMat = new THREE.MeshPhysicalMaterial({
     color: 0x2b2b2f,
@@ -142,7 +134,7 @@ function initMacbook() {
   })
 
   // ---- Base ----
-  const baseGeo = new THREE.ExtrudeGeometry(roundedRect(W, D, R), {
+  const baseGeo = new THREE.ExtrudeGeometry(roundedRectShape(W, D, R), {
     steps: 1,
     depth: T,
     bevelEnabled: true,
@@ -253,7 +245,7 @@ function initMacbook() {
   const lidGroup = new THREE.Group()
   lidGroup.position.set(0, 0, -D / 2 + 0.04)
 
-  const lidGeo = new THREE.ExtrudeGeometry(roundedRect(W, H, R), {
+  const lidGeo = new THREE.ExtrudeGeometry(roundedRectShape(W, H, R), {
     steps: 1,
     depth: LT,
     bevelEnabled: true,
@@ -271,11 +263,41 @@ function initMacbook() {
   lid.receiveShadow = true
   lidGroup.add(lid)
 
-  // Screen panel (inner side of lid) - thin bezels like M-series MacBook
-  const SW = 2.72
-  const SH = 1.74
-  const screenGeo = new THREE.PlaneGeometry(SW, SH)
-  // Default plane normal +Z; rotate so it faces -Y (the inner/keyboard-facing side of the lid).
+  // Borderless Liquid Retina: hairline black glass + a real camera-notch cutout
+  // in the display mesh so the screenshot wraps the housing like a 14" MacBook.
+  const screenLayout = layoutMacbookScreen(W, H, R)
+  const screenGeo = createNotchedScreenGeometry(screenLayout)
+
+  function applyFootageTransform(
+    texture: THREE.Texture,
+    sourceWidth: number,
+    sourceHeight: number,
+    topCrop = 0,
+  ) {
+    const uv = coverFitScreenUVs({
+      sourceWidth,
+      sourceHeight,
+      screenWidth: screenLayout.width,
+      screenHeight: screenLayout.height,
+      topCrop,
+    })
+    texture.wrapS = THREE.ClampToEdgeWrapping
+    texture.wrapT = THREE.ClampToEdgeWrapping
+    texture.repeat.set(uv.repeatX, uv.repeatY)
+    texture.offset.set(uv.offsetX, uv.offsetY)
+  }
+
+  function applyImageFootageTransform(texture: THREE.Texture, topCrop = 0) {
+    const image = texture.image as { naturalWidth?: number, width?: number, naturalHeight?: number, height?: number } | undefined
+    if (!image) return
+    applyFootageTransform(
+      texture,
+      image.naturalWidth || image.width || 1,
+      image.naturalHeight || image.height || 1,
+      topCrop,
+    )
+  }
+  // Default shape normal +Z; rotate so it faces -Y (the inner/keyboard-facing side of the lid).
   // After rotation, plane sits in lid-local XZ plane with normal pointing -Y.
   // v=1 (originally at +Y) maps to +Z → ends up at the FRONT of the lid (top of screen when open).
   screenGeo.rotateX(Math.PI / 2)
@@ -283,7 +305,8 @@ function initMacbook() {
   const textureLoader = new THREE.TextureLoader()
   let posterTexture = textureLoader.load(
     props.screenshotSrc,
-    () => {
+    (texture) => {
+      applyImageFootageTransform(texture)
       renderer.render(scene, camera)
     },
     undefined,
@@ -307,41 +330,47 @@ function initMacbook() {
   })
   const screen = new THREE.Mesh(screenGeo, screenMat)
   // -Y in lid local is the inner (keyboard-facing) side, which becomes camera-facing when open.
-  // Push the screen well outward so it wins the depth test against the black bezel/lid behind it.
+  // Push the screen well outward so it wins the depth test against the black glass behind it.
   screen.position.set(0, -0.014, H / 2)
   screen.renderOrder = 2
   lidGroup.add(screen)
 
-  // Bezel: larger black plane sitting behind the screen, fills the gap between screen and lid edge
-  const bezelGeo = new THREE.PlaneGeometry(W - 0.06, H - 0.06)
+  // Black glass underlay: fills the hairline margin and the notch cavity.
+  const bezelGeo = createRoundedRectGeometry(
+    screenLayout.bezelWidth,
+    screenLayout.bezelHeight,
+    screenLayout.bezelRadius,
+  )
   bezelGeo.rotateX(Math.PI / 2)
   const bezel = new THREE.Mesh(
     bezelGeo,
-    new THREE.MeshBasicMaterial({ color: 0x000000 }),
+    new THREE.MeshBasicMaterial({ color: 0x050506 }),
   )
   bezel.position.set(0, -0.006, H / 2)
   bezel.renderOrder = 1
   lidGroup.add(bezel)
 
-  // Camera notch hint (tiny dark dot)
-  const notch = new THREE.Mesh(
-    new THREE.CircleGeometry(0.018, 16),
-    new THREE.MeshBasicMaterial({ color: 0x0a0a0a }),
+  const lens = new THREE.Mesh(
+    new THREE.CircleGeometry(screenLayout.lensRadius, 16),
+    new THREE.MeshBasicMaterial({ color: 0x0a1018 }),
   )
-  notch.rotation.x = Math.PI / 2
-  notch.position.set(0, -0.001, H - 0.04)
-  lidGroup.add(notch)
+  lens.rotation.x = Math.PI / 2
+  lens.position.set(0, -0.01, H / 2 + screenLayout.notchCenterY)
+  lens.renderOrder = 1
+  lidGroup.add(lens)
 
   // ---- Macbook root group (drives mouse tilt) ----
   const macbook = new THREE.Group()
   macbook.add(base, keyboardWell, trackpad, hinge, lidGroup)
+  macbook.scale.setScalar(0.86)
   macbook.rotation.x = 0
   macbook.rotation.y = -0.06
   scene.add(macbook)
 
   updateTexture = (src: string) => {
     const previous = posterTexture
-    posterTexture = textureLoader.load(src, () => {
+    posterTexture = textureLoader.load(src, (texture) => {
+      applyImageFootageTransform(texture)
       if (!videoTexture) {
         screenMat.map = posterTexture
         screenMat.needsUpdate = true
@@ -442,6 +471,12 @@ function initMacbook() {
 
     video.addEventListener('loadeddata', () => {
       if (videoTexture !== texture) return
+      applyFootageTransform(
+        texture,
+        video.videoWidth,
+        video.videoHeight,
+        MACBOOK_DASHBOARD_TOP_CROP,
+      )
       screenMat.map = texture
       screenMat.needsUpdate = true
       renderer.render(scene, camera)
