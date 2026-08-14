@@ -28,8 +28,8 @@ const props = withDefaults(defineProps<{
   /** Couple the field to the shared cursor (disable on touch layouts). */
   interactive?: boolean
 }>(), {
-  count: 300,
-  dprCap: 1.25,
+  count: 220,
+  dprCap: 1.2,
   interactive: true,
 })
 
@@ -99,15 +99,15 @@ const vertexShader = /* glsl */ `
     float radius = max(node.z, 0.08);
     vec2 d = p - c;
     float dist = length(d);
-    float reach = max(radius * 2.4, 13.5);
+    float reach = max(radius * 1.8, 10.0);
     float infl = (1.0 - smoothstep(0.0, reach, dist)) * k;
     float depth = 0.42 + 0.58 * depth01;
     vec2 dir = d / max(dist, 0.0001);
     vec2 perp = vec2(-d.y, d.x) / max(dist, 0.0001);
-    float breathe = 0.88 + 0.12 * sin(uTime * 0.7 + seed * 6.2831853);
-    vec2 off = -dir * infl * 2.6 * depth * breathe;
-    off += perp * infl * 1.05 * depth * breathe;
-    return vec3(off, infl * 0.62);
+    float breathe = 0.92 + 0.08 * sin(uTime * 0.52 + seed * 6.2831853);
+    vec2 off = -dir * infl * 1.35 * depth * breathe;
+    off += perp * infl * 0.55 * depth * breathe;
+    return vec3(off, infl * 0.28);
   }
 
   vec3 applySpine(vec2 p, vec4 spine, float depth01) {
@@ -119,14 +119,14 @@ const vertexShader = /* glsl */ `
     float dx = p.x - c.x;
     float lineY = p.y - c.y;
     float along = 1.0 - smoothstep(0.0, 3.4, max(-lineY, lineY - drawn));
-    float rail = (1.0 - smoothstep(0.0, 7.4, abs(dx))) * along * k;
+    float rail = (1.0 - smoothstep(0.0, 5.6, abs(dx))) * along * k;
     float tipDist = length(p - c);
-    float tip = (1.0 - smoothstep(0.0, 9.6, tipDist)) * k;
+    float tip = (1.0 - smoothstep(0.0, 7.2, tipDist)) * k;
     vec2 toTip = (c - p) / max(tipDist, 0.0001);
-    vec2 off = vec2(-dx, 0.0) * rail * 2.15 * depth;
-    off += toTip * tip * 2.5 * depth;
-    off.y -= tip * 0.75 * depth;
-    return vec3(off, rail * 0.4 + tip * 0.72);
+    vec2 off = vec2(-dx, 0.0) * rail * 1.15 * depth;
+    off += toTip * tip * 1.35 * depth;
+    off.y -= tip * 0.4 * depth;
+    return vec3(off, rail * 0.2 + tip * 0.36);
   }
 
   vec3 applySpark(vec2 p, vec4 spark, float depth01) {
@@ -134,10 +134,10 @@ const vertexShader = /* glsl */ `
     if (k < 0.001) return vec3(0.0);
     vec2 d = p - spark.xy;
     float dist = length(d);
-    float infl = (1.0 - smoothstep(0.0, 7.4, dist)) * k;
+    float infl = (1.0 - smoothstep(0.0, 5.2, dist)) * k;
     vec2 dir = d / max(dist, 0.0001);
-    vec2 off = -dir * infl * 2.05 * (0.4 + 0.6 * depth01);
-    return vec3(off, infl * 0.88);
+    vec2 off = -dir * infl * 1.05 * (0.4 + 0.6 * depth01);
+    return vec3(off, infl * 0.4);
   }
 
   void main() {
@@ -153,8 +153,8 @@ const vertexShader = /* glsl */ `
     float dist = length(toMouse);
     float push = 1.0 - smoothstep(0.0, 11.0, dist);
     vec2 dir = toMouse / max(dist, 0.0001);
-    x += dir.x * push * 2.2 * (0.35 + 0.65 * depth01);
-    y += dir.y * push * 2.2 * (0.35 + 0.65 * depth01);
+    x += dir.x * push * 1.6 * (0.35 + 0.65 * depth01);
+    y += dir.y * push * 1.6 * (0.35 + 0.65 * depth01);
 
     if (uForceEnergy > 0.001) {
       for (int i = 0; i < 4; i++) {
@@ -181,12 +181,12 @@ const vertexShader = /* glsl */ `
     float edgeFade = (1.0 - smoothstep(aRangeY * 0.92, aRangeY, abs(y)))
                    * (1.0 - smoothstep(aRangeX * 0.94, aRangeX, abs(x)));
 
-    vAlpha = uEnter * twinkle * mix(0.34, 0.84, depth01) * edgeFade * (1.0 + push * 0.85);
-    vTint = min(1.0, aTint + push * 0.65);
+    vAlpha = uEnter * twinkle * mix(0.22, 0.58, depth01) * edgeFade * (1.0 + push * 0.42);
+    vTint = min(1.0, aTint + push * 0.32);
 
     vec4 mv = modelViewMatrix * vec4(x, y, p.z, 1.0);
-    float size = aSize * uPixelRatio * (1.0 + push * 0.72) * (132.0 / -mv.z);
-    gl_PointSize = clamp(size, 1.2, 9.2 * uPixelRatio);
+    float size = aSize * uPixelRatio * (1.0 + push * 0.4) * (124.0 / -mv.z);
+    gl_PointSize = clamp(size, 1.0, 7.8 * uPixelRatio);
     gl_Position = projectionMatrix * mv;
   }
 `
@@ -204,7 +204,7 @@ const fragmentShader = /* glsl */ `
     float hot = 1.0 - smoothstep(0.0, 0.16, d);
     float a = core * vAlpha;
     if (a < 0.004) discard;
-    vec3 col = mix(uColorA, uColorB, vTint) + hot * 0.28;
+    vec3 col = mix(uColorA, uColorB, vTint) + hot * 0.2;
     gl_FragColor = vec4(col, a);
   }
 `
@@ -223,14 +223,14 @@ function buildGeometry(count: number, aspect: number) {
     const { halfW, halfH } = halfExtentsAt(CAM_Z - z, aspect)
     const rangeX = halfW * 1.12
     const rangeY = halfH * 1.15
-    const lime = Math.random() < 0.28
-    const alongRail = Math.random() > 0.16
+    const lime = Math.random() < 0.16
+    const alongRail = Math.random() > 0.28
 
-    positions[i * 3] = (Math.random() * 2 - 1) * rangeX * (alongRail ? 0.36 : 0.92)
+    positions[i * 3] = (Math.random() * 2 - 1) * rangeX * (alongRail ? 0.44 : 0.94)
     positions[i * 3 + 1] = (Math.random() * 2 - 1) * rangeY
     positions[i * 3 + 2] = z
     seeds[i] = Math.random()
-    sizes[i] = (lime ? 1.42 : 1.04) * (0.82 + Math.random() * 1.18)
+    sizes[i] = (lime ? 1.2 : 0.9) * (0.72 + Math.random() * 1.08)
     tints[i] = lime ? 1 : 0
     rangesX[i] = rangeX
     rangesY[i] = rangeY
@@ -300,8 +300,8 @@ function init() {
       uNodes: { value: nodeUniforms },
       uSpine: { value: spineUniform },
       uSparks: { value: sparkUniforms },
-      uColorA: { value: new THREE.Color(0.42, 0.48, 0.34) },
-      uColorB: { value: new THREE.Color(0.8, 1.0, 0.08) },
+      uColorA: { value: new THREE.Color(0.32, 0.36, 0.3) },
+      uColorB: { value: new THREE.Color(0.74, 0.94, 0.04) },
     },
   })
   points = new THREE.Points(geometry, material)
@@ -433,7 +433,7 @@ function frame(now: number) {
   const u = material.uniforms
   u.uTime.value += dt * 0.001
 
-  enterLinear = Math.min(1, enterLinear + dt * 0.0022)
+  enterLinear = Math.min(1, enterLinear + dt * 0.0016)
   u.uEnter.value = 1 - Math.pow(1 - enterLinear, 3)
 
   if (props.interactive && sharedMouse.latest.hasPointer) {

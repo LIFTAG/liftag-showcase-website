@@ -198,13 +198,13 @@ function drawRoots(
     const nodeY    = nodeRect.top  + nodeRect.height / 2 - timelineRect.top
     if (publishParticles) {
       const eased = 1 - Math.pow(1 - rmRootProgress[i], 3)
-      const breathe = 0.82 + Math.sin(now * 0.002 + i * 1.5) * 0.18
-      const ignite = 1 + Math.max(0, 1 - elapsed / 480) * 0.85
+      const breathe = 0.88 + Math.sin(now * 0.002 + i * 1.5) * 0.12
+      const ignite = 1 + Math.max(0, 1 - elapsed / 520) * 0.32
       publishRoadmapNode(i, {
         cx: nodeRect.left + nodeRect.width / 2,
         cy: nodeRect.top + nodeRect.height / 2,
-        radius: 150,
-        strength: Math.min(1, (0.38 + 0.62 * eased) * breathe * ignite),
+        radius: 96,
+        strength: Math.min(1, (0.28 + 0.5 * eased) * breathe * ignite),
       })
     }
 
@@ -313,7 +313,7 @@ function drawRoots(
             sparkRank = rank
             sparkCx = tipX + timelineRect.left
             sparkCy = tipY + timelineRect.top
-            sparkStr = tipFade * (branchP < 1 ? 1 : 0.58)
+            sparkStr = tipFade * (branchP < 1 ? 0.7 : 0.32)
           }
         }
       }
@@ -496,9 +496,9 @@ onBeforeUnmount(() => {
   <section ref="sectionRef" class="section" id="roadmap">
     <RoadmapParticles
       :key="isMobileParticles ? 'roadmap-particles-m' : 'roadmap-particles-d'"
-      :count="isMobileParticles ? 150 : 300"
+      :count="isMobileParticles ? 120 : 220"
       :interactive="!isMobileParticles"
-      :dpr-cap="isMobileParticles ? 1.15 : 1.25"
+      :dpr-cap="isMobileParticles ? 1.1 : 1.2"
     />
     <div class="section-inner">
       <div class="section-label reveal" style="text-align: center">Roadmap</div>
