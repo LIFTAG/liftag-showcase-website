@@ -1,4 +1,14 @@
 <script setup lang="ts">
+import {
+  MERGE_BODY_COUNT,
+  MERGE_LOGO_INDEX,
+  mergeBodyVelocity,
+  publishMergeBody,
+  publishMergeWell,
+  resetMergeParticleField,
+  type MergeBodyPose,
+} from '../composables/useMergeParticleField'
+
 interface MockApp {
   key: string
   name: string
@@ -16,6 +26,7 @@ interface MockApp {
 const sectionRef = ref<HTMLElement | null>(null)
 const stageRef = ref<HTMLElement | null>(null)
 const liftagRef = ref<HTMLElement | null>(null)
+const isMobileParticles = ref(false)
 
 const iconEls: HTMLElement[] = []
 const captionEls: HTMLElement[] = []
@@ -53,6 +64,16 @@ const lastVectorSparkOpacity: string[] = []
 let lastLogoTransform = ''
 let lastLogoOpacity = ''
 let lastLogoSpin = ''
+
+const lastBodyPose: MergeBodyPose[] = Array.from({ length: MERGE_BODY_COUNT }, () => ({
+  x: 0,
+  y: 0,
+  spin: 0,
+}))
+let lastPublishAt = 0
+let bodiesArmed = false
+let mergeMobileMql: MediaQueryList | null = null
+let onMergeMobileChange: ((event: MediaQueryListEvent) => void) | null = null
 
 const mockApps: MockApp[] = [
   {
@@ -263,20 +284,109 @@ function appMotion(app: MockApp, p: number, finale: number, now: number) {
   return { merge, x, y, scale, rotate }
 }
 
-function applyAppStyles(app: MockApp, index: number, p: number, finale: number, now: number) {
+function appVisual(app: MockApp, p: number, finale: number, now: number) {
   const motion = appMotion(app, p, finale, now)
-  const merge = motion.merge
   const fade = smoothstep((p - 0.67) / 0.22)
-  const collapseFade = smoothstep((merge - 0.58) / 0.3)
+  const collapseFade = smoothstep((motion.merge - 0.58) / 0.3)
   const opacity = 0.98 * (1 - Math.max(fade * 0.94, collapseFade * 0.9))
+  const iconSpinIntro = reduceMotion ? 0 : smootherstep((motion.merge - 0.42) / 0.42)
+  return { ...motion, opacity, spinDeg: logoSpinDegrees(iconSpinIntro) }
+}
+
+function poseAt(index: number) {
+  const pose = lastBodyPose[index]
+  if (pose) return pose
+  const created = { x: 0, y: 0, spin: 0 }
+  lastBodyPose[index] = created
+  return created
+}
+
+function publishMergePhysics(now: number) {
+  if (!isVisible || reduceMotion) {
+    if (bodiesArmed) {
+      resetMergeParticleField()
+      bodiesArmed = false
+      lastPublishAt = 0
+    }
+    return
+  }
+
+  const stage = stageRef.value
+  if (!stage) return
+
+  const rect = stage.getBoundingClientRect()
+  const originX = rect.left + rect.width / 2
+  const originY = rect.top + rect.height / 2
+  const dt = lastPublishAt === 0 ? 16 : Math.min(now - lastPublishAt, 48)
+  lastPublishAt = now
+
+  const iconSize = mobileMergeLayout ? 64 : 76
+  const merge = mergeProgress(scrollP)
+  const logoIntro = reduceMotion ? 1 : logoIntroProgress(scrollP)
+  const logoExit = reduceMotion ? 0 : smoothstep((scrollP - 0.992) / 0.008)
+
+  mockApps.forEach((app, index) => {
+    const visual = appVisual(app, scrollP, 0, now)
+    const x = originX + visual.x
+    const y = originY + visual.y
+    const next = { x, y, spin: visual.spinDeg }
+    const previous = poseAt(index)
+    const vel = bodiesArmed ? mergeBodyVelocity(previous, next, dt) : { vx: 0, vy: 0, spin: 0 }
+    previous.x = x
+    previous.y = y
+    previous.spin = visual.spinDeg
+    publishMergeBody(index, {
+      cx: x,
+      cy: y,
+      radius: (iconSize * visual.scale) / 2,
+      vx: vel.vx,
+      vy: vel.vy,
+      spin: vel.spin,
+      strength: visual.opacity,
+    })
+  })
+
+  const logoSpin = logoSpinDegrees(logoIntro)
+  const logoSize = mobileMergeLayout ? 126 : 156
+  const logoScale = 0.62 + logoIntro * 0.44
+  const logoNext = { x: originX, y: originY, spin: logoSpin }
+  const logoPrevious = poseAt(MERGE_LOGO_INDEX)
+  const logoVel = bodiesArmed
+    ? mergeBodyVelocity(logoPrevious, logoNext, dt)
+    : { vx: 0, vy: 0, spin: 0 }
+  logoPrevious.x = originX
+  logoPrevious.y = originY
+  logoPrevious.spin = logoSpin
+  publishMergeBody(MERGE_LOGO_INDEX, {
+    cx: originX,
+    cy: originY,
+    radius: (logoSize * logoScale) / 2,
+    vx: logoVel.vx,
+    vy: logoVel.vy,
+    spin: logoVel.spin,
+    strength: logoIntro * (1 - logoExit),
+  })
+
+  publishMergeWell({
+    cx: originX,
+    cy: originY,
+    strength: Math.min(1, merge * 0.42 + logoIntro * 0.7) * (1 - logoExit),
+  })
+  bodiesArmed = true
+}
+
+function applyAppStyles(app: MockApp, index: number, p: number, finale: number, now: number) {
+  const motion = appVisual(app, p, finale, now)
+  const merge = motion.merge
+  const opacity = motion.opacity
+  const fade = smoothstep((p - 0.67) / 0.22)
   const icon = iconEls[index]
 
   if (icon) {
     const iconOpacityStr = String(opacity)
     const iconTransformStr = `translate3d(calc(-50% + ${motion.x}px), calc(-50% + ${motion.y}px), 0) rotate(${motion.rotate}deg) scale(${motion.scale})`
     const iconZStr = String(Math.round(20 + app.depth * 10 - merge * 5))
-    const iconSpinIntro = reduceMotion ? 0 : smootherstep((merge - 0.42) / 0.42)
-    const iconSpinStr = `${logoSpinDegrees(iconSpinIntro)}deg`
+    const iconSpinStr = `${motion.spinDeg}deg`
     if (lastIconOpacity[index] !== iconOpacityStr) {
       icon.style.opacity = iconOpacityStr
       lastIconOpacity[index] = iconOpacityStr
@@ -428,6 +538,7 @@ function updateAnimatedStyles(now = performance.now()) {
 
   mockApps.forEach((app, index) => applyAppStyles(app, index, scrollP, 0, now))
   applyLiftagStyle(merge, logoIntro, logoExit)
+  publishMergePhysics(now)
 }
 
 function tick(now: number) {
@@ -493,17 +604,25 @@ function handlePointerLeave() {
 
 onMounted(() => {
   reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  mergeMobileMql = window.matchMedia('(max-width: 768px)')
+  isMobileParticles.value = mergeMobileMql.matches
+  onMergeMobileChange = (event) => {
+    isMobileParticles.value = event.matches
+  }
+  mergeMobileMql.addEventListener('change', onMergeMobileChange)
   updateStageScale()
   updateAnimatedStyles()
 
   observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       isVisible = entry.isIntersecting
-      const section = sectionRef.value
-      if (section) section.classList.toggle('is-offscreen', !isVisible)
       if (isVisible) {
         cancelAnimationFrame(rafId)
         rafId = requestAnimationFrame(tick)
+      } else {
+        resetMergeParticleField()
+        bodiesArmed = false
+        lastPublishAt = 0
       }
     })
   }, { threshold: 0 })
@@ -523,6 +642,10 @@ onBeforeUnmount(() => {
   cancelAnimationFrame(rafId)
   observer?.disconnect()
   stageResizeObserver?.disconnect()
+  if (mergeMobileMql && onMergeMobileChange) {
+    mergeMobileMql.removeEventListener('change', onMergeMobileChange)
+  }
+  resetMergeParticleField()
 })
 </script>
 
@@ -539,9 +662,12 @@ onBeforeUnmount(() => {
         <div class="merge-background-grid"></div>
         <div class="merge-background-pulse pulse-one"></div>
         <div class="merge-background-pulse pulse-two"></div>
-        <div class="merge-particle particle-one"></div>
-        <div class="merge-particle particle-two"></div>
-        <div class="merge-particle particle-three"></div>
+        <MergeParticles
+          :key="isMobileParticles ? 'merge-particles-m' : 'merge-particles-d'"
+          :count="isMobileParticles ? 280 : 800"
+          :interactive="!isMobileParticles"
+          :dpr-cap="isMobileParticles ? 1.5 : 1.75"
+        />
       </div>
 
       <div class="container app-merge-layout">
@@ -688,6 +814,7 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  isolation: isolate;
   opacity: calc(1 - var(--merge-bg-exit) * 0.7);
   background:
     radial-gradient(520px circle at 66% 48%, rgba(204, 255, 0, calc(0.04 + var(--merge-p) * 0.08)), transparent 64%),
@@ -728,34 +855,6 @@ onBeforeUnmount(() => {
   width: 760px;
   opacity: calc(0.12 + var(--merge-p) * 0.26);
   transform: translate(-50%, -50%) scale(calc(0.72 + var(--merge-p) * 0.45));
-}
-
-.merge-particle {
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  background: var(--liftag-primary);
-  box-shadow: 0 0 18px rgba(204, 255, 0, 0.8);
-  opacity: calc(0.15 + var(--merge-p) * 0.65);
-}
-
-.particle-one {
-  top: 22%;
-  left: 72%;
-  animation: mergeParticleOne 7s ease-in-out infinite;
-}
-
-.particle-two {
-  top: 68%;
-  left: 52%;
-  animation: mergeParticleTwo 8s ease-in-out infinite;
-}
-
-.particle-three {
-  top: 40%;
-  left: 87%;
-  animation: mergeParticleThree 9s ease-in-out infinite;
 }
 
 .app-merge-layout {
@@ -1063,21 +1162,6 @@ onBeforeUnmount(() => {
   opacity: calc(0.4 + var(--merge-p) * 0.6);
 }
 
-@keyframes mergeParticleOne {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(-90px, 70px, 0); }
-}
-
-@keyframes mergeParticleTwo {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(0.8); }
-  50% { transform: translate3d(120px, -55px, 0) scale(1.2); }
-}
-
-@keyframes mergeParticleThree {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(-150px, 35px, 0) scale(0.74); }
-}
-
 @media (max-width: 980px) {
   .app-merge-section {
     min-height: var(--liftag-stable-vh-470);
@@ -1216,15 +1300,4 @@ onBeforeUnmount(() => {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .merge-particle {
-    animation: none;
-  }
-}
-
-/* Pause looping particle keyframes whenever the section is offscreen so the
-   compositor isn't repainting the layer for invisible animations. */
-.app-merge-section.is-offscreen .merge-particle {
-  animation-play-state: paused;
-}
 </style>
