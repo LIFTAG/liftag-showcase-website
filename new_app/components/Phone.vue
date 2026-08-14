@@ -41,7 +41,6 @@ function preferredScreenSrc(src: string | undefined) {
 
 const props = withDefaults(defineProps<{
   src?: string
-  glow?: boolean
   scale?: number
   tiltDelayMs?: number
   screenTransition?: boolean
@@ -56,7 +55,6 @@ const props = withDefaults(defineProps<{
   sizes?: string
   staticBezel?: boolean
 }>(), {
-  glow: false,
   scale: 1,
   tiltDelayMs: 0,
   screenTransition: false,
@@ -201,7 +199,6 @@ onBeforeUnmount(() => {
     :style="{
       transform: `scale(${props.scale})`,
       transformOrigin: 'center',
-      animation: props.glow ? 'pulse-glow 4s ease-in-out infinite' : undefined,
       ...props.style,
     }"
   >

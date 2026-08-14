@@ -725,13 +725,13 @@ const pNfc = computed(() => {
         >
           <!-- Glow behind phone -->
           <div
+            class="pulse-glow-layer"
             :style="{
               position: 'absolute',
               inset: '8px',
               borderRadius: '50%',
               background: 'radial-gradient(circle, rgba(204,255,0,0.22) 0%, transparent 65%)',
               filter: 'blur(24px)',
-              animation: 'pulse-glow 4s ease-in-out infinite',
             }"
           />
           <Phone src="/assets/screens/home-hero-no-qr.webp" :scale="0.92" :tilt-delay-ms="0" :static-bezel="false" :lite="isMobile" priority />
