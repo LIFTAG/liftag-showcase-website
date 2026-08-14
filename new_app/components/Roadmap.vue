@@ -126,8 +126,8 @@ function smoothstep01(v: number) {
 function roadmapSpineStrength(progress: number) {
   const p = Math.min(1, Math.max(0, progress))
   if (p <= 0.001) return 0
-  const rise = smoothstep01(p / 0.12)
-  const fade = 1 - smoothstep01((p - 0.82) / 0.18)
+  const rise = smoothstep01(p / 0.08)
+  const fade = 1 - smoothstep01((p - 0.94) / 0.06)
   return rise * fade
 }
 
@@ -198,11 +198,13 @@ function drawRoots(
     const nodeY    = nodeRect.top  + nodeRect.height / 2 - timelineRect.top
     if (publishParticles) {
       const eased = 1 - Math.pow(1 - rmRootProgress[i], 3)
+      const breathe = 0.82 + Math.sin(now * 0.002 + i * 1.5) * 0.18
+      const ignite = 1 + Math.max(0, 1 - elapsed / 480) * 0.85
       publishRoadmapNode(i, {
         cx: nodeRect.left + nodeRect.width / 2,
         cy: nodeRect.top + nodeRect.height / 2,
-        radius: Math.max(nodeRect.width, nodeRect.height),
-        strength: eased,
+        radius: 150,
+        strength: Math.min(1, (0.38 + 0.62 * eased) * breathe * ignite),
       })
     }
 
@@ -311,7 +313,7 @@ function drawRoots(
             sparkRank = rank
             sparkCx = tipX + timelineRect.left
             sparkCy = tipY + timelineRect.top
-            sparkStr = tipFade * (branchP < 1 ? 0.85 : 0.4)
+            sparkStr = tipFade * (branchP < 1 ? 1 : 0.58)
           }
         }
       }
@@ -342,7 +344,7 @@ function updateRoadmap(rmItems: NodeListOf<Element>) {
   publishRoadmapSpine({
     cx: railX,
     cy: rect.top + progress * rect.height,
-    vy: 80,
+    vy: progress * rect.height,
     strength: roadmapSpineStrength(progress),
   })
 
@@ -494,9 +496,9 @@ onBeforeUnmount(() => {
   <section ref="sectionRef" class="section" id="roadmap">
     <RoadmapParticles
       :key="isMobileParticles ? 'roadmap-particles-m' : 'roadmap-particles-d'"
-      :count="isMobileParticles ? 100 : 220"
+      :count="isMobileParticles ? 150 : 300"
       :interactive="!isMobileParticles"
-      :dpr-cap="isMobileParticles ? 1.1 : 1.2"
+      :dpr-cap="isMobileParticles ? 1.15 : 1.25"
     />
     <div class="section-inner">
       <div class="section-label reveal" style="text-align: center">Roadmap</div>

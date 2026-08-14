@@ -148,7 +148,7 @@ test('nodeToParticleWorld scales the well into camera space', () => {
   assert.equal(world.strength, 1)
 })
 
-test('spineToParticleWorld maps the tip and flips Y velocity', () => {
+test('spineToParticleWorld maps the tip and the drawn line length', () => {
   const canvas = { left: 0, top: 0, width: 200, height: 100 }
   const world = spineToParticleWorld(
     { cx: 50, cy: 25, vy: 50, strength: 1 },
@@ -159,7 +159,7 @@ test('spineToParticleWorld maps the tip and flips Y velocity', () => {
 
   assert.equal(world.cx, -20)
   assert.equal(world.cy, 10)
-  assert.equal(world.vy, -20)
+  assert.equal(world.vy, 20)
   assert.equal(world.strength, 1)
 })
 

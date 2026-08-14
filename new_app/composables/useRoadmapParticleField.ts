@@ -36,6 +36,7 @@ export type RoadmapFieldNode = {
 export type RoadmapFieldSpine = {
   cx: number
   cy: number
+  /** Drawn line length in CSS pixels, from the timeline top down to the tip. */
   vy: number
   strength: number
 }
@@ -143,7 +144,7 @@ export function spineToParticleWorld(
   return {
     cx: center.x,
     cy: center.y,
-    vy: -(spine.vy / Math.max(canvas.height, 1)) * 2 * halfH,
+    vy: (Math.abs(spine.vy) / Math.max(canvas.height, 1)) * 2 * halfH,
     strength: spine.strength,
   }
 }

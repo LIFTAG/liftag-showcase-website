@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // GPU particle field for the roadmap background. Same single-draw-call
 // point field as the hero/merge, but it only exists while #roadmap is
-// intersecting. Slow lime dust, faint node wells, a small spine wake.
+// intersecting. Lime dust along the timeline, node wells, a spine wake.
 //
 // Lifecycle contract:
 //   • never initializes under prefers-reduced-motion
@@ -28,8 +28,8 @@ const props = withDefaults(defineProps<{
   /** Couple the field to the shared cursor (disable on touch layouts). */
   interactive?: boolean
 }>(), {
-  count: 220,
-  dprCap: 1.2,
+  count: 300,
+  dprCap: 1.25,
   interactive: true,
 })
 
@@ -99,32 +99,34 @@ const vertexShader = /* glsl */ `
     float radius = max(node.z, 0.08);
     vec2 d = p - c;
     float dist = length(d);
-    float reach = max(radius * 18.0, 8.0);
+    float reach = max(radius * 2.4, 13.5);
     float infl = (1.0 - smoothstep(0.0, reach, dist)) * k;
     float depth = 0.42 + 0.58 * depth01;
     vec2 dir = d / max(dist, 0.0001);
     vec2 perp = vec2(-d.y, d.x) / max(dist, 0.0001);
-    float breathe = 0.9 + 0.1 * sin(uTime * 0.46 + seed * 6.2831853);
-    vec2 off = -dir * infl * 0.72 * depth * breathe;
-    off += perp * infl * 0.38 * depth * breathe;
-    return vec3(off, infl * 0.12);
+    float breathe = 0.88 + 0.12 * sin(uTime * 0.7 + seed * 6.2831853);
+    vec2 off = -dir * infl * 2.6 * depth * breathe;
+    off += perp * infl * 1.05 * depth * breathe;
+    return vec3(off, infl * 0.62);
   }
 
   vec3 applySpine(vec2 p, vec4 spine, float depth01) {
     float k = spine.w;
     if (k < 0.001) return vec3(0.0);
     vec2 c = spine.xy;
-    vec2 d = p - c;
-    float dist = length(d);
-    float infl = (1.0 - smoothstep(0.0, 7.4, dist)) * k;
+    float drawn = max(spine.z, 1.2);
     float depth = 0.4 + 0.6 * depth01;
-    vec2 dir = d / max(dist, 0.0001);
-    vec2 perp = vec2(-d.y, d.x) / max(dist, 0.0001);
-    float travel = sign(spine.z);
-    vec2 off = dir * infl * 1.15 * depth;
-    off += perp * infl * 0.62 * depth;
-    off.y -= travel * infl * 0.48 * depth;
-    return vec3(off, infl * 0.28);
+    float dx = p.x - c.x;
+    float lineY = p.y - c.y;
+    float along = 1.0 - smoothstep(0.0, 3.4, max(-lineY, lineY - drawn));
+    float rail = (1.0 - smoothstep(0.0, 7.4, abs(dx))) * along * k;
+    float tipDist = length(p - c);
+    float tip = (1.0 - smoothstep(0.0, 9.6, tipDist)) * k;
+    vec2 toTip = (c - p) / max(tipDist, 0.0001);
+    vec2 off = vec2(-dx, 0.0) * rail * 2.15 * depth;
+    off += toTip * tip * 2.5 * depth;
+    off.y -= tip * 0.75 * depth;
+    return vec3(off, rail * 0.4 + tip * 0.72);
   }
 
   vec3 applySpark(vec2 p, vec4 spark, float depth01) {
@@ -132,10 +134,10 @@ const vertexShader = /* glsl */ `
     if (k < 0.001) return vec3(0.0);
     vec2 d = p - spark.xy;
     float dist = length(d);
-    float infl = (1.0 - smoothstep(0.0, 3.6, dist)) * k;
+    float infl = (1.0 - smoothstep(0.0, 7.4, dist)) * k;
     vec2 dir = d / max(dist, 0.0001);
-    vec2 off = -dir * infl * 0.4 * (0.4 + 0.6 * depth01);
-    return vec3(off, infl * 0.2);
+    vec2 off = -dir * infl * 2.05 * (0.4 + 0.6 * depth01);
+    return vec3(off, infl * 0.88);
   }
 
   void main() {
@@ -143,8 +145,8 @@ const vertexShader = /* glsl */ `
     float phase = aSeed * 6.2831853;
     float depth01 = (p.z + 40.0) / 80.0;
 
-    float x = p.x + cos(uTime * (0.07 + aSeed * 0.08) + phase) * (0.16 + aSeed * 0.26);
-    float y = p.y + sin(uTime * (0.06 + aSeed * 0.07) + phase) * (0.14 + aSeed * 0.22);
+    float x = p.x + cos(uTime * (0.09 + aSeed * 0.1) + phase) * (0.2 + aSeed * 0.32);
+    float y = p.y + sin(uTime * (0.08 + aSeed * 0.09) + phase) * (0.18 + aSeed * 0.28);
 
     vec2 mouseAtDepth = uMouse * ((${CAM_Z.toFixed(1)} - p.z) / ${CAM_Z.toFixed(1)});
     vec2 toMouse = vec2(x, y) - mouseAtDepth;
@@ -179,12 +181,12 @@ const vertexShader = /* glsl */ `
     float edgeFade = (1.0 - smoothstep(aRangeY * 0.92, aRangeY, abs(y)))
                    * (1.0 - smoothstep(aRangeX * 0.94, aRangeX, abs(x)));
 
-    vAlpha = uEnter * twinkle * mix(0.16, 0.5, depth01) * edgeFade * (1.0 + push * 0.4);
-    vTint = aTint;
+    vAlpha = uEnter * twinkle * mix(0.34, 0.84, depth01) * edgeFade * (1.0 + push * 0.85);
+    vTint = min(1.0, aTint + push * 0.65);
 
     vec4 mv = modelViewMatrix * vec4(x, y, p.z, 1.0);
-    float size = aSize * uPixelRatio * (1.0 + push * 0.35) * (118.0 / -mv.z);
-    gl_PointSize = clamp(size, 1.0, 7.6 * uPixelRatio);
+    float size = aSize * uPixelRatio * (1.0 + push * 0.72) * (132.0 / -mv.z);
+    gl_PointSize = clamp(size, 1.2, 9.2 * uPixelRatio);
     gl_Position = projectionMatrix * mv;
   }
 `
@@ -202,7 +204,7 @@ const fragmentShader = /* glsl */ `
     float hot = 1.0 - smoothstep(0.0, 0.16, d);
     float a = core * vAlpha;
     if (a < 0.004) discard;
-    vec3 col = mix(uColorA, uColorB, vTint) + hot * 0.2;
+    vec3 col = mix(uColorA, uColorB, vTint) + hot * 0.28;
     gl_FragColor = vec4(col, a);
   }
 `
@@ -221,13 +223,14 @@ function buildGeometry(count: number, aspect: number) {
     const { halfW, halfH } = halfExtentsAt(CAM_Z - z, aspect)
     const rangeX = halfW * 1.12
     const rangeY = halfH * 1.15
-    const lime = Math.random() < 0.1
+    const lime = Math.random() < 0.28
+    const alongRail = Math.random() > 0.16
 
-    positions[i * 3] = (Math.random() * 2 - 1) * rangeX
+    positions[i * 3] = (Math.random() * 2 - 1) * rangeX * (alongRail ? 0.36 : 0.92)
     positions[i * 3 + 1] = (Math.random() * 2 - 1) * rangeY
     positions[i * 3 + 2] = z
     seeds[i] = Math.random()
-    sizes[i] = (lime ? 1.22 : 0.86) * (0.68 + Math.random() * 1.12)
+    sizes[i] = (lime ? 1.42 : 1.04) * (0.82 + Math.random() * 1.18)
     tints[i] = lime ? 1 : 0
     rangesX[i] = rangeX
     rangesY[i] = rangeY
@@ -297,8 +300,8 @@ function init() {
       uNodes: { value: nodeUniforms },
       uSpine: { value: spineUniform },
       uSparks: { value: sparkUniforms },
-      uColorA: { value: new THREE.Color(0.28, 0.30, 0.26) },
-      uColorB: { value: new THREE.Color(0.72, 0.92, 0.0) },
+      uColorA: { value: new THREE.Color(0.42, 0.48, 0.34) },
+      uColorB: { value: new THREE.Color(0.8, 1.0, 0.08) },
     },
   })
   points = new THREE.Points(geometry, material)
@@ -430,7 +433,7 @@ function frame(now: number) {
   const u = material.uniforms
   u.uTime.value += dt * 0.001
 
-  enterLinear = Math.min(1, enterLinear + dt * 0.00125)
+  enterLinear = Math.min(1, enterLinear + dt * 0.0022)
   u.uEnter.value = 1 - Math.pow(1 - enterLinear, 3)
 
   if (props.interactive && sharedMouse.latest.hasPointer) {
