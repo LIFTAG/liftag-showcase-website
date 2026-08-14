@@ -53,8 +53,9 @@ function updateFill() {
   const vh = window.innerHeight
   const remain = rect.bottom - vh
   const byVisibility = 1 - Math.min(1, Math.max(0, remain / Math.max(1, rect.height)))
-  const scrollLeft = document.documentElement.scrollHeight - window.innerHeight - window.scrollY
-  setFill(scrollLeft <= 1 ? 1 : byVisibility)
+  const maxScroll = document.documentElement.scrollHeight - window.innerHeight
+  const scrollLeft = maxScroll - window.scrollY
+  setFill(maxScroll <= 0 || scrollLeft <= 8 ? 1 : byVisibility)
 }
 
 function tick() {
