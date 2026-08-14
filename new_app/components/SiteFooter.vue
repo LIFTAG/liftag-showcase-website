@@ -31,14 +31,9 @@ const legalLinks: FooterLink[] = [
 const markWord = 'LIFTAG'
 const outlineFilterId = 'footer-mark-union-outline'
 
-const footerRef = ref<HTMLElement | null>(null)
 const markRef = ref<HTMLElement | null>(null)
 
-let observer: IntersectionObserver | null = null
 let motionMql: MediaQueryList | null = null
-let rafId = 0
-let inView = false
-let documentVisible = true
 let reduceMotion = false
 
 function setFill(p: number) {
@@ -50,7 +45,7 @@ function setFill(p: number) {
 
 function updateFill() {
   const el = markRef.value
-  if (!el) return
+  if (!el || reduceMotion) return
   const rect = el.getBoundingClientRect()
   const vh = window.innerHeight
   const scroller = document.scrollingElement || document.documentElement
@@ -64,74 +59,33 @@ function updateFill() {
   setFill(atEnd ? 1 : Math.min(1, Math.max(0, entered / travel)))
 }
 
-function tick() {
-  if (!inView || !documentVisible || reduceMotion) {
-    rafId = 0
-    return
-  }
-  updateFill()
-  rafId = requestAnimationFrame(tick)
-}
-
-function startLoop() {
-  if (rafId || reduceMotion || !inView || !documentVisible) return
-  rafId = requestAnimationFrame(tick)
-}
-
-function stopLoop() {
-  if (rafId) cancelAnimationFrame(rafId)
-  rafId = 0
-}
-
-function onDocumentVisibilityChange() {
-  documentVisible = !document.hidden
-  if (documentVisible) startLoop()
-  else stopLoop()
-}
-
 function onMotionChange() {
   reduceMotion = Boolean(motionMql?.matches)
-  if (reduceMotion) {
-    stopLoop()
-    setFill(1)
-  } else {
-    startLoop()
-  }
+  if (reduceMotion) setFill(1)
+  else updateFill()
 }
 
 onMounted(() => {
-  documentVisible = !document.hidden
-  document.addEventListener('visibilitychange', onDocumentVisibilityChange)
-
   motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
   reduceMotion = motionMql.matches
   motionMql.addEventListener('change', onMotionChange)
   if (reduceMotion) setFill(1)
+  else updateFill()
 
-  if (!footerRef.value) return
-  observer = new IntersectionObserver(
-    ([entry]) => {
-      inView = entry?.isIntersecting ?? false
-      if (inView) startLoop()
-      else stopLoop()
-    },
-    { threshold: 0 },
-  )
-  observer.observe(footerRef.value)
+  window.addEventListener('scroll', updateFill, { passive: true })
+  window.addEventListener('resize', updateFill)
 })
 
 onBeforeUnmount(() => {
-  stopLoop()
-  observer?.disconnect()
-  observer = null
   motionMql?.removeEventListener('change', onMotionChange)
   motionMql = null
-  document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
+  window.removeEventListener('scroll', updateFill)
+  window.removeEventListener('resize', updateFill)
 })
 </script>
 
 <template>
-  <footer ref="footerRef" class="site-footer">
+  <footer class="site-footer">
     <div class="container footer-grid">
       <!-- Logo + tagline column -->
       <div class="footer-col reveal">
@@ -279,12 +233,10 @@ onBeforeUnmount(() => {
           <feComposite in="lime" in2="ring" operator="in" />
         </filter>
       </svg>
-      <div class="footer-mark-outline-host">
-        <div
-          class="footer-mark-row footer-mark-outline"
-          :style="{ filter: `url(#${outlineFilterId})` }"
-        >{{ markWord }}</div>
-      </div>
+      <div
+        class="footer-mark-row footer-mark-outline"
+        :style="{ filter: `url(#${outlineFilterId})` }"
+      >{{ markWord }}</div>
       <div class="footer-mark-row footer-mark-bloom">{{ markWord }}</div>
       <div class="footer-mark-row footer-mark-fill">{{ markWord }}</div>
     </div>
@@ -326,7 +278,6 @@ onBeforeUnmount(() => {
   text-transform: uppercase;
   text-wrap: nowrap;
   user-select: none;
-  overflow: visible;
   padding: 0.02em 0.2em 0.06em;
 }
 
@@ -338,12 +289,8 @@ onBeforeUnmount(() => {
   pointer-events: none;
 }
 
-.footer-mark-outline-host {
-  grid-area: 1 / 1;
-  pointer-events: auto;
-}
-
 .footer-mark-outline {
+  grid-area: 1 / 1;
   color: #000;
 }
 
@@ -352,7 +299,6 @@ onBeforeUnmount(() => {
   color: var(--liftag-primary);
   filter: blur(18px);
   opacity: 0.5;
-  pointer-events: none;
   -webkit-mask-image: linear-gradient(
     to right,
     #000 0,
@@ -371,7 +317,6 @@ onBeforeUnmount(() => {
   grid-area: 1 / 1;
   color: var(--liftag-primary);
   clip-path: inset(0 max(0%, calc((1 - var(--fill-p, 0)) * 100% - 0.28em)) 0 0);
-  pointer-events: none;
 }
 
 .footer-mark.is-complete .footer-mark-fill {
@@ -381,16 +326,6 @@ onBeforeUnmount(() => {
 .footer-mark.is-complete .footer-mark-bloom {
   -webkit-mask-image: none;
   mask-image: none;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .footer-mark-outline-host {
-    transition: filter 150ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .footer-mark-outline-host:hover {
-    filter: brightness(1.7);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
