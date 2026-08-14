@@ -39,7 +39,6 @@ let rafId = 0
 let inView = false
 let documentVisible = true
 let reduceMotion = false
-let nativeViewTimeline = false
 
 function setFill(p: number) {
   const el = markRef.value
@@ -53,12 +52,13 @@ function updateFill() {
   const rect = el.getBoundingClientRect()
   const vh = window.innerHeight
   const remain = rect.bottom - vh
-  const p = 1 - Math.min(1, Math.max(0, remain / Math.max(1, rect.height)))
-  setFill(p)
+  const byVisibility = 1 - Math.min(1, Math.max(0, remain / Math.max(1, rect.height)))
+  const scrollLeft = document.documentElement.scrollHeight - window.innerHeight - window.scrollY
+  setFill(scrollLeft <= 1 ? 1 : byVisibility)
 }
 
 function tick() {
-  if (!inView || !documentVisible || reduceMotion || nativeViewTimeline) {
+  if (!inView || !documentVisible || reduceMotion) {
     rafId = 0
     return
   }
@@ -67,7 +67,7 @@ function tick() {
 }
 
 function startLoop() {
-  if (rafId || reduceMotion || nativeViewTimeline || !inView || !documentVisible) return
+  if (rafId || reduceMotion || !inView || !documentVisible) return
   rafId = requestAnimationFrame(tick)
 }
 
@@ -93,7 +93,6 @@ function onMotionChange() {
 }
 
 onMounted(() => {
-  nativeViewTimeline = typeof CSS !== 'undefined' && CSS.supports('animation-timeline: view()')
   documentVisible = !document.hidden
   document.addEventListener('visibilitychange', onDocumentVisibilityChange)
 
@@ -261,6 +260,9 @@ onBeforeUnmount(() => {
       <div class="footer-mark-row footer-mark-outline">
         <span v-for="letter in markLetters" :key="`o-${letter}`">{{ letter }}</span>
       </div>
+      <div class="footer-mark-row footer-mark-bloom">
+        <span v-for="letter in markLetters" :key="`b-${letter}`">{{ letter }}</span>
+      </div>
       <div class="footer-mark-row footer-mark-fill">
         <span v-for="letter in markLetters" :key="`f-${letter}`">{{ letter }}</span>
       </div>
@@ -270,7 +272,6 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .site-footer {
-  --fill-p: 0;
   background: #000;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   padding: 60px 32px 40px;
@@ -283,12 +284,12 @@ onBeforeUnmount(() => {
 .footer-col:nth-child(4) { transition-delay: 180ms; }
 
 .footer-mark {
+  --fill-p: 0;
   position: relative;
   display: grid;
   justify-content: center;
   margin: 48px auto 0;
   max-width: 100%;
-  overflow: hidden;
   pointer-events: none;
 }
 
@@ -313,17 +314,35 @@ onBeforeUnmount(() => {
   pointer-events: auto;
 }
 
+.footer-mark-bloom {
+  grid-area: 1 / 1;
+  color: var(--liftag-primary);
+  filter: blur(18px);
+  opacity: 0.5;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 0,
+    #000 calc(var(--fill-p, 0) * 100% - 5%),
+    transparent calc(var(--fill-p, 0) * 100% + 8%)
+  );
+  mask-image: linear-gradient(
+    to right,
+    #000 0,
+    #000 calc(var(--fill-p, 0) * 100% - 5%),
+    transparent calc(var(--fill-p, 0) * 100% + 8%)
+  );
+}
+
 .footer-mark-fill {
   grid-area: 1 / 1;
   color: var(--liftag-primary);
-  text-shadow:
-    0 0 18px rgba(204, 255, 0, 0.28),
-    0 0 42px rgba(204, 255, 0, 0.12);
   clip-path: inset(0 calc((1 - var(--fill-p, 0)) * 100%) 0 0);
   pointer-events: none;
 }
 
 .footer-mark-outline span,
+.footer-mark-bloom span,
 .footer-mark-fill span {
   display: block;
 }
@@ -341,24 +360,16 @@ onBeforeUnmount(() => {
   }
 }
 
-@keyframes footerMarkFill {
-  from { clip-path: inset(0 100% 0 0); }
-  to { clip-path: inset(0 0 0 0); }
-}
-
-@supports (animation-timeline: view()) {
-  .footer-mark-fill {
-    animation: footerMarkFill linear both;
-    animation-timeline: view();
-    animation-range: entry 0% cover 85%;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .footer-mark-fill {
-    animation: none;
     clip-path: none;
     opacity: 0.9;
+  }
+
+  .footer-mark-bloom {
+    -webkit-mask-image: none;
+    mask-image: none;
+    opacity: 0.35;
   }
 
   .footer-col {
