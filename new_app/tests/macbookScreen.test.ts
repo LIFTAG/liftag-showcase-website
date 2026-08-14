@@ -29,13 +29,14 @@ test('layoutMacbookScreen insets a hairline black-glass margin inside the lid', 
   assert.equal(layout.bezelWidth, LID_W - MACBOOK_BEZEL_INSET * 2)
 })
 
-test('layoutMacbookScreen sizes the notch like a 14" MacBook Pro camera housing', () => {
+test('layoutMacbookScreen sizes a wide, short camera housing', () => {
   const layout = layoutMacbookScreen(LID_W, LID_H, LID_R)
 
-  assert.ok(layout.notchWidth < layout.width * 0.08)
-  assert.ok(layout.notchWidth > layout.width * 0.05)
-  assert.ok(layout.notchHeight < layout.height * 0.08)
-  assert.ok(layout.notchHeight > layout.height * 0.04)
+  assert.ok(layout.notchWidth < layout.width * 0.07)
+  assert.ok(layout.notchWidth > layout.width * 0.045)
+  assert.ok(layout.notchHeight < layout.height * 0.035)
+  assert.ok(layout.notchHeight > layout.height * 0.015)
+  assert.ok(layout.notchHeight < layout.notchWidth * 0.55)
   assert.ok(layout.notchRadius < layout.notchHeight)
   assert.ok(layout.earRadius > 0)
   assert.ok(layout.earRadius + layout.notchRadius <= layout.notchHeight)

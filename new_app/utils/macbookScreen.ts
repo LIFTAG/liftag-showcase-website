@@ -11,15 +11,20 @@ import {
 export const MACBOOK_SCREEN_INSET = 0.018
 export const MACBOOK_BEZEL_INSET = 0.008
 
-/** 14" MacBook Pro (2021+) notch as a fraction of the active display. */
-export const MACBOOK_NOTCH_WIDTH_RATIO = 0.0646
-export const MACBOOK_NOTCH_HEIGHT_RATIO = 0.0584
+/** Wide, short camera housing. Height is kept well under a real 14" ratio so it does not eat the display. */
+export const MACBOOK_NOTCH_WIDTH_RATIO = 0.058
+export const MACBOOK_NOTCH_HEIGHT_RATIO = 0.024
 
 /**
  * Solid black menu-bar letterbox on `macbook-dashboard.mp4` (31px of 936).
  * Cropped in UV space so the file is not re-encoded.
  */
-export const MACBOOK_DASHBOARD_TOP_CROP = 31 / 936
+export const MACBOOK_DASHBOARD_SOURCE_WIDTH = 1440
+export const MACBOOK_DASHBOARD_SOURCE_HEIGHT = 936
+export const MACBOOK_DASHBOARD_TOP_CROP_PX = 31
+export const MACBOOK_DASHBOARD_TOP_CROP = MACBOOK_DASHBOARD_TOP_CROP_PX / MACBOOK_DASHBOARD_SOURCE_HEIGHT
+export const MACBOOK_DASHBOARD_CONTENT_ASPECT = MACBOOK_DASHBOARD_SOURCE_WIDTH
+  / (MACBOOK_DASHBOARD_SOURCE_HEIGHT - MACBOOK_DASHBOARD_TOP_CROP_PX)
 
 export type ScreenTextureUVs = {
   offsetX: number
@@ -99,10 +104,10 @@ export function layoutMacbookScreen(
 
   const notchWidth = width * MACBOOK_NOTCH_WIDTH_RATIO
   const notchHeight = height * MACBOOK_NOTCH_HEIGHT_RATIO
-  const earRadius = Math.min(notchHeight * 0.2, notchWidth * 0.1)
-  const notchRadius = Math.min(notchHeight * 0.42, notchWidth / 2 - 0.001)
+  const earRadius = Math.min(notchHeight * 0.22, notchWidth * 0.08)
+  const notchRadius = Math.min(notchHeight * 0.48, notchWidth / 2 - 0.001)
   const notchCenterY = height / 2 - notchHeight / 2
-  const lensRadius = notchHeight * 0.15
+  const lensRadius = Math.max(0.007, notchHeight * 0.28)
 
   return {
     width,

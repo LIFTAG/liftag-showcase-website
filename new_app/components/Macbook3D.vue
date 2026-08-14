@@ -3,7 +3,9 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { useSharedMouse } from '../composables/useSharedMouse'
 import {
+  MACBOOK_DASHBOARD_CONTENT_ASPECT,
   MACBOOK_DASHBOARD_TOP_CROP,
+  MACBOOK_SCREEN_INSET,
   coverFitScreenUVs,
   createNotchedScreenGeometry,
   createRoundedRectGeometry,
@@ -61,11 +63,11 @@ function initMacbook() {
   container.appendChild(renderer.domElement)
 
   const scene = new THREE.Scene()
-  // FOV / position chosen so the lid stays in frame at every rotation angle -
-  // peak vertical reach is around -90° (mid-animation), not at -108° (fully open).
+  // Pulled back so the open lid's full width stays inside the frustum.
+  // Peak vertical reach is around -90° (mid-animation), not at -108° (fully open).
   const camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 100)
-  camera.position.set(0, 0.75, 6.1)
-  camera.lookAt(0, 0.25, 0)
+  camera.position.set(0, 0.7, 6.85)
+  camera.lookAt(0, 0.22, 0)
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.55))
 
@@ -101,13 +103,14 @@ function initMacbook() {
   shadowPlane.receiveShadow = true
   scene.add(shadowPlane)
 
-  // Dimensions
+  // Dimensions. Lid height follows the cropped dashboard footage so the
+  // recording cover-fits without slicing the left/right of the UI.
   const W = 2.8       // base + lid width
   const D = 1.92      // base depth
   const T = 0.085     // base thickness
   const R = 0.09      // base corner radius
   const LT = 0.038    // lid thickness
-  const H = 1.83      // lid height (when laid flat = depth)
+  const H = (W - MACBOOK_SCREEN_INSET * 2) / MACBOOK_DASHBOARD_CONTENT_ASPECT + MACBOOK_SCREEN_INSET * 2
 
   const aluMat = new THREE.MeshPhysicalMaterial({
     color: 0x2b2b2f,
@@ -345,8 +348,9 @@ function initMacbook() {
   // ---- Macbook root group (drives mouse tilt) ----
   const macbook = new THREE.Group()
   macbook.add(base, keyboardWell, trackpad, hinge, lidGroup)
+  macbook.scale.setScalar(0.86)
   macbook.rotation.x = 0
-  macbook.rotation.y = -0.06
+  macbook.rotation.y = -0.03
   scene.add(macbook)
 
   updateTexture = (src: string) => {
@@ -375,9 +379,9 @@ function initMacbook() {
   }
 
   let targetTiltX = 0
-  let targetTiltY = -0.06
+  let targetTiltY = -0.03
   let currentTiltX = 0
-  let currentTiltY = -0.06
+  let currentTiltY = -0.03
   let animId = 0
   let isVisible = false
 
@@ -466,9 +470,9 @@ function initMacbook() {
     animId = requestAnimationFrame(animate)
 
     // Skip until first real mouse event - otherwise (0,0) pulls the laptop
-    // away from its -0.06 rest yaw immediately on visibility.
+    // away from its rest yaw immediately on visibility.
     if (sharedMouse.samples.length > 0) {
-      targetTiltY = -0.06 + sharedMouse.latest.mx * 0.18
+      targetTiltY = -0.03 + sharedMouse.latest.mx * 0.18
       targetTiltX = -sharedMouse.latest.my * 0.05
     }
 

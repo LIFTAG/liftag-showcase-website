@@ -1083,7 +1083,7 @@ onBeforeUnmount(() => {
   }
 
   .dashboard-macbook-mount {
-    width: min(116vw, 450px);
+    width: min(100%, 450px);
     margin-top: 18px;
   }
 
