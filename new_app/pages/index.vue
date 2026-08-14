@@ -44,17 +44,22 @@ onNuxtReady(() => {
     <SiteNav />
     <Hero />
     <PartnerMarquee />
-    <LazyScanSection />
-    <LazyHowItWorks />
-    <LazyLiftersSection />
-    <LazyProgressSection />
-    <LazyAppMergeSection />
-    <LazyTrainersSection />
-    <LazyGymsSection />
-    <LazyDashboardSection />
-    <LazyRoadmap />
+    <!-- hydrate-on-visible defers each section's JS until the reader nears it.
+         The 800px margin exceeds every internal activation threshold (Phone.vue's
+         800px preload observer, the 600px 3D init observers, useReveal's 12%
+         visibility trigger), so hydration always completes before anything
+         visible fires. -->
+    <LazyScanSection :hydrate-on-visible="{ rootMargin: '800px' }" />
+    <LazyHowItWorks :hydrate-on-visible="{ rootMargin: '800px' }" />
+    <LazyLiftersSection :hydrate-on-visible="{ rootMargin: '800px' }" />
+    <LazyProgressSection :hydrate-on-visible="{ rootMargin: '800px' }" />
+    <LazyAppMergeSection :hydrate-on-visible="{ rootMargin: '800px' }" />
+    <LazyTrainersSection :hydrate-on-visible="{ rootMargin: '800px' }" />
+    <LazyGymsSection :hydrate-on-visible="{ rootMargin: '800px' }" />
+    <LazyDashboardSection :hydrate-on-visible="{ rootMargin: '800px' }" />
+    <LazyRoadmap :hydrate-on-visible="{ rootMargin: '800px' }" />
     <HomeFaq />
-    <LazyFinalCta />
-    <LazySiteFooter />
+    <LazyFinalCta :hydrate-on-visible="{ rootMargin: '800px' }" />
+    <LazySiteFooter :hydrate-on-visible="{ rootMargin: '800px' }" />
   </div>
 </template>
