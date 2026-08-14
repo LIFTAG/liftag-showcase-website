@@ -3,8 +3,10 @@ import {
   MERGE_BODY_COUNT,
   MERGE_LOGO_INDEX,
   mergeBodyVelocity,
+  mergeSectionPinned,
   mergeStormFromProgress,
   publishMergeBody,
+  publishMergePinned,
   publishMergeStorm,
   publishMergeWell,
   resetMergeParticleField,
@@ -312,6 +314,22 @@ function publishMergePhysics(now: number) {
     }
     return
   }
+
+  const section = sectionRef.value
+  const viewportH = useStableViewportHeight() || window.innerHeight
+  const sectionRect = section?.getBoundingClientRect()
+  const pinned = Boolean(
+    sectionRect && mergeSectionPinned(sectionRect.top, sectionRect.bottom, viewportH),
+  )
+  if (!pinned) {
+    resetMergeParticleField()
+    publishMergePinned(false)
+    bodiesArmed = false
+    lastPublishAt = 0
+    return
+  }
+
+  publishMergePinned(true)
 
   const stage = stageRef.value
   if (!stage) return
@@ -668,9 +686,9 @@ onBeforeUnmount(() => {
         <div class="merge-background-pulse pulse-two"></div>
         <MergeParticles
           :key="isMobileParticles ? 'merge-particles-m' : 'merge-particles-d'"
-          :count="isMobileParticles ? 280 : 800"
+          :count="isMobileParticles ? 140 : 320"
           :interactive="!isMobileParticles"
-          :dpr-cap="isMobileParticles ? 1.5 : 1.75"
+          :dpr-cap="isMobileParticles ? 1.15 : 1.25"
         />
       </div>
 

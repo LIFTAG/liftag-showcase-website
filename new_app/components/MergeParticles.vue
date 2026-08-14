@@ -1,13 +1,13 @@
 <script setup lang="ts">
 // GPU particle field for the app-merge background. Same single-draw-call
-// point field as the hero, pinned to the sticky stage (no scroll-rise).
-// Icons suck nearby dust inward; a tornado tightens as they merge, then
-// detonates and settles into a halo as LIFTAG appears.
+// point field as the hero, but it only exists while the merge section is
+// sticky. Particles fly in from the edges, swirl lightly with the icons,
+// then burst and settle into a halo as LIFTAG appears.
 //
 // Lifecycle contract:
 //   • never initializes under prefers-reduced-motion
-//   • lazy-inits when the merge section is near the viewport, disposes fully
-//     once it is scrolled well past - re-inits on the way back
+//   • never allocates a GL context until the section is pinned
+//   • disposes fully when the sticky range ends or the host leaves view
 //   • pauses while the document is hidden
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import * as THREE from 'three'
@@ -27,8 +27,8 @@ const props = withDefaults(defineProps<{
   /** Couple the field to the shared cursor (disable on touch layouts). */
   interactive?: boolean
 }>(), {
-  count: 800,
-  dprCap: 1.75,
+  count: 320,
+  dprCap: 1.25,
   interactive: true,
 })
 
@@ -37,8 +37,6 @@ const sharedMouse = useSharedMouse()
 
 const FOV = 55
 const CAM_Z = 60
-/** Reveal floor on re-entry so the field never replays the full fade-in. */
-const REENTRY_REVEAL_FLOOR = 0.35
 
 let renderer: THREE.WebGLRenderer | null = null
 let scene: THREE.Scene | null = null
@@ -53,9 +51,9 @@ let intersecting = false
 let disposed = true
 let contextBroken = false
 let lastFrame = 0
-let revealLinear = 0
-let everInitialized = false
+let enterLinear = 0
 let uniformsCleared = true
+let watching = false
 
 let io: IntersectionObserver | null = null
 let resizeObserver: ResizeObserver | null = null
@@ -81,7 +79,7 @@ const vertexShader = /* glsl */ `
   uniform float uTime;
   uniform float uPixelRatio;
   uniform vec2 uMouse;
-  uniform float uReveal;
+  uniform float uEnter;
   uniform vec4 uBodies[9];
   uniform vec4 uBodyMotion[9];
   uniform vec3 uWell;
@@ -97,9 +95,9 @@ const vertexShader = /* glsl */ `
   vec2 vortexOffset(vec2 p, vec2 vortex, float circ) {
     vec2 d = p - vortex;
     float dist = length(d);
-    float g = exp(-(dist * dist) * 0.018);
+    float g = exp(-(dist * dist) * 0.028);
     vec2 perp = vec2(-d.y, d.x) / max(dist, 0.0001);
-    return perp * g * circ * 1.8;
+    return perp * g * circ * 1.2;
   }
 
   vec3 applyBody(vec2 p, vec4 body, vec4 motion, float depth01) {
@@ -109,17 +107,16 @@ const vertexShader = /* glsl */ `
     float radius = max(body.z, 0.08);
     vec2 d = p - c;
     float dist = length(d);
-    float infl = (1.0 - smoothstep(0.0, radius * 5.4, dist)) * k;
+    float infl = (1.0 - smoothstep(0.0, radius * 4.2, dist)) * k;
     float depth = 0.35 + 0.65 * depth01;
     vec2 dir = d / max(dist, 0.0001);
-    vec2 off = -dir * infl * 3.1 * depth;
-    vec2 wake = motion.xy * 0.028;
+    vec2 off = -dir * infl * 1.8 * depth;
+    vec2 wake = motion.xy * 0.02;
     float wakeLen = length(wake);
-    wake *= min(wakeLen, 3.2) / max(wakeLen, 0.0001);
+    wake *= min(wakeLen, 2.4) / max(wakeLen, 0.0001);
     off += wake * infl * depth;
-    float circ = clamp(motion.z / 220.0, -2.4, 2.4) * infl;
-    off += vortexOffset(p, c, circ);
-    return vec3(off, infl * 0.5);
+    off += vortexOffset(p, c, clamp(motion.z / 280.0, -1.4, 1.4) * infl);
+    return vec3(off, infl * 0.32);
   }
 
   vec3 applyStorm(vec2 p, vec3 well, vec4 storm, float depth01, float seed) {
@@ -130,25 +127,26 @@ const vertexShader = /* glsl */ `
     float dist = length(d);
     float ang = atan(d.y, d.x);
     float depth = 0.4 + 0.6 * depth01;
-    float reach = mix(36.0, 14.0, storm.x);
-    float infl = (1.0 - smoothstep(0.0, reach, dist)) * storm.x;
-    float twist = uTime * storm.w * (1.15 + 2.8 * infl) + seed * 2.1;
-    float contracted = mix(dist, dist * 0.08, infl * 0.94);
-    float lift = infl * (1.0 - contracted / max(dist, 0.001)) * 3.4;
+    float infl = (1.0 - smoothstep(0.0, 28.0, dist)) * storm.x;
+    float twist = uTime * storm.w * (0.35 + 0.85 * infl) + seed * 1.4;
+    float contracted = mix(dist, dist * 0.7, infl * 0.45);
 
-    float boom = storm.y * (0.5 + 0.5 * seed);
-    float exploded = mix(contracted, max(dist, contracted) * (1.0 + 2.35 * boom) + 14.0 * boom, storm.y);
+    float boom = storm.y * (0.42 + 0.58 * seed);
+    float exploded = mix(
+      contracted,
+      max(dist, contracted) * (1.0 + 4.8 * boom) + 28.0 * boom + storm.y * storm.y * mix(6.0, 18.0, seed),
+      storm.y
+    );
 
     float halo = mix(6.2, 9.6, seed);
     float settled = mix(exploded, mix(exploded, halo, 0.78), storm.z);
 
-    float finalAng = ang + twist * (storm.x + storm.y * 0.4 + storm.z * 0.14);
+    float finalAng = ang + twist * (storm.x * 0.55 + storm.y * 0.55 + storm.z * 0.14);
     vec2 target = well.xy + vec2(cos(finalAng), sin(finalAng)) * settled;
-    target.y += lift * (1.0 - storm.y) * (1.0 - storm.z);
 
     float k = clamp(energy, 0.0, 1.0);
     vec2 off = (target - p) * k * (0.72 + 0.28 * depth);
-    return vec3(off, infl + storm.y * 0.95 + storm.z * 0.22);
+    return vec3(off, infl * 0.28 + storm.y * 1.45 + storm.z * 0.22);
   }
 
   void main() {
@@ -156,8 +154,17 @@ const vertexShader = /* glsl */ `
     float phase = aSeed * 6.2831853;
     float depth01 = (p.z + 40.0) / 80.0;
 
-    float y = p.y + sin(uTime * (0.11 + aSeed * 0.14) + phase) * (0.32 + aSeed * 0.4);
-    float x = p.x + cos(uTime * (0.13 + aSeed * 0.16) + phase) * (0.32 + aSeed * 0.5);
+    float homeX = p.x + cos(uTime * (0.13 + aSeed * 0.16) + phase) * (0.32 + aSeed * 0.5);
+    float homeY = p.y + sin(uTime * (0.11 + aSeed * 0.14) + phase) * (0.32 + aSeed * 0.4);
+
+    float lane = aSeed * 3.0;
+    vec2 from = lane < 1.0
+      ? vec2(-aRangeX * 1.18, homeY * 0.35 + (aSeed - 0.5) * aRangeY)
+      : lane < 2.0
+        ? vec2(aRangeX * 1.18, homeY * 0.35 + (aSeed - 0.5) * aRangeY)
+        : vec2(homeX * 0.4, -aRangeY * 1.22 - aSeed * 8.0);
+    float x = mix(from.x, homeX, uEnter);
+    float y = mix(from.y, homeY, uEnter);
 
     vec2 mouseAtDepth = uMouse * ((${CAM_Z.toFixed(1)} - p.z) / ${CAM_Z.toFixed(1)});
     vec2 toMouse = vec2(x, y) - mouseAtDepth;
@@ -167,11 +174,13 @@ const vertexShader = /* glsl */ `
     x += dir.x * push * 5.0 * (0.35 + 0.65 * depth01);
     y += dir.y * push * 5.0 * (0.35 + 0.65 * depth01);
 
-    for (int i = 0; i < 9; i++) {
-      vec3 body = applyBody(vec2(x, y), uBodies[i], uBodyMotion[i], depth01);
-      x += body.x;
-      y += body.y;
-      push += body.z;
+    if (uStorm.x + uStorm.y + uStorm.z < 0.28) {
+      for (int i = 0; i < 9; i++) {
+        vec3 body = applyBody(vec2(x, y), uBodies[i], uBodyMotion[i], depth01);
+        x += body.x;
+        y += body.y;
+        push += body.z;
+      }
     }
 
     vec3 storm = applyStorm(vec2(x, y), uWell, uStorm, depth01, aSeed);
@@ -183,12 +192,12 @@ const vertexShader = /* glsl */ `
     float edgeFade = (1.0 - smoothstep(aRangeY * 0.92, aRangeY, abs(y)))
                    * (1.0 - smoothstep(aRangeX * 0.94, aRangeX, abs(x)));
 
-    vAlpha = uReveal * twinkle * mix(0.24, 0.68, depth01) * edgeFade * (1.0 + push * 0.7);
-    vTint = aTint;
+    vAlpha = uEnter * twinkle * mix(0.24, 0.68, depth01) * edgeFade * (1.0 + push * 0.7);
+    vTint = min(1.0, aTint + uStorm.y * 0.4);
 
     vec4 mv = modelViewMatrix * vec4(x, y, p.z, 1.0);
-    float size = aSize * uPixelRatio * (1.0 + push * 0.55) * (135.0 / -mv.z);
-    gl_PointSize = clamp(size, 1.0, 9.5 * uPixelRatio);
+    float size = aSize * uPixelRatio * (1.0 + push * 0.7) * (135.0 / -mv.z);
+    gl_PointSize = clamp(size, 1.0, 11.0 * uPixelRatio);
     gl_Position = projectionMatrix * mv;
   }
 `
@@ -297,7 +306,7 @@ function init() {
       uTime: { value: Math.random() * 40 },
       uPixelRatio: { value: dpr },
       uMouse: { value: mouseWorld },
-      uReveal: { value: 0 },
+      uEnter: { value: 0 },
       uBodies: { value: bodyUniforms },
       uBodyMotion: { value: bodyMotionUniforms },
       uWell: { value: wellUniform },
@@ -322,8 +331,7 @@ function init() {
   host.appendChild(renderer.domElement)
 
   disposed = false
-  revealLinear = everInitialized ? REENTRY_REVEAL_FLOOR : 0
-  everInitialized = true
+  enterLinear = 0
   lastFrame = 0
   mouseArmed = false
   mouseWorld.set(9999, 9999)
@@ -397,11 +405,25 @@ function syncBodyUniforms() {
   uniformsCleared = false
 }
 
+function releaseField() {
+  stopLoop()
+  disposeScene()
+  contextBroken = false
+}
+
 function frame(now: number) {
   if (!running || !renderer || !scene || !camera || !material) {
     rafId = 0
+    running = false
     return
   }
+
+  if (!mergeParticleField.pinned) {
+    releaseField()
+    if (intersecting) startWatch()
+    return
+  }
+
   rafId = requestAnimationFrame(frame)
 
   const dt = lastFrame === 0 ? 16 : Math.min(now - lastFrame, 48)
@@ -410,8 +432,8 @@ function frame(now: number) {
   const u = material.uniforms
   u.uTime.value += dt * 0.001
 
-  revealLinear = Math.min(1, revealLinear + dt * 0.0007)
-  u.uReveal.value = 1 - Math.pow(1 - revealLinear, 3)
+  enterLinear = Math.min(1, enterLinear + dt * 0.00145)
+  u.uEnter.value = 1 - Math.pow(1 - enterLinear, 3)
 
   if (props.interactive && sharedMouse.latest.hasPointer) {
     const { halfW, halfH } = halfExtentsAt(CAM_Z, camera.aspect)
@@ -428,15 +450,36 @@ function frame(now: number) {
   renderer.render(scene, camera)
 }
 
+function watch() {
+  watching = false
+  rafId = 0
+  if (!intersecting || document.hidden) return
+  if (mergeParticleField.pinned) {
+    if (disposed) init()
+    startLoop()
+    return
+  }
+  if (!disposed) releaseField()
+  startWatch()
+}
+
+function startWatch() {
+  if (watching || running || document.hidden || !intersecting) return
+  watching = true
+  rafId = requestAnimationFrame(watch)
+}
+
 function startLoop() {
   if (running || disposed || document.hidden) return
   running = true
+  watching = false
   lastFrame = 0
   rafId = requestAnimationFrame(frame)
 }
 
 function stopLoop() {
   running = false
+  watching = false
   if (rafId) cancelAnimationFrame(rafId)
   rafId = 0
 }
@@ -459,23 +502,17 @@ onMounted(() => {
   io = new IntersectionObserver(
     (entries) => {
       const entry = entries[entries.length - 1]
-      intersecting = entry.isIntersecting
-      if (intersecting) {
-        if (disposed) init()
-        startLoop()
-      } else {
-        stopLoop()
-        disposeScene()
-        contextBroken = false
-      }
+      intersecting = Boolean(entry?.isIntersecting)
+      if (intersecting) startWatch()
+      else releaseField()
     },
-    { rootMargin: '360px 0px 360px 0px' },
+    { threshold: 0 },
   )
   io.observe(host)
 
   onVisibility = () => {
     if (document.hidden) stopLoop()
-    else if (intersecting) startLoop()
+    else if (intersecting) startWatch()
   }
   document.addEventListener('visibilitychange', onVisibility)
 

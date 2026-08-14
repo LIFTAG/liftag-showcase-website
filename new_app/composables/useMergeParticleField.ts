@@ -108,6 +108,7 @@ const field = {
   bodies: Array.from({ length: MERGE_BODY_COUNT }, emptyBody),
   well: emptyWell(),
   storm: emptyStorm(),
+  pinned: false,
 }
 
 export function useMergeParticleField() {
@@ -118,6 +119,7 @@ export function resetMergeParticleField() {
   for (const body of field.bodies) writeBody(body, emptyBody())
   writeWell(field.well, emptyWell())
   writeStorm(field.storm, emptyStorm())
+  field.pinned = false
 }
 
 export function publishMergeBody(index: number, body: MergeFieldBody) {
@@ -135,6 +137,18 @@ export function publishMergeStorm(storm: MergeFieldStorm) {
   writeStorm(field.storm, storm)
 }
 
+export function publishMergePinned(pinned: boolean) {
+  field.pinned = pinned
+}
+
+export function mergeSectionPinned(
+  sectionTop: number,
+  sectionBottom: number,
+  viewportH: number,
+) {
+  return sectionTop <= 0.5 && sectionBottom > Math.max(viewportH, 1)
+}
+
 export function mergeStormFromProgress(
   merge: number,
   logoIntro: number,
@@ -144,11 +158,11 @@ export function mergeStormFromProgress(
   const intro = clamp01(logoIntro)
   const exit = clamp01(logoExit)
 
-  const tornadoFade = smoothstep((intro - 0.06) / 0.28)
-  const tornado = m * (1 - tornadoFade) * (1 - exit)
-  const burst = Math.sin(clamp01(intro / 0.36) * Math.PI) * (1 - exit)
+  const tornadoFade = smoothstep((intro - 0.04) / 0.22)
+  const tornado = m * 0.4 * (1 - tornadoFade) * (1 - exit)
+  const burst = Math.sin(clamp01(intro / 0.3) * Math.PI) * (1 - exit)
   const settle = smootherstep((intro - 0.3) / 0.52) * (1 - exit)
-  const spin = tornado * 2.6 + burst * 1.35 + settle * 0.42
+  const spin = tornado * 1.05 + burst * 2.1 + settle * 0.42
 
   return { tornado, burst, settle, spin }
 }

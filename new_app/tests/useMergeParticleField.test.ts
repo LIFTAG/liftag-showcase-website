@@ -5,8 +5,10 @@ import {
   MERGE_LOGO_INDEX,
   bodyToParticleWorld,
   mergeBodyVelocity,
+  mergeSectionPinned,
   mergeStormFromProgress,
   publishMergeBody,
+  publishMergePinned,
   publishMergeStorm,
   publishMergeWell,
   resetMergeParticleField,
@@ -29,6 +31,7 @@ test('the field has nine body slots plus a well and storm', () => {
   assert.equal(field.bodies.length, 9)
   assert.deepEqual(field.well, { cx: 0, cy: 0, strength: 0 })
   assert.deepEqual(field.storm, { tornado: 0, burst: 0, settle: 0, spin: 0 })
+  assert.equal(field.pinned, false)
 })
 
 test('publishMergeBody writes only the requested slot', () => {
@@ -101,6 +104,7 @@ test('resetMergeParticleField zeros every body and the well', () => {
   })
   publishMergeWell({ cx: 3, cy: 4, strength: 0.5 })
   publishMergeStorm({ tornado: 1, burst: 0.4, settle: 0.2, spin: 3 })
+  publishMergePinned(true)
 
   resetMergeParticleField()
 
@@ -117,6 +121,20 @@ test('resetMergeParticleField zeros every body and the well', () => {
   }
   assert.deepEqual(field.well, { cx: 0, cy: 0, strength: 0 })
   assert.deepEqual(field.storm, { tornado: 0, burst: 0, settle: 0, spin: 0 })
+  assert.equal(field.pinned, false)
+})
+
+test('publishMergePinned arms the sticky-stage gate', () => {
+  const field = useMergeParticleField()
+  publishMergePinned(true)
+  assert.equal(field.pinned, true)
+})
+
+test('mergeSectionPinned is true only while the section is stuck to the viewport', () => {
+  assert.equal(mergeSectionPinned(80, 900, 800), false)
+  assert.equal(mergeSectionPinned(0, 2400, 800), true)
+  assert.equal(mergeSectionPinned(-200, 1800, 800), true)
+  assert.equal(mergeSectionPinned(-1700, 700, 800), false)
 })
 
 test('publishMergeStorm writes the shared storm', () => {
@@ -133,18 +151,18 @@ test('mergeStormFromProgress is idle before the merge starts', () => {
   assert.equal(storm.spin, 0)
 })
 
-test('mergeStormFromProgress builds a tornado while icons collapse', () => {
+test('mergeStormFromProgress builds a light swirl while icons collapse', () => {
   const storm = mergeStormFromProgress(1, 0, 0)
-  assert.ok(storm.tornado > 0.95)
+  assert.ok(storm.tornado > 0.3 && storm.tornado < 0.5)
   assert.ok(storm.burst < 0.05)
   assert.ok(storm.settle < 0.05)
-  assert.ok(storm.spin > 2)
+  assert.ok(storm.spin < 0.6)
 })
 
 test('mergeStormFromProgress detonates as the logo appears', () => {
-  const storm = mergeStormFromProgress(1, 0.18, 0)
+  const storm = mergeStormFromProgress(1, 0.15, 0)
   assert.ok(storm.burst > 0.9)
-  assert.ok(storm.tornado < 0.9)
+  assert.ok(storm.tornado < 0.25)
 })
 
 test('mergeStormFromProgress settles once LIFTAG is fully in', () => {
