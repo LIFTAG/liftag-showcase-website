@@ -6,7 +6,12 @@ import {
   MACBOOK_DASHBOARD_CONTENT_ASPECT,
   MACBOOK_DASHBOARD_TOP_CROP,
   MACBOOK_SCREEN_INSET,
+  MACBOOK_ZOOM_FILL,
+  cameraTruckToAlign,
+  clampTruckToKeepWidth,
+  containScreenDistance,
   coverFitScreenUVs,
+  startDistanceToMatchHeight,
   createNotchedScreenGeometry,
   createRoundedRectGeometry,
   layoutMacbookScreen,
@@ -17,10 +22,14 @@ const props = withDefaults(defineProps<{
   screenshotSrc: string
   videoSrc?: string
   openProgress?: number
+  zoomProgress?: number
   tiltDelayMs?: number
+  alignEl?: HTMLElement | null
 }>(), {
   openProgress: 0,
+  zoomProgress: 0,
   tiltDelayMs: 0,
+  alignEl: null,
 })
 
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -29,6 +38,8 @@ let cleanup: (() => void) | null = null
 let updateTexture: ((src: string) => void) | null = null
 let setVideoSource: ((src?: string) => void) | null = null
 let setOpenProgress: ((p: number) => void) | null = null
+let setZoomProgress: ((p: number) => void) | null = null
+let setAlignEl: ((el: HTMLElement | null) => void) | null = null
 let initObserver: IntersectionObserver | null = null
 let initialized = false
 
@@ -39,6 +50,11 @@ function clamp01(v: number) {
 function smoothstep(v: number) {
   const t = clamp01(v)
   return t * t * (3 - 2 * t)
+}
+
+function smootherstep(v: number) {
+  const t = clamp01(v)
+  return t * t * t * (t * (t * 6 - 15) + 10)
 }
 
 function initMacbook() {
@@ -367,6 +383,82 @@ function initMacbook() {
   macbook.rotation.y = -0.06
   scene.add(macbook)
 
+  const CAM_BASE_POS = new THREE.Vector3(0, 0.7, 6.85)
+  const CAM_BASE_LOOK = new THREE.Vector3(0, 0.22, 0)
+  const CAM_START_FOV = 30
+  const CAM_ZOOM_FOV = 22
+  const startPos = CAM_BASE_POS.clone()
+  const startLook = CAM_BASE_LOOK.clone()
+  const zoomCam = new THREE.Object3D()
+  const endPos = new THREE.Vector3()
+  const endLook = new THREE.Vector3()
+  const camPos = new THREE.Vector3()
+  const camLook = new THREE.Vector3()
+  const worldUp = new THREE.Vector3(0, 1, 0)
+  const screenUp = new THREE.Vector3()
+  const lidQuat = new THREE.Quaternion()
+  let alignTarget: HTMLElement | null = props.alignEl ?? null
+  let observedAlign: HTMLElement | null = null
+
+  function placeZoomCam() {
+    const worldDist = containScreenDistance({
+      worldWidth: screenLayout.width * macbook.scale.x,
+      worldHeight: screenLayout.height * macbook.scale.y,
+      fovDeg: CAM_ZOOM_FOV,
+      aspect: camera.aspect,
+      fill: MACBOOK_ZOOM_FILL,
+    })
+    zoomCam.position.set(
+      screen.position.x,
+      screen.position.y - worldDist / macbook.scale.y,
+      screen.position.z,
+    )
+  }
+
+  function updateStartRig() {
+    if (!container) return
+    const canvasRect = container.getBoundingClientRect()
+    const targetRect = alignTarget?.getBoundingClientRect()
+    const dist = targetRect && targetRect.height > 1
+      ? startDistanceToMatchHeight({
+          baseDistance: CAM_BASE_POS.z,
+          canvasHeight: canvasRect.height,
+          referenceHeight: targetRect.height,
+        })
+      : CAM_BASE_POS.z
+
+    startPos.set(0, CAM_BASE_POS.y * (dist / CAM_BASE_POS.z), dist)
+    startLook.copy(CAM_BASE_LOOK)
+
+    if (targetRect && targetRect.width > 1 && canvasRect.width > 1) {
+      const truck = clampTruckToKeepWidth({
+        truck: cameraTruckToAlign({
+          canvasLeft: canvasRect.left,
+          canvasWidth: canvasRect.width,
+          targetLeft: targetRect.left,
+          targetWidth: targetRect.width,
+          distance: dist,
+          fovDeg: CAM_START_FOV,
+          aspect: camera.aspect,
+        }),
+        worldWidth: W * macbook.scale.x,
+        distance: dist,
+        fovDeg: CAM_START_FOV,
+        aspect: camera.aspect,
+        padding: 0.08,
+      })
+      startPos.x = truck
+      startLook.x = truck
+    }
+
+    placeZoomCam()
+  }
+
+  lidGroup.add(zoomCam)
+  updateStartRig()
+  camera.position.copy(startPos)
+  camera.lookAt(startLook)
+
   updateTexture = (src: string) => {
     const previous = posterTexture
     posterTexture = textureLoader.load(src, (texture) => {
@@ -387,9 +479,16 @@ function initMacbook() {
   const openAngle = -THREE.MathUtils.degToRad(108) // open ~108°
   let targetOpen = clamp01(props.openProgress)
   let currentOpen = targetOpen
+  let targetZoom = clamp01(props.zoomProgress)
+  let currentZoom = targetZoom
 
   setOpenProgress = (p: number) => {
     targetOpen = clamp01(p)
+    wake()
+  }
+
+  setZoomProgress = (p: number) => {
+    targetZoom = clamp01(p)
     wake()
   }
 
@@ -496,10 +595,23 @@ function initMacbook() {
 
   const applyPose = () => {
     const eased = smoothstep(currentOpen)
+    const zoomT = currentZoom
     lidGroup.rotation.x = closedAngle + (openAngle - closedAngle) * eased
 
     macbook.rotation.x = currentTiltX
     macbook.rotation.y = currentTiltY
+
+    zoomCam.getWorldPosition(endPos)
+    screen.getWorldPosition(endLook)
+    lidGroup.getWorldQuaternion(lidQuat)
+    screenUp.set(0, 0, 1).applyQuaternion(lidQuat)
+    camPos.lerpVectors(startPos, endPos, zoomT)
+    camLook.lerpVectors(startLook, endLook, zoomT)
+    camera.position.copy(camPos)
+    camera.up.lerpVectors(worldUp, screenUp, zoomT)
+    camera.lookAt(camLook)
+    camera.fov = THREE.MathUtils.lerp(CAM_START_FOV, CAM_ZOOM_FOV, zoomT)
+    camera.updateProjectionMatrix()
   }
 
   const animate = () => {
@@ -508,22 +620,31 @@ function initMacbook() {
       return
     }
 
+    const tiltScale = 1 - currentZoom
+
     // Skip until first real mouse event - otherwise (0,0) pulls the laptop
     // away from its -0.06 rest yaw immediately on visibility.
     if (!motionMql.matches && sharedMouse.samples.length > 0) {
-      targetTiltY = -0.06 + sharedMouse.latest.mx * 0.18
-      targetTiltX = -sharedMouse.latest.my * 0.05
+      targetTiltY = -0.06 * tiltScale + sharedMouse.latest.mx * 0.18 * tiltScale
+      targetTiltX = -sharedMouse.latest.my * 0.05 * tiltScale
+    } else if (!motionMql.matches) {
+      targetTiltY = -0.06 * tiltScale
+      targetTiltX = 0
     }
 
     // Reduced motion: the lid snaps to the scroll position instead of easing,
     // which (with the convergence check below) means one static frame per
     // scroll update rather than a running loop.
-    if (motionMql.matches) currentOpen = targetOpen
+    if (motionMql.matches) {
+      currentOpen = targetOpen
+      currentZoom = targetZoom
+    }
 
     // Nothing left to interpolate and no video frames arriving - draw the
     // settled pose once and park. The video guard is load-bearing: a playing
     // VideoTexture needs a render every frame or the screen freezes.
     const settled = Math.abs(targetOpen - currentOpen) < 1e-4
+      && Math.abs(targetZoom - currentZoom) < 1e-4
       && Math.abs(targetTiltX - currentTiltX) < 1e-4
       && Math.abs(targetTiltY - currentTiltY) < 1e-4
       && (!screenVideo || screenVideo.paused)
@@ -531,6 +652,7 @@ function initMacbook() {
     if (settled) {
       animId = 0
       currentOpen = targetOpen
+      currentZoom = targetZoom
       currentTiltX = targetTiltX
       currentTiltY = targetTiltY
       applyPose()
@@ -541,11 +663,11 @@ function initMacbook() {
     animId = requestAnimationFrame(animate)
 
     currentOpen += (targetOpen - currentOpen) * 0.14
+    currentZoom += (targetZoom - currentZoom) * 0.14
     currentTiltX += (targetTiltX - currentTiltX) * 0.06
     currentTiltY += (targetTiltY - currentTiltY) * 0.06
 
     applyPose()
-
     renderer.render(scene, camera)
   }
 
@@ -619,10 +741,12 @@ function initMacbook() {
     const w = Math.max(container.clientWidth, 1)
     const h = Math.max(container.clientHeight, 1)
     camera.aspect = w / h
+    updateStartRig()
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
     // setSize clears the drawing buffer and the loop may be parked (see
     // animate), so redraw the settled pose at the new size.
+    applyPose()
     renderer.render(scene, camera)
   }
   let resizeRaf = 0
@@ -634,9 +758,23 @@ function initMacbook() {
     })
   }
   window.addEventListener('resize', onResize, { passive: true })
+  const resizeObserver = new ResizeObserver(onResize)
+  resizeObserver.observe(container)
+
+  setAlignEl = (el) => {
+    if (observedAlign && observedAlign !== el) {
+      resizeObserver.unobserve(observedAlign)
+    }
+    alignTarget = el
+    observedAlign = el
+    if (el) resizeObserver.observe(el)
+    updateStartRig()
+  }
+  setAlignEl(alignTarget)
 
   cleanup = () => {
     window.removeEventListener('resize', onResize)
+    resizeObserver.disconnect()
     if (resizeRaf) {
       cancelAnimationFrame(resizeRaf)
       resizeRaf = 0
@@ -656,6 +794,8 @@ function initMacbook() {
     updateTexture = null
     setVideoSource = null
     setOpenProgress = null
+    setZoomProgress = null
+    setAlignEl = null
     disposeVideo()
     posterTexture.dispose()
     kbTex.dispose()
@@ -720,6 +860,22 @@ watch(
     else initMacbook()
   },
   { immediate: true },
+)
+
+watch(
+  () => props.zoomProgress,
+  (p) => {
+    if (setZoomProgress) setZoomProgress(p ?? 0)
+    else initMacbook()
+  },
+  { immediate: true },
+)
+
+watch(
+  () => props.alignEl,
+  (el) => {
+    if (setAlignEl) setAlignEl(el ?? null)
+  },
 )
 </script>
 

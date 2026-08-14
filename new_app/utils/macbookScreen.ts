@@ -74,6 +74,115 @@ export function coverFitScreenUVs(options: {
   }
 }
 
+function verticalFovRad(fovDeg: number) {
+  return (Math.max(fovDeg, 1e-6) * Math.PI) / 180
+}
+
+function horizontalFovRad(fovDeg: number, aspect: number) {
+  return 2 * Math.atan(Math.tan(verticalFovRad(fovDeg) / 2) * Math.max(aspect, 1e-6))
+}
+
+/** World-space size of a perspective frustum at `distance` from the camera. */
+export function frustumSizeAtDistance(options: {
+  distance: number
+  fovDeg: number
+  aspect: number
+}): { width: number, height: number } {
+  const distance = Math.max(options.distance, 0)
+  const vFov = verticalFovRad(options.fovDeg)
+  const hFov = horizontalFovRad(options.fovDeg, options.aspect)
+  return {
+    width: 2 * distance * Math.tan(hFov / 2),
+    height: 2 * distance * Math.tan(vFov / 2),
+  }
+}
+
+/**
+ * Face-on distance that keeps the entire display inside the frustum.
+ * Uses the farther of the width and height fits so a wide recording is
+ * not cropped when the canvas is squarer than the screen.
+ *
+ * `fill` > 1 pulls the camera back (less zoom). The punch-in uses a
+ * slight overscan so the glass is not edge-to-edge.
+ */
+export const MACBOOK_ZOOM_FILL = 1.08
+
+export function containScreenDistance(options: {
+  worldWidth: number
+  worldHeight: number
+  fovDeg: number
+  aspect: number
+  fill?: number
+}): number {
+  const worldWidth = Math.max(options.worldWidth, 0)
+  const worldHeight = Math.max(options.worldHeight, 0)
+  const fill = Math.max(options.fill ?? 1, 1e-6)
+  const vFov = verticalFovRad(options.fovDeg)
+  const hFov = horizontalFovRad(options.fovDeg, options.aspect)
+  const distV = (worldHeight * fill) / (2 * Math.tan(vFov / 2))
+  const distH = (worldWidth * fill) / (2 * Math.tan(hFov / 2))
+  return Math.max(distV, distH)
+}
+
+/**
+ * Horizontal camera truck that puts world-origin on the center of `target`
+ * inside `canvas`. Negative values move the camera left so a right-hand
+ * stage reads as the subject.
+ */
+export function cameraTruckToAlign(options: {
+  canvasLeft: number
+  canvasWidth: number
+  targetLeft: number
+  targetWidth: number
+  distance: number
+  fovDeg: number
+  aspect: number
+}): number {
+  const canvasWidth = Math.max(options.canvasWidth, 1e-6)
+  const canvasCenter = options.canvasLeft + canvasWidth / 2
+  const targetCenter = options.targetLeft + options.targetWidth / 2
+  const ndcX = (targetCenter - canvasCenter) / (canvasWidth / 2)
+  const view = frustumSizeAtDistance({
+    distance: options.distance,
+    fovDeg: options.fovDeg,
+    aspect: options.aspect,
+  })
+  return -ndcX * (view.width / 2)
+}
+
+/** Limit a truck so `worldWidth` stays fully inside the frustum. */
+export function clampTruckToKeepWidth(options: {
+  truck: number
+  worldWidth: number
+  distance: number
+  fovDeg: number
+  aspect: number
+  padding?: number
+}): number {
+  const view = frustumSizeAtDistance({
+    distance: options.distance,
+    fovDeg: options.fovDeg,
+    aspect: options.aspect,
+  })
+  const padding = Math.max(options.padding ?? 0, 0)
+  const max = Math.max(0, (view.width - options.worldWidth) / 2 - padding)
+  return Math.max(-max, Math.min(max, options.truck))
+}
+
+/**
+ * Keep the rest-pose laptop the same pixel height when the WebGL canvas
+ * is taller than the original mount. Never dolly in closer than the base.
+ */
+export function startDistanceToMatchHeight(options: {
+  baseDistance: number
+  canvasHeight: number
+  referenceHeight: number
+}): number {
+  const base = Math.max(options.baseDistance, 0)
+  const scale = options.canvasHeight / Math.max(options.referenceHeight, 1e-6)
+  return base * Math.max(scale, 1)
+}
+
 export type MacbookScreenLayout = {
   width: number
   height: number
