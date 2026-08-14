@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // GPU particle field for the hero background. One draw call replaces the old
 // 28-div DOM particle layer: ~1300 points simulated entirely in the vertex
-// shader (drift, wrap, twinkle, cursor repulsion, scroll parallax), so the CPU
-// cost per frame is a handful of uniform writes.
+// shader (drift, wrap, twinkle, cursor repulsion, laser-wall swirl, scroll
+// parallax), so the CPU cost per frame is a handful of uniform writes.
 //
 // Lifecycle contract:
 //   • never initializes under prefers-reduced-motion
@@ -12,6 +12,15 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import * as THREE from 'three'
 import { useSharedMouse } from '../composables/useSharedMouse'
+import {
+  decayHeroParticleWake,
+  emptyDisplayedWall,
+  shouldTransferLiveWall,
+  stepDisplayedWall,
+  transferDisplayedWall,
+  useHeroParticleField,
+  wallToParticleWorld,
+} from '../composables/useHeroParticleField'
 
 const props = withDefaults(defineProps<{
   /** Particle budget. The component halves it on low-core devices. */
@@ -58,6 +67,17 @@ let onContextLost: ((e: Event) => void) | null = null
 
 const mouseWorld = new THREE.Vector2(9999, 9999)
 const mouseTarget = new THREE.Vector2(9999, 9999)
+let mouseArmed = false
+const wallWorld0 = new THREE.Vector4()
+const wallWorld1 = new THREE.Vector4()
+const wallVel0 = new THREE.Vector2()
+const wallVel1 = new THREE.Vector2()
+const heroParticleField = useHeroParticleField()
+let displayed0 = emptyDisplayedWall()
+let displayed1 = emptyDisplayedWall()
+let previousLiveStrength = 0
+const WALL_LERP = 0.1
+const WAKE_DECAY_MS = 700
 
 function halfExtentsAt(distance: number, aspect: number) {
   const halfH = Math.tan((FOV * Math.PI) / 360) * distance
@@ -70,6 +90,12 @@ const vertexShader = /* glsl */ `
   uniform vec2 uMouse;
   uniform float uScroll;
   uniform float uReveal;
+  uniform vec4 uWall0;
+  uniform vec2 uWall0Vel;
+  uniform float uWall0K;
+  uniform vec4 uWall1;
+  uniform vec2 uWall1Vel;
+  uniform float uWall1K;
   attribute float aSeed;
   attribute float aSize;
   attribute float aTint;
@@ -77,6 +103,35 @@ const vertexShader = /* glsl */ `
   attribute float aRangeY;
   varying float vAlpha;
   varying float vTint;
+
+  vec2 vortexOffset(vec2 p, vec2 vortex, float circ) {
+    vec2 d = p - vortex;
+    float dist = length(d);
+    float g = exp(-(dist * dist) * 0.02);
+    vec2 perp = vec2(-d.y, d.x) / max(dist, 0.0001);
+    return perp * g * circ * 1.6;
+  }
+
+  vec3 applyWall(vec2 p, vec4 wall, vec2 vel, float k, float depth01) {
+    if (k < 0.001) return vec3(0.0);
+    vec2 c = wall.xy;
+    vec2 h = max(wall.zw, vec2(0.08));
+    float facing = vel.y == 0.0 ? 1.0 : sign(vel.y);
+    float leadX = c.x + facing * h.x;
+    float closestY = clamp(p.y, c.y - h.y, c.y + h.y);
+    vec2 toLead = p - vec2(leadX, closestY);
+    float dist = length(toLead);
+    float infl = (1.0 - smoothstep(0.0, 13.0, dist)) * k;
+    float depth = 0.35 + 0.65 * depth01;
+    vec2 dir = toLead / max(dist, 0.0001);
+    vec2 off = dir * infl * 2.1 * depth;
+    off.x += facing * infl * 1.1 * depth;
+    float speed = clamp(abs(vel.x) / 50.0, 0.2, 0.75);
+    float circ = facing * speed * infl;
+    off += vortexOffset(p, vec2(leadX, c.y + h.y), circ);
+    off += vortexOffset(p, vec2(leadX, c.y - h.y), -circ);
+    return vec3(off, infl * 0.45);
+  }
 
   void main() {
     vec3 p = position;
@@ -98,6 +153,14 @@ const vertexShader = /* glsl */ `
     vec2 dir = toMouse / max(dist, 0.0001);
     x += dir.x * push * 5.0 * (0.35 + 0.65 * depth01);
     y += dir.y * push * 5.0 * (0.35 + 0.65 * depth01);
+
+    vec3 wall0 = applyWall(vec2(x, y), uWall0, uWall0Vel, uWall0K, depth01);
+    x += wall0.x;
+    y += wall0.y;
+    vec3 wall1 = applyWall(vec2(x, y), uWall1, uWall1Vel, uWall1K, depth01);
+    x += wall1.x;
+    y += wall1.y;
+    push += wall0.z + wall1.z;
 
     float twinkle = 0.72 + 0.28 * sin(uTime * (0.6 + aSeed * 1.1) + phase * 3.0);
     float edgeFade = (1.0 - smoothstep(aRangeY * 0.86, aRangeY, abs(y)))
@@ -212,6 +275,12 @@ function init() {
       uMouse: { value: mouseWorld },
       uScroll: { value: 0 },
       uReveal: { value: 0 },
+      uWall0: { value: wallWorld0 },
+      uWall0Vel: { value: wallVel0 },
+      uWall0K: { value: 0 },
+      uWall1: { value: wallWorld1 },
+      uWall1Vel: { value: wallVel1 },
+      uWall1K: { value: 0 },
       uColorA: { value: new THREE.Color(0.30, 0.33, 0.28) },
       uColorB: { value: new THREE.Color(0.80, 1.0, 0.0) },
     },
@@ -235,6 +304,16 @@ function init() {
   revealLinear = everInitialized ? REENTRY_REVEAL_FLOOR : 0
   everInitialized = true
   lastFrame = 0
+  mouseArmed = false
+  mouseWorld.set(9999, 9999)
+  mouseTarget.set(9999, 9999)
+  displayed0 = emptyDisplayedWall()
+  displayed1 = emptyDisplayedWall()
+  previousLiveStrength = 0
+  wallWorld0.set(0, 0, 0, 0)
+  wallWorld1.set(0, 0, 0, 0)
+  wallVel0.set(0, 0)
+  wallVel1.set(0, 0)
 }
 
 function disposeScene() {
@@ -260,6 +339,11 @@ function disposeScene() {
   material = null
   points = null
   disposed = true
+  mouseArmed = false
+  mouseWorld.set(9999, 9999)
+  displayed0 = emptyDisplayedWall()
+  displayed1 = emptyDisplayedWall()
+  previousLiveStrength = 0
 }
 
 function frame(now: number) {
@@ -280,13 +364,90 @@ function frame(now: number) {
 
   u.uScroll.value = window.scrollY * 0.02
 
-  if (props.interactive) {
+  if (props.interactive && sharedMouse.latest.hasPointer) {
     const { halfW, halfH } = halfExtentsAt(CAM_Z, camera.aspect)
     mouseTarget.set(sharedMouse.latest.mx * halfW, -sharedMouse.latest.my * halfH)
-    mouseWorld.lerp(mouseTarget, 0.07)
+    if (!mouseArmed) {
+      mouseWorld.copy(mouseTarget)
+      mouseArmed = true
+    } else {
+      mouseWorld.lerp(mouseTarget, 0.07)
+    }
   }
 
+  syncWallUniforms(dt, u)
+
   renderer.render(scene, camera)
+}
+
+function writeDisplayedWall(
+  displayed: ReturnType<typeof emptyDisplayedWall>,
+  world: THREE.Vector4,
+  vel: THREE.Vector2,
+  kUniform: { value: number },
+) {
+  world.set(displayed.cx, displayed.cy, displayed.hw, displayed.hh)
+  vel.set(displayed.vx, displayed.facing)
+  kUniform.value = displayed.k
+}
+
+function syncWallUniforms(dt: number, u: THREE.ShaderMaterial['uniforms']) {
+  decayHeroParticleWake(dt, WAKE_DECAY_MS)
+
+  const slot0 = heroParticleField.walls[0]
+  const slot1 = heroParticleField.walls[1]
+
+  if (shouldTransferLiveWall(previousLiveStrength, slot0.strength, slot1.strength)) {
+    const next = transferDisplayedWall(displayed0)
+    displayed0 = next.live
+    displayed1 = next.wake
+  }
+  previousLiveStrength = slot0.strength
+
+  const anySource = slot0.strength > 0.001 || slot1.strength > 0.001
+  const anyDisplay = displayed0.k > 0.001 || displayed1.k > 0.001
+  if (!anySource && !anyDisplay) {
+    if (u.uWall0K.value !== 0 || u.uWall1K.value !== 0) {
+      displayed0 = emptyDisplayedWall()
+      displayed1 = emptyDisplayedWall()
+      wallWorld0.set(0, 0, 0, 0)
+      wallWorld1.set(0, 0, 0, 0)
+      wallVel0.set(0, 0)
+      wallVel1.set(0, 0)
+      u.uWall0K.value = 0
+      u.uWall1K.value = 0
+    }
+    return
+  }
+
+  const host = mount.value
+  if (!host || !camera) return
+  const canvas = host.getBoundingClientRect()
+  const { halfW, halfH } = halfExtentsAt(CAM_Z, camera.aspect)
+  const world0 = wallToParticleWorld(slot0, canvas, halfW, halfH)
+  const world1 = wallToParticleWorld(slot1, canvas, halfW, halfH)
+
+  displayed0 = stepDisplayedWall(displayed0, {
+    cx: world0.cx,
+    cy: world0.cy,
+    hw: world0.hw,
+    hh: world0.hh,
+    vx: world0.vx,
+    facing: world0.facing,
+    k: world0.strength,
+  }, WALL_LERP)
+  displayed1 = stepDisplayedWall(displayed1, {
+    cx: world1.cx,
+    cy: world1.cy,
+    hw: world1.hw,
+    hh: world1.hh,
+    vx: world1.vx,
+    facing: world1.facing,
+    k: world1.strength,
+  }, WALL_LERP)
+
+  writeDisplayedWall(displayed0, wallWorld0, wallVel0, u.uWall0K)
+  writeDisplayedWall(displayed1, wallWorld1, wallVel1, u.uWall1K)
 }
 
 function startLoop() {

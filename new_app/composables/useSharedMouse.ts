@@ -9,7 +9,9 @@
 //
 // `latest` exposes both `mx/my` (normalized -1..1, used by 3D tilts) and `x/y`
 // aliases (same values, kept for callers like useLerp that read `.x/.y`), plus
-// raw `clientX/clientY` for cursor-position consumers.
+// raw `clientX/clientY` for cursor-position consumers. `hasPointer` stays false
+// until a real mousemove so consumers do not treat the (0, 0) default as the
+// viewport center.
 
 interface MouseSample {
   time: number
@@ -26,6 +28,7 @@ const latest = {
   y: 0,
   clientX: 0,
   clientY: 0,
+  hasPointer: false,
 }
 const samples: MouseSample[] = []
 const subscribers = new Set<() => void>()
@@ -35,18 +38,39 @@ function ensureListener() {
   if (installed || typeof window === 'undefined') return
   installed = true
   window.addEventListener('mousemove', (e) => {
-    const mx = (e.clientX / window.innerWidth - 0.5) * 2
-    const my = (e.clientY / window.innerHeight - 0.5) * 2
-    latest.mx = mx
-    latest.my = my
-    latest.x = mx
-    latest.y = my
-    latest.clientX = e.clientX
-    latest.clientY = e.clientY
-    samples.push({ time: performance.now(), mx, my })
-    if (samples.length > SAMPLE_LIMIT) samples.shift()
+    applySharedMousePosition(e.clientX, e.clientY, window.innerWidth, window.innerHeight)
     subscribers.forEach((cb) => cb())
   }, { passive: true })
+}
+
+export function applySharedMousePosition(
+  clientX: number,
+  clientY: number,
+  width: number,
+  height: number,
+) {
+  const mx = (clientX / Math.max(width, 1) - 0.5) * 2
+  const my = (clientY / Math.max(height, 1) - 0.5) * 2
+  latest.mx = mx
+  latest.my = my
+  latest.x = mx
+  latest.y = my
+  latest.clientX = clientX
+  latest.clientY = clientY
+  latest.hasPointer = true
+  samples.push({ time: performance.now(), mx, my })
+  if (samples.length > SAMPLE_LIMIT) samples.shift()
+}
+
+export function resetSharedMouse() {
+  latest.mx = 0
+  latest.my = 0
+  latest.x = 0
+  latest.y = 0
+  latest.clientX = 0
+  latest.clientY = 0
+  latest.hasPointer = false
+  samples.length = 0
 }
 
 export function useSharedMouse() {
