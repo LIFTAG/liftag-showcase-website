@@ -59,6 +59,19 @@ function updateFill() {
   setFill(atEnd ? 1 : Math.min(1, Math.max(0, entered / travel)))
 }
 
+// updateFill reads getBoundingClientRect + scrollHeight, so running it raw on
+// every scroll event forces a layout per event. One rAF per burst is enough:
+// the fill can only change once per painted frame anyway.
+let fillRaf = 0
+
+function scheduleFill() {
+  if (fillRaf !== 0) return
+  fillRaf = requestAnimationFrame(() => {
+    fillRaf = 0
+    updateFill()
+  })
+}
+
 function onMotionChange() {
   reduceMotion = Boolean(motionMql?.matches)
   if (reduceMotion) setFill(1)
@@ -72,15 +85,19 @@ onMounted(() => {
   if (reduceMotion) setFill(1)
   else updateFill()
 
-  window.addEventListener('scroll', updateFill, { passive: true })
-  window.addEventListener('resize', updateFill)
+  window.addEventListener('scroll', scheduleFill, { passive: true })
+  window.addEventListener('resize', scheduleFill)
 })
 
 onBeforeUnmount(() => {
   motionMql?.removeEventListener('change', onMotionChange)
   motionMql = null
-  window.removeEventListener('scroll', updateFill)
-  window.removeEventListener('resize', updateFill)
+  window.removeEventListener('scroll', scheduleFill)
+  window.removeEventListener('resize', scheduleFill)
+  if (fillRaf !== 0) {
+    cancelAnimationFrame(fillRaf)
+    fillRaf = 0
+  }
 })
 </script>
 

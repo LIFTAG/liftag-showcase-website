@@ -62,6 +62,17 @@ function initTag() {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.35
+
+  // dispose() alone leaves the GL context alive until the driver reclaims it,
+  // and browsers cap live contexts per page. forceContextLoss() releases it at
+  // unmount - but only when the context is still ours to lose.
+  let contextBroken = false
+  const onContextLost = (e: Event) => {
+    e.preventDefault()
+    contextBroken = true
+  }
+  renderer.domElement.addEventListener('webglcontextlost', onContextLost, false)
+
   mount.appendChild(renderer.domElement)
 
   const scene = new THREE.Scene()
@@ -344,6 +355,7 @@ function initTag() {
   window.addEventListener('resize', onResize, { passive: true })
 
   cleanup = () => {
+    renderer.domElement.removeEventListener('webglcontextlost', onContextLost)
     window.removeEventListener('resize', onResize)
     motionMql.removeEventListener('change', onMotionPreferenceChange)
     if (resizeRaf) cancelAnimationFrame(resizeRaf)
@@ -354,6 +366,7 @@ function initTag() {
     faceTexture.dispose()
     textTexture.dispose()
     renderer.dispose()
+    if (!contextBroken) renderer.forceContextLoss()
     scene.traverse((object) => {
       if (!(object instanceof THREE.Mesh)) return
       object.geometry.dispose()

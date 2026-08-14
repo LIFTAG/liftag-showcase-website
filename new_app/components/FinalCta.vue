@@ -127,7 +127,6 @@ onBeforeUnmount(() => {
   >
     <!-- Radial glow background -->
     <div
-      class="final-cta-grid"
       :style="{
         position: 'absolute',
         inset: 0,
@@ -135,18 +134,31 @@ onBeforeUnmount(() => {
       }"
     />
 
-    <!-- Grid mask -->
+    <!-- Grid mask: the mask stays fixed on the wrapper while the oversized
+         grid child drifts one 80px pattern period via transform, looping
+         seamlessly on the compositor. -->
     <div
       :style="{
         position: 'absolute',
         inset: 0,
-        backgroundImage:
-          'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
-        backgroundSize: '80px 80px',
         maskImage: 'radial-gradient(ellipse 70% 50% at 50% 50%, black 30%, transparent 80%)',
         WebkitMaskImage: 'radial-gradient(ellipse 70% 50% at 50% 50%, black 30%, transparent 80%)',
       }"
-    />
+    >
+      <div
+        class="final-cta-grid"
+        :style="{
+          position: 'absolute',
+          top: '-80px',
+          left: '-80px',
+          right: 0,
+          bottom: 0,
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
+          backgroundSize: '80px 80px',
+        }"
+      />
+    </div>
 
     <div class="container" style="position: relative;">
       <!-- Logo -->
@@ -213,7 +225,7 @@ onBeforeUnmount(() => {
         }"
       >
         <div ref="chargeAnchor" data-magnetic="16" class="final-cta-magnet">
-          <GetAppBtn />
+          <GetAppBtn idle-rim />
         </div>
       </div>
 
@@ -338,10 +350,10 @@ onBeforeUnmount(() => {
 
 @keyframes finalGridDrift {
   from {
-    background-position: 0 0, 0 0;
+    transform: translate3d(0, 0, 0);
   }
   to {
-    background-position: 80px 80px, 80px 80px;
+    transform: translate3d(80px, 80px, 0);
   }
 }
 
