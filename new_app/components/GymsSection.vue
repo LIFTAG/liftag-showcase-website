@@ -31,8 +31,10 @@ const gymNumbers = [
 const muscleTags = ['BACK', 'LATS', 'BICEPS']
 const gymSectionRef = ref<HTMLElement | null>(null)
 const gymInView = ref(false)
+const documentVisible = ref(true)
 const reduceMotion = ref(false)
 const phoneLayout = ref(false)
+const gymLive = computed(() => gymInView.value && documentVisible.value && !reduceMotion.value)
 let gymObserver: IntersectionObserver | null = null
 let motionMql: MediaQueryList | null = null
 let phoneLayoutMql: MediaQueryList | null = null
@@ -67,7 +69,14 @@ function onPhoneLayoutChange(e: MediaQueryListEvent) {
   phoneLayout.value = e.matches
 }
 
+function onDocumentVisibilityChange() {
+  documentVisible.value = !document.hidden
+}
+
 onMounted(() => {
+  documentVisible.value = !document.hidden
+  document.addEventListener('visibilitychange', onDocumentVisibilityChange)
+
   motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
   reduceMotion.value = motionMql.matches
   motionMql.addEventListener('change', onMotionChange)
@@ -94,6 +103,7 @@ onBeforeUnmount(() => {
   motionMql = null
   phoneLayoutMql?.removeEventListener('change', onPhoneLayoutChange)
   phoneLayoutMql = null
+  document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
 })
 </script>
 
@@ -102,7 +112,7 @@ onBeforeUnmount(() => {
     id="gyms"
     ref="gymSectionRef"
     class="gyms-section"
-    :class="{ 'is-live': gymInView }"
+    :class="{ 'is-live': gymLive }"
     :style="{
       background: '#000',
       borderTop: '1px solid rgba(255,255,255,0.06)',
@@ -155,7 +165,7 @@ onBeforeUnmount(() => {
             }"
           >
             <div
-              class="gyms-qr-sticker-card"
+              class="gyms-qr-sticker-card gyms-float"
               :style="{
               width: '180px',
               height: '210px',
@@ -164,7 +174,6 @@ onBeforeUnmount(() => {
               padding: '18px',
               boxShadow: '0 30px 80px rgba(0,0,0,0.7), 0 0 60px rgba(204,255,0,0.15)',
               transform: 'rotate(4deg)',
-              animation: 'float-y 6s ease-in-out infinite',
               }"
             >
             <!-- QR sticker header -->
@@ -346,12 +355,10 @@ onBeforeUnmount(() => {
             }"
           >
             <div
-              class="gyms-live-badge"
+              class="gyms-live-badge gyms-float gyms-float-delay"
               :style="{
               transform: 'rotate(4deg)',
               opacity: 0.8,
-              animation: 'float-y 7s ease-in-out infinite',
-              animationDelay: '1s',
               }"
             >
               <Phone src="/assets/screens/gym-detail.webp" :scale="0.72" />
@@ -370,15 +377,16 @@ onBeforeUnmount(() => {
             }"
           >
             <div
-              class="gyms-front-phone"
+              class="gyms-front-phone gyms-float"
               :style="{
                 transform: 'rotate(-3deg)',
-                animation: 'float-y 6s ease-in-out infinite',
               }"
             >
               <Phone src="/assets/screens/explore-map.webp" :scale="0.88" />
             </div>
           </div>
+
+          <div class="gyms-checkin" aria-hidden="true">+1 CHECK-IN</div>
 
           <!-- Live badge chip -->
           <div
@@ -557,7 +565,7 @@ onBeforeUnmount(() => {
 }
 
 .gyms-section.is-live .gyms-qr-code::after {
-  animation: gymsQrSweep 3.9s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  animation: gymsQrSweep 8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
 
 .gyms-qr-sticker-card::after {
@@ -571,7 +579,7 @@ onBeforeUnmount(() => {
 }
 
 .gyms-section.is-live .gyms-qr-sticker-card::after {
-  animation: gymsStickerHalo 4.6s ease-in-out infinite;
+  animation: gymsStickerHalo 8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
 
 .gyms-machine-card::after,
@@ -605,11 +613,11 @@ onBeforeUnmount(() => {
 }
 
 .gyms-section.is-live .gyms-map-ping {
-  animation: gymsMapPing 4.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  animation: gymsMapPing 8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
 
 .gyms-section.is-live .gyms-map-ping.ping-two {
-  animation-delay: 1.7s;
+  animation-delay: 0.55s;
 }
 
 .gyms-live-dot {
@@ -617,27 +625,35 @@ onBeforeUnmount(() => {
 }
 
 @keyframes gymsQrSweep {
-  0%, 45% {
+  0% {
     opacity: 0;
     transform: translateX(-120%) rotate(8deg);
   }
-  58% {
+  8% {
     opacity: 0.85;
   }
-  78%, 100% {
+  18% {
+    opacity: 0;
+    transform: translateX(120%) rotate(8deg);
+  }
+  18.01%, 100% {
     opacity: 0;
     transform: translateX(120%) rotate(8deg);
   }
 }
 
 @keyframes gymsStickerHalo {
-  0%, 100% {
+  0%, 18% {
     opacity: 0;
     transform: scale(0.96);
   }
-  46% {
-    opacity: 0.75;
-    transform: scale(1.04);
+  21% {
+    opacity: 0.85;
+    transform: scale(1.06);
+  }
+  24%, 100% {
+    opacity: 0;
+    transform: scale(1.02);
   }
 }
 
@@ -656,16 +672,80 @@ onBeforeUnmount(() => {
 }
 
 @keyframes gymsMapPing {
-  0% {
+  0%, 25% {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.55);
   }
-  18% {
+  32% {
     opacity: 0.46;
   }
-  100% {
+  45%, 100% {
     opacity: 0;
     transform: translate(-50%, -50%) scale(1.2);
+  }
+}
+
+.gyms-float {
+  animation: float-y 6s ease-in-out infinite;
+}
+
+.gyms-float-delay {
+  animation-delay: 1s;
+}
+
+.gyms-section:not(.is-live) .gyms-float,
+.gyms-section:not(.is-live) .gyms-qr-code::after,
+.gyms-section:not(.is-live) .gyms-qr-sticker-card::after,
+.gyms-section:not(.is-live) .gyms-machine-card::after,
+.gyms-section:not(.is-live) .gyms-benefit-row::after,
+.gyms-section:not(.is-live) .gyms-map-ping,
+.gyms-section:not(.is-live) .gyms-live-dot,
+.gyms-section:not(.is-live) .gyms-checkin {
+  animation-play-state: paused;
+}
+
+.gyms-checkin {
+  position: absolute;
+  top: 38%;
+  left: 58%;
+  z-index: 6;
+  padding: 7px 12px;
+  border: 1px solid var(--liftag-primary);
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.95);
+  color: var(--liftag-primary);
+  font-family: var(--liftag-font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  box-shadow: 0 0 18px rgba(204, 255, 0, 0.28);
+  opacity: 0;
+  transform: scale(0.9);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.gyms-section.is-live .gyms-checkin {
+  animation: gymsCheckin 8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes gymsCheckin {
+  0%, 45% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  60% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  60.01%, 100% {
+    opacity: 0;
+    transform: scale(0.9);
   }
 }
 
@@ -678,6 +758,14 @@ onBeforeUnmount(() => {
   }
 }
 
+@media (max-width: 768px) {
+  .gyms-checkin {
+    top: 30%;
+    left: auto;
+    right: 6%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .gyms-section.is-live .gyms-qr-code::after,
   .gyms-section.is-live .gyms-qr-sticker-card::after,
@@ -685,10 +773,13 @@ onBeforeUnmount(() => {
   .gyms-section.is-live .gyms-benefit-row::after,
   .gyms-section.is-live .gyms-map-ping,
   .gyms-live-dot,
-  .gyms-qr-sticker-card,
-  .gyms-live-badge,
-  .gyms-front-phone {
+  .gyms-float,
+  .gyms-checkin {
     animation: none !important;
+  }
+
+  .gyms-checkin {
+    display: none;
   }
 }
 </style>

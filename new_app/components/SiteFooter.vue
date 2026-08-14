@@ -27,13 +27,108 @@ const legalLinks: FooterLink[] = [
   { label: 'Privacy Policy', href: '/privacy-policy' },
   { label: 'Terms & Conditions', href: '/terms-and-conditions' },
 ]
+
+const markLetters = ['L', 'I', 'F', 'T', 'A', 'G'] as const
+
+const footerRef = ref<HTMLElement | null>(null)
+const markRef = ref<HTMLElement | null>(null)
+
+let observer: IntersectionObserver | null = null
+let motionMql: MediaQueryList | null = null
+let rafId = 0
+let inView = false
+let documentVisible = true
+let reduceMotion = false
+let nativeViewTimeline = false
+
+function setFill(p: number) {
+  const el = markRef.value
+  if (!el) return
+  el.style.setProperty('--fill-p', p.toFixed(4))
+}
+
+function updateFill() {
+  const el = markRef.value
+  if (!el) return
+  const rect = el.getBoundingClientRect()
+  const vh = window.innerHeight
+  const remain = rect.bottom - vh
+  const p = 1 - Math.min(1, Math.max(0, remain / Math.max(1, rect.height)))
+  setFill(p)
+}
+
+function tick() {
+  if (!inView || !documentVisible || reduceMotion || nativeViewTimeline) {
+    rafId = 0
+    return
+  }
+  updateFill()
+  rafId = requestAnimationFrame(tick)
+}
+
+function startLoop() {
+  if (rafId || reduceMotion || nativeViewTimeline || !inView || !documentVisible) return
+  rafId = requestAnimationFrame(tick)
+}
+
+function stopLoop() {
+  if (rafId) cancelAnimationFrame(rafId)
+  rafId = 0
+}
+
+function onDocumentVisibilityChange() {
+  documentVisible = !document.hidden
+  if (documentVisible) startLoop()
+  else stopLoop()
+}
+
+function onMotionChange() {
+  reduceMotion = Boolean(motionMql?.matches)
+  if (reduceMotion) {
+    stopLoop()
+    setFill(1)
+  } else {
+    startLoop()
+  }
+}
+
+onMounted(() => {
+  nativeViewTimeline = typeof CSS !== 'undefined' && CSS.supports('animation-timeline: view()')
+  documentVisible = !document.hidden
+  document.addEventListener('visibilitychange', onDocumentVisibilityChange)
+
+  motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
+  reduceMotion = motionMql.matches
+  motionMql.addEventListener('change', onMotionChange)
+  if (reduceMotion) setFill(1)
+
+  if (!footerRef.value) return
+  observer = new IntersectionObserver(
+    ([entry]) => {
+      inView = entry?.isIntersecting ?? false
+      if (inView) startLoop()
+      else stopLoop()
+    },
+    { threshold: 0 },
+  )
+  observer.observe(footerRef.value)
+})
+
+onBeforeUnmount(() => {
+  stopLoop()
+  observer?.disconnect()
+  observer = null
+  motionMql?.removeEventListener('change', onMotionChange)
+  motionMql = null
+  document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
+})
 </script>
 
 <template>
-  <footer class="site-footer">
+  <footer ref="footerRef" class="site-footer">
     <div class="container footer-grid">
       <!-- Logo + tagline column -->
-      <div>
+      <div class="footer-col reveal">
         <div class="footer-brand">
           <img
             src="/assets/logo.svg"
@@ -49,7 +144,7 @@ const legalLinks: FooterLink[] = [
         </p>
       </div>
 
-      <div>
+      <div class="footer-col reveal">
         <a href="/#all-in-one" class="protocol footer-col-heading footer-heading-link">Product</a>
         <ul class="footer-link-list">
           <li v-for="item in productLinks" :key="item.label">
@@ -58,7 +153,7 @@ const legalLinks: FooterLink[] = [
         </ul>
       </div>
 
-      <div>
+      <div class="footer-col reveal">
         <span class="protocol footer-col-heading">Guides</span>
         <ul class="footer-link-list">
           <li v-for="item in guideLinks" :key="item.label">
@@ -67,7 +162,7 @@ const legalLinks: FooterLink[] = [
         </ul>
       </div>
 
-      <div>
+      <div class="footer-col reveal">
         <span class="protocol footer-col-heading">Legal</span>
         <ul class="footer-link-list">
           <li v-for="item in legalLinks" :key="item.label">
@@ -161,14 +256,114 @@ const legalLinks: FooterLink[] = [
         <span class="protocol" style="color: #666;">v1.0 · IOS AND ANDROID</span>
       </div>
     </div>
+
+    <div ref="markRef" class="footer-mark" aria-hidden="true">
+      <div class="footer-mark-row footer-mark-outline">
+        <span v-for="letter in markLetters" :key="`o-${letter}`">{{ letter }}</span>
+      </div>
+      <div class="footer-mark-row footer-mark-fill">
+        <span v-for="letter in markLetters" :key="`f-${letter}`">{{ letter }}</span>
+      </div>
+    </div>
   </footer>
 </template>
 
 <style scoped>
 .site-footer {
+  --fill-p: 0;
   background: #000;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   padding: 60px 32px 40px;
+  overflow-x: clip;
+}
+
+.footer-col:nth-child(1) { transition-delay: 0ms; }
+.footer-col:nth-child(2) { transition-delay: 60ms; }
+.footer-col:nth-child(3) { transition-delay: 120ms; }
+.footer-col:nth-child(4) { transition-delay: 180ms; }
+
+.footer-mark {
+  position: relative;
+  display: grid;
+  justify-content: center;
+  margin: 48px auto 0;
+  max-width: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.footer-mark-row {
+  display: flex;
+  justify-content: center;
+  font-family: var(--liftag-font-headline);
+  font-weight: 700;
+  font-style: italic;
+  font-size: clamp(88px, 15vw, 240px);
+  letter-spacing: -0.07em;
+  line-height: 0.8;
+  text-transform: uppercase;
+  text-wrap: nowrap;
+  user-select: none;
+}
+
+.footer-mark-outline {
+  grid-area: 1 / 1;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(204, 255, 0, 0.3);
+  pointer-events: auto;
+}
+
+.footer-mark-fill {
+  grid-area: 1 / 1;
+  color: var(--liftag-primary);
+  text-shadow:
+    0 0 18px rgba(204, 255, 0, 0.28),
+    0 0 42px rgba(204, 255, 0, 0.12);
+  clip-path: inset(0 calc((1 - var(--fill-p, 0)) * 100%) 0 0);
+  pointer-events: none;
+}
+
+.footer-mark-outline span,
+.footer-mark-fill span {
+  display: block;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .footer-mark-outline span {
+    transition:
+      -webkit-text-stroke-color 150ms cubic-bezier(0.22, 1, 0.36, 1),
+      text-shadow 150ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .footer-mark-outline span:hover {
+    -webkit-text-stroke-color: var(--liftag-primary);
+    text-shadow: 0 0 16px rgba(204, 255, 0, 0.45);
+  }
+}
+
+@keyframes footerMarkFill {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+@supports (animation-timeline: view()) {
+  .footer-mark-fill {
+    animation: footerMarkFill linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 85%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-mark-fill {
+    animation: none;
+    clip-path: none;
+    opacity: 0.9;
+  }
+
+  .footer-col {
+    transition-delay: 0ms;
+  }
 }
 
 .footer-grid {

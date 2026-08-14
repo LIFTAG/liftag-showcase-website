@@ -18,19 +18,6 @@ const heroRoot = ref<HTMLElement | null>(null)
 // smooth lerp (factor 0.06 matches React source)
 const mouse = useLerp(rawMouse, 0.06)
 
-// ─── particles - generated client-side only to avoid SSR mismatch ────────────
-interface Particle {
-  id: number
-  x: number
-  y: number
-  r: number
-  speed: number
-  phase: number
-  depth: number
-}
-const particles = ref<Particle[]>([])
-const particlesReady = ref(false)
-
 // ─── chart background data (deterministic - safe on server) ──────────────────
 const W = 1440, H = 860
 
@@ -381,18 +368,6 @@ onMounted(async () => {
     }
   }
   heroMobileMql.addEventListener('change', onHeroMobileChange)
-
-  // particles - client only
-  particles.value = Array.from({ length: 28 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    r: Math.random() * 1.8 + 0.4,
-    speed: Math.random() * 0.4 + 0.1,
-    phase: Math.random() * Math.PI * 2,
-    depth: Math.random() * 0.8 + 0.2,
-  }))
-  particlesReady.value = true
 
   // Cursor orb position needs explicit reactive-ref writes to trigger Vue
   // re-renders. Subscribe to the shared mousemove and rAF-coalesce so we don't
@@ -771,28 +746,14 @@ const pNfc = computed(() => {
       }"
     />
 
-    <!-- ── Particle dots (client-only to avoid SSR mismatch) ── -->
-    <div
-      v-if="particlesReady && !isMobile"
-      :style="{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2, overflow: 'hidden' }"
-    >
-      <div
-        v-for="p in particles"
-        :key="p.id"
-        :style="{
-          position: 'absolute',
-          left: `${p.x}%`,
-          top: `${p.y}%`,
-          width: `${p.r * 2}px`,
-          height: `${p.r * 2}px`,
-          borderRadius: '50%',
-          background: p.depth > 0.7 ? '#CCFF00' : 'rgba(255,255,255,0.6)',
-          opacity: p.depth * 0.5,
-          boxShadow: p.depth > 0.7 ? `0 0 ${p.r * 6}px rgba(204,255,0,0.8)` : 'none',
-          transform: `translate3d(${mouse.x * p.depth * 2.5 - scrollY * p.depth * 0.03}vw, ${mouse.y * p.depth * 2 - scrollY * p.speed * 0.04}vh, 0)`,
-        }"
-      />
-    </div>
+    <!-- ── GPU particle field (single draw call, self-gating) ── -->
+    <HeroParticles
+      :key="isMobile ? 'hero-particles-m' : 'hero-particles-d'"
+      :count="isMobile ? 420 : 1300"
+      :interactive="!isMobile"
+      :dpr-cap="isMobile ? 1.5 : 1.75"
+      style="z-index: 2"
+    />
 
     <!-- ── Main content grid ── -->
     <div
@@ -880,7 +841,9 @@ const pNfc = computed(() => {
             transition: 'opacity 900ms 640ms cubic-bezier(0.16,1,0.3,1), transform 900ms 640ms cubic-bezier(0.16,1,0.3,1)',
           }"
         >
-          <GetAppBtn hero label="Get LIFTAG" />
+          <div data-magnetic="18" style="display: inline-flex;">
+            <GetAppBtn hero label="Get LIFTAG" />
+          </div>
         </div>
 
         <!-- Stats row -->

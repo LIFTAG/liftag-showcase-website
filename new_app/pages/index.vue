@@ -22,6 +22,7 @@ useReveal()
 
 <template>
   <div>
+    <FilmGrain />
     <SiteNav />
     <Hero />
     <PartnerMarquee />

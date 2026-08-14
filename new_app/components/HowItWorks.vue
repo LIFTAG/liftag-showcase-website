@@ -23,6 +23,7 @@ const scanHovered   = ref(false)
 const prVisible     = ref(false)
 const prBurstKey    = ref(0)
 const hiwIntroEntered = ref(false)
+const reduceMotion  = ref(false)
 
 const prBurstParticles = [
   { x: '-42px', y: '-34px', rotate: '-22deg', delay: '0ms', color: 'var(--liftag-primary)' },
@@ -40,6 +41,7 @@ let isVisible = false
 let resizeCleanup: (() => void) | null = null
 let mobileQueryCleanup: (() => void) | null = null
 let intersectionObs: IntersectionObserver | null = null
+let motionQueryCleanup: (() => void) | null = null
 let mobileHIWLayout = false
 
 // Marker flash timestamps (non-reactive, mutated in rAF)
@@ -317,7 +319,9 @@ function drawHIWCurve(p: number) {
     const my = toCanvasY(curveYAtX(marker.x))
 
     if (markerFlashTime[mi] === 0) markerFlashTime[mi] = now
-    const age       = now - markerFlashTime[mi]
+    // Under reduced motion the wall-clock flash ring and label fade-in are skipped:
+    // an infinite age renders every marker already settled.
+    const age       = reduceMotion.value ? Number.POSITIVE_INFINITY : now - markerFlashTime[mi]
     const flashAlpha = age < 600 ? 0.8 * (1 - age / 600) : 0
 
     if (flashAlpha > 0) {
@@ -532,7 +536,10 @@ function updateScanHoverEffect(p: number) {
 
   const frameCX = (areaRect.left + areaRect.width / 2 - paneRect.left) + scanCurrentX
   const frameCY = (areaRect.top + areaRect.height / 2 - paneRect.top) + scanCurrentY
-  const scanPhase = (1 - Math.cos((performance.now() % 2000) / 2000 * Math.PI * 2)) / 2
+  // Wall-clock idle drift - frozen at the resting position under reduced motion.
+  const scanPhase = reduceMotion.value
+    ? 0
+    : (1 - Math.cos((performance.now() % 2000) / 2000 * Math.PI * 2)) / 2
   const scanLineY = 10 + scanPhase * (areaRect.height - 20)
 
   scanLine.value?.style.setProperty('--scan-line-y', `${scanLineY}px`)
@@ -727,6 +734,12 @@ onMounted(async () => {
   window.addEventListener('resize', onResize, { passive: true })
   resizeCleanup = () => window.removeEventListener('resize', onResize)
 
+  const motionMedia = window.matchMedia('(prefers-reduced-motion: reduce)')
+  const syncReduceMotion = () => { reduceMotion.value = motionMedia.matches }
+  syncReduceMotion()
+  motionMedia.addEventListener('change', syncReduceMotion)
+  motionQueryCleanup = () => motionMedia.removeEventListener('change', syncReduceMotion)
+
   const media = window.matchMedia('(max-width: 768px)')
   const syncMobileLayout = () => {
     mobileHIWLayout = media.matches
@@ -767,6 +780,7 @@ onBeforeUnmount(() => {
   intersectionObs?.disconnect()
   resizeCleanup?.()
   mobileQueryCleanup?.()
+  motionQueryCleanup?.()
 })
 </script>
 
@@ -866,7 +880,7 @@ onBeforeUnmount(() => {
                 </div>
                 <div class="hiw-log-pr-stage" :class="{ 'is-visible': prVisible }" aria-live="polite">
                   <div
-                    v-if="prVisible"
+                    v-if="prVisible && !reduceMotion"
                     :key="`burst-${prBurstKey}`"
                     class="hiw-log-pr-burst"
                     aria-hidden="true"
@@ -1951,6 +1965,18 @@ circle[fill="var(--liftag-primary)"] {
   }
   .hiw-dots {
     display: none;
+  }
+}
+
+/* ── Reduced motion ───────────────────────────────────── */
+/* Scroll-mapped motion (track, counters, chart, curve) stays - it is driven by
+   the user's own scroll position. Only self-playing decoration is stopped.
+   Declared last so it also wins over the mobile scan-line sweep above. */
+@media (prefers-reduced-motion: reduce) {
+  .hiw-bg-glow,
+  .hiw-scan-line,
+  .hiw-log-pb {
+    animation: none;
   }
 }
 </style>

@@ -39,7 +39,7 @@ function startProgressCycle() {
 }
 
 function syncProgressCycle() {
-  if (sectionInView.value && documentVisible.value) startProgressCycle()
+  if (sectionInView.value && documentVisible.value && !reduceMotion.value) startProgressCycle()
   else clearProgressCycle()
 }
 
@@ -219,6 +219,7 @@ function clearVolumeBar(event?: PointerEvent | FocusEvent) {
 
 function onMotionChange(e: MediaQueryListEvent) {
   reduceMotion.value = e.matches
+  syncProgressCycle()
 }
 
 function onPaneMotionChange(e: MediaQueryListEvent) {
@@ -419,20 +420,20 @@ onBeforeUnmount(() => {
         >
           <!-- Floating phone wrapper -->
           <div
+            class="progress-phone-float"
             :style="{
               position: 'relative',
-              animation: 'float-y 6s ease-in-out infinite',
             }"
           >
             <!-- Glow behind phone -->
             <div
+              class="progress-phone-glow"
               :style="{
                 position: 'absolute',
                 inset: '8px',
                 borderRadius: '50%',
                 background: 'radial-gradient(circle, rgba(204,255,0,0.22) 0%, transparent 65%)',
                 filter: 'blur(24px)',
-                animation: 'pulse-glow 4s ease-in-out infinite',
               }"
               aria-hidden="true"
             />
@@ -711,6 +712,14 @@ onBeforeUnmount(() => {
   transition: color 260ms ease;
 }
 
+.progress-phone-float {
+  animation: float-y 6s ease-in-out infinite;
+}
+
+.progress-phone-glow {
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
 .progress-phone-pulse {
   position: absolute;
   inset: -22px;
@@ -887,6 +896,8 @@ onBeforeUnmount(() => {
 
 @media (prefers-reduced-motion: reduce) {
   .progress-chip::after,
+  .progress-phone-float,
+  .progress-phone-glow,
   .progress-phone-pulse,
   .progress-cycle-indicator span,
   .progress-line-path,

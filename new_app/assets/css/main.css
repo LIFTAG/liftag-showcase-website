@@ -110,6 +110,11 @@
   --liftag-font-body: 'Inter', system-ui, -apple-system, sans-serif;
   --liftag-font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
 
+  /* Motion easing - exponential ease-outs only, never bounce/elastic */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
   /* Stable mobile viewport fallback. The client plugin fills the px values for
      browsers that resize the visual viewport when in-app controls appear. */
   --liftag-stable-vh: 100vh;
@@ -266,6 +271,46 @@ button {
 .btn-ghost:hover {
   border-color: var(--liftag-primary);
   color: var(--liftag-primary);
+}
+
+/* Specular glint that sweeps across primary CTAs once per hover. */
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 34%;
+  background: linear-gradient(105deg, transparent 0%, rgba(255, 255, 255, 0.55) 50%, transparent 100%);
+  transform: translateX(-140%) skewX(-18deg);
+  opacity: 0;
+  pointer-events: none;
+}
+.btn-primary:hover::after {
+  animation: btnGlintSweep 760ms var(--ease-out-quint) 1;
+}
+@keyframes btnGlintSweep {
+  0% { transform: translateX(-140%) skewX(-18deg); opacity: 0; }
+  12% { opacity: 0.9; }
+  100% { transform: translateX(420%) skewX(-18deg); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary:hover::after {
+    animation: none;
+  }
+}
+
+/* Visually hidden, available to assistive tech. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* Phone bezel - screenshots already include Dynamic Island */

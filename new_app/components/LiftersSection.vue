@@ -117,8 +117,16 @@ const isTapPanMode = ref(false)
 const cardStates = ref<Record<number, 'before' | 'visible' | 'after'>>({})
 const cardEls: HTMLElement[] = []
 
+const sectionRef = ref<HTMLElement | null>(null)
+const gridRef = ref<HTMLElement | null>(null)
+
 let cardObserver: IntersectionObserver | null = null
+let sectionObserver: IntersectionObserver | null = null
 let tapPanModeCleanup: (() => void) | null = null
+let spotlightCleanup: (() => void) | null = null
+let spotRaf = 0
+let lastSpotEvent: PointerEvent | null = null
+let sectionInView = false
 
 function setCardRef(el: unknown, index: number) {
   if (typeof HTMLElement === 'undefined' || !(el instanceof HTMLElement)) return
@@ -143,7 +151,66 @@ function setCardState(index: number, state: 'before' | 'visible' | 'after') {
   cardStates.value[index] = state
 }
 
+function processSpotlight() {
+  spotRaf = 0
+  const event = lastSpotEvent
+  if (!event) return
+  const target = event.target
+  if (!(target instanceof Element)) return
+  const card = target.closest('.lifters-card')
+  if (!(card instanceof HTMLElement)) return
+  const rect = card.getBoundingClientRect()
+  card.style.setProperty('--spot-x', `${event.clientX - rect.left}px`)
+  card.style.setProperty('--spot-y', `${event.clientY - rect.top}px`)
+}
+
+function attachSpotlight() {
+  const grid = gridRef.value
+  if (!grid || spotlightCleanup) return
+
+  const onMove = (event: PointerEvent) => {
+    lastSpotEvent = event
+    if (!spotRaf) spotRaf = requestAnimationFrame(processSpotlight)
+  }
+  const onLeave = () => {
+    lastSpotEvent = null
+  }
+
+  grid.addEventListener('pointermove', onMove, { passive: true })
+  grid.addEventListener('pointerleave', onLeave, { passive: true })
+  spotlightCleanup = () => {
+    grid.removeEventListener('pointermove', onMove)
+    grid.removeEventListener('pointerleave', onLeave)
+    if (spotRaf) cancelAnimationFrame(spotRaf)
+    spotRaf = 0
+    lastSpotEvent = null
+    spotlightCleanup = null
+  }
+}
+
+function detachSpotlight() {
+  spotlightCleanup?.()
+}
+
+function syncSpotlight() {
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (sectionInView && finePointer && !reduce) attachSpotlight()
+  else detachSpotlight()
+}
+
 onMounted(async () => {
+  if (sectionRef.value) {
+    sectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        sectionInView = entry?.isIntersecting ?? false
+        syncSpotlight()
+      },
+      { threshold: 0 },
+    )
+    sectionObserver.observe(sectionRef.value)
+  }
+
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     cards.forEach((_, index) => setCardState(index, 'visible'))
     return
@@ -196,13 +263,16 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   cardObserver?.disconnect()
+  sectionObserver?.disconnect()
   tapPanModeCleanup?.()
+  detachSpotlight()
 })
 </script>
 
 <template>
   <section
     id="lifters"
+    ref="sectionRef"
     :style="{
       background: '#000',
       borderTop: '1px solid rgba(255,255,255,0.06)',
@@ -226,6 +296,7 @@ onBeforeUnmount(() => {
 
       <!-- Bento grid -->
       <div
+        ref="gridRef"
         class="bento-grid"
         :style="{
           display: 'grid',
@@ -263,6 +334,7 @@ onBeforeUnmount(() => {
               : 'none',
           }"
         >
+          <div class="lifters-card-wash" aria-hidden="true" />
           <!-- Image area -->
           <div
             v-if="card.img"
@@ -393,6 +465,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .lifters-card {
+  --spot-x: 50%;
+  --spot-y: 50%;
   opacity: 0;
   transform: translate3d(0, 46px, 0) scale(0.965);
   filter: blur(8px);
@@ -403,6 +477,53 @@ onBeforeUnmount(() => {
     box-shadow 350ms cubic-bezier(0.16, 1, 0.3, 1),
     border-color 220ms ease;
   transition-delay: 0ms, 0ms, 0ms, 0ms, 0ms;
+}
+
+.lifters-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: radial-gradient(
+    240px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    rgba(204, 255, 0, 0.5),
+    rgba(204, 255, 0, 0.06) 45%,
+    transparent 70%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 250ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lifters-card-wash {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    240px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    rgba(204, 255, 0, 0.05),
+    transparent 55%
+  );
+  opacity: 0;
+  transition: opacity 250ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lifters-card:hover::before,
+  .lifters-card:hover .lifters-card-wash {
+    opacity: 1;
+  }
 }
 
 .lifters-card::after {
@@ -431,6 +552,10 @@ onBeforeUnmount(() => {
   transform: translate3d(0, 0, 0) scale(1);
   filter: blur(0);
   transition-delay: var(--card-delay, 0ms), var(--card-delay, 0ms), var(--card-delay, 0ms), 0ms, 0ms;
+}
+
+.lifters-card.is-visible:active {
+  transform: translate3d(0, 0, 0) scale(0.995);
 }
 
 .lifters-card.is-before {
@@ -492,6 +617,11 @@ onBeforeUnmount(() => {
     transform: none;
     filter: none;
     transition: none;
+  }
+
+  .lifters-card::before,
+  .lifters-card-wash {
+    display: none;
   }
 
   .lifters-card:hover .lifters-card-image,

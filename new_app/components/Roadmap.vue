@@ -80,7 +80,13 @@ let rmPoweredAt: number[]    = []
 
 let rafId    = 0
 let isVisible = false
+let reduceMotion = false
 let ctx: CanvasRenderingContext2D | null = null
+let rmItems: NodeListOf<Element> | null = null
+let io: IntersectionObserver | null = null
+let motionMql: MediaQueryList | null = null
+let resizeTimer: ReturnType<typeof setTimeout> | null = null
+let onWindowResize: (() => void) | null = null
 
 // ── Canvas sizing ─────────────────────────────────────────────────────────────
 
@@ -282,9 +288,10 @@ function updateRoadmap(rmItems: NodeListOf<Element>) {
 
 // ── rAF loop ──────────────────────────────────────────────────────────────────
 
-function startLoop(rmItems: NodeListOf<Element>) {
+function startLoop() {
+  if (rafId || reduceMotion || !isVisible || document.hidden || !rmItems) return
   function tick() {
-    if (!isVisible) return
+    if (!isVisible || reduceMotion || document.hidden || !rmItems) return
     updateRoadmap(rmItems)
     rafId = requestAnimationFrame(tick)
   }
@@ -296,6 +303,38 @@ function stopLoop() {
   rafId = 0
 }
 
+function renderStaticComplete() {
+  if (!rmItems || !lineActiveRef.value) return
+  rmItems.forEach((item, i) => {
+    item.classList.add('visible', 'powered')
+    rmRootProgress[i] = 1
+    rmPoweredAt[i] = performance.now() - 2400
+  })
+  lineActiveRef.value.style.height = '100%'
+  sizeRmCanvas()
+  drawRoots(rmItems)
+}
+
+function onResize() {
+  sizeRmCanvas()
+  if (reduceMotion) renderStaticComplete()
+}
+
+function onDocumentVisibilityChange() {
+  if (document.hidden) stopLoop()
+  else startLoop()
+}
+
+function onMotionChange() {
+  reduceMotion = Boolean(motionMql?.matches)
+  if (reduceMotion) {
+    stopLoop()
+    renderStaticComplete()
+  } else {
+    startLoop()
+  }
+}
+
 // ── Lifecycle ────────────────────────────────────────────────────────────────
 
 onMounted(async () => {
@@ -305,20 +344,30 @@ onMounted(async () => {
   if (!canvas) return
   ctx = canvas.getContext('2d')
 
-  const rmItems = timelineRef.value!.querySelectorAll('[data-rm]')
+  rmItems = timelineRef.value!.querySelectorAll('[data-rm]')
   rmRootProgress = new Array(rmItems.length).fill(0)
   rmPoweredAt    = new Array(rmItems.length).fill(0)
 
   sizeRmCanvas()
-  window.addEventListener('resize', sizeRmCanvas, { passive: true })
+  onWindowResize = () => {
+    if (resizeTimer) clearTimeout(resizeTimer)
+    resizeTimer = setTimeout(onResize, 120)
+  }
+  window.addEventListener('resize', onWindowResize, { passive: true })
 
-  // IntersectionObserver gates rAF so we don't burn CPU off-screen
-  const io = new IntersectionObserver(
+  motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
+  reduceMotion = motionMql.matches
+  motionMql.addEventListener('change', onMotionChange)
+
+  document.addEventListener('visibilitychange', onDocumentVisibilityChange)
+
+  io = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         isVisible = entry.isIntersecting
         if (isVisible) {
-          startLoop(rmItems)
+          if (reduceMotion) renderStaticComplete()
+          else startLoop()
         } else {
           stopLoop()
         }
@@ -328,16 +377,21 @@ onMounted(async () => {
   )
   if (sectionRef.value) io.observe(sectionRef.value)
 
-  // Store so we can disconnect on unmount
-  ;(sectionRef.value as any).__rmIO = io
+  if (reduceMotion) renderStaticComplete()
 })
 
 onBeforeUnmount(() => {
   stopLoop()
-  window.removeEventListener('resize', sizeRmCanvas)
-  const io = (sectionRef.value as any)?.__rmIO as IntersectionObserver | undefined
+  if (resizeTimer) clearTimeout(resizeTimer)
+  if (onWindowResize) window.removeEventListener('resize', onWindowResize)
+  onWindowResize = null
+  document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
+  motionMql?.removeEventListener('change', onMotionChange)
+  motionMql = null
   io?.disconnect()
+  io = null
   ctx = null
+  rmItems = null
 })
 </script>
 
@@ -769,6 +823,36 @@ onBeforeUnmount(() => {
     display: inline-block;
     max-width: 100%;
     line-height: 1.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rm-item,
+  .rm-item:nth-child(odd),
+  .rm-item:nth-child(even),
+  .rm-item .rm-version,
+  .rm-item .rm-title,
+  .rm-item .rm-live-badge,
+  .rm-item .rm-roots,
+  .rm-item .rm-branch span,
+  .rm-node,
+  .rm-item.visible .rm-node {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    animation: none;
+  }
+
+  .rm-node,
+  .rm-item.visible .rm-node {
+    transform: translateX(-50%) scale(1);
+  }
+
+  .rm-item.powered .rm-node::before,
+  .rm-item.powered .rm-node::after,
+  .rm-live-dot,
+  .roadmap-line-active::after {
+    animation: none;
   }
 }
 </style>

@@ -228,17 +228,22 @@ function initTag() {
   glass.renderOrder = 5
   tag.add(glass)
 
-  let targetRotX = 0.08
-  let targetRotY = -0.12
-  let currentRotX = 0.08
-  let currentRotY = -0.12
+  const NEUTRAL_ROT_X = 0.08
+  const NEUTRAL_ROT_Y = -0.12
+
+  let targetRotX = NEUTRAL_ROT_X
+  let targetRotY = NEUTRAL_ROT_Y
+  let currentRotX = NEUTRAL_ROT_X
+  let currentRotY = NEUTRAL_ROT_Y
   let animId = 0
   let isVisible = false
   let resizeRaf = 0
   let lastMx = 0
   let lastMy = 0
 
-  const sharedMouse = useSharedMouse()
+  const motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
+  let reduceMotion = motionMql.matches
+  let sharedMouse: ReturnType<typeof useSharedMouse> | null = null
 
   function applyPointerTilt(mx: number, my: number) {
     targetRotY = mx * 0.35
@@ -254,12 +259,14 @@ function initTag() {
   }
 
   function animate() {
-    if (!isVisible || document.hidden) {
+    if (!isVisible || document.hidden || reduceMotion) {
       animId = 0
       return
     }
 
     animId = requestAnimationFrame(animate)
+
+    if (!sharedMouse) sharedMouse = useSharedMouse()
 
     const delay = Math.max(0, props.tiltDelayMs)
     if (delay > 0) {
@@ -276,13 +283,43 @@ function initTag() {
     renderer.render(scene, camera)
   }
 
+  // Reduced motion: one static frame at the resting tilt, no loop, no pointer tilt.
+  function renderStaticFrame() {
+    targetRotX = NEUTRAL_ROT_X
+    targetRotY = NEUTRAL_ROT_Y
+    currentRotX = NEUTRAL_ROT_X
+    currentRotY = NEUTRAL_ROT_Y
+    keyLight.position.set(2, 3, 4)
+    lastMx = 0
+    lastMy = 0
+    drawFace()
+    tag.rotation.x = currentRotX
+    tag.rotation.y = currentRotY
+    renderer.render(scene, camera)
+  }
+
   scene.add(tag)
-  renderer.render(scene, camera)
+  if (reduceMotion) renderStaticFrame()
+  else renderer.render(scene, camera)
+
+  function onMotionPreferenceChange(event: MediaQueryListEvent) {
+    reduceMotion = event.matches
+
+    if (reduceMotion) {
+      cancelAnimationFrame(animId)
+      animId = 0
+      renderStaticFrame()
+      return
+    }
+
+    if (isVisible && !animId && !document.hidden) animate()
+  }
+  motionMql.addEventListener('change', onMotionPreferenceChange)
 
   const visObserver = new IntersectionObserver(
     (entries) => {
       isVisible = entries[0]?.isIntersecting ?? false
-      if (isVisible && !animId && !document.hidden) animate()
+      if (isVisible && !animId && !document.hidden && !reduceMotion) animate()
     },
     { threshold: 0 },
   )
@@ -308,6 +345,7 @@ function initTag() {
 
   cleanup = () => {
     window.removeEventListener('resize', onResize)
+    motionMql.removeEventListener('change', onMotionPreferenceChange)
     if (resizeRaf) cancelAnimationFrame(resizeRaf)
     visObserver.disconnect()
     isVisible = false
