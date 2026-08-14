@@ -101,19 +101,26 @@ export function frustumSizeAtDistance(options: {
  * Face-on distance that keeps the entire display inside the frustum.
  * Uses the farther of the width and height fits so a wide recording is
  * not cropped when the canvas is squarer than the screen.
+ *
+ * `fill` > 1 pulls the camera back (less zoom). The punch-in uses a
+ * slight overscan so the glass is not edge-to-edge.
  */
+export const MACBOOK_ZOOM_FILL = 1.08
+
 export function containScreenDistance(options: {
   worldWidth: number
   worldHeight: number
   fovDeg: number
   aspect: number
+  fill?: number
 }): number {
   const worldWidth = Math.max(options.worldWidth, 0)
   const worldHeight = Math.max(options.worldHeight, 0)
+  const fill = Math.max(options.fill ?? 1, 1e-6)
   const vFov = verticalFovRad(options.fovDeg)
   const hFov = horizontalFovRad(options.fovDeg, options.aspect)
-  const distV = worldHeight / (2 * Math.tan(vFov / 2))
-  const distH = worldWidth / (2 * Math.tan(hFov / 2))
+  const distV = (worldHeight * fill) / (2 * Math.tan(vFov / 2))
+  const distH = (worldWidth * fill) / (2 * Math.tan(hFov / 2))
   return Math.max(distV, distH)
 }
 

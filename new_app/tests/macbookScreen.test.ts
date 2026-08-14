@@ -5,6 +5,7 @@ import {
   MACBOOK_DASHBOARD_CONTENT_ASPECT,
   MACBOOK_DASHBOARD_TOP_CROP,
   MACBOOK_SCREEN_INSET,
+  MACBOOK_ZOOM_FILL,
   applyRectUVs,
   cameraTruckToAlign,
   clampTruckToKeepWidth,
@@ -223,6 +224,27 @@ test('containScreenDistance keeps a wide display fully visible in a squarer canv
     distance > heightLimited + 1e-6,
     'wide footage must back the camera up to the width-limited distance, not the closer height fit',
   )
+})
+
+test('MACBOOK_ZOOM_FILL pulls the camera back a little without cropping the display', () => {
+  const worldWidth = 2.764
+  const worldHeight = worldWidth / MACBOOK_DASHBOARD_CONTENT_ASPECT
+  const fovDeg = 22
+  const aspect = 16 / 9
+  const tight = containScreenDistance({ worldWidth, worldHeight, fovDeg, aspect })
+  const eased = containScreenDistance({
+    worldWidth,
+    worldHeight,
+    fovDeg,
+    aspect,
+    fill: MACBOOK_ZOOM_FILL,
+  })
+  const view = frustumSizeAtDistance({ distance: eased, fovDeg, aspect })
+
+  assert.ok(MACBOOK_ZOOM_FILL > 1 && MACBOOK_ZOOM_FILL < 1.12)
+  assert.ok(Math.abs(eased / tight - MACBOOK_ZOOM_FILL) < 1e-9)
+  assert.ok(view.width + 1e-9 >= worldWidth)
+  assert.ok(view.height + 1e-9 >= worldHeight)
 })
 
 test('a 0.58 fill would crop the dashboard sides and is not the zoom target', () => {

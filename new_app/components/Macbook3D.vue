@@ -6,6 +6,7 @@ import {
   MACBOOK_DASHBOARD_CONTENT_ASPECT,
   MACBOOK_DASHBOARD_TOP_CROP,
   MACBOOK_SCREEN_INSET,
+  MACBOOK_ZOOM_FILL,
   cameraTruckToAlign,
   clampTruckToKeepWidth,
   containScreenDistance,
@@ -391,6 +392,7 @@ function initMacbook() {
       worldHeight: screenLayout.height * macbook.scale.y,
       fovDeg: CAM_ZOOM_FOV,
       aspect: camera.aspect,
+      fill: MACBOOK_ZOOM_FILL,
     })
     zoomCam.position.set(
       screen.position.x,
