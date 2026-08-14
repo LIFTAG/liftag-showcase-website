@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import Phone3D from './Phone3D.vue'
+// Async: Phone is rendered eagerly in the hero, and a static import here would
+// drag three.js (~142KB gzip) into the modulepreloaded entry chunk. The
+// placeholder <img> below covers the load - it stays visible until Phone3D
+// emits `ready`, so a slower chunk fetch only lengthens the placeholder window.
+const Phone3D = defineAsyncComponent(() => import('./Phone3D.vue'))
 
 const MOBILE_PHONE_MQL = '(max-width: 768px)'
 const PHONE_PRELOAD_MARGIN = '800px 0px'
@@ -37,7 +41,6 @@ function preferredScreenSrc(src: string | undefined) {
 
 const props = withDefaults(defineProps<{
   src?: string
-  glow?: boolean
   scale?: number
   tiltDelayMs?: number
   screenTransition?: boolean
@@ -52,7 +55,6 @@ const props = withDefaults(defineProps<{
   sizes?: string
   staticBezel?: boolean
 }>(), {
-  glow: false,
   scale: 1,
   tiltDelayMs: 0,
   screenTransition: false,
@@ -131,6 +133,8 @@ function activatePhone() {
   if (isNearViewport.value) return
 
   isNearViewport.value = true
+  // Overlap the async chunk fetch with the static-screen decode below.
+  import('./Phone3D.vue').catch(() => {})
   primeScreen(props.src)
 }
 
@@ -195,7 +199,6 @@ onBeforeUnmount(() => {
     :style="{
       transform: `scale(${props.scale})`,
       transformOrigin: 'center',
-      animation: props.glow ? 'pulse-glow 4s ease-in-out infinite' : undefined,
       ...props.style,
     }"
   >

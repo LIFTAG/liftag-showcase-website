@@ -1,5 +1,12 @@
 <script setup lang="ts">
 // All Vue APIs are auto-imported in Nuxt 3 - no import needed.
+import {
+  publishRoadmapArmed,
+  publishRoadmapNode,
+  publishRoadmapSpark,
+  publishRoadmapSpine,
+  resetRoadmapParticleField,
+} from '../composables/useRoadmapParticleField'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -72,11 +79,13 @@ const sectionRef    = ref<HTMLElement | null>(null)
 const timelineRef   = ref<HTMLElement | null>(null)
 const canvasRef     = ref<HTMLCanvasElement | null>(null)
 const lineActiveRef = ref<HTMLElement | null>(null)
+const isMobileParticles = ref(false)
 
 // ── Animation state (plain arrays - NOT reactive) ─────────────────────────────
 
 let rmRootProgress: number[] = []
 let rmPoweredAt: number[]    = []
+let rmVisibleAt: number[]    = []
 
 let rafId    = 0
 let isVisible = false
@@ -85,12 +94,183 @@ let ctx: CanvasRenderingContext2D | null = null
 let rmItems: NodeListOf<Element> | null = null
 let io: IntersectionObserver | null = null
 let motionMql: MediaQueryList | null = null
+let roadmapMobileMql: MediaQueryList | null = null
 let resizeTimer: ReturnType<typeof setTimeout> | null = null
 let onWindowResize: (() => void) | null = null
+let onRoadmapMobileChange: ((event: MediaQueryListEvent) => void) | null = null
+
+// ── Layout geometry cache ─────────────────────────────────────────────────────
+//
+// INVARIANT: nothing inside `.rm-item` animates *layout* - the entrance motion is
+// all transform/opacity, and only `.rm-item`'s own 0.8s translate on `.visible`
+// moves its node and labels (transforms do shift getBoundingClientRect). So an
+// item's geometry relative to the timeline is constant in two phases - before
+// `.visible`, and once that transition has settled - and is measured live only
+// while the transition runs. Cache drops on resize (via sizeRmCanvas), on font
+// load, and whenever the item/branch count changes.
+
+const RM_ITEM_SETTLE_MS = 900 // .rm-item transform transition: 0.8s, no delay
+
+interface RmBranchGeom {
+  endX: number
+  endY: number
+}
+
+interface RmItemGeom {
+  midY: number     // item centre Y, relative to the timeline top
+  nodeX: number    // node centre, relative to the timeline origin
+  nodeY: number
+  hasNode: boolean
+  branches: RmBranchGeom[]
+}
+
+let rmRestGeom: (RmItemGeom | null)[]    = [] // measured before `.visible`
+let rmSettledGeom: (RmItemGeom | null)[] = [] // measured after the entrance settles
+let rmFrameGeom: RmItemGeom[]            = [] // what the current frame draws from
+
+function invalidateRoadmapGeometry() {
+  rmRestGeom    = []
+  rmSettledGeom = []
+}
+
+// Reads every rect this frame needs. Must run before any style write in the frame.
+function readItemGeom(item: Element, timelineRect: DOMRect): RmItemGeom {
+  const itemRect = item.getBoundingClientRect()
+  const geom: RmItemGeom = {
+    midY: itemRect.top + itemRect.height / 2 - timelineRect.top,
+    nodeX: 0,
+    nodeY: 0,
+    hasNode: false,
+    branches: [],
+  }
+
+  const node = item.querySelector('.rm-node') as HTMLElement | null
+  if (!node) return geom
+
+  const nodeRect = node.getBoundingClientRect()
+  geom.hasNode = true
+  geom.nodeX   = nodeRect.left + nodeRect.width  / 2 - timelineRect.left
+  geom.nodeY   = nodeRect.top  + nodeRect.height / 2 - timelineRect.top
+
+  item.querySelectorAll('.rm-branch span').forEach((label) => {
+    const labelRect = (label as HTMLElement).getBoundingClientRect()
+    // Target: edge of label closest to node
+    const isLeft = labelRect.left < nodeRect.left
+    geom.branches.push({
+      endX: isLeft
+        ? labelRect.right - timelineRect.left + 4
+        : labelRect.left  - timelineRect.left - 4,
+      endY: labelRect.top + labelRect.height / 2 - timelineRect.top,
+    })
+  })
+
+  return geom
+}
+
+function readRoadmapGeometry(
+  items: NodeListOf<Element>,
+  timelineRect: DOMRect,
+  now: number,
+): RmItemGeom[] {
+  if (rmFrameGeom.length !== items.length) rmFrameGeom = new Array(items.length)
+
+  items.forEach((item, i) => {
+    if (!item.classList.contains('visible')) {
+      // Resting phase: the item sits at its off-state transform and never moves.
+      let rest = rmRestGeom[i]
+      if (!rest) {
+        rest = readItemGeom(item, timelineRect)
+        rmRestGeom[i] = rest
+      }
+      rmFrameGeom[i] = rest
+      return
+    }
+
+    // Defensive: `.visible` should only ever be set alongside this timestamp.
+    if (rmVisibleAt[i] === 0) rmVisibleAt[i] = now
+
+    if (now - rmVisibleAt[i] < RM_ITEM_SETTLE_MS) {
+      rmFrameGeom[i] = readItemGeom(item, timelineRect)
+      return
+    }
+
+    let settled = rmSettledGeom[i]
+    if (!settled) {
+      settled = readItemGeom(item, timelineRect)
+      rmSettledGeom[i] = settled
+    }
+    rmFrameGeom[i] = settled
+  })
+
+  return rmFrameGeom
+}
+
+// ── Glow sprites ──────────────────────────────────────────────────────────────
+//
+// The node/tip glows were a createRadialGradient per node per frame. The gradient
+// runs a single colour from alpha 1 to alpha 0, so it is pre-rendered once at full
+// alpha and scaled with globalAlpha at draw time - alpha scaling is linear, so the
+// composited result matches the per-frame gradient.
+
+const RM_NODE_GLOW_RADIUS = 70
+const RM_TIP_GLOW_RADIUS  = 10
+
+let glowSpriteDpr = 0
+let nodeGlowSprite: HTMLCanvasElement | null = null
+let tipGlowSprite: HTMLCanvasElement | null  = null
+
+function makeGlowSprite(radius: number, dpr: number): HTMLCanvasElement | null {
+  // Rendered at device resolution so drawImage into a `radius`-sized CSS-px rect
+  // (the ctx transform is already dpr-scaled) maps roughly 1:1 onto the backing store.
+  const r      = Math.max(1, Math.round(radius * dpr))
+  const sprite = document.createElement('canvas')
+  sprite.width  = r * 2
+  sprite.height = r * 2
+  const sctx = sprite.getContext('2d')
+  if (!sctx) return null
+  const grad = sctx.createRadialGradient(r, r, 0, r, r, r)
+  grad.addColorStop(0, 'rgba(204, 255, 0, 1)')
+  grad.addColorStop(1, 'rgba(204, 255, 0, 0)')
+  sctx.fillStyle = grad
+  sctx.fillRect(0, 0, r * 2, r * 2)
+  return sprite
+}
+
+function ensureGlowSprites(dpr: number) {
+  if (glowSpriteDpr === dpr && nodeGlowSprite && tipGlowSprite) return
+  glowSpriteDpr   = dpr
+  nodeGlowSprite  = makeGlowSprite(RM_NODE_GLOW_RADIUS, dpr)
+  tipGlowSprite   = makeGlowSprite(RM_TIP_GLOW_RADIUS, dpr)
+}
+
+function paintGlow(
+  sprite: HTMLCanvasElement | null,
+  x: number,
+  y: number,
+  radius: number,
+  alpha: number,
+) {
+  if (!ctx || alpha <= 0) return
+  if (sprite) {
+    ctx.globalAlpha = alpha
+    ctx.drawImage(sprite, x - radius, y - radius, radius * 2, radius * 2)
+    ctx.globalAlpha = 1
+    return
+  }
+  // Fallback if the offscreen context could not be created.
+  const grad = ctx.createRadialGradient(x, y, 0, x, y, radius)
+  grad.addColorStop(0, `rgba(204, 255, 0, ${alpha})`)
+  grad.addColorStop(1, 'rgba(204, 255, 0, 0)')
+  ctx.fillStyle = grad
+  ctx.beginPath()
+  ctx.arc(x, y, radius, 0, Math.PI * 2)
+  ctx.fill()
+}
 
 // ── Canvas sizing ─────────────────────────────────────────────────────────────
 
 function sizeRmCanvas() {
+  invalidateRoadmapGeometry()
   const canvas   = canvasRef.value
   const timeline = timelineRef.value
   if (!canvas || !ctx || !timeline) return
@@ -108,9 +288,29 @@ function bezierPt(p0: number, p1: number, p2: number, p3: number, t: number): nu
   return mt * mt * mt * p0 + 3 * mt * mt * t * p1 + 3 * mt * t * t * p2 + t * t * t * p3
 }
 
+function smoothstep01(v: number) {
+  const t = Math.min(1, Math.max(0, v))
+  return t * t * (3 - 2 * t)
+}
+
+function roadmapSpineStrength(progress: number) {
+  const p = Math.min(1, Math.max(0, progress))
+  if (p <= 0.001) return 0
+  const rise = smoothstep01(p / 0.08)
+  const fade = 1 - smoothstep01((p - 0.94) / 0.06)
+  return rise * fade
+}
+
+
 // ── drawRoots ─────────────────────────────────────────────────────────────────
 
-function drawRoots(rmItems: NodeListOf<Element>, providedTimelineRect?: DOMRect) {
+function drawRoots(
+  rmItems: NodeListOf<Element>,
+  timelineRect: DOMRect,
+  geom: RmItemGeom[],
+  now: number,
+  publishParticles = false,
+) {
   const canvas   = canvasRef.value
   const timeline = timelineRef.value
   if (!ctx || !canvas || !timeline) return
@@ -120,53 +320,63 @@ function drawRoots(rmItems: NodeListOf<Element>, providedTimelineRect?: DOMRect)
   const h   = canvas.height / dpr
   ctx.clearRect(0, 0, w, h)
 
-  const timelineRect = providedTimelineRect ?? timeline.getBoundingClientRect()
-  const now          = performance.now()
+  ensureGlowSprites(dpr)
 
   // Ambient breathing radial glow on powered nodes
   rmItems.forEach((item, idx) => {
     if (!item.classList.contains('powered')) return
-    const nd = item.querySelector('.rm-node') as HTMLElement | null
-    if (!nd) return
-    const nr      = nd.getBoundingClientRect()
-    const nx      = nr.left + nr.width  / 2 - timelineRect.left
-    const ny      = nr.top  + nr.height / 2 - timelineRect.top
+    const g = geom[idx]
+    if (!g || !g.hasNode) return
     const breathe = 0.5 + Math.sin(now * 0.002 + idx * 1.5) * 0.25
-    const ag      = ctx!.createRadialGradient(nx, ny, 0, nx, ny, 70)
-    ag.addColorStop(0, `rgba(204, 255, 0, ${breathe * 0.05})`)
-    ag.addColorStop(1, 'rgba(204, 255, 0, 0)')
-    ctx!.fillStyle = ag
-    ctx!.beginPath()
-    ctx!.arc(nx, ny, 70, 0, Math.PI * 2)
-    ctx!.fill()
+    paintGlow(nodeGlowSprite, g.nodeX, g.nodeY, RM_NODE_GLOW_RADIUS, breathe * 0.05)
   })
 
   rmItems.forEach((item, i) => {
     if (!item.classList.contains('powered')) {
       rmRootProgress[i] = 0
       rmPoweredAt[i]    = 0
+      if (publishParticles) {
+        publishRoadmapNode(i, { cx: 0, cy: 0, radius: 0, strength: 0 })
+        publishRoadmapSpark(i, { cx: 0, cy: 0, strength: 0 })
+      }
       return
     }
     if (rmPoweredAt[i] === 0) rmPoweredAt[i] = now
     const elapsed     = now - rmPoweredAt[i]
     rmRootProgress[i] = Math.min(1, elapsed / 1200) // 1.2 s to fully grow
 
-    const node     = item.querySelector('.rm-node') as HTMLElement | null
-    const branches = item.querySelectorAll('.rm-branch span')
-    if (!node || branches.length === 0) return
+    const g        = geom[i]
+    const branches = g ? g.branches : []
+    if (!g || !g.hasNode || branches.length === 0) {
+      if (publishParticles) {
+        publishRoadmapNode(i, { cx: 0, cy: 0, radius: 0, strength: 0 })
+        publishRoadmapSpark(i, { cx: 0, cy: 0, strength: 0 })
+      }
+      return
+    }
 
-    const nodeRect = node.getBoundingClientRect()
-    const nodeX    = nodeRect.left + nodeRect.width  / 2 - timelineRect.left
-    const nodeY    = nodeRect.top  + nodeRect.height / 2 - timelineRect.top
+    const nodeX = g.nodeX
+    const nodeY = g.nodeY
+    if (publishParticles) {
+      const eased = 1 - Math.pow(1 - rmRootProgress[i], 3)
+      const breathe = 0.88 + Math.sin(now * 0.002 + i * 1.5) * 0.12
+      const ignite = 1 + Math.max(0, 1 - elapsed / 520) * 0.32
+      publishRoadmapNode(i, {
+        cx: timelineRect.left + nodeX,
+        cy: timelineRect.top + nodeY,
+        radius: 96,
+        strength: Math.min(1, (0.28 + 0.5 * eased) * breathe * ignite),
+      })
+    }
 
-    branches.forEach((label, bi) => {
-      const labelRect = (label as HTMLElement).getBoundingClientRect()
-      // Target: edge of label closest to node
-      const isLeft = labelRect.left < nodeRect.left
-      const endX   = isLeft
-        ? labelRect.right - timelineRect.left + 4
-        : labelRect.left  - timelineRect.left - 4
-      const endY = labelRect.top + labelRect.height / 2 - timelineRect.top
+    let sparkCx = 0
+    let sparkCy = 0
+    let sparkStr = 0
+    let sparkRank = -1
+
+    branches.forEach((branch, bi) => {
+      const endX = branch.endX
+      const endY = branch.endY
 
       // Staggered progress per branch
       const branchDelay = bi * 0.15
@@ -245,17 +455,22 @@ function drawRoots(rmItems: NodeListOf<Element>, providedTimelineRect?: DOMRect)
           ? Math.max(0, 1 - Math.max(0, elapsed - fadeStart) / fadeDur)
           : 1
         if (tipFade > 0) {
-          const tipAlpha = 0.5 * tipFade
-          const tipGrad  = ctx!.createRadialGradient(tipX, tipY, 0, tipX, tipY, 10)
-          tipGrad.addColorStop(0, `rgba(204, 255, 0, ${tipAlpha})`)
-          tipGrad.addColorStop(1, 'rgba(204, 255, 0, 0)')
-          ctx!.fillStyle = tipGrad
-          ctx!.beginPath()
-          ctx!.arc(tipX, tipY, 10, 0, Math.PI * 2)
-          ctx!.fill()
+          paintGlow(tipGlowSprite, tipX, tipY, RM_TIP_GLOW_RADIUS, 0.5 * tipFade)
+
+          const rank = branchP < 1 ? 100 + bi : bi
+          if (publishParticles && rank >= sparkRank) {
+            sparkRank = rank
+            sparkCx = tipX + timelineRect.left
+            sparkCy = tipY + timelineRect.top
+            sparkStr = tipFade * (branchP < 1 ? 0.7 : 0.32)
+          }
         }
       }
     })
+
+    if (publishParticles) {
+      publishRoadmapSpark(i, { cx: sparkCx, cy: sparkCy, strength: sparkStr })
+    }
   })
 }
 
@@ -266,24 +481,43 @@ function updateRoadmap(rmItems: NodeListOf<Element>) {
   const lineActive = lineActiveRef.value
   if (!timeline || !lineActive) return
 
-  const rect    = timeline.getBoundingClientRect()
-  const viewH   = useStableViewportHeight() || window.innerHeight
+  // ── Reads: every layout query for this frame happens here, before any write ──
+  const rect  = timeline.getBoundingClientRect()
+  const viewH = useStableViewportHeight() || window.innerHeight
+  const winW  = window.innerWidth
+  const now   = performance.now()
+  const geom  = readRoadmapGeometry(rmItems, rect, now)
+
+  // ── Writes ──────────────────────────────────────────────────────────────────
   const progress = Math.max(0, Math.min(1, (viewH - rect.top) / (rect.height + viewH * 0.5)))
   lineActive.style.height = (progress * 100) + '%'
 
+  publishRoadmapArmed(true)
+  const railX = winW <= 600
+    ? rect.left + Math.min(18, Math.max(12, winW * 0.035))
+    : rect.left + rect.width / 2
+  publishRoadmapSpine({
+    cx: railX,
+    cy: rect.top + progress * rect.height,
+    vy: progress * rect.height,
+    strength: roadmapSpineStrength(progress),
+  })
+
   rmItems.forEach((item, i) => {
-    const itemRect = item.getBoundingClientRect()
-    const itemMid  = itemRect.top + itemRect.height / 2
+    const itemMid = rect.top + geom[i].midY
     if (itemMid < viewH * 0.75) {
-      item.classList.add('visible')
+      if (!item.classList.contains('visible')) {
+        item.classList.add('visible')
+        rmVisibleAt[i] = now
+      }
       if (progress > (i + 0.5) / rmItems.length) {
         item.classList.add('powered')
       }
     }
   })
 
-  // Pass timeline rect to drawRoots so it doesn't re-read it within the same tick.
-  drawRoots(rmItems, rect)
+  // Geometry is already resolved, so drawRoots touches no layout at all.
+  drawRoots(rmItems, rect, geom, now, true)
 }
 
 // ── rAF loop ──────────────────────────────────────────────────────────────────
@@ -304,15 +538,20 @@ function stopLoop() {
 }
 
 function renderStaticComplete() {
-  if (!rmItems || !lineActiveRef.value) return
+  const timeline = timelineRef.value
+  if (!rmItems || !lineActiveRef.value || !timeline) return
+  const now = performance.now()
   rmItems.forEach((item, i) => {
     item.classList.add('visible', 'powered')
     rmRootProgress[i] = 1
-    rmPoweredAt[i] = performance.now() - 2400
+    rmPoweredAt[i] = now - 2400
+    // Reduced motion disables the entrance transition, so geometry is settled now.
+    rmVisibleAt[i] = now - 2400
   })
   lineActiveRef.value.style.height = '100%'
   sizeRmCanvas()
-  drawRoots(rmItems)
+  const rect = timeline.getBoundingClientRect()
+  drawRoots(rmItems, rect, readRoadmapGeometry(rmItems, rect, now), now)
 }
 
 function onResize() {
@@ -329,6 +568,7 @@ function onMotionChange() {
   reduceMotion = Boolean(motionMql?.matches)
   if (reduceMotion) {
     stopLoop()
+    resetRoadmapParticleField()
     renderStaticComplete()
   } else {
     startLoop()
@@ -347,8 +587,11 @@ onMounted(async () => {
   rmItems = timelineRef.value!.querySelectorAll('[data-rm]')
   rmRootProgress = new Array(rmItems.length).fill(0)
   rmPoweredAt    = new Array(rmItems.length).fill(0)
+  rmVisibleAt    = new Array(rmItems.length).fill(0)
 
   sizeRmCanvas()
+  // Late webfont swap reflows the labels; drop the cached geometry so it re-measures.
+  document.fonts?.ready.then(invalidateRoadmapGeometry).catch(() => {})
   onWindowResize = () => {
     if (resizeTimer) clearTimeout(resizeTimer)
     resizeTimer = setTimeout(onResize, 120)
@@ -359,6 +602,13 @@ onMounted(async () => {
   reduceMotion = motionMql.matches
   motionMql.addEventListener('change', onMotionChange)
 
+  roadmapMobileMql = window.matchMedia('(max-width: 768px)')
+  isMobileParticles.value = roadmapMobileMql.matches
+  onRoadmapMobileChange = (event) => {
+    isMobileParticles.value = event.matches
+  }
+  roadmapMobileMql.addEventListener('change', onRoadmapMobileChange)
+
   document.addEventListener('visibilitychange', onDocumentVisibilityChange)
 
   io = new IntersectionObserver(
@@ -366,10 +616,13 @@ onMounted(async () => {
       entries.forEach((entry) => {
         isVisible = entry.isIntersecting
         if (isVisible) {
-          if (reduceMotion) renderStaticComplete()
-          else startLoop()
+          if (reduceMotion) {
+            resetRoadmapParticleField()
+            renderStaticComplete()
+          } else startLoop()
         } else {
           stopLoop()
+          resetRoadmapParticleField()
         }
       })
     },
@@ -377,26 +630,46 @@ onMounted(async () => {
   )
   if (sectionRef.value) io.observe(sectionRef.value)
 
-  if (reduceMotion) renderStaticComplete()
+  if (reduceMotion) {
+    resetRoadmapParticleField()
+    renderStaticComplete()
+  }
 })
 
 onBeforeUnmount(() => {
   stopLoop()
+  resetRoadmapParticleField()
   if (resizeTimer) clearTimeout(resizeTimer)
   if (onWindowResize) window.removeEventListener('resize', onWindowResize)
   onWindowResize = null
   document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
   motionMql?.removeEventListener('change', onMotionChange)
   motionMql = null
+  if (roadmapMobileMql && onRoadmapMobileChange) {
+    roadmapMobileMql.removeEventListener('change', onRoadmapMobileChange)
+  }
+  roadmapMobileMql = null
+  onRoadmapMobileChange = null
   io?.disconnect()
   io = null
   ctx = null
   rmItems = null
+  invalidateRoadmapGeometry()
+  rmFrameGeom = []
+  nodeGlowSprite = null
+  tipGlowSprite  = null
+  glowSpriteDpr  = 0
 })
 </script>
 
 <template>
   <section ref="sectionRef" class="section" id="roadmap">
+    <RoadmapParticles
+      :key="isMobileParticles ? 'roadmap-particles-m' : 'roadmap-particles-d'"
+      :count="isMobileParticles ? 120 : 220"
+      :interactive="!isMobileParticles"
+      :dpr-cap="isMobileParticles ? 1.1 : 1.2"
+    />
     <div class="section-inner">
       <div class="section-label reveal" style="text-align: center">Roadmap</div>
       <h2 class="display reveal" style="text-align: center; margin: 0 auto 20px; font-size: clamp(2.4rem, 6vw, 4.5rem)">
@@ -454,6 +727,8 @@ onBeforeUnmount(() => {
 }
 
 .section-inner {
+  position: relative;
+  z-index: 1;
   max-width: 1200px;
   margin: 0 auto;
   padding: 120px 40px;
@@ -521,12 +796,15 @@ onBeforeUnmount(() => {
   background: linear-gradient(to top, var(--liftag-primary), transparent);
   border-radius: 3px;
   filter: blur(4px);
+  transform-origin: bottom center;
   animation: rmTrailPulse 1.5s ease-in-out infinite;
 }
 
+/* scaleY instead of height: the stretch is invisible on a 6px blurred
+   gradient stub, and the pulse stops triggering layout every frame. */
 @keyframes rmTrailPulse {
-  0%, 100% { opacity: 0.8; height: 30px; }
-  50%       { opacity: 1;   height: 50px; }
+  0%, 100% { opacity: 0.8; transform: translateX(-50%) scaleY(1); }
+  50%       { opacity: 1;   transform: translateX(-50%) scaleY(1.6667); }
 }
 
 /* ─── Items ──────────────────────────────────────────────────────────────── */

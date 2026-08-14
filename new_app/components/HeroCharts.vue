@@ -63,8 +63,18 @@ const refL3 = ref<SVGPolylineElement | null>(null)
 const refL4 = ref<SVGPolylineElement | null>(null)
 
 const rawMouse = useSharedMouse().latest
-const mouse = useLerp(rawMouse, 0.06)
+// Gated on the charts being near the viewport so mousemoves further down the
+// page do not wake this loop.
+const lerpActive = useNearViewport(root)
+const mouse = useLerp(rawMouse, 0.06, () => lerpActive.value)
 let reduceMotion = false
+
+// Draw-on-load schedule. Handles are kept so an unmount mid-reveal cannot leave
+// timers or an idle callback pointing at a detached SVG.
+type IdleCb = (cb: () => void, opts?: { timeout: number }) => number
+const revealTimers: ReturnType<typeof setTimeout>[] = []
+let idleHandle = 0
+let unmounted = false
 
 watch(mouse, (m) => {
   const el = root.value
@@ -79,6 +89,7 @@ onMounted(async () => {
   // Chart draw-on-load: the hidden dash state is authored in the SVG markup so
   // first paint cannot flash the fully drawn graph before this reveal runs.
   await nextTick()
+  if (unmounted) return
   const scheduleChartReveal = () => {
     const order = [
       { el: refL4.value, delay: 200 },
@@ -88,16 +99,26 @@ onMounted(async () => {
     ]
     order.forEach(({ el, delay }) => {
       if (!el) return
-      setTimeout(() => {
+      revealTimers.push(setTimeout(() => {
         el.style.transition = 'stroke-dashoffset 1600ms cubic-bezier(0.4, 0, 0.2, 1)'
         el.style.strokeDashoffset = '0'
-      }, delay)
+      }, delay))
     })
   }
-  type IdleCb = (cb: () => void, opts?: { timeout: number }) => number
   const ric = (window as unknown as { requestIdleCallback?: IdleCb }).requestIdleCallback
-  if (typeof ric === 'function') ric(scheduleChartReveal, { timeout: 600 })
-  else setTimeout(scheduleChartReveal, 0)
+  if (typeof ric === 'function') idleHandle = ric(scheduleChartReveal, { timeout: 600 })
+  else revealTimers.push(setTimeout(scheduleChartReveal, 0))
+})
+
+onBeforeUnmount(() => {
+  unmounted = true
+  revealTimers.forEach((id) => clearTimeout(id))
+  revealTimers.length = 0
+  if (idleHandle !== 0) {
+    const cic = (window as unknown as { cancelIdleCallback?: (h: number) => void }).cancelIdleCallback
+    if (typeof cic === 'function') cic(idleHandle)
+    idleHandle = 0
+  }
 })
 </script>
 

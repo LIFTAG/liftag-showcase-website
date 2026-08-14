@@ -5,12 +5,21 @@
 // CONVERGE_EPSILON), and is woken back up whenever the shared mousemove
 // listener fires. This keeps the visible motion identical to a forever-rAF
 // while leaving the page idle when nothing is moving.
+//
+// The optional `isActive` gate keeps a far-offscreen section's loop from being
+// woken by every mousemove on the page. While it returns false, wake() no-ops
+// and the initial start is skipped; the loop is started (and so catches up to
+// the current target) as soon as the gate flips true.
 
 import { onMouseEvent } from './useSharedMouse'
 
 const CONVERGE_EPSILON = 0.0005
 
-export function useLerp(target: { x: number; y: number }, factor = 0.08) {
+export function useLerp(
+  target: { x: number; y: number },
+  factor = 0.08,
+  isActive?: () => boolean,
+) {
   const val = { x: 0, y: 0 }
   const out = ref({ x: 0, y: 0 })
   let rafId = 0
@@ -38,13 +47,20 @@ export function useLerp(target: { x: number; y: number }, factor = 0.08) {
   }
 
   const wake = () => {
+    if (isActive && !isActive()) return
     if (rafId === 0) {
       rafId = requestAnimationFrame(tick)
     }
   }
 
+  if (isActive) {
+    watch(isActive, (active) => {
+      if (active) wake()
+    })
+  }
+
   onMounted(() => {
-    rafId = requestAnimationFrame(tick)
+    if (!isActive || isActive()) rafId = requestAnimationFrame(tick)
     unsubscribe = onMouseEvent(wake)
   })
 

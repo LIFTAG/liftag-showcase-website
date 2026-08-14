@@ -40,7 +40,10 @@ let motionMql: MediaQueryList | null = null
 let phoneLayoutMql: MediaQueryList | null = null
 
 const rawMouse = useSharedMouse().latest
-const mouse = useLerp(rawMouse, 0.06)
+// Gated on the section being near the viewport so mousemoves elsewhere on the
+// page do not wake this loop.
+const lerpActive = useNearViewport(gymSectionRef)
+const mouse = useLerp(rawMouse, 0.06, () => lerpActive.value)
 
 function gymMotionTransform(
   xFactor: number,

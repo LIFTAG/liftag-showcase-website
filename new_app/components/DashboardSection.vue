@@ -83,7 +83,8 @@ function resetDashboardMetricChartHover() {
 // (whose .x/.y are kept in sync by the single global handler) gives identical
 // behaviour at zero per-component cost.
 const rawMouse = useSharedMouse().latest
-const mouse = useLerp(rawMouse, 0.06)
+const sectionInView = ref(false)
+const mouse = useLerp(rawMouse, 0.06, () => sectionInView.value)
 
 const c1 = computed(() => ({
   x: mouse.value.x * 24,
@@ -111,6 +112,8 @@ let isVisible = false
 let reduceMotion = false
 let hasEntered = false
 let dashboardVideoQuery: MediaQueryList | null = null
+let lastTickKey = ''
+let idleFrames = 0
 
 function exitSlice(p: number, start: number, duration: number) {
   return smoothstep((p - start) / duration)
@@ -148,16 +151,40 @@ function updateDashboardVideoPreference() {
   shouldUseDashboardVideo.value = dashboardVideoQuery?.matches ?? false
 }
 
+// Re-arms a parked loop. Self-coalescing: once rafId is set, further events
+// are no-ops until tick() parks again, so this stays cheap on a scroll storm.
+function onWake() {
+  if (!isVisible || rafId !== 0) return
+  rafId = requestAnimationFrame(tick)
+}
+
 function tick() {
   if (!isVisible) {
     rafId = 0
     return
   }
+
+  // Quantized to 1/200 - finer than any of these vars can resolve on screen,
+  // and it lets an unchanged frame skip ~25 setProperty calls entirely.
+  const p = reduceMotion ? 1 : Math.round(getScrollProgress() * 200) / 200
+  const tickKey = `${p}|${reduceMotion}`
+
+  if (tickKey === lastTickKey) {
+    // Everything below derives from p alone, so nothing can have changed.
+    // Park after a couple of identical frames; onWake() re-arms the loop.
+    idleFrames += 1
+    if (idleFrames >= 2) {
+      rafId = 0
+      return
+    }
+    rafId = requestAnimationFrame(tick)
+    return
+  }
+
+  idleFrames = 0
   rafId = requestAnimationFrame(tick)
 
-  const p = reduceMotion ? 1 : getScrollProgress()
   const mapped = mapDashboardScroll(p, reduceMotion)
-
   openProgress.value = mapped.open
   zoomProgress.value = mapped.zoom
   chromeProgress.value = mapped.chrome
@@ -168,6 +195,7 @@ function tick() {
 
   const section = sectionRef.value
   if (section) {
+    lastTickKey = tickKey
     section.style.setProperty('--lid-p', String(mapped.open))
     section.style.setProperty('--scroll-p', String(p))
     section.style.setProperty('--zoom-p', String(mapped.zoom))
@@ -212,9 +240,13 @@ onMounted(() => {
   updateDashboardVideoPreference()
   dashboardVideoQuery.addEventListener('change', updateDashboardVideoPreference)
 
+  window.addEventListener('scroll', onWake, { passive: true })
+  window.addEventListener('resize', onWake, { passive: true })
+
   observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       isVisible = entry.isIntersecting
+      sectionInView.value = isVisible
       if (isVisible) {
         cancelAnimationFrame(rafId)
         rafId = requestAnimationFrame(tick)
@@ -234,7 +266,10 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   cancelAnimationFrame(rafId)
+  rafId = 0
   if (dashboardMetricChartRaf) cancelAnimationFrame(dashboardMetricChartRaf)
+  window.removeEventListener('scroll', onWake)
+  window.removeEventListener('resize', onWake)
   observer?.disconnect()
   dashboardVideoQuery?.removeEventListener('change', updateDashboardVideoPreference)
   dashboardVideoQuery = null

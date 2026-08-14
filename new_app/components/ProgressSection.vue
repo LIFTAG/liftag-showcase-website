@@ -49,7 +49,10 @@ function onDocumentVisibilityChange() {
 }
 
 const rawMouse = useSharedMouse().latest
-const paneMouse = useLerp(rawMouse, 0.075)
+// Gated on the section being near the viewport so mousemoves elsewhere on the
+// page do not wake this loop.
+const lerpActive = useNearViewport(sectionRef)
+const paneMouse = useLerp(rawMouse, 0.075, () => lerpActive.value)
 
 const progressPanePaths = [
   { outward: 1.28, cross: 0.44, vertical: 0.72, lane: -0.96 },
@@ -716,8 +719,15 @@ onBeforeUnmount(() => {
   animation: float-y 6s ease-in-out infinite;
 }
 
-.progress-phone-glow {
-  animation: pulse-glow 4s ease-in-out infinite;
+.progress-phone-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 60px rgba(204, 255, 0, 0.45);
+  opacity: 0;
+  animation: pulse-glow-fade 4s ease-in-out infinite;
+  pointer-events: none;
 }
 
 .progress-phone-pulse {
@@ -897,7 +907,7 @@ onBeforeUnmount(() => {
 @media (prefers-reduced-motion: reduce) {
   .progress-chip::after,
   .progress-phone-float,
-  .progress-phone-glow,
+  .progress-phone-glow::after,
   .progress-phone-pulse,
   .progress-cycle-indicator span,
   .progress-line-path,
