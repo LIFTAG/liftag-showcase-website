@@ -94,16 +94,6 @@ function clamp01(v: number) {
   return Math.min(1, Math.max(0, v))
 }
 
-function smoothstep(v: number) {
-  const t = clamp01(v)
-  return t * t * (3 - 2 * t)
-}
-
-function smootherstep(v: number) {
-  const t = clamp01(v)
-  return t * t * t * (t * (t * 6 - 15) + 10)
-}
-
 const field = {
   bodies: Array.from({ length: MERGE_BODY_COUNT }, emptyBody),
   well: emptyWell(),
