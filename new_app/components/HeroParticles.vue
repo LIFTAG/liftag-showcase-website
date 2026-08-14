@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // GPU particle field for the hero background. One draw call replaces the old
-// 28-div DOM particle layer: ~1300 points simulated entirely in the vertex
+// 28-div DOM particle layer: ~1200 points simulated entirely in the vertex
 // shader (drift, wrap, twinkle, cursor repulsion, laser-wall swirl, scroll
 // parallax), so the CPU cost per frame is a handful of uniform writes.
 //
@@ -30,7 +30,7 @@ const props = withDefaults(defineProps<{
   /** Couple the field to the shared cursor (disable on touch layouts). */
   interactive?: boolean
 }>(), {
-  count: 1300,
+  count: 1200,
   dprCap: 1.75,
   interactive: true,
 })
@@ -162,16 +162,16 @@ const vertexShader = /* glsl */ `
     y += wall1.y;
     push += wall0.z + wall1.z;
 
-    float twinkle = 0.72 + 0.28 * sin(uTime * (0.6 + aSeed * 1.1) + phase * 3.0);
+    float twinkle = 0.76 + 0.24 * sin(uTime * (0.6 + aSeed * 1.1) + phase * 3.0);
     float edgeFade = (1.0 - smoothstep(aRangeY * 0.86, aRangeY, abs(y)))
                    * (1.0 - smoothstep(aRangeX * 0.9, aRangeX, abs(x)));
 
-    vAlpha = uReveal * twinkle * mix(0.30, 0.85, depth01) * edgeFade * (1.0 + push * 0.9);
+    vAlpha = uReveal * twinkle * mix(0.24, 0.68, depth01) * edgeFade * (1.0 + push * 0.55);
     vTint = aTint;
 
     vec4 mv = modelViewMatrix * vec4(x, y, p.z, 1.0);
-    float size = aSize * uPixelRatio * (1.0 + push * 0.55) * (135.0 / -mv.z);
-    gl_PointSize = clamp(size, 1.0, 10.0 * uPixelRatio);
+    float size = aSize * uPixelRatio * (1.0 + push * 0.38) * (135.0 / -mv.z);
+    gl_PointSize = clamp(size, 1.0, 8.5 * uPixelRatio);
     gl_Position = projectionMatrix * mv;
   }
 `
@@ -189,7 +189,7 @@ const fragmentShader = /* glsl */ `
     float hot = 1.0 - smoothstep(0.0, 0.16, d);
     float a = core * vAlpha;
     if (a < 0.004) discard;
-    vec3 col = mix(uColorA, uColorB, vTint) + hot * 0.32;
+    vec3 col = mix(uColorA, uColorB, vTint) + hot * 0.24;
     gl_FragColor = vec4(col, a);
   }
 `
@@ -209,13 +209,13 @@ function buildGeometry(count: number, aspect: number) {
     const { halfW, halfH } = halfExtentsAt(CAM_Z - z, aspect)
     const rangeX = halfW * 1.12
     const rangeY = halfH * 1.15
-    const lime = Math.random() < 0.16
+    const lime = Math.random() < 0.13
 
     positions[i * 3] = (Math.random() * 2 - 1) * rangeX
     positions[i * 3 + 1] = (Math.random() * 2 - 1) * rangeY
     positions[i * 3 + 2] = z
     seeds[i] = Math.random()
-    sizes[i] = (lime ? 1.5 : 1.0) * (0.8 + Math.random() * 1.6)
+    sizes[i] = (lime ? 1.4 : 1.0) * (0.8 + Math.random() * 1.45)
     tints[i] = lime ? 1 : 0
     rangesX[i] = rangeX
     rangesY[i] = rangeY
@@ -281,8 +281,8 @@ function init() {
       uWall1: { value: wallWorld1 },
       uWall1Vel: { value: wallVel1 },
       uWall1K: { value: 0 },
-      uColorA: { value: new THREE.Color(0.30, 0.33, 0.28) },
-      uColorB: { value: new THREE.Color(0.80, 1.0, 0.0) },
+      uColorA: { value: new THREE.Color(0.28, 0.30, 0.26) },
+      uColorB: { value: new THREE.Color(0.72, 0.92, 0.0) },
     },
   })
   points = new THREE.Points(geometry, material)
