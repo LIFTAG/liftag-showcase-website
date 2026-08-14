@@ -145,12 +145,16 @@ export function mergeStormFromProgress(
   const exit = clamp01(logoExit)
   const live = 1 - exit
 
-  // One-way expand, then freeze. A sine pulse fell after the peak and
-  // the leftover twist read as a second, rotated disperse phase.
-  const expand = smootherstep((intro - 0.08) / 0.16)
-  const settle = smootherstep((intro - 0.2) / 0.1) * live
-  const burst = expand * (1 - settle) * 0.84 * live
-  const tornado = m * 0.82 * (1 - expand) * live
+  // Bang on the same window as before, then coast the last third of the
+  // radius until the logo's stop-wobble (logoSpinDegrees at 0.72–1.0).
+  // A short late lock drops burst so the field freezes as the spin hits 360.
+  const bang = smootherstep((intro - 0.08) / 0.16)
+  const coast = smootherstep((intro - 0.24) / 0.48)
+  const expand = bang * 0.72 + coast * 0.28
+  const settle = smootherstep((intro - 0.72) / 0.28) * live
+  const lock = smootherstep((intro - 0.96) / 0.04)
+  const burst = expand * (1 - lock) * 0.84 * live
+  const tornado = m * 0.82 * (1 - bang) * live
   const spin = tornado * 0.48
 
   return { tornado, burst, settle, spin }

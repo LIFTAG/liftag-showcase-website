@@ -147,27 +147,31 @@ test('mergeStormFromProgress keeps the suck-in as the logo first appears', () =>
   assert.ok(storm.settle < 0.05)
 })
 
-test('mergeStormFromProgress expands once as LIFTAG appears, then freezes', () => {
+test('mergeStormFromProgress starts the expand as LIFTAG appears', () => {
   const rising = mergeStormFromProgress(1, 0.2, 0)
-  assert.ok(rising.burst > 0.65)
+  assert.ok(rising.burst > 0.4)
   assert.ok(rising.settle < 0.08)
-  const held = mergeStormFromProgress(1, 0.32, 0)
-  assert.ok(held.settle > 0.8)
-  assert.ok(held.burst < 0.2)
-  assert.ok(held.tornado < 0.05)
 })
 
-test('mergeStormFromProgress holds the dispersed field after the burst', () => {
-  const storm = mergeStormFromProgress(1, 0.7, 0)
-  assert.ok(storm.settle > 0.8)
-  assert.ok(storm.tornado < 0.05)
+test('mergeStormFromProgress is still coasting while the logo spins', () => {
+  const early = mergeStormFromProgress(1, 0.32, 0)
+  const mid = mergeStormFromProgress(1, 0.7, 0)
+  assert.ok(early.settle < 0.1)
+  assert.ok(mid.settle < 0.15)
+  assert.ok(early.tornado < 0.05)
+  assert.ok(mid.tornado < 0.05)
+  // Last third of the radius is still opening here, not frozen after the bang.
+  assert.ok(mid.burst > early.burst)
 })
 
-test('mergeStormFromProgress keeps the hold as the logo spin finishes', () => {
-  const storm = mergeStormFromProgress(1, 1, 0)
-  assert.ok(storm.settle > 0.95)
-  assert.ok(storm.tornado < 0.05)
-  assert.ok(storm.burst < 0.05)
+test('mergeStormFromProgress settles when the logo spin finishes', () => {
+  const almost = mergeStormFromProgress(1, 0.86, 0)
+  const done = mergeStormFromProgress(1, 1, 0)
+  assert.ok(almost.settle < 0.55)
+  assert.ok(almost.settle > 0.35)
+  assert.ok(done.settle > 0.95)
+  assert.ok(done.tornado < 0.05)
+  assert.ok(done.burst < 0.05)
 })
 
 test('mergeStormFromProgress dies on section exit', () => {
