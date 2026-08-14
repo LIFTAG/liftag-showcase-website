@@ -6,15 +6,14 @@ const stageRef = ref<HTMLElement | null>(null)
 
 const openProgress = ref(0)
 const zoomProgress = ref(0)
-const videoProgress = ref(0)
 const chromeProgress = ref(1)
 const entered = ref(false)
 const shouldUseDashboardVideo = ref(false)
 
-const DASHBOARD_SCRUB_VIDEO_SRC = '/assets/videos/macbook-dashboard-scrub.mp4'
+const DASHBOARD_VIDEO_SRC = '/assets/videos/macbook-dashboard.mp4'
 
 const dashboardVideoSrc = computed(() => (
-  shouldUseDashboardVideo.value ? DASHBOARD_SCRUB_VIDEO_SRC : undefined
+  shouldUseDashboardVideo.value ? DASHBOARD_VIDEO_SRC : undefined
 ))
 
 const dashboardMetricChartSvg = ref<SVGSVGElement | null>(null)
@@ -160,7 +159,6 @@ function tick() {
 
   openProgress.value = mapped.open
   zoomProgress.value = mapped.zoom
-  videoProgress.value = mapped.video
   chromeProgress.value = mapped.chrome
 
   const exitT = mapped.exit
@@ -173,7 +171,6 @@ function tick() {
     section.style.setProperty('--scroll-p', String(p))
     section.style.setProperty('--zoom-p', String(mapped.zoom))
     section.style.setProperty('--chrome-p', String(mapped.chrome))
-    section.style.setProperty('--video-p', String(mapped.video))
     section.style.setProperty('--exit-p', String(exitT))
     section.style.setProperty('--exit-flow-y', `${exitFlow * -92}px`)
     section.style.setProperty('--exit-flow-scale', String(1 - exitFlow * 0.018))
@@ -302,7 +299,6 @@ onBeforeUnmount(() => {
                 :video-src="dashboardVideoSrc"
                 :open-progress="openProgress"
                 :zoom-progress="zoomProgress"
-                :video-progress="videoProgress"
               />
               <template #fallback>
                 <img
@@ -417,7 +413,6 @@ onBeforeUnmount(() => {
   --scroll-p: 0;
   --zoom-p: 0;
   --chrome-p: 1;
-  --video-p: 0;
   --exit-p: 0;
   --exit-copy: 0;
   --exit-copy-y: 0px;
@@ -452,7 +447,7 @@ onBeforeUnmount(() => {
   --exit-flow-y: 0px;
   --exit-flow-scale: 1;
   position: relative;
-  min-height: 340vh;
+  min-height: 300vh;
   background: #000;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -978,7 +973,7 @@ onBeforeUnmount(() => {
 
 @media (max-width: 980px) {
   .dashboard-section {
-    min-height: var(--liftag-stable-vh-340);
+    min-height: var(--liftag-stable-vh-300);
   }
 
   .dashboard-sticky {

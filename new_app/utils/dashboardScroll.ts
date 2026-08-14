@@ -1,16 +1,15 @@
 export type DashboardScrollState = {
   open: number
   zoom: number
-  video: number
   exit: number
   chrome: number
 }
 
 export const DASHBOARD_SCROLL = {
-  closedEnd: 0.07,
-  openEnd: 0.32,
-  zoomEnd: 0.52,
-  videoEnd: 0.84,
+  closedEnd: 0.08,
+  openEnd: 0.34,
+  zoomEnd: 0.58,
+  exitStart: 0.80,
 } as const
 
 export function clamp01(v: number) {
@@ -32,8 +31,9 @@ function span(p: number, start: number, end: number) {
 }
 
 /**
- * Maps sticky-section scroll progress into the cinematic dashboard beat:
- * closed hold → lid open → camera punch-in → footage scrub → exit.
+ * Maps sticky-section scroll progress:
+ * closed hold → lid open → camera punch-in to the screen center → hold → exit.
+ * Footage plays on its own once the section is visible.
  */
 export function mapDashboardScroll(
   p: number,
@@ -43,20 +43,18 @@ export function mapDashboardScroll(
     return {
       open: 1,
       zoom: 0,
-      video: 0,
       exit: 0,
       chrome: 1,
     }
   }
 
   const t = clamp01(p)
-  const { closedEnd, openEnd, zoomEnd, videoEnd } = DASHBOARD_SCROLL
+  const { closedEnd, openEnd, zoomEnd, exitStart } = DASHBOARD_SCROLL
 
   const open = smoothstep(span(t, closedEnd, openEnd))
   const zoom = smootherstep(span(t, openEnd, zoomEnd))
-  const video = smoothstep(span(t, zoomEnd, videoEnd))
-  const exit = smoothstep(span(t, videoEnd, 1))
+  const exit = smoothstep(span(t, exitStart, 1))
   const chrome = 1 - zoom
 
-  return { open, zoom, video, exit, chrome }
+  return { open, zoom, exit, chrome }
 }
