@@ -6,6 +6,8 @@ import {
   MACBOOK_DASHBOARD_TOP_CROP,
   MACBOOK_SCREEN_INSET,
   applyRectUVs,
+  cameraTruckToAlign,
+  clampTruckToKeepWidth,
   containScreenDistance,
   coverFitScreenUVs,
   createNotchedScreenGeometry,
@@ -13,6 +15,7 @@ import {
   frustumSizeAtDistance,
   isInsideNotchCavity,
   layoutMacbookScreen,
+  startDistanceToMatchHeight,
 } from '../utils/macbookScreen.ts'
 
 const LID_W = 2.8
@@ -232,4 +235,82 @@ test('a 0.58 fill would crop the dashboard sides and is not the zoom target', ()
 
   assert.ok(cropped.width < worldWidth, 'sanity: 0.58 fill must be narrower than the screen')
   assert.ok(distance * 0.58 < distance)
+})
+
+test('cameraTruckToAlign is zero when the target is already centered', () => {
+  const truck = cameraTruckToAlign({
+    canvasLeft: 0,
+    canvasWidth: 1000,
+    targetLeft: 250,
+    targetWidth: 500,
+    distance: 8,
+    fovDeg: 30,
+    aspect: 16 / 9,
+  })
+
+  assert.ok(Math.abs(truck) < 1e-9)
+})
+
+test('cameraTruckToAlign trucks left so a right-hand stage sits in the middle of the frame', () => {
+  const distance = 8
+  const fovDeg = 30
+  const aspect = 16 / 9
+  const truck = cameraTruckToAlign({
+    canvasLeft: 0,
+    canvasWidth: 1000,
+    targetLeft: 600,
+    targetWidth: 400,
+    distance,
+    fovDeg,
+    aspect,
+  })
+  const view = frustumSizeAtDistance({ distance, fovDeg, aspect })
+  const targetNdc = ((600 + 200) - 500) / 500
+
+  assert.ok(truck < 0, 'camera must move left so the laptop appears on the right')
+  assert.ok(Math.abs(-truck / (view.width / 2) - targetNdc) < 1e-9)
+})
+
+test('clampTruckToKeepWidth keeps the laptop inside the frustum', () => {
+  const distance = 8
+  const fovDeg = 30
+  const aspect = 16 / 9
+  const worldWidth = 2.4
+  const view = frustumSizeAtDistance({ distance, fovDeg, aspect })
+  const max = (view.width - worldWidth) / 2
+
+  assert.ok(Math.abs(clampTruckToKeepWidth({
+    truck: 0.2,
+    worldWidth,
+    distance,
+    fovDeg,
+    aspect,
+  }) - 0.2) < 1e-9)
+  assert.ok(Math.abs(clampTruckToKeepWidth({
+    truck: 40,
+    worldWidth,
+    distance,
+    fovDeg,
+    aspect,
+  }) - max) < 1e-9)
+  assert.ok(Math.abs(clampTruckToKeepWidth({
+    truck: -40,
+    worldWidth,
+    distance,
+    fovDeg,
+    aspect,
+  }) + max) < 1e-9)
+})
+
+test('startDistanceToMatchHeight only pulls back when the canvas is taller than the mount', () => {
+  assert.equal(startDistanceToMatchHeight({
+    baseDistance: 6.85,
+    canvasHeight: 800,
+    referenceHeight: 400,
+  }), 13.7)
+  assert.equal(startDistanceToMatchHeight({
+    baseDistance: 6.85,
+    canvasHeight: 200,
+    referenceHeight: 400,
+  }), 6.85)
 })

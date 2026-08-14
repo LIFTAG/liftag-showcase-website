@@ -117,6 +117,65 @@ export function containScreenDistance(options: {
   return Math.max(distV, distH)
 }
 
+/**
+ * Horizontal camera truck that puts world-origin on the center of `target`
+ * inside `canvas`. Negative values move the camera left so a right-hand
+ * stage reads as the subject.
+ */
+export function cameraTruckToAlign(options: {
+  canvasLeft: number
+  canvasWidth: number
+  targetLeft: number
+  targetWidth: number
+  distance: number
+  fovDeg: number
+  aspect: number
+}): number {
+  const canvasWidth = Math.max(options.canvasWidth, 1e-6)
+  const canvasCenter = options.canvasLeft + canvasWidth / 2
+  const targetCenter = options.targetLeft + options.targetWidth / 2
+  const ndcX = (targetCenter - canvasCenter) / (canvasWidth / 2)
+  const view = frustumSizeAtDistance({
+    distance: options.distance,
+    fovDeg: options.fovDeg,
+    aspect: options.aspect,
+  })
+  return -ndcX * (view.width / 2)
+}
+
+/** Limit a truck so `worldWidth` stays fully inside the frustum. */
+export function clampTruckToKeepWidth(options: {
+  truck: number
+  worldWidth: number
+  distance: number
+  fovDeg: number
+  aspect: number
+  padding?: number
+}): number {
+  const view = frustumSizeAtDistance({
+    distance: options.distance,
+    fovDeg: options.fovDeg,
+    aspect: options.aspect,
+  })
+  const padding = Math.max(options.padding ?? 0, 0)
+  const max = Math.max(0, (view.width - options.worldWidth) / 2 - padding)
+  return Math.max(-max, Math.min(max, options.truck))
+}
+
+/**
+ * Keep the rest-pose laptop the same pixel height when the WebGL canvas
+ * is taller than the original mount. Never dolly in closer than the base.
+ */
+export function startDistanceToMatchHeight(options: {
+  baseDistance: number
+  canvasHeight: number
+  referenceHeight: number
+}): number {
+  const base = Math.max(options.baseDistance, 0)
+  const scale = options.canvasHeight / Math.max(options.referenceHeight, 1e-6)
+  return base * Math.max(scale, 1)
+}
+
 export type MacbookScreenLayout = {
   width: number
   height: number

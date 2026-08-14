@@ -3,6 +3,7 @@ import { clamp01, mapDashboardScroll, smootherstep, smoothstep } from '../utils/
 
 const sectionRef = ref<HTMLElement | null>(null)
 const stageRef = ref<HTMLElement | null>(null)
+const mountRef = ref<HTMLElement | null>(null)
 
 const openProgress = ref(0)
 const zoomProgress = ref(0)
@@ -254,6 +255,18 @@ onBeforeUnmount(() => {
         <div class="dashboard-pulse pulse-two"></div>
       </div>
 
+      <div class="dashboard-macbook-layer" aria-hidden="true">
+        <ClientOnly>
+          <Macbook3D
+            screenshot-src="/assets/screens/dashboard-web.webp"
+            :video-src="dashboardVideoSrc"
+            :open-progress="openProgress"
+            :zoom-progress="zoomProgress"
+            :align-el="mountRef"
+          />
+        </ClientOnly>
+      </div>
+
       <div class="container dashboard-layout">
         <div class="dashboard-copy">
           <div class="dashboard-copy-head">
@@ -292,14 +305,8 @@ onBeforeUnmount(() => {
           <div class="dashboard-hint">
             <span class="protocol">SCROLL TO OPEN ↓</span>
           </div>
-          <div class="dashboard-macbook-mount">
+          <div ref="mountRef" class="dashboard-macbook-mount">
             <ClientOnly>
-              <Macbook3D
-                screenshot-src="/assets/screens/dashboard-web.webp"
-                :video-src="dashboardVideoSrc"
-                :open-progress="openProgress"
-                :zoom-progress="zoomProgress"
-              />
               <template #fallback>
                 <img
                   src="/assets/screens/dashboard-web.webp"
@@ -516,6 +523,15 @@ onBeforeUnmount(() => {
   width: 780px;
   opacity: calc((0.1 + var(--lid-p) * 0.22) * (1 - var(--zoom-p) * 0.85));
   transform: translate(-50%, -50%) scale(calc(0.7 + var(--lid-p) * 0.42));
+}
+
+.dashboard-macbook-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: calc(1 - var(--exit-macbook));
+  transform: translate3d(0, var(--exit-macbook-y), 0);
 }
 
 .dashboard-layout {
@@ -957,9 +973,7 @@ onBeforeUnmount(() => {
   width: min(100%, 760px);
   aspect-ratio: 1.3 / 1;
   z-index: 2;
-  opacity: calc(1 - var(--exit-macbook));
-  transform: translate3d(0, var(--exit-macbook-y), 0) scale(calc(1 - var(--exit-macbook) * 0.035));
-  will-change: opacity, transform;
+  pointer-events: none;
 }
 
 .dashboard-fallback-img {

@@ -6,8 +6,11 @@ import {
   MACBOOK_DASHBOARD_CONTENT_ASPECT,
   MACBOOK_DASHBOARD_TOP_CROP,
   MACBOOK_SCREEN_INSET,
+  cameraTruckToAlign,
+  clampTruckToKeepWidth,
   containScreenDistance,
   coverFitScreenUVs,
+  startDistanceToMatchHeight,
   createNotchedScreenGeometry,
   createRoundedRectGeometry,
   layoutMacbookScreen,
@@ -20,10 +23,12 @@ const props = withDefaults(defineProps<{
   openProgress?: number
   zoomProgress?: number
   tiltDelayMs?: number
+  alignEl?: HTMLElement | null
 }>(), {
   openProgress: 0,
   zoomProgress: 0,
   tiltDelayMs: 0,
+  alignEl: null,
 })
 
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -33,6 +38,7 @@ let updateTexture: ((src: string) => void) | null = null
 let setVideoSource: ((src?: string) => void) | null = null
 let setOpenProgress: ((p: number) => void) | null = null
 let setZoomProgress: ((p: number) => void) | null = null
+let setAlignEl: ((el: HTMLElement | null) => void) | null = null
 let initObserver: IntersectionObserver | null = null
 let initialized = false
 
@@ -362,10 +368,12 @@ function initMacbook() {
   macbook.rotation.y = -0.03
   scene.add(macbook)
 
-  const CAM_START_POS = new THREE.Vector3(0, 0.7, 6.85)
-  const CAM_START_LOOK = new THREE.Vector3(0, 0.22, 0)
+  const CAM_BASE_POS = new THREE.Vector3(0, 0.7, 6.85)
+  const CAM_BASE_LOOK = new THREE.Vector3(0, 0.22, 0)
   const CAM_START_FOV = 30
   const CAM_ZOOM_FOV = 22
+  const startPos = CAM_BASE_POS.clone()
+  const startLook = CAM_BASE_LOOK.clone()
   const zoomCam = new THREE.Object3D()
   const endPos = new THREE.Vector3()
   const endLook = new THREE.Vector3()
@@ -374,6 +382,8 @@ function initMacbook() {
   const worldUp = new THREE.Vector3(0, 1, 0)
   const screenUp = new THREE.Vector3()
   const lidQuat = new THREE.Quaternion()
+  let alignTarget: HTMLElement | null = props.alignEl ?? null
+  let observedAlign: HTMLElement | null = null
 
   function placeZoomCam() {
     const worldDist = containScreenDistance({
@@ -389,8 +399,49 @@ function initMacbook() {
     )
   }
 
-  placeZoomCam()
+  function updateStartRig() {
+    if (!container) return
+    const canvasRect = container.getBoundingClientRect()
+    const targetRect = alignTarget?.getBoundingClientRect()
+    const dist = targetRect && targetRect.height > 1
+      ? startDistanceToMatchHeight({
+          baseDistance: CAM_BASE_POS.z,
+          canvasHeight: canvasRect.height,
+          referenceHeight: targetRect.height,
+        })
+      : CAM_BASE_POS.z
+
+    startPos.set(0, CAM_BASE_POS.y * (dist / CAM_BASE_POS.z), dist)
+    startLook.copy(CAM_BASE_LOOK)
+
+    if (targetRect && targetRect.width > 1 && canvasRect.width > 1) {
+      const truck = clampTruckToKeepWidth({
+        truck: cameraTruckToAlign({
+          canvasLeft: canvasRect.left,
+          canvasWidth: canvasRect.width,
+          targetLeft: targetRect.left,
+          targetWidth: targetRect.width,
+          distance: dist,
+          fovDeg: CAM_START_FOV,
+          aspect: camera.aspect,
+        }),
+        worldWidth: W * macbook.scale.x,
+        distance: dist,
+        fovDeg: CAM_START_FOV,
+        aspect: camera.aspect,
+        padding: 0.08,
+      })
+      startPos.x = truck
+      startLook.x = truck
+    }
+
+    placeZoomCam()
+  }
+
   lidGroup.add(zoomCam)
+  updateStartRig()
+  camera.position.copy(startPos)
+  camera.lookAt(startLook)
 
   updateTexture = (src: string) => {
     const previous = posterTexture
@@ -542,8 +593,8 @@ function initMacbook() {
     screen.getWorldPosition(endLook)
     lidGroup.getWorldQuaternion(lidQuat)
     screenUp.set(0, 0, 1).applyQuaternion(lidQuat)
-    camPos.lerpVectors(CAM_START_POS, endPos, zoomT)
-    camLook.lerpVectors(CAM_START_LOOK, endLook, zoomT)
+    camPos.lerpVectors(startPos, endPos, zoomT)
+    camLook.lerpVectors(startLook, endLook, zoomT)
     camera.position.copy(camPos)
     camera.up.lerpVectors(worldUp, screenUp, zoomT)
     camera.lookAt(camLook)
@@ -583,7 +634,7 @@ function initMacbook() {
     const w = Math.max(container.clientWidth, 1)
     const h = Math.max(container.clientHeight, 1)
     camera.aspect = w / h
-    placeZoomCam()
+    updateStartRig()
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
   }
@@ -598,6 +649,17 @@ function initMacbook() {
   window.addEventListener('resize', onResize, { passive: true })
   const resizeObserver = new ResizeObserver(onResize)
   resizeObserver.observe(container)
+
+  setAlignEl = (el) => {
+    if (observedAlign && observedAlign !== el) {
+      resizeObserver.unobserve(observedAlign)
+    }
+    alignTarget = el
+    observedAlign = el
+    if (el) resizeObserver.observe(el)
+    updateStartRig()
+  }
+  setAlignEl(alignTarget)
 
   cleanup = () => {
     window.removeEventListener('resize', onResize)
@@ -615,6 +677,7 @@ function initMacbook() {
     setVideoSource = null
     setOpenProgress = null
     setZoomProgress = null
+    setAlignEl = null
     disposeVideo()
     posterTexture.dispose()
     kbTex.dispose()
@@ -687,6 +750,13 @@ watch(
     else initMacbook()
   },
   { immediate: true },
+)
+
+watch(
+  () => props.alignEl,
+  (el) => {
+    if (setAlignEl) setAlignEl(el ?? null)
+  },
 )
 </script>
 
