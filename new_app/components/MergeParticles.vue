@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // GPU particle field for the app-merge background. Same single-draw-call
-// point field as the hero, driven by nine moving discs (eight icons + logo)
-// and a center well instead of the laser walls.
+// point field as the hero, pinned to the sticky stage (no scroll-rise).
+// Icons suck nearby dust inward; a tornado tightens as they merge, then
+// detonates and settles into a halo as LIFTAG appears.
 //
 // Lifecycle contract:
 //   • never initializes under prefers-reduced-motion
@@ -68,6 +69,7 @@ let mouseArmed = false
 const bodyUniforms = Array.from({ length: MERGE_BODY_COUNT }, () => new THREE.Vector4())
 const bodyMotionUniforms = Array.from({ length: MERGE_BODY_COUNT }, () => new THREE.Vector4())
 const wellUniform = new THREE.Vector3()
+const stormUniform = new THREE.Vector4()
 const mergeParticleField = useMergeParticleField()
 
 function halfExtentsAt(distance: number, aspect: number) {
@@ -79,11 +81,11 @@ const vertexShader = /* glsl */ `
   uniform float uTime;
   uniform float uPixelRatio;
   uniform vec2 uMouse;
-  uniform float uScroll;
   uniform float uReveal;
   uniform vec4 uBodies[9];
   uniform vec4 uBodyMotion[9];
   uniform vec3 uWell;
+  uniform vec4 uStorm;
   attribute float aSeed;
   attribute float aSize;
   attribute float aTint;
@@ -95,9 +97,9 @@ const vertexShader = /* glsl */ `
   vec2 vortexOffset(vec2 p, vec2 vortex, float circ) {
     vec2 d = p - vortex;
     float dist = length(d);
-    float g = exp(-(dist * dist) * 0.02);
+    float g = exp(-(dist * dist) * 0.018);
     vec2 perp = vec2(-d.y, d.x) / max(dist, 0.0001);
-    return perp * g * circ * 1.6;
+    return perp * g * circ * 1.8;
   }
 
   vec3 applyBody(vec2 p, vec4 body, vec4 motion, float depth01) {
@@ -107,27 +109,46 @@ const vertexShader = /* glsl */ `
     float radius = max(body.z, 0.08);
     vec2 d = p - c;
     float dist = length(d);
-    float infl = (1.0 - smoothstep(0.0, radius * 3.2, dist)) * k;
+    float infl = (1.0 - smoothstep(0.0, radius * 5.4, dist)) * k;
     float depth = 0.35 + 0.65 * depth01;
     vec2 dir = d / max(dist, 0.0001);
-    vec2 off = dir * infl * 2.15 * depth;
-    vec2 wake = motion.xy * 0.03;
+    vec2 off = -dir * infl * 3.1 * depth;
+    vec2 wake = motion.xy * 0.028;
     float wakeLen = length(wake);
-    wake *= min(wakeLen, 3.6) / max(wakeLen, 0.0001);
+    wake *= min(wakeLen, 3.2) / max(wakeLen, 0.0001);
     off += wake * infl * depth;
-    float circ = clamp(motion.z / 360.0, -2.0, 2.0) * infl;
+    float circ = clamp(motion.z / 220.0, -2.4, 2.4) * infl;
     off += vortexOffset(p, c, circ);
-    return vec3(off, infl * 0.45);
+    return vec3(off, infl * 0.5);
   }
 
-  vec3 applyWell(vec2 p, vec3 well, float depth01) {
-    if (well.z < 0.001) return vec3(0.0);
-    vec2 d = well.xy - p;
+  vec3 applyStorm(vec2 p, vec3 well, vec4 storm, float depth01, float seed) {
+    float energy = storm.x + storm.y + storm.z;
+    if (energy < 0.001) return vec3(0.0);
+
+    vec2 d = p - well.xy;
     float dist = length(d);
-    float infl = (1.0 - smoothstep(0.0, 26.0, dist)) * well.z;
-    float depth = 0.35 + 0.65 * depth01;
-    vec2 dir = d / max(dist, 0.0001);
-    return vec3(dir * infl * 3.1 * depth, infl * 0.4);
+    float ang = atan(d.y, d.x);
+    float depth = 0.4 + 0.6 * depth01;
+    float reach = mix(36.0, 14.0, storm.x);
+    float infl = (1.0 - smoothstep(0.0, reach, dist)) * storm.x;
+    float twist = uTime * storm.w * (1.15 + 2.8 * infl) + seed * 2.1;
+    float contracted = mix(dist, dist * 0.08, infl * 0.94);
+    float lift = infl * (1.0 - contracted / max(dist, 0.001)) * 3.4;
+
+    float boom = storm.y * (0.5 + 0.5 * seed);
+    float exploded = mix(contracted, max(dist, contracted) * (1.0 + 2.35 * boom) + 14.0 * boom, storm.y);
+
+    float halo = mix(6.2, 9.6, seed);
+    float settled = mix(exploded, mix(exploded, halo, 0.78), storm.z);
+
+    float finalAng = ang + twist * (storm.x + storm.y * 0.4 + storm.z * 0.14);
+    vec2 target = well.xy + vec2(cos(finalAng), sin(finalAng)) * settled;
+    target.y += lift * (1.0 - storm.y) * (1.0 - storm.z);
+
+    float k = clamp(energy, 0.0, 1.0);
+    vec2 off = (target - p) * k * (0.72 + 0.28 * depth);
+    return vec3(off, infl + storm.y * 0.95 + storm.z * 0.22);
   }
 
   void main() {
@@ -135,10 +156,8 @@ const vertexShader = /* glsl */ `
     float phase = aSeed * 6.2831853;
     float depth01 = (p.z + 40.0) / 80.0;
 
-    float speed = 0.55 + aSeed * 1.15;
-    float travel = p.y + uTime * speed + uScroll * (0.35 + 0.65 * depth01);
-    float y = mod(travel + aRangeY, 2.0 * aRangeY) - aRangeY;
-    float x = p.x + sin(uTime * (0.16 + aSeed * 0.2) + phase) * (1.1 + aSeed * 1.9);
+    float y = p.y + sin(uTime * (0.11 + aSeed * 0.14) + phase) * (0.32 + aSeed * 0.4);
+    float x = p.x + cos(uTime * (0.13 + aSeed * 0.16) + phase) * (0.32 + aSeed * 0.5);
 
     vec2 mouseAtDepth = uMouse * ((${CAM_Z.toFixed(1)} - p.z) / ${CAM_Z.toFixed(1)});
     vec2 toMouse = vec2(x, y) - mouseAtDepth;
@@ -155,21 +174,21 @@ const vertexShader = /* glsl */ `
       push += body.z;
     }
 
-    vec3 well = applyWell(vec2(x, y), uWell, depth01);
-    x += well.x;
-    y += well.y;
-    push += well.z;
+    vec3 storm = applyStorm(vec2(x, y), uWell, uStorm, depth01, aSeed);
+    x += storm.x;
+    y += storm.y;
+    push += storm.z;
 
     float twinkle = 0.76 + 0.24 * sin(uTime * (0.6 + aSeed * 1.1) + phase * 3.0);
-    float edgeFade = (1.0 - smoothstep(aRangeY * 0.86, aRangeY, abs(y)))
-                   * (1.0 - smoothstep(aRangeX * 0.9, aRangeX, abs(x)));
+    float edgeFade = (1.0 - smoothstep(aRangeY * 0.92, aRangeY, abs(y)))
+                   * (1.0 - smoothstep(aRangeX * 0.94, aRangeX, abs(x)));
 
-    vAlpha = uReveal * twinkle * mix(0.24, 0.68, depth01) * edgeFade * (1.0 + push * 0.55);
+    vAlpha = uReveal * twinkle * mix(0.24, 0.68, depth01) * edgeFade * (1.0 + push * 0.7);
     vTint = aTint;
 
     vec4 mv = modelViewMatrix * vec4(x, y, p.z, 1.0);
-    float size = aSize * uPixelRatio * (1.0 + push * 0.38) * (135.0 / -mv.z);
-    gl_PointSize = clamp(size, 1.0, 8.5 * uPixelRatio);
+    float size = aSize * uPixelRatio * (1.0 + push * 0.55) * (135.0 / -mv.z);
+    gl_PointSize = clamp(size, 1.0, 9.5 * uPixelRatio);
     gl_Position = projectionMatrix * mv;
   }
 `
@@ -231,6 +250,7 @@ function clearForceUniforms() {
   for (const body of bodyUniforms) body.set(0, 0, 0, 0)
   for (const motion of bodyMotionUniforms) motion.set(0, 0, 0, 0)
   wellUniform.set(0, 0, 0)
+  stormUniform.set(0, 0, 0, 0)
   uniformsCleared = true
 }
 
@@ -277,11 +297,11 @@ function init() {
       uTime: { value: Math.random() * 40 },
       uPixelRatio: { value: dpr },
       uMouse: { value: mouseWorld },
-      uScroll: { value: 0 },
       uReveal: { value: 0 },
       uBodies: { value: bodyUniforms },
       uBodyMotion: { value: bodyMotionUniforms },
       uWell: { value: wellUniform },
+      uStorm: { value: stormUniform },
       uColorA: { value: new THREE.Color(0.28, 0.30, 0.26) },
       uColorB: { value: new THREE.Color(0.72, 0.92, 0.0) },
     },
@@ -340,6 +360,8 @@ function disposeScene() {
 }
 
 function fieldHasForces() {
+  const storm = mergeParticleField.storm
+  if (storm.tornado + storm.burst + storm.settle > 0.001) return true
   if (mergeParticleField.well.strength > 0.001) return true
   for (const body of mergeParticleField.bodies) {
     if (body.strength > 0.001) return true
@@ -370,6 +392,8 @@ function syncBodyUniforms() {
 
   const well = wellToParticleWorld(mergeParticleField.well, canvas, halfW, halfH)
   wellUniform.set(well.cx, well.cy, well.strength)
+  const storm = mergeParticleField.storm
+  stormUniform.set(storm.tornado, storm.burst, storm.settle, storm.spin)
   uniformsCleared = false
 }
 
@@ -388,8 +412,6 @@ function frame(now: number) {
 
   revealLinear = Math.min(1, revealLinear + dt * 0.0007)
   u.uReveal.value = 1 - Math.pow(1 - revealLinear, 3)
-
-  u.uScroll.value = window.scrollY * 0.02
 
   if (props.interactive && sharedMouse.latest.hasPointer) {
     const { halfW, halfH } = halfExtentsAt(CAM_Z, camera.aspect)

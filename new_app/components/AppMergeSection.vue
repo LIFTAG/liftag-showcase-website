@@ -3,7 +3,9 @@ import {
   MERGE_BODY_COUNT,
   MERGE_LOGO_INDEX,
   mergeBodyVelocity,
+  mergeStormFromProgress,
   publishMergeBody,
+  publishMergeStorm,
   publishMergeWell,
   resetMergeParticleField,
   type MergeBodyPose,
@@ -367,10 +369,12 @@ function publishMergePhysics(now: number) {
     strength: logoIntro * (1 - logoExit),
   })
 
+  const storm = mergeStormFromProgress(merge, logoIntro, logoExit)
+  publishMergeStorm(storm)
   publishMergeWell({
     cx: originX,
     cy: originY,
-    strength: Math.min(1, merge * 0.42 + logoIntro * 0.7) * (1 - logoExit),
+    strength: Math.max(storm.tornado, storm.burst, storm.settle),
   })
   bodiesArmed = true
 }

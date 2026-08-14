@@ -48,12 +48,23 @@ export type MergeBodyPose = {
   spin: number
 }
 
+export type MergeFieldStorm = {
+  tornado: number
+  burst: number
+  settle: number
+  spin: number
+}
+
 function emptyBody(): MergeFieldBody {
   return { cx: 0, cy: 0, radius: 0, vx: 0, vy: 0, spin: 0, strength: 0 }
 }
 
 function emptyWell(): MergeFieldWell {
   return { cx: 0, cy: 0, strength: 0 }
+}
+
+function emptyStorm(): MergeFieldStorm {
+  return { tornado: 0, burst: 0, settle: 0, spin: 0 }
 }
 
 function writeBody(target: MergeFieldBody, source: MergeFieldBody) {
@@ -72,9 +83,31 @@ function writeWell(target: MergeFieldWell, source: MergeFieldWell) {
   target.strength = source.strength
 }
 
+function writeStorm(target: MergeFieldStorm, source: MergeFieldStorm) {
+  target.tornado = source.tornado
+  target.burst = source.burst
+  target.settle = source.settle
+  target.spin = source.spin
+}
+
+function clamp01(v: number) {
+  return Math.min(1, Math.max(0, v))
+}
+
+function smoothstep(v: number) {
+  const t = clamp01(v)
+  return t * t * (3 - 2 * t)
+}
+
+function smootherstep(v: number) {
+  const t = clamp01(v)
+  return t * t * t * (t * (t * 6 - 15) + 10)
+}
+
 const field = {
   bodies: Array.from({ length: MERGE_BODY_COUNT }, emptyBody),
   well: emptyWell(),
+  storm: emptyStorm(),
 }
 
 export function useMergeParticleField() {
@@ -84,6 +117,7 @@ export function useMergeParticleField() {
 export function resetMergeParticleField() {
   for (const body of field.bodies) writeBody(body, emptyBody())
   writeWell(field.well, emptyWell())
+  writeStorm(field.storm, emptyStorm())
 }
 
 export function publishMergeBody(index: number, body: MergeFieldBody) {
@@ -95,6 +129,28 @@ export function publishMergeBody(index: number, body: MergeFieldBody) {
 
 export function publishMergeWell(well: MergeFieldWell) {
   writeWell(field.well, well)
+}
+
+export function publishMergeStorm(storm: MergeFieldStorm) {
+  writeStorm(field.storm, storm)
+}
+
+export function mergeStormFromProgress(
+  merge: number,
+  logoIntro: number,
+  logoExit: number,
+): MergeFieldStorm {
+  const m = clamp01(merge)
+  const intro = clamp01(logoIntro)
+  const exit = clamp01(logoExit)
+
+  const tornadoFade = smoothstep((intro - 0.06) / 0.28)
+  const tornado = m * (1 - tornadoFade) * (1 - exit)
+  const burst = Math.sin(clamp01(intro / 0.36) * Math.PI) * (1 - exit)
+  const settle = smootherstep((intro - 0.3) / 0.52) * (1 - exit)
+  const spin = tornado * 2.6 + burst * 1.35 + settle * 0.42
+
+  return { tornado, burst, settle, spin }
 }
 
 export function mergeBodyVelocity(
