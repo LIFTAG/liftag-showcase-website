@@ -1,15 +1,20 @@
 <script setup lang="ts">
+import { clamp01, mapDashboardScroll, smootherstep, smoothstep } from '../utils/dashboardScroll'
+
 const sectionRef = ref<HTMLElement | null>(null)
 const stageRef = ref<HTMLElement | null>(null)
 
 const openProgress = ref(0)
+const zoomProgress = ref(0)
+const videoProgress = ref(0)
+const chromeProgress = ref(1)
 const entered = ref(false)
 const shouldUseDashboardVideo = ref(false)
 
-const DASHBOARD_VIDEO_SRC = '/assets/videos/macbook-dashboard.mp4'
+const DASHBOARD_SCRUB_VIDEO_SRC = '/assets/videos/macbook-dashboard-scrub.mp4'
 
 const dashboardVideoSrc = computed(() => (
-  shouldUseDashboardVideo.value ? DASHBOARD_VIDEO_SRC : undefined
+  shouldUseDashboardVideo.value ? DASHBOARD_SCRUB_VIDEO_SRC : undefined
 ))
 
 const dashboardMetricChartSvg = ref<SVGSVGElement | null>(null)
@@ -107,20 +112,6 @@ let reduceMotion = false
 let hasEntered = false
 let dashboardVideoQuery: MediaQueryList | null = null
 
-function clamp01(v: number) {
-  return Math.max(0, Math.min(1, v))
-}
-
-function smoothstep(v: number) {
-  const t = clamp01(v)
-  return t * t * (3 - 2 * t)
-}
-
-function smootherstep(v: number) {
-  const t = clamp01(v)
-  return t * t * t * (t * (t * 6 - 15) + 10)
-}
-
 function exitSlice(p: number, start: number, duration: number) {
   return smoothstep((p - start) / duration)
 }
@@ -165,35 +156,37 @@ function tick() {
   rafId = requestAnimationFrame(tick)
 
   const p = reduceMotion ? 1 : getScrollProgress()
+  const mapped = mapDashboardScroll(p, reduceMotion)
 
-  // Map raw scroll progress to lid open progress.
-  //   p < 0.10        : closed (entry hold)
-  //   0.10 → 0.62     : lid opens
-  //   0.62 → 0.80     : hold at fully open
-  //   0.80 → 1.00     : content keeps drifting upward while fading out
-  const lidT = smoothstep((p - 0.1) / 0.52)
-  const exitT = reduceMotion ? 0 : smoothstep((p - 0.8) / 0.2)
-  const exitFlow = reduceMotion ? 0 : smoothstep((p - 0.78) / 0.22)
+  openProgress.value = mapped.open
+  zoomProgress.value = mapped.zoom
+  videoProgress.value = mapped.video
+  chromeProgress.value = mapped.chrome
+
+  const exitT = mapped.exit
+  const exitFlow = reduceMotion ? 0 : smoothstep((p - 0.83) / 0.17)
   const exitP = reduceMotion ? -1 : p
-  openProgress.value = lidT
 
   const section = sectionRef.value
   if (section) {
-    section.style.setProperty('--lid-p', String(lidT))
+    section.style.setProperty('--lid-p', String(mapped.open))
     section.style.setProperty('--scroll-p', String(p))
+    section.style.setProperty('--zoom-p', String(mapped.zoom))
+    section.style.setProperty('--chrome-p', String(mapped.chrome))
+    section.style.setProperty('--video-p', String(mapped.video))
     section.style.setProperty('--exit-p', String(exitT))
     section.style.setProperty('--exit-flow-y', `${exitFlow * -92}px`)
     section.style.setProperty('--exit-flow-scale', String(1 - exitFlow * 0.018))
-    setExitMotion(section, 'copy', exitSlice(exitP, 0.805, 0.17), -28, 8)
-    setExitMotion(section, 'feature-0', exitSlice(exitP, 0.825, 0.16), -20, 5)
-    setExitMotion(section, 'feature-1', exitSlice(exitP, 0.85, 0.145), -24, 6)
-    setExitMotion(section, 'feature-2', exitSlice(exitP, 0.875, 0.125), -28, 7)
-    setExitMotion(section, 'chip-metric', exitSlice(exitP, 0.825, 0.16), -28, 6)
-    setExitMotion(section, 'chip-deploy', exitSlice(exitP, 0.85, 0.145), -32, 7)
-    setExitMotion(section, 'chip-sync', exitSlice(exitP, 0.875, 0.125), -34, 7)
-    setExitMotion(section, 'stage-glow', exitSlice(exitP, 0.835, 0.165), -18, 16)
-    setExitMotion(section, 'macbook', exitSlice(exitP, 0.86, 0.14), -46, 10)
-    setExitMotion(section, 'bg', exitSlice(exitP, 0.86, 0.14), -30, 3)
+    setExitMotion(section, 'copy', exitSlice(exitP, 0.845, 0.13), -28, 8)
+    setExitMotion(section, 'feature-0', exitSlice(exitP, 0.86, 0.12), -20, 5)
+    setExitMotion(section, 'feature-1', exitSlice(exitP, 0.88, 0.11), -24, 6)
+    setExitMotion(section, 'feature-2', exitSlice(exitP, 0.90, 0.10), -28, 7)
+    setExitMotion(section, 'chip-metric', exitSlice(exitP, 0.86, 0.12), -28, 6)
+    setExitMotion(section, 'chip-deploy', exitSlice(exitP, 0.88, 0.11), -32, 7)
+    setExitMotion(section, 'chip-sync', exitSlice(exitP, 0.90, 0.10), -34, 7)
+    setExitMotion(section, 'stage-glow', exitSlice(exitP, 0.855, 0.13), -18, 16)
+    setExitMotion(section, 'macbook', exitSlice(exitP, 0.88, 0.12), -46, 10)
+    setExitMotion(section, 'bg', exitSlice(exitP, 0.88, 0.12), -30, 3)
   }
 }
 
@@ -255,6 +248,7 @@ onBeforeUnmount(() => {
     id="dashboard"
     ref="sectionRef"
     class="dashboard-section"
+    :class="{ 'is-chrome-hidden': chromeProgress < 0.05 }"
   >
     <div class="dashboard-sticky">
       <div class="dashboard-bg" aria-hidden="true">
@@ -307,6 +301,8 @@ onBeforeUnmount(() => {
                 screenshot-src="/assets/screens/dashboard-web.webp"
                 :video-src="dashboardVideoSrc"
                 :open-progress="openProgress"
+                :zoom-progress="zoomProgress"
+                :video-progress="videoProgress"
               />
               <template #fallback>
                 <img
@@ -329,7 +325,7 @@ onBeforeUnmount(() => {
             class="dash-chip dash-chip-sync"
             :style="{
               transform: chipTransform(c1, -8, -252),
-              opacity: entered ? 'calc(1 - var(--exit-chip-sync))' : 0,
+              opacity: entered ? 'calc(var(--chrome-p) * (1 - var(--exit-chip-sync)))' : 0,
             }"
             aria-hidden="true"
           >
@@ -347,7 +343,7 @@ onBeforeUnmount(() => {
             class="dash-chip dash-chip-metric"
             :style="{
               transform: chipTransform(c2, -108, 46),
-              opacity: entered ? 'calc(1 - var(--exit-chip-metric))' : 0,
+              opacity: entered ? 'calc(var(--chrome-p) * (1 - var(--exit-chip-metric)))' : 0,
             }"
             aria-hidden="true"
             @pointermove="handleDashboardMetricChartMove"
@@ -402,7 +398,7 @@ onBeforeUnmount(() => {
             class="dash-chip dash-chip-deploy"
             :style="{
               transform: chipTransform(c3, -8, -174),
-              opacity: entered ? 'calc(1 - var(--exit-chip-deploy))' : 0,
+              opacity: entered ? 'calc(var(--chrome-p) * (1 - var(--exit-chip-deploy)))' : 0,
             }"
             aria-hidden="true"
           >
@@ -419,6 +415,9 @@ onBeforeUnmount(() => {
 .dashboard-section {
   --lid-p: 0;
   --scroll-p: 0;
+  --zoom-p: 0;
+  --chrome-p: 1;
+  --video-p: 0;
   --exit-p: 0;
   --exit-copy: 0;
   --exit-copy-y: 0px;
@@ -453,9 +452,22 @@ onBeforeUnmount(() => {
   --exit-flow-y: 0px;
   --exit-flow-scale: 1;
   position: relative;
-  min-height: 240vh;
+  min-height: 340vh;
   background: #000;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dashboard-section.is-chrome-hidden .dashboard-copy-head,
+.dashboard-section.is-chrome-hidden .dashboard-features,
+.dashboard-section.is-chrome-hidden .dash-chip,
+.dashboard-section.is-chrome-hidden .dashboard-hint {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-section {
+    min-height: 100vh;
+  }
 }
 
 .dashboard-sticky {
@@ -481,7 +493,7 @@ onBeforeUnmount(() => {
 .dashboard-grid {
   position: absolute;
   inset: -20%;
-  opacity: calc(0.16 + var(--lid-p) * 0.14);
+  opacity: calc((0.16 + var(--lid-p) * 0.14) * (1 - var(--zoom-p) * 0.72));
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
@@ -502,12 +514,12 @@ onBeforeUnmount(() => {
     0 0 36px rgba(204, 255, 0, calc(0.04 + var(--lid-p) * 0.06)),
     inset 0 0 32px rgba(204, 255, 0, calc(0.02 + var(--lid-p) * 0.05));
   transform: translate(-50%, -50%) scale(calc(0.85 + var(--lid-p) * 0.3));
-  opacity: calc(0.22 + var(--lid-p) * 0.4);
+  opacity: calc((0.22 + var(--lid-p) * 0.4) * (1 - var(--zoom-p) * 0.85));
 }
 
 .pulse-two {
   width: 780px;
-  opacity: calc(0.1 + var(--lid-p) * 0.22);
+  opacity: calc((0.1 + var(--lid-p) * 0.22) * (1 - var(--zoom-p) * 0.85));
   transform: translate(-50%, -50%) scale(calc(0.7 + var(--lid-p) * 0.42));
 }
 
@@ -535,8 +547,12 @@ onBeforeUnmount(() => {
 }
 
 .dashboard-copy-head {
-  opacity: calc(1 - var(--exit-copy));
-  transform: translate3d(0, var(--exit-copy-y), 0);
+  opacity: calc(var(--chrome-p) * (1 - var(--exit-copy)));
+  transform: translate3d(
+    calc((1 - var(--chrome-p)) * -18px),
+    calc(var(--exit-copy-y) + (1 - var(--chrome-p)) * -12px),
+    0
+  );
   will-change: opacity, transform;
 }
 
@@ -626,8 +642,8 @@ onBeforeUnmount(() => {
   transition: opacity 700ms cubic-bezier(0.16, 1, 0.3, 1) calc(var(--rev-delay) + 180ms);
 }
 .dashboard-feature.reveal.in {
-  opacity: calc(1 - var(--exit-row));
-  transform: translate3d(0, var(--exit-row-y), 0);
+  opacity: calc(var(--chrome-p) * (1 - var(--exit-row)));
+  transform: translate3d(0, calc(var(--exit-row-y) + (1 - var(--chrome-p)) * 10px), 0);
 }
 
 .dashboard-feature.reveal.in .dashboard-feature-line,
@@ -765,7 +781,7 @@ onBeforeUnmount(() => {
   border-color: rgba(204, 255, 0, 0.3);
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7), 0 0 36px rgba(204, 255, 0, 0.18);
   transition-delay: 700ms;
-  translate: 0 var(--exit-chip-sync-y);
+  translate: calc((1 - var(--chrome-p)) * -12px) calc(var(--exit-chip-sync-y) + (1 - var(--chrome-p)) * 18px);
 }
 
 .dash-chip-sync .dash-chip-icon {
@@ -820,7 +836,7 @@ onBeforeUnmount(() => {
   right: -24px;
   min-width: 168px;
   transition-delay: 900ms;
-  translate: 0 var(--exit-chip-metric-y);
+  translate: calc((1 - var(--chrome-p)) * 14px) calc(var(--exit-chip-metric-y) + (1 - var(--chrome-p)) * -16px);
   cursor: crosshair;
 }
 
@@ -880,7 +896,7 @@ onBeforeUnmount(() => {
   padding: 10px 16px;
   box-shadow: 0 0 40px rgba(204, 255, 0, 0.5);
   transition-delay: 1100ms;
-  translate: 0 var(--exit-chip-deploy-y);
+  translate: calc((1 - var(--chrome-p)) * 12px) calc(var(--exit-chip-deploy-y) + (1 - var(--chrome-p)) * 14px);
 }
 
 .dash-chip-deploy .dash-chip-deploy-tag {
@@ -916,7 +932,7 @@ onBeforeUnmount(() => {
   background:
     radial-gradient(42% 42% at 50% 58%, rgba(204, 255, 0, calc(0.1 + var(--lid-p) * 0.18)), transparent 72%),
     radial-gradient(68% 58% at 50% 62%, rgba(204, 255, 0, calc(0.04 + var(--lid-p) * 0.08)), transparent 76%);
-  opacity: calc((0.4 + var(--lid-p) * 0.6) * (1 - var(--exit-stage-glow)));
+  opacity: calc((0.4 + var(--lid-p) * 0.6) * (1 - var(--exit-stage-glow)) * (1 - var(--zoom-p) * 0.88));
   transform: translate3d(0, var(--exit-stage-glow-y), 0);
   will-change: opacity, transform;
 }
@@ -925,10 +941,10 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 8px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(calc((1 - var(--chrome-p)) * -8px));
   pointer-events: none;
   z-index: 3;
-  opacity: calc((1 - var(--lid-p)) * (1 - var(--exit-copy)));
+  opacity: calc((1 - var(--lid-p)) * var(--chrome-p));
   transition: opacity 0.4s ease;
 }
 
@@ -947,7 +963,9 @@ onBeforeUnmount(() => {
   aspect-ratio: 1.3 / 1;
   z-index: 2;
   opacity: calc(1 - var(--exit-macbook));
-  transform: translate3d(0, var(--exit-macbook-y), 0) scale(calc(1 - var(--exit-macbook) * 0.035));
+  transform: translate3d(0, var(--exit-macbook-y), 0)
+    scale(calc((1 + var(--zoom-p) * 0.08) * (1 - var(--exit-macbook) * 0.035)));
+  transform-origin: center 42%;
   will-change: opacity, transform;
 }
 
@@ -962,7 +980,7 @@ onBeforeUnmount(() => {
 
 @media (max-width: 980px) {
   .dashboard-section {
-    min-height: var(--liftag-stable-vh-220);
+    min-height: var(--liftag-stable-vh-340);
   }
 
   .dashboard-sticky {
@@ -1011,7 +1029,7 @@ onBeforeUnmount(() => {
   }
 
   .dashboard-section {
-    min-height: var(--liftag-stable-vh-185);
+    min-height: var(--liftag-stable-vh-300);
   }
 
   .dashboard-sticky {
@@ -1116,6 +1134,12 @@ onBeforeUnmount(() => {
 
   .dashboard-feature-scan {
     width: 58px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-section {
+    min-height: var(--liftag-stable-vh);
   }
 }
 </style>

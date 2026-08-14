@@ -17,9 +17,13 @@ const props = withDefaults(defineProps<{
   screenshotSrc: string
   videoSrc?: string
   openProgress?: number
+  zoomProgress?: number
+  videoProgress?: number
   tiltDelayMs?: number
 }>(), {
   openProgress: 0,
+  zoomProgress: 0,
+  videoProgress: 0,
   tiltDelayMs: 0,
 })
 
@@ -29,6 +33,8 @@ let cleanup: (() => void) | null = null
 let updateTexture: ((src: string) => void) | null = null
 let setVideoSource: ((src?: string) => void) | null = null
 let setOpenProgress: ((p: number) => void) | null = null
+let setZoomProgress: ((p: number) => void) | null = null
+let applyVideoProgress: ((p: number) => void) | null = null
 let initObserver: IntersectionObserver | null = null
 let initialized = false
 
@@ -39,6 +45,11 @@ function clamp01(v: number) {
 function smoothstep(v: number) {
   const t = clamp01(v)
   return t * t * (3 - 2 * t)
+}
+
+function smootherstep(v: number) {
+  const t = clamp01(v)
+  return t * t * t * (t * (t * 6 - 15) + 10)
 }
 
 function initMacbook() {
@@ -353,6 +364,37 @@ function initMacbook() {
   macbook.rotation.y = -0.03
   scene.add(macbook)
 
+  const CAM_START_POS = new THREE.Vector3(0, 0.7, 6.85)
+  const CAM_START_LOOK = new THREE.Vector3(0, 0.22, 0)
+  const CAM_START_FOV = 30
+  const CAM_ZOOM_FOV = 26
+  const zoomCam = new THREE.Object3D()
+  const endPos = new THREE.Vector3()
+  const endLook = new THREE.Vector3()
+  const camPos = new THREE.Vector3()
+  const camLook = new THREE.Vector3()
+  const worldUp = new THREE.Vector3(0, 1, 0)
+  const screenUp = new THREE.Vector3()
+  const lidQuat = new THREE.Quaternion()
+
+  function placeZoomCam() {
+    const fovRad = THREE.MathUtils.degToRad(CAM_ZOOM_FOV)
+    const aspect = Math.max(camera.aspect, 1e-6)
+    const hFov = 2 * Math.atan(Math.tan(fovRad / 2) * aspect)
+    const worldH = screenLayout.height * macbook.scale.y
+    const worldW = screenLayout.width * macbook.scale.x
+    const fill = 1.10
+    const distV = (worldH * fill) / (2 * Math.tan(fovRad / 2))
+    const distH = (worldW * fill) / (2 * Math.tan(hFov / 2))
+    // World distance so the display fills ~91% of the tighter view axis,
+    // then convert into lid-local space (macbook is uniformly scaled).
+    const worldDist = Math.max(distV, distH)
+    zoomCam.position.set(0, -worldDist / macbook.scale.y, H / 2)
+  }
+
+  placeZoomCam()
+  lidGroup.add(zoomCam)
+
   updateTexture = (src: string) => {
     const previous = posterTexture
     posterTexture = textureLoader.load(src, (texture) => {
@@ -373,9 +415,19 @@ function initMacbook() {
   const openAngle = -THREE.MathUtils.degToRad(108) // open ~108°
   let targetOpen = clamp01(props.openProgress)
   let currentOpen = targetOpen
+  let targetZoom = clamp01(props.zoomProgress)
+  let currentZoom = targetZoom
+  let targetVideoProgress = clamp01(props.videoProgress)
+  let pendingSeekTime: number | null = null
+  let onVideoLoaded: (() => void) | null = null
+  let onVideoSeeked: (() => void) | null = null
 
   setOpenProgress = (p: number) => {
     targetOpen = clamp01(p)
+  }
+
+  setZoomProgress = (p: number) => {
+    targetZoom = clamp01(p)
   }
 
   let targetTiltX = 0
@@ -386,24 +438,51 @@ function initMacbook() {
   let isVisible = false
 
   function disposeVideo() {
-    screenVideo?.pause()
     if (screenVideo) {
+      if (onVideoLoaded) screenVideo.removeEventListener('loadeddata', onVideoLoaded)
+      if (onVideoSeeked) screenVideo.removeEventListener('seeked', onVideoSeeked)
+      screenVideo.pause()
       screenVideo.removeAttribute('src')
       screenVideo.load()
     }
     videoTexture?.dispose()
     screenVideo = null
     videoTexture = null
+    onVideoLoaded = null
+    onVideoSeeked = null
+    pendingSeekTime = null
   }
 
-  function playVideo() {
-    if (!screenVideo || !isVisible) return
-    const playAttempt = screenVideo.play()
-    if (playAttempt) {
-      playAttempt.catch(() => {
-        // Muted autoplay is expected to work, but keep the poster if a browser blocks it.
-      })
+  function seekVideo(time: number) {
+    const video = screenVideo
+    if (!video || !Number.isFinite(video.duration) || video.duration <= 0) {
+      pendingSeekTime = time
+      return
     }
+
+    const next = Math.max(0, Math.min(Math.max(video.duration - 1 / 30, 0), time))
+    if (Math.abs(next - video.currentTime) <= 1 / 30) return
+
+    if (video.seeking) {
+      pendingSeekTime = next
+      return
+    }
+
+    video.currentTime = next
+  }
+
+  function flushPendingSeek() {
+    if (pendingSeekTime == null) return
+    const next = pendingSeekTime
+    pendingSeekTime = null
+    seekVideo(next)
+  }
+
+  applyVideoProgress = (p: number) => {
+    targetVideoProgress = clamp01(p)
+    const duration = screenVideo?.duration ?? 0
+    if (!screenVideo || !Number.isFinite(duration) || duration <= 0) return
+    seekVideo(targetVideoProgress * duration)
   }
 
   setVideoSource = (src?: string) => {
@@ -420,10 +499,10 @@ function initMacbook() {
     video.src = src
     video.muted = true
     video.defaultMuted = true
-    video.loop = true
-    video.autoplay = true
+    video.loop = false
+    video.autoplay = false
     video.playsInline = true
-    video.preload = 'metadata'
+    video.preload = 'auto'
     video.setAttribute('muted', '')
     video.setAttribute('playsinline', '')
     video.setAttribute('webkit-playsinline', '')
@@ -437,7 +516,14 @@ function initMacbook() {
     screenVideo = video
     videoTexture = texture
 
-    video.addEventListener('loadeddata', () => {
+    onVideoSeeked = () => {
+      if (videoTexture !== texture) return
+      flushPendingSeek()
+      texture.needsUpdate = true
+      renderer.render(scene, camera)
+    }
+
+    onVideoLoaded = () => {
       if (videoTexture !== texture) return
       applyFootageTransform(
         texture,
@@ -447,12 +533,15 @@ function initMacbook() {
       )
       screenMat.map = texture
       screenMat.needsUpdate = true
+      video.pause()
+      seekVideo(targetVideoProgress * video.duration)
       renderer.render(scene, camera)
-      playVideo()
-    }, { once: true })
+    }
 
+    video.addEventListener('seeked', onVideoSeeked)
+    video.addEventListener('loadeddata', onVideoLoaded)
+    video.pause()
     video.load()
-    playVideo()
   }
 
   setVideoSource(props.videoSrc)
@@ -469,22 +558,39 @@ function initMacbook() {
     }
     animId = requestAnimationFrame(animate)
 
+    const previewZoom = smootherstep(currentZoom)
+    const tiltScale = 1 - previewZoom
+
     // Skip until first real mouse event - otherwise (0,0) pulls the laptop
     // away from its rest yaw immediately on visibility.
     if (sharedMouse.samples.length > 0) {
-      targetTiltY = -0.03 + sharedMouse.latest.mx * 0.18
-      targetTiltX = -sharedMouse.latest.my * 0.05
+      targetTiltY = -0.03 + sharedMouse.latest.mx * 0.18 * tiltScale
+      targetTiltX = -sharedMouse.latest.my * 0.05 * tiltScale
     }
 
     currentOpen += (targetOpen - currentOpen) * 0.14
+    currentZoom += (targetZoom - currentZoom) * 0.14
     currentTiltX += (targetTiltX - currentTiltX) * 0.06
     currentTiltY += (targetTiltY - currentTiltY) * 0.06
 
     const eased = smoothstep(currentOpen)
+    const zoomT = smootherstep(currentZoom)
     lidGroup.rotation.x = closedAngle + (openAngle - closedAngle) * eased
 
     macbook.rotation.x = currentTiltX
     macbook.rotation.y = currentTiltY
+
+    zoomCam.getWorldPosition(endPos)
+    screen.getWorldPosition(endLook)
+    lidGroup.getWorldQuaternion(lidQuat)
+    screenUp.set(0, 0, 1).applyQuaternion(lidQuat)
+    camPos.lerpVectors(CAM_START_POS, endPos, zoomT)
+    camLook.lerpVectors(CAM_START_LOOK, endLook, zoomT)
+    camera.position.copy(camPos)
+    camera.up.lerpVectors(worldUp, screenUp, zoomT)
+    camera.lookAt(camLook)
+    camera.fov = THREE.MathUtils.lerp(CAM_START_FOV, CAM_ZOOM_FOV, zoomT)
+    camera.updateProjectionMatrix()
 
     renderer.render(scene, camera)
   }
@@ -493,10 +599,7 @@ function initMacbook() {
     (entries) => {
       isVisible = entries[0]?.isIntersecting ?? false
       if (isVisible) {
-        if (!document.hidden) playVideo()
         if (!animId && !document.hidden) animate()
-      } else {
-        screenVideo?.pause()
       }
     },
     { threshold: 0 },
@@ -504,14 +607,8 @@ function initMacbook() {
   visObserver.observe(container)
 
   const onDocumentVisibilityChange = () => {
-    if (document.hidden) {
-      screenVideo?.pause()
-      return
-    }
-    if (isVisible) {
-      playVideo()
-      if (!animId) animate()
-    }
+    if (document.hidden) return
+    if (isVisible && !animId) animate()
   }
   document.addEventListener('visibilitychange', onDocumentVisibilityChange)
 
@@ -519,6 +616,7 @@ function initMacbook() {
     const w = Math.max(container.clientWidth, 1)
     const h = Math.max(container.clientHeight, 1)
     camera.aspect = w / h
+    placeZoomCam()
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
   }
@@ -546,6 +644,8 @@ function initMacbook() {
     updateTexture = null
     setVideoSource = null
     setOpenProgress = null
+    setZoomProgress = null
+    applyVideoProgress = null
     disposeVideo()
     posterTexture.dispose()
     kbTex.dispose()
@@ -606,6 +706,24 @@ watch(
   () => props.openProgress,
   (p) => {
     if (setOpenProgress) setOpenProgress(p)
+    else initMacbook()
+  },
+  { immediate: true },
+)
+
+watch(
+  () => props.zoomProgress,
+  (p) => {
+    if (setZoomProgress) setZoomProgress(p ?? 0)
+    else initMacbook()
+  },
+  { immediate: true },
+)
+
+watch(
+  () => props.videoProgress,
+  (p) => {
+    if (applyVideoProgress) applyVideoProgress(p ?? 0)
     else initMacbook()
   },
   { immediate: true },
