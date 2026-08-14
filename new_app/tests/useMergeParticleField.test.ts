@@ -6,6 +6,7 @@ import {
   bodyToParticleWorld,
   mergeBodyVelocity,
   mergeStormFromProgress,
+  publishMergeArmed,
   publishMergeBody,
   publishMergeStorm,
   publishMergeWell,
@@ -16,6 +17,7 @@ import {
 
 afterEach(() => {
   resetMergeParticleField()
+  publishMergeArmed(false)
 })
 
 test('useMergeParticleField returns the same shared buffer', () => {
@@ -29,6 +31,7 @@ test('the field has nine body slots plus a well and storm', () => {
   assert.equal(field.bodies.length, 9)
   assert.deepEqual(field.well, { cx: 0, cy: 0, strength: 0 })
   assert.deepEqual(field.storm, { tornado: 0, burst: 0, settle: 0, spin: 0 })
+  assert.equal(field.armed, false)
 })
 
 test('publishMergeBody writes only the requested slot', () => {
@@ -117,6 +120,25 @@ test('resetMergeParticleField zeros every body and the well', () => {
   }
   assert.deepEqual(field.well, { cx: 0, cy: 0, strength: 0 })
   assert.deepEqual(field.storm, { tornado: 0, burst: 0, settle: 0, spin: 0 })
+})
+
+test('publishMergeArmed writes the shared pin flag without touching bodies', () => {
+  const field = useMergeParticleField()
+  publishMergeBody(0, {
+    cx: 10,
+    cy: 20,
+    radius: 8,
+    vx: 0,
+    vy: 0,
+    spin: 0,
+    strength: 1,
+  })
+  publishMergeArmed(true)
+  assert.equal(field.armed, true)
+  assert.equal(field.bodies[0]?.strength, 1)
+  publishMergeArmed(false)
+  assert.equal(field.armed, false)
+  assert.equal(field.bodies[0]?.strength, 1)
 })
 
 test('publishMergeStorm writes the shared storm', () => {

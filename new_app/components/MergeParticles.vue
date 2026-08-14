@@ -6,13 +6,12 @@
 //
 // Lifecycle contract:
 //   • never initializes under prefers-reduced-motion
-//   • lazy-inits only while the sticky is pinned (a scrolling WebGL
-//     canvas stutters against compositor scroll; pinning is cheaper
-//     than trying to sync those clocks)
+//   • lazy-inits only while the shared field is armed (parent publishes
+//     that when the sticky pins — a Vue prop would re-render the icons)
 //   • fades in place — no edge fly-in
 //   • disposes when the pin releases
 //   • pauses while the document is hidden
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import * as THREE from 'three'
 import { useSharedMouse } from '../composables/useSharedMouse'
 import {
@@ -29,13 +28,10 @@ const props = withDefaults(defineProps<{
   dprCap?: number
   /** Couple the field to the shared cursor (disable on touch layouts). */
   interactive?: boolean
-  /** Parent sets this when the merge sticky is actually pinned. */
-  armed?: boolean
 }>(), {
   count: 320,
   dprCap: 1.25,
   interactive: true,
-  armed: false,
 })
 
 const mount = ref<HTMLElement | null>(null)
@@ -53,9 +49,11 @@ let points: THREE.Points | null = null
 
 let rafId = 0
 let running = false
+let watching = false
 let intersecting = false
 let disposed = true
 let contextBroken = false
+let io: IntersectionObserver | null = null
 let lastFrame = 0
 let enterLinear = 0
 let uniformsCleared = true
@@ -406,12 +404,44 @@ function syncBodyUniforms() {
   uniformsCleared = false
 }
 
+function releaseField() {
+  stopLoop()
+  disposeScene()
+  contextBroken = false
+}
+
+function watchArmed() {
+  watching = false
+  rafId = 0
+  if (!intersecting || document.hidden) return
+  if (mergeParticleField.armed) {
+    if (disposed) init()
+    startLoop()
+    return
+  }
+  if (!disposed) releaseField()
+  startWatch()
+}
+
+function startWatch() {
+  if (watching || running || document.hidden || !intersecting) return
+  watching = true
+  rafId = requestAnimationFrame(watchArmed)
+}
+
 function frame(now: number) {
   if (!running || !renderer || !scene || !camera || !material) {
     rafId = 0
     running = false
     return
   }
+
+  if (!mergeParticleField.armed) {
+    releaseField()
+    if (intersecting) startWatch()
+    return
+  }
+
   rafId = requestAnimationFrame(frame)
 
   const dt = lastFrame === 0 ? 16 : Math.min(now - lastFrame, 48)
@@ -441,12 +471,14 @@ function frame(now: number) {
 function startLoop() {
   if (running || disposed || document.hidden) return
   running = true
+  watching = false
   lastFrame = 0
   rafId = requestAnimationFrame(frame)
 }
 
 function stopLoop() {
   running = false
+  watching = false
   if (rafId) cancelAnimationFrame(rafId)
   rafId = 0
 }
@@ -461,27 +493,25 @@ function handleResize() {
   renderer.setSize(width, height)
 }
 
-function syncArmed() {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-  intersecting = props.armed
-  if (props.armed) {
-    if (disposed) init()
-    startLoop()
-    return
-  }
-  stopLoop()
-  disposeScene()
-  contextBroken = false
-}
-
 onMounted(() => {
   const host = mount.value
   if (!host) return
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
+  io = new IntersectionObserver(
+    (entries) => {
+      const entry = entries[entries.length - 1]
+      intersecting = Boolean(entry?.isIntersecting)
+      if (intersecting) startWatch()
+      else releaseField()
+    },
+    { threshold: 0 },
+  )
+  io.observe(host)
+
   onVisibility = () => {
     if (document.hidden) stopLoop()
-    else if (intersecting) startLoop()
+    else if (intersecting) startWatch()
   }
   document.addEventListener('visibilitychange', onVisibility)
 
@@ -490,11 +520,11 @@ onMounted(() => {
     resizeTimer = setTimeout(handleResize, 150)
   })
   resizeObserver.observe(host)
-
-  watch(() => props.armed, syncArmed, { immediate: true })
 })
 
 onBeforeUnmount(() => {
+  io?.disconnect()
+  io = null
   resizeObserver?.disconnect()
   resizeObserver = null
   if (resizeTimer) clearTimeout(resizeTimer)

@@ -98,6 +98,7 @@ const field = {
   bodies: Array.from({ length: MERGE_BODY_COUNT }, emptyBody),
   well: emptyWell(),
   storm: emptyStorm(),
+  armed: false,
 }
 
 export function useMergeParticleField() {
@@ -123,6 +124,10 @@ export function publishMergeWell(well: MergeFieldWell) {
 
 export function publishMergeStorm(storm: MergeFieldStorm) {
   writeStorm(field.storm, storm)
+}
+
+export function publishMergeArmed(armed: boolean) {
+  field.armed = armed
 }
 
 export function mergeStormFromProgress(

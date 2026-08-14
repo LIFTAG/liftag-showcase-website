@@ -4,6 +4,7 @@ import {
   MERGE_LOGO_INDEX,
   mergeBodyVelocity,
   mergeStormFromProgress,
+  publishMergeArmed,
   publishMergeBody,
   publishMergeStorm,
   publishMergeWell,
@@ -31,7 +32,6 @@ const stickyRef = ref<HTMLElement | null>(null)
 const stageRef = ref<HTMLElement | null>(null)
 const liftagRef = ref<HTMLElement | null>(null)
 const isMobileParticles = ref(false)
-const particlesPinned = ref(false)
 
 const iconEls: HTMLElement[] = []
 const captionEls: HTMLElement[] = []
@@ -254,7 +254,10 @@ function getScrollProgress() {
   const available = Math.max(1, rect.height - viewportH)
   const stickyH = stickyRef.value?.offsetHeight ?? viewportH
   const pinned = rect.top <= 2 && rect.bottom >= stickyH - 2
-  if (particlesPinned.value !== pinned) particlesPinned.value = pinned
+  // Non-reactive: a Vue ref here re-renders the section and Vue's :style
+  // bindings overwrite the rAF icon transforms for a frame (or permanently
+  // when the style cache then skips the matching write).
+  publishMergeArmed(pinned)
   return clamp(-rect.top / available)
 }
 
@@ -644,43 +647,28 @@ function tick(now: number) {
   rafId = requestAnimationFrame(tick)
 }
 
+// Vue :style must not own transform/opacity/z-index. Those are written
+// every frame by rAF; a re-render that puts the unscaled orbit back on
+// the icons is the merge-section flicker, and the last-applied cache
+// then refuses to write the same string back.
 function iconBaseStyle(app: MockApp) {
   return {
     '--icon-gradient': app.gradient,
     '--icon-accent': app.accent,
     '--icon-glow': app.glow,
-    '--app-spin': '0deg',
-    opacity: 0.98,
-    transform: `translate3d(calc(-50% + ${app.x}px), calc(-50% + ${app.y}px), 0) rotate(${app.rotate}deg) scale(0.98)`,
-    zIndex: String(Math.round(20 + app.depth * 10)),
   }
 }
 
-function captionBaseStyle(app: MockApp) {
-  return {
-    left: '50%',
-    top: '50%',
-    opacity: 1,
-    transform: `translate3d(calc(-50% + ${app.x}px), ${app.y + 50}px, 0) rotate(${app.rotate}deg) scale(0.98)`,
-    zIndex: '43',
-  }
+const captionBaseStyle = {
+  left: '50%',
+  top: '50%',
+  zIndex: '43',
 }
 
 function vectorBaseStyle(app: MockApp) {
   return {
     '--line-glow': app.glow,
-    '--ray-len': '1',
-    '--spark-x': '0px',
-    '--spark-opacity': '0',
-    opacity: 0,
-    transform: 'rotate(0deg) scaleX(0)',
   }
-}
-
-const liftagBaseStyle = {
-  '--logo-spin': '0deg',
-  opacity: 0,
-  transform: 'translate3d(-50%, -50%, 0) perspective(900px) rotateX(0deg) rotateY(0deg) scale(0.66)',
 }
 
 function handlePointerMove(event: PointerEvent) {
@@ -714,6 +702,7 @@ onMounted(() => {
         cancelAnimationFrame(rafId)
         rafId = requestAnimationFrame(tick)
       } else {
+        publishMergeArmed(false)
         resetMergeParticleField()
         bodiesArmed = false
         lastPublishAt = 0
@@ -741,6 +730,7 @@ onBeforeUnmount(() => {
   if (mergeMobileMql && onMergeMobileChange) {
     mergeMobileMql.removeEventListener('change', onMergeMobileChange)
   }
+  publishMergeArmed(false)
   resetMergeParticleField()
 })
 </script>
@@ -760,7 +750,6 @@ onBeforeUnmount(() => {
         <div class="merge-background-pulse pulse-two"></div>
         <MergeParticles
           :key="isMobileParticles ? 'merge-particles-m' : 'merge-particles-d'"
-          :armed="particlesPinned"
           :count="isMobileParticles ? 140 : 320"
           :interactive="!isMobileParticles"
           :dpr-cap="isMobileParticles ? 1.15 : 1.25"
@@ -860,13 +849,13 @@ onBeforeUnmount(() => {
             :key="`${app.key}-caption`"
             :ref="(el) => setCaptionRef(el, i)"
             class="mock-app-caption"
-            :style="captionBaseStyle(app)"
+            :style="captionBaseStyle"
           >
             <span>{{ app.name }}</span>
             <small>{{ app.replaces }}</small>
           </div>
 
-          <div ref="liftagRef" class="liftag-target" :style="liftagBaseStyle" aria-label="LIFTAG app icon">
+          <div ref="liftagRef" class="liftag-target" aria-label="LIFTAG app icon">
             <div class="liftag-icon-shell">
               <img src="/logo.svg" alt="LIFTAG" />
               <div class="liftag-icon-sheen"></div>
@@ -1065,6 +1054,7 @@ onBeforeUnmount(() => {
   width: 1px;
   height: 3px;
   pointer-events: none;
+  opacity: 0;
   transform-origin: 0 50%;
   border-radius: 999px;
   background: linear-gradient(
@@ -1104,6 +1094,7 @@ onBeforeUnmount(() => {
   width: 0;
   height: 0;
   pointer-events: none;
+  opacity: 0;
   contain: layout style;
   overflow: visible;
   will-change: transform, opacity;
@@ -1166,7 +1157,7 @@ onBeforeUnmount(() => {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.34);
   contain: layout paint style;
   will-change: transform, opacity;
-  opacity: var(--caption-opacity, 1);
+  opacity: 0;
   transform: translate(
     calc(-50% + var(--label-x, 0px)),
     calc(-50% + var(--label-y, 72px) + var(--caption-y, 0px))
@@ -1213,6 +1204,7 @@ onBeforeUnmount(() => {
   transform-style: preserve-3d;
   z-index: 44;
   pointer-events: none;
+  opacity: 0;
 }
 
 .liftag-icon-shell {
