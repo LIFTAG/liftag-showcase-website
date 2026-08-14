@@ -18,6 +18,14 @@ useLiftagStructuredData([
 ])
 
 useReveal()
+
+// The hero phone screenshot is the LCP element on every viewport; without a
+// preload it queues behind the font preloads and ~30 lazy <img> tags.
+useHead({
+  link: [
+    { rel: 'preload', as: 'image', href: '/assets/screens/home-hero-no-qr-560.webp', fetchpriority: 'high' },
+  ],
+})
 </script>
 
 <template>

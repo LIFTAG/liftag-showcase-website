@@ -377,7 +377,15 @@ function initMacbook() {
     }
   }
 
+  // The video element autoplays, which makes browsers fetch the full file the
+  // moment src is set - preload='metadata' is ignored. Init runs 600px before
+  // the section is visible, so hold the source until the laptop is actually
+  // approaching the viewport (the 300px observer below).
+  let videoAllowed = false
+  let pendingVideoSrc: string | undefined
+
   setVideoSource = (src?: string) => {
+    pendingVideoSrc = src
     disposeVideo()
     screenMat.map = posterTexture
     screenMat.needsUpdate = true
@@ -386,6 +394,8 @@ function initMacbook() {
       renderer.render(scene, camera)
       return
     }
+
+    if (!videoAllowed) return
 
     const video = document.createElement('video')
     video.src = src
@@ -454,6 +464,17 @@ function initMacbook() {
     renderer.render(scene, camera)
   }
 
+  const videoObserver = new IntersectionObserver(
+    (entries) => {
+      if (!entries[0]?.isIntersecting) return
+      videoObserver.disconnect()
+      videoAllowed = true
+      if (pendingVideoSrc) setVideoSource?.(pendingVideoSrc)
+    },
+    { rootMargin: '300px 0px' },
+  )
+  videoObserver.observe(container)
+
   const visObserver = new IntersectionObserver(
     (entries) => {
       isVisible = entries[0]?.isIntersecting ?? false
@@ -504,6 +525,7 @@ function initMacbook() {
       resizeRaf = 0
     }
     document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
+    videoObserver.disconnect()
     visObserver.disconnect()
     isVisible = false
     cancelAnimationFrame(animId)
