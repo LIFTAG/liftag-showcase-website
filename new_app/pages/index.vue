@@ -26,6 +26,16 @@ useHead({
     { rel: 'preload', as: 'image', href: '/assets/screens/home-hero-no-qr-560.webp', fetchpriority: 'high' },
   ],
 })
+
+// three.js lives in an async chunk (nothing imports it statically) so it no
+// longer competes with the LCP image and fonts. Warm it once the page is idle
+// so the hero particles and 3D phones still appear on their usual schedule.
+// Warming through a consumer component (not `import('three')` directly) keeps
+// the unused parts of three tree-shaken out of the chunk.
+onNuxtReady(() => {
+  import('~/components/HeroParticles.vue').catch(() => {})
+  import('~/components/Phone3D.vue').catch(() => {})
+})
 </script>
 
 <template>

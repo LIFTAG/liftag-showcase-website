@@ -517,7 +517,8 @@ const pNfc = computed(() => {
     />
 
     <!-- ── GPU particle field (single draw call, self-gating) ── -->
-    <HeroParticles
+    <!-- Lazy: keeps three.js out of the eager chunk (see index.vue idle warmup) -->
+    <LazyHeroParticles
       :key="isMobile ? 'hero-particles-m' : 'hero-particles-d'"
       :count="isMobile ? 380 : 1200"
       :interactive="!isMobile"
@@ -809,7 +810,7 @@ const pNfc = computed(() => {
         >
           <div class="hero-nfc-tag-3d">
             <ClientOnly>
-              <NfcTag3D />
+              <LazyNfcTag3D />
             </ClientOnly>
           </div>
         </div>

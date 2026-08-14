@@ -49,6 +49,31 @@ export default defineNuxtConfig({
       ],
     },
   },
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          // Keep three.js in its own async chunk instead of letting Rollup
+          // merge every 3D component into one oversized bundle.
+          manualChunks: (id: string) => (id.includes('node_modules/three/') ? 'three' : undefined),
+        },
+      },
+    },
+  },
+  hooks: {
+    // All three.js consumers are async components behind viewport observers,
+    // and pages/index.vue warms the chunk on idle. Without this hook Nuxt
+    // still emits <link rel="modulepreload"> for it, putting ~180KB gzip back
+    // in contention with the LCP image and fonts on first paint.
+    'build:manifest': (manifest) => {
+      for (const entry of Object.values(manifest)) {
+        if (entry.name === 'three' || entry.file?.includes('three')) {
+          entry.preload = false
+          entry.prefetch = false
+        }
+      }
+    },
+  },
   router: {
     options: {
       strict: false,
