@@ -35,3 +35,13 @@ export function rayRectVisibleLength(
 
   return Number.isFinite(t) && t > 0 ? t : 0
 }
+
+/**
+ * Pull the beam tip back from the clip edge so the gradient can dissolve
+ * instead of getting chopped by overflow:hidden.
+ */
+export function rayDissolvedLength(visible: number, fade = 96): number {
+  if (visible <= 1) return 0
+  const pad = Math.min(fade, visible * 0.32)
+  return Math.max(0, visible - pad)
+}

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { rayRectVisibleLength } from '../utils/mergeRayClip.ts'
+import { rayDissolvedLength, rayRectVisibleLength } from '../utils/mergeRayClip.ts'
 
 const SQRT_HALF = Math.SQRT1_2
 
@@ -41,4 +41,17 @@ test('a start on the left edge going right spans the full width', () => {
 
 test('a start on the left edge going left does not draw outside', () => {
   assert.equal(rayRectVisibleLength(0, 50, -1, 0, 0, 0, 200, 100), 0)
+})
+
+test('rayDissolvedLength pulls the tip back from the clip edge', () => {
+  assert.equal(rayDissolvedLength(400, 96), 304)
+})
+
+test('rayDissolvedLength never eats more than a third of a short beam', () => {
+  assert.equal(rayDissolvedLength(100, 96), 68)
+})
+
+test('rayDissolvedLength hides degenerate lengths', () => {
+  assert.equal(rayDissolvedLength(0), 0)
+  assert.equal(rayDissolvedLength(1), 0)
 })

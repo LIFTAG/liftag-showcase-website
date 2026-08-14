@@ -10,7 +10,7 @@ import {
   resetMergeParticleField,
   type MergeBodyPose,
 } from '../composables/useMergeParticleField'
-import { rayRectVisibleLength } from '../utils/mergeRayClip'
+import { rayDissolvedLength, rayRectVisibleLength } from '../utils/mergeRayClip'
 
 interface MockApp {
   key: string
@@ -66,6 +66,8 @@ const lastVectorOpacity: string[] = []
 const lastVectorSparkX: string[] = []
 const lastVectorSparkOpacity: string[] = []
 const lastVectorLen: string[] = []
+const lastRayDirX: number[] = []
+const lastRayDirY: number[] = []
 const VECTOR_HIDDEN_TRANSFORM = 'translate3d(0px, 0px, 0) rotate(0deg) scaleX(0)'
 let rayOriginX = 0
 let rayOriginY = 0
@@ -476,23 +478,30 @@ function applyAppStyles(app: MockApp, index: number, p: number, finale: number, 
   if (!vector) return
 
   const show = smoothstep((p - 0.015 - app.delay * 0.003) / 0.12)
-  const vectorFade = smoothstep((p - 0.8) / 0.14)
-  const draw = show * (1 - vectorFade)
-  const alpha = show * (1 - vectorFade) * (0.46 + merge * 0.22)
+  const dissolve = smootherstep((merge - 0.48) / 0.44)
+  const finaleFade = smootherstep((p - 0.78) / 0.2)
+  const rayFade = 1 - Math.max(dissolve, finaleFade)
+  const alpha = show * rayFade * (0.5 + merge * 0.16)
   const len = Math.hypot(motion.x, motion.y)
 
-  if (len <= 0.001 || draw < 0.004 || alpha < 0.004 || clipW < 1 || clipH < 1) {
+  if (len > 0.5) {
+    lastRayDirX[index] = motion.x / len
+    lastRayDirY[index] = motion.y / len
+  }
+
+  const unitX = lastRayDirX[index] || 0
+  const unitY = lastRayDirY[index] || 0
+
+  if (show < 0.004 || rayFade < 0.004 || alpha < 0.004 || clipW < 1 || clipH < 1 || (unitX === 0 && unitY === 0)) {
     hideMergeVector(index, vector)
     return
   }
 
-  const angle = Math.atan2(motion.y, motion.x) * 180 / Math.PI
-  const unitX = motion.x / len
-  const unitY = motion.y / len
+  const angle = Math.atan2(unitY, unitX) * 180 / Math.PI
   const startGap = 62 + merge * 22
   const startX = unitX * startGap
   const startY = unitY * startGap
-  const lineLen = rayRectVisibleLength(
+  const lineLen = rayDissolvedLength(rayRectVisibleLength(
     rayOriginX + startX,
     rayOriginY + startY,
     unitX,
@@ -501,19 +510,19 @@ function applyAppStyles(app: MockApp, index: number, p: number, finale: number, 
     0,
     clipW,
     clipH,
-  )
-  const drawn = lineLen * draw
+  ))
+  const drawn = lineLen * show
 
   if (drawn < 0.5) {
     hideMergeVector(index, vector)
     return
   }
 
-  // Spark stays on the logo→icon span. The beam continues to the sticky
-  // edge, so a 0–1 left on the scaled 1px line would fly off-screen.
+  // Spark stays on the logo→icon span. The beam continues toward the
+  // faded site edge, so a 0–1 left on the scaled 1px line would fly off.
   const iconSpan = Math.max(0, len - startGap - 46 * motion.scale)
   const sparkTravel = clamp(0.15 + merge * 0.78 + Math.sin(now * 0.003 + app.delay) * 0.05)
-  const sparkOpacity = show * (1 - vectorFade) * (0.42 + merge * 0.48)
+  const sparkOpacity = show * rayFade * (0.42 + merge * 0.48)
   const sparkXStr = `${sparkTravel * iconSpan / lineLen}px`
   const sparkOpacityStr = String(sparkOpacity)
   const vectorAlphaStr = String(alpha)
@@ -1053,8 +1062,8 @@ onBeforeUnmount(() => {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(204, 255, 0, 0.62) 18%,
-    var(--line-glow) 62%,
+    rgba(204, 255, 0, 0.58) 8%,
+    var(--line-glow) 34%,
     transparent 100%
   );
   mix-blend-mode: screen;
