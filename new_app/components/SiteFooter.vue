@@ -44,6 +44,7 @@ function setFill(p: number) {
   const el = markRef.value
   if (!el) return
   el.style.setProperty('--fill-p', p.toFixed(4))
+  el.classList.toggle('is-complete', p >= 1)
 }
 
 function updateFill() {
@@ -51,11 +52,15 @@ function updateFill() {
   if (!el) return
   const rect = el.getBoundingClientRect()
   const vh = window.innerHeight
-  const remain = rect.bottom - vh
-  const byVisibility = 1 - Math.min(1, Math.max(0, remain / Math.max(1, rect.height)))
-  const maxScroll = document.documentElement.scrollHeight - window.innerHeight
-  const scrollLeft = maxScroll - window.scrollY
-  setFill(maxScroll <= 0 || scrollLeft <= 8 ? 1 : byVisibility)
+  const scroller = document.scrollingElement || document.documentElement
+  const maxScroll = Math.max(0, scroller.scrollHeight - window.innerHeight)
+  const y = window.scrollY || scroller.scrollTop
+  const atEnd = maxScroll <= 0 || y >= maxScroll - 64
+  // Finish once most of the word is on screen. Requiring the mark bottom to
+  // reach the viewport leaves the last letter (G) outlined at page end.
+  const entered = vh - rect.top
+  const travel = Math.max(1, rect.height * 0.65)
+  setFill(atEnd ? 1 : Math.min(1, Math.max(0, entered / travel)))
 }
 
 function tick() {
@@ -306,6 +311,7 @@ onBeforeUnmount(() => {
   text-transform: uppercase;
   text-wrap: nowrap;
   user-select: none;
+  padding-right: 0.22em;
 }
 
 .footer-mark-outline {
@@ -338,8 +344,17 @@ onBeforeUnmount(() => {
 .footer-mark-fill {
   grid-area: 1 / 1;
   color: var(--liftag-primary);
-  clip-path: inset(0 calc((1 - var(--fill-p, 0)) * 100%) 0 0);
+  clip-path: inset(0 max(0%, calc((1 - var(--fill-p, 0)) * 100% - 0.28em)) 0 0);
   pointer-events: none;
+}
+
+.footer-mark.is-complete .footer-mark-fill {
+  clip-path: none;
+}
+
+.footer-mark.is-complete .footer-mark-bloom {
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
 .footer-mark-outline span,
