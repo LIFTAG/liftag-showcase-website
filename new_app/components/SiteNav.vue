@@ -2,7 +2,12 @@
 const scrolled = ref(false)
 const open = ref(false)
 const isMobileNav = ref(false)
+const navRoot = ref<HTMLElement | null>(null)
 const route = useRoute()
+
+// True when the browser drives the progress hairline natively via
+// animation-timeline: scroll(); the JS fallback then never writes the var.
+let nativeScrollTimeline = false
 
 const sectionHref = (hash: string) => route.path === '/' ? hash : `/${hash}`
 
@@ -22,9 +27,16 @@ function updateScrolled() {
   const threshold = isMobileNav.value ? 0 : 40
   const next = window.scrollY > threshold
   if (next !== scrolled.value) scrolled.value = next
+
+  if (!nativeScrollTimeline && navRoot.value) {
+    const max = document.documentElement.scrollHeight - window.innerHeight
+    const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0
+    navRoot.value.style.setProperty('--nav-scroll-p', p.toFixed(4))
+  }
 }
 
 onMounted(() => {
+  nativeScrollTimeline = typeof CSS !== 'undefined' && CSS.supports('animation-timeline: scroll()')
   _mobileQuery = window.matchMedia('(max-width: 768px)')
   _onViewportChange = () => {
     isMobileNav.value = Boolean(_mobileQuery?.matches)
@@ -65,6 +77,7 @@ onBeforeUnmount(() => {
 <template>
   <!-- Sticky header -->
   <header
+    ref="navRoot"
     class="site-nav"
     :class="{ 'is-open': open, 'is-scrolled': scrolled }"
     :style="{
@@ -83,6 +96,7 @@ onBeforeUnmount(() => {
     }"
   >
     <span class="nav-entry-beam" aria-hidden="true"></span>
+    <span class="nav-scroll-progress" aria-hidden="true"></span>
 
     <!-- Logo -->
     <a href="/" class="nav-logo">
@@ -118,14 +132,16 @@ onBeforeUnmount(() => {
       >
         Dashboard
       </a>
-      <NuxtLink
-        to="/get"
-        class="btn-primary nav-desktop nav-app-cta"
-        style="padding: 10px 20px; font-size: 11px; box-shadow: 0 0 24px rgba(204,255,0,0.4);"
-        @click="open = false"
-      >
-        Get the app
-      </NuxtLink>
+      <span data-magnetic class="nav-desktop" style="display: inline-flex;">
+        <NuxtLink
+          to="/get"
+          class="btn-primary nav-app-cta"
+          style="padding: 10px 20px; font-size: 11px; box-shadow: 0 0 24px rgba(204,255,0,0.4);"
+          @click="open = false"
+        >
+          Get the app
+        </NuxtLink>
+      </span>
 
       <!-- Mobile hamburger -->
       <button
@@ -252,6 +268,42 @@ onBeforeUnmount(() => {
 .nav-mobile-toggle {
   position: relative;
   z-index: 2;
+}
+
+/* Page scroll progress hairline pinned to the nav's bottom edge. Driven by
+   the native CSS scroll timeline where supported, otherwise by --nav-scroll-p
+   written from the existing rAF scroll handler. Scroll-proportional motion,
+   so it intentionally stays active under prefers-reduced-motion. */
+.nav-scroll-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  height: 2px;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(204, 255, 0, 0.55), var(--liftag-primary) 82%, #ffffff);
+  box-shadow: 0 0 12px rgba(204, 255, 0, 0.45);
+  transform: scaleX(var(--nav-scroll-p, 0));
+  transform-origin: left center;
+  opacity: 0;
+  transition: opacity 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.site-nav.is-scrolled .nav-scroll-progress {
+  opacity: 1;
+}
+
+@keyframes navScrollProgressFill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@supports (animation-timeline: scroll()) {
+  .nav-scroll-progress {
+    animation: navScrollProgressFill linear both;
+    animation-timeline: scroll(root block);
+  }
 }
 
 .nav-logo {

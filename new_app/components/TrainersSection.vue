@@ -75,8 +75,11 @@ const tabHovered = ref<Record<number, boolean>>({})
 const hoveredTrainer = ref<number | null>(null)
 const exitingTrainer = ref<number | null>(null)
 
+const reduceMotion = ref(false)
+
 let autoCycle: ReturnType<typeof setInterval> | null = null
 let exitTimer: ReturnType<typeof setTimeout> | null = null
+let motionMql: MediaQueryList | null = null
 
 function emitCursorGlowTone(active: boolean) {
   if (typeof window === 'undefined') return
@@ -104,6 +107,7 @@ function clearAutoCycle() {
 }
 
 function startAutoCycle() {
+  if (reduceMotion.value) return
   if (!sectionInView.value || !documentVisible.value || hoveredTrainer.value !== null) return
   clearAutoCycle()
 
@@ -113,6 +117,12 @@ function startAutoCycle() {
 }
 
 const documentVisible = ref(true)
+
+function onMotionChange(e: MediaQueryListEvent) {
+  reduceMotion.value = e.matches
+  if (reduceMotion.value) clearAutoCycle()
+  else startAutoCycle()
+}
 
 function onDocumentVisibilityChange() {
   documentVisible.value = !document.hidden
@@ -140,6 +150,10 @@ function clearHoveredTrainer(index: number) {
 }
 
 onMounted(() => {
+  motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
+  reduceMotion.value = motionMql.matches
+  motionMql.addEventListener('change', onMotionChange)
+
   documentVisible.value = !document.hidden
   document.addEventListener('visibilitychange', onDocumentVisibilityChange)
 
@@ -177,6 +191,8 @@ onBeforeUnmount(() => {
   clearAutoCycle()
   emitCursorGlowTone(false)
   if (exitTimer) clearTimeout(exitTimer)
+  motionMql?.removeEventListener('change', onMotionChange)
+  motionMql = null
   document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
 })
 </script>
