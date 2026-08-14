@@ -656,7 +656,6 @@ onBeforeUnmount(() => {
           drop-shadow(0 0 14px rgba(204, 255, 0, 0.35));
   opacity: 0;
   pointer-events: none;
-  will-change: left, opacity;
 }
 
 /* Override the global .reveal so we don't translateY - we drive our own motion */
