@@ -145,22 +145,22 @@ export function mergeStormFromProgress(
   const exit = clamp01(logoExit)
   const live = 1 - exit
 
-  // Halo lands on the same intro window as logoSpinDegrees() locking to 360.
+  // Hold the blown-out field in place (not a return-to-logo halo).
+  // Twist quiets on the same window as logoSpinDegrees() locking to 360.
   const spinDown = smootherstep((intro - 0.72) / 0.28)
 
-  // Pulse as LIFTAG first becomes visible (intro ~0.12–0.45), then dies
-  // before settle. Amplitude is high enough that the shader mix from the
-  // core to screenR actually reaches the frustum edges.
+  // Pulse as LIFTAG first becomes visible (intro ~0.12–0.45). Amplitude
+  // is high enough that the shader mix from the core to screenR reaches
+  // the frustum edges.
   const burstGate = clamp01((intro - 0.08) / 0.40)
   const burstPeak = Math.sin(burstGate * Math.PI)
-  const burst = burstPeak * 0.84 * (1 - spinDown) * live
+  const burst = burstPeak * 0.84 * live
 
-  // Suck-in starts with icon collapse (`merge`), not the logo. It yields
-  // to the burst pulse, then to settle, and comes back in the gap so the
-  // field can gather again before the halo locks.
-  const tornado = m * 0.82 * (1 - burstPeak) * (1 - spinDown) * live
-  const settle = spinDown * live
-  const spin = tornado * 0.48 + burst * 0.70 + settle * 0.14
+  // Suck-in starts with icon collapse and does not come back after the
+  // blow-out — that return trip was reading as a settle around the logo.
+  const tornado = m * 0.82 * (1 - smootherstep((intro - 0.06) / 0.22)) * live
+  const settle = smootherstep((intro - 0.22) / 0.3) * live
+  const spin = tornado * 0.48 + burst * 0.7 + (1 - spinDown) * settle * 0.08
 
   return { tornado, burst, settle, spin }
 }

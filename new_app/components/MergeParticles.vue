@@ -136,21 +136,20 @@ const vertexShader = /* glsl */ `
     float suck = min(storm.x * 1.22, 1.0) * cover;
     float contracted = mix(dist, coreRadius, suck);
 
-    // Always explode from the core to the frustum — never scale current dist.
+    // Explode from the core to the frustum, then hold that pose.
+    // Settle must not mix back to a logo halo.
     float screenSpread = screenR * (0.82 + 0.18 * seed);
-    float exploded = mix(coreRadius, screenSpread, storm.y);
-    float radius = mix(contracted, exploded, storm.y);
-
-    float halo = mix(6.0, 10.0, seed);
-    float settled = mix(radius, halo, storm.z);
+    float blown = mix(contracted, screenSpread, storm.y);
+    float settled = mix(blown, screenSpread, storm.z);
 
     float twist = uTime * storm.w * (0.22 + 0.38 * storm.x + 0.50 * storm.y) + seed * 1.4;
-    float finalAng = ang + twist * (storm.x * 0.40 + storm.y * 0.20 + storm.z * 0.07);
+    float finalAng = ang + twist * (storm.x * 0.40 + storm.y * 0.20 + storm.z * 0.04);
     vec2 target = well.xy + vec2(cos(finalAng), sin(finalAng)) * settled;
 
-    float k = clamp(energy * 1.28, 0.0, 1.0);
+    float hold = storm.z * (1.0 - storm.x) * (1.0 - storm.y);
+    float k = clamp(energy * 1.28, 0.0, 1.0) * mix(1.0, 0.78, hold);
     vec2 off = (target - p) * k * (0.78 + 0.22 * depth);
-    return vec3(off, storm.x * 0.20 * cover + storm.y * 0.26 + storm.z * 0.16);
+    return vec3(off, storm.x * 0.20 * cover + storm.y * 0.26 + storm.z * 0.18);
   }
 
   void main() {

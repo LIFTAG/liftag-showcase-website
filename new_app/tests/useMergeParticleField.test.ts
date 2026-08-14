@@ -154,15 +154,16 @@ test('mergeStormFromProgress peaks at a screen-wide burst as LIFTAG appears', ()
   const storm = mergeStormFromProgress(1, 0.28, 0)
   assert.ok(peakBurst > 0.65)
   assert.ok(storm.burst > 0.65)
-  assert.ok(storm.settle < 0.05)
+  assert.ok(storm.settle < 0.12)
 })
 
-test('mergeStormFromProgress stays unsettled while LIFTAG is still spinning', () => {
+test('mergeStormFromProgress holds the dispersed field after the burst', () => {
   const storm = mergeStormFromProgress(1, 0.7, 0)
-  assert.ok(storm.settle < 0.08)
+  assert.ok(storm.settle > 0.8)
+  assert.ok(storm.tornado < 0.05)
 })
 
-test('mergeStormFromProgress settles as the logo spin finishes', () => {
+test('mergeStormFromProgress keeps the hold as the logo spin finishes', () => {
   const storm = mergeStormFromProgress(1, 1, 0)
   assert.ok(storm.settle > 0.95)
   assert.ok(storm.tornado < 0.05)
