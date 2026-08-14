@@ -753,7 +753,6 @@ onBeforeUnmount(() => {
         <div class="merge-background-grid"></div>
         <div class="merge-background-pulse pulse-one"></div>
         <div class="merge-background-pulse pulse-two"></div>
-        <div class="merge-burst-wash" aria-hidden="true"></div>
         <MergeParticles
           :key="isMobileParticles ? 'merge-particles-m' : 'merge-particles-d'"
           :count="isMobileParticles ? 140 : 320"
@@ -772,6 +771,8 @@ onBeforeUnmount(() => {
         ></div>
       </div>
 
+      <MergeBurstHalo />
+
       <div class="container app-merge-layout">
         <div class="merge-copy">
           <Eyebrow class="merge-copy-eyebrow">▸ ONE APP INSTEAD OF EIGHT</Eyebrow>
@@ -788,11 +789,6 @@ onBeforeUnmount(() => {
             <span></span>
             <span></span>
             <span></span>
-          </div>
-          <div class="merge-burst" aria-hidden="true">
-            <span class="merge-burst__ring merge-burst__ring--near"></span>
-            <span class="merge-burst__ring merge-burst__ring--mid"></span>
-            <span class="merge-burst__ring merge-burst__ring--far"></span>
           </div>
 
           <div
@@ -964,76 +960,6 @@ onBeforeUnmount(() => {
   width: 760px;
   opacity: calc(0.12 + var(--merge-p) * 0.26);
   transform: translate(-50%, -50%) scale(calc(0.72 + var(--merge-p) * 0.45));
-}
-
-/* Explode flash. CSS-only: a full-sticky wash is cheap; backdrop blur is not. */
-.merge-burst-wash {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(
-    circle at 66% 48%,
-    rgba(204, 255, 0, calc(var(--finale-p) * (1 - var(--finale-p)) * (1 - var(--finale-p)) * (1 - var(--finale-p)) * (1 - var(--finale-p)) * 1.15)),
-    transparent 58%
-  );
-}
-
-.merge-burst {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.merge-burst__ring {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 168px;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  border: 1px solid rgba(204, 255, 0, 0.62);
-  box-shadow: 0 0 28px rgba(204, 255, 0, 0.16);
-  opacity: calc(
-    var(--finale-p)
-    * (1 - var(--finale-p))
-    * (1 - var(--finale-p))
-    * (1 - var(--finale-p))
-    * (1 - var(--finale-p))
-    * 9.2
-  );
-  transform: translate(-50%, -50%) scale(calc(0.28 + var(--finale-p) * 5.4));
-}
-
-.merge-burst__ring--mid {
-  width: 210px;
-  border-color: rgba(255, 247, 145, 0.42);
-  box-shadow: 0 0 22px rgba(204, 255, 0, 0.1);
-  opacity: calc(
-    var(--finale-p)
-    * (1 - var(--finale-p))
-    * (1 - var(--finale-p))
-    * (1 - var(--finale-p))
-    * (1 - var(--finale-p))
-    * 7.4
-  );
-  transform: translate(-50%, -50%) scale(calc(0.18 + var(--finale-p) * 7.2));
-}
-
-.merge-burst__ring--far {
-  width: 260px;
-  border-color: rgba(204, 255, 0, 0.28);
-  box-shadow: 0 0 18px rgba(204, 255, 0, 0.08);
-  opacity: calc(
-    var(--finale-p)
-    * (1 - var(--finale-p))
-    * (1 - var(--finale-p))
-    * (1 - var(--finale-p))
-    * (1 - var(--finale-p))
-    * 5.6
-  );
-  transform: translate(-50%, -50%) scale(calc(0.1 + var(--finale-p) * 9.4));
 }
 
 .app-merge-layout {
@@ -1370,14 +1296,6 @@ onBeforeUnmount(() => {
   .merge-background-pulse {
     left: 50%;
   }
-
-  .merge-burst-wash {
-    background: radial-gradient(
-      circle at 50% 58%,
-      rgba(204, 255, 0, calc(var(--finale-p) * (1 - var(--finale-p)) * (1 - var(--finale-p)) * (1 - var(--finale-p)) * (1 - var(--finale-p)) * 1.15)),
-      transparent 58%
-    );
-  }
 }
 
 @media (max-width: 620px) {
@@ -1419,21 +1337,6 @@ onBeforeUnmount(() => {
   .merge-rings span:nth-child(3) {
     width: 310px;
     height: 430px;
-  }
-
-  .merge-burst__ring {
-    width: 120px;
-    transform: translate(-50%, -50%) scale(calc(0.22 + var(--finale-p) * 3.8));
-  }
-
-  .merge-burst__ring--mid {
-    width: 150px;
-    transform: translate(-50%, -50%) scale(calc(0.16 + var(--finale-p) * 5.1));
-  }
-
-  .merge-burst__ring--far {
-    width: 180px;
-    transform: translate(-50%, -50%) scale(calc(0.1 + var(--finale-p) * 6.6));
   }
 
   .mock-icon {
@@ -1495,13 +1398,6 @@ onBeforeUnmount(() => {
   .mock-icon-glyph {
     width: 35px;
     height: 35px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .merge-burst,
-  .merge-burst-wash {
-    display: none;
   }
 }
 
