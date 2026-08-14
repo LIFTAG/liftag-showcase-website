@@ -28,7 +28,8 @@ const legalLinks: FooterLink[] = [
   { label: 'Terms & Conditions', href: '/terms-and-conditions' },
 ]
 
-const markLetters = ['L', 'I', 'F', 'T', 'A', 'G'] as const
+const markWord = 'LIFTAG'
+const outlineFilterId = 'footer-mark-union-outline'
 
 const footerRef = ref<HTMLElement | null>(null)
 const markRef = ref<HTMLElement | null>(null)
@@ -263,15 +264,29 @@ onBeforeUnmount(() => {
     </div>
 
     <div ref="markRef" class="footer-mark" aria-hidden="true">
-      <div class="footer-mark-row footer-mark-outline">
-        <span v-for="letter in markLetters" :key="`o-${letter}`">{{ letter }}</span>
+      <svg class="footer-mark-fx" focusable="false">
+        <filter
+          :id="outlineFilterId"
+          x="-12%"
+          y="-30%"
+          width="124%"
+          height="160%"
+          color-interpolation-filters="sRGB"
+        >
+          <feMorphology in="SourceAlpha" operator="dilate" radius="1" result="spread" />
+          <feComposite in="spread" in2="SourceAlpha" operator="out" result="ring" />
+          <feFlood flood-color="#CCFF00" flood-opacity="0.3" result="lime" />
+          <feComposite in="lime" in2="ring" operator="in" />
+        </filter>
+      </svg>
+      <div class="footer-mark-outline-host">
+        <div
+          class="footer-mark-row footer-mark-outline"
+          :style="{ filter: `url(#${outlineFilterId})` }"
+        >{{ markWord }}</div>
       </div>
-      <div class="footer-mark-row footer-mark-bloom">
-        <span v-for="letter in markLetters" :key="`b-${letter}`">{{ letter }}</span>
-      </div>
-      <div class="footer-mark-row footer-mark-fill">
-        <span v-for="letter in markLetters" :key="`f-${letter}`">{{ letter }}</span>
-      </div>
+      <div class="footer-mark-row footer-mark-bloom">{{ markWord }}</div>
+      <div class="footer-mark-row footer-mark-fill">{{ markWord }}</div>
     </div>
   </footer>
 </template>
@@ -300,8 +315,8 @@ onBeforeUnmount(() => {
 }
 
 .footer-mark-row {
-  display: flex;
-  justify-content: center;
+  display: block;
+  text-align: center;
   font-family: var(--liftag-font-headline);
   font-weight: 700;
   font-style: italic;
@@ -311,13 +326,25 @@ onBeforeUnmount(() => {
   text-transform: uppercase;
   text-wrap: nowrap;
   user-select: none;
+  overflow: visible;
+  padding: 0.02em 0.2em 0.06em;
+}
+
+.footer-mark-fx {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.footer-mark-outline-host {
+  grid-area: 1 / 1;
+  pointer-events: auto;
 }
 
 .footer-mark-outline {
-  grid-area: 1 / 1;
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(204, 255, 0, 0.3);
-  pointer-events: auto;
+  color: #000;
 }
 
 .footer-mark-bloom {
@@ -356,29 +383,13 @@ onBeforeUnmount(() => {
   mask-image: none;
 }
 
-.footer-mark-outline span,
-.footer-mark-bloom span,
-.footer-mark-fill span {
-  display: block;
-}
-
-/* Tight tracking makes F/T (and other pairs) share ink when filled.
-   Clip each outline glyph before it paints over the next letter so the
-   unfilled word does not show a double-stroke box at those joins. */
-.footer-mark-outline span:not(:last-child) {
-  clip-path: inset(-0.3em 0.09em -0.3em -0.2em);
-}
-
 @media (hover: hover) and (pointer: fine) {
-  .footer-mark-outline span {
-    transition:
-      -webkit-text-stroke-color 150ms cubic-bezier(0.22, 1, 0.36, 1),
-      text-shadow 150ms cubic-bezier(0.22, 1, 0.36, 1);
+  .footer-mark-outline-host {
+    transition: filter 150ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .footer-mark-outline span:hover {
-    -webkit-text-stroke-color: var(--liftag-primary);
-    text-shadow: 0 0 16px rgba(204, 255, 0, 0.45);
+  .footer-mark-outline-host:hover {
+    filter: brightness(1.7);
   }
 }
 
