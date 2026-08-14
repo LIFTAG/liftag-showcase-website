@@ -558,8 +558,7 @@ function initMacbook() {
     }
     animId = requestAnimationFrame(animate)
 
-    const previewZoom = smootherstep(currentZoom)
-    const tiltScale = 1 - previewZoom
+    const tiltScale = 1 - currentZoom
 
     // Skip until first real mouse event - otherwise (0,0) pulls the laptop
     // away from its rest yaw immediately on visibility.
@@ -574,7 +573,7 @@ function initMacbook() {
     currentTiltY += (targetTiltY - currentTiltY) * 0.06
 
     const eased = smoothstep(currentOpen)
-    const zoomT = smootherstep(currentZoom)
+    const zoomT = currentZoom
     lidGroup.rotation.x = closedAngle + (openAngle - closedAngle) * eased
 
     macbook.rotation.x = currentTiltX
@@ -629,9 +628,12 @@ function initMacbook() {
     })
   }
   window.addEventListener('resize', onResize, { passive: true })
+  const resizeObserver = new ResizeObserver(onResize)
+  resizeObserver.observe(container)
 
   cleanup = () => {
     window.removeEventListener('resize', onResize)
+    resizeObserver.disconnect()
     if (resizeRaf) {
       cancelAnimationFrame(resizeRaf)
       resizeRaf = 0

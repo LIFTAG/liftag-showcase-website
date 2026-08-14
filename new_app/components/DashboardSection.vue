@@ -527,8 +527,8 @@ onBeforeUnmount(() => {
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: minmax(320px, 0.85fr) minmax(540px, 1.15fr);
-  gap: clamp(40px, 6vw, 92px);
+  grid-template-columns: minmax(0, calc(var(--chrome-p) * 560px)) minmax(0, 1fr);
+  gap: calc(var(--chrome-p) * clamp(40px, 6vw, 92px));
   align-items: center;
   width: 100%;
   transform: translate3d(0, var(--exit-flow-y), 0) scale(var(--exit-flow-scale));
@@ -544,6 +544,8 @@ onBeforeUnmount(() => {
 
 .dashboard-copy {
   max-width: 560px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .dashboard-copy-head {
@@ -959,12 +961,12 @@ onBeforeUnmount(() => {
 
 .dashboard-macbook-mount {
   position: relative;
-  width: min(100%, 760px);
+  width: min(100%, calc(760px + var(--zoom-p) * 280px));
   aspect-ratio: 1.3 / 1;
   z-index: 2;
   opacity: calc(1 - var(--exit-macbook));
   transform: translate3d(0, var(--exit-macbook-y), 0)
-    scale(calc((1 + var(--zoom-p) * 0.08) * (1 - var(--exit-macbook) * 0.035)));
+    scale(calc(1 - var(--exit-macbook) * 0.035));
   transform-origin: center 42%;
   will-change: opacity, transform;
 }
