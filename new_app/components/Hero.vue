@@ -1013,10 +1013,10 @@ const pNfc = computed(() => {
     >
       <span class="protocol" :style="{ color: 'rgba(255,255,255,0.35)', fontSize: '9px' }">SCROLL</span>
       <div
+        class="hero-scroll-pulse"
         :style="{
           width: '1px', height: '48px',
           background: 'linear-gradient(180deg, #CCFF00 0%, transparent 100%)',
-          animation: 'scrollPulse 2s ease-in-out infinite',
         }"
       />
     </div>
@@ -1579,6 +1579,22 @@ const pNfc = computed(() => {
     gap: 10px;
   }
 
+}
+
+.hero-scroll-pulse {
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+
+/* Desktop reduced-motion: the mobile block below already covers <=768px. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-scroll-pulse {
+    animation: none;
+    opacity: 1;
+  }
+
+  .hero-nfc-tag-3d {
+    animation: none;
+  }
 }
 
 @keyframes heroNfcFloat {
