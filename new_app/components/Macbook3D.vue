@@ -2,6 +2,12 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { useSharedMouse } from '../composables/useSharedMouse'
+import {
+  createNotchedScreenGeometry,
+  createRoundedRectGeometry,
+  layoutMacbookScreen,
+  roundedRectShape,
+} from '../utils/macbookScreen'
 
 const props = withDefaults(defineProps<{
   screenshotSrc: string
@@ -29,25 +35,6 @@ function clamp01(v: number) {
 function smoothstep(v: number) {
   const t = clamp01(v)
   return t * t * (3 - 2 * t)
-}
-
-function roundedRect(w: number, h: number, r: number) {
-  const shape = new THREE.Shape()
-  const hw = w / 2
-  const hh = h / 2
-  const rr = Math.min(r, hw, hh)
-
-  shape.moveTo(-hw + rr, -hh)
-  shape.lineTo(hw - rr, -hh)
-  shape.quadraticCurveTo(hw, -hh, hw, -hh + rr)
-  shape.lineTo(hw, hh - rr)
-  shape.quadraticCurveTo(hw, hh, hw - rr, hh)
-  shape.lineTo(-hw + rr, hh)
-  shape.quadraticCurveTo(-hw, hh, -hw, hh - rr)
-  shape.lineTo(-hw, -hh + rr)
-  shape.quadraticCurveTo(-hw, -hh, -hw + rr, -hh)
-
-  return shape
 }
 
 function initMacbook() {
@@ -129,7 +116,7 @@ function initMacbook() {
   })
 
   // ---- Base ----
-  const baseGeo = new THREE.ExtrudeGeometry(roundedRect(W, D, R), {
+  const baseGeo = new THREE.ExtrudeGeometry(roundedRectShape(W, D, R), {
     steps: 1,
     depth: T,
     bevelEnabled: true,
@@ -240,7 +227,7 @@ function initMacbook() {
   const lidGroup = new THREE.Group()
   lidGroup.position.set(0, 0, -D / 2 + 0.04)
 
-  const lidGeo = new THREE.ExtrudeGeometry(roundedRect(W, H, R), {
+  const lidGeo = new THREE.ExtrudeGeometry(roundedRectShape(W, H, R), {
     steps: 1,
     depth: LT,
     bevelEnabled: true,
@@ -258,11 +245,11 @@ function initMacbook() {
   lid.receiveShadow = true
   lidGroup.add(lid)
 
-  // Screen panel (inner side of lid) - thin bezels like M-series MacBook
-  const SW = 2.72
-  const SH = 1.74
-  const screenGeo = new THREE.PlaneGeometry(SW, SH)
-  // Default plane normal +Z; rotate so it faces -Y (the inner/keyboard-facing side of the lid).
+  // Borderless Liquid Retina: hairline black glass + a real camera-notch cutout
+  // in the display mesh so the screenshot wraps the housing like a 14" MacBook.
+  const screenLayout = layoutMacbookScreen(W, H, R)
+  const screenGeo = createNotchedScreenGeometry(screenLayout)
+  // Default shape normal +Z; rotate so it faces -Y (the inner/keyboard-facing side of the lid).
   // After rotation, plane sits in lid-local XZ plane with normal pointing -Y.
   // v=1 (originally at +Y) maps to +Z → ends up at the FRONT of the lid (top of screen when open).
   screenGeo.rotateX(Math.PI / 2)
@@ -293,30 +280,34 @@ function initMacbook() {
   })
   const screen = new THREE.Mesh(screenGeo, screenMat)
   // -Y in lid local is the inner (keyboard-facing) side, which becomes camera-facing when open.
-  // Push the screen well outward so it wins the depth test against the black bezel/lid behind it.
+  // Push the screen well outward so it wins the depth test against the black glass behind it.
   screen.position.set(0, -0.014, H / 2)
   screen.renderOrder = 2
   lidGroup.add(screen)
 
-  // Bezel: larger black plane sitting behind the screen, fills the gap between screen and lid edge
-  const bezelGeo = new THREE.PlaneGeometry(W - 0.06, H - 0.06)
+  // Black glass underlay: fills the hairline margin and the notch cavity.
+  const bezelGeo = createRoundedRectGeometry(
+    screenLayout.bezelWidth,
+    screenLayout.bezelHeight,
+    screenLayout.bezelRadius,
+  )
   bezelGeo.rotateX(Math.PI / 2)
   const bezel = new THREE.Mesh(
     bezelGeo,
-    new THREE.MeshBasicMaterial({ color: 0x000000 }),
+    new THREE.MeshBasicMaterial({ color: 0x050506 }),
   )
   bezel.position.set(0, -0.006, H / 2)
   bezel.renderOrder = 1
   lidGroup.add(bezel)
 
-  // Camera notch hint (tiny dark dot)
-  const notch = new THREE.Mesh(
-    new THREE.CircleGeometry(0.018, 16),
-    new THREE.MeshBasicMaterial({ color: 0x0a0a0a }),
+  const lens = new THREE.Mesh(
+    new THREE.CircleGeometry(screenLayout.lensRadius, 16),
+    new THREE.MeshBasicMaterial({ color: 0x0a1018 }),
   )
-  notch.rotation.x = Math.PI / 2
-  notch.position.set(0, -0.001, H - 0.04)
-  lidGroup.add(notch)
+  lens.rotation.x = Math.PI / 2
+  lens.position.set(0, -0.01, H / 2 + screenLayout.notchCenterY)
+  lens.renderOrder = 1
+  lidGroup.add(lens)
 
   // ---- Macbook root group (drives mouse tilt) ----
   const macbook = new THREE.Group()
