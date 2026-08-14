@@ -25,63 +25,6 @@ const heroRoot = ref<HTMLElement | null>(null)
 // smooth lerp (factor 0.06 matches React source)
 const mouse = useLerp(rawMouse, 0.06)
 
-// ─── chart background data (deterministic - safe on server) ──────────────────
-const W = 1440, H = 860
-
-function makeChart(
-  count: number,
-  startY: number,
-  endY: number,
-  startX: number,
-  endX: number,
-  seed: number,
-): [number, number][] {
-  const pts: [number, number][] = []
-  let y = startY
-  for (let i = 0; i < count; i++) {
-    const p = i / (count - 1)
-    const x = startX + p * (endX - startX)
-    const rng = Math.sin(seed * 137.5 + i * 47.3 + seed * i * 0.8)
-    const step = (startY - endY) / count
-    const noise = rng * step * 1.8
-    y = Math.max(endY, Math.min(startY, y - step + noise))
-    pts.push([x, y])
-  }
-  return pts
-}
-
-const x0 = W * 0.38, x1 = W * 1.02
-const linesData = {
-  l1: makeChart(22, H * 0.82, H * 0.28, x0,      x1,      1),
-  l2: makeChart(18, H * 0.88, H * 0.42, x0 + 40, x1 - 40, 3),
-  l3: makeChart(16, H * 0.78, H * 0.50, x0 + 80, x1,      7),
-  l4: makeChart(14, H * 0.92, H * 0.60, x0,      x1 - 80, 11),
-}
-const { l1, l2, l3, l4 } = linesData
-
-function poly(pts: [number, number][]) {
-  return pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ')
-}
-function areaD(pts: [number, number][]) {
-  const last = pts[pts.length - 1]
-  const first = pts[0]
-  return `M ${poly(pts)} L ${last[0].toFixed(1)},${H} L ${first[0].toFixed(1)},${H} Z`
-}
-const dotIdxs = [4, 8, 13, 17, 21]
-
-// Pulse cycle in seconds for the 5 SVG dots (matches the original
-// Math.sin(tick / 180 * 1.8 + …) period: 2π / (1.8/180) ≈ 628 frames ≈ 10.47s @60Hz)
-const heroDotCycleSec = 10.47
-function heroDotDelay(i: number) {
-  return `${(-(i * 1.4) / (Math.PI * 2)) * heroDotCycleSec}s`
-}
-
-// chart SVG refs for draw-on-load animation
-const refL1 = ref<SVGPolylineElement | null>(null)
-const refL2 = ref<SVGPolylineElement | null>(null)
-const refL3 = ref<SVGPolylineElement | null>(null)
-const refL4 = ref<SVGPolylineElement | null>(null)
-
 const heroVolumeChartSvg = ref<SVGSVGElement | null>(null)
 const heroVolumeChartTargetP = ref(1)
 const heroVolumeChartDisplayP = ref(1)
@@ -394,7 +337,7 @@ let unsubHeroMouse: (() => void) | null = null
 let onHeroCursorGlowTone: EventListener | null = null
 let onHeroScroll: (() => void) | null = null
 
-onMounted(async () => {
+onMounted(() => {
   heroLaserStarted = false
   heroLaserCancelled = false
   heroLaserDone.value = false
@@ -465,29 +408,6 @@ onMounted(async () => {
 
   window.addEventListener('scroll', onHeroScroll, { passive: true })
 
-  // Chart draw-on-load: the hidden dash state is authored in the SVG markup so
-  // first paint cannot flash the fully drawn graph before this reveal runs.
-  await nextTick()
-  const scheduleChartReveal = () => {
-    const order = [
-      { el: refL4.value, delay: 200  },
-      { el: refL3.value, delay: 700  },
-      { el: refL2.value, delay: 1100 },
-      { el: refL1.value, delay: 1500 },
-    ]
-    order.forEach(({ el, delay }) => {
-      if (!el) return
-      setTimeout(() => {
-        el.style.transition      = 'stroke-dashoffset 1600ms cubic-bezier(0.4, 0, 0.2, 1)'
-        el.style.strokeDashoffset = '0'
-      }, delay)
-    })
-  }
-  type IdleCb = (cb: () => void, opts?: { timeout: number }) => number
-  const ric = (window as unknown as { requestIdleCallback?: IdleCb }).requestIdleCallback
-  if (typeof ric === 'function') ric(scheduleChartReveal, { timeout: 600 })
-  else setTimeout(scheduleChartReveal, 0)
-
   queueHeroLaserTimer(runAllHeroLaserReveals, 280)
 })
 
@@ -552,201 +472,8 @@ const pNfc = computed(() => {
     }"
   >
 
-    <!-- ── Background chart lines ── -->
-    <svg
-      :viewBox="`0 0 ${W} ${H}`"
-      preserveAspectRatio="xMidYMid slice"
-      :style="{
-        position: 'absolute',
-        inset: 0,
-        width: '100%',
-        height: '100%',
-        pointerEvents: 'none',
-        zIndex: 0,
-        transform: `translate(${mouse.x * 6}px, ${mouse.y * 3}px)`,
-      }"
-    >
-      <defs>
-        <filter id="hglow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="4" result="b" />
-          <feMerge>
-            <feMergeNode in="b" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-        <linearGradient id="harea" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stop-color="#CCFF00" stop-opacity="0.05" />
-          <stop offset="100%" stop-color="#CCFF00" stop-opacity="0" />
-        </linearGradient>
-        <linearGradient id="hfadex" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%"   stop-color="white" stop-opacity="0" />
-          <stop offset="36%"  stop-color="white" stop-opacity="0" />
-          <stop offset="50%"  stop-color="white" stop-opacity="1" />
-          <stop offset="88%"  stop-color="white" stop-opacity="1" />
-          <stop offset="100%" stop-color="white" stop-opacity="0" />
-        </linearGradient>
-        <mask id="hmask">
-          <rect :width="W" :height="H" fill="url(#hfadex)" />
-        </mask>
-      </defs>
-
-      <g mask="url(#hmask)">
-        <!-- Horizontal grid lines -->
-        <line
-          v-for="(yv, i) in [H * 0.30, H * 0.50, H * 0.68, H * 0.84]"
-          :key="i"
-          :x1="W * 0.35" :y1="yv" :x2="W" :y2="yv"
-          stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="5 18"
-        />
-
-        <polyline
-          class="hero-chart-outline"
-          :points="poly(l4)"
-          fill="none"
-          stroke="#CCFF00"
-          stroke-width="1"
-          opacity="0.026"
-          stroke-linejoin="round"
-        />
-        <polyline
-          ref="refL4"
-          class="hero-chart-draw"
-          :points="poly(l4)"
-          fill="none"
-          stroke="#CCFF00"
-          stroke-width="1"
-          opacity="0.07"
-          pathLength="1"
-          stroke-dasharray="1"
-          stroke-dashoffset="1"
-          stroke-linejoin="round"
-        />
-        <polyline
-          class="hero-chart-outline"
-          :points="poly(l3)"
-          fill="none"
-          stroke="#ffffff"
-          stroke-width="1"
-          opacity="0.032"
-          stroke-linejoin="round"
-        />
-        <polyline
-          ref="refL3"
-          class="hero-chart-draw"
-          :points="poly(l3)"
-          fill="none"
-          stroke="#ffffff"
-          stroke-width="1"
-          opacity="0.09"
-          pathLength="1"
-          stroke-dasharray="1"
-          stroke-dashoffset="1"
-          stroke-linejoin="round"
-        />
-        <polyline
-          class="hero-chart-outline"
-          :points="poly(l2)"
-          fill="none"
-          stroke="#CCFF00"
-          stroke-width="1"
-          opacity="0.042"
-          stroke-linejoin="round"
-        />
-        <polyline
-          ref="refL2"
-          class="hero-chart-draw"
-          :points="poly(l2)"
-          fill="none"
-          stroke="#CCFF00"
-          stroke-width="1"
-          opacity="0.13"
-          pathLength="1"
-          stroke-dasharray="1"
-          stroke-dashoffset="1"
-          stroke-linejoin="round"
-        />
-
-        <!-- Gradient area fill under l1 -->
-        <path
-          :d="areaD(l1)"
-          fill="url(#harea)"
-          :style="{ opacity: 0, animation: 'heroAreaFadeIn 1000ms 3000ms ease forwards' }"
-        />
-
-        <!-- Glow duplicate of l1 -->
-        <polyline
-          :points="poly(l1)"
-          fill="none"
-          stroke="#CCFF00"
-          stroke-width="5"
-          opacity="0.04"
-          stroke-linejoin="round"
-          filter="url(#hglow)"
-        />
-
-        <polyline
-          class="hero-chart-outline"
-          :points="poly(l1)"
-          fill="none"
-          stroke="#CCFF00"
-          stroke-width="1.5"
-          opacity="0.08"
-          stroke-linejoin="round"
-        />
-
-        <!-- Main l1 line (draw-on-load) -->
-        <polyline
-          ref="refL1"
-          class="hero-chart-draw"
-          :points="poly(l1)"
-          fill="none"
-          stroke="#CCFF00"
-          stroke-width="1.5"
-          opacity="0.32"
-          pathLength="1"
-          stroke-dasharray="1"
-          stroke-dashoffset="1"
-          stroke-linejoin="round"
-        />
-
-        <!-- Pulsing dots along l1 - CSS-driven so we don't burn an always-on rAF -->
-        <g
-          v-for="(idx, i) in dotIdxs"
-          :key="i"
-          :style="{
-            opacity: 0,
-            animation: `heroAreaFadeIn 500ms ${3100 + i * 100}ms ease forwards`,
-          }"
-        >
-          <template v-if="l1[idx]">
-            <circle
-              class="hero-dot-outer"
-              :cx="l1[idx][0]"
-              :cy="l1[idx][1]"
-              fill="none"
-              stroke="#CCFF00"
-              stroke-width="1"
-              :style="{ animationDelay: heroDotDelay(i) }"
-            />
-            <circle
-              class="hero-dot-mid"
-              :cx="l1[idx][0]"
-              :cy="l1[idx][1]"
-              r="2.5"
-              fill="#CCFF00"
-              :style="{ animationDelay: heroDotDelay(i) }"
-            />
-            <circle
-              :cx="l1[idx][0]"
-              :cy="l1[idx][1]"
-              r="1"
-              fill="#fff"
-              opacity="0.7"
-            />
-          </template>
-        </g>
-      </g>
-    </svg>
+    <!-- ── Background chart lines (independent depth layers) ── -->
+    <HeroCharts />
 
     <!-- ── Cursor orb ── -->
     <div
@@ -1341,15 +1068,6 @@ const pNfc = computed(() => {
   background: radial-gradient(circle, rgba(255, 45, 85, 0.11) 0%, transparent 58%);
 }
 
-.hero-chart-draw {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-
-.hero-chart-outline {
-  vector-effect: non-scaling-stroke;
-}
-
 .hero-volume-chip {
   cursor: crosshair;
 }
@@ -1870,19 +1588,4 @@ const pNfc = computed(() => {
     transform: translate3d(0, -7px, 8px);
   }
 }
-
-/* Pulse the chart dots in pure CSS - replaces an always-on rAF that bumped a
-   reactive ref every frame just to drive sin-based opacity/r updates. Period
-   matches 2π / (1.8/180) ≈ 10.47s; per-dot animation-delay reproduces the
-   original i*1.4 rad phase offset. */
-@keyframes heroDotOuterPulse {
-  0%, 100% { r: 5; opacity: 0.04; }
-  50%      { r: 8; opacity: 0.08; }
-}
-@keyframes heroDotMidPulse {
-  0%, 100% { opacity: 0.28; }
-  50%      { opacity: 0.40; }
-}
-.hero-dot-outer { animation: heroDotOuterPulse 10.47s ease-in-out infinite; }
-.hero-dot-mid   { animation: heroDotMidPulse   10.47s ease-in-out infinite; }
 </style>
