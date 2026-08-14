@@ -10,6 +10,7 @@ import {
   resetMergeParticleField,
   type MergeBodyPose,
 } from '../composables/useMergeParticleField'
+import { rayRectVisibleLength } from '../utils/mergeRayClip'
 
 interface MockApp {
   key: string
@@ -26,6 +27,7 @@ interface MockApp {
 }
 
 const sectionRef = ref<HTMLElement | null>(null)
+const stickyRef = ref<HTMLElement | null>(null)
 const stageRef = ref<HTMLElement | null>(null)
 const liftagRef = ref<HTMLElement | null>(null)
 const isMobileParticles = ref(false)
@@ -63,6 +65,14 @@ const lastVectorTransform: string[] = []
 const lastVectorOpacity: string[] = []
 const lastVectorSparkX: string[] = []
 const lastVectorSparkOpacity: string[] = []
+const lastVectorLen: string[] = []
+const VECTOR_HIDDEN_TRANSFORM = 'translate3d(0px, 0px, 0) rotate(0deg) scaleX(0)'
+let rayOriginX = 0
+let rayOriginY = 0
+let clipW = 0
+let clipH = 0
+let lastRayOx = ''
+let lastRayOy = ''
 let lastLogoTransform = ''
 let lastLogoOpacity = ''
 let lastLogoSpin = ''
@@ -260,6 +270,41 @@ function updateStageScale() {
   stageScale = clamp(rect.width / 860, 0.58, 1)
 }
 
+function cacheRayLayout() {
+  const sticky = stickyRef.value
+  const stage = stageRef.value
+  if (!sticky || !stage) return
+
+  const stickyRect = sticky.getBoundingClientRect()
+  const stageRect = stage.getBoundingClientRect()
+  rayOriginX = stageRect.left - stickyRect.left + stageRect.width * 0.5
+  rayOriginY = stageRect.top - stickyRect.top + stageRect.height * 0.5
+  clipW = stickyRect.width
+  clipH = stickyRect.height
+
+  const ox = `${rayOriginX}px`
+  const oy = `${rayOriginY}px`
+  if (lastRayOx !== ox) {
+    sticky.style.setProperty('--ray-ox', ox)
+    lastRayOx = ox
+  }
+  if (lastRayOy !== oy) {
+    sticky.style.setProperty('--ray-oy', oy)
+    lastRayOy = oy
+  }
+}
+
+function hideMergeVector(index: number, vector: HTMLElement) {
+  if (lastVectorOpacity[index] !== '0') {
+    vector.style.opacity = '0'
+    lastVectorOpacity[index] = '0'
+  }
+  if (lastVectorTransform[index] !== VECTOR_HIDDEN_TRANSFORM) {
+    vector.style.transform = VECTOR_HIDDEN_TRANSFORM
+    lastVectorTransform[index] = VECTOR_HIDDEN_TRANSFORM
+  }
+}
+
 function mergeProgress(p: number) {
   return smoothstep((p - 0.22) / 0.58)
 }
@@ -432,24 +477,52 @@ function applyAppStyles(app: MockApp, index: number, p: number, finale: number, 
 
   const show = smoothstep((p - 0.015 - app.delay * 0.003) / 0.12)
   const vectorFade = smoothstep((p - 0.8) / 0.14)
+  const draw = show * (1 - vectorFade)
+  const alpha = show * (1 - vectorFade) * (0.46 + merge * 0.22)
   const len = Math.hypot(motion.x, motion.y)
+
+  if (len <= 0.001 || draw < 0.004 || alpha < 0.004 || clipW < 1 || clipH < 1) {
+    hideMergeVector(index, vector)
+    return
+  }
+
   const angle = Math.atan2(motion.y, motion.x) * 180 / Math.PI
-  const unitX = len > 0.001 ? motion.x / len : 1
-  const unitY = len > 0.001 ? motion.y / len : 0
+  const unitX = motion.x / len
+  const unitY = motion.y / len
   const startGap = 62 + merge * 22
-  const endGap = 46 * motion.scale
-  const lineLen = Math.max(0, len - startGap - endGap)
   const startX = unitX * startGap
   const startY = unitY * startGap
-  const draw = show * (1 - vectorFade)
+  const lineLen = rayRectVisibleLength(
+    rayOriginX + startX,
+    rayOriginY + startY,
+    unitX,
+    unitY,
+    0,
+    0,
+    clipW,
+    clipH,
+  )
+  const drawn = lineLen * draw
+
+  if (drawn < 0.5) {
+    hideMergeVector(index, vector)
+    return
+  }
+
+  // Spark stays on the logo→icon span. The beam continues to the sticky
+  // edge, so a 0–1 left on the scaled 1px line would fly off-screen.
+  const iconSpan = Math.max(0, len - startGap - 46 * motion.scale)
   const sparkTravel = clamp(0.15 + merge * 0.78 + Math.sin(now * 0.003 + app.delay) * 0.05)
   const sparkOpacity = show * (1 - vectorFade) * (0.42 + merge * 0.48)
-  const alpha = show * (1 - vectorFade) * (0.46 + merge * 0.22)
-
-  const sparkXStr = `${sparkTravel}px`
+  const sparkXStr = `${sparkTravel * iconSpan / lineLen}px`
   const sparkOpacityStr = String(sparkOpacity)
   const vectorAlphaStr = String(alpha)
-  const vectorTransformStr = `translate3d(${startX}px, ${startY}px, 0) rotate(${angle}deg) scaleX(${lineLen * draw})`
+  const rayLenStr = String(drawn)
+  const vectorTransformStr = `translate3d(${startX}px, ${startY}px, 0) rotate(${angle}deg) scaleX(${drawn})`
+  if (lastVectorLen[index] !== rayLenStr) {
+    vector.style.setProperty('--ray-len', rayLenStr)
+    lastVectorLen[index] = rayLenStr
+  }
   if (lastVectorSparkX[index] !== sparkXStr) {
     vector.style.setProperty('--spark-x', sparkXStr)
     lastVectorSparkX[index] = sparkXStr
@@ -583,6 +656,7 @@ function captionBaseStyle(app: MockApp) {
 function vectorBaseStyle(app: MockApp) {
   return {
     '--line-glow': app.glow,
+    '--ray-len': '1',
     '--spark-x': '0px',
     '--spark-opacity': '0',
     opacity: 0,
@@ -615,12 +689,14 @@ onMounted(() => {
   }
   mergeMobileMql.addEventListener('change', onMergeMobileChange)
   updateStageScale()
+  cacheRayLayout()
   updateAnimatedStyles()
 
   observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       isVisible = entry.isIntersecting
       if (isVisible) {
+        cacheRayLayout()
         cancelAnimationFrame(rafId)
         rafId = requestAnimationFrame(tick)
       } else {
@@ -633,12 +709,14 @@ onMounted(() => {
 
   if (sectionRef.value) observer.observe(sectionRef.value)
 
-  if (stageRef.value && typeof ResizeObserver !== 'undefined') {
+  if (typeof ResizeObserver !== 'undefined') {
     stageResizeObserver = new ResizeObserver(() => {
       updateStageScale()
+      cacheRayLayout()
       updateAnimatedStyles()
     })
-    stageResizeObserver.observe(stageRef.value)
+    if (stageRef.value) stageResizeObserver.observe(stageRef.value)
+    if (stickyRef.value) stageResizeObserver.observe(stickyRef.value)
   }
 })
 
@@ -661,7 +739,7 @@ onBeforeUnmount(() => {
     @pointermove="handlePointerMove"
     @pointerleave="handlePointerLeave"
   >
-    <div class="app-merge-sticky">
+    <div ref="stickyRef" class="app-merge-sticky">
       <div class="merge-background" aria-hidden="true">
         <div class="merge-background-grid"></div>
         <div class="merge-background-pulse pulse-one"></div>
@@ -672,6 +750,16 @@ onBeforeUnmount(() => {
           :interactive="!isMobileParticles"
           :dpr-cap="isMobileParticles ? 1.15 : 1.25"
         />
+      </div>
+
+      <div class="merge-ray-layer" aria-hidden="true">
+        <div
+          v-for="(app, i) in mockApps"
+          :key="`${app.key}-line`"
+          :ref="(el) => setVectorRef(el, i)"
+          class="merge-vector"
+          :style="vectorBaseStyle(app)"
+        ></div>
       </div>
 
       <div class="container app-merge-layout">
@@ -691,15 +779,6 @@ onBeforeUnmount(() => {
             <span></span>
             <span></span>
           </div>
-
-          <div
-            v-for="(app, i) in mockApps"
-            :key="`${app.key}-line`"
-            :ref="(el) => setVectorRef(el, i)"
-            class="merge-vector"
-            :style="vectorBaseStyle(app)"
-            aria-hidden="true"
-          ></div>
 
           <div
             v-for="(app, i) in mockApps"
@@ -805,6 +884,8 @@ onBeforeUnmount(() => {
 }
 
 .app-merge-sticky {
+  --ray-ox: 50%;
+  --ray-oy: 50%;
   position: sticky;
   top: 0;
   height: 100vh;
@@ -812,6 +893,15 @@ onBeforeUnmount(() => {
   overflow: hidden;
   display: flex;
   align-items: center;
+}
+
+.merge-ray-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: paint;
 }
 
 .merge-background {
@@ -953,29 +1043,22 @@ onBeforeUnmount(() => {
 
 .merge-vector {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: var(--ray-oy);
+  left: var(--ray-ox);
   width: 1px;
-  height: 2px;
+  height: 3px;
   pointer-events: none;
   transform-origin: 0 50%;
   border-radius: 999px;
-  background:
-    linear-gradient(90deg, transparent 0%, rgba(204, 255, 0, 0.62) 18%, var(--line-glow) 62%, transparent 100%);
-  box-shadow:
-    0 0 12px var(--line-glow),
-    0 0 30px rgba(204, 255, 0, 0.06);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(204, 255, 0, 0.62) 18%,
+    var(--line-glow) 62%,
+    transparent 100%
+  );
   mix-blend-mode: screen;
   will-change: transform, opacity;
-}
-
-.merge-vector::before {
-  content: '';
-  position: absolute;
-  inset: -7px 0;
-  border-radius: 999px;
-  background: linear-gradient(90deg, transparent, var(--line-glow), transparent);
-  opacity: 0.2;
 }
 
 .merge-vector::after {
@@ -991,7 +1074,10 @@ onBeforeUnmount(() => {
     0 0 12px rgba(204, 255, 0, 0.9),
     0 0 28px var(--line-glow);
   opacity: var(--spark-opacity, 0);
-  transform: translate(-50%, -50%) scale(calc(0.72 + var(--merge-p) * 0.34));
+  transform:
+    translate(-50%, -50%)
+    scaleX(calc(1 / max(var(--ray-len, 1), 0.001)))
+    scale(calc(0.72 + var(--merge-p) * 0.34));
 }
 
 .mergeable-app {
