@@ -782,7 +782,7 @@ onBeforeUnmount(() => {
       <canvas ref="curveCanvas" class="hiw-curve-canvas"></canvas>
 
       <div class="hiw-header">
-        <div class="section-label">How It Works</div>
+        <h2 class="section-label">How It Works</h2>
       </div>
 
       <div ref="trackRef" class="hiw-track">
@@ -1096,7 +1096,7 @@ onBeforeUnmount(() => {
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: var(--accent);
-  margin-bottom: 16px;
+  margin: 0 0 16px;
 }
 
 /* ── Track ────────────────────────────────────────────── */

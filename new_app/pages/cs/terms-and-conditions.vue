@@ -7,6 +7,9 @@ useLiftagSeo({
   description:
     'Podmínky, kterými se řídí vaše používání tréninkové aplikace LIFTAG — způsobilost, odpovědnost za účet, obsah a přijatelné používání.',
   path,
+  lang: 'cs',
+  locale: 'cs_CZ',
+  alternates: liftagLegalAlternates('terms'),
 })
 
 useLiftagStructuredData([
@@ -81,6 +84,7 @@ const contactEmail = 'support@liftag.fit'
           <p class="protocol legal-eyebrow">▸ OBCHODNÍ PODMÍNKY</p>
           <h1 class="display legal-title">Obchodní <span class="lime">podmínky.</span></h1>
           <p class="legal-updated">Poslední aktualizace: {{ lastUpdated }}</p>
+          <LegalLangLinks kind="terms" />
         </header>
 
         <div class="container legal-body">

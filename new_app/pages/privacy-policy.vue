@@ -7,6 +7,9 @@ useLiftagSeo({
   description:
     'How LIFTAG collects, uses, stores, and protects your personal data when you use the LIFTAG workout tracking app.',
   path,
+  lang: 'en',
+  locale: 'en_US',
+  alternates: liftagLegalAlternates('privacy'),
 })
 
 useLiftagStructuredData([
@@ -77,6 +80,7 @@ const contactEmail = 'support@liftag.fit'
           <p class="protocol legal-eyebrow">▸ PRIVACY POLICY</p>
           <h1 class="display legal-title">Privacy <span class="lime">Policy.</span></h1>
           <p class="legal-updated">Last updated: {{ lastUpdated }}</p>
+          <LegalLangLinks kind="privacy" />
         </header>
 
         <div class="container legal-body">

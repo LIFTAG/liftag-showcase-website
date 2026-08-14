@@ -11,10 +11,12 @@ const productLinks: FooterLink[] = [
   { label: 'For Gyms', href: '/for-gyms' },
   { label: 'NFC + QR Tags', href: '/qr-nfc-gym-tags' },
   { label: 'Roadmap', href: '/#roadmap' },
+  { label: 'Partner with us', href: '/contact/partner' },
   { label: 'Support', href: '/contact/support' },
 ]
 
 const guideLinks: FooterLink[] = [
+  { label: 'All Guides', href: '/guides' },
   { label: 'Best Workout Tracking App', href: '/best-workout-tracking-app' },
   { label: 'How to Track Workouts', href: '/guides/how-to-track-workouts' },
   { label: 'Best App for Powerlifting', href: '/guides/best-workout-app-for-powerlifting' },
@@ -48,7 +50,7 @@ const legalLinks: FooterLink[] = [
       </div>
 
       <div>
-        <a href="#all-in-one" class="protocol footer-col-heading footer-heading-link">Product</a>
+        <a href="/#all-in-one" class="protocol footer-col-heading footer-heading-link">Product</a>
         <ul class="footer-link-list">
           <li v-for="item in productLinks" :key="item.label">
             <a :href="item.href" class="footer-link">{{ item.label }}</a>

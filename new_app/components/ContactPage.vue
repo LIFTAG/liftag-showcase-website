@@ -8,6 +8,7 @@ interface ContactPageProps {
   seoTitle: string
   seoDescription: string
   seoPath: string
+  breadcrumbName: string
 }
 
 const props = defineProps<ContactPageProps>()
@@ -17,6 +18,19 @@ useLiftagSeo({
   description: props.seoDescription,
   path: props.seoPath,
 })
+
+useLiftagStructuredData([
+  liftagOrganization,
+  liftagContactPage({
+    name: props.seoTitle,
+    path: props.seoPath,
+    description: props.seoDescription,
+  }),
+  liftagBreadcrumbs([
+    { name: 'LIFTAG', path: '/' },
+    { name: props.breadcrumbName, path: props.seoPath },
+  ]),
+])
 
 useReveal()
 
@@ -79,7 +93,7 @@ function sendAnother() {
         <div class="container contact-grid">
           <div class="contact-copy reveal">
             <Eyebrow color="#CCFF00">{{ eyebrow }}</Eyebrow>
-            <SectionTitle :max="780">
+            <SectionTitle as="h1" :max="780">
               <span v-html="title" />
             </SectionTitle>
             <p class="contact-lead copy-soft">{{ lead }}</p>

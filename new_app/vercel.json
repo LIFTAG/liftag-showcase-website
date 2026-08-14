@@ -1,4 +1,5 @@
 {
+  "trailingSlash": false,
   "headers": [
     {
       "source": "/.well-known/apple-app-site-association",

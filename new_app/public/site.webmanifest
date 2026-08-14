@@ -1,0 +1,24 @@
+{
+  "name": "LIFTAG",
+  "short_name": "LIFTAG",
+  "description": "Tap NFC tags or scan QR codes on gym machines. LIFTAG opens the right exercise, logs every set, and tracks progress.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "browser",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/logo-apple-touch.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

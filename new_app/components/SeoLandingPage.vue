@@ -72,6 +72,7 @@ defineProps<{
       <section class="seo-faq">
         <div class="container">
           <p class="protocol seo-eyebrow">Common questions</p>
+          <h2 class="display seo-faq-title">Common <span class="lime">questions.</span></h2>
           <div class="seo-faq-list">
             <details
               v-for="item in faqs"
@@ -215,6 +216,12 @@ defineProps<{
   font-size: 16px;
   font-weight: 300;
   line-height: 1.65;
+}
+
+.seo-faq-title {
+  max-width: 16ch;
+  margin: 0 0 8px;
+  font-size: clamp(36px, 5vw, 64px);
 }
 
 .seo-faq-list {

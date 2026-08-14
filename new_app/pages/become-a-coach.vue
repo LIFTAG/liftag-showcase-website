@@ -20,7 +20,7 @@ useLiftagStructuredData([
   liftagFAQPage([
     {
       question: 'How do I apply to become a coach?',
-      answer: 'Download the LIFTAG app, then open Profile and tap Become a Trainer. Fill out your coach application with your bio, specializations, experience, and location. It takes a couple of minutes, then our team reviews it.',
+      answer: 'Download the LIFTAG app, then open Profile and tap Become a Trainer. Fill out your application with your bio, specializations, experience, and location. It takes a couple of minutes, then our team reviews it.',
     },
     {
       question: 'How long does approval take?',
