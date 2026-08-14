@@ -81,10 +81,18 @@ export function useLiftagSeo(options: LiftagSeoOptions) {
     href: new URL(item.path, SITE_URL).toString(),
   }))
 
+  // Czech/Slovak diacritics live in the latin-ext subset, which the global
+  // config does not preload; without this the text repaints in a second font
+  // wave. Inter carries the body copy, so it is the only subset worth preloading.
+  const latinExtFontLinks = options.lang === 'cs' || options.lang === 'sk'
+    ? [{ rel: 'preload' as const, as: 'font' as const, type: 'font/woff2', crossorigin: '' as const, href: '/assets/fonts/inter-latin-ext.woff2' }]
+    : []
+
   useHead({
     ...(options.lang ? { htmlAttrs: { lang: options.lang } } : {}),
     link: [
       { rel: 'canonical', href: url },
+      ...latinExtFontLinks,
       ...alternateLinks,
     ],
     ...(verificationMeta.length ? { meta: verificationMeta } : {}),

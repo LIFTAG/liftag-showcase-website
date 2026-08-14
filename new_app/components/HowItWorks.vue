@@ -39,6 +39,7 @@ let ctx: CanvasRenderingContext2D | null = null
 let rafId = 0
 let isVisible = false
 let resizeCleanup: (() => void) | null = null
+let scrollCleanup: (() => void) | null = null
 let mobileQueryCleanup: (() => void) | null = null
 let intersectionObs: IntersectionObserver | null = null
 let motionQueryCleanup: (() => void) | null = null
@@ -69,6 +70,32 @@ let cachedDescRect: DOMRect | null = null
 let cachedAreaGrad: CanvasGradient | null = null
 let cachedAreaGradKey = ''
 let scanEffectResetForMobile = false
+
+// Glass-pane cursor glow. mousemove fires far above frame rate on trackpads, so
+// the handlers only stash the latest position and a single rAF does the rect
+// reads + style writes. The pane (and, on panel 01, the scan area) rect is
+// captured on enter and only re-read when scroll/resize can have moved it -
+// CSS vars are consumed at paint time, so per-frame writes look identical.
+let glassPaneEl: HTMLElement | null = null
+let glassPaneRect: DOMRect | null = null
+let glassPaneAreaRect: DOMRect | null = null
+let glassPaneRectDirty = true
+let glassPaneX = 0
+let glassPaneY = 0
+let glassPaneRaf = 0
+
+// Wall-clock tail of a marker's flash ring (600ms) plus its label fade + drift
+// (~1000ms). Past this timestamp the curve renders identically at unchanged
+// progress, so an idle frame can leave the canvas alone.
+const CURVE_ANIM_TAIL_MS = 1600
+let curveAnimUntil = 0
+
+// Scroll-derived writes are skipped while the quantised progress is unchanged.
+// The step is deliberately fine: the widest consumer (the track transform)
+// travels ~2 viewport widths across the section, so 1/4096 keeps a single step
+// sub-pixel and the skip only ever collapses genuinely idle frames.
+const HIW_PROGRESS_STEPS = 4096
+let lastQuantizedP = Number.NaN
 
 const HIW_DESKTOP_TRACK_END_PROGRESS = 0.86
 const HIW_DESKTOP_LAST_EXIT_PROGRESS = 0.92
@@ -318,7 +345,10 @@ function drawHIWCurve(p: number) {
     const mx = toCanvasX(marker.x)
     const my = toCanvasY(curveYAtX(marker.x))
 
-    if (markerFlashTime[mi] === 0) markerFlashTime[mi] = now
+    if (markerFlashTime[mi] === 0) {
+      markerFlashTime[mi] = now
+      curveAnimUntil = now + CURVE_ANIM_TAIL_MS
+    }
     // Under reduced motion the wall-clock flash ring and label fade-in are skipped:
     // an infinite age renders every marker already settled.
     const age       = reduceMotion.value ? Number.POSITIVE_INFINITY : now - markerFlashTime[mi]
@@ -390,7 +420,12 @@ function getHIWProgress(): number {
   return getScrollP()
 }
 
-function updateHIW(p: number, sectionRect?: DOMRect) {
+// `scrollChanged` is false on frames where the scroll progress has not moved:
+// the writes that are a pure function of `p` are then left alone, while every
+// input that keeps moving on its own - the intro trigger (driven by rect.top,
+// which shifts while p is still clamped at 0), the scan lerps + wall-clock scan
+// sweep, the curve's marker flash, and the hover-driven chart lerp - still runs.
+function updateHIW(p: number, sectionRect?: DOMRect, scrollChanged = true) {
   const track = trackRef.value
   if (!track || mobileHIWLayout) return
 
@@ -405,49 +440,58 @@ function updateHIW(p: number, sectionRect?: DOMRect) {
       hiwIntroEntered.value = true
     }
 
-    const exitStart = HIW_DESKTOP_LAST_EXIT_PROGRESS
-    const exitP = Math.max(0, Math.min(1, (p - exitStart) / (1 - exitStart)))
-    const easedExitP = exitP * exitP * (3 - 2 * exitP)
+    if (scrollChanged) {
+      const exitStart = HIW_DESKTOP_LAST_EXIT_PROGRESS
+      const exitP = Math.max(0, Math.min(1, (p - exitStart) / (1 - exitStart)))
+      const easedExitP = exitP * exitP * (3 - 2 * exitP)
 
-    section.style.setProperty('--hiw-exit-opacity', String(1 - easedExitP))
-    section.style.setProperty('--hiw-exit-number-y', `${-50 - easedExitP * 6}%`)
-    section.style.setProperty('--hiw-exit-number-scale', String(1 - easedExitP * 0.06))
-    section.style.setProperty('--hiw-exit-pane-shift', `${-34 * easedExitP}px`)
-    section.style.setProperty('--hiw-exit-pane-scale', String(1 - easedExitP * 0.025))
-    section.style.setProperty('--hiw-exit-blur', `${7 * easedExitP}px`)
-    section.style.setProperty('--hiw-exit-content-shift', `${-18 * easedExitP}px`)
-    section.style.setProperty('--hiw-dots-opacity', String(1 - easedExitP))
-    section.style.setProperty('--hiw-dots-shift', `${8 * easedExitP}px`)
+      section.style.setProperty('--hiw-exit-opacity', String(1 - easedExitP))
+      section.style.setProperty('--hiw-exit-number-y', `${-50 - easedExitP * 6}%`)
+      section.style.setProperty('--hiw-exit-number-scale', String(1 - easedExitP * 0.06))
+      section.style.setProperty('--hiw-exit-pane-shift', `${-34 * easedExitP}px`)
+      section.style.setProperty('--hiw-exit-pane-scale', String(1 - easedExitP * 0.025))
+      section.style.setProperty('--hiw-exit-blur', `${7 * easedExitP}px`)
+      section.style.setProperty('--hiw-exit-content-shift', `${-18 * easedExitP}px`)
+      section.style.setProperty('--hiw-dots-opacity', String(1 - easedExitP))
+      section.style.setProperty('--hiw-dots-shift', `${8 * easedExitP}px`)
+    }
   }
 
-  track.style.transform = `translateX(-${panelP * 66.667}%)`
+  if (scrollChanged) {
+    track.style.transform = `translateX(-${panelP * 66.667}%)`
+  }
 
   updateScanHoverEffect(panelP)
 
-  // Draw the strength curve (always - flash timings use perf.now())
-  drawHIWCurve(panelP)
+  // Draw the strength curve. Flash timings use perf.now(), so it keeps running
+  // past a scroll stop until the newest marker's flash + label have settled.
+  if (scrollChanged || performance.now() < curveAnimUntil) {
+    drawHIWCurve(panelP)
+  }
 
-  // Dots
-  const activeIdx = Math.min(2, Math.round(panelP * 2))
-  dotEls.value.forEach((dot, i) => {
-    const isActive = i === activeIdx
-    dot.classList.toggle('active', isActive)
-    dot.setAttribute('aria-selected', String(isActive))
-  })
+  if (scrollChanged) {
+    // Dots
+    const activeIdx = Math.min(2, Math.round(panelP * 2))
+    dotEls.value.forEach((dot, i) => {
+      const isActive = i === activeIdx
+      dot.classList.toggle('active', isActive)
+      dot.setAttribute('aria-selected', String(isActive))
+    })
 
-  // Panel 2 weight / reps counter: ramp 0.25 → 0.45
-  const rampStart = 0.25
-  const rampEnd   = 0.45
-  if (panelP < rampStart) {
-    if (weightEl.value) weightEl.value.textContent = '0'
-    if (repsEl.value)   repsEl.value.textContent   = '0'
-  } else if (panelP <= rampEnd) {
-    const localP = (panelP - rampStart) / (rampEnd - rampStart)
-    if (weightEl.value) weightEl.value.textContent = String(Math.round(localP * 85))
-    if (repsEl.value)   repsEl.value.textContent   = String(Math.round(localP * 9))
-  } else {
-    if (weightEl.value) weightEl.value.textContent = '85'
-    if (repsEl.value)   repsEl.value.textContent   = '9'
+    // Panel 2 weight / reps counter: ramp 0.25 → 0.45
+    const rampStart = 0.25
+    const rampEnd   = 0.45
+    if (panelP < rampStart) {
+      if (weightEl.value) weightEl.value.textContent = '0'
+      if (repsEl.value)   repsEl.value.textContent   = '0'
+    } else if (panelP <= rampEnd) {
+      const localP = (panelP - rampStart) / (rampEnd - rampStart)
+      if (weightEl.value) weightEl.value.textContent = String(Math.round(localP * 85))
+      if (repsEl.value)   repsEl.value.textContent   = String(Math.round(localP * 9))
+    } else {
+      if (weightEl.value) weightEl.value.textContent = '85'
+      if (repsEl.value)   repsEl.value.textContent   = '9'
+    }
   }
 
   // Panel 3 chart: draw line via clipPath from p = 0.72 → 1.0
@@ -582,23 +626,74 @@ function resetMobileScanEffect() {
   scanDesc.value?.style.removeProperty('--scan-h')
 }
 
-function updateGlassPaneCursor(event: MouseEvent) {
-  const pane = event.currentTarget as HTMLElement
-  const rect = pane.getBoundingClientRect()
-  const x = (event.clientX - rect.left) / rect.width
-  const y = (event.clientY - rect.top) / rect.height
+// Snapshot the rects the pointer path needs. Both are only invalidated by a
+// scroll (the horizontal track translate slides the pane under the cursor) or a
+// resize, so this runs on enter and after those events - never per event.
+function captureGlassPaneRects(pane: HTMLElement) {
+  glassPaneRect = pane.getBoundingClientRect()
+  glassPaneAreaRect = pane === scanPane.value
+    ? (scanArea.value?.getBoundingClientRect() ?? null)
+    : null
+  glassPaneRectDirty = false
+}
+
+function flushGlassPaneCursor() {
+  glassPaneRaf = 0
+  const pane = glassPaneEl
+  if (!pane) return
+
+  if (!glassPaneRect || glassPaneRectDirty) captureGlassPaneRects(pane)
+  const rect = glassPaneRect
+  if (!rect) return
+
+  const x = (glassPaneX - rect.left) / rect.width
+  const y = (glassPaneY - rect.top) / rect.height
   pane.style.setProperty('--mx', `${x * 100}%`)
   pane.style.setProperty('--my', `${y * 100}%`)
+
+  const areaRect = glassPaneAreaRect
+  if (areaRect && !mobileHIWLayout) {
+    const scanCenterX = areaRect.left + areaRect.width / 2
+    const scanCenterY = areaRect.top + areaRect.height / 2
+    scanTargetX = (glassPaneX - scanCenterX) * 0.55
+    scanTargetY = (glassPaneY - scanCenterY) * 0.55
+  }
+}
+
+function updateGlassPaneCursor(event: MouseEvent) {
+  const pane = event.currentTarget as HTMLElement
+  if (pane !== glassPaneEl) {
+    glassPaneEl = pane
+    glassPaneRect = null
+    glassPaneAreaRect = null
+  }
+  glassPaneX = event.clientX
+  glassPaneY = event.clientY
+  if (!glassPaneRaf) glassPaneRaf = requestAnimationFrame(flushGlassPaneCursor)
+}
+
+function releaseGlassPaneCursor(pane: HTMLElement) {
+  if (glassPaneEl !== pane) return
+  if (glassPaneRaf) {
+    cancelAnimationFrame(glassPaneRaf)
+    glassPaneRaf = 0
+  }
+  glassPaneEl = null
+  glassPaneRect = null
+  glassPaneAreaRect = null
 }
 
 function handleGlassPaneEnter(event: MouseEvent) {
   const pane = event.currentTarget as HTMLElement
   pane.classList.add('glass-hovered')
+  glassPaneEl = pane
+  captureGlassPaneRects(pane)
   updateGlassPaneCursor(event)
 }
 
 function handleGlassPaneLeave(event: MouseEvent) {
   const pane = event.currentTarget as HTMLElement
+  releaseGlassPaneCursor(pane)
   pane.classList.remove('glass-hovered')
   pane.style.setProperty('--mx', '50%')
   pane.style.setProperty('--my', '50%')
@@ -611,13 +706,9 @@ function handleScanPaneMove(event: MouseEvent) {
   const area = scanArea.value
   if (!pane || !area) return
 
+  // The scan frame target rides along in the same rAF flush - it needs the same
+  // pointer position and the scan-area rect that is cached next to the pane's.
   updateGlassPaneCursor(event)
-
-  const areaRect = area.getBoundingClientRect()
-  const scanCenterX = areaRect.left + areaRect.width / 2
-  const scanCenterY = areaRect.top + areaRect.height / 2
-  scanTargetX = (event.clientX - scanCenterX) * 0.55
-  scanTargetY = (event.clientY - scanCenterY) * 0.55
 }
 
 function handleScanPaneEnter(event: MouseEvent) {
@@ -663,7 +754,12 @@ function tick() {
   }
   const rect = section.getBoundingClientRect()
   const p = progressFromRect(rect)
-  updateHIW(p, rect)
+  // Quantise before comparing so sub-pixel float jitter cannot defeat the check.
+  const quantizedP = Math.round(p * HIW_PROGRESS_STEPS) / HIW_PROGRESS_STEPS
+  const scrollChanged = quantizedP !== lastQuantizedP
+  lastQuantizedP = quantizedP
+  // Exact p is still what gets written on the frames that do write.
+  updateHIW(p, rect, scrollChanged)
   rafId = requestAnimationFrame(tick)
 }
 
@@ -723,6 +819,7 @@ onMounted(async () => {
     document.fonts.ready.then(refreshScanRects).catch(() => {})
   }
   const onResize = () => {
+    glassPaneRectDirty = true
     if (mobileHIWLayout) {
       showStaticMobileState()
       return
@@ -734,15 +831,30 @@ onMounted(async () => {
   window.addEventListener('resize', onResize, { passive: true })
   resizeCleanup = () => window.removeEventListener('resize', onResize)
 
+  // Scrolling slides the panes sideways with the track (and vertically until the
+  // sticky child pins), so the pointer path's cached rects go stale. Flag only -
+  // the rect is re-read inside the next pointer flush, and only if the cursor is
+  // actually over a pane.
+  const onScroll = () => { glassPaneRectDirty = true }
+  window.addEventListener('scroll', onScroll, { passive: true })
+  scrollCleanup = () => window.removeEventListener('scroll', onScroll)
+
   const motionMedia = window.matchMedia('(prefers-reduced-motion: reduce)')
   const syncReduceMotion = () => { reduceMotion.value = motionMedia.matches }
   syncReduceMotion()
-  motionMedia.addEventListener('change', syncReduceMotion)
-  motionQueryCleanup = () => motionMedia.removeEventListener('change', syncReduceMotion)
+  const onMotionChange = () => {
+    syncReduceMotion()
+    // The curve's flash/label state is wall-clock driven; without a forced pass
+    // the idle-frame skip would hold the previous rendering until the next scroll.
+    if (!mobileHIWLayout) updateHIW(getHIWProgress())
+  }
+  motionMedia.addEventListener('change', onMotionChange)
+  motionQueryCleanup = () => motionMedia.removeEventListener('change', onMotionChange)
 
   const media = window.matchMedia('(max-width: 768px)')
   const syncMobileLayout = () => {
     mobileHIWLayout = media.matches
+    glassPaneRectDirty = true
     cancelAnimationFrame(rafId)
 
     if (mobileHIWLayout) {
@@ -777,8 +889,14 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   cancelAnimationFrame(rafId)
+  if (glassPaneRaf) cancelAnimationFrame(glassPaneRaf)
+  glassPaneRaf = 0
+  glassPaneEl = null
+  glassPaneRect = null
+  glassPaneAreaRect = null
   intersectionObs?.disconnect()
   resizeCleanup?.()
+  scrollCleanup?.()
   mobileQueryCleanup?.()
   motionQueryCleanup?.()
 })

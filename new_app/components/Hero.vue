@@ -22,8 +22,10 @@ const cursorGlowTone = ref<'green' | 'red'>('green')
 const isMobile = ref(false)
 const heroRoot = ref<HTMLElement | null>(null)
 
-// smooth lerp (factor 0.06 matches React source)
-const mouse = useLerp(rawMouse, 0.06)
+// smooth lerp (factor 0.06 matches React source). Gated on the section being
+// near the viewport so mousemoves far down the page do not wake this loop.
+const lerpActive = useNearViewport(heroRoot)
+const mouse = useLerp(rawMouse, 0.06, () => lerpActive.value)
 
 const heroVolumeChartSvg = ref<SVGSVGElement | null>(null)
 const heroVolumeChartTargetP = ref(1)
@@ -517,7 +519,8 @@ const pNfc = computed(() => {
     />
 
     <!-- ── GPU particle field (single draw call, self-gating) ── -->
-    <HeroParticles
+    <!-- Lazy: keeps three.js out of the eager chunk (see index.vue idle warmup) -->
+    <LazyHeroParticles
       :key="isMobile ? 'hero-particles-m' : 'hero-particles-d'"
       :count="isMobile ? 380 : 1200"
       :interactive="!isMobile"
@@ -722,13 +725,13 @@ const pNfc = computed(() => {
         >
           <!-- Glow behind phone -->
           <div
+            class="pulse-glow-layer"
             :style="{
               position: 'absolute',
               inset: '8px',
               borderRadius: '50%',
               background: 'radial-gradient(circle, rgba(204,255,0,0.22) 0%, transparent 65%)',
               filter: 'blur(24px)',
-              animation: 'pulse-glow 4s ease-in-out infinite',
             }"
           />
           <Phone src="/assets/screens/home-hero-no-qr.webp" :scale="0.92" :tilt-delay-ms="0" :static-bezel="false" :lite="isMobile" priority />
@@ -809,7 +812,7 @@ const pNfc = computed(() => {
         >
           <div class="hero-nfc-tag-3d">
             <ClientOnly>
-              <NfcTag3D />
+              <LazyNfcTag3D />
             </ClientOnly>
           </div>
         </div>
@@ -1010,10 +1013,10 @@ const pNfc = computed(() => {
     >
       <span class="protocol" :style="{ color: 'rgba(255,255,255,0.35)', fontSize: '9px' }">SCROLL</span>
       <div
+        class="hero-scroll-pulse"
         :style="{
           width: '1px', height: '48px',
           background: 'linear-gradient(180deg, #CCFF00 0%, transparent 100%)',
-          animation: 'scrollPulse 2s ease-in-out infinite',
         }"
       />
     </div>
@@ -1576,6 +1579,22 @@ const pNfc = computed(() => {
     gap: 10px;
   }
 
+}
+
+.hero-scroll-pulse {
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+
+/* Desktop reduced-motion: the mobile block below already covers <=768px. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-scroll-pulse {
+    animation: none;
+    opacity: 1;
+  }
+
+  .hero-nfc-tag-3d {
+    animation: none;
+  }
 }
 
 @keyframes heroNfcFloat {

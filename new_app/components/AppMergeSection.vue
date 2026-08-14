@@ -1,4 +1,17 @@
 <script setup lang="ts">
+import {
+  MERGE_BODY_COUNT,
+  MERGE_LOGO_INDEX,
+  mergeBodyVelocity,
+  mergeStormFromProgress,
+  publishMergeBody,
+  publishMergeStorm,
+  publishMergeWell,
+  resetMergeParticleField,
+  type MergeBodyPose,
+} from '../composables/useMergeParticleField'
+import { rayDissolvedLength, rayRectVisibleLength } from '../utils/mergeRayClip'
+
 interface MockApp {
   key: string
   name: string
@@ -14,8 +27,11 @@ interface MockApp {
 }
 
 const sectionRef = ref<HTMLElement | null>(null)
+const stickyRef = ref<HTMLElement | null>(null)
 const stageRef = ref<HTMLElement | null>(null)
 const liftagRef = ref<HTMLElement | null>(null)
+const isMobileParticles = ref(false)
+const particlesPinned = ref(false)
 
 const iconEls: HTMLElement[] = []
 const captionEls: HTMLElement[] = []
@@ -50,9 +66,29 @@ const lastVectorTransform: string[] = []
 const lastVectorOpacity: string[] = []
 const lastVectorSparkX: string[] = []
 const lastVectorSparkOpacity: string[] = []
+const lastVectorLen: string[] = []
+const lastRayDirX: number[] = []
+const lastRayDirY: number[] = []
+const VECTOR_HIDDEN_TRANSFORM = 'translate3d(0px, 0px, 0) rotate(0deg) scaleX(0)'
+let rayOriginX = 0
+let rayOriginY = 0
+let clipW = 0
+let clipH = 0
+let lastRayOx = ''
+let lastRayOy = ''
 let lastLogoTransform = ''
 let lastLogoOpacity = ''
 let lastLogoSpin = ''
+
+const lastBodyPose: MergeBodyPose[] = Array.from({ length: MERGE_BODY_COUNT }, () => ({
+  x: 0,
+  y: 0,
+  spin: 0,
+}))
+let lastPublishAt = 0
+let bodiesArmed = false
+let mergeMobileMql: MediaQueryList | null = null
+let onMergeMobileChange: ((event: MediaQueryListEvent) => void) | null = null
 
 const mockApps: MockApp[] = [
   {
@@ -216,6 +252,9 @@ function getScrollProgress() {
   const rect = section.getBoundingClientRect()
   const viewportH = useStableViewportHeight() || window.innerHeight
   const available = Math.max(1, rect.height - viewportH)
+  const stickyH = stickyRef.value?.offsetHeight ?? viewportH
+  const pinned = rect.top <= 2 && rect.bottom >= stickyH - 2
+  if (particlesPinned.value !== pinned) particlesPinned.value = pinned
   return clamp(-rect.top / available)
 }
 
@@ -235,6 +274,41 @@ function updateStageScale() {
   }
 
   stageScale = clamp(rect.width / 860, 0.58, 1)
+}
+
+function cacheRayLayout() {
+  const sticky = stickyRef.value
+  const stage = stageRef.value
+  if (!sticky || !stage) return
+
+  const stickyRect = sticky.getBoundingClientRect()
+  const stageRect = stage.getBoundingClientRect()
+  rayOriginX = stageRect.left - stickyRect.left + stageRect.width * 0.5
+  rayOriginY = stageRect.top - stickyRect.top + stageRect.height * 0.5
+  clipW = stickyRect.width
+  clipH = stickyRect.height
+
+  const ox = `${rayOriginX}px`
+  const oy = `${rayOriginY}px`
+  if (lastRayOx !== ox) {
+    sticky.style.setProperty('--ray-ox', ox)
+    lastRayOx = ox
+  }
+  if (lastRayOy !== oy) {
+    sticky.style.setProperty('--ray-oy', oy)
+    lastRayOy = oy
+  }
+}
+
+function hideMergeVector(index: number, vector: HTMLElement) {
+  if (lastVectorOpacity[index] !== '0') {
+    vector.style.opacity = '0'
+    lastVectorOpacity[index] = '0'
+  }
+  if (lastVectorTransform[index] !== VECTOR_HIDDEN_TRANSFORM) {
+    vector.style.transform = VECTOR_HIDDEN_TRANSFORM
+    lastVectorTransform[index] = VECTOR_HIDDEN_TRANSFORM
+  }
 }
 
 function mergeProgress(p: number) {
@@ -263,20 +337,111 @@ function appMotion(app: MockApp, p: number, finale: number, now: number) {
   return { merge, x, y, scale, rotate }
 }
 
-function applyAppStyles(app: MockApp, index: number, p: number, finale: number, now: number) {
+function appVisual(app: MockApp, p: number, finale: number, now: number) {
   const motion = appMotion(app, p, finale, now)
-  const merge = motion.merge
   const fade = smoothstep((p - 0.67) / 0.22)
-  const collapseFade = smoothstep((merge - 0.58) / 0.3)
+  const collapseFade = smoothstep((motion.merge - 0.58) / 0.3)
   const opacity = 0.98 * (1 - Math.max(fade * 0.94, collapseFade * 0.9))
+  const iconSpinIntro = reduceMotion ? 0 : smootherstep((motion.merge - 0.42) / 0.42)
+  return { ...motion, opacity, spinDeg: logoSpinDegrees(iconSpinIntro) }
+}
+
+function poseAt(index: number) {
+  const pose = lastBodyPose[index]
+  if (pose) return pose
+  const created = { x: 0, y: 0, spin: 0 }
+  lastBodyPose[index] = created
+  return created
+}
+
+function publishMergePhysics(now: number) {
+  if (!isVisible || reduceMotion) {
+    if (bodiesArmed) {
+      resetMergeParticleField()
+      bodiesArmed = false
+      lastPublishAt = 0
+    }
+    return
+  }
+
+  const stage = stageRef.value
+  if (!stage) return
+
+  const rect = stage.getBoundingClientRect()
+  const originX = rect.left + rect.width / 2
+  const originY = rect.top + rect.height / 2
+  const dt = lastPublishAt === 0 ? 16 : Math.min(now - lastPublishAt, 48)
+  lastPublishAt = now
+
+  const iconSize = mobileMergeLayout ? 64 : 76
+  const merge = mergeProgress(scrollP)
+  const logoIntro = reduceMotion ? 1 : logoIntroProgress(scrollP)
+  const logoExit = reduceMotion ? 0 : smoothstep((scrollP - 0.992) / 0.008)
+
+  mockApps.forEach((app, index) => {
+    const visual = appVisual(app, scrollP, 0, now)
+    const x = originX + visual.x
+    const y = originY + visual.y
+    const next = { x, y, spin: visual.spinDeg }
+    const previous = poseAt(index)
+    const vel = bodiesArmed ? mergeBodyVelocity(previous, next, dt) : { vx: 0, vy: 0, spin: 0 }
+    previous.x = x
+    previous.y = y
+    previous.spin = visual.spinDeg
+    publishMergeBody(index, {
+      cx: x,
+      cy: y,
+      radius: (iconSize * visual.scale) / 2,
+      vx: vel.vx,
+      vy: vel.vy,
+      spin: vel.spin,
+      strength: visual.opacity,
+    })
+  })
+
+  const logoSpin = logoSpinDegrees(logoIntro)
+  const logoSize = mobileMergeLayout ? 126 : 156
+  const logoScale = 0.62 + logoIntro * 0.44
+  const logoNext = { x: originX, y: originY, spin: logoSpin }
+  const logoPrevious = poseAt(MERGE_LOGO_INDEX)
+  const logoVel = bodiesArmed
+    ? mergeBodyVelocity(logoPrevious, logoNext, dt)
+    : { vx: 0, vy: 0, spin: 0 }
+  logoPrevious.x = originX
+  logoPrevious.y = originY
+  logoPrevious.spin = logoSpin
+  publishMergeBody(MERGE_LOGO_INDEX, {
+    cx: originX,
+    cy: originY,
+    radius: (logoSize * logoScale) / 2,
+    vx: logoVel.vx,
+    vy: logoVel.vy,
+    spin: logoVel.spin,
+    strength: logoIntro * (1 - logoExit),
+  })
+
+  const storm = mergeStormFromProgress(merge, logoIntro, logoExit)
+  publishMergeStorm(storm)
+  publishMergeWell({
+    cx: originX,
+    cy: originY,
+    strength: Math.max(storm.tornado, storm.burst, storm.settle),
+  })
+  bodiesArmed = true
+}
+
+function applyAppStyles(app: MockApp, index: number, p: number, finale: number, now: number) {
+  const motion = appVisual(app, p, finale, now)
+  const merge = motion.merge
+  const opacity = motion.opacity
+  const fade = smoothstep((p - 0.67) / 0.22)
   const icon = iconEls[index]
 
   if (icon) {
     const iconOpacityStr = String(opacity)
     const iconTransformStr = `translate3d(calc(-50% + ${motion.x}px), calc(-50% + ${motion.y}px), 0) rotate(${motion.rotate}deg) scale(${motion.scale})`
     const iconZStr = String(Math.round(20 + app.depth * 10 - merge * 5))
-    const iconSpinIntro = reduceMotion ? 0 : smootherstep((merge - 0.42) / 0.42)
-    const iconSpinStr = `${logoSpinDegrees(iconSpinIntro)}deg`
+    const iconSpinStr = `${motion.spinDeg}deg`
     if (lastIconOpacity[index] !== iconOpacityStr) {
       icon.style.opacity = iconOpacityStr
       lastIconOpacity[index] = iconOpacityStr
@@ -317,25 +482,60 @@ function applyAppStyles(app: MockApp, index: number, p: number, finale: number, 
   if (!vector) return
 
   const show = smoothstep((p - 0.015 - app.delay * 0.003) / 0.12)
-  const vectorFade = smoothstep((p - 0.8) / 0.14)
+  const dissolve = smootherstep((merge - 0.48) / 0.44)
+  const finaleFade = smootherstep((p - 0.78) / 0.2)
+  const rayFade = 1 - Math.max(dissolve, finaleFade)
+  const alpha = show * rayFade * (0.5 + merge * 0.16)
   const len = Math.hypot(motion.x, motion.y)
-  const angle = Math.atan2(motion.y, motion.x) * 180 / Math.PI
-  const unitX = len > 0.001 ? motion.x / len : 1
-  const unitY = len > 0.001 ? motion.y / len : 0
+
+  if (len > 0.5) {
+    lastRayDirX[index] = motion.x / len
+    lastRayDirY[index] = motion.y / len
+  }
+
+  const unitX = lastRayDirX[index] || 0
+  const unitY = lastRayDirY[index] || 0
+
+  if (show < 0.004 || rayFade < 0.004 || alpha < 0.004 || clipW < 1 || clipH < 1 || (unitX === 0 && unitY === 0)) {
+    hideMergeVector(index, vector)
+    return
+  }
+
+  const angle = Math.atan2(unitY, unitX) * 180 / Math.PI
   const startGap = 62 + merge * 22
-  const endGap = 46 * motion.scale
-  const lineLen = Math.max(0, len - startGap - endGap)
   const startX = unitX * startGap
   const startY = unitY * startGap
-  const draw = show * (1 - vectorFade)
-  const sparkTravel = clamp(0.15 + merge * 0.78 + Math.sin(now * 0.003 + app.delay) * 0.05)
-  const sparkOpacity = show * (1 - vectorFade) * (0.42 + merge * 0.48)
-  const alpha = show * (1 - vectorFade) * (0.46 + merge * 0.22)
+  const lineLen = rayDissolvedLength(rayRectVisibleLength(
+    rayOriginX + startX,
+    rayOriginY + startY,
+    unitX,
+    unitY,
+    0,
+    0,
+    clipW,
+    clipH,
+  ))
+  const drawn = lineLen * show
 
-  const sparkXStr = `${sparkTravel}px`
+  if (drawn < 0.5) {
+    hideMergeVector(index, vector)
+    return
+  }
+
+  // Spark stays on the logo→icon span. The beam continues toward the
+  // faded site edge, so a 0–1 left on the scaled 1px line would fly off.
+  const iconSpan = Math.max(0, len - startGap - 46 * motion.scale)
+  const sparkTravel = clamp(0.15 + merge * 0.78 + Math.sin(now * 0.003 + app.delay) * 0.05)
+  const sparkOpacity = show * rayFade * (0.42 + merge * 0.48)
+  const sparkXStr = `${sparkTravel * iconSpan / lineLen}px`
   const sparkOpacityStr = String(sparkOpacity)
   const vectorAlphaStr = String(alpha)
-  const vectorTransformStr = `translate3d(${startX}px, ${startY}px, 0) rotate(${angle}deg) scaleX(${lineLen * draw})`
+  const rayLenStr = String(drawn)
+  const vectorTransformStr = `translate3d(${startX}px, ${startY}px, 0) rotate(${angle}deg) scaleX(${drawn})`
+  if (lastVectorLen[index] !== rayLenStr) {
+    vector.style.setProperty('--ray-len', rayLenStr)
+    lastVectorLen[index] = rayLenStr
+  }
   if (lastVectorSparkX[index] !== sparkXStr) {
     vector.style.setProperty('--spark-x', sparkXStr)
     lastVectorSparkX[index] = sparkXStr
@@ -428,6 +628,7 @@ function updateAnimatedStyles(now = performance.now()) {
 
   mockApps.forEach((app, index) => applyAppStyles(app, index, scrollP, 0, now))
   applyLiftagStyle(merge, logoIntro, logoExit)
+  publishMergePhysics(now)
 }
 
 function tick(now: number) {
@@ -468,6 +669,7 @@ function captionBaseStyle(app: MockApp) {
 function vectorBaseStyle(app: MockApp) {
   return {
     '--line-glow': app.glow,
+    '--ray-len': '1',
     '--spark-x': '0px',
     '--spark-opacity': '0',
     opacity: 0,
@@ -493,29 +695,42 @@ function handlePointerLeave() {
 
 onMounted(() => {
   reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  mergeMobileMql = window.matchMedia('(max-width: 768px)')
+  isMobileParticles.value = mergeMobileMql.matches
+  onMergeMobileChange = (event) => {
+    isMobileParticles.value = event.matches
+  }
+  mergeMobileMql.addEventListener('change', onMergeMobileChange)
   updateStageScale()
+  cacheRayLayout()
+  getScrollProgress()
   updateAnimatedStyles()
 
   observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       isVisible = entry.isIntersecting
-      const section = sectionRef.value
-      if (section) section.classList.toggle('is-offscreen', !isVisible)
       if (isVisible) {
+        cacheRayLayout()
         cancelAnimationFrame(rafId)
         rafId = requestAnimationFrame(tick)
+      } else {
+        resetMergeParticleField()
+        bodiesArmed = false
+        lastPublishAt = 0
       }
     })
   }, { threshold: 0 })
 
   if (sectionRef.value) observer.observe(sectionRef.value)
 
-  if (stageRef.value && typeof ResizeObserver !== 'undefined') {
+  if (typeof ResizeObserver !== 'undefined') {
     stageResizeObserver = new ResizeObserver(() => {
       updateStageScale()
+      cacheRayLayout()
       updateAnimatedStyles()
     })
-    stageResizeObserver.observe(stageRef.value)
+    if (stageRef.value) stageResizeObserver.observe(stageRef.value)
+    if (stickyRef.value) stageResizeObserver.observe(stickyRef.value)
   }
 })
 
@@ -523,6 +738,10 @@ onBeforeUnmount(() => {
   cancelAnimationFrame(rafId)
   observer?.disconnect()
   stageResizeObserver?.disconnect()
+  if (mergeMobileMql && onMergeMobileChange) {
+    mergeMobileMql.removeEventListener('change', onMergeMobileChange)
+  }
+  resetMergeParticleField()
 })
 </script>
 
@@ -534,15 +753,31 @@ onBeforeUnmount(() => {
     @pointermove="handlePointerMove"
     @pointerleave="handlePointerLeave"
   >
-    <div class="app-merge-sticky">
+    <div ref="stickyRef" class="app-merge-sticky">
       <div class="merge-background" aria-hidden="true">
         <div class="merge-background-grid"></div>
         <div class="merge-background-pulse pulse-one"></div>
         <div class="merge-background-pulse pulse-two"></div>
-        <div class="merge-particle particle-one"></div>
-        <div class="merge-particle particle-two"></div>
-        <div class="merge-particle particle-three"></div>
+        <MergeParticles
+          :key="isMobileParticles ? 'merge-particles-m' : 'merge-particles-d'"
+          :armed="particlesPinned"
+          :count="isMobileParticles ? 140 : 320"
+          :interactive="!isMobileParticles"
+          :dpr-cap="isMobileParticles ? 1.15 : 1.25"
+        />
       </div>
+
+      <div class="merge-ray-layer" aria-hidden="true">
+        <div
+          v-for="(app, i) in mockApps"
+          :key="`${app.key}-line`"
+          :ref="(el) => setVectorRef(el, i)"
+          class="merge-vector"
+          :style="vectorBaseStyle(app)"
+        ></div>
+      </div>
+
+      <MergeBurstHalo />
 
       <div class="container app-merge-layout">
         <div class="merge-copy">
@@ -561,15 +796,6 @@ onBeforeUnmount(() => {
             <span></span>
             <span></span>
           </div>
-
-          <div
-            v-for="(app, i) in mockApps"
-            :key="`${app.key}-line`"
-            :ref="(el) => setVectorRef(el, i)"
-            class="merge-vector"
-            :style="vectorBaseStyle(app)"
-            aria-hidden="true"
-          ></div>
 
           <div
             v-for="(app, i) in mockApps"
@@ -675,6 +901,8 @@ onBeforeUnmount(() => {
 }
 
 .app-merge-sticky {
+  --ray-ox: 50%;
+  --ray-oy: 50%;
   position: sticky;
   top: 0;
   height: 100vh;
@@ -684,10 +912,20 @@ onBeforeUnmount(() => {
   align-items: center;
 }
 
+.merge-ray-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: paint;
+}
+
 .merge-background {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  isolation: isolate;
   opacity: calc(1 - var(--merge-bg-exit) * 0.7);
   background:
     radial-gradient(520px circle at 66% 48%, rgba(204, 255, 0, calc(0.04 + var(--merge-p) * 0.08)), transparent 64%),
@@ -728,34 +966,6 @@ onBeforeUnmount(() => {
   width: 760px;
   opacity: calc(0.12 + var(--merge-p) * 0.26);
   transform: translate(-50%, -50%) scale(calc(0.72 + var(--merge-p) * 0.45));
-}
-
-.merge-particle {
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  background: var(--liftag-primary);
-  box-shadow: 0 0 18px rgba(204, 255, 0, 0.8);
-  opacity: calc(0.15 + var(--merge-p) * 0.65);
-}
-
-.particle-one {
-  top: 22%;
-  left: 72%;
-  animation: mergeParticleOne 7s ease-in-out infinite;
-}
-
-.particle-two {
-  top: 68%;
-  left: 52%;
-  animation: mergeParticleTwo 8s ease-in-out infinite;
-}
-
-.particle-three {
-  top: 40%;
-  left: 87%;
-  animation: mergeParticleThree 9s ease-in-out infinite;
 }
 
 .app-merge-layout {
@@ -850,29 +1060,22 @@ onBeforeUnmount(() => {
 
 .merge-vector {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: var(--ray-oy);
+  left: var(--ray-ox);
   width: 1px;
-  height: 2px;
+  height: 3px;
   pointer-events: none;
   transform-origin: 0 50%;
   border-radius: 999px;
-  background:
-    linear-gradient(90deg, transparent 0%, rgba(204, 255, 0, 0.62) 18%, var(--line-glow) 62%, transparent 100%);
-  box-shadow:
-    0 0 12px var(--line-glow),
-    0 0 30px rgba(204, 255, 0, 0.06);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(204, 255, 0, 0.58) 8%,
+    var(--line-glow) 34%,
+    transparent 100%
+  );
   mix-blend-mode: screen;
   will-change: transform, opacity;
-}
-
-.merge-vector::before {
-  content: '';
-  position: absolute;
-  inset: -7px 0;
-  border-radius: 999px;
-  background: linear-gradient(90deg, transparent, var(--line-glow), transparent);
-  opacity: 0.2;
 }
 
 .merge-vector::after {
@@ -888,7 +1091,10 @@ onBeforeUnmount(() => {
     0 0 12px rgba(204, 255, 0, 0.9),
     0 0 28px var(--line-glow);
   opacity: var(--spark-opacity, 0);
-  transform: translate(-50%, -50%) scale(calc(0.72 + var(--merge-p) * 0.34));
+  transform:
+    translate(-50%, -50%)
+    scaleX(calc(1 / max(var(--ray-len, 1), 0.001)))
+    scale(calc(0.72 + var(--merge-p) * 0.34));
 }
 
 .mergeable-app {
@@ -1063,21 +1269,6 @@ onBeforeUnmount(() => {
   opacity: calc(0.4 + var(--merge-p) * 0.6);
 }
 
-@keyframes mergeParticleOne {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(-90px, 70px, 0); }
-}
-
-@keyframes mergeParticleTwo {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(0.8); }
-  50% { transform: translate3d(120px, -55px, 0) scale(1.2); }
-}
-
-@keyframes mergeParticleThree {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(-150px, 35px, 0) scale(0.74); }
-}
-
 @media (max-width: 980px) {
   .app-merge-section {
     min-height: var(--liftag-stable-vh-470);
@@ -1216,15 +1407,4 @@ onBeforeUnmount(() => {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .merge-particle {
-    animation: none;
-  }
-}
-
-/* Pause looping particle keyframes whenever the section is offscreen so the
-   compositor isn't repainting the layer for invisible animations. */
-.app-merge-section.is-offscreen .merge-particle {
-  animation-play-state: paused;
-}
 </style>

@@ -22,7 +22,13 @@ withDefaults(defineProps<{
   compact?: boolean
   /** High-contrast equipment-plate treatment for primary hero placement. */
   hero?: boolean
-}>(), { label: 'Download LIFTAG', compact: false, hero: false })
+  /**
+   * Idle 1px yellow rim that rotates around the badge. This is the old
+   * iOS install-button beat, restored on the closing download CTA after
+   * the two store buttons merged into one.
+   */
+  idleRim?: boolean
+}>(), { label: 'Download LIFTAG', compact: false, hero: false, idleRim: false })
 </script>
 
 <template>
@@ -32,6 +38,7 @@ withDefaults(defineProps<{
     :class="{
       'get-app-btn--compact': compact,
       'get-app-btn--hero': hero,
+      'get-app-btn--idle-rim': idleRim && !hero,
     }"
     :aria-label="`${label}, available on the App Store and Google Play`"
   >
@@ -147,6 +154,64 @@ withDefaults(defineProps<{
 .get-app-btn:focus-visible {
   outline: 2px solid rgba(204, 255, 0, 0.78);
   outline-offset: 3px;
+}
+
+/* Closing CTA: the thin yellow arc that used to idle on the iOS badge.
+   Sits on the inner edge (inset 0) so overflow:hidden still shows the
+   1px ring instead of clipping an outset stroke. */
+.get-app-btn--idle-rim::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  padding: 1px;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    conic-gradient(
+      from 14deg,
+      transparent 0deg,
+      transparent 205deg,
+      rgba(255, 247, 145, 0.92) 256deg,
+      rgba(255, 222, 48, 0.72) 292deg,
+      rgba(204, 255, 0, 0.38) 328deg,
+      transparent 354deg
+    );
+  opacity: 0;
+  transform: translate3d(0, 0, 0) rotate(0deg);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .get-app-btn--idle-rim::after {
+    animation: getAppIdleRim 3.25s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    will-change: opacity, transform;
+  }
+}
+
+@keyframes getAppIdleRim {
+  0%,
+  58%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  6% {
+    opacity: 0.95;
+  }
+
+  22% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(252deg);
+  }
 }
 
 .get-app-btn__icons {

@@ -30,7 +30,10 @@ function onDocumentVisibilityChange() {
 }
 
 const rawMouse = useSharedMouse().latest
-const mouse = useLerp(rawMouse, 0.06)
+// Gated on the section being near the viewport so mousemoves elsewhere on the
+// page do not wake this loop.
+const lerpActive = useNearViewport(sectionRef)
+const mouse = useLerp(rawMouse, 0.06, () => lerpActive.value)
 
 const steps = [
   {
@@ -257,7 +260,9 @@ onBeforeUnmount(() => {
                     :screen-transition-direction="phoneSwipeDirection"
                   />
                   <div v-if="step === 0" class="scan-phone-laser-overlay" aria-hidden="true">
-                    <span class="scan-phone-laser-line" />
+                    <span class="scan-phone-laser-rail">
+                      <span class="scan-phone-laser-line" />
+                    </span>
                   </div>
                 </div>
               </div>
@@ -641,9 +646,21 @@ onBeforeUnmount(() => {
     0 0 22px rgba(204, 255, 0, 0.14);
 }
 
+/* The sweep translates a full-height rail (translateY% of the rail equals the
+   old container-relative top%), so the motion stays on the compositor instead
+   of re-laying out `top` every frame. Opacity/scaleX pulse stays on the line,
+   sharing the rail's duration and easing so the combined motion is unchanged. */
+.scan-phone-laser-rail {
+  position: absolute;
+  inset: 0;
+  transform: translateY(8%);
+  pointer-events: none;
+  animation: scan-phone-laser-sweep 1.85s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+}
+
 .scan-phone-laser-line {
   position: absolute;
-  top: 8%;
+  top: 0;
   left: 7%;
   right: 7%;
   height: 2px;
@@ -659,7 +676,7 @@ onBeforeUnmount(() => {
   box-shadow:
     0 0 10px rgba(204, 255, 0, 0.95),
     0 0 26px rgba(204, 255, 0, 0.58);
-  animation: scan-phone-laser-sweep 1.85s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+  animation: scan-phone-laser-line-pulse 1.85s cubic-bezier(0.45, 0, 0.2, 1) infinite;
 }
 
 .scan-phone-laser-line::after {
@@ -676,7 +693,17 @@ onBeforeUnmount(() => {
 @keyframes scan-phone-laser-sweep {
   0%,
   100% {
-    top: 8%;
+    transform: translateY(8%);
+  }
+
+  50% {
+    transform: translateY(88%);
+  }
+}
+
+@keyframes scan-phone-laser-line-pulse {
+  0%,
+  100% {
     opacity: 0.32;
     transform: scaleX(0.78);
   }
@@ -687,7 +714,6 @@ onBeforeUnmount(() => {
   }
 
   50% {
-    top: 88%;
     opacity: 0.95;
     transform: scaleX(1);
   }
@@ -725,6 +751,7 @@ onBeforeUnmount(() => {
 
   .scan-phone-float,
   .scan-phone-motion,
+  .scan-phone-laser-rail,
   .scan-phone-laser-line {
     animation: none;
   }
