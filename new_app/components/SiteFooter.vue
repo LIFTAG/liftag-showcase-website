@@ -362,6 +362,13 @@ onBeforeUnmount(() => {
   display: block;
 }
 
+/* Tight tracking makes F/T (and other pairs) share ink when filled.
+   Clip each outline glyph before it paints over the next letter so the
+   unfilled word does not show a double-stroke box at those joins. */
+.footer-mark-outline span:not(:last-child) {
+  clip-path: inset(-0.3em 0.09em -0.3em -0.2em);
+}
+
 @media (hover: hover) and (pointer: fine) {
   .footer-mark-outline span {
     transition:
