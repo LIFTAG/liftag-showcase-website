@@ -143,43 +143,20 @@ onBeforeUnmount(() => {
         </NuxtLink>
       </span>
 
-      <!-- Mobile hamburger -->
+      <!-- Mobile hamburger: same 600ms stroke-dash morph as Tenus. -->
       <button
+        type="button"
         class="nav-mobile-toggle"
         @click="open = !open"
-        :style="{
-          display: 'none',
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          padding: '8px',
-          flexDirection: 'column',
-          gap: '5px',
-        }"
         aria-label="Toggle menu"
         :aria-expanded="open"
         aria-controls="mobile-navigation"
       >
-        <span
-          class="nav-mobile-toggle__line"
-          :style="{
-            background: open ? '#CCFF00' : '#fff',
-            transform: open ? 'translateY(7px) rotate(45deg)' : 'none',
-          }"
-        />
-        <span
-          class="nav-mobile-toggle__line"
-          :style="{
-            opacity: open ? 0 : 1,
-          }"
-        />
-        <span
-          class="nav-mobile-toggle__line"
-          :style="{
-            background: open ? '#CCFF00' : '#fff',
-            transform: open ? 'translateY(-7px) rotate(-45deg)' : 'none',
-          }"
-        />
+        <svg width="24" height="24" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+          <path class="line line1" d="M20 29h60s14.499-.183 14.533 37.711c.01 11.27-3.567 14.96-9.274 14.958C79.552 81.668 75 74.999 75 74.999L25 25" />
+          <path class="line line2" d="M20 50h60" />
+          <path class="line line3" d="M20 71h60s14.499.183 14.533-37.711c.01-11.27-3.567-14.96-9.274-14.958-5.707.001-10.259 6.67-10.259 6.67L25 75" />
+        </svg>
       </button>
     </div>
   </header>
@@ -440,16 +417,54 @@ onBeforeUnmount(() => {
   text-decoration: none;
 }
 
-.nav-mobile-toggle__line {
-  display: block;
-  width: 24px;
-  height: 2px;
-  border-radius: 2px;
-  background: #fff;
+.nav-mobile-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+}
+
+.nav-mobile-toggle .line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 7;
+  opacity: 1;
   transition:
-    transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 160ms ease-out,
-    background-color 160ms ease-out;
+    stroke-dasharray 600ms cubic-bezier(0.4, 0, 0.2, 1),
+    stroke-dashoffset 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-mobile-toggle .line1 {
+  stroke-dasharray: 60 207;
+}
+
+.nav-mobile-toggle .line2 {
+  stroke-dasharray: 60 60;
+}
+
+.nav-mobile-toggle .line3 {
+  stroke-dasharray: 60 207;
+}
+
+.site-nav.is-open .nav-mobile-toggle .line1 {
+  stroke-dasharray: 90 207;
+  stroke-dashoffset: -134;
+}
+
+.site-nav.is-open .nav-mobile-toggle .line2 {
+  stroke-dasharray: 1 60;
+  stroke-dashoffset: -30;
+}
+
+.site-nav.is-open .nav-mobile-toggle .line3 {
+  stroke-dasharray: 90 207;
+  stroke-dashoffset: -134;
 }
 
 .nav-mobile-drawer {
@@ -685,7 +700,7 @@ onBeforeUnmount(() => {
     filter: none !important;
   }
 
-  .nav-mobile-toggle__line,
+  .nav-mobile-toggle .line,
   .nav-mobile-drawer {
     transition-duration: 0.01ms !important;
   }
