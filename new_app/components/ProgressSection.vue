@@ -49,7 +49,10 @@ function onDocumentVisibilityChange() {
 }
 
 const rawMouse = useSharedMouse().latest
-const paneMouse = useLerp(rawMouse, 0.075)
+// Gated on the section being near the viewport so mousemoves elsewhere on the
+// page do not wake this loop.
+const lerpActive = useNearViewport(sectionRef)
+const paneMouse = useLerp(rawMouse, 0.075, () => lerpActive.value)
 
 const progressPanePaths = [
   { outward: 1.28, cross: 0.44, vertical: 0.72, lane: -0.96 },

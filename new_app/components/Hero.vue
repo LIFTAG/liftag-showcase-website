@@ -22,8 +22,10 @@ const cursorGlowTone = ref<'green' | 'red'>('green')
 const isMobile = ref(false)
 const heroRoot = ref<HTMLElement | null>(null)
 
-// smooth lerp (factor 0.06 matches React source)
-const mouse = useLerp(rawMouse, 0.06)
+// smooth lerp (factor 0.06 matches React source). Gated on the section being
+// near the viewport so mousemoves far down the page do not wake this loop.
+const lerpActive = useNearViewport(heroRoot)
+const mouse = useLerp(rawMouse, 0.06, () => lerpActive.value)
 
 const heroVolumeChartSvg = ref<SVGSVGElement | null>(null)
 const heroVolumeChartTargetP = ref(1)

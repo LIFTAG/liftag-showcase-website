@@ -80,6 +80,8 @@ const reduceMotion = ref(false)
 let autoCycle: ReturnType<typeof setInterval> | null = null
 let exitTimer: ReturnType<typeof setTimeout> | null = null
 let motionMql: MediaQueryList | null = null
+let inViewObserver: IntersectionObserver | null = null
+let cursorObserver: IntersectionObserver | null = null
 
 function emitCursorGlowTone(active: boolean) {
   if (typeof window === 'undefined') return
@@ -159,25 +161,21 @@ onMounted(() => {
 
   if (!sectionRef.value) return
 
-  const observer = new IntersectionObserver(
+  inViewObserver = new IntersectionObserver(
     ([entry]) => {
       sectionInView.value = entry?.isIntersecting ?? false
     },
     { threshold: 0.34 },
   )
-  observer.observe(sectionRef.value)
-  const cursorObserver = new IntersectionObserver(
+  inViewObserver.observe(sectionRef.value)
+
+  cursorObserver = new IntersectionObserver(
     ([entry]) => {
       cursorGlowActive.value = entry?.isIntersecting ?? false
     },
     { rootMargin: '-42% 0px -42% 0px', threshold: 0 },
   )
   cursorObserver.observe(sectionRef.value)
-
-  onBeforeUnmount(() => {
-    observer.disconnect()
-    cursorObserver.disconnect()
-  })
 })
 
 watch(sectionInView, (visible) => {
@@ -194,6 +192,10 @@ onBeforeUnmount(() => {
   motionMql?.removeEventListener('change', onMotionChange)
   motionMql = null
   document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
+  inViewObserver?.disconnect()
+  inViewObserver = null
+  cursorObserver?.disconnect()
+  cursorObserver = null
 })
 </script>
 
