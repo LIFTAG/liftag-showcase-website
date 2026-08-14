@@ -144,11 +144,15 @@ export function mergeStormFromProgress(
   const intro = clamp01(logoIntro)
   const exit = clamp01(logoExit)
 
-  const tornadoFade = smoothstep((intro - 0.04) / 0.22)
+  // Keep the tasteful swirl through the first visible LIFTAG frames.
+  // The old envelope peaked a full-strength burst at intro ≈ 0.15 — the
+  // same moment the logo becomes opaque — and threw dust off-screen.
+  const tornadoFade = smoothstep((intro - 0.22) / 0.38)
   const tornado = m * 0.4 * (1 - tornadoFade) * (1 - exit)
-  const burst = Math.sin(clamp01(intro / 0.3) * Math.PI) * (1 - exit)
-  const settle = smootherstep((intro - 0.3) / 0.52) * (1 - exit)
-  const spin = tornado * 1.05 + burst * 2.1 + settle * 0.42
+  const burstGate = clamp01((intro - 0.1) / 0.42)
+  const burst = Math.sin(burstGate * Math.PI) * 0.36 * (1 - exit)
+  const settle = smootherstep((intro - 0.2) / 0.55) * (1 - exit)
+  const spin = tornado * 1.05 + burst * 0.55 + settle * 0.42
 
   return { tornado, burst, settle, spin }
 }

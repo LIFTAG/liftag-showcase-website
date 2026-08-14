@@ -141,10 +141,18 @@ test('mergeStormFromProgress builds a light swirl while icons collapse', () => {
   assert.ok(storm.spin < 0.6)
 })
 
-test('mergeStormFromProgress detonates as the logo appears', () => {
-  const storm = mergeStormFromProgress(1, 0.15, 0)
-  assert.ok(storm.burst > 0.9)
-  assert.ok(storm.tornado < 0.25)
+test('mergeStormFromProgress keeps the swirl as the logo first appears', () => {
+  const storm = mergeStormFromProgress(1, 0.12, 0)
+  assert.ok(storm.tornado > 0.3)
+  assert.ok(storm.burst < 0.2)
+  assert.ok(storm.spin < 0.6)
+})
+
+test('mergeStormFromProgress pulses inside the merge, not across the viewport', () => {
+  const storm = mergeStormFromProgress(1, 0.31, 0)
+  assert.ok(storm.burst > 0.3 && storm.burst < 0.42)
+  assert.ok(storm.tornado > 0.25)
+  assert.ok(storm.spin < 0.8)
 })
 
 test('mergeStormFromProgress settles once LIFTAG is fully in', () => {
