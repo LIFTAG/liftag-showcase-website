@@ -149,29 +149,41 @@ test('mergeStormFromProgress keeps the suck-in as the logo first appears', () =>
 
 test('mergeStormFromProgress starts the expand as LIFTAG appears', () => {
   const rising = mergeStormFromProgress(1, 0.2, 0)
-  assert.ok(rising.burst > 0.4)
-  assert.ok(rising.settle < 0.08)
+  assert.ok(rising.burst > 0.28)
+  assert.ok(rising.settle < 0.2)
 })
 
-test('mergeStormFromProgress is still coasting while the logo spins', () => {
+test('mergeStormFromProgress keeps opening through the logo spin', () => {
   const early = mergeStormFromProgress(1, 0.32, 0)
   const mid = mergeStormFromProgress(1, 0.7, 0)
-  assert.ok(early.settle < 0.1)
-  assert.ok(mid.settle < 0.15)
+  const late = mergeStormFromProgress(1, 0.92, 0)
   assert.ok(early.tornado < 0.05)
   assert.ok(mid.tornado < 0.05)
-  // Last third of the radius is still opening here, not frozen after the bang.
   assert.ok(mid.burst > early.burst)
+  assert.ok(late.burst > mid.burst)
+  assert.ok(late.settle > mid.settle)
 })
 
-test('mergeStormFromProgress settles when the logo spin finishes', () => {
-  const almost = mergeStormFromProgress(1, 0.86, 0)
+test('mergeStormFromProgress only grows, and slows, until the logo stops', () => {
+  let previous = 0
+  const opened: number[] = []
+  for (let i = 0; i <= 100; i++) {
+    const storm = mergeStormFromProgress(1, i / 100, 0)
+    const amount = storm.burst + storm.settle * (1 - storm.burst)
+    assert.ok(amount + 1e-6 >= previous, `explode reversed at intro ${i / 100}`)
+    previous = amount
+    if (i % 20 === 0) opened.push(amount)
+  }
+  // 0.2→0.4 should travel farther than 0.8→1.0: same direction, slower late.
+  assert.ok(opened[2] - opened[1] > opened[5] - opened[4])
+})
+
+test('mergeStormFromProgress finishes settling when the logo spin stops', () => {
+  const almost = mergeStormFromProgress(1, 0.92, 0)
   const done = mergeStormFromProgress(1, 1, 0)
-  assert.ok(almost.settle < 0.55)
-  assert.ok(almost.settle > 0.35)
+  assert.ok(almost.settle < 0.95)
   assert.ok(done.settle > 0.95)
   assert.ok(done.tornado < 0.05)
-  assert.ok(done.burst < 0.05)
 })
 
 test('mergeStormFromProgress dies on section exit', () => {

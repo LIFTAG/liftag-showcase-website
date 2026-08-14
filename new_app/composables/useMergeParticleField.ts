@@ -145,15 +145,14 @@ export function mergeStormFromProgress(
   const exit = clamp01(logoExit)
   const live = 1 - exit
 
-  // Bang on the same window as before, then coast the last third of the
-  // radius until the logo's stop-wobble (logoSpinDegrees at 0.72–1.0).
-  // A short late lock drops burst so the field freezes as the spin hits 360.
-  const bang = smootherstep((intro - 0.08) / 0.16)
-  const coast = smootherstep((intro - 0.24) / 0.48)
-  const expand = bang * 0.72 + coast * 0.28
-  const settle = smootherstep((intro - 0.72) / 0.28) * live
-  const lock = smootherstep((intro - 0.96) / 0.04)
-  const burst = expand * (1 - lock) * 0.84 * live
+  // One outward curve through the whole logo spin (snaps at intro 0.995).
+  // A fast first flight, then a long tail. Burst never drops, so the
+  // field cannot pull back in and change direction.
+  const t = clamp01((intro - 0.08) / 0.915)
+  const bang = 1 - (1 - clamp01(t / 0.24)) ** 2.2
+  const expand = bang * 0.45 + t * 0.55
+  const settle = t * live
+  const burst = expand * 0.84 * live
   const tornado = m * 0.82 * (1 - bang) * live
   const spin = tornado * 0.48
 

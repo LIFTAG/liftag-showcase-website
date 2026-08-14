@@ -136,8 +136,8 @@ const vertexShader = /* glsl */ `
     float suck = min(storm.x * 1.22, 1.0) * cover;
     float contracted = mix(dist, coreRadius, suck);
 
-    // Radial expand only, then hold. No time-twist on burst/settle — that
-    // was the second phase where the field changed direction.
+    // Radial expand only. Burst stays high through the tail; settle only
+    // softens the seek so the last of the flight eases out, never reverses.
     float screenSpread = screenR * (0.52 + 0.12 * seed);
     float blown = mix(contracted, screenSpread, storm.y);
     float settled = mix(blown, screenSpread, storm.z);
@@ -146,8 +146,8 @@ const vertexShader = /* glsl */ `
     float finalAng = ang + twist;
     vec2 target = well.xy + vec2(cos(finalAng), sin(finalAng)) * settled;
 
-    float hold = storm.z * (1.0 - storm.x) * (1.0 - storm.y);
-    float k = clamp(energy * 1.28, 0.0, 1.0) * mix(1.0, 0.78, hold);
+    float hold = storm.z * (1.0 - storm.x);
+    float k = clamp(energy * 1.28, 0.0, 1.0) * mix(1.0, 0.58, hold);
     vec2 off = (target - p) * k * (0.78 + 0.22 * depth);
     return vec3(off, storm.x * 0.20 * cover + storm.y * 0.26 + storm.z * 0.18);
   }
