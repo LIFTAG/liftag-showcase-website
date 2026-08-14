@@ -129,20 +129,19 @@ const vertexShader = /* glsl */ `
     float twist = uTime * storm.w * (0.35 + 0.85 * infl) + seed * 1.4;
     float contracted = mix(dist, dist * 0.7, infl * 0.45);
 
-    // Pulse stays on a tight ring around the logo. Multiplying current
-    // distance threw far particles across the viewport.
-    float burstRing = mix(6.8, 11.0, seed);
+    // Quiet pulse just outside the halo. A wide ring read as an explosion.
+    float burstRing = mix(6.4, 8.4, seed);
     float exploded = mix(contracted, burstRing, storm.y);
 
     float halo = mix(6.2, 9.6, seed);
-    float settled = mix(exploded, mix(exploded, halo, 0.78), storm.z);
+    float settled = mix(exploded, mix(exploded, halo, 0.86), storm.z);
 
-    float finalAng = ang + twist * (storm.x * 0.55 + storm.y * 0.22 + storm.z * 0.14);
+    float finalAng = ang + twist * (storm.x * 0.55 + storm.y * 0.12 + storm.z * 0.14);
     vec2 target = well.xy + vec2(cos(finalAng), sin(finalAng)) * settled;
 
     float k = clamp(energy, 0.0, 1.0);
     vec2 off = (target - p) * k * (0.72 + 0.28 * depth);
-    return vec3(off, infl * 0.28 + storm.y * 0.32 + storm.z * 0.22);
+    return vec3(off, infl * 0.28 + storm.y * 0.16 + storm.z * 0.22);
   }
 
   void main() {
@@ -189,7 +188,7 @@ const vertexShader = /* glsl */ `
                    * (1.0 - smoothstep(aRangeX * 0.94, aRangeX, abs(x)));
 
     vAlpha = uEnter * twinkle * mix(0.24, 0.68, depth01) * edgeFade * (1.0 + push * 0.7);
-    vTint = min(1.0, aTint + uStorm.y * 0.18);
+    vTint = min(1.0, aTint + uStorm.y * 0.1);
 
     vec4 mv = modelViewMatrix * vec4(x, y, p.z, 1.0);
     float size = aSize * uPixelRatio * (1.0 + push * 0.7) * (135.0 / -mv.z);

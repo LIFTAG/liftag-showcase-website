@@ -149,13 +149,20 @@ test('mergeStormFromProgress keeps the swirl as the logo first appears', () => {
 })
 
 test('mergeStormFromProgress pulses inside the merge, not across the viewport', () => {
-  const storm = mergeStormFromProgress(1, 0.31, 0)
-  assert.ok(storm.burst > 0.3 && storm.burst < 0.42)
+  const storm = mergeStormFromProgress(1, 0.34, 0)
+  assert.ok(storm.burst > 0.12 && storm.burst < 0.2)
   assert.ok(storm.tornado > 0.25)
-  assert.ok(storm.spin < 0.8)
+  assert.ok(storm.settle < 0.05)
+  assert.ok(storm.spin < 0.55)
 })
 
-test('mergeStormFromProgress settles once LIFTAG is fully in', () => {
+test('mergeStormFromProgress stays unsettled while LIFTAG is still spinning', () => {
+  const storm = mergeStormFromProgress(1, 0.7, 0)
+  assert.ok(storm.settle < 0.08)
+  assert.ok(storm.tornado > 0.15)
+})
+
+test('mergeStormFromProgress settles as the logo spin finishes', () => {
   const storm = mergeStormFromProgress(1, 1, 0)
   assert.ok(storm.settle > 0.95)
   assert.ok(storm.tornado < 0.05)
