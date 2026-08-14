@@ -133,33 +133,33 @@ test('mergeStormFromProgress is idle before the merge starts', () => {
   assert.equal(storm.spin, 0)
 })
 
-test('mergeStormFromProgress builds a light swirl while icons collapse', () => {
+test('mergeStormFromProgress sucks in hard while icons collapse', () => {
   const storm = mergeStormFromProgress(1, 0, 0)
-  assert.ok(storm.tornado > 0.3 && storm.tornado < 0.5)
+  assert.ok(storm.tornado > 0.7)
   assert.ok(storm.burst < 0.05)
   assert.ok(storm.settle < 0.05)
-  assert.ok(storm.spin < 0.6)
 })
 
-test('mergeStormFromProgress keeps the swirl as the logo first appears', () => {
+test('mergeStormFromProgress keeps the suck-in as the logo first appears', () => {
   const storm = mergeStormFromProgress(1, 0.12, 0)
-  assert.ok(storm.tornado > 0.3)
-  assert.ok(storm.burst < 0.2)
-  assert.ok(storm.spin < 0.6)
+  assert.ok(storm.tornado > 0.35)
+  assert.ok(storm.burst < 0.65)
+  assert.ok(storm.settle < 0.05)
 })
 
-test('mergeStormFromProgress pulses inside the merge, not across the viewport', () => {
-  const storm = mergeStormFromProgress(1, 0.34, 0)
-  assert.ok(storm.burst > 0.12 && storm.burst < 0.2)
-  assert.ok(storm.tornado > 0.25)
+test('mergeStormFromProgress peaks at a screen-wide burst as LIFTAG appears', () => {
+  const peakBurst = Math.max(
+    ...[0.18, 0.24, 0.28, 0.34, 0.40].map((intro) => mergeStormFromProgress(1, intro, 0).burst),
+  )
+  const storm = mergeStormFromProgress(1, 0.28, 0)
+  assert.ok(peakBurst > 0.65)
+  assert.ok(storm.burst > 0.65)
   assert.ok(storm.settle < 0.05)
-  assert.ok(storm.spin < 0.55)
 })
 
 test('mergeStormFromProgress stays unsettled while LIFTAG is still spinning', () => {
   const storm = mergeStormFromProgress(1, 0.7, 0)
   assert.ok(storm.settle < 0.08)
-  assert.ok(storm.tornado > 0.15)
 })
 
 test('mergeStormFromProgress settles as the logo spin finishes', () => {

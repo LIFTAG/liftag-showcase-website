@@ -1,8 +1,9 @@
 <script setup lang="ts">
 // GPU particle field for the app-merge background. Same single-draw-call
 // point field as the hero. Particles fly in when the sticky stage is on
-// screen, swirl lightly with the icons, then pulse and settle as LIFTAG
-// appears.
+// screen, get sucked toward the merge well with the icons, blow out to
+// the frustum edges when LIFTAG appears, then settle into a halo as the
+// logo spin finishes.
 //
 // Lifecycle contract:
 //   • never initializes under prefers-reduced-motion
@@ -117,31 +118,39 @@ const vertexShader = /* glsl */ `
     return vec3(off, infl * 0.32);
   }
 
-  vec3 applyStorm(vec2 p, vec3 well, vec4 storm, float depth01, float seed) {
+  vec3 applyStorm(vec2 p, vec3 well, vec4 storm, float depth01, float seed, float rangeX, float rangeY) {
     float energy = storm.x + storm.y + storm.z;
     if (energy < 0.001) return vec3(0.0);
 
     vec2 d = p - well.xy;
     float dist = length(d);
+    float screenR = max(rangeX, rangeY);
+
+    // Far-edge sit-out during tornado-only. Also skips atan/mix work.
+    if (dist > screenR * 0.91 && storm.y + storm.z < 0.02) return vec3(0.0);
+
     float ang = atan(d.y, d.x);
     float depth = 0.4 + 0.6 * depth01;
-    float infl = (1.0 - smoothstep(0.0, 28.0, dist)) * storm.x;
-    float twist = uTime * storm.w * (0.35 + 0.85 * infl) + seed * 1.4;
-    float contracted = mix(dist, dist * 0.7, infl * 0.45);
+    float cover = 1.0 - smoothstep(screenR * 0.80, screenR * 0.91, dist);
+    float coreRadius = mix(3.5, 7.0, seed);
+    float suck = min(storm.x * 1.22, 1.0) * cover;
+    float contracted = mix(dist, coreRadius, suck);
 
-    // Quiet pulse just outside the halo. A wide ring read as an explosion.
-    float burstRing = mix(6.4, 8.4, seed);
-    float exploded = mix(contracted, burstRing, storm.y);
+    // Always explode from the core to the frustum — never scale current dist.
+    float screenSpread = screenR * (0.82 + 0.18 * seed);
+    float exploded = mix(coreRadius, screenSpread, storm.y);
+    float radius = mix(contracted, exploded, storm.y);
 
-    float halo = mix(6.2, 9.6, seed);
-    float settled = mix(exploded, mix(exploded, halo, 0.86), storm.z);
+    float halo = mix(6.0, 10.0, seed);
+    float settled = mix(radius, halo, storm.z);
 
-    float finalAng = ang + twist * (storm.x * 0.55 + storm.y * 0.12 + storm.z * 0.14);
+    float twist = uTime * storm.w * (0.22 + 0.38 * storm.x + 0.50 * storm.y) + seed * 1.4;
+    float finalAng = ang + twist * (storm.x * 0.40 + storm.y * 0.20 + storm.z * 0.07);
     vec2 target = well.xy + vec2(cos(finalAng), sin(finalAng)) * settled;
 
-    float k = clamp(energy, 0.0, 1.0);
-    vec2 off = (target - p) * k * (0.72 + 0.28 * depth);
-    return vec3(off, infl * 0.28 + storm.y * 0.16 + storm.z * 0.22);
+    float k = clamp(energy * 1.28, 0.0, 1.0);
+    vec2 off = (target - p) * k * (0.78 + 0.22 * depth);
+    return vec3(off, storm.x * 0.20 * cover + storm.y * 0.26 + storm.z * 0.16);
   }
 
   void main() {
@@ -178,7 +187,7 @@ const vertexShader = /* glsl */ `
       }
     }
 
-    vec3 storm = applyStorm(vec2(x, y), uWell, uStorm, depth01, aSeed);
+    vec3 storm = applyStorm(vec2(x, y), uWell, uStorm, depth01, aSeed, aRangeX, aRangeY);
     x += storm.x;
     y += storm.y;
     push += storm.z;
@@ -188,7 +197,7 @@ const vertexShader = /* glsl */ `
                    * (1.0 - smoothstep(aRangeX * 0.94, aRangeX, abs(x)));
 
     vAlpha = uEnter * twinkle * mix(0.24, 0.68, depth01) * edgeFade * (1.0 + push * 0.7);
-    vTint = min(1.0, aTint + uStorm.y * 0.1);
+    vTint = min(1.0, aTint + uStorm.y * 0.16);
 
     vec4 mv = modelViewMatrix * vec4(x, y, p.z, 1.0);
     float size = aSize * uPixelRatio * (1.0 + push * 0.7) * (135.0 / -mv.z);
