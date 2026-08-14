@@ -67,6 +67,7 @@ let onContextLost: ((e: Event) => void) | null = null
 
 const mouseWorld = new THREE.Vector2(9999, 9999)
 const mouseTarget = new THREE.Vector2(9999, 9999)
+let mouseArmed = false
 const wallWorld0 = new THREE.Vector4()
 const wallWorld1 = new THREE.Vector4()
 const wallVel0 = new THREE.Vector2()
@@ -303,6 +304,9 @@ function init() {
   revealLinear = everInitialized ? REENTRY_REVEAL_FLOOR : 0
   everInitialized = true
   lastFrame = 0
+  mouseArmed = false
+  mouseWorld.set(9999, 9999)
+  mouseTarget.set(9999, 9999)
   displayed0 = emptyDisplayedWall()
   displayed1 = emptyDisplayedWall()
   previousLiveStrength = 0
@@ -335,6 +339,8 @@ function disposeScene() {
   material = null
   points = null
   disposed = true
+  mouseArmed = false
+  mouseWorld.set(9999, 9999)
   displayed0 = emptyDisplayedWall()
   displayed1 = emptyDisplayedWall()
   previousLiveStrength = 0
@@ -358,10 +364,15 @@ function frame(now: number) {
 
   u.uScroll.value = window.scrollY * 0.02
 
-  if (props.interactive) {
+  if (props.interactive && sharedMouse.latest.hasPointer) {
     const { halfW, halfH } = halfExtentsAt(CAM_Z, camera.aspect)
     mouseTarget.set(sharedMouse.latest.mx * halfW, -sharedMouse.latest.my * halfH)
-    mouseWorld.lerp(mouseTarget, 0.07)
+    if (!mouseArmed) {
+      mouseWorld.copy(mouseTarget)
+      mouseArmed = true
+    } else {
+      mouseWorld.lerp(mouseTarget, 0.07)
+    }
   }
 
   syncWallUniforms(dt, u)
