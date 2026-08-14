@@ -74,6 +74,49 @@ export function coverFitScreenUVs(options: {
   }
 }
 
+function verticalFovRad(fovDeg: number) {
+  return (Math.max(fovDeg, 1e-6) * Math.PI) / 180
+}
+
+function horizontalFovRad(fovDeg: number, aspect: number) {
+  return 2 * Math.atan(Math.tan(verticalFovRad(fovDeg) / 2) * Math.max(aspect, 1e-6))
+}
+
+/** World-space size of a perspective frustum at `distance` from the camera. */
+export function frustumSizeAtDistance(options: {
+  distance: number
+  fovDeg: number
+  aspect: number
+}): { width: number, height: number } {
+  const distance = Math.max(options.distance, 0)
+  const vFov = verticalFovRad(options.fovDeg)
+  const hFov = horizontalFovRad(options.fovDeg, options.aspect)
+  return {
+    width: 2 * distance * Math.tan(hFov / 2),
+    height: 2 * distance * Math.tan(vFov / 2),
+  }
+}
+
+/**
+ * Face-on distance that keeps the entire display inside the frustum.
+ * Uses the farther of the width and height fits so a wide recording is
+ * not cropped when the canvas is squarer than the screen.
+ */
+export function containScreenDistance(options: {
+  worldWidth: number
+  worldHeight: number
+  fovDeg: number
+  aspect: number
+}): number {
+  const worldWidth = Math.max(options.worldWidth, 0)
+  const worldHeight = Math.max(options.worldHeight, 0)
+  const vFov = verticalFovRad(options.fovDeg)
+  const hFov = horizontalFovRad(options.fovDeg, options.aspect)
+  const distV = worldHeight / (2 * Math.tan(vFov / 2))
+  const distH = worldWidth / (2 * Math.tan(hFov / 2))
+  return Math.max(distV, distH)
+}
+
 export type MacbookScreenLayout = {
   width: number
   height: number

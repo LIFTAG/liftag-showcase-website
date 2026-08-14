@@ -2,12 +2,15 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
   MACBOOK_BEZEL_INSET,
+  MACBOOK_DASHBOARD_CONTENT_ASPECT,
   MACBOOK_DASHBOARD_TOP_CROP,
   MACBOOK_SCREEN_INSET,
   applyRectUVs,
+  containScreenDistance,
   coverFitScreenUVs,
   createNotchedScreenGeometry,
   createNotchedScreenShape,
+  frustumSizeAtDistance,
   isInsideNotchCavity,
   layoutMacbookScreen,
 } from '../utils/macbookScreen.ts'
@@ -188,4 +191,45 @@ test('coverFitScreenUVs keeps the top and crops the bottom when the source is ta
   const mappedW = 1000 * uv.repeatX
   const mappedH = 2000 * uv.repeatY
   assert.ok(Math.abs(mappedW / mappedH - 16 / 10) < 1e-6)
+})
+
+test('containScreenDistance keeps a wide display fully visible in a squarer canvas', () => {
+  const worldWidth = 2.764
+  const worldHeight = worldWidth / MACBOOK_DASHBOARD_CONTENT_ASPECT
+  const fovDeg = 22
+  const aspect = 1.3
+
+  const distance = containScreenDistance({
+    worldWidth,
+    worldHeight,
+    fovDeg,
+    aspect,
+  })
+  const view = frustumSizeAtDistance({ distance, fovDeg, aspect })
+
+  assert.ok(view.width + 1e-9 >= worldWidth, `width cropped: view ${view.width} < screen ${worldWidth}`)
+  assert.ok(view.height + 1e-9 >= worldHeight, `height cropped: view ${view.height} < screen ${worldHeight}`)
+
+  const heightLimited = containScreenDistance({
+    worldWidth: worldHeight * aspect,
+    worldHeight,
+    fovDeg,
+    aspect,
+  })
+  assert.ok(
+    distance > heightLimited + 1e-6,
+    'wide footage must back the camera up to the width-limited distance, not the closer height fit',
+  )
+})
+
+test('a 0.58 fill would crop the dashboard sides and is not the zoom target', () => {
+  const worldWidth = 2.764
+  const worldHeight = worldWidth / MACBOOK_DASHBOARD_CONTENT_ASPECT
+  const fovDeg = 22
+  const aspect = 1.3
+  const distance = containScreenDistance({ worldWidth, worldHeight, fovDeg, aspect })
+  const cropped = frustumSizeAtDistance({ distance: distance * 0.58, fovDeg, aspect })
+
+  assert.ok(cropped.width < worldWidth, 'sanity: 0.58 fill must be narrower than the screen')
+  assert.ok(distance * 0.58 < distance)
 })

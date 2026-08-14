@@ -6,6 +6,7 @@ import {
   MACBOOK_DASHBOARD_CONTENT_ASPECT,
   MACBOOK_DASHBOARD_TOP_CROP,
   MACBOOK_SCREEN_INSET,
+  containScreenDistance,
   coverFitScreenUVs,
   createNotchedScreenGeometry,
   createRoundedRectGeometry,
@@ -375,16 +376,12 @@ function initMacbook() {
   const lidQuat = new THREE.Quaternion()
 
   function placeZoomCam() {
-    const fovRad = THREE.MathUtils.degToRad(CAM_ZOOM_FOV)
-    const aspect = Math.max(camera.aspect, 1e-6)
-    const hFov = 2 * Math.atan(Math.tan(fovRad / 2) * aspect)
-    const worldH = screenLayout.height * macbook.scale.y
-    const worldW = screenLayout.width * macbook.scale.x
-    // Fill < 1 crops into the display so the POV lands on the screen center.
-    const fill = 0.58
-    const distV = (worldH * fill) / (2 * Math.tan(fovRad / 2))
-    const distH = (worldW * fill) / (2 * Math.tan(hFov / 2))
-    const worldDist = Math.max(distV, distH)
+    const worldDist = containScreenDistance({
+      worldWidth: screenLayout.width * macbook.scale.x,
+      worldHeight: screenLayout.height * macbook.scale.y,
+      fovDeg: CAM_ZOOM_FOV,
+      aspect: camera.aspect,
+    })
     zoomCam.position.set(
       screen.position.x,
       screen.position.y - worldDist / macbook.scale.y,
