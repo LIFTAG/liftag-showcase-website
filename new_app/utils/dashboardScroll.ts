@@ -8,6 +8,7 @@ export type DashboardScrollState = {
 export const DASHBOARD_SCROLL = {
   closedEnd: 0.08,
   openEnd: 0.34,
+  chromeEnd: 0.42,
   zoomEnd: 0.58,
   exitStart: 0.80,
 } as const
@@ -49,12 +50,12 @@ export function mapDashboardScroll(
   }
 
   const t = clamp01(p)
-  const { closedEnd, openEnd, zoomEnd, exitStart } = DASHBOARD_SCROLL
+  const { closedEnd, openEnd, chromeEnd, zoomEnd, exitStart } = DASHBOARD_SCROLL
 
   const open = smoothstep(span(t, closedEnd, openEnd))
   const zoom = smootherstep(span(t, openEnd, zoomEnd))
   const exit = smoothstep(span(t, exitStart, 1))
-  const chrome = 1 - zoom
+  const chrome = 1 - smootherstep(span(t, openEnd, chromeEnd))
 
   return { open, zoom, exit, chrome }
 }

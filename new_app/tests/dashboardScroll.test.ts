@@ -29,6 +29,13 @@ test('after the lid opens, zoom is in progress', () => {
   assert.ok(state.chrome < 1)
 })
 
+test('copy and chips are gone while the camera is still punching in', () => {
+  const state = mapDashboardScroll(0.46)
+
+  assert.ok(state.zoom > 0 && state.zoom < 1)
+  assert.equal(state.chrome, 0)
+})
+
 test('after zoom the camera stays locked through the hold', () => {
   const state = mapDashboardScroll(0.70)
 

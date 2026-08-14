@@ -655,6 +655,7 @@ onBeforeUnmount(() => {
 .dashboard-feature.reveal.in {
   opacity: calc(var(--chrome-p) * (1 - var(--exit-row)));
   transform: translate3d(0, calc(var(--exit-row-y) + (1 - var(--chrome-p)) * 10px), 0);
+  transition: opacity 140ms linear, transform 140ms linear;
 }
 
 .dashboard-feature.reveal.in .dashboard-feature-line,
@@ -777,7 +778,7 @@ onBeforeUnmount(() => {
   padding: 12px 16px;
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7);
   z-index: 6;
-  transition: opacity 1100ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 140ms linear;
   will-change: transform, opacity;
   pointer-events: none;
 }
@@ -791,7 +792,6 @@ onBeforeUnmount(() => {
   gap: 12px;
   border-color: rgba(204, 255, 0, 0.3);
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7), 0 0 36px rgba(204, 255, 0, 0.18);
-  transition-delay: 700ms;
   translate: calc((1 - var(--chrome-p)) * -12px) calc(var(--exit-chip-sync-y) + (1 - var(--chrome-p)) * 18px);
 }
 
@@ -846,7 +846,6 @@ onBeforeUnmount(() => {
   top: 28px;
   right: -24px;
   min-width: 168px;
-  transition-delay: 900ms;
   translate: calc((1 - var(--chrome-p)) * 14px) calc(var(--exit-chip-metric-y) + (1 - var(--chrome-p)) * -16px);
   cursor: crosshair;
 }
@@ -906,7 +905,6 @@ onBeforeUnmount(() => {
   border-radius: 14px;
   padding: 10px 16px;
   box-shadow: 0 0 40px rgba(204, 255, 0, 0.5);
-  transition-delay: 1100ms;
   translate: calc((1 - var(--chrome-p)) * 12px) calc(var(--exit-chip-deploy-y) + (1 - var(--chrome-p)) * 14px);
 }
 
@@ -956,7 +954,7 @@ onBeforeUnmount(() => {
   pointer-events: none;
   z-index: 3;
   opacity: calc((1 - var(--lid-p)) * var(--chrome-p));
-  transition: opacity 0.4s ease;
+  transition: opacity 140ms linear;
 }
 
 .dashboard-hint .protocol {
