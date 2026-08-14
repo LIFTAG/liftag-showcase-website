@@ -292,7 +292,6 @@ onBeforeUnmount(() => {
               }"
             >
               <span class="dashboard-feature-line" aria-hidden="true"></span>
-              <span class="dashboard-feature-scan" aria-hidden="true"></span>
               <span class="protocol dashboard-feature-tag">{{ f.tag }}</span>
               <h3 class="dashboard-feature-title">{{ f.title }}</h3>
               <p class="dashboard-feature-body">{{ f.body }}</p>
@@ -586,7 +585,6 @@ onBeforeUnmount(() => {
 
 .dashboard-feature {
   --i: 0;
-  --rev-delay: calc(var(--i) * 140ms);
   --exit-row: 0;
   --exit-row-y: 0px;
   --exit-row-blur: 0px;
@@ -595,125 +593,39 @@ onBeforeUnmount(() => {
   will-change: opacity, transform;
 }
 
-/* Animated top divider: gray line that draws in left→right */
-.dashboard-feature-line {
+.dashboard-feature-line,
+.dashboard-feature:last-child::before {
   position: absolute;
-  top: 0;
   left: 0;
   right: 0;
   height: 1px;
   background: rgba(255, 255, 255, 0.07);
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform 760ms cubic-bezier(0.7, 0, 0.2, 1) var(--rev-delay);
   pointer-events: none;
 }
 
-/* Last feature also gets a closing divider */
+.dashboard-feature-line {
+  top: 0;
+}
+
 .dashboard-feature:last-child::before {
   content: '';
-  position: absolute;
   bottom: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.07);
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform 760ms cubic-bezier(0.7, 0, 0.2, 1) calc(var(--rev-delay) + 120ms);
-  pointer-events: none;
 }
 
-/* Lime scan head that sweeps across the row */
-.dashboard-feature-scan {
-  position: absolute;
-  top: -3px;
-  left: -90px;
-  width: 90px;
-  height: 7px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(204, 255, 0, 0.0) 20%,
-    rgba(204, 255, 0, 0.95) 50%,
-    rgba(204, 255, 0, 0.0) 80%,
-    transparent 100%
-  );
-  filter: drop-shadow(0 0 6px rgba(204, 255, 0, 0.7))
-          drop-shadow(0 0 14px rgba(204, 255, 0, 0.35));
-  opacity: 0;
-  pointer-events: none;
-  will-change: left, opacity;
-}
-
-/* Override the global .reveal so we don't translateY - we drive our own motion */
 .dashboard-feature.reveal {
-  opacity: 0;
-  transform: none;
-  transition: opacity 700ms cubic-bezier(0.16, 1, 0.3, 1) calc(var(--rev-delay) + 180ms);
-}
-.dashboard-feature.reveal.in {
-  opacity: calc(var(--chrome-p) * (1 - var(--exit-row)));
-  transform: translate3d(0, calc(var(--exit-row-y) + (1 - var(--chrome-p)) * 10px), 0);
-  transition: opacity 140ms linear, transform 140ms linear;
-}
-
-.dashboard-feature.reveal.in .dashboard-feature-line,
-.dashboard-feature.reveal.in:last-child::before {
-  transform: scaleX(1);
-}
-
-.dashboard-feature.reveal.in .dashboard-feature-scan {
-  animation: dashScanSweep 1100ms cubic-bezier(0.65, 0, 0.2, 1) var(--rev-delay) forwards;
-}
-
-@keyframes dashScanSweep {
-  0% {
-    left: -90px;
-    opacity: 0;
-  }
-  14% {
-    opacity: 1;
-  }
-  68% {
-    opacity: 1;
-  }
-  78% {
-    left: calc(100% - 18px);
-    opacity: 0.72;
-  }
-  100% {
-    left: calc(100% + 58px);
-    opacity: 0;
-  }
-}
-
-/* Each piece of text rises in just behind the scan head */
-.dashboard-feature-tag,
-.dashboard-feature-title,
-.dashboard-feature-body {
-  display: block;
   opacity: 0;
   transform: translateY(8px);
   transition:
-    opacity 600ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 480ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 480ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.dashboard-feature.reveal.in .dashboard-feature-tag {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: calc(var(--rev-delay) + 220ms);
-}
-.dashboard-feature.reveal.in .dashboard-feature-title {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: calc(var(--rev-delay) + 320ms);
-}
-.dashboard-feature.reveal.in .dashboard-feature-body {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: calc(var(--rev-delay) + 420ms);
+.dashboard-feature.reveal.in {
+  opacity: calc(var(--chrome-p) * (1 - var(--exit-row)));
+  transform: translate3d(0, calc(var(--exit-row-y) + (1 - var(--chrome-p)) * 10px), 0);
+  transition:
+    opacity 160ms linear,
+    transform 160ms linear;
 }
 
 .dashboard-feature-tag {
@@ -742,18 +654,8 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dashboard-feature-line,
-  .dashboard-feature:last-child::before {
-    transform: scaleX(1);
-    transition: none;
-  }
-  .dashboard-feature-scan {
-    display: none;
-  }
-  .dashboard-feature-tag,
-  .dashboard-feature-title,
-  .dashboard-feature-body {
-    opacity: 1;
+  .dashboard-feature.reveal,
+  .dashboard-feature.reveal.in {
     transform: none;
     transition: none;
   }
@@ -1135,10 +1037,6 @@ onBeforeUnmount(() => {
 
   .dashboard-feature-body {
     display: none;
-  }
-
-  .dashboard-feature-scan {
-    width: 58px;
   }
 }
 
