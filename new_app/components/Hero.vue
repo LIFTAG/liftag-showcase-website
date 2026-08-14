@@ -1,4 +1,11 @@
 <script setup lang="ts">
+import {
+  finishHeroLaserWall,
+  publishHeroLaserWall,
+  resetHeroParticleField,
+  revealedWordBox,
+} from '../composables/useHeroParticleField'
+
 // ─── reactive mouse / scroll state ───────────────────────────────────────────
 // rawMouse is a reference into the shared singleton - useLerp's rAF reads
 // .x/.y each frame, so the page-wide single mousemove handler keeps it fresh
@@ -181,6 +188,24 @@ function queueHeroLaserRaf(fn: (now: number) => void) {
   heroLaserRafs.push(raf)
 }
 
+type HeroLaserWallTrack = { leadX: number; now: number }
+
+function publishHeroLaserWallFromEl(
+  el: HTMLElement,
+  fromRight: boolean,
+  progress: number,
+  strength: number,
+  now: number,
+  track: HeroLaserWallTrack | null,
+): HeroLaserWallTrack {
+  const box = revealedWordBox(el.getBoundingClientRect(), fromRight, progress)
+  const vx = track && now > track.now
+    ? (box.leadingX - track.leadX) / ((now - track.now) / 1000)
+    : 0
+  publishHeroLaserWall(box, vx, strength)
+  return { leadX: box.leadingX, now }
+}
+
 function emitHeroLaserSparks(el: HTMLElement, posPercent: number, isGreen: boolean) {
   const rect = el.getBoundingClientRect()
   const x = rect.left + (posPercent / 100) * rect.width
@@ -244,7 +269,20 @@ function runHeroLaserReveal(
   document.body.appendChild(beam)
   heroLaserNodes.add(beam)
 
+  const chargeStart = performance.now()
+  let charging = true
+  let wallTrack: HeroLaserWallTrack | null = null
+
+  const charge = (now: number) => {
+    if (!charging) return
+    const t = Math.min((now - chargeStart) / heroLaserChargeMs, 1)
+    wallTrack = publishHeroLaserWallFromEl(el, fromRight, 0, t, now, wallTrack)
+    if (t < 1) queueHeroLaserRaf(charge)
+  }
+  queueHeroLaserRaf(charge)
+
   queueHeroLaserTimer(() => {
+    charging = false
     el.classList.add('sweeping')
     el.style.setProperty('--laser-pos', fromRight ? '100%' : '0%')
     const start = performance.now()
@@ -264,6 +302,7 @@ function runHeroLaserReveal(
 
       el.style.setProperty('--laser-pos', `${beamPercent}%`)
       syncBeam(beamPercent)
+      wallTrack = publishHeroLaserWallFromEl(el, fromRight, eased, 1, now, wallTrack)
 
       if (now - lastSparkTime > 70 && t > 0.04 && t < 0.92) {
         lastSparkTime = now
@@ -275,6 +314,7 @@ function runHeroLaserReveal(
         return
       }
 
+      finishHeroLaserWall()
       el.classList.remove('sweeping')
       el.classList.add('reveal-done')
       el.style.clipPath = `inset(-20% ${rightClipInset} -20% 0)`
@@ -295,12 +335,14 @@ function runAllHeroLaserReveals() {
   heroLaserStarted = true
 
   if (isMobile.value || window.matchMedia('(max-width: 768px)').matches) {
+    resetHeroParticleField()
     heroTitleEls.forEach((el) => el?.classList.add('reveal-done'))
     heroLaserDone.value = true
     return
   }
 
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    resetHeroParticleField()
     heroTitleEls.forEach((el) => el?.classList.add('reveal-done'))
     heroLaserDone.value = true
     return
@@ -330,6 +372,7 @@ function cleanupHeroLasers() {
   heroLaserRafs.length = 0
   heroLaserNodes.forEach((node) => node.remove())
   heroLaserNodes.clear()
+  resetHeroParticleField()
 }
 
 // ─── hero stats ───────────────────────────────────────────────────────────────

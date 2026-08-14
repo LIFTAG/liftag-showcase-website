@@ -11,7 +11,8 @@
     "start": "node .output/server/index.mjs",
     "postinstall": "nuxt prepare",
     "typecheck": "nuxt typecheck",
-    "verify": "pnpm typecheck && pnpm build"
+    "test": "node --experimental-strip-types --test tests/useHeroParticleField.test.ts",
+    "verify": "pnpm test && pnpm typecheck && pnpm build"
   },
   "dependencies": {
     "@nuxt/scripts": "^1.1.1",
