@@ -519,7 +519,7 @@ const pNfc = computed(() => {
     <!-- ── GPU particle field (single draw call, self-gating) ── -->
     <HeroParticles
       :key="isMobile ? 'hero-particles-m' : 'hero-particles-d'"
-      :count="isMobile ? 420 : 1300"
+      :count="isMobile ? 300 : 900"
       :interactive="!isMobile"
       :dpr-cap="isMobile ? 1.5 : 1.75"
       style="z-index: 2"
