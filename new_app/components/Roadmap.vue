@@ -1,5 +1,12 @@
 <script setup lang="ts">
 // All Vue APIs are auto-imported in Nuxt 3 - no import needed.
+import {
+  publishRoadmapArmed,
+  publishRoadmapNode,
+  publishRoadmapSpark,
+  publishRoadmapSpine,
+  resetRoadmapParticleField,
+} from '../composables/useRoadmapParticleField'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -72,6 +79,7 @@ const sectionRef    = ref<HTMLElement | null>(null)
 const timelineRef   = ref<HTMLElement | null>(null)
 const canvasRef     = ref<HTMLCanvasElement | null>(null)
 const lineActiveRef = ref<HTMLElement | null>(null)
+const isMobileParticles = ref(false)
 
 // ── Animation state (plain arrays - NOT reactive) ─────────────────────────────
 
@@ -85,8 +93,10 @@ let ctx: CanvasRenderingContext2D | null = null
 let rmItems: NodeListOf<Element> | null = null
 let io: IntersectionObserver | null = null
 let motionMql: MediaQueryList | null = null
+let roadmapMobileMql: MediaQueryList | null = null
 let resizeTimer: ReturnType<typeof setTimeout> | null = null
 let onWindowResize: (() => void) | null = null
+let onRoadmapMobileChange: ((event: MediaQueryListEvent) => void) | null = null
 
 // ── Canvas sizing ─────────────────────────────────────────────────────────────
 
@@ -108,9 +118,27 @@ function bezierPt(p0: number, p1: number, p2: number, p3: number, t: number): nu
   return mt * mt * mt * p0 + 3 * mt * mt * t * p1 + 3 * mt * t * t * p2 + t * t * t * p3
 }
 
+function smoothstep01(v: number) {
+  const t = Math.min(1, Math.max(0, v))
+  return t * t * (3 - 2 * t)
+}
+
+function roadmapSpineStrength(progress: number) {
+  const p = Math.min(1, Math.max(0, progress))
+  if (p <= 0.001) return 0
+  const rise = smoothstep01(p / 0.12)
+  const fade = 1 - smoothstep01((p - 0.82) / 0.18)
+  return rise * fade
+}
+
+
 // ── drawRoots ─────────────────────────────────────────────────────────────────
 
-function drawRoots(rmItems: NodeListOf<Element>, providedTimelineRect?: DOMRect) {
+function drawRoots(
+  rmItems: NodeListOf<Element>,
+  providedTimelineRect?: DOMRect,
+  publishParticles = false,
+) {
   const canvas   = canvasRef.value
   const timeline = timelineRef.value
   if (!ctx || !canvas || !timeline) return
@@ -145,6 +173,10 @@ function drawRoots(rmItems: NodeListOf<Element>, providedTimelineRect?: DOMRect)
     if (!item.classList.contains('powered')) {
       rmRootProgress[i] = 0
       rmPoweredAt[i]    = 0
+      if (publishParticles) {
+        publishRoadmapNode(i, { cx: 0, cy: 0, radius: 0, strength: 0 })
+        publishRoadmapSpark(i, { cx: 0, cy: 0, strength: 0 })
+      }
       return
     }
     if (rmPoweredAt[i] === 0) rmPoweredAt[i] = now
@@ -153,11 +185,31 @@ function drawRoots(rmItems: NodeListOf<Element>, providedTimelineRect?: DOMRect)
 
     const node     = item.querySelector('.rm-node') as HTMLElement | null
     const branches = item.querySelectorAll('.rm-branch span')
-    if (!node || branches.length === 0) return
+    if (!node || branches.length === 0) {
+      if (publishParticles) {
+        publishRoadmapNode(i, { cx: 0, cy: 0, radius: 0, strength: 0 })
+        publishRoadmapSpark(i, { cx: 0, cy: 0, strength: 0 })
+      }
+      return
+    }
 
     const nodeRect = node.getBoundingClientRect()
     const nodeX    = nodeRect.left + nodeRect.width  / 2 - timelineRect.left
     const nodeY    = nodeRect.top  + nodeRect.height / 2 - timelineRect.top
+    if (publishParticles) {
+      const eased = 1 - Math.pow(1 - rmRootProgress[i], 3)
+      publishRoadmapNode(i, {
+        cx: nodeRect.left + nodeRect.width / 2,
+        cy: nodeRect.top + nodeRect.height / 2,
+        radius: Math.max(nodeRect.width, nodeRect.height),
+        strength: eased,
+      })
+    }
+
+    let sparkCx = 0
+    let sparkCy = 0
+    let sparkStr = 0
+    let sparkRank = -1
 
     branches.forEach((label, bi) => {
       const labelRect = (label as HTMLElement).getBoundingClientRect()
@@ -253,9 +305,21 @@ function drawRoots(rmItems: NodeListOf<Element>, providedTimelineRect?: DOMRect)
           ctx!.beginPath()
           ctx!.arc(tipX, tipY, 10, 0, Math.PI * 2)
           ctx!.fill()
+
+          const rank = branchP < 1 ? 100 + bi : bi
+          if (publishParticles && rank >= sparkRank) {
+            sparkRank = rank
+            sparkCx = tipX + timelineRect.left
+            sparkCy = tipY + timelineRect.top
+            sparkStr = tipFade * (branchP < 1 ? 0.85 : 0.4)
+          }
         }
       }
     })
+
+    if (publishParticles) {
+      publishRoadmapSpark(i, { cx: sparkCx, cy: sparkCy, strength: sparkStr })
+    }
   })
 }
 
@@ -271,6 +335,17 @@ function updateRoadmap(rmItems: NodeListOf<Element>) {
   const progress = Math.max(0, Math.min(1, (viewH - rect.top) / (rect.height + viewH * 0.5)))
   lineActive.style.height = (progress * 100) + '%'
 
+  publishRoadmapArmed(true)
+  const railX = window.innerWidth <= 600
+    ? rect.left + Math.min(18, Math.max(12, window.innerWidth * 0.035))
+    : rect.left + rect.width / 2
+  publishRoadmapSpine({
+    cx: railX,
+    cy: rect.top + progress * rect.height,
+    vy: 80,
+    strength: roadmapSpineStrength(progress),
+  })
+
   rmItems.forEach((item, i) => {
     const itemRect = item.getBoundingClientRect()
     const itemMid  = itemRect.top + itemRect.height / 2
@@ -283,7 +358,7 @@ function updateRoadmap(rmItems: NodeListOf<Element>) {
   })
 
   // Pass timeline rect to drawRoots so it doesn't re-read it within the same tick.
-  drawRoots(rmItems, rect)
+  drawRoots(rmItems, rect, true)
 }
 
 // ── rAF loop ──────────────────────────────────────────────────────────────────
@@ -329,6 +404,7 @@ function onMotionChange() {
   reduceMotion = Boolean(motionMql?.matches)
   if (reduceMotion) {
     stopLoop()
+    resetRoadmapParticleField()
     renderStaticComplete()
   } else {
     startLoop()
@@ -359,6 +435,13 @@ onMounted(async () => {
   reduceMotion = motionMql.matches
   motionMql.addEventListener('change', onMotionChange)
 
+  roadmapMobileMql = window.matchMedia('(max-width: 768px)')
+  isMobileParticles.value = roadmapMobileMql.matches
+  onRoadmapMobileChange = (event) => {
+    isMobileParticles.value = event.matches
+  }
+  roadmapMobileMql.addEventListener('change', onRoadmapMobileChange)
+
   document.addEventListener('visibilitychange', onDocumentVisibilityChange)
 
   io = new IntersectionObserver(
@@ -366,10 +449,13 @@ onMounted(async () => {
       entries.forEach((entry) => {
         isVisible = entry.isIntersecting
         if (isVisible) {
-          if (reduceMotion) renderStaticComplete()
-          else startLoop()
+          if (reduceMotion) {
+            resetRoadmapParticleField()
+            renderStaticComplete()
+          } else startLoop()
         } else {
           stopLoop()
+          resetRoadmapParticleField()
         }
       })
     },
@@ -377,17 +463,26 @@ onMounted(async () => {
   )
   if (sectionRef.value) io.observe(sectionRef.value)
 
-  if (reduceMotion) renderStaticComplete()
+  if (reduceMotion) {
+    resetRoadmapParticleField()
+    renderStaticComplete()
+  }
 })
 
 onBeforeUnmount(() => {
   stopLoop()
+  resetRoadmapParticleField()
   if (resizeTimer) clearTimeout(resizeTimer)
   if (onWindowResize) window.removeEventListener('resize', onWindowResize)
   onWindowResize = null
   document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
   motionMql?.removeEventListener('change', onMotionChange)
   motionMql = null
+  if (roadmapMobileMql && onRoadmapMobileChange) {
+    roadmapMobileMql.removeEventListener('change', onRoadmapMobileChange)
+  }
+  roadmapMobileMql = null
+  onRoadmapMobileChange = null
   io?.disconnect()
   io = null
   ctx = null
@@ -397,6 +492,12 @@ onBeforeUnmount(() => {
 
 <template>
   <section ref="sectionRef" class="section" id="roadmap">
+    <RoadmapParticles
+      :key="isMobileParticles ? 'roadmap-particles-m' : 'roadmap-particles-d'"
+      :count="isMobileParticles ? 100 : 220"
+      :interactive="!isMobileParticles"
+      :dpr-cap="isMobileParticles ? 1.1 : 1.2"
+    />
     <div class="section-inner">
       <div class="section-label reveal" style="text-align: center">Roadmap</div>
       <h2 class="display reveal" style="text-align: center; margin: 0 auto 20px; font-size: clamp(2.4rem, 6vw, 4.5rem)">
@@ -454,6 +555,8 @@ onBeforeUnmount(() => {
 }
 
 .section-inner {
+  position: relative;
+  z-index: 1;
   max-width: 1200px;
   margin: 0 auto;
   padding: 120px 40px;
