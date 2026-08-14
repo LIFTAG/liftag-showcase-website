@@ -31,6 +31,7 @@ const stickyRef = ref<HTMLElement | null>(null)
 const stageRef = ref<HTMLElement | null>(null)
 const liftagRef = ref<HTMLElement | null>(null)
 const isMobileParticles = ref(false)
+const particlesPinned = ref(false)
 
 const iconEls: HTMLElement[] = []
 const captionEls: HTMLElement[] = []
@@ -251,6 +252,9 @@ function getScrollProgress() {
   const rect = section.getBoundingClientRect()
   const viewportH = useStableViewportHeight() || window.innerHeight
   const available = Math.max(1, rect.height - viewportH)
+  const stickyH = stickyRef.value?.offsetHeight ?? viewportH
+  const pinned = rect.top <= 2 && rect.bottom >= stickyH - 2
+  if (particlesPinned.value !== pinned) particlesPinned.value = pinned
   return clamp(-rect.top / available)
 }
 
@@ -699,6 +703,7 @@ onMounted(() => {
   mergeMobileMql.addEventListener('change', onMergeMobileChange)
   updateStageScale()
   cacheRayLayout()
+  getScrollProgress()
   updateAnimatedStyles()
 
   observer = new IntersectionObserver((entries) => {
@@ -755,6 +760,7 @@ onBeforeUnmount(() => {
         <div class="merge-background-pulse pulse-two"></div>
         <MergeParticles
           :key="isMobileParticles ? 'merge-particles-m' : 'merge-particles-d'"
+          :armed="particlesPinned"
           :count="isMobileParticles ? 140 : 320"
           :interactive="!isMobileParticles"
           :dpr-cap="isMobileParticles ? 1.15 : 1.25"

@@ -1,15 +1,18 @@
 <script setup lang="ts">
 // GPU particle field for the app-merge background. Same single-draw-call
-// point field as the hero. Particles fly in when the sticky stage is on
-// screen, get sucked toward the merge well with the icons, blow out to
-// the frustum edges when LIFTAG appears, then settle into a halo as the
-// logo spin finishes.
+// point field as the hero. Particles fade in once the sticky stage is
+// pinned, get sucked toward the merge well with the icons, blow out when
+// LIFTAG appears, then settle as the logo spin finishes.
 //
 // Lifecycle contract:
 //   • never initializes under prefers-reduced-motion
-//   • lazy-inits when the sticky stage is on screen, disposes when it leaves
+//   • lazy-inits only while the sticky is pinned (a scrolling WebGL
+//     canvas stutters against compositor scroll; pinning is cheaper
+//     than trying to sync those clocks)
+//   • fades in place — no edge fly-in
+//   • disposes when the pin releases
 //   • pauses while the document is hidden
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { useSharedMouse } from '../composables/useSharedMouse'
 import {
@@ -26,10 +29,13 @@ const props = withDefaults(defineProps<{
   dprCap?: number
   /** Couple the field to the shared cursor (disable on touch layouts). */
   interactive?: boolean
+  /** Parent sets this when the merge sticky is actually pinned. */
+  armed?: boolean
 }>(), {
   count: 320,
   dprCap: 1.25,
   interactive: true,
+  armed: false,
 })
 
 const mount = ref<HTMLElement | null>(null)
@@ -54,7 +60,6 @@ let lastFrame = 0
 let enterLinear = 0
 let uniformsCleared = true
 
-let io: IntersectionObserver | null = null
 let resizeObserver: ResizeObserver | null = null
 let resizeTimer: ReturnType<typeof setTimeout> | null = null
 let onVisibility: (() => void) | null = null
@@ -159,15 +164,8 @@ const vertexShader = /* glsl */ `
 
     float homeX = p.x + cos(uTime * (0.13 + aSeed * 0.16) + phase) * (0.32 + aSeed * 0.5);
     float homeY = p.y + sin(uTime * (0.11 + aSeed * 0.14) + phase) * (0.32 + aSeed * 0.4);
-
-    float lane = aSeed * 3.0;
-    vec2 from = lane < 1.0
-      ? vec2(-aRangeX * 1.18, homeY * 0.35 + (aSeed - 0.5) * aRangeY)
-      : lane < 2.0
-        ? vec2(aRangeX * 1.18, homeY * 0.35 + (aSeed - 0.5) * aRangeY)
-        : vec2(homeX * 0.4, -aRangeY * 1.22 - aSeed * 8.0);
-    float x = mix(from.x, homeX, uEnter);
-    float y = mix(from.y, homeY, uEnter);
+    float x = homeX;
+    float y = homeY;
 
     vec2 mouseAtDepth = uMouse * ((${CAM_Z.toFixed(1)} - p.z) / ${CAM_Z.toFixed(1)});
     vec2 toMouse = vec2(x, y) - mouseAtDepth;
@@ -422,8 +420,8 @@ function frame(now: number) {
   const u = material.uniforms
   u.uTime.value += dt * 0.001
 
-  enterLinear = Math.min(1, enterLinear + dt * 0.00145)
-  u.uEnter.value = 1 - Math.pow(1 - enterLinear, 3)
+  enterLinear = Math.min(1, enterLinear + dt * 0.004)
+  u.uEnter.value = enterLinear
 
   if (props.interactive && sharedMouse.latest.hasPointer) {
     const { halfW, halfH } = halfExtentsAt(CAM_Z, camera.aspect)
@@ -463,27 +461,23 @@ function handleResize() {
   renderer.setSize(width, height)
 }
 
+function syncArmed() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  intersecting = props.armed
+  if (props.armed) {
+    if (disposed) init()
+    startLoop()
+    return
+  }
+  stopLoop()
+  disposeScene()
+  contextBroken = false
+}
+
 onMounted(() => {
   const host = mount.value
   if (!host) return
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-
-  io = new IntersectionObserver(
-    (entries) => {
-      const entry = entries[entries.length - 1]
-      intersecting = Boolean(entry?.isIntersecting)
-      if (intersecting) {
-        if (disposed) init()
-        startLoop()
-      } else {
-        stopLoop()
-        disposeScene()
-        contextBroken = false
-      }
-    },
-    { threshold: 0 },
-  )
-  io.observe(host)
 
   onVisibility = () => {
     if (document.hidden) stopLoop()
@@ -496,11 +490,11 @@ onMounted(() => {
     resizeTimer = setTimeout(handleResize, 150)
   })
   resizeObserver.observe(host)
+
+  watch(() => props.armed, syncArmed, { immediate: true })
 })
 
 onBeforeUnmount(() => {
-  io?.disconnect()
-  io = null
   resizeObserver?.disconnect()
   resizeObserver = null
   if (resizeTimer) clearTimeout(resizeTimer)
