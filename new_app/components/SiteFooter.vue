@@ -280,8 +280,7 @@ onBeforeUnmount(() => {
 .site-footer {
   background: #000;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 60px 32px 40px;
-  overflow-x: clip;
+  padding: 60px 32px 56px;
 }
 
 .footer-col:nth-child(1) { transition-delay: 0ms; }
@@ -296,6 +295,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   margin: 48px auto 0;
   max-width: 100%;
+  padding: 0.08em 0.22em 0.2em;
   pointer-events: none;
 }
 
@@ -311,7 +311,6 @@ onBeforeUnmount(() => {
   text-transform: uppercase;
   text-wrap: nowrap;
   user-select: none;
-  padding-right: 0.22em;
 }
 
 .footer-mark-outline {
@@ -397,6 +396,7 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: minmax(240px, 1.4fr) minmax(150px, 0.7fr) minmax(170px, 0.7fr) minmax(150px, 0.6fr);
   gap: 48px;
+  overflow-x: clip;
 }
 
 @media (max-width: 960px) {
