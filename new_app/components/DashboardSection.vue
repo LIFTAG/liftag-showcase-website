@@ -85,33 +85,18 @@ function resetDashboardMetricChartHover() {
   setDashboardMetricChartTarget(1)
 }
 
-// Shared singleton - no per-component window listener. useLerp's rAF reads
+// Shared singleton - no per-component window listener. useLerpVars' rAF reads
 // rawMouse.x/y each frame, so pointing it at the shared `latest` object
 // (whose .x/.y are kept in sync by the single global handler) gives identical
-// behaviour at zero per-component cost.
+// behaviour at zero per-component cost. It publishes --dash-mx / --dash-my on
+// the section rather than a ref, so cursor movement never re-renders this
+// component - the chip transforms below are constant strings.
 const rawMouse = useSharedMouse().latest
 const sectionInView = ref(false)
-const mouse = useLerp(rawMouse, 0.06, () => sectionInView.value)
-
-const c1 = computed(() => ({
-  x: mouse.value.x * 24,
-  y: mouse.value.y * 14,
-}))
-const c2 = computed(() => ({
-  x: mouse.value.x * -18,
-  y: mouse.value.y * 10,
-}))
-const c3 = computed(() => ({
-  x: mouse.value.x * 32,
-  y: mouse.value.y * -12,
-}))
+useLerpVars(sectionRef, rawMouse, 'dash', 0.06, () => sectionInView.value)
 
 const chipSpreadStart = 0.12
 const chipSpreadEnd = 0.92
-
-const chipSpread = computed(() => smootherstep(
-  (openProgress.value - chipSpreadStart) / (chipSpreadEnd - chipSpreadStart),
-))
 
 let observer: IntersectionObserver | null = null
 let rafId = 0
@@ -132,17 +117,20 @@ function setExitMotion(section: HTMLElement, key: string, value: number, y: numb
   section.style.setProperty(`--exit-${key}-blur`, `${value * blur}px`)
 }
 
+// Both inputs are CSS custom properties written by the loops above - the lerped
+// pointer in --dash-mx / --dash-my and the scroll-driven spread in
+// --chip-spread - so this returns a constant string. Neither scrolling nor
+// moving the cursor re-renders the chips; the compositor re-resolves the calc().
 function chipTransform(
-  cursor: { x: number, y: number },
+  cursorX: number,
+  cursorY: number,
   packedX: number,
   packedY: number,
 ) {
-  const packed = 1 - chipSpread.value
-  const x = cursor.x + packedX * packed
-  const y = cursor.y + packedY * packed
-  const scale = 0.9 + chipSpread.value * 0.1
-
-  return `translate3d(${x}px, ${y}px, 0) rotate(0deg) scale(${scale})`
+  return 'translate3d('
+    + `calc(${packedX}px * (1 - var(--chip-spread)) + var(--dash-mx) * ${cursorX}px), `
+    + `calc(${packedY}px * (1 - var(--chip-spread)) + var(--dash-my) * ${cursorY}px), `
+    + '0) rotate(0deg) scale(calc(0.9 + var(--chip-spread) * 0.1))'
 }
 
 function getScrollProgress() {
@@ -207,6 +195,9 @@ function tick() {
     section.style.setProperty('--scroll-p', String(p))
     section.style.setProperty('--zoom-p', String(mapped.zoom))
     section.style.setProperty('--chrome-p', String(mapped.chrome))
+    section.style.setProperty('--chip-spread', String(smootherstep(
+      (mapped.open - chipSpreadStart) / (chipSpreadEnd - chipSpreadStart),
+    )))
     section.style.setProperty('--exit-p', String(exitT))
     section.style.setProperty('--exit-flow-y', `${exitFlow * -92}px`)
     section.style.setProperty('--exit-flow-scale', String(1 - exitFlow * 0.018))
@@ -371,7 +362,7 @@ onBeforeUnmount(() => {
           <div
             class="dash-chip dash-chip-sync"
             :style="{
-              transform: chipTransform(c1, -8, -252),
+              transform: chipTransform(24, 14, -8, -252),
               opacity: entered ? 'calc(var(--chrome-p) * (1 - var(--exit-chip-sync)))' : 0,
             }"
             aria-hidden="true"
@@ -389,7 +380,7 @@ onBeforeUnmount(() => {
           <div
             class="dash-chip dash-chip-metric"
             :style="{
-              transform: chipTransform(c2, -108, 46),
+              transform: chipTransform(-18, 10, -108, 46),
               opacity: entered ? 'calc(var(--chrome-p) * (1 - var(--exit-chip-metric)))' : 0,
             }"
             aria-hidden="true"
@@ -444,7 +435,7 @@ onBeforeUnmount(() => {
           <div
             class="dash-chip dash-chip-deploy"
             :style="{
-              transform: chipTransform(c3, -8, -174),
+              transform: chipTransform(32, -12, -8, -174),
               opacity: entered ? 'calc(var(--chrome-p) * (1 - var(--exit-chip-deploy)))' : 0,
             }"
             aria-hidden="true"
@@ -464,6 +455,12 @@ onBeforeUnmount(() => {
   --scroll-p: 0;
   --zoom-p: 0;
   --chrome-p: 1;
+  /* Lerped pointer, normalized to -1..1 and unitless, plus the scroll-driven
+     chip spread. Both are overwritten from rAF; the defaults here keep SSR and
+     first paint correct before the first pointer or scroll event. */
+  --dash-mx: 0;
+  --dash-my: 0;
+  --chip-spread: 0;
   --exit-p: 0;
   --exit-copy: 0;
   --exit-copy-y: 0px;

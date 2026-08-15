@@ -43,8 +43,13 @@ const rawMouse = useSharedMouse().latest
 // Gated on the section being near the viewport so mousemoves elsewhere on the
 // page do not wake this loop.
 const lerpActive = useNearViewport(gymSectionRef)
-const mouse = useLerp(rawMouse, 0.06, () => lerpActive.value)
+// Publishes --gym-mx / --gym-my (normalized -1..1) on the section instead of a
+// ref, so the transforms below are constant strings that CSS re-evaluates on the
+// compositor. Moving the cursor never re-renders this component.
+useLerpVars(gymSectionRef, rawMouse, 'gym', 0.06, () => lerpActive.value)
 
+// Only the two motion flags can change these, so the bindings recompute on a
+// media-query change and never on pointer movement.
 function gymMotionTransform(
   xFactor: number,
   yFactor: number,
@@ -52,10 +57,8 @@ function gymMotionTransform(
   base = '',
 ) {
   if (reduceMotion.value || phoneLayout.value) return base || 'translate3d(0, 0, 0)'
-  const x = mouse.value.x * xFactor
-  const y = mouse.value.y * yFactor
-  const rotate = mouse.value.x * rotateFactor
-  return `${base}${base ? ' ' : ''}translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotate(${rotate.toFixed(2)}deg)`
+  return `${base}${base ? ' ' : ''}translate3d(calc(var(--gym-mx) * ${xFactor}px), calc(var(--gym-my) * ${yFactor}px), 0)`
+    + ` rotate(calc(var(--gym-mx) * ${rotateFactor}deg))`
 }
 
 const gymQrStickerMotion = computed(() => gymMotionTransform(-24, -16, -1.4))
@@ -545,6 +548,14 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+/* Lerped pointer, normalized to -1..1 and unitless. useLerpVars overwrites these
+   on the section each frame; the defaults keep SSR and first paint correct
+   before the first pointer event. */
+.gyms-section {
+  --gym-mx: 0;
+  --gym-my: 0;
+}
+
 .gyms-qr-sticker-card,
 .gyms-machine-card,
 .gyms-live-badge,

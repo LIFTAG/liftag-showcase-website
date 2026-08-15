@@ -8,7 +8,7 @@
 //     that have to be set explicitly to trigger reactivity)
 //
 // `latest` exposes both `mx/my` (normalized -1..1, used by 3D tilts) and `x/y`
-// aliases (same values, kept for callers like useLerp that read `.x/.y`), plus
+// aliases (same values, kept for callers like useLerpVars that read `.x/.y`), plus
 // raw `clientX/clientY` for cursor-position consumers. `hasPointer` stays false
 // until a real mousemove so consumers do not treat the (0, 0) default as the
 // viewport center.
