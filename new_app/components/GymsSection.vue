@@ -179,6 +179,12 @@ onBeforeUnmount(() => {
               transform: 'rotate(4deg)',
               }"
             >
+            <!--
+              The card is transformed, so it forms a stacking context and the
+              free rim cannot sit behind it. Masked variant instead.
+            -->
+            <div class="prism-rim prism-rim--masked gyms-qr-sticker-rim" aria-hidden="true"></div>
+
             <!-- QR sticker header -->
             <div
               :style="{
@@ -571,17 +577,17 @@ onBeforeUnmount(() => {
   animation: gymsQrSweep 8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
 
-.gyms-qr-sticker-card::after {
-  content: '';
-  position: absolute;
-  inset: -8px;
-  border-radius: 24px;
-  pointer-events: none;
-  border: 1px solid rgba(204, 255, 0, 0.18);
-  opacity: 0;
+/* Replaces the old flat lime halo ring. The scan beat it carried is kept, but
+   it now brightens the prism rim rather than flashing a second concentric ring
+   three pixels away from it. */
+.gyms-qr-sticker-rim {
+  --prism-inset: 5px;
+  --prism-radius: 23px;
+  --prism-strength: 0.44;
+  z-index: 5;
 }
 
-.gyms-section.is-live .gyms-qr-sticker-card::after {
+.gyms-section.is-live .gyms-qr-sticker-rim {
   animation: gymsStickerHalo 8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
 
@@ -645,19 +651,12 @@ onBeforeUnmount(() => {
   }
 }
 
+/* Punctuates the QR sweep: the rim flares as the sweep passes, then falls back
+   to its resting glow. Opacity only - the rim keeps spinning underneath. */
 @keyframes gymsStickerHalo {
-  0%, 18% {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-  21% {
-    opacity: 0.85;
-    transform: scale(1.06);
-  }
-  24%, 100% {
-    opacity: 0;
-    transform: scale(1.02);
-  }
+  0%, 18% { opacity: 0.44; }
+  21% { opacity: 1; }
+  24%, 100% { opacity: 0.44; }
 }
 
 @keyframes gymsRowGlint {
@@ -698,7 +697,7 @@ onBeforeUnmount(() => {
 
 .gyms-section:not(.is-live) .gyms-float,
 .gyms-section:not(.is-live) .gyms-qr-code::after,
-.gyms-section:not(.is-live) .gyms-qr-sticker-card::after,
+.gyms-section:not(.is-live) .gyms-qr-sticker-rim,
 .gyms-section:not(.is-live) .gyms-machine-card::after,
 .gyms-section:not(.is-live) .gyms-benefit-row::after,
 .gyms-section:not(.is-live) .gyms-map-ping,
@@ -771,7 +770,7 @@ onBeforeUnmount(() => {
 
 @media (prefers-reduced-motion: reduce) {
   .gyms-section.is-live .gyms-qr-code::after,
-  .gyms-section.is-live .gyms-qr-sticker-card::after,
+  .gyms-section.is-live .gyms-qr-sticker-rim,
   .gyms-section.is-live .gyms-machine-card::after,
   .gyms-section.is-live .gyms-benefit-row::after,
   .gyms-section.is-live .gyms-map-ping,

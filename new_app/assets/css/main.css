@@ -105,6 +105,34 @@
   --liftag-shadow-pop: 0 12px 40px rgba(0, 0, 0, 0.5);
   --liftag-glow-primary: 0 0 24px var(--liftag-primary-glow);
 
+  /* Prism dispersion. The only non-lime/non-red hues in the system: two hot
+     fringes and one trailing ember, each splitting cyan-lime-amber-magenta the
+     way the merge section's crystal splits light at a facet edge. The wide
+     transparent gaps are load-bearing - they are what makes it read as light
+     travelling round an edge rather than as a rainbow ring. */
+  --liftag-prism-fringe: conic-gradient(
+    from 0deg,
+    rgba(204, 255, 0, 0) 0deg,
+    rgba(204, 255, 0, 0) 16deg,
+    rgba(150, 255, 225, 0.95) 31deg,
+    rgba(238, 255, 130, 1) 42deg,
+    rgba(255, 246, 190, 1) 50deg,
+    rgba(255, 178, 30, 1) 60deg,
+    rgba(255, 45, 85, 0.9) 73deg,
+    rgba(204, 255, 0, 0) 94deg,
+    rgba(204, 255, 0, 0) 172deg,
+    rgba(120, 255, 220, 0.9) 188deg,
+    rgba(228, 255, 110, 1) 200deg,
+    rgba(255, 208, 60, 1) 214deg,
+    rgba(255, 60, 120, 0.7) 226deg,
+    rgba(204, 255, 0, 0) 246deg,
+    rgba(204, 255, 0, 0) 324deg,
+    rgba(204, 255, 0, 0.75) 342deg,
+    rgba(255, 150, 40, 0.6) 352deg,
+    rgba(204, 255, 0, 0) 360deg
+  );
+  --liftag-prism-spin: 7.5s;
+
   /* Type families */
   --liftag-font-headline: 'Space Grotesk', system-ui, sans-serif;
   --liftag-font-body: 'Inter', system-ui, -apple-system, sans-serif;
@@ -476,6 +504,67 @@ section {
     animation: none;
   }
 }
+/* Prism rim: a spectral edge that spins around an opaque rounded element.
+   Marks a scan target - the QR you can actually point a phone at - and the
+   LIFTAG mark itself.
+
+   The trick is that it needs no mask. Park this one paint layer *behind* an
+   element whose background is opaque out to its border box, and that element
+   punches the hole itself, so the rim becomes a ring for free. The gradient is
+   painted once on an oversized child; only `transform` animates, so it stays
+   on the compositor instead of repainting a conic every frame.
+
+   Host requirements:
+     - the element it rims must have an OPAQUE background
+     - place this as a sibling behind it, or as a `z-index: -1` child of a host
+       that does not create a stacking context (no transform/filter/opacity)
+     - set --prism-radius to the host's radius plus the rim's overhang */
+.prism-rim {
+  position: absolute;
+  inset: calc(var(--prism-inset, 4.5px) * -1);
+  border-radius: var(--prism-radius, var(--liftag-r-xl));
+  overflow: hidden;
+  pointer-events: none;
+  opacity: var(--prism-strength, 1);
+}
+.prism-rim::after {
+  content: '';
+  position: absolute;
+  /* Oversized so the square still covers the rounded box at every angle. */
+  inset: -30%;
+  background: var(--liftag-prism-fringe);
+  animation: prism-rim-spin var(--liftag-prism-spin) linear infinite;
+  will-change: transform;
+}
+@keyframes prism-rim-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Masked variant, for hosts the free version cannot serve: anything that
+   creates a stacking context (a transform, filter or opacity on the host traps
+   a negative z-index child *above* its own background, so the rim would paint
+   across the face instead of behind it). Costs a mask layer, which is why it is
+   the fallback rather than the default - same technique the button rims use.
+   The spin stays on the inner layer, never on the ring itself: the ring is a
+   rounded rect, and rotating it would visibly tumble the shape. */
+.prism-rim--masked {
+  padding: var(--prism-width, 1.5px);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prism-rim::after {
+    animation: none;
+  }
+}
+
 @keyframes float-y {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-12px); }

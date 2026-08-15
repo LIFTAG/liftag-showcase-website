@@ -660,7 +660,10 @@ function frame(now: number) {
 
   // The shell opens and dissolves as the logo takes the centre; the crystal
   // expands on the way out so the burst reads as the gem breaking apart.
-  const bloomIn = Math.min(1, Math.max(0, (charge - 0.015) / 0.28))
+  // Holds off until the icons are visibly travelling rather than arriving the
+  // instant they twitch, so the crystal reads as something they fall into
+  // rather than something that was always there.
+  const bloomIn = Math.min(1, Math.max(0, (charge - 0.14) / 0.30))
   const shell = bloomIn * bloomIn * (3 - 2 * bloomIn) * Math.max(0, 1 - Math.max(0, (ignite - 0.02) / 0.32))
   // Once the shell is gone the crystal leaves a spectral pool behind the logo.
   // It rides out on core.fade with the rest of the section.

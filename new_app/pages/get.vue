@@ -95,6 +95,12 @@ onMounted(() => {
 
       <div class="get__qr">
         <div class="get__panel">
+          <!--
+            Sits behind the panel's opaque background, so it only ever shows as
+            a rim outside the border box. It must stay outside: the code's
+            decode margin is already spent on the centre mark below.
+          -->
+          <div class="prism-rim get__rim" aria-hidden="true"></div>
           <img
             src="/assets/qr/get.svg"
             width="260"
@@ -182,6 +188,9 @@ onMounted(() => {
   display: grid;
   justify-items: center;
   gap: 18px;
+  /* Traps the rim's negative z-index here. Without a stacking context of its
+     own the rim falls all the way back past .get's opaque black and vanishes. */
+  isolation: isolate;
 }
 
 .get__panel {
@@ -195,6 +204,17 @@ onMounted(() => {
     0 0 0 1px rgba(204, 255, 0, 0.28),
     0 24px 70px rgba(0, 0, 0, 0.55),
     0 0 44px rgba(204, 255, 0, 0.14);
+}
+
+/* Neither .get__panel nor .get__inner creates a stacking context (no
+   transform, filter or opacity), so a negative z-index child paints behind the
+   panel's own background while staying above the page. That is what turns the
+   shared .prism-rim into a ring here without a mask. */
+.get__rim {
+  z-index: -1;
+  --prism-inset: 5px;
+  --prism-radius: calc(var(--liftag-r-xl) + 5px);
+  --prism-strength: 0.85;
 }
 
 .get__code {
