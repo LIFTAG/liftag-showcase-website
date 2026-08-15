@@ -33,7 +33,11 @@ useHead({
 // Warming through a consumer component (not `import('three')` directly) keeps
 // the unused parts of three tree-shaken out of the chunk.
 onNuxtReady(() => {
-  import('~/components/HeroParticles.vue').catch(() => {})
+  // Phones never mount the hero particle field (see Hero.vue), so warming its
+  // chunk there would only cost bandwidth.
+  if (!window.matchMedia('(max-width: 768px)').matches) {
+    import('~/components/HeroParticles.vue').catch(() => {})
+  }
   import('~/components/Phone3D.vue').catch(() => {})
 })
 </script>

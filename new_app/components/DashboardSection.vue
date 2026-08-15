@@ -243,7 +243,10 @@ const features = [
 
 onMounted(() => {
   reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  dashboardVideoQuery = window.matchMedia('(min-width: 621px) and (prefers-reduced-motion: no-preference)')
+  // Phones get the footage too: the element is muted + playsinline, so iOS and
+  // Android autoplay it inline, and Macbook3D still holds the source until the
+  // laptop is ~300px from the viewport. Reduced motion keeps the still poster.
+  dashboardVideoQuery = window.matchMedia('(prefers-reduced-motion: no-preference)')
   updateDashboardVideoPreference()
   dashboardVideoQuery.addEventListener('change', updateDashboardVideoPreference)
 

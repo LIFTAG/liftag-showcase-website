@@ -20,6 +20,11 @@ const cursorGlowTone = ref<'green' | 'red'>('green')
 // Phones render only the front-center device. Its Three.js path runs in lite,
 // non-interactive mode so the stronger 3D framing does not add an idle loop.
 const isMobile = ref(false)
+// The GPU particle field is desktop-only: on phones its per-frame simulation
+// plus a second WebGL context was the bulk of the hero's jank. Starts false so
+// SSR and the first client render agree, then desktops switch it on in
+// onMounted - phones never mount the component or fetch its three.js chunk.
+const showHeroParticles = ref(false)
 const heroRoot = ref<HTMLElement | null>(null)
 
 // smooth lerp (factor 0.06 matches React source). Gated on the section being
@@ -348,8 +353,10 @@ onMounted(() => {
 
   heroMobileMql = window.matchMedia('(max-width: 768px)')
   isMobile.value = heroMobileMql.matches
+  showHeroParticles.value = !heroMobileMql.matches
   onHeroMobileChange = (e: MediaQueryListEvent) => {
     isMobile.value = e.matches
+    showHeroParticles.value = !e.matches
     if (e.matches) {
       cleanupHeroLasers()
       heroLaserDone.value = true
@@ -519,12 +526,13 @@ const pNfc = computed(() => {
     />
 
     <!-- ── GPU particle field (single draw call, self-gating) ── -->
-    <!-- Lazy: keeps three.js out of the eager chunk (see index.vue idle warmup) -->
+    <!-- Lazy: keeps three.js out of the eager chunk (see index.vue idle warmup).
+         Desktop only - phones drop the field entirely rather than render a
+         reduced one. -->
     <LazyHeroParticles
-      :key="isMobile ? 'hero-particles-m' : 'hero-particles-d'"
-      :count="isMobile ? 380 : 1200"
-      :interactive="!isMobile"
-      :dpr-cap="isMobile ? 1.5 : 1.75"
+      v-if="showHeroParticles"
+      :count="1200"
+      :dpr-cap="1.75"
       style="z-index: 2"
     />
 
