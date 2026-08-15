@@ -912,6 +912,7 @@ onBeforeUnmount(() => {
           </div>
 
           <div ref="liftagRef" class="liftag-target" aria-label="LIFTAG app icon">
+            <div class="liftag-icon-rim" aria-hidden="true"><i></i></div>
             <div class="liftag-icon-shell">
               <img src="/logo.svg" alt="LIFTAG" />
               <div class="liftag-icon-sheen"></div>
@@ -1263,6 +1264,67 @@ onBeforeUnmount(() => {
   opacity: 0;
 }
 
+/* Spectral rim that rhymes with the prism core.
+   The shell's own background is opaque, so parking this a few px larger and one
+   paint layer *behind* it turns the whole element into a ring for free - no
+   mask, no mask-composite layer, no clip beyond the rounded overflow. Only the
+   inner <i> moves, and it only ever moves by transform. */
+.liftag-icon-rim {
+  position: absolute;
+  top: -4.5px;
+  left: 50%;
+  width: 165px;
+  height: 165px;
+  margin-left: -82.5px;
+  border-radius: 38.5px;
+  overflow: hidden;
+  pointer-events: none;
+  /* Charges in with the logo, flares at the burst, then settles to a steady
+     glow instead of running at full strength for the rest of the section. */
+  opacity: calc(
+    clamp(0, var(--finale-p, 0) / 0.28, 1) *
+    clamp(0.5, 1 - (var(--finale-p, 0) - 0.34) * 0.72, 1)
+  );
+}
+
+.liftag-icon-rim i {
+  position: absolute;
+  /* Oversized so the square still covers the rounded box at every angle. */
+  inset: -30%;
+  /* Two hot fringes and one trailing ember, each splitting cyan-lime-amber-
+     magenta the way the crystal's facet edges do. Wide transparent gaps are
+     what make it read as light travelling round the bezel rather than a ring. */
+  background: conic-gradient(
+    from 0deg,
+    rgba(204, 255, 0, 0) 0deg,
+    rgba(204, 255, 0, 0) 16deg,
+    rgba(150, 255, 225, 0.95) 31deg,
+    rgba(238, 255, 130, 1) 42deg,
+    rgba(255, 246, 190, 1) 50deg,
+    rgba(255, 178, 30, 1) 60deg,
+    rgba(255, 45, 85, 0.9) 73deg,
+    rgba(204, 255, 0, 0) 94deg,
+    rgba(204, 255, 0, 0) 172deg,
+    rgba(120, 255, 220, 0.9) 188deg,
+    rgba(228, 255, 110, 1) 200deg,
+    rgba(255, 208, 60, 1) 214deg,
+    rgba(255, 60, 120, 0.7) 226deg,
+    rgba(204, 255, 0, 0) 246deg,
+    rgba(204, 255, 0, 0) 324deg,
+    rgba(204, 255, 0, 0.75) 342deg,
+    rgba(255, 150, 40, 0.6) 352deg,
+    rgba(204, 255, 0, 0) 360deg
+  );
+  animation: liftag-rim-spin 7.5s linear infinite;
+  will-change: transform;
+}
+
+@keyframes liftag-rim-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .liftag-icon-shell {
   width: 156px;
   height: 156px;
@@ -1414,6 +1476,14 @@ onBeforeUnmount(() => {
     border-radius: 28px;
   }
 
+  .liftag-icon-rim {
+    top: -3.5px;
+    width: 133px;
+    height: 133px;
+    margin-left: -66.5px;
+    border-radius: 31.5px;
+  }
+
   .liftag-target-label {
     padding: 9px 12px;
   }
@@ -1452,6 +1522,12 @@ onBeforeUnmount(() => {
   .mock-icon-glyph {
     width: 35px;
     height: 35px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liftag-icon-rim i {
+    animation: none;
   }
 }
 
