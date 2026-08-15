@@ -927,6 +927,49 @@ onBeforeUnmount(() => {
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
 }
 
+/* Short desktop viewports (unmaximized browser windows, 13"-14" laptops with
+   browser chrome eating vertical space, etc.) - the copy column's fixed-size
+   title/lede/feature rows can exceed the sticky container's height, and since
+   the layout is vertically centered with overflow:hidden, both the headline
+   top and the last feature row's bottom get clipped. Shrink the text block
+   with height-aware clamps so it always fits; wide/tall desktops keep the
+   original full-size design untouched. */
+@media (min-width: 981px) and (max-height: 980px) {
+  .dashboard-copy-head :deep(.protocol) {
+    margin-bottom: clamp(6px, 1.4vh, 18px) !important;
+  }
+
+  .dashboard-copy-head :deep(.display) {
+    font-size: clamp(28px, min(6vw, 4.8vh), 84px) !important;
+    line-height: 0.96 !important;
+  }
+
+  .dashboard-lede {
+    margin-top: clamp(8px, 1.8vh, 28px);
+    font-size: clamp(13px, 1.3vh, 17px);
+    line-height: 1.4;
+  }
+
+  .dashboard-features {
+    margin-top: clamp(10px, 2vh, 36px);
+  }
+
+  .dashboard-feature {
+    padding: clamp(6px, 1.3vh, 18px) 0;
+  }
+
+  .dashboard-feature-title {
+    margin-top: clamp(2px, 0.5vh, 6px);
+    font-size: clamp(15px, 1.5vh, 18px);
+  }
+
+  .dashboard-feature-body {
+    margin-top: clamp(2px, 0.4vh, 6px);
+    font-size: clamp(11px, 1.1vh, 13px);
+    line-height: 1.35;
+  }
+}
+
 @media (max-width: 980px) {
   .dashboard-section {
     min-height: var(--liftag-stable-vh-300);
@@ -1079,6 +1122,63 @@ onBeforeUnmount(() => {
 
   .dashboard-feature-body {
     display: none;
+  }
+}
+
+/* Short phones (Safari/Chrome with visible chrome, small Android screens):
+   the sticky column stacks copy-head -> stage -> features with overflow:
+   hidden, so on short viewports the whole "YOUR TEAM" row (last in the
+   stack) can fall entirely outside the visible box. Tighten spacing so all
+   three feature rows stay on screen; taller phones are unaffected. */
+@media (max-width: 620px) and (max-height: 760px) {
+  .dashboard-sticky {
+    padding: 10px 0 max(10px, var(--liftag-safe-bottom));
+  }
+
+  .dashboard-layout {
+    gap: 8px;
+  }
+
+  .dashboard-copy-head :deep(.protocol) {
+    margin-bottom: 6px !important;
+  }
+
+  .dashboard-copy-head :deep(.display) {
+    font-size: clamp(26px, 8.4vw, 38px) !important;
+  }
+
+  .dashboard-lede {
+    margin-top: 8px;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .dashboard-stage {
+    height: clamp(150px, 26vh, 230px);
+    min-height: 150px;
+    margin: 0 -12px 0;
+  }
+
+  .dashboard-macbook-mount {
+    margin-top: 6px;
+  }
+
+  .dashboard-features {
+    margin-top: 0;
+    gap: 0;
+  }
+
+  .dashboard-feature {
+    padding: 4px 0;
+  }
+
+  .dashboard-feature-tag {
+    font-size: 6px;
+  }
+
+  .dashboard-feature-title {
+    margin-top: 2px;
+    font-size: 11px;
   }
 }
 
