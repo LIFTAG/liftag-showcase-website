@@ -20,8 +20,42 @@ const navLinks = computed<[string, string][]>(() => [
 ])
 
 let _onScroll: (() => void) | null = null
+let _onResize: (() => void) | null = null
 let _onViewportChange: (() => void) | null = null
 let _mobileQuery: MediaQueryList | null = null
+
+// The open drawer covers the viewport with a 70% black tint under a 20px
+// backdrop blur, and the browser re-runs that blur for every frame its backdrop
+// paints. Anything still animating underneath is therefore paying twice while
+// being completely invisible. Publishing the state lets the hero park its
+// motion for the duration: `data-liftag-nav-open` drives the CSS-only pieces,
+// the event reaches the Three.js phones that CSS cannot pause.
+function publishNavOpen(isOpen: boolean) {
+  if (!import.meta.client) return
+
+  const root = document.documentElement
+  if (isOpen) root.setAttribute('data-liftag-nav-open', 'true')
+  else root.removeAttribute('data-liftag-nav-open')
+
+  window.dispatchEvent(new CustomEvent('liftag:nav-open-change', {
+    detail: { open: isOpen },
+  }))
+}
+
+watch(open, publishNavOpen)
+
+// Scrollable distance for the progress hairline, cached. Reading
+// documentElement.scrollHeight forces a synchronous layout, and this ran on
+// every scroll frame in the browsers that need the JS fallback - Safari among
+// them. The number only moves when the document or the viewport resizes, and
+// the ResizeObserver below already runs after layout, so measuring there is
+// free where measuring mid-scroll was not.
+let scrollMax = 0
+let docResizeObserver: ResizeObserver | null = null
+
+function measureScrollMax() {
+  scrollMax = document.documentElement.scrollHeight - window.innerHeight
+}
 
 function updateScrolled() {
   const threshold = isMobileNav.value ? 0 : 40
@@ -29,8 +63,7 @@ function updateScrolled() {
   if (next !== scrolled.value) scrolled.value = next
 
   if (!nativeScrollTimeline && navRoot.value) {
-    const max = document.documentElement.scrollHeight - window.innerHeight
-    const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0
+    const p = scrollMax > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollMax)) : 0
     navRoot.value.style.setProperty('--nav-scroll-p', p.toFixed(4))
   }
 }
@@ -40,9 +73,28 @@ onMounted(() => {
   _mobileQuery = window.matchMedia('(max-width: 768px)')
   _onViewportChange = () => {
     isMobileNav.value = Boolean(_mobileQuery?.matches)
+    measureScrollMax()
     updateScrolled()
   }
   _onViewportChange()
+
+  // <html> grows with its content, so this covers lazily hydrated sections and
+  // late-loading images. It does not cover the viewport half of the subtraction
+  // (an unpinned <html> is content-sized, not viewport-sized), which is what the
+  // resize listener below is for - mostly the mobile URL bar collapsing.
+  if (typeof ResizeObserver !== 'undefined') {
+    docResizeObserver = new ResizeObserver(() => {
+      measureScrollMax()
+      updateScrolled()
+    })
+    docResizeObserver.observe(document.documentElement)
+  }
+
+  _onResize = () => {
+    measureScrollMax()
+    updateScrolled()
+  }
+  window.addEventListener('resize', _onResize, { passive: true })
 
   if (_mobileQuery.addEventListener) {
     _mobileQuery.addEventListener('change', _onViewportChange)
@@ -63,7 +115,11 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  publishNavOpen(false)
+  docResizeObserver?.disconnect()
+  docResizeObserver = null
   if (_onScroll) window.removeEventListener('scroll', _onScroll)
+  if (_onResize) window.removeEventListener('resize', _onResize)
   if (_mobileQuery && _onViewportChange) {
     if (_mobileQuery.removeEventListener) {
       _mobileQuery.removeEventListener('change', _onViewportChange)

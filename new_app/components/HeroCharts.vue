@@ -292,7 +292,20 @@ onBeforeUnmount(() => {
         stroke-dashoffset="1"
         stroke-linejoin="round"
       />
+    </svg>
 
+    <!-- Own layer, deliberately: the pulsing dots are the only thing in this
+         component that repaints after the entrance finishes, and while they
+         lived alongside the blur-filtered polyline above, each pulse frame
+         re-ran that feGaussianBlur over a viewport-sized SVG. Same viewBox and
+         the same --depth as l1, drawn immediately after it, so the composition
+         is pixel-identical - only the paint damage is now the dots themselves.
+         The dots are also the last thing painted either way. -->
+    <svg
+      class="hero-chart-layer hero-chart-dots"
+      :viewBox="`0 0 ${W} ${H}`"
+      preserveAspectRatio="xMidYMid slice"
+    >
       <g
         v-for="(idx, i) in dotIdxs"
         :key="i"
@@ -302,13 +315,19 @@ onBeforeUnmount(() => {
         }"
       >
         <template v-if="l1[idx]">
+          <!-- r/opacity are authored as attributes, not left to the keyframes:
+               they are the resting pose whenever the pulse is off (phones,
+               reduced motion), and a geometry attribute needs no CSS `r`
+               support to render. -->
           <circle
             class="hero-dot-outer"
             :cx="l1[idx][0]"
             :cy="l1[idx][1]"
+            r="6.5"
             fill="none"
             stroke="#CCFF00"
             stroke-width="1"
+            opacity="0.06"
             :style="{ animationDelay: heroDotDelay(i) }"
           />
           <circle
@@ -317,6 +336,7 @@ onBeforeUnmount(() => {
             :cy="l1[idx][1]"
             r="2.5"
             fill="#CCFF00"
+            opacity="0.34"
             :style="{ animationDelay: heroDotDelay(i) }"
           />
           <circle
@@ -395,7 +415,8 @@ onBeforeUnmount(() => {
   --depth-y: 7;
 }
 
-.hero-chart-l1 {
+.hero-chart-l1,
+.hero-chart-dots {
   --depth: 22;
   --depth-y: 11;
 }
@@ -413,7 +434,8 @@ onBeforeUnmount(() => {
   .hero-chart-l4,
   .hero-chart-l3,
   .hero-chart-l2,
-  .hero-chart-l1 {
+  .hero-chart-l1,
+  .hero-chart-dots {
     will-change: transform;
   }
 }
@@ -435,4 +457,19 @@ onBeforeUnmount(() => {
 }
 .hero-dot-outer { animation: heroDotOuterPulse 10.47s ease-in-out infinite; }
 .hero-dot-mid   { animation: heroDotMidPulse   10.47s ease-in-out infinite; }
+
+/* Phones hold the dots at their resting pose. `r` and `opacity` are not
+   compositable, so each pulse frame is a main-thread repaint inside a
+   viewport-sized SVG that sits directly behind the fixed nav and its mobile
+   drawer - the one piece of the hero that never stopped repainting, and the
+   reason the nav and the marquee below it stuttered while the hero was on
+   screen. The frozen pose is a mid-cycle frame of the same animation: on a
+   phone these are two background dots drifting between 4% and 8% opacity over
+   ten seconds, so holding them reads as identical. */
+@media (max-width: 768px), (prefers-reduced-motion: reduce) {
+  .hero-dot-outer,
+  .hero-dot-mid {
+    animation: none;
+  }
+}
 </style>

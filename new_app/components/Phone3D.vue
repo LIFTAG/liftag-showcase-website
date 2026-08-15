@@ -487,6 +487,11 @@ function initPhone() {
   let currentRotY = -0.12
   let animId = 0
   let isVisible = false
+  // Set while the mobile nav drawer covers the page (see SiteNav). The drawer's
+  // backdrop blur repaints from whatever is underneath, so a phone that keeps
+  // rendering behind it costs a WebGL frame plus a full-screen re-blur to show
+  // nothing. Read eagerly: a phone can initialise with the drawer already open.
+  let motionHeld = document.documentElement.hasAttribute('data-liftag-nav-open')
   let idleTimer = 0
   let idleMotionActive = false
   let idleMotionStart = 0
@@ -525,11 +530,11 @@ function initPhone() {
 
   function scheduleIdleMotion(delay = 3200) {
     clearIdleTimer()
-    if (!props.idleMotion || props.interactive || reducedMotionMql.matches || !isVisible || document.hidden) return
+    if (!props.idleMotion || props.interactive || reducedMotionMql.matches || !isVisible || document.hidden || motionHeld) return
 
     idleTimer = window.setTimeout(() => {
       idleTimer = 0
-      if (!isVisible || document.hidden || reducedMotionMql.matches) return
+      if (!isVisible || document.hidden || motionHeld || reducedMotionMql.matches) return
 
       idleMotionActive = true
       idleMotionStart = performance.now()
@@ -588,7 +593,7 @@ function initPhone() {
   }
 
   const animate = () => {
-    if (!isVisible || document.hidden) {
+    if (!isVisible || document.hidden || motionHeld) {
       animId = 0
       return
     }
@@ -675,45 +680,55 @@ function initPhone() {
   // Under reduced motion the tilt is never applied, so waking would only
   // redraw the same rest pose once per pointer event.
   const wakeTilt = () => {
-    if (animId || !isVisible || document.hidden || reducedMotionMql.matches) return
+    if (animId || !isVisible || document.hidden || motionHeld || reducedMotionMql.matches) return
     animate()
   }
 
   const unsubscribeMouse = props.interactive ? onMouseEvent(wakeTilt) : null
 
+  // Shared by every path that can hand the phone back its motion - becoming
+  // visible, the tab returning, the drawer closing.
+  const resumeMotion = () => {
+    if (!isVisible || document.hidden || motionHeld) return
+
+    if (props.interactive || screenTransition) {
+      if (!animId) animate()
+    } else {
+      renderer.render(scene, camera)
+      scheduleIdleMotion()
+    }
+  }
+
+  const suspendMotion = () => {
+    clearIdleTimer()
+    resetIdlePose()
+  }
+
   const visObserver = new IntersectionObserver(
     (entries) => {
       isVisible = entries[0]?.isIntersecting ?? false
-      if (isVisible && !document.hidden) {
-        if (props.interactive || screenTransition) {
-          if (!animId) animate()
-        } else {
-          renderer.render(scene, camera)
-          scheduleIdleMotion()
-        }
-      } else {
-        clearIdleTimer()
-        resetIdlePose()
-      }
+      if (isVisible) resumeMotion()
+      else suspendMotion()
     },
     { threshold: 0 },
   )
   visObserver.observe(container)
 
   const onDocumentVisibilityChange = () => {
-    if (document.hidden) {
-      clearIdleTimer()
-      resetIdlePose()
-    } else if (isVisible) {
-      if (props.interactive || screenTransition) {
-        if (!animId) animate()
-      } else {
-        renderer.render(scene, camera)
-        scheduleIdleMotion()
-      }
-    }
+    if (document.hidden) suspendMotion()
+    else resumeMotion()
   }
   document.addEventListener('visibilitychange', onDocumentVisibilityChange)
+
+  const onNavOpenChange = (event: Event) => {
+    const next = Boolean((event as CustomEvent<{ open?: boolean }>).detail?.open)
+    if (next === motionHeld) return
+
+    motionHeld = next
+    if (motionHeld) suspendMotion()
+    else resumeMotion()
+  }
+  window.addEventListener('liftag:nav-open-change', onNavOpenChange)
 
   const onReducedMotionChange = () => {
     clearIdleTimer()
@@ -757,6 +772,7 @@ function initPhone() {
       resizeRaf = 0
     }
     document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
+    window.removeEventListener('liftag:nav-open-change', onNavOpenChange)
     reducedMotionMql.removeEventListener('change', onReducedMotionChange)
     clearIdleTimer()
     idleMotionActive = false

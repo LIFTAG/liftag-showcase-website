@@ -1404,6 +1404,15 @@ const pNfc = computed(() => {
   }
 }
 
+/* Held, not cancelled: the open drawer hides these completely, and every frame
+   they move underneath it is a frame the drawer's backdrop blur has to redo.
+   `paused` keeps their place in the shared 10.5s cadence, so closing the drawer
+   resumes the choreography rather than restarting it. */
+:global(html[data-liftag-nav-open="true"] .hero-mobile-device::before),
+:global(html[data-liftag-nav-open="true"] .hero-mobile-device::after) {
+  animation-play-state: paused;
+}
+
 @media (max-width: 699px) {
   .hero-mobile-secondary {
     display: none;
