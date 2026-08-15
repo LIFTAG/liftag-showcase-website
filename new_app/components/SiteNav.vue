@@ -575,7 +575,6 @@ onBeforeUnmount(() => {
   /* Heavier tint than the bar (0.55): the drawer covers most of the phone
      screen and carries 28px display type, so it needs more backing contrast. */
   background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(20px) saturate(140%);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -583,17 +582,29 @@ onBeforeUnmount(() => {
   transition:
     transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
     opacity 180ms ease-out,
-    visibility 0s linear 320ms;
+    visibility 0s linear 320ms,
+    backdrop-filter 0s linear 320ms;
   /* No `contain: paint` here: it makes the drawer its own backdrop root, so the
-     blur above would sample nothing and render as flat tint. The overflow
+     blur below would sample nothing and render as flat tint. The overflow
      rules on this same block already provide the clipping it was there for. */
 }
 
+/* The blur lives on .is-open rather than on the base rule, for the same reason
+   it is left off .site-nav's base state (see the note above that rule): a
+   declared backdrop-filter makes this element a backdrop root, and this drawer
+   is fixed, full width, and covers most of the hero. Declaring it only while
+   the drawer is actually shown keeps the closed state out of that path.
+
+   The 320ms delay in the transition above is what keeps this invisible:
+   backdrop-filter interpolates discretely, so `none` flips back in one step
+   once the panel has finished sliding out, rather than dropping the blur under
+   a still-visible panel on the first frame of the close. */
 .nav-mobile-drawer.is-open {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
   transform: translate3d(0, 0, 0);
+  backdrop-filter: blur(20px) saturate(140%);
   transition-delay: 0s;
 }
 
@@ -799,7 +810,10 @@ onBeforeUnmount(() => {
     backdrop-filter: none;
   }
 
-  .nav-mobile-drawer {
+  /* .is-open too: it is where the blur is declared, and it out-specifies a bare
+     .nav-mobile-drawer no matter which block comes last. */
+  .nav-mobile-drawer,
+  .nav-mobile-drawer.is-open {
     background: rgba(0, 0, 0, 0.98);
     backdrop-filter: none;
   }

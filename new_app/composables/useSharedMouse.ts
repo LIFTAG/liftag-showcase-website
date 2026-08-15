@@ -34,10 +34,33 @@ const samples: MouseSample[] = []
 const subscribers = new Set<() => void>()
 let installed = false
 
+// Touch platforms synthesise a mousemove for every tap. Nothing downstream of
+// this module wants that: each consumer drives a hover affordance - the cursor
+// orb (already `display: none` under `@media (hover: none)`), the hero parallax
+// lerp, the 3D phone tilts. On a phone one synthetic event is enough to wake
+// Hero's lerp loop, and because the lerp writes a ref every frame it re-renders
+// the whole hero - desktop layout included, invisible but still diffed - until
+// it converges, which at 0.06 per frame takes ~140 frames. One tap on the nav
+// toggle measured 8-37fps for ~15s afterwards on an iOS 26 simulator, and a
+// real phone's CPU is slower still. It reads as "the site went permanently
+// laggy the moment I touched it" because the next tap starts it again.
+//
+// Checked per event rather than by adding and removing the listener, so an iPad
+// that gains a trackpad mid-session starts working without any re-subscription.
+let finePointerQuery: MediaQueryList | null = null
+
+function hasHoveringPointer() {
+  if (typeof window === 'undefined') return false
+  if (!window.matchMedia) return true
+  finePointerQuery ??= window.matchMedia('(hover: hover) and (pointer: fine)')
+  return finePointerQuery.matches
+}
+
 function ensureListener() {
   if (installed || typeof window === 'undefined') return
   installed = true
   window.addEventListener('mousemove', (e) => {
+    if (!hasHoveringPointer()) return
     applySharedMousePosition(e.clientX, e.clientY, window.innerWidth, window.innerHeight)
     subscribers.forEach((cb) => cb())
   }, { passive: true })
