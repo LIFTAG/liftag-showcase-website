@@ -76,10 +76,15 @@ const hoveredTrainer = ref<number | null>(null)
 const exitingTrainer = ref<number | null>(null)
 
 const reduceMotion = ref(false)
+// Touch browsers synthesise mouseenter on tap and only fire the matching
+// mouseleave once something else is tapped, so an unguarded hover lock would
+// freeze the auto-cycle for the rest of the visit.
+const coarsePointer = ref(false)
 
 let autoCycle: ReturnType<typeof setInterval> | null = null
 let exitTimer: ReturnType<typeof setTimeout> | null = null
 let motionMql: MediaQueryList | null = null
+let coarsePointerMql: MediaQueryList | null = null
 let inViewObserver: IntersectionObserver | null = null
 let cursorObserver: IntersectionObserver | null = null
 
@@ -126,6 +131,17 @@ function onMotionChange(e: MediaQueryListEvent) {
   else startAutoCycle()
 }
 
+function onCoarsePointerChange(e: MediaQueryListEvent) {
+  coarsePointer.value = e.matches
+  // Switching to a coarse pointer can strand a lock the mouse set moments ago,
+  // since the matching mouseleave may never arrive. Release it and resume.
+  if (coarsePointer.value) {
+    tabHovered.value = {}
+    hoveredTrainer.value = null
+    startAutoCycle()
+  }
+}
+
 function onDocumentVisibilityChange() {
   documentVisible.value = !document.hidden
   if (documentVisible.value) startAutoCycle()
@@ -138,6 +154,7 @@ function selectTrainer(index: number) {
 }
 
 function setHoveredTrainer(index: number) {
+  if (coarsePointer.value) return
   tabHovered.value[index] = true
   hoveredTrainer.value = index
   clearAutoCycle()
@@ -145,6 +162,7 @@ function setHoveredTrainer(index: number) {
 }
 
 function clearHoveredTrainer(index: number) {
+  if (coarsePointer.value) return
   tabHovered.value[index] = false
   if (hoveredTrainer.value !== index) return
   hoveredTrainer.value = null
@@ -155,6 +173,10 @@ onMounted(() => {
   motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
   reduceMotion.value = motionMql.matches
   motionMql.addEventListener('change', onMotionChange)
+
+  coarsePointerMql = window.matchMedia('(hover: none), (pointer: coarse)')
+  coarsePointer.value = coarsePointerMql.matches
+  coarsePointerMql.addEventListener('change', onCoarsePointerChange)
 
   documentVisible.value = !document.hidden
   document.addEventListener('visibilitychange', onDocumentVisibilityChange)
@@ -191,6 +213,8 @@ onBeforeUnmount(() => {
   if (exitTimer) clearTimeout(exitTimer)
   motionMql?.removeEventListener('change', onMotionChange)
   motionMql = null
+  coarsePointerMql?.removeEventListener('change', onCoarsePointerChange)
+  coarsePointerMql = null
   document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
   inViewObserver?.disconnect()
   inViewObserver = null

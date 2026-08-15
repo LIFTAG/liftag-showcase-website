@@ -1011,9 +1011,11 @@ function toggleFaq(i: number) {
   transition: border-color 280ms ease, transform 280ms ease, background 280ms ease;
 }
 
-.coach-why-card:hover {
-  transform: translateY(-3px);
-  border-color: var(--coach-accent-line);
+@media (hover: hover) and (pointer: fine) {
+  .coach-why-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--coach-accent-line);
+  }
 }
 
 .coach-why-card.is-lime {
@@ -1021,8 +1023,10 @@ function toggleFaq(i: number) {
   background: linear-gradient(150deg, rgba(204, 255, 0, 0.07), transparent 52%), rgba(10, 12, 6, 0.8);
 }
 
-.coach-why-card.is-lime:hover {
-  border-color: rgba(204, 255, 0, 0.5);
+@media (hover: hover) and (pointer: fine) {
+  .coach-why-card.is-lime:hover {
+    border-color: rgba(204, 255, 0, 0.5);
+  }
 }
 
 .coach-why-card-head {
@@ -1522,8 +1526,10 @@ function toggleFaq(i: number) {
   opacity: 0.45;
 }
 
-.coach-tab:hover {
-  opacity: 0.75;
+@media (hover: hover) and (pointer: fine) {
+  .coach-tab:hover {
+    opacity: 0.75;
+  }
 }
 
 .coach-tab.is-active {
@@ -1594,9 +1600,11 @@ function toggleFaq(i: number) {
   transition: border-color 280ms ease, transform 280ms ease;
 }
 
-.coach-essential:hover {
-  transform: translateY(-3px);
-  border-color: var(--coach-accent-line);
+@media (hover: hover) and (pointer: fine) {
+  .coach-essential:hover {
+    transform: translateY(-3px);
+    border-color: var(--coach-accent-line);
+  }
 }
 
 .coach-essential-icon {

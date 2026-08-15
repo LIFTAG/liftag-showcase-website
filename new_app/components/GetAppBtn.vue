@@ -128,7 +128,9 @@ withDefaults(defineProps<{
   transition: transform 560ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.get-app-btn:hover,
+/* :focus-visible stays ungated so keyboard users keep the affordance on
+   touch-capable devices; only the :hover half is pointer-gated, because touch
+   browsers hold :hover after a tap and would strand the button mid-lift. */
 .get-app-btn:focus-visible {
   border-color: rgba(204, 255, 0, 0.55);
   background:
@@ -141,14 +143,34 @@ withDefaults(defineProps<{
   transform: translate3d(0, -2px, 0);
 }
 
-.get-app-btn:hover::before,
 .get-app-btn:focus-visible::before {
   opacity: 1;
 }
 
-.get-app-btn:hover .get-app-btn__shine,
 .get-app-btn:focus-visible .get-app-btn__shine {
   transform: skewX(-18deg) translateX(420%);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .get-app-btn:hover {
+    border-color: rgba(204, 255, 0, 0.55);
+    background:
+      linear-gradient(135deg, rgba(204, 255, 0, 0.19), transparent 44%),
+      rgba(12, 16, 10, 0.92);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      0 18px 46px rgba(0, 0, 0, 0.42),
+      0 0 30px rgba(204, 255, 0, 0.2);
+    transform: translate3d(0, -2px, 0);
+  }
+
+  .get-app-btn:hover::before {
+    opacity: 1;
+  }
+
+  .get-app-btn:hover .get-app-btn__shine {
+    transform: skewX(-18deg) translateX(420%);
+  }
 }
 
 .get-app-btn:focus-visible {
@@ -406,7 +428,6 @@ withDefaults(defineProps<{
   stroke-linejoin: miter;
 }
 
-.get-app-btn--hero:hover,
 .get-app-btn--hero:focus-visible {
   border-color: rgba(12, 18, 7, 0.36);
   background: oklch(0.92 0.24 121);
@@ -415,6 +436,18 @@ withDefaults(defineProps<{
     inset 0 -1px 0 rgba(7, 13, 4, 0.22),
     0 18px 42px rgba(0, 0, 0, 0.44),
     0 0 32px rgba(204, 255, 0, 0.28);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .get-app-btn--hero:hover {
+    border-color: rgba(12, 18, 7, 0.36);
+    background: oklch(0.92 0.24 121);
+    box-shadow:
+      inset 0 1px 0 rgba(246, 255, 212, 0.62),
+      inset 0 -1px 0 rgba(7, 13, 4, 0.22),
+      0 18px 42px rgba(0, 0, 0, 0.44),
+      0 0 32px rgba(204, 255, 0, 0.28);
+  }
 }
 
 .get-app-btn--hero:active {

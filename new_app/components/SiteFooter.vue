@@ -467,9 +467,11 @@ onBeforeUnmount(() => {
     transform 200ms ease;
 }
 
-.footer-social-link:hover {
-  color: #CCFF00;
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .footer-social-link:hover {
+    color: #CCFF00;
+    transform: translateY(-1px);
+  }
 }
 
 .footer-social-icon {
@@ -515,11 +517,13 @@ onBeforeUnmount(() => {
     transform 200ms ease;
 }
 
-.footer-reddit-btn:hover {
-  color: #CCFF00;
-  border-color: rgba(204, 255, 0, 0.45);
-  background: rgba(204, 255, 0, 0.06);
-  transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+  .footer-reddit-btn:hover {
+    color: #CCFF00;
+    border-color: rgba(204, 255, 0, 0.45);
+    background: rgba(204, 255, 0, 0.06);
+    transform: translateY(-1px);
+  }
 }
 
 .footer-reddit-icon {

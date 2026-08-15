@@ -661,6 +661,8 @@ function flushGlassPaneCursor() {
 }
 
 function updateGlassPaneCursor(event: MouseEvent) {
+  if (mobileHIWLayout) return
+
   const pane = event.currentTarget as HTMLElement
   if (pane !== glassPaneEl) {
     glassPaneEl = pane
@@ -684,6 +686,10 @@ function releaseGlassPaneCursor(pane: HTMLElement) {
 }
 
 function handleGlassPaneEnter(event: MouseEvent) {
+  // A tap synthesises mouseenter but no matching mouseleave until the user taps
+  // elsewhere, which would leave the cursor glow burned in at the tap point.
+  if (mobileHIWLayout) return
+
   const pane = event.currentTarget as HTMLElement
   pane.classList.add('glass-hovered')
   glassPaneEl = pane

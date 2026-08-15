@@ -142,7 +142,9 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
   transition: transform 560ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.app-store-btn:hover,
+/* :focus-visible stays ungated so keyboard users keep the affordance on
+   touch-capable devices; only the :hover half is pointer-gated, because touch
+   browsers hold :hover after a tap and would strand the badge mid-lift. */
 .app-store-btn:focus-visible {
   border-color: rgba(204, 255, 0, 0.5);
   background:
@@ -155,14 +157,34 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
   transform: translate3d(0, -2px, 0);
 }
 
-.app-store-btn:hover::before,
 .app-store-btn:focus-visible::before {
   opacity: 1;
 }
 
-.app-store-btn:hover .app-store-btn__shine,
 .app-store-btn:focus-visible .app-store-btn__shine {
   transform: skewX(-18deg) translateX(420%);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .app-store-btn:hover {
+    border-color: rgba(204, 255, 0, 0.5);
+    background:
+      linear-gradient(135deg, rgba(204, 255, 0, 0.16), transparent 42%),
+      rgba(12, 16, 10, 0.9);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      0 18px 46px rgba(0, 0, 0, 0.42),
+      0 0 28px rgba(204, 255, 0, 0.18);
+    transform: translate3d(0, -2px, 0);
+  }
+
+  .app-store-btn:hover::before {
+    opacity: 1;
+  }
+
+  .app-store-btn:hover .app-store-btn__shine {
+    transform: skewX(-18deg) translateX(420%);
+  }
 }
 
 .app-store-btn:focus-visible {
