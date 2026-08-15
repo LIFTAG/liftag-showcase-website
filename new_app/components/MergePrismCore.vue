@@ -45,6 +45,22 @@ const IOR = 1.52
 const CAM_Z = 3.2
 const FOCAL = 1.85
 
+// Growth curve. The crystal appears early and stays a speck through the whole
+// wide part of the orbit, then swells exponentially once the icons are closing
+// on each other, then bursts outward as the logo arrives.
+/** Size while the eight icons are still far apart — a chip of glass, ~1/10th. */
+const SEED_GROW = 0.10
+/** Charge at which the orbit has closed enough for the crystal to take off. */
+const SWELL_START = 0.54
+/** Charge span of the exponential run-up; ends as the logo intro begins. */
+const SWELL_SPAN = 0.36
+/** exp(SWELL_K) * SEED_GROW === 1, so the swell tops out at the old full size. */
+const SWELL_K = Math.log(1 / SEED_GROW)
+/** Ignite span the shell takes to expand past the logo and dissolve. */
+const BURST_SPAN = 0.38
+/** Extra size the shell throws off on the way out. */
+const BURST_GROW = 2.0
+
 let gl: WebGLRenderingContext | null = null
 // Owned by init/dispose, never by the template. Once a context is lost,
 // getContext on the same element hands back the dead one, so re-entering the
@@ -307,7 +323,17 @@ const fragmentSource = /* glsl */ `
     vec3 col = vec3(0.0);
 
     // Charge glow, then the detonation, then the standing aura that survives it.
-    col += vec3(0.62, 1.0, 0.10) * exp(-r * 11.0) * (uCharge * 0.16 * uShell + uFlash * 0.7);
+    //
+    // The charge glow is a core lit *inside* the gem, so its falloff has to
+    // follow the gem instead of the canvas: the crystal spends most of the
+    // section as a speck, and a fixed-radius glow around a speck reads as a
+    // blob with a chip in it. uRadius is the sphere in world units; scaling by
+    // focal/camera-z turns it into the silhouette radius in uv.
+    float gemR = uRadius * ${(FOCAL / CAM_Z).toFixed(5)};
+    float chargeFall = 1.0 / max(gemR * 0.40, 0.006);
+    col += vec3(0.62, 1.0, 0.10) * exp(-r * chargeFall) * uCharge * 0.16 * uShell;
+    // The detonation is explosion-scale, not gem-scale, so it stays anchored.
+    col += vec3(0.62, 1.0, 0.10) * exp(-r * 11.0) * uFlash * 0.7;
     col += vec3(0.55, 1.0, 0.18) * exp(-r * 8.0) * uAura * 0.34;
 
     if (uFlash > 0.002) {
@@ -658,18 +684,32 @@ function frame(now: number) {
   const charge = core.charge
   const ignite = core.ignite
 
-  // The shell opens and dissolves as the logo takes the centre; the crystal
-  // expands on the way out so the burst reads as the gem breaking apart.
-  // Holds off until the icons are visibly travelling rather than arriving the
-  // instant they twitch, so the crystal reads as something they fall into
-  // rather than something that was always there.
-  const bloomIn = Math.min(1, Math.max(0, (charge - 0.14) / 0.30))
-  const shell = bloomIn * bloomIn * (3 - 2 * bloomIn) * Math.max(0, 1 - Math.max(0, (ignite - 0.02) / 0.32))
+  // The crystal is seeded almost the moment the icons start moving, so the
+  // whole convergence has something at its centre to converge *on* — but it
+  // arrives as a speck, not as scenery that was always there.
+  const bloomIn = Math.min(1, Math.max(0, (charge - 0.012) / 0.09))
+  const bloom = bloomIn * bloomIn * (3 - 2 * bloomIn)
+
+  // The shell tears open as the logo takes the centre and keeps accelerating
+  // outward while it dissolves, so LIFTAG reads as what was inside the glass
+  // rather than as something that faded in over it.
+  const crack = Math.min(1, Math.max(0, (ignite - 0.02) / BURST_SPAN))
+  const shell = bloom * Math.max(0, 1 - crack)
+
   // Once the shell is gone the crystal leaves a spectral pool behind the logo.
   // It rides out on core.fade with the rest of the section.
   const auraIn = Math.max(0, Math.min(1, (ignite - 0.28) / 0.34))
   const aura = auraIn * auraIn * (3 - 2 * auraIn)
-  const grow = (0.46 + bloomIn * 0.54 + ignite * ignite * 3.0) * (compact ? 1.38 : 1)
+
+  // Size is held at the speck until the orbit has visibly closed — the icons
+  // are more than half collapsed by charge ~0.55 — and then runs exponentially,
+  // so the crystal becomes a gem in the last stretch of the convergence instead
+  // of creeping up the whole way. `** 1.5` keeps the opening of that window
+  // nearly flat, and exp(SWELL_K) lands the seed back on full size just as the
+  // logo intro begins, which is the moment the shell has to burst.
+  const swellT = Math.min(1, Math.max(0, (charge - SWELL_START) / SWELL_SPAN))
+  const seed = SEED_GROW * Math.exp(swellT ** 1.5 * SWELL_K)
+  const grow = (seed + crack * crack * BURST_GROW) * (compact ? 1.38 : 1)
 
   const spin = 0.055 + charge * 0.16 + ignite * 0.55
   angA[0] += dt * spin * 0.62
@@ -685,9 +725,10 @@ function frame(now: number) {
 
   gl.uniform2f(uniforms.uRes, bufW, bufH)
   gl.uniform4f(uniforms.uPhase, now * 0.001, charge, ignite, core.flash)
-  // Sized to sit between the LIFTAG icon shell and the inner orbit ring: the
-  // icons have to visibly fall *into* it, not disappear behind it. The sphere
-  // grows faster than the octahedra, so facets sharpen as the section charges.
+  // At full swell this sits between the LIFTAG icon shell and the inner orbit
+  // ring: the icons have to visibly fall *into* it, not disappear behind it.
+  // The sphere grows faster than the octahedra, so facets sharpen as the
+  // section charges.
   gl.uniform4f(
     uniforms.uShape,
     0.270 * grow,
@@ -695,7 +736,9 @@ function frame(now: number) {
     (0.285 + charge * 0.110) * grow,
     0.10 + charge * 0.34 + core.flash * 0.85,
   )
-  gl.uniform4f(uniforms.uMix, shell, core.fade, aura, 0.17 + ignite * 0.10)
+  // The ring keeps travelling after the shell is gone, so the boundary the
+  // crystal threw off is still opening around the logo that came out of it.
+  gl.uniform4f(uniforms.uMix, shell, core.fade, aura, 0.16 + ignite * 0.17)
   gl.uniform3fv(uniforms.uPlaneA, planeA)
   gl.uniform3fv(uniforms.uPlaneB, planeB)
   gl.uniform3fv(uniforms.uIconDir, iconDir)
