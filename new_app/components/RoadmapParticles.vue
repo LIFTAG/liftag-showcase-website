@@ -19,6 +19,12 @@ import {
   spineToParticleWorld,
   useRoadmapParticleField,
 } from '../composables/useRoadmapParticleField'
+import {
+  PRISM_LIME_AT,
+  PRISM_RAMP_GLSL,
+  PRISM_SPECTRUM,
+  PRISM_SPECTRUM_EMISSIVE,
+} from '../composables/usePrismSpectrum'
 
 const props = withDefaults(defineProps<{
   /** Particle budget. The component halves it on low-core devices. */
@@ -89,8 +95,10 @@ const vertexShader = /* glsl */ `
   attribute float aTint;
   attribute float aRangeX;
   attribute float aRangeY;
+  attribute float aRay;
   varying float vAlpha;
-  varying float vTint;
+  varying float vGlow;
+  varying float vHue;
 
   vec3 applyNode(vec2 p, vec4 node, float depth01, float seed) {
     float k = node.w;
@@ -182,7 +190,21 @@ const vertexShader = /* glsl */ `
                    * (1.0 - smoothstep(aRangeX * 0.94, aRangeX, abs(x)));
 
     vAlpha = uEnter * twinkle * mix(0.22, 0.58, depth01) * edgeFade * (1.0 + push * 0.42);
-    vTint = min(1.0, aTint + push * 0.32);
+    vGlow = min(1.0, aTint + push * 0.32);
+
+    // Dispersion the way a prism does it: one beam entering at the top of the
+    // section, separated into ordered rays by the bottom. The roadmap reads
+    // top-down from shipped (V1) to furthest-out (V4), so the fan is simply how
+    // far down the particle sits. Energy widens it too, so the cursor, a powered
+    // node or a growing root tip pulls colour out of a stretch that was lime.
+    //
+    // aRay is a discrete stop, not a continuous position - a prism throws
+    // separated rays, and spreading hue smoothly instead just piles most of the
+    // field near lime and reads as mush. Every particle still leaves from lime;
+    // spread is how far along its own ray it has travelled.
+    float fan = clamp(0.5 - p.y / max(aRangeY * 2.0, 0.0001), 0.0, 1.0);
+    float spread = clamp(fan * sqrt(fan) + push * 0.55, 0.0, 1.0);
+    vHue = mix(${PRISM_LIME_AT.toFixed(3)}, aRay, spread);
 
     vec4 mv = modelViewMatrix * vec4(x, y, p.z, 1.0);
     float size = aSize * uPixelRatio * (1.0 + push * 0.4) * (124.0 / -mv.z);
@@ -192,10 +214,16 @@ const vertexShader = /* glsl */ `
 `
 
 const fragmentShader = /* glsl */ `
-  uniform vec3 uColorA;
-  uniform vec3 uColorB;
+  uniform vec3 uDust;
+  uniform vec3 uSpectrum[${PRISM_SPECTRUM_EMISSIVE.length}];
   varying float vAlpha;
-  varying float vTint;
+  varying float vGlow;
+  varying float vHue;
+
+  vec3 prismRamp(float t) {
+    ${PRISM_RAMP_GLSL}
+    return c;
+  }
 
   void main() {
     vec2 uv = gl_PointCoord - 0.5;
@@ -204,7 +232,19 @@ const fragmentShader = /* glsl */ `
     float hot = 1.0 - smoothstep(0.0, 0.16, d);
     float a = core * vAlpha;
     if (a < 0.004) discard;
-    vec3 col = mix(uColorA, uColorB, vTint) + hot * 0.2;
+    // A particle is two or three pixels blended additively, which walks any hue
+    // toward white - mint especially, since it is pale to begin with. So the ray
+    // gets its saturation pushed back up before blending, and the white core
+    // boost below is cut for spectral particles. This is compensation for the
+    // point size, not a different palette: the stops stay exactly as authored,
+    // which is what keeps this the same spectrum the roots and the rim show.
+    vec3 ray = prismRamp(vHue);
+    ray = clamp(mix(vec3(dot(ray, vec3(0.3333))), ray, 1.45), 0.0, 1.0);
+
+    // Most of the field stays neutral dust. vGlow is what lifts a particle onto
+    // the spectrum, so the section still reads black-and-lime at a glance and
+    // the dispersion is something you find rather than something shouted at you.
+    vec3 col = mix(uDust, ray, vGlow) + hot * mix(0.2, 0.05, vGlow);
     gl_FragColor = vec4(col, a);
   }
 `
@@ -215,6 +255,7 @@ function buildGeometry(count: number, aspect: number) {
   const seeds = new Float32Array(count)
   const sizes = new Float32Array(count)
   const tints = new Float32Array(count)
+  const rays = new Float32Array(count)
   const rangesX = new Float32Array(count)
   const rangesY = new Float32Array(count)
 
@@ -223,15 +264,21 @@ function buildGeometry(count: number, aspect: number) {
     const { halfW, halfH } = halfExtentsAt(CAM_Z - z, aspect)
     const rangeX = halfW * 1.12
     const rangeY = halfH * 1.15
-    const lime = Math.random() < 0.16
+    // The minority that sits on the prism ramp; the rest stays neutral dust.
+    const spectral = Math.random() < 0.28
     const alongRail = Math.random() > 0.28
+    // Which ray this particle rides, taken straight from the stop table so the
+    // fully-separated end of the fan lands on pure stop colours rather than on
+    // whatever an even subdivision of the ramp happens to fall between.
+    const ray = PRISM_SPECTRUM[Math.floor(Math.random() * PRISM_SPECTRUM.length)]!.at
 
     positions[i * 3] = (Math.random() * 2 - 1) * rangeX * (alongRail ? 0.44 : 0.94)
     positions[i * 3 + 1] = (Math.random() * 2 - 1) * rangeY
     positions[i * 3 + 2] = z
     seeds[i] = Math.random()
-    sizes[i] = (lime ? 1.2 : 0.9) * (0.72 + Math.random() * 1.08)
-    tints[i] = lime ? 1 : 0
+    sizes[i] = (spectral ? 1.25 : 0.9) * (0.72 + Math.random() * 1.08)
+    tints[i] = spectral ? 1 : 0
+    rays[i] = ray
     rangesX[i] = rangeX
     rangesY[i] = rangeY
   }
@@ -240,6 +287,7 @@ function buildGeometry(count: number, aspect: number) {
   geo.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 1))
   geo.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1))
   geo.setAttribute('aTint', new THREE.BufferAttribute(tints, 1))
+  geo.setAttribute('aRay', new THREE.BufferAttribute(rays, 1))
   geo.setAttribute('aRangeX', new THREE.BufferAttribute(rangesX, 1))
   geo.setAttribute('aRangeY', new THREE.BufferAttribute(rangesY, 1))
   return geo
@@ -300,8 +348,10 @@ function init() {
       uNodes: { value: nodeUniforms },
       uSpine: { value: spineUniform },
       uSparks: { value: sparkUniforms },
-      uColorA: { value: new THREE.Color(0.32, 0.36, 0.3) },
-      uColorB: { value: new THREE.Color(0.74, 0.94, 0.04) },
+      uDust: { value: new THREE.Color(0.32, 0.36, 0.3) },
+      uSpectrum: {
+        value: PRISM_SPECTRUM_EMISSIVE.map(([r, g, b]) => new THREE.Color(r, g, b)),
+      },
     },
   })
   points = new THREE.Points(geometry, material)

@@ -7,6 +7,7 @@ import {
   publishRoadmapSpine,
   resetRoadmapParticleField,
 } from '../composables/useRoadmapParticleField'
+import { PRISM_LIME_AT, prismStroke } from '../composables/usePrismSpectrum'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -388,6 +389,17 @@ function drawRoots(
       // Ease-out cubic for organic growth
       const eased = 1 - Math.pow(1 - branchP, 3)
 
+      // The same dispersion the particle field runs, on the surface where it
+      // means the most: every root leaves the node lime and separates toward its
+      // own fringe by the tip, the way one beam leaves a prism as ordered rays.
+      // Branch index picks the ray, distance along the branch picks how far it
+      // has separated. Damped to 0.82 so nothing reaches a pure end stop, and
+      // the existing taper already dims what is furthest out - so the strongest
+      // colour lands where the line is faintest, which is what keeps this
+      // reading as dispersion rather than as differently-coloured lines.
+      const ray = branches.length > 1 ? bi / (branches.length - 1) : PRISM_LIME_AT
+      const raySpread = (ray - PRISM_LIME_AT) * 0.82
+
       // Organic cubic bezier control points
       const dx = endX - nodeX
       const dy = endY - nodeY
@@ -422,7 +434,7 @@ function drawRoots(
         ctx!.beginPath()
         ctx!.moveTo(x0, y0)
         ctx!.lineTo(x1, y1)
-        ctx!.strokeStyle = `rgba(204, 255, 0, ${segAlpha})`
+        ctx!.strokeStyle = prismStroke(PRISM_LIME_AT + raySpread * t0, segAlpha)
         ctx!.lineWidth   = Math.max(0.5, segWidth)
         ctx!.lineCap     = 'round'
         ctx!.stroke()
@@ -437,7 +449,9 @@ function drawRoots(
         if (s === 0) ctx!.moveTo(x, y)
         else         ctx!.lineTo(x, y)
       }
-      ctx!.strokeStyle = 'rgba(204, 255, 0, 0.08)'
+      // One flat halo for the whole branch, so it takes a mid-separation colour
+      // rather than either end.
+      ctx!.strokeStyle = prismStroke(PRISM_LIME_AT + raySpread * 0.6, 0.08)
       ctx!.lineWidth   = 8
       ctx!.lineCap     = 'round'
       ctx!.stroke()
