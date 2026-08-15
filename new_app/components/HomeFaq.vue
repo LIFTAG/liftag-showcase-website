@@ -133,7 +133,7 @@ watch(openFaq, () => {
 
 .home-faq-intro {
   position: sticky;
-  top: 108px;
+  top: calc(108px + var(--liftag-safe-top));
 }
 
 .home-faq-eyebrow {

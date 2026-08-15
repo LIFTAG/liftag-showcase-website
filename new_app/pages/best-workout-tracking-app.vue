@@ -718,7 +718,7 @@ const cards: AppCard[] = [
 
 @media (max-width: 900px) {
   .bwt-hero {
-    padding-top: 120px;
+    padding-top: calc(120px + var(--liftag-safe-top));
   }
 
   .bwt-cards {

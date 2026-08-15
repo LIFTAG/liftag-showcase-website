@@ -179,7 +179,7 @@ useLiftagStructuredData([
 
 @media (max-width: 900px) {
   .guides-hero {
-    padding-top: 120px;
+    padding-top: calc(120px + var(--liftag-safe-top));
   }
 
   .guides-grid {

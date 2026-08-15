@@ -86,7 +86,6 @@ onBeforeUnmount(() => {
       left: 0,
       right: 0,
       zIndex: 100,
-      padding: '14px 32px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -200,6 +199,15 @@ onBeforeUnmount(() => {
    same element as backdrop-filter breaks the blur in WebKit and Chromium. */
 .site-nav {
   overflow: hidden;
+  /* Padding lives here rather than in the inline :style above, because inline
+     styles outrank scoped CSS and would pin it flat at 14px 32px. The bar
+     spans the full width so its background bleeds behind the cutout; only the
+     padding keeps the logo, links and CTA out from under it. */
+  padding:
+    calc(14px + var(--liftag-safe-top))
+    max(32px, var(--liftag-safe-right))
+    14px
+    max(32px, var(--liftag-safe-left));
   animation: navShellIn 860ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   background: transparent;
   border-bottom: 1px solid transparent;
@@ -236,8 +244,8 @@ onBeforeUnmount(() => {
 }
 
 .site-nav::after {
-  left: 32px;
-  right: 32px;
+  left: max(32px, var(--liftag-safe-left));
+  right: max(32px, var(--liftag-safe-right));
   bottom: 0;
   z-index: 1;
   height: 1px;
@@ -491,13 +499,19 @@ onBeforeUnmount(() => {
 
 .nav-mobile-drawer {
   position: fixed;
-  top: 60px;
+  top: calc(60px + var(--liftag-safe-top));
   left: 0;
   right: 0;
   z-index: 99;
   box-sizing: border-box;
-  max-height: calc(var(--liftag-stable-vh) - 60px);
-  padding: 20px 24px calc(24px + env(safe-area-inset-bottom));
+  /* 60px is the nav's own height; both it and this offset grow by the top
+     inset so the drawer still hangs off the bar's bottom edge. */
+  max-height: calc(var(--liftag-stable-vh) - 60px - var(--liftag-safe-top));
+  padding:
+    20px
+    max(24px, var(--liftag-safe-right))
+    calc(24px + var(--liftag-safe-bottom))
+    max(24px, var(--liftag-safe-left));
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;

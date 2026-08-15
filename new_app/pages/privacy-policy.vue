@@ -176,13 +176,13 @@ const contactEmail = 'support@liftag.fit'
 
 @media (max-width: 900px) {
   .legal-hero {
-    padding-top: 120px;
+    padding-top: calc(120px + var(--liftag-safe-top));
   }
 }
 
 @media (max-width: 620px) {
   .legal-hero {
-    padding: 108px 0 32px;
+    padding: calc(108px + var(--liftag-safe-top)) 0 32px;
   }
 }
 </style>

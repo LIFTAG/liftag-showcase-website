@@ -1266,8 +1266,8 @@ const pNfc = computed(() => {
     min-height: var(--liftag-stable-vh) !important;
     overflow-x: clip !important;
     overflow-y: visible !important;
-    padding-top: 84px !important;
-    padding-bottom: max(20px, env(safe-area-inset-bottom)) !important;
+    padding-top: calc(84px + var(--liftag-safe-top)) !important;
+    padding-bottom: max(20px, var(--liftag-safe-bottom)) !important;
   }
 
   .hero-grid {
@@ -1435,8 +1435,8 @@ const pNfc = computed(() => {
 
 @media (max-width: 768px) {
   :global(html[data-liftag-short-viewport="true"] .hero-section) {
-    padding-top: 76px !important;
-    padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
+    padding-top: calc(76px + var(--liftag-safe-top)) !important;
+    padding-bottom: max(16px, var(--liftag-safe-bottom)) !important;
   }
 
   :global(html[data-liftag-short-viewport="true"] .hero-mobile-layout) {
@@ -1496,7 +1496,7 @@ const pNfc = computed(() => {
 
 @media (min-width: 700px) and (max-width: 768px) {
   .hero-section {
-    padding-top: 76px !important;
+    padding-top: calc(76px + var(--liftag-safe-top)) !important;
   }
 
   .hero-mobile-layout {

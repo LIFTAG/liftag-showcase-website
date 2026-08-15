@@ -30,7 +30,12 @@ export default defineNuxtConfig({
       htmlAttrs: { lang: 'en' },
       meta: [
         { charset: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width,initial-scale=1' },
+        // viewport-fit=cover lets the page paint into the display cutout area
+        // (Dynamic Island / notch) instead of iOS filling it from theme-color,
+        // and is what makes env(safe-area-inset-*) resolve to anything but 0.
+        // Everything that must stay clear of the cutout reads the
+        // --liftag-safe-* tokens in assets/css/main.css.
+        { name: 'viewport', content: 'width=device-width,initial-scale=1,viewport-fit=cover' },
         { name: 'description', content: 'Tap NFC tags or scan QR codes on gym machines. LIFTAG opens exercise setup videos, set logging, rest timers, and progress tracking.' },
         { name: 'theme-color', content: '#000000' },
         { name: 'format-detection', content: 'telephone=no' },

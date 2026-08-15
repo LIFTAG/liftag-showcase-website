@@ -1220,10 +1220,13 @@ onBeforeUnmount(() => {
 }
 
 /* ── Header label ─────────────────────────────────────── */
+/* The only top-anchored copy inside the pinned pane, so it is the only thing
+   here that needs the cutout inset - the canvas and glow layers below it stay
+   inset: 0 on purpose, so they keep bleeding edge to edge. */
 .hiw-header {
   position: absolute;
-  top: 60px;
-  left: 40px;
+  top: calc(60px + var(--liftag-safe-top));
+  left: max(40px, var(--liftag-safe-left));
   z-index: 5;
 }
 
