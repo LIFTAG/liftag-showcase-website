@@ -2,9 +2,9 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { onMouseEvent, useSharedMouse } from '../composables/useSharedMouse'
+import type { ScreenVideoSource } from '../utils/macbookScreen'
 import {
   MACBOOK_DASHBOARD_CONTENT_ASPECT,
-  MACBOOK_DASHBOARD_TOP_CROP,
   MACBOOK_SCREEN_INSET,
   MACBOOK_ZOOM_FILL,
   cameraTruckToAlign,
@@ -20,12 +20,13 @@ import {
 
 const props = withDefaults(defineProps<{
   screenshotSrc: string
-  videoSrc?: string
+  videoSources?: ScreenVideoSource[]
   openProgress?: number
   zoomProgress?: number
   tiltDelayMs?: number
   alignEl?: HTMLElement | null
 }>(), {
+  videoSources: undefined,
   openProgress: 0,
   zoomProgress: 0,
   tiltDelayMs: 0,
@@ -36,7 +37,7 @@ const containerRef = ref<HTMLDivElement | null>(null)
 
 let cleanup: (() => void) | null = null
 let updateTexture: ((src: string) => void) | null = null
-let setVideoSource: ((src?: string) => void) | null = null
+let setVideoSource: ((sources?: ScreenVideoSource[]) => void) | null = null
 let setOpenProgress: ((p: number) => void) | null = null
 let setZoomProgress: ((p: number) => void) | null = null
 let setAlignEl: ((el: HTMLElement | null) => void) | null = null
@@ -288,14 +289,12 @@ function initMacbook() {
     texture: THREE.Texture,
     sourceWidth: number,
     sourceHeight: number,
-    topCrop = 0,
   ) {
     const uv = coverFitScreenUVs({
       sourceWidth,
       sourceHeight,
       screenWidth: screenLayout.width,
       screenHeight: screenLayout.height,
-      topCrop,
     })
     texture.wrapS = THREE.ClampToEdgeWrapping
     texture.wrapT = THREE.ClampToEdgeWrapping
@@ -303,14 +302,13 @@ function initMacbook() {
     texture.offset.set(uv.offsetX, uv.offsetY)
   }
 
-  function applyImageFootageTransform(texture: THREE.Texture, topCrop = 0) {
+  function applyImageFootageTransform(texture: THREE.Texture) {
     const image = texture.image as { naturalWidth?: number, width?: number, naturalHeight?: number, height?: number } | undefined
     if (!image) return
     applyFootageTransform(
       texture,
       image.naturalWidth || image.width || 1,
       image.naturalHeight || image.height || 1,
-      topCrop,
     )
   }
   // Default shape normal +Z; rotate so it faces -Y (the inner/keyboard-facing side of the lid).
@@ -503,7 +501,10 @@ function initMacbook() {
     screenVideo?.pause()
     if (screenVideo) {
       if (onVideoPlaying) screenVideo.removeEventListener('playing', onVideoPlaying)
+      // Both the attribute and the <source> children have to go before load(),
+      // or the reload just re-picks a source and keeps the download alive.
       screenVideo.removeAttribute('src')
+      screenVideo.replaceChildren()
       screenVideo.load()
     }
     onVideoPlaying = null
@@ -527,15 +528,15 @@ function initMacbook() {
   // the section is visible, so hold the source until the laptop is actually
   // approaching the viewport (the 300px observer below).
   let videoAllowed = false
-  let pendingVideoSrc: string | undefined
+  let pendingVideoSources: ScreenVideoSource[] | undefined
 
-  setVideoSource = (src?: string) => {
-    pendingVideoSrc = src
+  setVideoSource = (sources?: ScreenVideoSource[]) => {
+    pendingVideoSources = sources
     disposeVideo()
     screenMat.map = posterTexture
     screenMat.needsUpdate = true
 
-    if (!src || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (!sources?.length || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       renderer.render(scene, camera)
       return
     }
@@ -543,7 +544,15 @@ function initMacbook() {
     if (!videoAllowed) return
 
     const video = document.createElement('video')
-    video.src = src
+    // <source> children rather than .src: the browser runs its own resource
+    // selection over the typed list, so a device without AV1 decode skips
+    // straight to the H.264 file instead of downloading one it cannot play.
+    video.append(...sources.map((source) => {
+      const el = document.createElement('source')
+      el.src = source.src
+      el.type = source.type
+      return el
+    }))
     video.muted = true
     video.defaultMuted = true
     video.loop = true
@@ -570,12 +579,7 @@ function initMacbook() {
 
     video.addEventListener('loadeddata', () => {
       if (videoTexture !== texture) return
-      applyFootageTransform(
-        texture,
-        video.videoWidth,
-        video.videoHeight,
-        MACBOOK_DASHBOARD_TOP_CROP,
-      )
+      applyFootageTransform(texture, video.videoWidth, video.videoHeight)
       screenMat.map = texture
       screenMat.needsUpdate = true
       renderer.render(scene, camera)
@@ -586,7 +590,7 @@ function initMacbook() {
     playVideo()
   }
 
-  setVideoSource(props.videoSrc)
+  setVideoSource(props.videoSources)
 
   // Shared singleton - replaces a per-instance window mousemove listener.
   // animate() reads sharedMouse.latest each frame; tilt result is identical
@@ -705,7 +709,7 @@ function initMacbook() {
       if (!entries[0]?.isIntersecting) return
       videoObserver.disconnect()
       videoAllowed = true
-      if (pendingVideoSrc) setVideoSource?.(pendingVideoSrc)
+      if (pendingVideoSources?.length) setVideoSource?.(pendingVideoSources)
     },
     { rootMargin: '300px 0px' },
   )
@@ -846,9 +850,9 @@ watch(
 )
 
 watch(
-  () => props.videoSrc,
-  (src) => {
-    if (setVideoSource) setVideoSource(src)
+  () => props.videoSources,
+  (sources) => {
+    if (setVideoSource) setVideoSource(sources)
     else initMacbook()
   },
 )

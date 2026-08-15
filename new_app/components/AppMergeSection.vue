@@ -3,13 +3,17 @@ import {
   MERGE_BODY_COUNT,
   MERGE_LOGO_INDEX,
   mergeBodyVelocity,
+  mergeCoreFromProgress,
+  mergeCoreIconEnergy,
   mergeStormFromProgress,
   publishMergeArmed,
   publishMergeBody,
+  publishMergeCore,
   publishMergeStorm,
   publishMergeWell,
   resetMergeParticleField,
   type MergeBodyPose,
+  type MergeFieldCore,
 } from '../composables/useMergeParticleField'
 import { rayDissolvedLength, rayRectVisibleLength } from '../utils/mergeRayClip'
 
@@ -20,6 +24,8 @@ interface MockApp {
   gradient: string
   accent: string
   glow: string
+  /** Dominant hue, used as this app's light inside the prism core. */
+  core: string
   x: number
   y: number
   rotate: number
@@ -98,6 +104,7 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #1cff7a 0%, #0c9f61 48%, #052a1d 100%)',
     accent: '#d7ffe8',
     glow: 'rgba(28,255,122,0.35)',
+    core: '#1cff7a',
     x: -242,
     y: -166,
     rotate: -10,
@@ -111,6 +118,7 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #fff27a 0%, #ffb32c 50%, #7a3000 100%)',
     accent: '#fff8d2',
     glow: 'rgba(255,179,44,0.34)',
+    core: '#ffb32c',
     x: 12,
     y: -240,
     rotate: 5,
@@ -124,6 +132,7 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #69d6ff 0%, #1763ff 52%, #081541 100%)',
     accent: '#d9f5ff',
     glow: 'rgba(76,151,255,0.34)',
+    core: '#4c97ff',
     x: 242,
     y: -174,
     rotate: -6,
@@ -137,6 +146,7 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #ff75ad 0%, #ff2d55 50%, #4f0617 100%)',
     accent: '#ffe7ef',
     glow: 'rgba(255,45,85,0.34)',
+    core: '#ff2d55',
     x: 336,
     y: 10,
     rotate: -7,
@@ -150,6 +160,7 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #d8ff7a 0%, #ccff00 48%, #415200 100%)',
     accent: '#0b0f02',
     glow: 'rgba(204,255,0,0.38)',
+    core: '#ccff00',
     x: 232,
     y: 176,
     rotate: 8,
@@ -163,6 +174,7 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #b77cff 0%, #7c3cff 48%, #190b3d 100%)',
     accent: '#f1e7ff',
     glow: 'rgba(124,60,255,0.34)',
+    core: '#7c3cff',
     x: -16,
     y: 241,
     rotate: -5,
@@ -176,6 +188,7 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #ffcb6b 0%, #f59e0b 46%, #5b2200 100%)',
     accent: '#fff5d8',
     glow: 'rgba(245,158,11,0.34)',
+    core: '#f59e0b',
     x: -230,
     y: 160,
     rotate: 9,
@@ -189,6 +202,7 @@ const mockApps: MockApp[] = [
     gradient: 'linear-gradient(145deg, #ff9b6b 0%, #ef4444 48%, #4b0808 100%)',
     accent: '#ffe5dc',
     glow: 'rgba(239,68,68,0.3)',
+    core: '#ef4444',
     x: -335,
     y: -18,
     rotate: -8,
@@ -196,6 +210,34 @@ const mockApps: MockApp[] = [
     depth: 0.9,
   },
 ]
+
+// Each mock app becomes one light in the prism core's environment, aimed from
+// where that icon sits in the orbit. Static, so it never triggers a re-render.
+const prismIcons = mockApps.map((app) => {
+  const len = Math.hypot(app.x, app.y) || 1
+  const z = 0.35 + (app.depth - 0.9) * 1.2
+  const scale = 1 / Math.hypot(app.x / len, app.y / len, z)
+  return {
+    // Screen y grows downward, the shader's world y grows upward.
+    dir: [(app.x / len) * scale, (-app.y / len) * scale, z * scale],
+    color: [
+      parseInt(app.core.slice(1, 3), 16) / 255,
+      parseInt(app.core.slice(3, 5), 16) / 255,
+      parseInt(app.core.slice(5, 7), 16) / 255,
+    ],
+  }
+})
+
+// Reused every frame so a 60fps merge allocates nothing.
+const coreState: MergeFieldCore = {
+  charge: 0,
+  ignite: 0,
+  flash: 0,
+  fade: 0,
+  tiltX: 0,
+  tiltY: 0,
+  icons: mockApps.map(() => 0),
+}
 
 function setElementRef(collection: HTMLElement[], index: number, el: unknown) {
   if (typeof HTMLElement === 'undefined' || !(el instanceof HTMLElement)) return
@@ -383,6 +425,7 @@ function publishMergePhysics(now: number) {
 
   mockApps.forEach((app, index) => {
     const visual = appVisual(app, scrollP, 0, now)
+    coreState.icons[index] = mergeCoreIconEnergy(visual.merge, logoIntro)
     const x = originX + visual.x
     const y = originY + visual.y
     const next = { x, y, spin: visual.spinDeg }
@@ -430,6 +473,17 @@ function publishMergePhysics(now: number) {
     cy: originY,
     strength: Math.max(storm.tornado, storm.burst, storm.settle),
   })
+
+  const stageExit = reduceMotion ? 0 : smoothstep((scrollP - 0.986) / 0.014)
+  const phase = mergeCoreFromProgress(merge, logoIntro, 1 - (1 - logoExit) * (1 - stageExit * 0.92))
+  coreState.charge = phase.charge
+  coreState.ignite = phase.ignite
+  coreState.flash = phase.flash
+  coreState.fade = phase.fade
+  coreState.tiltX = (pointerX - 50) / 50
+  coreState.tiltY = (pointerY - 50) / 50
+  publishMergeCore(coreState)
+
   bodiesArmed = true
 }
 
@@ -785,6 +839,8 @@ onBeforeUnmount(() => {
             <span></span>
             <span></span>
           </div>
+
+          <MergePrismCore :icons="prismIcons" />
 
           <div
             v-for="(app, i) in mockApps"

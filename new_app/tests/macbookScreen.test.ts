@@ -3,7 +3,8 @@ import { test } from 'node:test'
 import {
   MACBOOK_BEZEL_INSET,
   MACBOOK_DASHBOARD_CONTENT_ASPECT,
-  MACBOOK_DASHBOARD_TOP_CROP,
+  MACBOOK_DASHBOARD_SOURCE_HEIGHT,
+  MACBOOK_DASHBOARD_SOURCE_WIDTH,
   MACBOOK_SCREEN_INSET,
   MACBOOK_ZOOM_FILL,
   applyRectUVs,
@@ -160,24 +161,42 @@ test('coverFitScreenUVs is identity when the source already matches the screen',
   assert.equal(uv.repeatY, 1)
 })
 
-test('coverFitScreenUVs drops the dashboard menu-bar letterbox and cover-fits without stretching', () => {
+test('the dashboard footage cover-fits the display without stretching or a letterbox to drop', () => {
   const layout = layoutMacbookScreen(LID_W, LID_H, LID_R)
   const uv = coverFitScreenUVs({
-    sourceWidth: 1440,
-    sourceHeight: 936,
+    sourceWidth: MACBOOK_DASHBOARD_SOURCE_WIDTH,
+    sourceHeight: MACBOOK_DASHBOARD_SOURCE_HEIGHT,
     screenWidth: layout.width,
     screenHeight: layout.height,
-    topCrop: MACBOOK_DASHBOARD_TOP_CROP,
   })
 
-  const mappedW = 1440 * uv.repeatX
-  const mappedH = 936 * uv.repeatY
+  const mappedW = MACBOOK_DASHBOARD_SOURCE_WIDTH * uv.repeatX
+  const mappedH = MACBOOK_DASHBOARD_SOURCE_HEIGHT * uv.repeatY
   assert.ok(Math.abs(mappedW / mappedH - layout.width / layout.height) < 1e-6)
-  assert.ok(Math.abs(uv.offsetY + uv.repeatY - (1 - MACBOOK_DASHBOARD_TOP_CROP)) < 1e-6)
+  // The menu bar is cropped by the encoder, so the full frame height is used.
+  assert.equal(uv.offsetY, 0)
+  assert.equal(uv.repeatY, 1)
   assert.ok(uv.offsetX > 0)
   assert.ok(uv.repeatX < 1)
   assert.ok(uv.repeatX > 0.95)
-  assert.equal(MACBOOK_DASHBOARD_TOP_CROP, 31 / 936)
+  assert.equal(MACBOOK_DASHBOARD_CONTENT_ASPECT, 1440 / 904)
+})
+
+test('a lid built from the footage aspect leaves the recording uncropped', () => {
+  const lidHeight = (LID_W - MACBOOK_SCREEN_INSET * 2) / MACBOOK_DASHBOARD_CONTENT_ASPECT
+    + MACBOOK_SCREEN_INSET * 2
+  const layout = layoutMacbookScreen(LID_W, lidHeight, LID_R)
+  const uv = coverFitScreenUVs({
+    sourceWidth: MACBOOK_DASHBOARD_SOURCE_WIDTH,
+    sourceHeight: MACBOOK_DASHBOARD_SOURCE_HEIGHT,
+    screenWidth: layout.width,
+    screenHeight: layout.height,
+  })
+
+  assert.ok(Math.abs(uv.repeatX - 1) < 1e-9)
+  assert.ok(Math.abs(uv.repeatY - 1) < 1e-9)
+  assert.ok(Math.abs(uv.offsetX) < 1e-9)
+  assert.equal(uv.offsetY, 0)
 })
 
 test('coverFitScreenUVs keeps the top and crops the bottom when the source is taller', () => {

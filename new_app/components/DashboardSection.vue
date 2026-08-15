@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { clamp01, mapDashboardScroll, smootherstep, smoothstep } from '../utils/dashboardScroll'
+import type { ScreenVideoSource } from '../utils/macbookScreen'
 
 const sectionRef = ref<HTMLElement | null>(null)
 const stageRef = ref<HTMLElement | null>(null)
@@ -11,10 +12,16 @@ const chromeProgress = ref(1)
 const entered = ref(false)
 const shouldUseDashboardVideo = ref(false)
 
-const DASHBOARD_VIDEO_SRC = '/assets/videos/macbook-dashboard.mp4'
+// AV1 first, H.264 as the universal fallback. Same 1440x904 master; the AV1
+// encode is roughly half the bytes, so only browsers without AV1 decode (older
+// Safari, Intel Macs) pay for the larger file.
+const DASHBOARD_VIDEO_SOURCES: ScreenVideoSource[] = [
+  { src: '/assets/videos/macbook-dashboard.av1.mp4', type: 'video/mp4; codecs="av01.0.08M.08"' },
+  { src: '/assets/videos/macbook-dashboard.mp4', type: 'video/mp4; codecs="avc1.640028"' },
+]
 
-const dashboardVideoSrc = computed(() => (
-  shouldUseDashboardVideo.value ? DASHBOARD_VIDEO_SRC : undefined
+const dashboardVideoSources = computed(() => (
+  shouldUseDashboardVideo.value ? DASHBOARD_VIDEO_SOURCES : undefined
 ))
 
 const dashboardMetricChartSvg = ref<SVGSVGElement | null>(null)
@@ -294,7 +301,7 @@ onBeforeUnmount(() => {
         <ClientOnly>
           <Macbook3D
             screenshot-src="/assets/screens/dashboard-web.webp"
-            :video-src="dashboardVideoSrc"
+            :video-sources="dashboardVideoSources"
             :open-progress="openProgress"
             :zoom-progress="zoomProgress"
             :align-el="mountRef"
@@ -348,7 +355,7 @@ onBeforeUnmount(() => {
                   sizes="(max-width: 768px) 92vw, 980px"
                   alt="Liftag dashboard"
                   width="1440"
-                  height="936"
+                  height="904"
                   loading="lazy"
                   decoding="async"
                   class="dashboard-fallback-img"

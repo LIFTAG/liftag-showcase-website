@@ -16,15 +16,29 @@ export const MACBOOK_NOTCH_WIDTH_RATIO = 0.058
 export const MACBOOK_NOTCH_HEIGHT_RATIO = 0.024
 
 /**
- * Solid black menu-bar letterbox on `macbook-dashboard.mp4` (31px of 936).
- * Cropped in UV space so the file is not re-encoded.
+ * Encoded size of the dashboard footage. The 3024x1964 capture's solid black
+ * menu-bar letterbox (66px) is cropped by the encoder rather than in UV space,
+ * so every decoded pixel lands on the display and nothing is paid for twice.
  */
 export const MACBOOK_DASHBOARD_SOURCE_WIDTH = 1440
-export const MACBOOK_DASHBOARD_SOURCE_HEIGHT = 936
-export const MACBOOK_DASHBOARD_TOP_CROP_PX = 31
-export const MACBOOK_DASHBOARD_TOP_CROP = MACBOOK_DASHBOARD_TOP_CROP_PX / MACBOOK_DASHBOARD_SOURCE_HEIGHT
+export const MACBOOK_DASHBOARD_SOURCE_HEIGHT = 904
 export const MACBOOK_DASHBOARD_CONTENT_ASPECT = MACBOOK_DASHBOARD_SOURCE_WIDTH
-  / (MACBOOK_DASHBOARD_SOURCE_HEIGHT - MACBOOK_DASHBOARD_TOP_CROP_PX)
+  / MACBOOK_DASHBOARD_SOURCE_HEIGHT
+
+/**
+ * One encode of the screen footage. A list of these is offered to the browser
+ * in preference order (modern codec first, H.264 baseline last) and it plays
+ * the first entry it can decode.
+ */
+export type ScreenVideoSource = {
+  src: string
+  /**
+   * Full MIME type including the `codecs=` parameter. Without it a browser
+   * cannot rule a source out up front, so it would commit to a file it can
+   * only discover is undecodable after downloading part of it.
+   */
+  type: string
+}
 
 export type ScreenTextureUVs = {
   offsetX: number
@@ -34,41 +48,38 @@ export type ScreenTextureUVs = {
 }
 
 /**
- * Cover-fit a recording onto the display after dropping a top letterbox.
- * Uniform scale only: leftover aspect is cropped from the sides or bottom
- * so the footage fills the screen without stretching.
+ * Cover-fit a recording onto the display. Uniform scale only: leftover aspect
+ * is cropped from the sides or the bottom so the footage fills the screen
+ * without stretching.
  */
 export function coverFitScreenUVs(options: {
   sourceWidth: number
   sourceHeight: number
   screenWidth: number
   screenHeight: number
-  topCrop?: number
 }): ScreenTextureUVs {
   const sourceWidth = Math.max(1, options.sourceWidth)
   const sourceHeight = Math.max(1, options.sourceHeight)
   const screenWidth = Math.max(1e-6, options.screenWidth)
   const screenHeight = Math.max(1e-6, options.screenHeight)
-  const topCrop = Math.min(Math.max(options.topCrop ?? 0, 0), 1 - 1e-6)
 
-  const usableV = 1 - topCrop
-  const croppedAspect = sourceWidth / (sourceHeight * usableV)
+  const sourceAspect = sourceWidth / sourceHeight
   const screenAspect = screenWidth / screenHeight
 
-  if (croppedAspect > screenAspect) {
-    const repeatX = screenAspect / croppedAspect
+  if (sourceAspect > screenAspect) {
+    const repeatX = screenAspect / sourceAspect
     return {
       offsetX: (1 - repeatX) / 2,
       offsetY: 0,
       repeatX,
-      repeatY: usableV,
+      repeatY: 1,
     }
   }
 
-  const repeatY = usableV * (croppedAspect / screenAspect)
+  const repeatY = sourceAspect / screenAspect
   return {
     offsetX: 0,
-    offsetY: usableV - repeatY,
+    offsetY: 1 - repeatY,
     repeatX: 1,
     repeatY,
   }
