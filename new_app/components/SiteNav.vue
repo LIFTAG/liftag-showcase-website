@@ -90,9 +90,6 @@ onBeforeUnmount(() => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      background: scrolled || open ? 'rgba(0,0,0,0.92)' : 'transparent',
-      borderBottom: scrolled || open ? '1px solid rgba(255,255,255,0.1)' : '1px solid transparent',
-      transition: 'background-color .35s cubic-bezier(0.16,1,0.3,1), border-color .35s cubic-bezier(0.16,1,0.3,1)',
     }"
   >
     <span class="nav-entry-beam" aria-hidden="true"></span>
@@ -192,9 +189,34 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+/* The scrolled/open surface lives here rather than in the `:style` binding on
+   the element: an inline background outranks any stylesheet rule, so a
+   translucent glass background declared here would silently lose to it and the
+   bar would keep rendering as opaque black no matter what backdrop-filter says.
+
+   `backwards`, not `both`: navShellIn's 100% keyframe is visually identical to
+   the element's resting state, but `both` kept it applied forever, permanently
+   pinning `clip-path: inset(0 0 0 0 round 0)` on the header. clip-path on the
+   same element as backdrop-filter breaks the blur in WebKit and Chromium. */
 .site-nav {
   overflow: hidden;
-  animation: navShellIn 860ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: navShellIn 860ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition:
+    background-color .35s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color .35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* backdrop-filter is deliberately absent from the transition above: none ->
+   blur() interpolates discretely in every engine, so listing it buys nothing,
+   and giving the base state a blur(0px) just to make it interpolable would keep
+   a backdrop layer alive across the whole hero for no visible gain. */
+.site-nav.is-scrolled,
+.site-nav.is-open {
+  background: rgba(0, 0, 0, 0.55);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px) saturate(140%);
 }
 
 .site-nav::before,
@@ -480,7 +502,10 @@ onBeforeUnmount(() => {
   overflow-y: auto;
   overscroll-behavior: contain;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.98);
+  /* Heavier tint than the bar (0.55): the drawer covers most of the phone
+     screen and carries 28px display type, so it needs more backing contrast. */
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(20px) saturate(140%);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -489,7 +514,9 @@ onBeforeUnmount(() => {
     transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
     opacity 180ms ease-out,
     visibility 0s linear 320ms;
-  contain: paint;
+  /* No `contain: paint` here: it makes the drawer its own backdrop root, so the
+     blur above would sample nothing and render as flat tint. The overflow
+     rules on this same block already provide the clipping it was there for. */
 }
 
 .nav-mobile-drawer.is-open {
@@ -678,6 +705,33 @@ onBeforeUnmount(() => {
 @media (max-width: 390px) {
   .nav-store-buttons {
     gap: 8px;
+  }
+}
+
+/* Both fallbacks restore the exact opaque values the nav used before the glass
+   pass, so anyone who cannot get the blur keeps the previous design rather than
+   a translucent bar with nothing behind it. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .site-nav.is-scrolled,
+  .site-nav.is-open {
+    background: rgba(0, 0, 0, 0.92);
+  }
+
+  .nav-mobile-drawer {
+    background: rgba(0, 0, 0, 0.98);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .site-nav.is-scrolled,
+  .site-nav.is-open {
+    background: rgba(0, 0, 0, 0.92);
+    backdrop-filter: none;
+  }
+
+  .nav-mobile-drawer {
+    background: rgba(0, 0, 0, 0.98);
+    backdrop-filter: none;
   }
 }
 
