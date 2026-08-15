@@ -72,9 +72,9 @@ const links = [
 }
 
 .error-main {
-  width: min(920px, calc(100% - 48px));
+  width: min(920px, calc(100% - 48px - var(--liftag-safe-left) - var(--liftag-safe-right)));
   margin: 0 auto;
-  padding: 168px 0 96px;
+  padding: calc(168px + var(--liftag-safe-top)) 0 96px;
 }
 
 .error-code {

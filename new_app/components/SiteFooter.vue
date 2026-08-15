@@ -264,7 +264,12 @@ onBeforeUnmount(() => {
 .site-footer {
   background: #000;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 60px 32px 56px;
+  /* Last thing on the page, so it is what the home indicator overlaps. */
+  padding:
+    60px
+    max(32px, var(--liftag-safe-right))
+    calc(56px + var(--liftag-safe-bottom))
+    max(32px, var(--liftag-safe-left));
 }
 
 .footer-col:nth-child(1) { transition-delay: 0ms; }

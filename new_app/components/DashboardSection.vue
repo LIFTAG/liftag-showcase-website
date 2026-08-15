@@ -518,8 +518,8 @@ onBeforeUnmount(() => {
 
 .dashboard-sticky {
   position: sticky;
-  top: 76px;
-  height: calc(100vh - 76px);
+  top: calc(76px + var(--liftag-safe-top));
+  height: calc(100vh - 76px - var(--liftag-safe-top));
   min-height: 700px;
   overflow: hidden;
   display: flex;
@@ -936,8 +936,8 @@ onBeforeUnmount(() => {
   }
 
   .dashboard-sticky {
-    top: 64px;
-    height: calc(var(--liftag-stable-vh) - 64px);
+    top: calc(64px + var(--liftag-safe-top));
+    height: calc(var(--liftag-stable-vh) - 64px - var(--liftag-safe-top));
     min-height: 820px;
   }
 
@@ -985,11 +985,11 @@ onBeforeUnmount(() => {
   }
 
   .dashboard-sticky {
-    top: 64px;
-    height: calc(var(--liftag-stable-vh) - 64px);
+    top: calc(64px + var(--liftag-safe-top));
+    height: calc(var(--liftag-stable-vh) - 64px - var(--liftag-safe-top));
     min-height: 0;
     align-items: flex-start;
-    padding: 18px 0 max(18px, env(safe-area-inset-bottom));
+    padding: 18px 0 max(18px, var(--liftag-safe-bottom));
   }
 
   .dashboard-layout {

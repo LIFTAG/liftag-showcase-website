@@ -92,6 +92,19 @@
   --liftag-error: #EF4444;
   --liftag-info: #3B82F6;
 
+  /* Display cutout insets. Non-zero only because nuxt.config.ts sets
+     viewport-fit=cover, which lets the page background bleed behind the
+     Dynamic Island / notch and the home indicator. Anything pinned to a
+     viewport edge - the fixed nav, sticky panes, first-viewport heroes -
+     adds the matching token so its content still clears the cutout.
+     Read them through var() rather than calling env() at each site: it keeps
+     the insets greppable, and overriding these four on :root in devtools
+     reproduces a Dynamic Island layout on a desktop browser. */
+  --liftag-safe-top: env(safe-area-inset-top, 0px);
+  --liftag-safe-right: env(safe-area-inset-right, 0px);
+  --liftag-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --liftag-safe-left: env(safe-area-inset-left, 0px);
+
   /* Radii */
   --liftag-r-sm: 8px;
   --liftag-r-md: 12px;
@@ -187,7 +200,8 @@ body {
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 76px;
+  /* Clears the fixed nav, which is itself that much taller under the cutout. */
+  scroll-padding-top: calc(76px + var(--liftag-safe-top));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -386,10 +400,13 @@ button {
 section {
   position: relative;
 }
+/* The horizontal gutters double as cutout clearance: in landscape on a notched
+   phone the safe-area inset exceeds the design gutter, so max() widens it. */
 .container {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 0 32px;
+  padding-right: max(32px, var(--liftag-safe-right));
+  padding-left: max(32px, var(--liftag-safe-left));
 }
 
 /* ── Section atoms ── */
@@ -735,13 +752,15 @@ section {
 /* ── Mobile responsive ── */
 @media (max-width: 880px) {
   .container {
-    padding: 0 20px;
+    padding-right: max(20px, var(--liftag-safe-right));
+    padding-left: max(20px, var(--liftag-safe-left));
   }
 }
 
 @media (max-width: 768px) {
   .container {
-    padding: 0 16px;
+    padding-right: max(16px, var(--liftag-safe-right));
+    padding-left: max(16px, var(--liftag-safe-left));
   }
   .nav-desktop {
     display: none !important;

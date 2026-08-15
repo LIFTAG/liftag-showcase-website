@@ -162,8 +162,10 @@ onBeforeUnmount(() => {
 
 .escape__pointer {
   position: fixed;
-  top: 6px;
-  right: 26px;
+  /* Aims at the in-app browser's menu button, so it has to track the cutout
+     rather than sit under it. */
+  top: calc(6px + var(--liftag-safe-top));
+  right: calc(26px + var(--liftag-safe-right));
   z-index: 2;
   display: flex;
   align-items: flex-end;

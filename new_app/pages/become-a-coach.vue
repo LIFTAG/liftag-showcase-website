@@ -1198,7 +1198,7 @@ function toggleFaq(i: number) {
 
 .coach-steps-intro {
   position: sticky;
-  top: 110px;
+  top: calc(110px + var(--liftag-safe-top));
 }
 
 .coach-steps-intro .coach-eyebrow {
@@ -1891,7 +1891,7 @@ function toggleFaq(i: number) {
 @media (max-width: 880px) {
   .coach-hero {
     min-height: auto;
-    padding-top: 120px;
+    padding-top: calc(120px + var(--liftag-safe-top));
   }
 
   .coach-hero-inner {

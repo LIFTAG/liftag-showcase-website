@@ -249,7 +249,7 @@ defineProps<{
 
 @media (max-width: 900px) {
   .seo-hero {
-    padding-top: 120px;
+    padding-top: calc(120px + var(--liftag-safe-top));
   }
 
   .seo-hero-grid,
