@@ -8,7 +8,7 @@
 //     that have to be set explicitly to trigger reactivity)
 //
 // `latest` exposes both `mx/my` (normalized -1..1, used by 3D tilts) and `x/y`
-// aliases (same values, kept for callers like useLerp that read `.x/.y`), plus
+// aliases (same values, kept for callers like useLerpVars that read `.x/.y`), plus
 // raw `clientX/clientY` for cursor-position consumers. `hasPointer` stays false
 // until a real mousemove so consumers do not treat the (0, 0) default as the
 // viewport center.
@@ -38,12 +38,14 @@ let installed = false
 // this module wants that: each consumer drives a hover affordance - the cursor
 // orb (already `display: none` under `@media (hover: none)`), the hero parallax
 // lerp, the 3D phone tilts. On a phone one synthetic event is enough to wake
-// Hero's lerp loop, and because the lerp writes a ref every frame it re-renders
-// the whole hero - desktop layout included, invisible but still diffed - until
-// it converges, which at 0.06 per frame takes ~140 frames. One tap on the nav
-// toggle measured 8-37fps for ~15s afterwards on an iOS 26 simulator, and a
-// real phone's CPU is slower still. It reads as "the site went permanently
-// laggy the moment I touched it" because the next tap starts it again.
+// the parallax loop for its whole convergence tail, animating motion nobody can
+// see. That used to be ruinous rather than merely wasteful: the lerp published a
+// ref, so every frame of the tail re-rendered each consuming component, and one
+// tap on the nav toggle measured 8-37fps for ~15s afterwards on an iOS 26
+// simulator - a real phone's CPU is slower still. It read as "the site went
+// permanently laggy the moment I touched it" because the next tap started it
+// again. useLerpVars has since moved that loop onto CSS custom properties, so
+// the tail is cheap now, but a phone still has no reason to run it at all.
 //
 // Checked per event rather than by adding and removing the listener, so an iPad
 // that gains a trackpad mid-session starts working without any re-subscription.

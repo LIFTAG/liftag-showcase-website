@@ -4,9 +4,9 @@
 // re-painting one SVG's internal <g> transforms (which re-rasterizes the
 // glow filter every frame).
 //
-// Mouse motion never enters the template. useLerp updates a ref; a watch
-// writes --chart-mx / --chart-my onto the wrapper. Vue does not patch the
-// SVG tree on cursor move.
+// Mouse motion never enters the template. useLerpVars writes the lerped,
+// normalized pointer straight onto the wrapper as --chart-mx / --chart-my.
+// Vue does not patch the SVG tree on cursor move.
 
 const W = 1440
 const H = 860
@@ -66,8 +66,7 @@ const rawMouse = useSharedMouse().latest
 // Gated on the charts being near the viewport so mousemoves further down the
 // page do not wake this loop.
 const lerpActive = useNearViewport(root)
-const mouse = useLerp(rawMouse, 0.06, () => lerpActive.value)
-let reduceMotion = false
+useLerpVars(root, rawMouse, 'chart', 0.06, () => lerpActive.value)
 
 // Draw-on-load schedule. Handles are kept so an unmount mid-reveal cannot leave
 // timers or an idle callback pointing at a detached SVG.
@@ -76,16 +75,7 @@ const revealTimers: ReturnType<typeof setTimeout>[] = []
 let idleHandle = 0
 let unmounted = false
 
-watch(mouse, (m) => {
-  const el = root.value
-  if (!el || reduceMotion) return
-  el.style.setProperty('--chart-mx', `${m.x}px`)
-  el.style.setProperty('--chart-my', `${m.y}px`)
-})
-
 onMounted(async () => {
-  reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
   // Chart draw-on-load: the hidden dash state is authored in the SVG markup so
   // first paint cannot flash the fully drawn graph before this reveal runs.
   await nextTick()
@@ -354,8 +344,11 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .hero-charts {
-  --chart-mx: 0px;
-  --chart-my: 0px;
+  /* Lerped pointer, normalized to -1..1 and unitless so each layer can scale it
+     by its own depth. Defaults here keep first paint and SSR correct before the
+     first pointer event. */
+  --chart-mx: 0;
+  --chart-my: 0;
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -388,8 +381,8 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   transform: translate3d(
-    calc(var(--chart-mx) * var(--depth, 0)),
-    calc(var(--chart-my) * var(--depth-y, 0)),
+    calc(var(--chart-mx) * var(--depth, 0) * 1px),
+    calc(var(--chart-my) * var(--depth-y, 0) * 1px),
     0
   );
 }

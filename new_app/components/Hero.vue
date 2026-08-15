@@ -7,15 +7,14 @@ import {
 } from '../composables/useHeroParticleField'
 
 // ─── reactive mouse / scroll state ───────────────────────────────────────────
-// rawMouse is a reference into the shared singleton - useLerp's rAF reads
+// rawMouse is a reference into the shared singleton - useLerpVars' rAF reads
 // .x/.y each frame, so the page-wide single mousemove handler keeps it fresh
 // without us owning a per-component listener.
 const sharedMouse = useSharedMouse()
 const rawMouse = sharedMouse.latest
-const scrollY = ref(0)
 const entered = ref(false)
-const cursorGlowX = ref(-9999)
-const cursorGlowY = ref(-9999)
+// Tone flips on a custom event, not on pointer movement, so it stays reactive.
+// The orb's position does not - see --hero-cursor-x / --hero-cursor-y below.
 const cursorGlowTone = ref<'green' | 'red'>('green')
 // Phones render only the front-center device. Its Three.js path runs in lite,
 // non-interactive mode so the stronger 3D framing does not add an idle loop.
@@ -29,8 +28,12 @@ const heroRoot = ref<HTMLElement | null>(null)
 
 // smooth lerp (factor 0.06 matches React source). Gated on the section being
 // near the viewport so mousemoves far down the page do not wake this loop.
+// Publishes --hero-mx / --hero-my on the section rather than a ref: the hero has
+// by far the most bindings on this page, and re-rendering all of them for every
+// frame of the lerp's convergence tail was the most expensive thing the cursor
+// could do.
 const lerpActive = useNearViewport(heroRoot)
-const mouse = useLerp(rawMouse, 0.06, () => lerpActive.value)
+useLerpVars(heroRoot, rawMouse, 'hero', 0.06, () => lerpActive.value)
 
 const heroVolumeChartSvg = ref<SVGSVGElement | null>(null)
 const heroVolumeChartTargetP = ref(1)
@@ -338,6 +341,7 @@ function fmtStat(val: number, target: number, suffix: string, compact: boolean) 
 
 // ─── lifecycle ────────────────────────────────────────────────────────────────
 let heroEntranceTimer: ReturnType<typeof setTimeout> | null = null
+let cursorGlowRaf = 0
 let heroMobileMql: MediaQueryList | null = null
 let onHeroMobileChange: ((event: MediaQueryListEvent) => void) | null = null
 let unsubHeroMouse: (() => void) | null = null
@@ -364,19 +368,20 @@ onMounted(() => {
   }
   heroMobileMql.addEventListener('change', onHeroMobileChange)
 
-  // Cursor orb position needs explicit reactive-ref writes to trigger Vue
-  // re-renders. Subscribe to the shared mousemove and rAF-coalesce so we don't
-  // bump refs hundreds of times per second on a 240Hz trackpad. Parallax
-  // (rawMouse via useLerp) updates without subscribing - useLerp's own rAF
-  // picks up sharedMouse.latest changes each frame.
-  let cursorRafQueued = false
+  // Cursor orb position rides the same CSS-variable path as the parallax: the
+  // orb is a fixed, compositor-positioned layer, so all it needs is a transform.
+  // It used to bump two refs instead, which re-rendered the whole hero once per
+  // rAF for as long as the pointer was moving - the exact cost the parallax
+  // rewrite removes, so leaving it here would have undone most of the win.
+  // Still rAF-coalesced: a 240Hz trackpad fires far more often than we paint.
   unsubHeroMouse = onMouseEvent(() => {
-    if (cursorRafQueued) return
-    cursorRafQueued = true
-    requestAnimationFrame(() => {
-      cursorRafQueued = false
-      cursorGlowX.value = sharedMouse.latest.clientX
-      cursorGlowY.value = sharedMouse.latest.clientY
+    if (cursorGlowRaf !== 0) return
+    cursorGlowRaf = requestAnimationFrame(() => {
+      cursorGlowRaf = 0
+      const root = heroRoot.value
+      if (!root) return
+      root.style.setProperty('--hero-cursor-x', String(sharedMouse.latest.clientX))
+      root.style.setProperty('--hero-cursor-y', String(sharedMouse.latest.clientY))
     })
   })
   onHeroCursorGlowTone = (event: Event) => {
@@ -393,12 +398,12 @@ onMounted(() => {
       scrollQueued = false
       const y = window.scrollY
 
-      // The fade and lift are CSS custom properties, not reactive state. One
-      // style write on one element per frame, inherited by everything that
-      // reads them, and opacity/transform stay on the compositor. Bumping a ref
-      // instead re-rendered the whole hero — 28 particle style objects, four
-      // phone parallax transforms and four opacity bindings — every frame,
-      // which is what made the fade stutter on phones.
+      // The fade, lift and parallax offset are CSS custom properties, not
+      // reactive state. Three style writes on one element per frame, inherited
+      // by everything that reads them, and opacity/transform stay on the
+      // compositor. Bumping a ref instead re-rendered the whole hero — 28
+      // particle style objects, four phone parallax transforms and four opacity
+      // bindings — every frame, which is what made the fade stutter on phones.
       // Phones do none of this. The full hero scrolls normally so the device
       // remains fully visible on short viewports, and we avoid repainting its
       // blur and masked background while the user scrolls.
@@ -408,10 +413,8 @@ onMounted(() => {
       if (root) {
         root.style.setProperty('--hero-fade', String(Math.max(0, 1 - y / 500)))
         root.style.setProperty('--hero-lift', `${y * 0.35}px`)
+        root.style.setProperty('--hero-scroll', String(y))
       }
-
-      // Only the desktop parallax and particles read the ref.
-      scrollY.value = y
     })
   }
 
@@ -422,6 +425,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   if (heroEntranceTimer) clearTimeout(heroEntranceTimer)
+  if (cursorGlowRaf !== 0) cancelAnimationFrame(cursorGlowRaf)
+  cursorGlowRaf = 0
   cleanupHeroLasers()
   unsubHeroMouse?.()
 
@@ -443,28 +448,44 @@ onBeforeUnmount(() => {
   onHeroScroll = null
 })
 
-// parallax per-phone (updated reactively from mouse + scroll)
-const p1 = computed(() => ({
-  x: mouse.value.x * -18,
-  y: mouse.value.y * -12 + scrollY.value * 0.12,
-}))
-const p2 = computed(() => ({
-  x: mouse.value.x * 10,
-  y: mouse.value.y * 10  - scrollY.value * 0.08,
-}))
-const p3 = computed(() => ({
-  x: mouse.value.x * 26,
-  y: mouse.value.y * 18  - scrollY.value * 0.22,
-}))
-const pNfc = computed(() => {
-  return {
-    x: mouse.value.x * 22,
-    y: mouse.value.y * 15 - scrollY.value * 0.12,
-    rotateX: mouse.value.y * 0.8,
-    rotateY: mouse.value.x * 0.8,
-    rotateZ: mouse.value.x * 0.35,
-  }
-})
+// ─── parallax ─────────────────────────────────────────────────────────────────
+// Both inputs are CSS custom properties on the section: --hero-mx / --hero-my
+// (the lerped pointer, normalized to -1..1) and --hero-scroll (window.scrollY in
+// px, unitless). Every transform below is therefore a constant string, and the
+// same string the old computeds produced numerically. Neither the cursor nor the
+// scroll wheel re-renders this component any more; the browser re-resolves the
+// calc()s and the transforms stay on the compositor.
+function parallaxX(mxPx: number) {
+  return `calc(var(--hero-mx) * ${mxPx}px)`
+}
+
+function parallaxY(myPx: number, scrollPx: number) {
+  const sign = scrollPx < 0 ? '-' : '+'
+  return `calc(var(--hero-my) * ${myPx}px ${sign} var(--hero-scroll) * ${Math.abs(scrollPx)}px)`
+}
+
+// Back-left phone, and the machine-sync chip that trails it at 1.3x / 0.6x.
+const backLeftPhoneTransform = `translate3d(${parallaxX(-18)}, ${parallaxY(-12, 0.12)}, -60px) rotateY(10deg) rotateX(-3deg)`
+const syncChipTransform = `translate3d(${parallaxX(-23.4)}, ${parallaxY(-7.2, 0.072)}, 0)`
+
+// Back-right phone, and the volume chip / PR badge that trail it.
+const backRightPhoneTransform = `translate3d(${parallaxX(10)}, ${parallaxY(10, -0.08)}, -40px) rotateY(-12deg) rotateX(-2deg)`
+const volumeChipTransform = `translate3d(${parallaxX(12)}, ${parallaxY(5, -0.04)}, 0)`
+const prBadgeTransform = `translate3d(${parallaxX(8)}, ${parallaxY(4, -0.032)}, 0)`
+
+// Front-center phone, which also carries its own -50% centring offset.
+const frontPhoneTransform = `translate3d(calc(-50% + var(--hero-mx) * 26px), ${parallaxY(18, -0.22)}, 0px)`
+
+// Desktop-only NFC tag: the only element that tilts as well as translates.
+const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 96px)`
+  + ' rotateX(calc(var(--hero-my) * 0.8deg))'
+  + ' rotateY(calc(var(--hero-mx) * 0.8deg))'
+  + ' rotateZ(calc(var(--hero-mx) * 0.35deg))'
+
+// Lime atmosphere glow: the gradient's centre drifts with the cursor.
+const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
+  + ' at calc(58% + var(--hero-mx) * 4%) calc(40% + var(--hero-my) * 4%),'
+  + ' rgba(204,255,0,0.12), transparent 65%)'
 </script>
 
 <template>
@@ -487,17 +508,11 @@ const pNfc = computed(() => {
     <!-- ── Cursor orb ── -->
     <div
       class="cursor-glow cursor-glow-green"
-      :style="{
-        transform: `translate3d(${cursorGlowX - 210}px, ${cursorGlowY - 210}px, 0)`,
-        opacity: cursorGlowTone === 'red' ? 0 : 1,
-      }"
+      :style="{ opacity: cursorGlowTone === 'red' ? 0 : 1 }"
     />
     <div
       class="cursor-glow cursor-glow-red"
-      :style="{
-        transform: `translate3d(${cursorGlowX - 210}px, ${cursorGlowY - 210}px, 0)`,
-        opacity: cursorGlowTone === 'red' ? 1 : 0,
-      }"
+      :style="{ opacity: cursorGlowTone === 'red' ? 1 : 0 }"
     />
 
     <!-- ── Subtle grid ── -->
@@ -521,7 +536,7 @@ const pNfc = computed(() => {
         position: 'absolute',
         inset: 0,
         pointerEvents: 'none',
-        background: `radial-gradient(ellipse 70% 55% at ${58 + mouse.x * 4}% ${40 + mouse.y * 4}%, rgba(204,255,0,0.12), transparent 65%)`,
+        background: atmosphereGlow,
       }"
     />
 
@@ -695,7 +710,7 @@ const pNfc = computed(() => {
         <div
           :style="{
             position: 'absolute', top: '80px', left: 0,
-            transform: `translate3d(${p1.x}px, ${p1.y}px, -60px) rotateY(10deg) rotateX(-3deg)`,
+            transform: backLeftPhoneTransform,
             transformStyle: 'preserve-3d',
             opacity: entered ? 0.75 : 0,
             transition: entered ? 'opacity 1200ms 300ms ease' : 'none',
@@ -710,7 +725,7 @@ const pNfc = computed(() => {
         <div
           :style="{
             position: 'absolute', top: '20px', right: '-10px',
-            transform: `translate3d(${p2.x}px, ${p2.y}px, -40px) rotateY(-12deg) rotateX(-2deg)`,
+            transform: backRightPhoneTransform,
             transformStyle: 'preserve-3d',
             opacity: entered ? 0.68 : 0,
             transition: entered ? 'opacity 1200ms 500ms ease' : 'none',
@@ -725,7 +740,7 @@ const pNfc = computed(() => {
         <div
           :style="{
             position: 'absolute', top: 0, left: '50%',
-            transform: `translate3d(calc(-50% + ${p3.x}px), ${p3.y}px, 0px)`,
+            transform: frontPhoneTransform,
             willChange: 'transform',
             opacity: entered ? 1 : 0,
             transition: entered ? 'opacity 1000ms 100ms ease' : 'none',
@@ -760,7 +775,7 @@ const pNfc = computed(() => {
         <div
           :style="{
             position: 'absolute', bottom: '20px', left: '-24px',
-            transform: `translate3d(${p1.x * 1.3}px, ${p1.y * 0.6}px, 0)`,
+            transform: syncChipTransform,
             background: 'rgba(10,10,10,0.96)',
             border: '1px solid rgba(204,255,0,0.35)',
             borderRadius: '20px',
@@ -813,7 +828,7 @@ const pNfc = computed(() => {
           class="hero-nfc-model"
           aria-hidden="true"
           :style="{
-            transform: `translate3d(${pNfc.x}px, ${pNfc.y}px, 96px) rotateX(${pNfc.rotateX}deg) rotateY(${pNfc.rotateY}deg) rotateZ(${pNfc.rotateZ}deg)`,
+            transform: nfcTagTransform,
             opacity: entered ? 1 : 0,
             transition: entered ? 'opacity 1000ms 760ms ease' : 'none',
           }"
@@ -830,7 +845,7 @@ const pNfc = computed(() => {
           class="hero-volume-chip"
           :style="{
             position: 'absolute', top: '100px', right: '-30px',
-            transform: `translate3d(${p2.x * 1.2}px, ${p2.y * 0.5}px, 0)`,
+            transform: volumeChipTransform,
             background: 'rgba(10,10,10,0.97)',
             border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: '18px',
@@ -911,7 +926,7 @@ const pNfc = computed(() => {
         <div
           :style="{
             position: 'absolute', bottom: '160px', right: '20px',
-            transform: `translate3d(${p2.x * 0.8}px, ${p2.y * 0.4}px, 0)`,
+            transform: prBadgeTransform,
             background: 'rgba(204,255,0,0.95)',
             borderRadius: '14px', padding: '10px 16px',
             boxShadow: '0 0 40px rgba(204,255,0,0.5)',
@@ -1032,13 +1047,22 @@ const pNfc = computed(() => {
 </template>
 
 <style scoped>
-/* Scroll-driven hero exit. The two values are written straight to the section's
-   inline style once per rAF (see onHeroScroll) rather than flowing through Vue,
-   so scrolling costs one property write instead of a full component re-render.
-   Defaults here keep first paint and SSR correct before any scroll happens. */
+/* Scroll- and pointer-driven hero motion. Every value here is written straight
+   to the section's inline style once per rAF (--hero-fade / --hero-lift /
+   --hero-scroll from onHeroScroll, --hero-mx / --hero-my from useLerpVars)
+   rather than flowing through Vue, so both gestures cost a few property writes
+   instead of a full component re-render. --hero-scroll is window.scrollY in
+   pixels and --hero-mx / --hero-my are the normalized -1..1 pointer, both
+   unitless so each consumer can scale them itself. Defaults here keep first
+   paint and SSR correct before any scroll or pointer event happens. */
 .hero-section {
   --hero-fade: 1;
   --hero-lift: 0px;
+  --hero-scroll: 0;
+  --hero-mx: 0;
+  --hero-my: 0;
+  --hero-cursor-x: -9999;
+  --hero-cursor-y: -9999;
 }
 
 .hero-fades {
@@ -1069,6 +1093,14 @@ const pNfc = computed(() => {
   pointer-events: none;
   transition: opacity 380ms ease;
   will-change: transform, opacity;
+  /* Half the 420px orb, so the variables carry the raw client coordinates and
+     the orb centres on them. The -9999 default parks it off screen until the
+     first mousemove, exactly as the old ref default did. */
+  transform: translate3d(
+    calc(var(--hero-cursor-x) * 1px - 210px),
+    calc(var(--hero-cursor-y) * 1px - 210px),
+    0
+  );
 }
 
 .cursor-glow-green {

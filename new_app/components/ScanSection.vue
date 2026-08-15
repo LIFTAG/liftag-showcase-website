@@ -33,7 +33,10 @@ const rawMouse = useSharedMouse().latest
 // Gated on the section being near the viewport so mousemoves elsewhere on the
 // page do not wake this loop.
 const lerpActive = useNearViewport(sectionRef)
-const mouse = useLerp(rawMouse, 0.06, () => lerpActive.value)
+// Publishes --scan-mx / --scan-my (normalized -1..1) on the section instead of a
+// ref, so the transforms below are constant strings that CSS re-evaluates on the
+// compositor. Moving the cursor never re-renders this component.
+useLerpVars(sectionRef, rawMouse, 'scan', 0.06, () => lerpActive.value)
 
 const steps = [
   {
@@ -103,22 +106,20 @@ function onStepBorderAnimationEnd(stepIndex: number, event: AnimationEvent) {
   setStep((step.value + 1) % steps.length)
 }
 
-const scanPhoneMotionTransform = computed(() => {
-  if (reduceMotion.value || phoneLayout.value) return 'translate3d(0, 0, 0)'
-  const x = mouse.value.x * 18
-  const y = mouse.value.y * 12
-  const rotateX = mouse.value.y * 2.4
-  const rotateY = mouse.value.x * -3.2
-  return `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg)`
-})
+const SCAN_PHONE_MOTION = 'translate3d(calc(var(--scan-mx) * 18px), calc(var(--scan-my) * 12px), 0)'
+  + ' rotateX(calc(var(--scan-my) * 2.4deg)) rotateY(calc(var(--scan-mx) * -3.2deg))'
+const SCAN_QR_MOTION = 'translate3d(calc(var(--scan-mx) * -28px), calc(var(--scan-my) * -18px), 0)'
+  + ' rotate(calc(-8deg + var(--scan-mx) * -2.2deg + var(--scan-my) * 0.8deg))'
 
-const scanQrMotionTransform = computed(() => {
-  if (reduceMotion.value || phoneLayout.value) return 'rotate(-8deg)'
-  const x = mouse.value.x * -28
-  const y = mouse.value.y * -18
-  const rotate = -8 + mouse.value.x * -2.2 + mouse.value.y * 0.8
-  return `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) rotate(${rotate.toFixed(2)}deg)`
-})
+// Only the two motion flags can change these, so the bindings recompute on a
+// media-query change and never on pointer movement.
+const scanPhoneMotionTransform = computed(() => (
+  reduceMotion.value || phoneLayout.value ? 'translate3d(0, 0, 0)' : SCAN_PHONE_MOTION
+))
+
+const scanQrMotionTransform = computed(() => (
+  reduceMotion.value || phoneLayout.value ? 'rotate(-8deg)' : SCAN_QR_MOTION
+))
 
 function onMotionChange(e: MediaQueryListEvent) {
   reduceMotion.value = e.matches
@@ -509,6 +510,14 @@ onBeforeUnmount(() => {
   syntax: '<angle>';
   inherits: false;
   initial-value: 0deg;
+}
+
+/* Lerped pointer, normalized to -1..1 and unitless. useLerpVars overwrites these
+   on the section each frame; the defaults keep SSR and first paint correct
+   before the first pointer event. */
+.scan-section {
+  --scan-mx: 0;
+  --scan-my: 0;
 }
 
 .scan-step-row {

@@ -52,7 +52,10 @@ const rawMouse = useSharedMouse().latest
 // Gated on the section being near the viewport so mousemoves elsewhere on the
 // page do not wake this loop.
 const lerpActive = useNearViewport(sectionRef)
-const paneMouse = useLerp(rawMouse, 0.075, () => lerpActive.value)
+// Publishes --pane-mx / --pane-my (normalized -1..1) on the section instead of a
+// ref, so the pane transforms are constant strings that CSS re-evaluates on the
+// compositor. Moving the cursor never re-renders this component.
+useLerpVars(sectionRef, rawMouse, 'pane', 0.075, () => lerpActive.value)
 
 const progressPanePaths = [
   { outward: 1.28, cross: 0.44, vertical: 0.72, lane: -0.96 },
@@ -229,19 +232,23 @@ function onPaneMotionChange(e: MediaQueryListEvent) {
   paneMotionDisabled.value = e.matches
 }
 
+// The per-pane coefficients are constants, so the whole transform is a constant
+// CSS expression over --pane-mx / --pane-my: only the two motion flags can
+// change what this returns, never the pointer.
 function progressPaneTransform(side: 'left' | 'right', index: number, kind: 'chip' | 'chart' = 'chip') {
   if (reduceMotion.value || paneMotionDisabled.value) return 'translate3d(0, 0, 0)'
 
   const sideSign = side === 'left' ? -1 : 1
   const path = progressPanePaths[kind === 'chart' ? 4 : index] ?? progressPanePaths[0]
-  const x = sideSign * (
-    paneMouse.value.x * 11 * path.outward
-    + paneMouse.value.y * 5 * path.cross
-  )
-  const y = paneMouse.value.y * 7.4 * path.vertical
-    + paneMouse.value.x * sideSign * 4.2 * path.lane
+  const xFromMx = (sideSign * 11 * path.outward).toFixed(3)
+  const xFromMy = (sideSign * 5 * path.cross).toFixed(3)
+  const yFromMy = (7.4 * path.vertical).toFixed(3)
+  const yFromMx = (sideSign * 4.2 * path.lane).toFixed(3)
 
-  return `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0)`
+  return 'translate3d('
+    + `calc(var(--pane-mx) * ${xFromMx}px + var(--pane-my) * ${xFromMy}px), `
+    + `calc(var(--pane-my) * ${yFromMy}px + var(--pane-mx) * ${yFromMx}px), `
+    + '0)'
 }
 
 onBeforeUnmount(() => {
@@ -258,6 +265,7 @@ onBeforeUnmount(() => {
   <section
     id="progress"
     ref="sectionRef"
+    class="progress-section"
     :style="{
       background: '#000',
       borderTop: '1px solid rgba(255,255,255,0.06)',
@@ -630,6 +638,14 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+/* Lerped pointer, normalized to -1..1 and unitless. useLerpVars overwrites these
+   on the section each frame; the defaults keep SSR and first paint correct
+   before the first pointer event. */
+.progress-section {
+  --pane-mx: 0;
+  --pane-my: 0;
+}
+
 .progress-chip::after {
   content: '';
   position: absolute;
