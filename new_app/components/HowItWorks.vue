@@ -97,8 +97,12 @@ let curveAnimUntil = 0
 const HIW_PROGRESS_STEPS = 4096
 let lastQuantizedP = Number.NaN
 
-const HIW_DESKTOP_TRACK_END_PROGRESS = 0.86
-const HIW_DESKTOP_LAST_EXIT_PROGRESS = 0.92
+// 340vh section → 240vh of sticky scroll. The 3-panel track still covers
+// the same 172vh it did at 300vh / 0.86, so swipe speed is unchanged.
+// The last card then holds for 12vh and fades across the remaining 56vh
+// instead of the old 16vh snap.
+const HIW_DESKTOP_TRACK_END_PROGRESS = 172 / 240
+const HIW_DESKTOP_LAST_EXIT_PROGRESS = 184 / 240
 
 // ─── Curve data ───────────────────────────────────────────────────────────
 const curvePoints: [number, number][] = [
@@ -1157,7 +1161,7 @@ onBeforeUnmount(() => {
 
 /* ── Section shell ─────────────────────────────────────── */
 .hiw-section {
-  height: 300vh;
+  height: var(--liftag-stable-vh-340);
   position: relative;
   z-index: 30;
   background: var(--bg);

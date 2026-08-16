@@ -274,39 +274,28 @@ onBeforeUnmount(() => {
       overflow: 'hidden',
     }"
   >
-    <!-- Center glow -->
+    <!-- Glow sits under the plate on desktop, recenters when the hero stacks. -->
     <div
-      class="section-glow is-green is-centered"
-      style="--glow-top: 50%; --glow-left: 50%; --glow-right: auto; --glow-size: 800px; --glow-blur: 80px; --glow-falloff: 65%;"
+      class="section-glow is-green is-centered progress-hero-glow"
     />
 
     <div class="container" style="position: relative;">
-      <!-- Header -->
-      <div :style="{ textAlign: 'center', marginBottom: '28px' }">
-        <Eyebrow color="#CCFF00" :style="{ justifyContent: 'center' }">▸ PROGRESS &amp; INSIGHTS</Eyebrow>
-        <SectionTitle :max="700" :style="{ textAlign: 'center', margin: '0 auto' }">
-          Watch the numbers <span class="lime">compound.</span>
-        </SectionTitle>
-        <p
-          class="reveal"
-          :style="{
-            color: 'rgba(255,255,255,0.55)',
-            fontSize: '17px',
-            fontWeight: 300,
-            lineHeight: 1.6,
-            maxWidth: '560px',
-            margin: '24px auto 0',
-          }"
-        >
-          Volume, PRs, 1RM estimates, streaks, body-part splits, workout history, rest trends. Every
-          dimension of your training in one place.
-        </p>
-      </div>
-
-      <div class="progress-plate-hero" aria-hidden="true">
-        <ClientOnly>
-          <LazyForgedPrPlate />
-        </ClientOnly>
+      <div class="progress-hero">
+        <div class="progress-hero-copy">
+          <Eyebrow color="#CCFF00">▸ PROGRESS &amp; INSIGHTS</Eyebrow>
+          <SectionTitle :max="640">
+            Watch the numbers <span class="lime">compound.</span>
+          </SectionTitle>
+          <p class="reveal progress-hero-text">
+            Volume, PRs, 1RM estimates, streaks, body-part splits, workout history, rest trends. Every
+            dimension of your training in one place.
+          </p>
+        </div>
+        <div class="progress-plate-hero" aria-hidden="true">
+          <ClientOnly>
+            <LazyForgedPrPlate />
+          </ClientOnly>
+        </div>
       </div>
 
       <!-- 3-col layout -->
@@ -626,11 +615,41 @@ onBeforeUnmount(() => {
   --pane-my: 0;
 }
 
+.progress-hero-glow {
+  --glow-top: 38%;
+  --glow-left: 72%;
+  --glow-right: auto;
+  --glow-size: 760px;
+  --glow-blur: 80px;
+  --glow-falloff: 65%;
+}
+
+.progress-hero {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.86fr) minmax(300px, 1.14fr);
+  gap: clamp(28px, 5vw, 80px);
+  align-items: center;
+  margin-bottom: 56px;
+}
+
+.progress-hero-copy {
+  max-width: 640px;
+}
+
+.progress-hero-text {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 1.6;
+  max-width: 520px;
+  margin: 24px 0 0;
+}
+
 .progress-plate-hero {
   position: relative;
-  width: min(640px, 100%);
+  width: min(560px, 100%);
   aspect-ratio: 1.16 / 1;
-  margin: 4px auto 36px;
+  margin-left: auto;
   pointer-events: none;
   overflow: visible;
   contain: layout;
@@ -951,15 +970,43 @@ onBeforeUnmount(() => {
   }
 }
 
+@media (max-width: 1024px) {
+  .progress-hero {
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+
+  .progress-plate-hero {
+    width: min(440px, 100%);
+  }
+}
+
 @media (max-width: 768px) {
   .progress-motion-pane {
     transform: none !important;
     will-change: auto;
   }
 
+  .progress-hero-glow {
+    --glow-top: 28%;
+    --glow-left: 50%;
+    --glow-size: 560px;
+  }
+
+  .progress-hero {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+
+  .progress-hero-text {
+    font-size: 16px;
+    max-width: 560px;
+  }
+
   .progress-plate-hero {
     width: min(380px, 100%);
-    margin-bottom: 20px;
+    margin: 0 auto;
   }
 }
 </style>
