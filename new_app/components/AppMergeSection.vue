@@ -104,8 +104,8 @@ let onMergeMobileChange: ((event: MediaQueryListEvent) => void) | null = null
 const mockApps: MockApp[] = [
   {
     key: 'set',
-    name: 'Set Logger',
-    replaces: 'Sets · RPE · notes',
+    name: 'Notes',
+    replaces: 'Sets · RPE',
     gradient: 'linear-gradient(145deg, #1cff7a 0%, #0c9f61 48%, #052a1d 100%)',
     accent: '#d7ffe8',
     glow: 'rgba(28,255,122,0.35)',
@@ -187,9 +187,9 @@ const mockApps: MockApp[] = [
     depth: 0.94,
   },
   {
-    key: 'pr',
-    name: 'PR Tracker',
-    replaces: 'Records',
+    key: 'calendar',
+    name: 'Calendar',
+    replaces: 'Reminders, notifications',
     gradient: 'linear-gradient(145deg, #ffcb6b 0%, #f59e0b 46%, #5b2200 100%)',
     accent: '#fff5d8',
     glow: 'rgba(245,158,11,0.34)',
@@ -955,9 +955,11 @@ onBeforeUnmount(() => {
                   <path d="M12 31l8-9 7 5 10-14" stroke-width="4.5" />
                   <path d="M12 31h.01M37 13h.01" stroke-width="6" />
                 </g>
-                <g v-else-if="app.key === 'pr'">
-                  <path d="M16 11h16v8c0 7.5-3.5 13-8 13s-8-5.5-8-13v-8Z" stroke-width="4" />
-                  <path d="M16 16h-6v3c0 4.5 3 7.5 7 7.5M32 16h6v3c0 4.5-3 7.5-7 7.5M24 32v6M18 40h12" stroke-width="3.7" />
+                <g v-else-if="app.key === 'calendar'">
+                  <rect x="10" y="12" width="28" height="26" rx="6" stroke-width="4" />
+                  <path d="M17 8v8M31 8v8" stroke-width="3.8" />
+                  <path d="M10 21.5h28" stroke-width="3.6" />
+                  <path d="M18 27h.01M24 27h.01M30 27h.01M18 33h.01M24 33h.01M30 33h.01" stroke-width="5.4" />
                 </g>
                 <g v-else>
                   <rect x="10" y="14" width="28" height="22" rx="8" stroke-width="4" />
