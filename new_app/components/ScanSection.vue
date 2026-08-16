@@ -169,17 +169,11 @@ function onStepBorderAnimationEnd(stepIndex: number, event: AnimationEvent) {
 
 const SCAN_PHONE_MOTION = 'translate3d(calc(var(--scan-mx) * 18px), calc(var(--scan-my) * 12px), 0)'
   + ' rotateX(calc(var(--scan-my) * 2.4deg)) rotateY(calc(var(--scan-mx) * -3.2deg))'
-const SCAN_QR_MOTION = 'translate3d(calc(var(--scan-mx) * -28px), calc(var(--scan-my) * -18px), 0)'
-  + ' rotate(calc(-8deg + var(--scan-mx) * -2.2deg + var(--scan-my) * 0.8deg))'
 
 // Only the two motion flags can change these, so the bindings recompute on a
 // media-query change and never on pointer movement.
 const scanPhoneMotionTransform = computed(() => (
   reduceMotion.value || phoneLayout.value ? 'translate3d(0, 0, 0)' : SCAN_PHONE_MOTION
-))
-
-const scanQrMotionTransform = computed(() => (
-  reduceMotion.value || phoneLayout.value ? 'rotate(-8deg)' : SCAN_QR_MOTION
 ))
 
 function onMotionChange(e: MediaQueryListEvent) {
@@ -275,26 +269,40 @@ onBeforeUnmount(() => {
       }"
     />
 
-    <div class="container" :style="{ position: 'relative', zIndex: 2 }">
-      <Eyebrow>▸ MACHINE SYNC</Eyebrow>
-      <SectionTitle>
-        Every machine has<br />a manual. <span class="lime">Now it's in your pocket.</span>
-      </SectionTitle>
+    <div class="container scan-wrap" :style="{ position: 'relative', zIndex: 2 }">
+      <div class="scan-intro">
+        <Eyebrow>▸ MACHINE SYNC</Eyebrow>
+        <SectionTitle>
+          Every machine has<br />a manual. <span class="lime">Now it's in your pocket.</span>
+        </SectionTitle>
 
-      <p
-        class="reveal scan-lede"
-        :style="{
-          fontSize: '18px',
-          fontWeight: 300,
-          lineHeight: 1.55,
-          color: 'rgba(255,255,255,0.6)',
-          maxWidth: '560px',
-          marginTop: '28px',
-        }"
+        <p
+          class="reveal scan-lede"
+          :style="{
+            fontSize: '18px',
+            fontWeight: 300,
+            lineHeight: 1.55,
+            color: 'rgba(255,255,255,0.6)',
+            maxWidth: '560px',
+            marginTop: '28px',
+          }"
+        >
+          No more guessing how a cable stack works. Tap the NFC tag or scan the QR code on any partner gym machine.
+          Liftag opens the right exercise, demo video, and tracking flow in seconds.
+        </p>
+      </div>
+
+      <figure
+        class="scan-token-stage"
+        aria-label="LIFTAG NFC tap token. Move to tilt the glass coin."
       >
-        No more guessing how a cable stack works. Tap the NFC tag or scan the QR code on any partner gym machine.
-        Liftag opens the right exercise, demo video, and tracking flow in seconds.
-      </p>
+        <TapTokenCore />
+        <figcaption class="scan-token-caption">
+          <span class="scan-token-caption-name protocol">NFC machine tag</span>
+          <span class="scan-token-caption-note protocol">Optional add-on</span>
+          <span class="scan-token-caption-note protocol">(below the QR code sticker)</span>
+        </figcaption>
+      </figure>
 
       <div
         class="section-2col scan-grid-2col"
@@ -340,61 +348,6 @@ onBeforeUnmount(() => {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <!-- Decorative QR sticker - rotated -8deg -->
-          <div
-            class="scan-qr-sticker"
-            :style="{
-              position: 'absolute',
-              bottom: '76px',
-              left: '8px',
-              width: '122px',
-              height: '122px',
-              background: '#fff',
-              padding: '11px',
-              borderRadius: '12px',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.6), 0 0 30px rgba(204,255,0,0.2)',
-              transform: scanQrMotionTransform,
-              zIndex: 4,
-            }"
-          >
-            <!--
-              The card is transformed (scanQrMotionTransform), so it forms a
-              stacking context and the free rim cannot sit behind it. Masked
-              variant instead - same fix as .gyms-qr-sticker-rim.
-            -->
-            <div class="prism-rim prism-rim--masked scan-qr-sticker-rim" aria-hidden="true"></div>
-            <img
-              src="/uploads/qr-code-160.webp"
-              srcset="/uploads/qr-code-112.webp 112w, /uploads/qr-code-160.webp 160w, /uploads/qr-code-224.webp 224w, /uploads/qr-code.webp 400w"
-              sizes="100px"
-              alt="LIFTAG QR Code"
-              width="160"
-              height="160"
-              loading="lazy"
-              decoding="async"
-              :style="{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }"
-            />
-            <div
-              :style="{
-                position: 'absolute',
-                bottom: '-31px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: 'max-content',
-                textAlign: 'center',
-                fontFamily: '\'JetBrains Mono\', monospace',
-                fontSize: '8px',
-                fontWeight: 700,
-                letterSpacing: '0.08em',
-                color: '#CCFF00',
-                textTransform: 'uppercase',
-                textShadow: '0 0 14px rgba(204,255,0,0.32)',
-              }"
-            >
-              QR + NFC machine tags
             </div>
           </div>
         </div>
@@ -710,20 +663,76 @@ onBeforeUnmount(() => {
   perspective: 900px;
 }
 
-.scan-phone-motion,
-.scan-qr-sticker {
+.scan-phone-motion {
   transform-origin: center;
   transform-style: preserve-3d;
   will-change: transform;
 }
 
-/* Same spectral edge as .get__rim (pages/get.vue) and .gyms-qr-sticker-rim
-   (GymsSection.vue). Masked variant because the host is transformed. */
-.scan-qr-sticker-rim {
-  --prism-inset: 5px;
-  --prism-radius: 17px;
-  --prism-strength: 0.55;
-  z-index: 5;
+.scan-wrap {
+  --scan-grid-top: 100px;
+  --scan-phone-h: 680px;
+  --scan-token: 280px;
+  --scan-token-lift: 36px;
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+}
+
+.scan-intro {
+  grid-column: 1 / -1;
+}
+
+.scan-grid-2col {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.scan-phone-area {
+  overflow: visible;
+}
+
+.scan-token-stage {
+  position: relative;
+  z-index: 4;
+  grid-column: 1;
+  grid-row: 2;
+  align-self: start;
+  justify-self: start;
+  width: var(--scan-token);
+  min-height: var(--scan-token);
+  margin: calc(var(--scan-grid-top) + var(--scan-phone-h) - var(--scan-token) - var(--scan-token-lift)) 0 0;
+  aspect-ratio: 1;
+  filter: drop-shadow(0 28px 40px rgba(0, 0, 0, 0.72)) drop-shadow(0 0 36px rgba(204, 255, 0, 0.16));
+}
+
+.scan-token-caption {
+  position: absolute;
+  left: 50%;
+  bottom: -40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: max-content;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.scan-token-caption-name {
+  color: #ccff00;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 0 14px rgba(204, 255, 0, 0.32);
+}
+
+.scan-token-caption-note {
+  color: rgba(255, 255, 255, 0.32);
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .scan-phone-camera {
@@ -893,17 +902,44 @@ onBeforeUnmount(() => {
     display: none !important;
   }
 
+  .scan-wrap {
+    grid-template-columns: minmax(126px, 37vw) minmax(0, 1fr);
+    column-gap: clamp(14px, 4vw, 22px);
+  }
+
+  .scan-intro {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .scan-token-stage {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: center;
+    align-self: center;
+    width: min(78vw, 320px);
+    min-height: min(78vw, 320px);
+    margin: 28px auto 48px;
+    filter: drop-shadow(0 22px 32px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 28px rgba(204, 255, 0, 0.14));
+  }
+
+  .scan-token-caption {
+    bottom: -38px;
+  }
+
   .scan-grid-2col {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    display: grid !important;
     grid-template-columns: minmax(126px, 37vw) minmax(0, 1fr) !important;
-    align-items: start !important;
     gap: clamp(14px, 4vw, 22px) !important;
-    margin-top: 30px !important;
+    margin-top: 12px !important;
+    align-items: start !important;
   }
 
   .scan-phone-area {
-    display: block !important;
-    height: 332px !important;
-    min-height: 332px !important;
+    height: auto !important;
+    min-height: 0 !important;
   }
 
   .scan-phone-wrap {
@@ -911,7 +947,7 @@ onBeforeUnmount(() => {
     top: 0 !important;
     left: 0 !important;
     width: fit-content;
-    margin: 0 auto;
+    margin: 8px auto 0;
     transform: none !important;
   }
 
@@ -1101,14 +1137,15 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 390px) {
-  .scan-grid-2col {
-    grid-template-columns: minmax(116px, 34vw) minmax(0, 1fr) !important;
-    gap: 12px !important;
+  .scan-wrap {
+    grid-template-columns: minmax(116px, 34vw) minmax(0, 1fr);
+    column-gap: 12px;
   }
 
-  .scan-phone-area {
-    height: 306px !important;
-    min-height: 306px !important;
+  .scan-token-stage {
+    width: min(82vw, 300px);
+    min-height: min(82vw, 300px);
+    margin-top: 20px;
   }
 
   .scan-phone-camera {
@@ -1133,13 +1170,11 @@ onBeforeUnmount(() => {
     padding-top: 68px !important;
   }
 
-  :deep(html[data-liftag-short-viewport="true"] .scan-grid-2col) {
-    margin-top: 24px !important;
-  }
-
-  :deep(html[data-liftag-short-viewport="true"] .scan-phone-area) {
-    height: 286px !important;
-    min-height: 286px !important;
+  :deep(html[data-liftag-short-viewport="true"] .scan-token-stage) {
+    width: min(70vw, 260px);
+    min-height: min(70vw, 260px);
+    margin-top: 16px;
+    margin-bottom: 40px;
   }
 
   :deep(html[data-liftag-short-viewport="true"] .scan-phone-camera) {
