@@ -326,8 +326,36 @@ function cacheRayLayout() {
   const stage = stageRef.value
   if (!sticky || !stage) return
 
+  // The finale/exit transforms on .app-merge-layout and .merge-stage
+  // (--merge-exit-y/-scale, --merge-stage-exit) only activate in the last
+  // ~2% of scroll, but that's exactly where the IntersectionObserver below
+  // re-fires "entering" when scrolling back UP into the section from below.
+  // Measuring while those transforms are live bakes a shifted-up origin
+  // into --ray-ox/--ray-oy that then stays wrong for the rest of the
+  // upward scroll (the ray layer itself never carries that transform).
+  // Neutralize them for this synchronous read only.
+  const section = sectionRef.value
+  const prevExitY = section?.style.getPropertyValue('--merge-exit-y') ?? ''
+  const prevExitScale = section?.style.getPropertyValue('--merge-exit-scale') ?? ''
+  const prevStageExit = section?.style.getPropertyValue('--merge-stage-exit') ?? ''
+  if (section) {
+    section.style.setProperty('--merge-exit-y', '0px')
+    section.style.setProperty('--merge-exit-scale', '1')
+    section.style.setProperty('--merge-stage-exit', '0')
+  }
+
   const stickyRect = sticky.getBoundingClientRect()
   const stageRect = stage.getBoundingClientRect()
+
+  if (section) {
+    if (prevExitY) section.style.setProperty('--merge-exit-y', prevExitY)
+    else section.style.removeProperty('--merge-exit-y')
+    if (prevExitScale) section.style.setProperty('--merge-exit-scale', prevExitScale)
+    else section.style.removeProperty('--merge-exit-scale')
+    if (prevStageExit) section.style.setProperty('--merge-stage-exit', prevStageExit)
+    else section.style.removeProperty('--merge-stage-exit')
+  }
+
   rayOriginX = stageRect.left - stickyRect.left + stageRect.width * 0.5
   rayOriginY = stageRect.top - stickyRect.top + stageRect.height * 0.5
   clipW = stickyRect.width
