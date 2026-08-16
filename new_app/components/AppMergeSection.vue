@@ -16,6 +16,7 @@ import {
   type MergeFieldCore,
 } from '../composables/useMergeParticleField'
 import { rayDissolvedLength, rayRectVisibleLength } from '../utils/mergeRayClip'
+import { shockBlurActive, shockOriginInCopy } from '../utils/mergeShockBlur'
 
 interface MockApp {
   key: string
@@ -36,6 +37,7 @@ interface MockApp {
 const sectionRef = ref<HTMLElement | null>(null)
 const stickyRef = ref<HTMLElement | null>(null)
 const stageRef = ref<HTMLElement | null>(null)
+const copyRef = ref<HTMLElement | null>(null)
 const liftagRef = ref<HTMLElement | null>(null)
 const isMobileParticles = ref(false)
 
@@ -82,6 +84,9 @@ let clipW = 0
 let clipH = 0
 let lastRayOx = ''
 let lastRayOy = ''
+let lastShockOx = ''
+let lastShockOy = ''
+let lastShockBlur = false
 let lastLogoTransform = ''
 let lastLogoOpacity = ''
 let lastLogoSpin = ''
@@ -346,6 +351,8 @@ function cacheRayLayout() {
 
   const stickyRect = sticky.getBoundingClientRect()
   const stageRect = stage.getBoundingClientRect()
+  const copy = copyRef.value
+  const copyRect = copy?.getBoundingClientRect() ?? null
 
   if (section) {
     if (prevExitY) section.style.setProperty('--merge-exit-y', prevExitY)
@@ -370,6 +377,25 @@ function cacheRayLayout() {
   if (lastRayOy !== oy) {
     sticky.style.setProperty('--ray-oy', oy)
     lastRayOy = oy
+  }
+
+  if (copy && copyRect) {
+    const origin = shockOriginInCopy(
+      rayOriginX,
+      rayOriginY,
+      copyRect.left - stickyRect.left,
+      copyRect.top - stickyRect.top,
+    )
+    const shockOx = `${origin.x}px`
+    const shockOy = `${origin.y}px`
+    if (lastShockOx !== shockOx) {
+      copy.style.setProperty('--shock-ox', shockOx)
+      lastShockOx = shockOx
+    }
+    if (lastShockOy !== shockOy) {
+      copy.style.setProperty('--shock-oy', shockOy)
+      lastShockOy = shockOy
+    }
   }
 }
 
@@ -697,6 +723,15 @@ function updateAnimatedStyles(now = performance.now()) {
       lastFinaleCss = finaleCss
     }
 
+    const shockBlur = shockBlurActive(finaleCss, {
+      reduceMotion,
+      mobile: mergeMobileMql?.matches ?? false,
+    })
+    if (shockBlur !== lastShockBlur) {
+      section.classList.toggle('is-shock-blur', shockBlur)
+      lastShockBlur = shockBlur
+    }
+
     const exitVarsKey = `${exitCss}|${copyEyebrowExitCss}|${copyTitleExitCss}|${copyTextExitCss}|${stageExitCss}|${bgExitCss}`
     if (exitVarsKey !== lastExitVarsKey) {
       section.style.setProperty('--merge-exit-p', String(exitCss))
@@ -802,6 +837,7 @@ onMounted(() => {
     })
     if (stageRef.value) stageResizeObserver.observe(stageRef.value)
     if (stickyRef.value) stageResizeObserver.observe(stickyRef.value)
+    if (copyRef.value) stageResizeObserver.observe(copyRef.value)
   }
 })
 
@@ -851,7 +887,7 @@ onBeforeUnmount(() => {
       <MergeBurstHalo />
 
       <div class="container app-merge-layout">
-        <div class="merge-copy">
+        <div ref="copyRef" class="merge-copy">
           <Eyebrow class="merge-copy-eyebrow">▸ ONE APP INSTEAD OF EIGHT</Eyebrow>
           <SectionTitle class="merge-copy-title" :max="560">
             All the little gym apps, <span class="lime">folded into LIFTAG.</span>
@@ -859,6 +895,9 @@ onBeforeUnmount(() => {
           <p class="merge-copy-text reveal">
             Set logging, rest timing, PRs, body metrics, form guides, progress charts, and routines finally live in one place.
           </p>
+          <div class="merge-copy-shock" aria-hidden="true">
+            <span></span>
+          </div>
         </div>
 
         <div ref="stageRef" class="merge-stage" aria-label="Mock fitness apps merging into LIFTAG">
@@ -960,6 +999,16 @@ onBeforeUnmount(() => {
 .app-merge-section {
   --merge-p: 0;
   --finale-p: 0;
+  --burst-t: max(0, min(1, calc((var(--finale-p, 0) - 0.08) / 0.92)));
+  --burst-inv: calc(1 - var(--burst-t));
+  --burst-ease: calc(1 - var(--burst-inv) * var(--burst-inv) * var(--burst-inv));
+  /* Locked to MergeBurstHalo span 3: the only ring that crosses the copy. */
+  --shock-wave-s0: 0.1;
+  --shock-wave-s1: 2.48;
+  --shock-wave-size: 72vmax;
+  --shock-wave-bang: 0.12;
+  --shock-wave-rise: 0.1;
+  --shock-wave-fade: 0.72;
   --merge-exit-p: 0;
   --merge-exit-y: 0px;
   --merge-exit-scale: 1;
@@ -1056,7 +1105,64 @@ onBeforeUnmount(() => {
 }
 
 .merge-copy {
+  --shock-rise: max(0, min(1, calc((var(--finale-p, 0) - var(--shock-wave-bang)) / var(--shock-wave-rise))));
+  --shock-fall: max(0, min(1, calc(1 - (var(--finale-p, 0) - var(--shock-wave-bang) - var(--shock-wave-rise)) / var(--shock-wave-fade))));
+  --shock-r: calc(var(--shock-wave-size) * (var(--shock-wave-s0) + var(--burst-ease) * var(--shock-wave-s1)) / 2);
+  --shock-ring: 28px;
+  position: relative;
   max-width: 620px;
+}
+
+/* Copy-column ring only. A halo-sized backdrop-filter would snapshot the
+   particle field across a viewport box; this box is the left text, and the
+   blur radius stays fixed so the parent's opacity can fade the band. */
+.merge-copy-shock {
+  position: absolute;
+  inset: -28px;
+  z-index: 2;
+  pointer-events: none;
+  opacity: calc(var(--shock-rise) * var(--shock-fall));
+}
+
+.merge-copy-shock span {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.app-merge-section.is-shock-blur .merge-copy-shock span {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  -webkit-mask-image: radial-gradient(
+    circle at var(--shock-ox, 140%) var(--shock-oy, 50%),
+    transparent calc(var(--shock-r) - var(--shock-ring)),
+    #000 var(--shock-r),
+    transparent calc(var(--shock-r) + var(--shock-ring))
+  );
+  mask-image: radial-gradient(
+    circle at var(--shock-ox, 140%) var(--shock-oy, 50%),
+    transparent calc(var(--shock-r) - var(--shock-ring)),
+    #000 var(--shock-r),
+    transparent calc(var(--shock-r) + var(--shock-ring))
+  );
+}
+
+@media (max-width: 768px) {
+  .merge-copy-shock {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .merge-copy-shock {
+    display: none;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .merge-copy-shock {
+    display: none;
+  }
 }
 
 .app-merge-section .merge-copy-eyebrow,
