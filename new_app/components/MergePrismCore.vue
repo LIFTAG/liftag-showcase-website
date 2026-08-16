@@ -19,6 +19,12 @@
 // kick, and eight coloured lights, one per mock app, that brighten as their
 // icon flies in. The crystal literally refracts the apps being absorbed.
 //
+// Sharpness: the outline already has analytic chord coverage, so the plate's
+// leftover-SDF AA does not apply. What does: a higher backing-store scale
+// (capped below the plate, this path is heavier) and quieter static dither.
+// There is no stamp texture to mipmap. Context MSAA cannot help a fullscreen
+// triangle.
+//
 // Lifecycle contract matches MergeParticles:
 //   • never initializes under prefers-reduced-motion
 //   • lazy-inits only while the shared field is armed AND the core has charge
@@ -26,6 +32,7 @@
 //   • pauses while the document is hidden
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useMergeParticleField } from '../composables/useMergeParticleField'
+import { prismBufferScale } from '../utils/mergePrism'
 
 const props = withDefaults(defineProps<{
   /** Eight lights, one per mock app: unit direction + linear rgb. */
@@ -34,7 +41,7 @@ const props = withDefaults(defineProps<{
   dprCap?: number
 }>(), {
   icons: () => [],
-  dprCap: 1.25,
+  dprCap: 1.75,
 })
 
 const mount = ref<HTMLElement | null>(null)
@@ -404,7 +411,7 @@ const fragmentSource = /* glsl */ `
     // Dither only where there is signal. A flat noise floor is still coverage,
     // and coverage across an empty canvas is the same visible rectangle.
     float lum = max(max(col.r, col.g), col.b);
-    col += (hash(gl_FragCoord.xy + fract(uTime) * 91.7) - 0.5) * 0.006 * smoothstep(0.0, 0.05, lum);
+    col += (hash(gl_FragCoord.xy) - 0.5) * 0.004 * smoothstep(0.0, 0.05, lum);
     col = clamp(col, 0.0, 1.0);
 
     // Premultiplied emissive: black is absent, bright is additive under the
@@ -485,9 +492,21 @@ function syncIconEnergy() {
   }
 }
 
+function currentBufferScale() {
+  return Math.min(
+    prismBufferScale(
+      window.devicePixelRatio || 1,
+      navigator.hardwareConcurrency ?? 8,
+      window.innerWidth,
+    ),
+    props.dprCap,
+  )
+}
+
 function resizeBuffer() {
   const host = mount.value
   if (!host || !canvasEl || !gl) return
+  dpr = currentBufferScale()
   const width = Math.max(1, Math.round((host.clientWidth || 1) * dpr))
   const height = Math.max(1, Math.round((host.clientHeight || 1) * dpr))
   compact = (host.clientWidth || 0) < 400
@@ -767,12 +786,10 @@ onMounted(() => {
   if (!host) return
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
-  // Phones get a canvas roughly a third the area of the desktop one, so they
-  // can afford more than 1x on the facet edges. Low-core devices cannot.
-  const cores = navigator.hardwareConcurrency ?? 8
+  // Same sharpness idea as the plate, with a lower desktop cap: this shader
+  // traces three IOR paths and shares the section with the particle field.
   primeIconUniforms()
-  const cap = cores <= 4 ? 1 : (window.innerWidth <= 768 ? 1.5 : props.dprCap)
-  dpr = Math.min(window.devicePixelRatio || 1, cap)
+  dpr = currentBufferScale()
 
   io = new IntersectionObserver(
     (entries) => {

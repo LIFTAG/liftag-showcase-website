@@ -282,7 +282,7 @@ onBeforeUnmount(() => {
 
     <div class="container" style="position: relative;">
       <!-- Header -->
-      <div :style="{ textAlign: 'center', marginBottom: '80px' }">
+      <div :style="{ textAlign: 'center', marginBottom: '28px' }">
         <Eyebrow color="#CCFF00" :style="{ justifyContent: 'center' }">▸ PROGRESS &amp; INSIGHTS</Eyebrow>
         <SectionTitle :max="700" :style="{ textAlign: 'center', margin: '0 auto' }">
           Watch the numbers <span class="lime">compound.</span>
@@ -301,6 +301,12 @@ onBeforeUnmount(() => {
           Volume, PRs, 1RM estimates, streaks, body-part splits, workout history, rest trends. Every
           dimension of your training in one place.
         </p>
+      </div>
+
+      <div class="progress-plate-hero" aria-hidden="true">
+        <ClientOnly>
+          <LazyForgedPrPlate />
+        </ClientOnly>
       </div>
 
       <!-- 3-col layout -->
@@ -420,41 +426,15 @@ onBeforeUnmount(() => {
         </div>
 
         <!-- CENTER phone -->
-        <div
-          :style="{
-            position: 'relative',
-            flexShrink: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }"
-        >
-          <!-- Floating phone wrapper -->
-          <div
-            class="progress-phone-float"
-            :style="{
-              position: 'relative',
-            }"
-          >
-            <!-- Glow behind phone -->
-            <div
-              class="progress-phone-glow"
-              :style="{
-                position: 'absolute',
-                inset: '8px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(204,255,0,0.22) 0%, transparent 65%)',
-                filter: 'blur(24px)',
-              }"
-              aria-hidden="true"
-            />
+        <div class="progress-stage">
+          <div class="progress-phone-float">
+            <div class="progress-phone-glow" aria-hidden="true" />
             <div :key="screenPulse" class="progress-phone-pulse" aria-hidden="true" />
             <Phone
               :src="screens[screen]"
               :scale="1.05"
               :style="{ position: 'relative', zIndex: '2' }"
             />
-
           </div>
 
           <!-- Dot indicators — outside the float so they don't bob -->
@@ -646,6 +626,39 @@ onBeforeUnmount(() => {
   --pane-my: 0;
 }
 
+.progress-plate-hero {
+  position: relative;
+  width: min(640px, 100%);
+  aspect-ratio: 1.16 / 1;
+  margin: 4px auto 36px;
+  pointer-events: none;
+  overflow: visible;
+  contain: layout;
+}
+
+.progress-stage {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.progress-phone-float {
+  position: relative;
+  z-index: 2;
+  animation: float-y 6s ease-in-out infinite;
+}
+
+.progress-phone-glow {
+  position: absolute;
+  inset: 18% 22%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(204, 255, 0, 0.10) 0%, transparent 68%);
+  filter: blur(18px);
+  pointer-events: none;
+}
+
 .progress-chip::after {
   content: '';
   position: absolute;
@@ -729,10 +742,6 @@ onBeforeUnmount(() => {
   color: rgba(204, 255, 0, 0.78);
   text-transform: uppercase;
   transition: color 260ms ease;
-}
-
-.progress-phone-float {
-  animation: float-y 6s ease-in-out infinite;
 }
 
 .progress-phone-glow::after {
@@ -948,5 +957,9 @@ onBeforeUnmount(() => {
     will-change: auto;
   }
 
+  .progress-plate-hero {
+    width: min(380px, 100%);
+    margin-bottom: 20px;
+  }
 }
 </style>
