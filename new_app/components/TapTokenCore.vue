@@ -9,17 +9,22 @@
 // Dispersion is rim-only. A full-body RGB split would make this Crystal Two;
 // a coin has to stay a coin in a still frame.
 //
+// Sharpness: the canvas tracks native DPR (2.5 on phones, 1.25 on desktop).
+// iOS reports 4 cores on every iPhone, so width is checked before core count.
+// The loop stays at 60fps; the token idle-spins and can be dragged.
+//
 // Lifecycle matches the crystal:
 //   • never initializes under prefers-reduced-motion (CSS still instead)
 //   • new canvas each init (a lost context cannot be revived)
 //   • full dispose when the token leaves the viewport
 //   • pause while the document is hidden
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { TOKEN_DESKTOP_DPR_CAP, tokenBufferScale } from '../utils/tapToken'
 
 const props = withDefaults(defineProps<{
   dprCap?: number
 }>(), {
-  dprCap: 1.25,
+  dprCap: TOKEN_DESKTOP_DPR_CAP,
 })
 
 const mount = ref<HTMLElement | null>(null)
@@ -539,9 +544,19 @@ function paintStill() {
   stillUrl.value = still.toDataURL('image/png')
 }
 
+function currentBufferScale() {
+  return tokenBufferScale(
+    window.devicePixelRatio || 1,
+    navigator.hardwareConcurrency ?? 8,
+    window.innerWidth,
+    props.dprCap,
+  )
+}
+
 function resizeBuffer() {
   const host = mount.value
   if (!host || !canvasEl || !gl) return
+  dpr = currentBufferScale()
   const width = Math.max(1, Math.round((host.clientWidth || 1) * dpr))
   const height = Math.max(1, Math.round((host.clientHeight || 1) * dpr))
   if (width === bufW && height === bufH) return
@@ -851,9 +866,7 @@ onMounted(async () => {
   paintStill()
   if (reduceMotion.value) return
 
-  const cores = navigator.hardwareConcurrency ?? 8
-  const cap = cores <= 4 ? 1 : (window.innerWidth <= 768 ? 1.5 : props.dprCap)
-  dpr = Math.min(window.devicePixelRatio || 1, cap)
+  dpr = currentBufferScale()
 
   bindPointer(host)
 

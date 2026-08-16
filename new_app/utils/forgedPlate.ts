@@ -22,6 +22,14 @@ export type PlatePhase = {
 }
 
 export const PLATE_PRESS_MS = 2200
+export const PLATE_PHONE_MAX_WIDTH = 768
+/** Phone island is ~400 CSS px; 2.5x still sits under the desktop 560×2 budget. */
+export const PLATE_PHONE_DPR_CAP = 2.5
+export const PLATE_DESKTOP_DPR_CAP = 2
+export const PLATE_LOW_POWER_DPR_CAP = 1.25
+export const PLATE_PHONE_LOW_POWER_DPR_CAP = 1.5
+/** After the press, phones present at ~30fps so the sharper buffer stays cheap. */
+export const PLATE_PHONE_SETTLED_PRESENT_MS = 32
 
 const POUR_START_MS = 240
 const POUR_END_MS = 1320
@@ -160,8 +168,9 @@ export function plateExtremeTilt() {
  * Backing-store scale for the plate canvas.
  *
  * The plate is one paused-when-offscreen fragment shader, not a full scene, so
- * it can sit closer to native DPR than the particle fields. The silhouette is
- * shaded, not meshed, so a 1.25 cap on a 2x display is what reads as pixels.
+ * it can sit closer to native DPR than the particle fields. Width is checked
+ * before core count: iOS reports 4 cores on every iPhone, and a 4-core cap
+ * would pin the now-large phone plate at 1.25x on a 3x display.
  */
 export function plateBufferScale(
   devicePixelRatio: number,
@@ -169,10 +178,20 @@ export function plateBufferScale(
   innerWidth: number,
 ) {
   const native = devicePixelRatio > 0 ? devicePixelRatio : 1
-  const cap = hardwareConcurrency <= 4
-    ? 1.25
-    : innerWidth <= 768
-      ? 1.75
-      : 2
-  return Math.min(native, cap)
+  const phone = innerWidth <= PLATE_PHONE_MAX_WIDTH
+
+  if (hardwareConcurrency <= 2) {
+    return Math.min(native, phone ? PLATE_PHONE_LOW_POWER_DPR_CAP : PLATE_LOW_POWER_DPR_CAP)
+  }
+
+  if (phone) return Math.min(native, PLATE_PHONE_DPR_CAP)
+  if (hardwareConcurrency <= 4) return Math.min(native, PLATE_LOW_POWER_DPR_CAP)
+  return Math.min(native, PLATE_DESKTOP_DPR_CAP)
+}
+
+/** 0 = every animation frame. Phones drop to ~30fps once the metal has settled. */
+export function platePresentIntervalMs(innerWidth: number, elapsedMs: number) {
+  if (innerWidth > PLATE_PHONE_MAX_WIDTH) return 0
+  if (elapsedMs < PLATE_PRESS_MS) return 0
+  return PLATE_PHONE_SETTLED_PRESENT_MS
 }

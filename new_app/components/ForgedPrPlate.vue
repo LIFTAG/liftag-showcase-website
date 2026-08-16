@@ -12,9 +12,11 @@
 //   2. a thin-film rainbow split on the rim and the stamp edges, lit by the
 //      same lime key and red-neon kick the rest of the page uses
 //
-// Sharpness is free on this island: the canvas tracks native DPR (capped at 2),
-// the silhouette uses leftover SDF coverage instead of a hard hit/miss, and the
-// stamp heightmap has mipmaps. Context MSAA cannot help a fullscreen triangle.
+// Sharpness is mostly free on this island: the canvas tracks native DPR (2.5
+// on phones, 2 on desktop), the silhouette uses leftover SDF coverage instead
+// of a hard hit/miss, and the stamp heightmap has mipmaps. Phones present at
+// 30fps after the press so the sharper buffer does not cost extra frame time.
+// Context MSAA cannot help a fullscreen triangle.
 //
 // Lifecycle matches the other WebGL islands:
 //   • lazy-inits when the mount is near the viewport
@@ -32,6 +34,7 @@ import {
   plateIdleSway,
   platePhaseAt,
   platePointerTilt,
+  platePresentIntervalMs,
 } from '../utils/forgedPlate'
 
 const CAM_Z = PLATE_CAM_Z
@@ -47,6 +50,7 @@ let stampTex: WebGLTexture | null = null
 let loseContext: WEBGL_lose_context | null = null
 
 let rafId = 0
+let lastPresent = 0
 let running = false
 let intersecting = false
 let disposed = true
@@ -452,14 +456,20 @@ function frame(now: number) {
   }
 
   rafId = requestAnimationFrame(frame)
-  const phase = platePhaseAt(Math.max(0, now - startedAt), reduceMotion)
+  const elapsed = Math.max(0, now - startedAt)
+  const phase = platePhaseAt(elapsed, reduceMotion)
   applyTilt(now, phase.live)
+
+  const interval = platePresentIntervalMs(window.innerWidth, elapsed)
+  if (interval > 0 && now - lastPresent < interval) return
+  lastPresent = now
   renderFrame(now)
 }
 
 function startLoop() {
   if (running || disposed || document.hidden || reduceMotion) return
   running = true
+  lastPresent = 0
   rafId = requestAnimationFrame(frame)
 }
 

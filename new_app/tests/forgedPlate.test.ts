@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
   PLATE_CANVAS_HALF,
+  PLATE_PHONE_SETTLED_PRESENT_MS,
   PLATE_PRESS_MS,
   PLATE_REST_TILT,
   plateExtremeTilt,
@@ -10,6 +11,7 @@ import {
   plateMaxProjectedExtent,
   platePhaseAt,
   platePointerTilt,
+  platePresentIntervalMs,
 } from '../utils/forgedPlate.ts'
 
 test('reduced motion is a finished plate with no residual motion', () => {
@@ -87,9 +89,18 @@ test('rest and extreme tilts keep the rim inside the canvas', () => {
 test('the plate canvas tracks native DPR up to a still-cheap cap', () => {
   assert.equal(plateBufferScale(2, 8, 1440), 2)
   assert.equal(plateBufferScale(3, 8, 1440), 2)
-  assert.equal(plateBufferScale(2, 8, 390), 1.75)
+  assert.equal(plateBufferScale(3, 4, 390), 2.5)
+  assert.equal(plateBufferScale(2, 8, 390), 2)
   assert.equal(plateBufferScale(2, 4, 1440), 1.25)
+  assert.equal(plateBufferScale(2, 2, 390), 1.5)
   assert.equal(plateBufferScale(1, 8, 1440), 1)
+})
+
+test('phones present every other frame only after the press', () => {
+  assert.equal(platePresentIntervalMs(390, 0), 0)
+  assert.equal(platePresentIntervalMs(390, PLATE_PRESS_MS - 1), 0)
+  assert.equal(platePresentIntervalMs(390, PLATE_PRESS_MS), PLATE_PHONE_SETTLED_PRESENT_MS)
+  assert.equal(platePresentIntervalMs(1440, PLATE_PRESS_MS + 400), 0)
 })
 
 test('idle sway is zero when the plate has no residual life', () => {

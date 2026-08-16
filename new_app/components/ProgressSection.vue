@@ -990,7 +990,7 @@ onBeforeUnmount(() => {
   .progress-hero-glow {
     --glow-top: 28%;
     --glow-left: 50%;
-    --glow-size: 560px;
+    --glow-size: 720px;
   }
 
   .progress-hero {
@@ -1005,8 +1005,9 @@ onBeforeUnmount(() => {
   }
 
   .progress-plate-hero {
-    width: min(380px, 100%);
-    margin: 0 auto;
+    width: min(96vw, 560px);
+    aspect-ratio: 1;
+    margin-inline: calc((100% - min(96vw, 560px)) / 2);
   }
 }
 </style>
