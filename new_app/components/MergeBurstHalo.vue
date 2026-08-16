@@ -7,10 +7,12 @@
 </template>
 
 <style scoped>
-/* CSS-only shockwave from --finale-p. Transform/opacity only on these rings —
-   a backdrop-filter here would snapshot the particle field across a viewport-
-   sized box. The left-copy ring blur lives on .merge-copy-shock instead. */
+/* CSS-only shockwave from --finale-p. Transform/opacity only — no blur,
+   filter, or extra canvas; a full-page fluid shockwave is too expensive here. */
 .merge-burst-halo {
+  --burst-t: max(0, min(1, calc((var(--finale-p, 0) - 0.08) / 0.92)));
+  --burst-inv: calc(1 - var(--burst-t));
+  --burst-ease: calc(1 - var(--burst-inv) * var(--burst-inv) * var(--burst-inv));
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -56,13 +58,13 @@
 }
 
 .merge-burst-halo span:nth-child(3) {
-  --bang: var(--shock-wave-bang, 0.12);
-  --rise-span: var(--shock-wave-rise, 0.1);
-  --fade-span: var(--shock-wave-fade, 0.72);
+  --bang: 0.12;
+  --rise-span: 0.1;
+  --fade-span: 0.72;
   --peak: 0.38;
-  --s0: var(--shock-wave-s0, 0.1);
-  --s1: var(--shock-wave-s1, 2.48);
-  width: var(--shock-wave-size, 72vmax);
+  --s0: 0.1;
+  --s1: 2.48;
+  width: 72vmax;
   border-color: oklch(0.93 0.2 122 / 0.42);
 }
 
