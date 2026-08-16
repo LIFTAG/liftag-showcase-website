@@ -16,7 +16,12 @@ import {
   type MergeFieldCore,
 } from '../composables/useMergeParticleField'
 import { rayDissolvedLength, rayRectVisibleLength } from '../utils/mergeRayClip'
-import { shockBlurActive, shockOriginInCopy } from '../utils/mergeShockBlur'
+import {
+  shockBlurActive,
+  shockOriginInCopy,
+  shockwaveMaskStyle,
+  shockwaveRadiusPx,
+} from '../utils/mergeShockBlur'
 
 interface MockApp {
   key: string
@@ -38,6 +43,7 @@ const sectionRef = ref<HTMLElement | null>(null)
 const stickyRef = ref<HTMLElement | null>(null)
 const stageRef = ref<HTMLElement | null>(null)
 const copyRef = ref<HTMLElement | null>(null)
+const copyShockRef = ref<HTMLElement | null>(null)
 const liftagRef = ref<HTMLElement | null>(null)
 const isMobileParticles = ref(false)
 
@@ -86,7 +92,10 @@ let lastRayOx = ''
 let lastRayOy = ''
 let lastShockOx = ''
 let lastShockOy = ''
+let lastShockOxNum = 0
+let lastShockOyNum = 0
 let lastShockBlur = false
+let lastShockMaskKey = ''
 let lastLogoTransform = ''
 let lastLogoOpacity = ''
 let lastLogoSpin = ''
@@ -388,6 +397,8 @@ function cacheRayLayout() {
     )
     const shockOx = `${origin.x}px`
     const shockOy = `${origin.y}px`
+    lastShockOxNum = origin.x
+    lastShockOyNum = origin.y
     if (lastShockOx !== shockOx) {
       copy.style.setProperty('--shock-ox', shockOx)
       lastShockOx = shockOx
@@ -397,6 +408,44 @@ function cacheRayLayout() {
       lastShockOy = shockOy
     }
   }
+}
+
+function applyShockMask(finaleP: number, active: boolean) {
+  const span = copyShockRef.value
+  if (!span) return
+
+  if (!active) {
+    if (!lastShockMaskKey) return
+    span.style.webkitMaskImage = ''
+    span.style.maskImage = ''
+    span.style.webkitMaskSize = ''
+    span.style.maskSize = ''
+    span.style.webkitMaskPosition = ''
+    span.style.maskPosition = ''
+    span.style.webkitMaskRepeat = ''
+    span.style.maskRepeat = ''
+    lastShockMaskKey = ''
+    return
+  }
+
+  const vmax = Math.max(window.innerWidth, window.innerHeight)
+  const mask = shockwaveMaskStyle(
+    lastShockOxNum,
+    lastShockOyNum,
+    shockwaveRadiusPx(finaleP, vmax),
+  )
+  const key = `${mask.size}|${mask.position}`
+  if (key === lastShockMaskKey) return
+
+  span.style.webkitMaskImage = mask.image
+  span.style.maskImage = mask.image
+  span.style.webkitMaskSize = mask.size
+  span.style.maskSize = mask.size
+  span.style.webkitMaskPosition = mask.position
+  span.style.maskPosition = mask.position
+  span.style.webkitMaskRepeat = 'no-repeat'
+  span.style.maskRepeat = 'no-repeat'
+  lastShockMaskKey = key
 }
 
 function hideMergeVector(index: number, vector: HTMLElement) {
@@ -723,7 +772,7 @@ function updateAnimatedStyles(now = performance.now()) {
       lastFinaleCss = finaleCss
     }
 
-    const shockBlur = shockBlurActive(finaleCss, {
+    const shockBlur = shockBlurActive(logoIntro, {
       reduceMotion,
       mobile: mergeMobileMql?.matches ?? false,
     })
@@ -731,6 +780,7 @@ function updateAnimatedStyles(now = performance.now()) {
       section.classList.toggle('is-shock-blur', shockBlur)
       lastShockBlur = shockBlur
     }
+    applyShockMask(logoIntro, shockBlur)
 
     const exitVarsKey = `${exitCss}|${copyEyebrowExitCss}|${copyTitleExitCss}|${copyTextExitCss}|${stageExitCss}|${bgExitCss}`
     if (exitVarsKey !== lastExitVarsKey) {
@@ -896,7 +946,7 @@ onBeforeUnmount(() => {
             Set logging, rest timing, PRs, body metrics, form guides, progress charts, and routines finally live in one place.
           </p>
           <div class="merge-copy-shock" aria-hidden="true">
-            <span></span>
+            <span ref="copyShockRef"></span>
           </div>
         </div>
 
@@ -1109,15 +1159,13 @@ onBeforeUnmount(() => {
 .merge-copy {
   --shock-rise: max(0, min(1, calc((var(--finale-p, 0) - var(--shock-wave-bang)) / var(--shock-wave-rise))));
   --shock-fall: max(0, min(1, calc(1 - (var(--finale-p, 0) - var(--shock-wave-bang) - var(--shock-wave-rise)) / var(--shock-wave-fade))));
-  --shock-r: calc(var(--shock-wave-size) * (var(--shock-wave-s0) + var(--burst-ease) * var(--shock-wave-s1)) / 2);
-  --shock-ring: 28px;
   position: relative;
   max-width: 620px;
 }
 
-/* Copy-column ring only. A halo-sized backdrop-filter would snapshot the
-   particle field across a viewport box; this box is the left text, and the
-   blur radius stays fixed so the parent's opacity can fade the band. */
+/* Copy-column ring only. Mask size/position are written from rAF so the
+   band travels with the halo; a CSS-variable mask on backdrop-filter
+   often paints one frame and then sticks. */
 .merge-copy-shock {
   position: absolute;
   inset: -28px;
@@ -1135,18 +1183,6 @@ onBeforeUnmount(() => {
 .app-merge-section.is-shock-blur .merge-copy-shock span {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  -webkit-mask-image: radial-gradient(
-    circle at var(--shock-ox, 140%) var(--shock-oy, 50%),
-    transparent calc(var(--shock-r) - var(--shock-ring)),
-    #000 var(--shock-r),
-    transparent calc(var(--shock-r) + var(--shock-ring))
-  );
-  mask-image: radial-gradient(
-    circle at var(--shock-ox, 140%) var(--shock-oy, 50%),
-    transparent calc(var(--shock-r) - var(--shock-ring)),
-    #000 var(--shock-r),
-    transparent calc(var(--shock-r) + var(--shock-ring))
-  );
 }
 
 @media (max-width: 768px) {
