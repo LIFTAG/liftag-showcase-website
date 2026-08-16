@@ -155,3 +155,24 @@ export function plateExtremeTilt() {
     rotY: pointer.rotY + 0.036,
   }
 }
+
+/**
+ * Backing-store scale for the plate canvas.
+ *
+ * The plate is one paused-when-offscreen fragment shader, not a full scene, so
+ * it can sit closer to native DPR than the particle fields. The silhouette is
+ * shaded, not meshed, so a 1.25 cap on a 2x display is what reads as pixels.
+ */
+export function plateBufferScale(
+  devicePixelRatio: number,
+  hardwareConcurrency: number,
+  innerWidth: number,
+) {
+  const native = devicePixelRatio > 0 ? devicePixelRatio : 1
+  const cap = hardwareConcurrency <= 4
+    ? 1.25
+    : innerWidth <= 768
+      ? 1.75
+      : 2
+  return Math.min(native, cap)
+}

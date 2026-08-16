@@ -5,6 +5,7 @@ import {
   PLATE_PRESS_MS,
   PLATE_REST_TILT,
   plateExtremeTilt,
+  plateBufferScale,
   plateIdleSway,
   plateMaxProjectedExtent,
   platePhaseAt,
@@ -81,6 +82,14 @@ test('rest and extreme tilts keep the rim inside the canvas', () => {
   assert.ok(tilted.x < PLATE_CANVAS_HALF - 0.04, `extreme x ${tilted.x}`)
   assert.ok(tilted.y < PLATE_CANVAS_HALF - 0.04, `extreme y ${tilted.y}`)
   assert.ok(yawed.x < PLATE_CANVAS_HALF - 0.04, `yaw x ${yawed.x}`)
+})
+
+test('the plate canvas tracks native DPR up to a still-cheap cap', () => {
+  assert.equal(plateBufferScale(2, 8, 1440), 2)
+  assert.equal(plateBufferScale(3, 8, 1440), 2)
+  assert.equal(plateBufferScale(2, 8, 390), 1.75)
+  assert.equal(plateBufferScale(2, 4, 1440), 1.25)
+  assert.equal(plateBufferScale(1, 8, 1440), 1)
 })
 
 test('idle sway is zero when the plate has no residual life', () => {

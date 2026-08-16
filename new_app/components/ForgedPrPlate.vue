@@ -12,6 +12,10 @@
 //   2. a thin-film rainbow split on the rim and the stamp edges, lit by the
 //      same lime key and red-neon kick the rest of the page uses
 //
+// Sharpness is free on this island: the canvas tracks native DPR (capped at 2),
+// the silhouette uses leftover SDF coverage instead of a hard hit/miss, and the
+// stamp heightmap has mipmaps. Context MSAA cannot help a fullscreen triangle.
+//
 // Lifecycle matches the other WebGL islands:
 //   • lazy-inits when the mount is near the viewport
 //   • one static stamped frame under prefers-reduced-motion
@@ -24,6 +28,7 @@ import {
   PLATE_CAM_Z,
   PLATE_FOCAL,
   PLATE_REST_TILT,
+  plateBufferScale,
   plateIdleSway,
   platePhaseAt,
   platePointerTilt,
@@ -194,15 +199,16 @@ const fragmentSource = /* glsl */ `
     ));
   }
 
-  float march(vec3 ro, vec3 rd) {
+  vec3 march(vec3 ro, vec3 rd) {
     float t = 0.0;
+    float d = 1.0;
     for (int i = 0; i < 56; i++) {
-      float d = sdPlate(ro + rd * t);
-      if (d < 0.0014 * (1.0 + t)) return t;
+      d = sdPlate(ro + rd * t);
+      if (d < 0.0014 * (1.0 + t)) return vec3(t, d, 1.0);
       if (t > 8.0) break;
       t += d * 0.84;
     }
-    return -1.0;
+    return vec3(t, d, 0.0);
   }
 
   vec3 envSample(vec3 d) {
@@ -237,25 +243,28 @@ const fragmentSource = /* glsl */ `
     vec3 ro = rotX(rotY(roW, -uRot.y), -uRot.x);
     vec3 rd = rotX(rotY(rdW, -uRot.y), -uRot.x);
 
+    vec3 bloom = vec3(0.0);
+    bloom += vec3(0.78, 1.0, 0.06) * exp(-length(uv - vec2(-0.22, 0.06)) * 7.5) * 0.26;
+    bloom += vec3(1.00, 0.14, 0.32) * exp(-length(uv - vec2(0.26, 0.10)) * 8.0) * 0.18;
+    bloom *= smoothstep(0.74, 0.20, length(uv));
+    float ba = clamp(max(max(bloom.r, bloom.g), bloom.b) * 1.15, 0.0, 1.0);
+
     float b = dot(ro, rd);
     float c = dot(ro, ro) - 1.28;
     if (b * b - c < 0.0) {
-      vec3 bloom = vec3(0.0);
-      bloom += vec3(0.78, 1.0, 0.06) * exp(-length(uv - vec2(-0.22, 0.06)) * 7.5) * 0.26;
-      bloom += vec3(1.00, 0.14, 0.32) * exp(-length(uv - vec2(0.26, 0.10)) * 8.0) * 0.18;
-      bloom *= smoothstep(0.74, 0.20, length(uv));
-      float ba = clamp(max(max(bloom.r, bloom.g), bloom.b) * 1.15, 0.0, 1.0);
       gl_FragColor = vec4(bloom * ba, ba);
       return;
     }
 
-    float t = march(ro, rd);
-    if (t < 0.0) {
-      vec3 bloom = vec3(0.0);
-      bloom += vec3(0.78, 1.0, 0.06) * exp(-length(uv - vec2(-0.22, 0.06)) * 7.5) * 0.26;
-      bloom += vec3(1.00, 0.14, 0.32) * exp(-length(uv - vec2(0.26, 0.10)) * 8.0) * 0.18;
-      bloom *= smoothstep(0.74, 0.20, length(uv));
-      float ba = clamp(max(max(bloom.r, bloom.g), bloom.b) * 1.15, 0.0, 1.0);
+    vec3 traced = march(ro, rd);
+    float t = traced.x;
+    float lastD = traced.y;
+    float px = 2.0 * CAM_Z / (FOCAL * min(uRes.x, uRes.y));
+    float cover = traced.z > 0.5
+      ? 1.0
+      : (1.0 - smoothstep(0.0, px * 1.65, max(lastD, 0.0)));
+
+    if (cover < 0.01) {
       gl_FragColor = vec4(bloom * ba, ba);
       return;
     }
@@ -305,11 +314,12 @@ const fragmentSource = /* glsl */ `
     col += irid * rimBand * 0.28;
 
     col = 1.0 - exp(-max(col, 0.0) * 1.28);
-    col += (hash(gl_FragCoord.xy + fract(uTime) * 91.7) - 0.5) * 0.012;
+    col += (hash(gl_FragCoord.xy) - 0.5) * 0.004;
     col = clamp(col, 0.0, 1.0);
 
-    float a = 0.98;
-    gl_FragColor = vec4(col * a, a);
+    float a = 0.98 * cover;
+    float outA = clamp(a + ba * (1.0 - cover), 0.0, 1.0);
+    gl_FragColor = vec4(col * a + bloom * ba * (1.0 - cover), outA);
   }
 `
 
@@ -371,12 +381,23 @@ function uploadStamp(context: WebGLRenderingContext) {
   context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_S, context.CLAMP_TO_EDGE)
   context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_T, context.CLAMP_TO_EDGE)
   context.texImage2D(context.TEXTURE_2D, 0, context.RGBA, context.RGBA, context.UNSIGNED_BYTE, canvas)
+  context.generateMipmap(context.TEXTURE_2D)
+  context.texParameteri(context.TEXTURE_2D, context.TEXTURE_MIN_FILTER, context.LINEAR_MIPMAP_LINEAR)
   return texture
+}
+
+function currentBufferScale() {
+  return plateBufferScale(
+    window.devicePixelRatio || 1,
+    navigator.hardwareConcurrency ?? 8,
+    window.innerWidth,
+  )
 }
 
 function resizeBuffer() {
   const host = mount.value
   if (!host || !canvasEl || !gl) return
+  dpr = currentBufferScale()
   const width = Math.max(1, Math.round((host.clientWidth || 1) * dpr))
   const height = Math.max(1, Math.round((host.clientHeight || 1) * dpr))
   if (width === bufW && height === bufH) return
@@ -627,9 +648,7 @@ onMounted(() => {
   }
   motionMql.addEventListener('change', onMotionChange)
 
-  const cores = navigator.hardwareConcurrency ?? 8
-  const cap = cores <= 4 ? 1 : (window.innerWidth <= 768 ? 1.35 : 1.25)
-  dpr = Math.min(window.devicePixelRatio || 1, cap)
+  dpr = currentBufferScale()
 
   io = new IntersectionObserver(
     (entries) => {
