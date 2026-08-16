@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { clamp01, mapDashboardScroll, smootherstep, smoothstep } from '../utils/dashboardScroll'
-import type { ScreenVideoSource } from '../utils/macbookScreen'
+import type { ScreenVideoSource } from '../utils/screenVideo'
 
 const sectionRef = ref<HTMLElement | null>(null)
 const stageRef = ref<HTMLElement | null>(null)
@@ -1050,6 +1050,11 @@ onBeforeUnmount(() => {
   .dashboard-copy-head {
     order: 1;
     max-width: 360px;
+    /* On phones the copy sits in the document flow above the laptop, so it
+       should remain readable while the screen punches in. Desktop still fades
+       its overlapping chrome through --chrome-p. */
+    opacity: calc(1 - var(--exit-copy));
+    transform: translate3d(0, var(--exit-copy-y), 0);
   }
 
   .dashboard-copy-head :deep(.display) {
@@ -1106,6 +1111,11 @@ onBeforeUnmount(() => {
 
   .dashboard-feature {
     padding: 9px 0;
+  }
+
+  .dashboard-feature.reveal.in {
+    opacity: calc(1 - var(--exit-row));
+    transform: translate3d(0, var(--exit-row-y), 0);
   }
 
   .dashboard-feature-title {

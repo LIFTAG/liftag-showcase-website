@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js'
 import { onMouseEvent, useSharedMouse } from '../composables/useSharedMouse'
-import type { ScreenVideoSource } from '../utils/macbookScreen'
+import type { ScreenVideoSource } from '../utils/screenVideo'
 import {
   MACBOOK_DASHBOARD_CONTENT_ASPECT,
   MACBOOK_SCREEN_INSET,
@@ -73,6 +74,8 @@ function initMacbook() {
   const isLowPower = window.matchMedia('(pointer: coarse), (max-width: 620px)').matches
   const motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
 
+  RectAreaLightUniformsLib.init()
+
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
     alpha: true,
@@ -118,10 +121,6 @@ function initMacbook() {
   const fillLight = new THREE.DirectionalLight(0x99aacc, 0.32)
   fillLight.position.set(-3, 1.5, 2)
   scene.add(fillLight)
-
-  const accentLight = new THREE.PointLight(0xccff00, 0.55, 10, 2)
-  accentLight.position.set(0, 1.5, 1.6)
-  scene.add(accentLight)
 
   // Ground shadow plane (catches the laptop's shadow)
   const shadowPlane = new THREE.Mesh(
@@ -381,6 +380,19 @@ function initMacbook() {
   macbook.rotation.y = -0.06
   scene.add(macbook)
 
+  // Reuse the old lime accent-light budget as a broad, shadowless screen
+  // bounce. The rectangular source matches the display plane, so the keyboard
+  // receives a soft wash instead of a point-light hotspot as the hinge opens.
+  const screenBounceLight = new THREE.RectAreaLight(
+    0xe8ffbd,
+    0,
+    screenLayout.width * 0.86,
+    screenLayout.height * 0.58,
+  )
+  screenBounceLight.position.set(0, -0.026, H * 0.48)
+  screenBounceLight.rotation.x = -Math.PI / 2
+  lidGroup.add(screenBounceLight)
+
   const CAM_BASE_POS = new THREE.Vector3(0, 0.7, 6.85)
   const CAM_BASE_LOOK = new THREE.Vector3(0, 0.22, 0)
   const CAM_START_FOV = 30
@@ -601,6 +613,10 @@ function initMacbook() {
     const eased = smoothstep(currentOpen)
     const zoomT = currentZoom
     lidGroup.rotation.x = closedAngle + (openAngle - closedAngle) * eased
+
+    const screenWake = smootherstep(currentOpen / 0.045)
+    const openFade = smoothstep((currentOpen - 0.045) / 0.955)
+    screenBounceLight.intensity = screenWake * THREE.MathUtils.lerp(0.55, 0.135, openFade)
 
     macbook.rotation.x = currentTiltX
     macbook.rotation.y = currentTiltY

@@ -161,6 +161,7 @@ onBeforeUnmount(() => {
   >
     <!-- Left fade -->
     <div
+      class="marquee-fade marquee-fade--left"
       :style="{
         position: 'absolute', top: 0, left: 0, bottom: 0, width: '200px',
         background: 'linear-gradient(90deg, #000, transparent)',
@@ -169,6 +170,7 @@ onBeforeUnmount(() => {
     />
     <!-- Right fade -->
     <div
+      class="marquee-fade marquee-fade--right"
       :style="{
         position: 'absolute', top: 0, right: 0, bottom: 0, width: '200px',
         background: 'linear-gradient(-90deg, #000, transparent)',
@@ -210,7 +212,10 @@ onBeforeUnmount(() => {
 .marquee-group {
   display: flex;
   align-items: center;
-  gap: inherit;
+  /* Keep each dot visually centered between the preceding and following
+     labels. The track's larger gap is only for separating its duplicate
+     groups, not the items within a group. */
+  gap: 24px;
 }
 
 .marquee-item {
@@ -233,6 +238,24 @@ onBeforeUnmount(() => {
   background: #CCFF00;
   border-radius: 50%;
   box-shadow: 0 0 8px #CCFF00;
+}
+
+@media (max-width: 768px) {
+  .partner-marquee {
+    padding: 20px 0 !important;
+  }
+
+  .marquee-fade {
+    width: 76px !important;
+  }
+
+  .marquee-fade--left {
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.76), transparent) !important;
+  }
+
+  .marquee-fade--right {
+    background: linear-gradient(-90deg, rgba(0, 0, 0, 0.76), transparent) !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

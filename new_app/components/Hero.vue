@@ -718,7 +718,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
             filter: 'drop-shadow(0 24px 40px rgba(0,0,0,0.55))',
           }"
         >
-          <Phone src="/assets/screens/progression.webp" :scale="0.7" :tilt-delay-ms="140" :static-bezel="false" lite />
+          <Phone src="/assets/screens/hero-workout.webp" :scale="0.7" :tilt-delay-ms="140" :static-bezel="false" lite />
         </div>
 
         <!-- Back-right phone -->
@@ -733,7 +733,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
             filter: 'drop-shadow(0 22px 36px rgba(0,0,0,0.55))',
           }"
         >
-          <Phone src="/assets/screens/log-set.webp" :scale="0.64" :tilt-delay-ms="230" :static-bezel="false" lite />
+          <Phone src="/assets/screens/hero-progress.webp" :scale="0.64" :tilt-delay-ms="230" :static-bezel="false" lite />
         </div>
 
         <!-- Front center phone (main) -->
@@ -757,7 +757,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
               filter: 'blur(24px)',
             }"
           />
-          <Phone src="/assets/screens/home-hero-no-qr.webp" :scale="0.92" :tilt-delay-ms="0" :static-bezel="false" :lite="isMobile" priority />
+          <Phone src="/assets/screens/hero-dashboard.webp" :scale="0.92" :tilt-delay-ms="0" :static-bezel="false" :lite="isMobile" priority />
           <!-- Reflection streak -->
           <div
             :style="{
@@ -977,7 +977,9 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
           <span>By <span class="lime">lifters.</span></span>
         </p>
 
-        <p class="hero-mobile-copyline">
+        <p class="hero-mobile-kicker">Your all-in-one fitness app.</p>
+
+        <p class="hero-mobile-copyline hero-mobile-copyline--tablet">
           Tap NFC or scan QR at the machine. Core workout tracking is free forever. Premium intelligence is optional.
         </p>
 
@@ -1007,7 +1009,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
         <div class="hero-mobile-device">
           <div class="hero-mobile-device-glow" aria-hidden="true" />
           <Phone
-            src="/assets/screens/home-hero-no-qr.webp"
+            src="/assets/screens/hero-dashboard.webp"
             :scale="1"
             :tilt-delay-ms="0"
             lite
@@ -1020,6 +1022,17 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
           />
         </div>
       </div>
+
+      <p
+        class="hero-mobile-copyline hero-mobile-copyline--phone"
+        :style="{
+          opacity: entered ? 1 : 0,
+          transform: entered ? 'translateY(0)' : 'translateY(14px)',
+          transition: 'opacity 700ms 340ms cubic-bezier(0.16,1,0.3,1), transform 700ms 340ms cubic-bezier(0.16,1,0.3,1)',
+        }"
+      >
+        Tap NFC or scan QR at the machine. Core workout tracking is free forever. Premium intelligence is optional.
+      </p>
     </div>
 
     <!-- ── Scroll cue ── -->
@@ -1168,9 +1181,21 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
   display: inline;
 }
 
+.hero-mobile-kicker {
+  display: none;
+  margin: 14px 0 0;
+  color: rgba(255, 255, 255, 0.66);
+  font-family: var(--liftag-font-headline);
+  font-size: clamp(16px, 4.4vw, 19px);
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
 .hero-mobile-copyline {
   max-width: 22rem;
-  margin: 24px 0 0;
+  margin: 0;
   color: rgba(255, 255, 255, 0.68);
   font-size: 16px;
   font-weight: 300;
@@ -1311,7 +1336,9 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
     grid-template-rows: auto auto;
     gap: 36px;
     min-height: 0;
-    padding-top: 40px;
+    /* The section already clears the fixed nav. Keep this final offset equal
+       to the title-to-CTA rhythm instead of creating a second, larger gap. */
+    padding-top: 8px;
   }
 
   .hero-mobile-title {
@@ -1320,6 +1347,10 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 
   .hero-mobile-copyline {
     margin-top: 28px;
+  }
+
+  .hero-mobile-copyline--phone {
+    display: none;
   }
 
   .hero-mobile-actions {
@@ -1372,14 +1403,14 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
   }
 
   .hero-mobile-device::before {
-    background-image: url('/assets/screens/mobile-hero-rear-left.webp');
+    background-image: url('/assets/screens/hero-workout-360.webp');
     opacity: 0.62;
     transform: translate3d(-100%, 8%, 0) perspective(900px) rotateY(19deg) rotateZ(-6deg) scale(0.84);
     animation: heroRearLeftIdle var(--hero-phone-cycle) var(--hero-phone-motion-delay) linear infinite;
   }
 
   .hero-mobile-device::after {
-    background-image: url('/assets/screens/mobile-hero-rear-right.webp');
+    background-image: url('/assets/screens/hero-progress-360.webp');
     opacity: 0.56;
     transform: translate3d(0, 5%, 0) perspective(900px) rotateY(-19deg) rotateZ(6deg) scale(0.84);
     animation: heroRearRightIdle var(--hero-phone-cycle) var(--hero-phone-motion-delay) linear infinite;
@@ -1449,14 +1480,34 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
   .hero-mobile-secondary {
     display: none;
   }
+
+  .hero-mobile-kicker {
+    display: block;
+  }
+
+  .hero-mobile-layout {
+    grid-template-rows: auto auto auto;
+    row-gap: 28px;
+  }
+
+  .hero-mobile-copyline--tablet {
+    display: none;
+  }
+
+  .hero-mobile-copyline--phone {
+    display: block;
+    justify-self: center;
+    margin: 0;
+    text-align: center;
+  }
 }
 
 @media (max-width: 420px) {
   .hero-mobile-layout {
-    grid-template-rows: auto auto;
-    gap: 34px;
+    grid-template-rows: auto auto auto;
+    row-gap: 26px;
     min-height: 0;
-    padding-top: 36px;
+    padding-top: 6px;
   }
 
   .hero-mobile-title {
@@ -1467,6 +1518,10 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
     max-width: 19rem;
     margin-top: 26px;
     font-size: 15px;
+  }
+
+  .hero-mobile-copyline--phone {
+    margin-top: 0;
   }
 
   .hero-mobile-actions {
@@ -1484,7 +1539,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
     grid-template-rows: auto auto;
     gap: 26px;
     min-height: 0;
-    padding-top: 24px;
+    padding-top: 8px;
   }
 
   :global(html[data-liftag-short-viewport="true"] .hero-mobile-title) {
@@ -1616,6 +1671,17 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 
   :global(html[data-liftag-short-viewport="true"] .hero-mobile-visual) {
     min-height: 420px;
+  }
+}
+
+@media (max-width: 699px) {
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-layout) {
+    grid-template-rows: auto auto auto;
+    row-gap: 20px;
+  }
+
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-copyline--phone) {
+    margin-top: 0;
   }
 }
 

@@ -238,7 +238,7 @@ onBeforeUnmount(() => {
       Dashboard
     </a>
     <div class="nav-store-buttons">
-      <GetAppBtn label="Get the app" />
+      <GetAppBtn label="Get the app" idle-rim />
     </div>
   </div>
 </template>
