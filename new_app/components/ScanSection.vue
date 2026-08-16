@@ -937,9 +937,12 @@ onBeforeUnmount(() => {
     align-items: start !important;
   }
 
+  /* Reserved box + explicit display: the NFC token PR dropped both, and the
+     phone column collapsed next to STEP 01 / STEP 02. */
   .scan-phone-area {
-    height: auto !important;
-    min-height: 0 !important;
+    display: block !important;
+    height: 332px !important;
+    min-height: 332px !important;
   }
 
   .scan-phone-wrap {
@@ -1142,10 +1145,20 @@ onBeforeUnmount(() => {
     column-gap: 12px;
   }
 
+  .scan-grid-2col {
+    grid-template-columns: minmax(116px, 34vw) minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+
   .scan-token-stage {
     width: min(82vw, 300px);
     min-height: min(82vw, 300px);
     margin-top: 20px;
+  }
+
+  .scan-phone-area {
+    height: 306px !important;
+    min-height: 306px !important;
   }
 
   .scan-phone-camera {
@@ -1175,6 +1188,11 @@ onBeforeUnmount(() => {
     min-height: min(70vw, 260px);
     margin-top: 16px;
     margin-bottom: 40px;
+  }
+
+  :deep(html[data-liftag-short-viewport="true"] .scan-phone-area) {
+    height: 286px !important;
+    min-height: 286px !important;
   }
 
   :deep(html[data-liftag-short-viewport="true"] .scan-phone-camera) {

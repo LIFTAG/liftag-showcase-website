@@ -982,11 +982,9 @@ section {
     padding: 80px 0 !important;
   }
 
-  /* Scan: hide the big phone area entirely on mobile - each step
-     card has its own inline phone-screen preview (see ScanSection.vue). */
-  .scan-phone-area {
-    display: none !important;
-  }
+  /* Scan: ScanSection.vue owns the mobile 2-col (floating phone + steps).
+     Do not hide `.scan-phone-area` here — a `display: none` landmine is what
+     made the phone vanish after the NFC token landed. */
   .scan-grid-2col {
     grid-template-columns: 1fr !important;
     gap: 0 !important;
@@ -996,9 +994,8 @@ section {
   .scan-step-screen {
     display: block !important;
   }
-  /* Both scan steps always fully visible on mobile - the floating phone that
-     the desktop cycling drives is hidden, so dimming/shifting the inactive
-     step makes no sense. Override the inline opacity/transform. */
+  /* Both scan steps stay fully visible on mobile. ScanSection owns the
+     floating phone beside them; do not dim or shift the inactive row. */
   .scan-step-row {
     opacity: 1 !important;
     transform: none !important;
