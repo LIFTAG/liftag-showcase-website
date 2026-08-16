@@ -914,12 +914,12 @@ onBeforeUnmount(() => {
 
   .scan-token-stage {
     grid-column: 1 / -1;
-    grid-row: 2;
+    grid-row: 3;
     justify-self: center;
     align-self: center;
     width: min(78vw, 320px);
     min-height: min(78vw, 320px);
-    margin: 28px auto 48px;
+    margin: 48px auto 8px;
     filter: drop-shadow(0 22px 32px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 28px rgba(204, 255, 0, 0.14));
   }
 
@@ -929,11 +929,11 @@ onBeforeUnmount(() => {
 
   .scan-grid-2col {
     grid-column: 1 / -1;
-    grid-row: 3;
+    grid-row: 2;
     display: grid !important;
     grid-template-columns: minmax(126px, 37vw) minmax(0, 1fr) !important;
     gap: clamp(14px, 4vw, 22px) !important;
-    margin-top: 12px !important;
+    margin-top: 28px !important;
     align-items: start !important;
   }
 
@@ -1153,7 +1153,7 @@ onBeforeUnmount(() => {
   .scan-token-stage {
     width: min(82vw, 300px);
     min-height: min(82vw, 300px);
-    margin-top: 20px;
+    margin-top: 36px;
   }
 
   .scan-phone-area {
@@ -1186,8 +1186,8 @@ onBeforeUnmount(() => {
   :deep(html[data-liftag-short-viewport="true"] .scan-token-stage) {
     width: min(70vw, 260px);
     min-height: min(70vw, 260px);
-    margin-top: 16px;
-    margin-bottom: 40px;
+    margin-top: 36px;
+    margin-bottom: 4px;
   }
 
   :deep(html[data-liftag-short-viewport="true"] .scan-phone-area) {
