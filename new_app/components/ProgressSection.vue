@@ -419,42 +419,22 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <!-- CENTER phone -->
-        <div
-          :style="{
-            position: 'relative',
-            flexShrink: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }"
-        >
-          <!-- Floating phone wrapper -->
-          <div
-            class="progress-phone-float"
-            :style="{
-              position: 'relative',
-            }"
-          >
-            <!-- Glow behind phone -->
-            <div
-              class="progress-phone-glow"
-              :style="{
-                position: 'absolute',
-                inset: '8px',
-                borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(204,255,0,0.22) 0%, transparent 65%)',
-                filter: 'blur(24px)',
-              }"
-              aria-hidden="true"
-            />
+        <!-- CENTER: forged plate + phone -->
+        <div class="progress-stage">
+          <div class="progress-plate-mount" aria-hidden="true">
+            <ClientOnly>
+              <LazyForgedPrPlate />
+            </ClientOnly>
+          </div>
+
+          <div class="progress-phone-float">
+            <div class="progress-phone-glow" aria-hidden="true" />
             <div :key="screenPulse" class="progress-phone-pulse" aria-hidden="true" />
             <Phone
               :src="screens[screen]"
               :scale="1.05"
               :style="{ position: 'relative', zIndex: '2' }"
             />
-
           </div>
 
           <!-- Dot indicators — outside the float so they don't bob -->
@@ -646,6 +626,41 @@ onBeforeUnmount(() => {
   --pane-my: 0;
 }
 
+.progress-stage {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.progress-plate-mount {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  width: min(560px, 70vw);
+  aspect-ratio: 1;
+  transform: translate(-50%, -52%);
+  z-index: 1;
+  pointer-events: none;
+  contain: layout paint;
+}
+
+.progress-phone-float {
+  position: relative;
+  z-index: 2;
+  animation: float-y 6s ease-in-out infinite;
+}
+
+.progress-phone-glow {
+  position: absolute;
+  inset: 18% 22%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(204, 255, 0, 0.10) 0%, transparent 68%);
+  filter: blur(18px);
+  pointer-events: none;
+}
+
 .progress-chip::after {
   content: '';
   position: absolute;
@@ -729,10 +744,6 @@ onBeforeUnmount(() => {
   color: rgba(204, 255, 0, 0.78);
   text-transform: uppercase;
   transition: color 260ms ease;
-}
-
-.progress-phone-float {
-  animation: float-y 6s ease-in-out infinite;
 }
 
 .progress-phone-glow::after {
@@ -948,5 +959,9 @@ onBeforeUnmount(() => {
     will-change: auto;
   }
 
+  .progress-plate-mount {
+    width: min(360px, 92vw);
+    top: 36%;
+  }
 }
 </style>
