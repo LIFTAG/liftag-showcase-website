@@ -1904,10 +1904,15 @@ onBeforeUnmount(() => {
   /* The 3D canvas fills .dashboard-sticky and frames the laptop centered
      within it regardless of where the (invisible) mount/stage rect sits, so
      nudging the canvas itself - rather than the mount - is what actually
-     moves the rendered laptop up, in both the resting and the scrolled-in
-     zoomed state, and for both the gym and coach acts sharing this layer. */
+     moves the rendered laptop. The extra (1 - --zoom-p) lift is rest-pose
+     only: the punch-in stays on the existing -26px so the screen does not
+     drift while zoomed. */
   .dashboard-macbook-layer {
-    transform: translate3d(0, calc(var(--exit-macbook-y) - 26px), 0);
+    transform: translate3d(
+      0,
+      calc(var(--exit-macbook-y) - 26px - (1 - var(--zoom-p)) * 36px),
+      0
+    );
   }
 
   .dashboard-features {
@@ -2062,6 +2067,14 @@ onBeforeUnmount(() => {
   .dashboard-macbook-mount {
     height: clamp(150px, 26vh, 230px);
     margin-top: 6px;
+  }
+
+  .dashboard-macbook-layer {
+    transform: translate3d(
+      0,
+      calc(var(--exit-macbook-y) - 26px - (1 - var(--zoom-p)) * 18px),
+      0
+    );
   }
 
   .dashboard-features {

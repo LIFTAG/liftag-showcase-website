@@ -6,8 +6,12 @@ import {
   MACBOOK_DASHBOARD_SOURCE_HEIGHT,
   MACBOOK_DASHBOARD_SOURCE_WIDTH,
   MACBOOK_SCREEN_INSET,
+  MACBOOK_PHONE_START_DISTANCE_SCALE,
+  MACBOOK_PHONE_ZOOM_FILL,
   MACBOOK_ZOOM_FILL,
   applyRectUVs,
+  frameMacbookStartRig,
+  macbookZoomFill,
   cameraTruckToAlign,
   clampTruckToKeepWidth,
   containScreenDistance,
@@ -243,6 +247,40 @@ test('containScreenDistance keeps a wide display fully visible in a squarer canv
     distance > heightLimited + 1e-6,
     'wide footage must back the camera up to the width-limited distance, not the closer height fit',
   )
+})
+
+test('phone zoom fill is a hair looser than desktop so the punch-in reads smaller', () => {
+  assert.equal(macbookZoomFill(false), MACBOOK_ZOOM_FILL)
+  assert.equal(macbookZoomFill(true), MACBOOK_PHONE_ZOOM_FILL)
+  assert.ok(MACBOOK_PHONE_ZOOM_FILL > MACBOOK_ZOOM_FILL)
+  assert.ok(MACBOOK_PHONE_ZOOM_FILL < 1.16)
+})
+
+test('phone start rig dollies in so the rest-pose laptop reads larger', () => {
+  const desktop = frameMacbookStartRig({
+    distance: 13.7,
+    baseDistance: 6.85,
+    baseY: 0.7,
+    baseLookY: 0.22,
+    phone: false,
+  })
+  const phone = frameMacbookStartRig({
+    distance: 13.7,
+    baseDistance: 6.85,
+    baseY: 0.7,
+    baseLookY: 0.22,
+    phone: true,
+  })
+
+  assert.equal(desktop.distance, 13.7)
+  assert.equal(desktop.y, 1.4)
+  assert.equal(desktop.lookY, 0.22)
+  assert.ok(MACBOOK_PHONE_START_DISTANCE_SCALE < 1)
+  assert.ok(MACBOOK_PHONE_START_DISTANCE_SCALE > 0.68)
+  assert.ok(Math.abs(phone.distance - 13.7 * MACBOOK_PHONE_START_DISTANCE_SCALE) < 1e-9)
+  assert.ok(phone.distance < desktop.distance)
+  assert.ok(Math.abs(phone.y - 0.7 * (phone.distance / 6.85)) < 1e-9)
+  assert.equal(phone.lookY, 0.22)
 })
 
 test('MACBOOK_ZOOM_FILL pulls the camera back a little without cropping the display', () => {

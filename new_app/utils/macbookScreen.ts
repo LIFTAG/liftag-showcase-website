@@ -103,6 +103,52 @@ export function frustumSizeAtDistance(options: {
  */
 export const MACBOOK_ZOOM_FILL = 1.08
 
+/**
+ * Phone punch-in is a hair looser than desktop so the zoomed screen does not
+ * sit edge-to-edge on a narrow viewport.
+ */
+export const MACBOOK_PHONE_ZOOM_FILL = 1.14
+
+/** Matches the dashboard section's stacked phone layout. */
+export const MACBOOK_PHONE_LAYOUT_QUERY = '(max-width: 620px)'
+
+/**
+ * Rest-pose camera is this fraction of the height-matched distance on phones.
+ * Closer than 1 makes the closed/open laptop read larger without growing the
+ * in-flow stage (which would crowd the feature rows).
+ */
+export const MACBOOK_PHONE_START_DISTANCE_SCALE = 0.74
+
+export function macbookZoomFill(phone: boolean): number {
+  return phone ? MACBOOK_PHONE_ZOOM_FILL : MACBOOK_ZOOM_FILL
+}
+
+/**
+ * Phone rest pose: dolly in so the laptop reads larger. Desktop keeps the
+ * height-matched distance. Vertical placement on phones is a CSS translate
+ * on the canvas layer, keyed off --zoom-p, so the punch-in stays centered.
+ */
+export function frameMacbookStartRig(options: {
+  distance: number
+  baseDistance: number
+  baseY: number
+  baseLookY: number
+  phone: boolean
+}): { distance: number, y: number, lookY: number } {
+  const baseDistance = Math.max(options.baseDistance, 1e-6)
+  const distance = Math.max(
+    options.phone
+      ? options.distance * MACBOOK_PHONE_START_DISTANCE_SCALE
+      : options.distance,
+    0,
+  )
+  return {
+    distance,
+    y: options.baseY * (distance / baseDistance),
+    lookY: options.baseLookY,
+  }
+}
+
 export function containScreenDistance(options: {
   worldWidth: number
   worldHeight: number

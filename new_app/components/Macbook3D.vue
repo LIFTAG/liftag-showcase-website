@@ -7,12 +7,14 @@ import { createScreenVideoElement } from '../utils/screenVideo'
 import type { ScreenVideoSource } from '../utils/screenVideo'
 import {
   MACBOOK_DASHBOARD_CONTENT_ASPECT,
+  MACBOOK_PHONE_LAYOUT_QUERY,
   MACBOOK_SCREEN_INSET,
-  MACBOOK_ZOOM_FILL,
   cameraTruckToAlign,
   clampTruckToKeepWidth,
   containScreenDistance,
   coverFitScreenUVs,
+  frameMacbookStartRig,
+  macbookZoomFill,
   startDistanceToMatchHeight,
   createNotchedScreenGeometry,
   createRoundedRectGeometry,
@@ -97,6 +99,7 @@ function initMacbook() {
   // the least at this size. Only those two dials move - geometry, materials and
   // lighting stay identical everywhere.
   const isLowPower = window.matchMedia('(pointer: coarse), (max-width: 620px)').matches
+  const phoneMql = window.matchMedia(MACBOOK_PHONE_LAYOUT_QUERY)
   const motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
 
   RectAreaLightUniformsLib.init()
@@ -471,7 +474,7 @@ function initMacbook() {
       worldHeight: screenLayout.height * macbook.scale.y,
       fovDeg: CAM_ZOOM_FOV,
       aspect: camera.aspect,
-      fill: MACBOOK_ZOOM_FILL,
+      fill: macbookZoomFill(phoneMql.matches),
     })
     zoomCam.position.set(
       screen.position.x,
@@ -484,16 +487,23 @@ function initMacbook() {
     if (!container) return
     const canvasRect = container.getBoundingClientRect()
     const targetRect = alignTarget?.getBoundingClientRect()
-    const dist = targetRect && targetRect.height > 1
+    const matched = targetRect && targetRect.height > 1
       ? startDistanceToMatchHeight({
           baseDistance: CAM_BASE_POS.z,
           canvasHeight: canvasRect.height,
           referenceHeight: targetRect.height,
         })
       : CAM_BASE_POS.z
+    const framed = frameMacbookStartRig({
+      distance: matched,
+      baseDistance: CAM_BASE_POS.z,
+      baseY: CAM_BASE_POS.y,
+      baseLookY: CAM_BASE_LOOK.y,
+      phone: phoneMql.matches,
+    })
 
-    startPos.set(0, CAM_BASE_POS.y * (dist / CAM_BASE_POS.z), dist)
-    startLook.copy(CAM_BASE_LOOK)
+    startPos.set(0, framed.y, framed.distance)
+    startLook.set(0, framed.lookY, 0)
 
     if (targetRect && targetRect.width > 1 && canvasRect.width > 1) {
       const truck = clampTruckToKeepWidth({
@@ -502,12 +512,12 @@ function initMacbook() {
           canvasWidth: canvasRect.width,
           targetLeft: targetRect.left,
           targetWidth: targetRect.width,
-          distance: dist,
+          distance: framed.distance,
           fovDeg: CAM_START_FOV,
           aspect: camera.aspect,
         }),
         worldWidth: W * macbook.scale.x,
-        distance: dist,
+        distance: framed.distance,
         fovDeg: CAM_START_FOV,
         aspect: camera.aspect,
         padding: 0.08,
@@ -1036,6 +1046,7 @@ function initMacbook() {
     })
   }
   window.addEventListener('resize', onResize, { passive: true })
+  phoneMql.addEventListener('change', onResize)
   const resizeObserver = new ResizeObserver(onResize)
   resizeObserver.observe(container)
 
@@ -1052,6 +1063,7 @@ function initMacbook() {
 
   cleanup = () => {
     window.removeEventListener('resize', onResize)
+    phoneMql.removeEventListener('change', onResize)
     resizeObserver.disconnect()
     if (resizeRaf) {
       cancelAnimationFrame(resizeRaf)
