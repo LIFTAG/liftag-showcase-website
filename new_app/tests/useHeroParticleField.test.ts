@@ -6,6 +6,7 @@ import {
   emptyDisplayedWall,
   finishHeroLaserWall,
   publishHeroLaserWall,
+  releaseHeroLaserWall,
   resetHeroParticleField,
   revealedWordBox,
   shouldTransferLiveWall,
@@ -160,7 +161,31 @@ test('transferDisplayedWall moves the live field onto the wake without a strengt
 })
 
 test('shouldTransferLiveWall is true only when a finished word becomes the wake', () => {
-  assert.equal(shouldTransferLiveWall(1, 0, 1), true)
-  assert.equal(shouldTransferLiveWall(0, 0, 0), false)
-  assert.equal(shouldTransferLiveWall(1, 1, 0), false)
+  const live = { cx: 200, cy: 400, strength: 1 }
+  const wake = { cx: 200, cy: 400, strength: 1 }
+  assert.equal(shouldTransferLiveWall(live, 0, wake), true)
+  assert.equal(shouldTransferLiveWall({ ...live, strength: 0 }, 0, wake), false)
+  assert.equal(shouldTransferLiveWall(live, 1, { ...wake, strength: 0 }), false)
+})
+
+test('shouldTransferLiveWall is false when the last word fades in place over an older wake', () => {
+  const lastWord = { cx: 220, cy: 480, strength: 1 }
+  const previousWake = { cx: 80, cy: 360, strength: 0.16 }
+  assert.equal(shouldTransferLiveWall(lastWord, 0, previousWake), false)
+})
+
+test('releaseHeroLaserWall keeps the last word in place and leaves the previous wake alone', () => {
+  const field = useHeroParticleField()
+  publishHeroLaserWall({ cx: 80, cy: 360, hw: 40, hh: 24, leadingX: 120 }, 20, 1, 1)
+  finishHeroLaserWall()
+  publishHeroLaserWall({ cx: 220, cy: 480, hw: 90, hh: 28, leadingX: 130 }, -30, 1, -1)
+
+  releaseHeroLaserWall()
+
+  assert.deepEqual(field.walls[0], { cx: 220, cy: 480, hw: 90, hh: 28, vx: 0, strength: 1, facing: -1 })
+  assert.deepEqual(field.walls[1], { cx: 80, cy: 360, hw: 40, hh: 24, vx: 20, strength: 1, facing: 1 })
+
+  decayHeroParticleWake(350, 700)
+  assert.equal(field.walls[0].strength, 0.5)
+  assert.equal(field.walls[1].strength, 0.5)
 })

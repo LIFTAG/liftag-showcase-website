@@ -2,6 +2,7 @@
 import {
   finishHeroLaserWall,
   publishHeroLaserWall,
+  releaseHeroLaserWall,
   resetHeroParticleField,
   revealedWordBox,
 } from '../composables/useHeroParticleField'
@@ -194,6 +195,7 @@ function runHeroLaserReveal(
   fromRight: boolean,
   duration: number,
   onDone?: () => void,
+  persistWake = true,
 ) {
   if (!el || el.classList.contains('reveal-done')) {
     onDone?.()
@@ -267,7 +269,8 @@ function runHeroLaserReveal(
         return
       }
 
-      finishHeroLaserWall()
+      if (persistWake) finishHeroLaserWall()
+      else releaseHeroLaserWall()
       el.classList.remove('sweeping')
       el.classList.add('reveal-done')
       el.style.clipPath = `inset(-20% ${rightClipInset} -20% 0)`
@@ -309,9 +312,17 @@ function runAllHeroLaserReveals() {
       return
     }
 
-    runHeroLaserReveal(heroTitleEls[index], index % 2 === 1, heroLaserSweepMs, () => {
-      queueHeroLaserTimer(() => revealNext(sequenceIndex + 1), heroLaserGapMs)
-    })
+    runHeroLaserReveal(
+      heroTitleEls[index],
+      index % 2 === 1,
+      heroLaserSweepMs,
+      () => {
+        queueHeroLaserTimer(() => revealNext(sequenceIndex + 1), heroLaserGapMs)
+      },
+      // The last word fades in place. Finishing it into the wake would
+      // teleport the still-active previous wall onto this line.
+      sequenceIndex < heroLaserSequence.length - 1,
+    )
   }
 
   revealNext(0)

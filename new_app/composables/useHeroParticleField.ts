@@ -56,11 +56,14 @@ const field = {
   walls: [emptyWall(), emptyWall()] as [HeroFieldWall, HeroFieldWall],
 }
 
+let liveReleased = false
+
 export function useHeroParticleField() {
   return field
 }
 
 export function resetHeroParticleField() {
+  liveReleased = false
   writeWall(field.walls[0], emptyWall())
   writeWall(field.walls[1], emptyWall())
 }
@@ -91,6 +94,7 @@ export function publishHeroLaserWall(
   strength: number,
   facing = vx < 0 ? -1 : 1,
 ) {
+  liveReleased = false
   writeWall(field.walls[0], {
     cx: box.cx,
     cy: box.cy,
@@ -103,14 +107,26 @@ export function publishHeroLaserWall(
 }
 
 export function finishHeroLaserWall() {
+  liveReleased = false
   writeWall(field.walls[1], field.walls[0])
   writeWall(field.walls[0], emptyWall())
 }
 
+export function releaseHeroLaserWall() {
+  // Last word only: fade the live wall in place so the previous wake is not
+  // overwritten and the particle field does not teleport onto this word.
+  liveReleased = true
+  field.walls[0].vx = 0
+}
+
 export function decayHeroParticleWake(dtMs: number, decayMs = 500) {
-  const wake = field.walls[1]
-  if (wake.strength <= 0 || decayMs <= 0) return
-  wake.strength = Math.max(0, wake.strength - dtMs / decayMs)
+  if (decayMs <= 0) return
+  const decay = (wall: HeroFieldWall) => {
+    if (wall.strength <= 0) return
+    wall.strength = Math.max(0, wall.strength - dtMs / decayMs)
+  }
+  decay(field.walls[1])
+  if (liveReleased) decay(field.walls[0])
 }
 
 export function clientToParticleWorld(
@@ -147,12 +163,20 @@ export function emptyDisplayedWall(): DisplayedWall {
   return { cx: 0, cy: 0, hw: 0, hh: 0, vx: 0, facing: 0, k: 0 }
 }
 
+const POSE_MATCH_PX = 1
+
 export function shouldTransferLiveWall(
-  previousLiveStrength: number,
+  previousLive: Pick<HeroFieldWall, 'cx' | 'cy' | 'strength'>,
   liveStrength: number,
-  wakeStrength: number,
+  wake: Pick<HeroFieldWall, 'cx' | 'cy' | 'strength'>,
 ) {
-  return previousLiveStrength > 0.001 && liveStrength <= 0.001 && wakeStrength > 0.001
+  return (
+    previousLive.strength > 0.001
+    && liveStrength <= 0.001
+    && wake.strength > 0.001
+    && Math.abs(previousLive.cx - wake.cx) < POSE_MATCH_PX
+    && Math.abs(previousLive.cy - wake.cy) < POSE_MATCH_PX
+  )
 }
 
 export function transferDisplayedWall(live: DisplayedWall) {

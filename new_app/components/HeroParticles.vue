@@ -96,7 +96,7 @@ const wallVel1 = new THREE.Vector2()
 const heroParticleField = useHeroParticleField()
 let displayed0 = emptyDisplayedWall()
 let displayed1 = emptyDisplayedWall()
-let previousLiveStrength = 0
+let previousLive = { cx: 0, cy: 0, strength: 0 }
 const WALL_LERP = 0.1
 const WAKE_DECAY_MS = 700
 
@@ -423,7 +423,7 @@ function init() {
   mouseTarget.set(9999, 9999)
   displayed0 = emptyDisplayedWall()
   displayed1 = emptyDisplayedWall()
-  previousLiveStrength = 0
+  previousLive = { cx: 0, cy: 0, strength: 0 }
   wallWorld0.set(0, 0, 0, 0)
   wallWorld1.set(0, 0, 0, 0)
   wallVel0.set(0, 0)
@@ -462,7 +462,7 @@ function disposeScene() {
   mouseWorld.set(9999, 9999)
   displayed0 = emptyDisplayedWall()
   displayed1 = emptyDisplayedWall()
-  previousLiveStrength = 0
+  previousLive = { cx: 0, cy: 0, strength: 0 }
 }
 
 function frame(now: number) {
@@ -517,12 +517,14 @@ function syncWallUniforms(dt: number, u: THREE.ShaderMaterial['uniforms']) {
   const slot0 = heroParticleField.walls[0]
   const slot1 = heroParticleField.walls[1]
 
-  if (shouldTransferLiveWall(previousLiveStrength, slot0.strength, slot1.strength)) {
+  if (shouldTransferLiveWall(previousLive, slot0.strength, slot1)) {
     const next = transferDisplayedWall(displayed0)
     displayed0 = next.live
     displayed1 = next.wake
   }
-  previousLiveStrength = slot0.strength
+  previousLive.cx = slot0.cx
+  previousLive.cy = slot0.cy
+  previousLive.strength = slot0.strength
 
   const anySource = slot0.strength > 0.001 || slot1.strength > 0.001
   const anyDisplay = displayed0.k > 0.001 || displayed1.k > 0.001
