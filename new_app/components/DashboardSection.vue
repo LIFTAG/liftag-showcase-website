@@ -1871,8 +1871,8 @@ onBeforeUnmount(() => {
   .dashboard-stage {
     order: 2;
     width: calc(100% + 24px);
-    height: clamp(258px, var(--liftag-stable-vh-39), 320px);
-    min-height: 258px;
+    height: clamp(276px, calc(var(--liftag-stable-vh-39) * 1.12), 340px);
+    min-height: 276px;
     margin: -2px -12px 0;
     align-items: flex-start;
   }
@@ -1890,9 +1890,24 @@ onBeforeUnmount(() => {
     letter-spacing: 0.18em;
   }
 
+  /* Matches .coach-stage's height below rather than deriving it from the
+     1.3:1 aspect-ratio the desktop tier uses, so the gym and coach acts'
+     laptops - which the 3D layer sizes off this rect - land the same size
+     on a phone instead of the coach one reading smaller. */
   .dashboard-macbook-mount {
     width: min(100%, 450px);
-    margin-top: 18px;
+    height: clamp(276px, calc(var(--liftag-stable-vh-39) * 1.12), 340px);
+    aspect-ratio: auto;
+    margin-top: 8px;
+  }
+
+  /* The 3D canvas fills .dashboard-sticky and frames the laptop centered
+     within it regardless of where the (invisible) mount/stage rect sits, so
+     nudging the canvas itself - rather than the mount - is what actually
+     moves the rendered laptop up, in both the resting and the scrolled-in
+     zoomed state, and for both the gym and coach acts sharing this layer. */
+  .dashboard-macbook-layer {
+    transform: translate3d(0, calc(var(--exit-macbook-y) - 26px), 0);
   }
 
   .dashboard-features {
@@ -1956,8 +1971,8 @@ onBeforeUnmount(() => {
   .coach-stage {
     order: 2;
     width: calc(100% + 24px);
-    height: clamp(258px, var(--liftag-stable-vh-39), 320px);
-    min-height: 258px;
+    height: clamp(276px, calc(var(--liftag-stable-vh-39) * 1.12), 340px);
+    min-height: 276px;
     margin: -2px -12px 0;
     aspect-ratio: auto;
     justify-self: stretch;
@@ -2045,6 +2060,7 @@ onBeforeUnmount(() => {
   }
 
   .dashboard-macbook-mount {
+    height: clamp(150px, 26vh, 230px);
     margin-top: 6px;
   }
 
