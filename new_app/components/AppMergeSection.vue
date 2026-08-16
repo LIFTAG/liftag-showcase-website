@@ -15,6 +15,7 @@ import {
   type MergeBodyPose,
   type MergeFieldCore,
 } from '../composables/useMergeParticleField'
+import { burstSpokesFromOrbit } from '../utils/mergeBurstSpokes'
 import { rayDissolvedLength, rayRectVisibleLength } from '../utils/mergeRayClip'
 
 interface MockApp {
@@ -213,6 +214,8 @@ const mockApps: MockApp[] = [
 
 // Each mock app becomes one light in the prism core's environment, aimed from
 // where that icon sits in the orbit. Static, so it never triggers a re-render.
+const burstSpokes = burstSpokesFromOrbit(mockApps)
+
 const prismIcons = mockApps.map((app) => {
   const len = Math.hypot(app.x, app.y) || 1
   const z = 0.35 + (app.depth - 0.9) * 1.2
@@ -849,6 +852,7 @@ onBeforeUnmount(() => {
       </div>
 
       <MergeBurstHalo />
+      <MergeBurstSpokes :spokes="burstSpokes" />
 
       <div class="container app-merge-layout">
         <div class="merge-copy">
