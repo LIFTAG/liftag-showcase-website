@@ -61,7 +61,7 @@ function gymMotionTransform(
     + ` rotate(calc(var(--gym-mx) * ${rotateFactor}deg))`
 }
 
-const gymQrStickerMotion = computed(() => gymMotionTransform(-24, -16, -1.4))
+const gymQrStickerMotion = computed(() => gymMotionTransform(-24, -16, -1.4, 'rotate(4deg)'))
 const gymMachineMotion = computed(() => gymMotionTransform(18, 12, 1.1))
 const gymBackPhoneMotion = computed(() => gymMotionTransform(14, 10, 0.7))
 const gymFrontPhoneMotion = computed(() => gymMotionTransform(-20, -14, -1.1))
@@ -154,12 +154,12 @@ onBeforeUnmount(() => {
           alignItems: 'center',
         }"
       >
-        <!-- LEFT - QR sticker + machine card -->
+        <!-- LEFT - foil kit tag + machine card -->
         <div
           class="reveal gyms-qr"
           :style="{ position: 'relative', height: '560px' }"
         >
-          <!-- QR Sticker -->
+          <!-- Foil security tag. The face is a hologram, not a spinning rim. -->
           <div
             class="gyms-motion-layer gyms-qr-sticker-motion"
             :style="{
@@ -173,80 +173,16 @@ onBeforeUnmount(() => {
             <div
               class="gyms-qr-sticker-card gyms-float"
               :style="{
-              width: '180px',
-              height: '210px',
-              background: '#fff',
-              borderRadius: '18px',
-              padding: '18px',
-              boxShadow: '0 30px 80px rgba(0,0,0,0.7), 0 0 60px rgba(204,255,0,0.15)',
-              transform: 'rotate(4deg)',
+                width: '180px',
+                height: '210px',
               }"
             >
-            <!--
-              The card is transformed, so it forms a stacking context and the
-              free rim cannot sit behind it. Masked variant instead.
-            -->
-            <div class="prism-rim prism-rim--masked gyms-qr-sticker-rim" aria-hidden="true"></div>
-
-            <!-- QR sticker header -->
-            <div
-              :style="{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '10px',
-              }"
-            >
-              <div :style="{ display: 'flex', alignItems: 'center', gap: '5px' }">
-                <img src="/assets/logo.svg" width="18" height="18" alt="LIFTAG logo" />
-                <span
-                  :style="{
-                    fontFamily: '\'Space Grotesk\', sans-serif',
-                    fontWeight: 700,
-                    fontStyle: 'italic',
-                    fontSize: '13px',
-                    color: '#0E0E0E',
-                    letterSpacing: '-0.04em',
-                    textTransform: 'uppercase',
-                  }"
-                >LIFTAG</span>
-              </div>
-              <div
-                :style="{
-                  fontFamily: '\'JetBrains Mono\', monospace',
-                  fontSize: '8px',
-                  fontWeight: 700,
-                  color: '#666',
-                  letterSpacing: '0.2em',
-                }"
-              >#042</div>
-            </div>
-
-            <!-- QR image -->
-            <div class="gyms-qr-code" :style="{ width: 'calc(100% - 12px)', aspectRatio: '1', margin: '0 auto 7px', position: 'relative', overflow: 'hidden' }">
-              <img
-                src="/uploads/qr-code-160.webp"
-                srcset="/uploads/qr-code-112.webp 112w, /uploads/qr-code-160.webp 160w, /uploads/qr-code-224.webp 224w, /uploads/qr-code.webp 400w"
-                sizes="160px"
-                alt="LIFTAG QR Code"
-                width="160"
-                height="160"
-                loading="lazy"
-                decoding="async"
-                :style="{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }"
+              <HologramPlate
+                label="Cable Lat Pulldown"
+                serial="#042"
+                angle-prefix="gym"
+                :live="gymLive"
               />
-            </div>
-
-            <div
-              :style="{
-                fontFamily: '\'JetBrains Mono\', monospace',
-                fontSize: '8px',
-                fontWeight: 700,
-                letterSpacing: '0.15em',
-                color: '#999',
-                marginTop: 0,
-              }"
-            >TAP OR SCAN</div>
             </div>
           </div>
 
@@ -574,34 +510,6 @@ onBeforeUnmount(() => {
   scroll-margin-top: calc(50vh - 96px);
 }
 
-.gyms-qr-code::after {
-  content: '';
-  position: absolute;
-  inset: -20% -35%;
-  pointer-events: none;
-  background: linear-gradient(115deg, transparent 30%, rgba(204, 255, 0, 0.22), rgba(255, 255, 255, 0.68), transparent 64%);
-  transform: translateX(-120%) rotate(8deg);
-  opacity: 0;
-}
-
-.gyms-section.is-live .gyms-qr-code::after {
-  animation: gymsQrSweep 8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-}
-
-/* Replaces the old flat lime halo ring. The scan beat it carried is kept, but
-   it now brightens the prism rim rather than flashing a second concentric ring
-   three pixels away from it. */
-.gyms-qr-sticker-rim {
-  --prism-inset: 5px;
-  --prism-radius: 23px;
-  --prism-strength: 0.44;
-  z-index: 5;
-}
-
-.gyms-section.is-live .gyms-qr-sticker-rim {
-  animation: gymsStickerHalo 8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-}
-
 .gyms-machine-card::after,
 .gyms-benefit-row::after {
   content: '';
@@ -644,32 +552,6 @@ onBeforeUnmount(() => {
   animation: gymsLiveDot 1600ms ease-in-out infinite;
 }
 
-@keyframes gymsQrSweep {
-  0% {
-    opacity: 0;
-    transform: translateX(-120%) rotate(8deg);
-  }
-  8% {
-    opacity: 0.85;
-  }
-  18% {
-    opacity: 0;
-    transform: translateX(120%) rotate(8deg);
-  }
-  18.01%, 100% {
-    opacity: 0;
-    transform: translateX(120%) rotate(8deg);
-  }
-}
-
-/* Punctuates the QR sweep: the rim flares as the sweep passes, then falls back
-   to its resting glow. Opacity only - the rim keeps spinning underneath. */
-@keyframes gymsStickerHalo {
-  0%, 18% { opacity: 0.44; }
-  21% { opacity: 1; }
-  24%, 100% { opacity: 0.44; }
-}
-
 @keyframes gymsRowGlint {
   0%, 68% {
     opacity: 0;
@@ -707,8 +589,6 @@ onBeforeUnmount(() => {
 }
 
 .gyms-section:not(.is-live) .gyms-float,
-.gyms-section:not(.is-live) .gyms-qr-code::after,
-.gyms-section:not(.is-live) .gyms-qr-sticker-rim,
 .gyms-section:not(.is-live) .gyms-machine-card::after,
 .gyms-section:not(.is-live) .gyms-benefit-row::after,
 .gyms-section:not(.is-live) .gyms-map-ping,
@@ -780,8 +660,6 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .gyms-section.is-live .gyms-qr-code::after,
-  .gyms-section.is-live .gyms-qr-sticker-rim,
   .gyms-section.is-live .gyms-machine-card::after,
   .gyms-section.is-live .gyms-benefit-row::after,
   .gyms-section.is-live .gyms-map-ping,

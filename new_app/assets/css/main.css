@@ -146,6 +146,12 @@
   );
   --liftag-prism-spin: 7.5s;
 
+  /* Hologram plate: registered so the idle unlock can animate the viewing
+     angle and the sticky reveal without a JS render. Numbers live in
+     utils/holoFoil.ts and are bound onto the plate as CSS variables. */
+  --holo-demo: 0;
+  --holo-reveal: 0;
+
   /* Type families */
   --liftag-font-headline: 'Space Grotesk', system-ui, sans-serif;
   --liftag-font-body: 'Inter', system-ui, -apple-system, sans-serif;
@@ -565,6 +571,18 @@ section {
   to { transform: rotate(360deg); }
 }
 
+@property --holo-demo {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --holo-reveal {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
 /* Masked variant, for hosts the free version cannot serve: anything that
    creates a stacking context (a transform, filter or opacity on the host traps
    a negative z-index child *above* its own background, so the rim would paint
@@ -852,8 +870,21 @@ section {
   .gyms-3col {
     grid-template-columns: 1fr !important;
   }
+  /* Keep the foil tag visible: the overlapping machine card is what
+     broke the stacked layout, not the sticker itself. */
   .gyms-qr {
+    display: flex !important;
+    justify-content: center;
+    height: auto !important;
+    margin-bottom: 8px;
+  }
+  .gyms-machine-motion {
     display: none !important;
+  }
+  .gyms-qr-sticker-motion {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
   }
   .gyms-numbers {
     grid-template-columns: 1fr !important;
