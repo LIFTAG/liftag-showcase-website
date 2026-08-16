@@ -628,11 +628,12 @@ onBeforeUnmount(() => {
 
 .progress-plate-hero {
   position: relative;
-  width: min(520px, 78vw);
-  aspect-ratio: 1;
+  width: min(640px, 100%);
+  aspect-ratio: 1.16 / 1;
   margin: 4px auto 36px;
   pointer-events: none;
-  contain: layout paint;
+  overflow: visible;
+  contain: layout;
 }
 
 .progress-stage {
@@ -957,7 +958,7 @@ onBeforeUnmount(() => {
   }
 
   .progress-plate-hero {
-    width: min(340px, 88vw);
+    width: min(380px, 100%);
     margin-bottom: 20px;
   }
 }

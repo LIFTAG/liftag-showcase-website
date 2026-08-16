@@ -42,6 +42,15 @@ export const PLATE_REST_TILT = {
   rotY: -0.16,
 } as const
 
+/** Pulled back so a yaw/pitch still keeps the rim inside the canvas. */
+export const PLATE_CAM_Z = 4.55
+export const PLATE_FOCAL = 1.85
+export const PLATE_OUTER_RADIUS = 1.02
+export const PLATE_SQUASH_XY = 1.05
+export const PLATE_CAM_Y = 0.10
+/** Square-canvas half-extent in the shader's uv. Stay under this at max tilt. */
+export const PLATE_CANVAS_HALF = 0.5
+
 const SETTLED_PHASE: PlatePhase = {
   pour: 0,
   settle: 1,
@@ -93,5 +102,56 @@ export function plateIdleSway(elapsedMs: number, live: number) {
   return {
     rotX: Math.sin(t * 0.33) * 0.028 * amount,
     rotY: Math.cos(t * 0.27) * 0.036 * amount,
+  }
+}
+
+function rotateX(p: { x: number, y: number, z: number }, a: number) {
+  const c = Math.cos(a)
+  const s = Math.sin(a)
+  return { x: p.x, y: c * p.y - s * p.z, z: s * p.y + c * p.z }
+}
+
+function rotateY(p: { x: number, y: number, z: number }, a: number) {
+  const c = Math.cos(a)
+  const s = Math.sin(a)
+  return { x: c * p.x + s * p.z, y: p.y, z: -s * p.x + c * p.z }
+}
+
+export function plateProjectedUv(
+  px: number,
+  py: number,
+  pz: number,
+  rotX: number,
+  rotY: number,
+) {
+  const world = rotateY(rotateX({ x: px, y: py, z: pz }, rotX), rotY)
+  const denom = Math.max(1e-4, PLATE_CAM_Z - world.z)
+  return {
+    x: PLATE_FOCAL * world.x / denom,
+    y: PLATE_FOCAL * (world.y - PLATE_CAM_Y) / denom,
+  }
+}
+
+export function plateMaxProjectedExtent(rotX: number, rotY: number, radius = PLATE_OUTER_RADIUS * PLATE_SQUASH_XY) {
+  let x = 0
+  let y = 0
+  for (let i = 0; i < 72; i += 1) {
+    const a = (i / 72) * Math.PI * 2
+    const cx = Math.cos(a) * radius
+    const cy = Math.sin(a) * radius
+    for (const z of [-0.09, 0, 0.09]) {
+      const uv = plateProjectedUv(cx, cy, z, rotX, rotY)
+      x = Math.max(x, Math.abs(uv.x))
+      y = Math.max(y, Math.abs(uv.y))
+    }
+  }
+  return { x, y }
+}
+
+export function plateExtremeTilt() {
+  const pointer = platePointerTilt(1, 1)
+  return {
+    rotX: pointer.rotX + 0.028,
+    rotY: pointer.rotY + 0.036,
   }
 }

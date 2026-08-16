@@ -21,14 +21,16 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useSharedMouse } from '../composables/useSharedMouse'
 import {
+  PLATE_CAM_Z,
+  PLATE_FOCAL,
   PLATE_REST_TILT,
   plateIdleSway,
   platePhaseAt,
   platePointerTilt,
 } from '../utils/forgedPlate'
 
-const CAM_Z = 3.72
-const FOCAL = 1.85
+const CAM_Z = PLATE_CAM_Z
+const FOCAL = PLATE_FOCAL
 
 const mount = ref<HTMLElement | null>(null)
 
@@ -741,7 +743,7 @@ onBeforeUnmount(() => {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  contain: layout paint style;
+  contain: layout style;
 }
 
 .forged-pr-plate-fallback {

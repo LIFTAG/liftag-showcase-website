@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
+  PLATE_CANVAS_HALF,
   PLATE_PRESS_MS,
   PLATE_REST_TILT,
+  plateExtremeTilt,
   plateIdleSway,
+  plateMaxProjectedExtent,
   platePhaseAt,
   platePointerTilt,
 } from '../utils/forgedPlate.ts'
@@ -64,6 +67,20 @@ test('pointer tilt is a small offset around the resting pose', () => {
   const right = platePointerTilt(1, 0)
   assert.ok(left.rotY < rest.rotY)
   assert.ok(right.rotY > rest.rotY)
+})
+
+test('rest and extreme tilts keep the rim inside the canvas', () => {
+  const rest = plateMaxProjectedExtent(PLATE_REST_TILT.rotX, PLATE_REST_TILT.rotY)
+  const extreme = plateExtremeTilt()
+  const tilted = plateMaxProjectedExtent(extreme.rotX, extreme.rotY)
+  const left = platePointerTilt(-1, 0)
+  const yawed = plateMaxProjectedExtent(left.rotX, left.rotY)
+
+  assert.ok(rest.x < PLATE_CANVAS_HALF - 0.04, `rest x ${rest.x}`)
+  assert.ok(rest.y < PLATE_CANVAS_HALF - 0.04, `rest y ${rest.y}`)
+  assert.ok(tilted.x < PLATE_CANVAS_HALF - 0.04, `extreme x ${tilted.x}`)
+  assert.ok(tilted.y < PLATE_CANVAS_HALF - 0.04, `extreme y ${tilted.y}`)
+  assert.ok(yawed.x < PLATE_CANVAS_HALF - 0.04, `yaw x ${yawed.x}`)
 })
 
 test('idle sway is zero when the plate has no residual life', () => {
