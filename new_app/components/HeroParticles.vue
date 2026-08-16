@@ -50,8 +50,8 @@ const REENTRY_REVEAL_FLOOR = 0.35
 // (see Hero.vue), rendered as one extra full-screen quad in this component's
 // existing scene/renderer/rAF loop instead of a second canvas + GL context.
 const GRID_CELL_PX = 80
-const GRID_WARP_RADIUS_PX = 320
-const GRID_WARP_STRENGTH_PX = 46
+const GRID_WARP_RADIUS_PX = 190
+const GRID_WARP_STRENGTH_PX = 16
 const GRID_LINE_ALPHA = 0.035
 /** Mirrors the CSS mask: radial-gradient(ellipse 90% 80% at 60% 40%, black 20%, transparent 80%). */
 const GRID_MASK_CENTER_X = 0.6
