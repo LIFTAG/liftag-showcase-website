@@ -29,6 +29,23 @@ function segmentToken(segment: ScreenVideoSegment) {
   return `${segment.start}:${segment.end}:${segment.key ?? 0}`
 }
 
+/** Half a tenth of a second: a few 60fps frames either side of a cut. */
+export const SEGMENT_CUT_EPSILON = 0.05
+
+/**
+ * Whether arming `start` needs a seek. A same-timestamp seek after a pause on
+ * a keyframe is what freezes mobile decoders on the TAP/SCAN → LOG handoff.
+ */
+export function shouldSeekToSegmentStart(
+  currentTime: number,
+  start: number,
+  ended: boolean,
+  epsilon = SEGMENT_CUT_EPSILON,
+) {
+  if (ended) return true
+  return currentTime < start - epsilon || currentTime > start + epsilon
+}
+
 /**
  * Build the `<video>` for a 3D screen. Imperative rather than templated
  * because the element never enters the DOM - it only ever feeds a texture.
@@ -60,27 +77,46 @@ type VideoFrameHost = HTMLVideoElement & {
   cancelVideoFrameCallback?: (handle: number) => void
 }
 
+// Numeric so Node tests can drive the controller without a DOM HTMLMediaElement.
+const HAVE_METADATA = 1
+const STALL_WATCH_MS = 320
+const SEEK_FALLBACK_MS = 400
+const MAX_STALL_RETRIES = 2
+
 /**
  * Plays one segment of `video` at a time and parks on its last frame.
  *
  * The freeze is checked once per presented frame rather than on `timeupdate`,
  * which only fires about four times a second and would spill a fifth of a
  * second of the next step's footage onto the screen before catching it.
+ *
+ * Arming a new slice must not assign `currentTime` when the element is already
+ * on that cut. scan-flow.mp4's TAP/SCAN → LOG boundary is a keyframe at 3.2s;
+ * pausing there and seeking to 3.2 before play() stalls WebKit / mobile
+ * decoders, so the LOG step stays on the just-scanned QR frame while the
+ * loading bar keeps cycling.
  */
 export function createSegmentPlayback(video: HTMLVideoElement) {
   const host = video as VideoFrameHost
   const useFrameCallback = typeof host.requestVideoFrameCallback === 'function'
+  const canUseRaf = typeof requestAnimationFrame === 'function'
 
   let segment: ScreenVideoSegment | null = null
   let armed: string | null = null
   let active = false
   let frameId = 0
   let disposed = false
+  let seekSeq = 0
+  let stallRetries = 0
+  let stallTimer: ReturnType<typeof setTimeout> | null = null
+  let seekFallbackTimer: ReturnType<typeof setTimeout> | null = null
+  let onSeeked: (() => void) | null = null
 
   function cancelFrame() {
     if (!frameId) return
     if (useFrameCallback) host.cancelVideoFrameCallback?.(frameId)
-    else cancelAnimationFrame(frameId)
+    else if (canUseRaf) cancelAnimationFrame(frameId)
+    else clearTimeout(frameId)
     frameId = 0
   }
 
@@ -88,7 +124,27 @@ export function createSegmentPlayback(video: HTMLVideoElement) {
     if (frameId || disposed) return
     frameId = useFrameCallback
       ? host.requestVideoFrameCallback!(onFrame)
-      : requestAnimationFrame(onFrame)
+      : canUseRaf
+        ? requestAnimationFrame(onFrame)
+        : setTimeout(onFrame, 16) as unknown as number
+  }
+
+  function clearStallWatch() {
+    if (stallTimer === null) return
+    clearTimeout(stallTimer)
+    stallTimer = null
+  }
+
+  function clearSeekWait() {
+    seekSeq += 1
+    if (onSeeked) {
+      video.removeEventListener('seeked', onSeeked)
+      onSeeked = null
+    }
+    if (seekFallbackTimer !== null) {
+      clearTimeout(seekFallbackTimer)
+      seekFallbackTimer = null
+    }
   }
 
   function onFrame() {
@@ -96,11 +152,34 @@ export function createSegmentPlayback(video: HTMLVideoElement) {
     if (disposed || !segment) return
 
     if (video.currentTime >= segment.end) {
+      clearStallWatch()
       video.pause()
       return
     }
 
     scheduleFrame()
+  }
+
+  function armStallWatch() {
+    clearStallWatch()
+    if (!segment || disposed) return
+
+    const origin = video.currentTime
+    const expected = segment
+    stallTimer = setTimeout(() => {
+      stallTimer = null
+      if (disposed || !active || segment !== expected) return
+      if (video.currentTime >= expected.end) return
+      if (!video.paused && video.currentTime > origin + 0.02) return
+      if (stallRetries >= MAX_STALL_RETRIES) return
+
+      stallRetries += 1
+      const nudge = Math.min(
+        expected.end - SEGMENT_CUT_EPSILON,
+        Math.max(origin, expected.start) + 1 / 60,
+      )
+      seekThenPlay(nudge)
+    }, STALL_WATCH_MS)
   }
 
   function play() {
@@ -112,12 +191,53 @@ export function createSegmentPlayback(video: HTMLVideoElement) {
       })
     }
     scheduleFrame()
+    armStallWatch()
+  }
+
+  function seekThenPlay(time: number) {
+    clearSeekWait()
+    const seq = seekSeq
+    let finished = false
+
+    const finish = () => {
+      if (finished || seq !== seekSeq || disposed) return
+      finished = true
+      if (onSeeked) {
+        video.removeEventListener('seeked', onSeeked)
+        onSeeked = null
+      }
+      if (seekFallbackTimer !== null) {
+        clearTimeout(seekFallbackTimer)
+        seekFallbackTimer = null
+      }
+      play()
+    }
+
+    onSeeked = finish
+    video.addEventListener('seeked', finish)
+
+    try {
+      video.currentTime = time
+    } catch {
+      finish()
+      return
+    }
+
+    // A no-op assignment never seeks, so `seeked` would never arrive.
+    if (!video.seeking && Math.abs(video.currentTime - time) <= SEGMENT_CUT_EPSILON) {
+      finish()
+      return
+    }
+
+    seekFallbackTimer = setTimeout(finish, SEEK_FALLBACK_MS)
   }
 
   function sync() {
     if (disposed) return
 
     if (!segment || !active) {
+      clearSeekWait()
+      clearStallWatch()
       cancelFrame()
       video.pause()
       return
@@ -125,13 +245,17 @@ export function createSegmentPlayback(video: HTMLVideoElement) {
 
     // Seeking before metadata lands is either ignored or throws depending on
     // the browser. `loadedmetadata` runs sync() again.
-    if (video.readyState < HTMLMediaElement.HAVE_METADATA) return
+    if (video.readyState < HAVE_METADATA) return
 
     const token = segmentToken(segment)
     if (token !== armed) {
       armed = token
-      video.currentTime = segment.start
-      play()
+      stallRetries = 0
+      if (shouldSeekToSegmentStart(video.currentTime, segment.start, video.ended)) {
+        seekThenPlay(segment.start)
+      } else {
+        play()
+      }
       return
     }
 
@@ -141,7 +265,10 @@ export function createSegmentPlayback(video: HTMLVideoElement) {
   }
 
   const onLoadedMetadata = () => sync()
-  const onEnded = () => cancelFrame()
+  const onEnded = () => {
+    clearStallWatch()
+    cancelFrame()
+  }
   video.addEventListener('loadedmetadata', onLoadedMetadata)
   video.addEventListener('ended', onEnded)
 
@@ -157,6 +284,8 @@ export function createSegmentPlayback(video: HTMLVideoElement) {
     },
     dispose() {
       disposed = true
+      clearSeekWait()
+      clearStallWatch()
       cancelFrame()
       video.removeEventListener('loadedmetadata', onLoadedMetadata)
       video.removeEventListener('ended', onEnded)

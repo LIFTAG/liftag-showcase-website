@@ -343,6 +343,7 @@ onBeforeUnmount(() => {
         class="phone-static-screen phone-static-video"
         muted
         playsinline
+        webkit-playsinline
         preload="auto"
         width="393"
         height="852"
