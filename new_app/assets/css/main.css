@@ -168,6 +168,7 @@
   --liftag-stable-vh-340: 340vh;
   --liftag-stable-vh-380: 380vh;
   --liftag-stable-vh-470: 470vh;
+  --liftag-stable-vh-560: 560vh;
 }
 
 @supports (height: 100lvh) {
@@ -180,6 +181,7 @@
     --liftag-stable-vh-340: 340lvh;
     --liftag-stable-vh-380: 380lvh;
     --liftag-stable-vh-470: 470lvh;
+    --liftag-stable-vh-560: 560lvh;
   }
 }
 

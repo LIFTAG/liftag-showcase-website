@@ -25,20 +25,9 @@ export const MACBOOK_DASHBOARD_SOURCE_HEIGHT = 904
 export const MACBOOK_DASHBOARD_CONTENT_ASPECT = MACBOOK_DASHBOARD_SOURCE_WIDTH
   / MACBOOK_DASHBOARD_SOURCE_HEIGHT
 
-/**
- * One encode of the screen footage. A list of these is offered to the browser
- * in preference order (modern codec first, H.264 baseline last) and it plays
- * the first entry it can decode.
- */
-export type ScreenVideoSource = {
-  src: string
-  /**
-   * Full MIME type including the `codecs=` parameter. Without it a browser
-   * cannot rule a source out up front, so it would commit to a file it can
-   * only discover is undecodable after downloading part of it.
-   */
-  type: string
-}
+// `ScreenVideoSource` used to live here too. It now lives beside the shared
+// element builder in `utils/screenVideo.ts`, which every screen-footage caller
+// already imports - two exported types with the same name were free to drift.
 
 export type ScreenTextureUVs = {
   offsetX: number

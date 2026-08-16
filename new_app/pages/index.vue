@@ -58,9 +58,12 @@ onNuxtReady(() => {
     <LazyLiftersSection :hydrate-on-visible="{ rootMargin: '800px' }" />
     <LazyProgressSection :hydrate-on-visible="{ rootMargin: '800px' }" />
     <LazyAppMergeSection :hydrate-on-visible="{ rootMargin: '800px' }" />
-    <LazyTrainersSection :hydrate-on-visible="{ rootMargin: '800px' }" />
     <LazyGymsSection :hydrate-on-visible="{ rootMargin: '800px' }" />
+    <!-- DashboardSection runs both dashboard acts: the gym MacBook punches in,
+         hands the screen over to the coach dashboard, then un-zooms into the
+         coach story that TrainersSection picks up. Keep these three adjacent. -->
     <LazyDashboardSection :hydrate-on-visible="{ rootMargin: '800px' }" />
+    <LazyTrainersSection :hydrate-on-visible="{ rootMargin: '800px' }" />
     <LazyRoadmap :hydrate-on-visible="{ rootMargin: '800px' }" />
     <HomeFaq />
     <LazyFinalCta :hydrate-on-visible="{ rootMargin: '800px' }" />

@@ -13,8 +13,8 @@ const sectionHref = (hash: string) => route.path === '/' ? hash : `/${hash}`
 
 const navLinks = computed<[string, string][]>(() => [
   ['Lifters', sectionHref('#lifters')],
-  ['Trainers', sectionHref('#trainers')],
   ['Gyms', sectionHref('#gyms')],
+  ['Trainers', sectionHref('#trainers')],
   ['How it works', sectionHref('#how')],
   ['Guides', '/guides'],
 ])

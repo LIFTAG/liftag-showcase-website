@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js'
 import { onMouseEvent, useSharedMouse } from '../composables/useSharedMouse'
-import type { ScreenVideoSource } from '../utils/macbookScreen'
+import { createScreenVideoElement } from '../utils/screenVideo'
+import type { ScreenVideoSource } from '../utils/screenVideo'
 import {
   MACBOOK_DASHBOARD_CONTENT_ASPECT,
   MACBOOK_SCREEN_INSET,
@@ -21,12 +23,32 @@ import {
 const props = withDefaults(defineProps<{
   screenshotSrc: string
   videoSources?: ScreenVideoSource[]
+  /**
+   * Optional second footage layer painted over the first. Both stay alive so
+   * `screenBlend` can cross-fade between them; swapping `videoSources` instead
+   * would tear the element down and flash the poster mid-transition.
+   */
+  screenshotSrcB?: string
+  videoSourcesB?: ScreenVideoSource[]
+  /** 0 = primary footage, 1 = secondary. */
+  screenBlend?: number
+  /**
+   * Permission to start fetching the secondary footage, mirroring the viewport
+   * gate on the primary. Autoplay makes a browser download the whole file the
+   * moment a source is attached, so the caller arms this only once the swap is
+   * actually approaching.
+   */
+  armSecondary?: boolean
   openProgress?: number
   zoomProgress?: number
   tiltDelayMs?: number
   alignEl?: HTMLElement | null
 }>(), {
   videoSources: undefined,
+  screenshotSrcB: undefined,
+  videoSourcesB: undefined,
+  screenBlend: 0,
+  armSecondary: false,
   openProgress: 0,
   zoomProgress: 0,
   tiltDelayMs: 0,
@@ -37,7 +59,11 @@ const containerRef = ref<HTMLDivElement | null>(null)
 
 let cleanup: (() => void) | null = null
 let updateTexture: ((src: string) => void) | null = null
+let updateTextureB: ((src?: string) => void) | null = null
 let setVideoSource: ((sources?: ScreenVideoSource[]) => void) | null = null
+let setVideoSourceB: ((sources?: ScreenVideoSource[]) => void) | null = null
+let setScreenBlend: ((b: number) => void) | null = null
+let setArmSecondary: ((armed: boolean) => void) | null = null
 let setOpenProgress: ((p: number) => void) | null = null
 let setZoomProgress: ((p: number) => void) | null = null
 let setAlignEl: ((el: HTMLElement | null) => void) | null = null
@@ -72,6 +98,8 @@ function initMacbook() {
   // lighting stay identical everywhere.
   const isLowPower = window.matchMedia('(pointer: coarse), (max-width: 620px)').matches
   const motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+  RectAreaLightUniformsLib.init()
 
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
@@ -118,10 +146,6 @@ function initMacbook() {
   const fillLight = new THREE.DirectionalLight(0x99aacc, 0.32)
   fillLight.position.set(-3, 1.5, 2)
   scene.add(fillLight)
-
-  const accentLight = new THREE.PointLight(0xccff00, 0.55, 10, 2)
-  accentLight.position.set(0, 1.5, 1.6)
-  scene.add(accentLight)
 
   // Ground shadow plane (catches the laptop's shadow)
   const shadowPlane = new THREE.Mesh(
@@ -349,6 +373,36 @@ function initMacbook() {
   screen.renderOrder = 2
   lidGroup.add(screen)
 
+  // Second footage layer, coplanar with the display and painted over it. Its
+  // opacity is the cross-fade, so both recordings can be decoding at once and
+  // neither has to be torn down mid-transition.
+  //
+  // depthTest stays on: with it off the layer would paint straight through the
+  // lid while the hinge is still swinging it away from the camera. It wins
+  // against `screen` the same way `screen` wins against the black glass - a
+  // deeper polygon offset plus a higher renderOrder - while depthWrite stays
+  // off so a fully transparent layer never occludes what is underneath it.
+  let posterTextureB: THREE.Texture | null = null
+  let screenVideoB: HTMLVideoElement | null = null
+  let videoTextureB: THREE.VideoTexture | null = null
+  let onVideoPlayingB: (() => void) | null = null
+
+  const screenMatB = new THREE.MeshBasicMaterial({
+    map: null,
+    transparent: true,
+    opacity: 0,
+    visible: false,
+    toneMapped: false,
+    polygonOffset: true,
+    polygonOffsetFactor: -4,
+    polygonOffsetUnits: -4,
+    depthWrite: false,
+  })
+  const screenB = new THREE.Mesh(screenGeo, screenMatB)
+  screenB.position.set(0, -0.0155, H / 2)
+  screenB.renderOrder = 3
+  lidGroup.add(screenB)
+
   // Black glass underlay: fills the hairline margin and the notch cavity.
   const bezelGeo = createRoundedRectGeometry(
     screenLayout.bezelWidth,
@@ -380,6 +434,19 @@ function initMacbook() {
   macbook.rotation.x = 0
   macbook.rotation.y = -0.06
   scene.add(macbook)
+
+  // Reuse the old lime accent-light budget as a broad, shadowless screen
+  // bounce. The rectangular source matches the display plane, so the keyboard
+  // receives a soft wash instead of a point-light hotspot as the hinge opens.
+  const screenBounceLight = new THREE.RectAreaLight(
+    0xe8ffbd,
+    0,
+    screenLayout.width * 0.86,
+    screenLayout.height * 0.58,
+  )
+  screenBounceLight.position.set(0, -0.026, H * 0.48)
+  screenBounceLight.rotation.x = -Math.PI / 2
+  lidGroup.add(screenBounceLight)
 
   const CAM_BASE_POS = new THREE.Vector3(0, 0.7, 6.85)
   const CAM_BASE_LOOK = new THREE.Vector3(0, 0.22, 0)
@@ -472,6 +539,31 @@ function initMacbook() {
     posterTexture.anisotropy = renderer.capabilities.getMaxAnisotropy?.() ?? 1
   }
 
+  updateTextureB = (src?: string) => {
+    const previous = posterTextureB
+    if (!src) {
+      posterTextureB = null
+      if (!videoTextureB) {
+        screenMatB.map = null
+        screenMatB.needsUpdate = true
+      }
+      previous?.dispose()
+      return
+    }
+
+    posterTextureB = textureLoader.load(src, (texture) => {
+      applyImageFootageTransform(texture)
+      if (!videoTextureB) {
+        screenMatB.map = posterTextureB
+        screenMatB.needsUpdate = true
+      }
+      previous?.dispose()
+      renderer.render(scene, camera)
+    })
+    posterTextureB.colorSpace = THREE.SRGBColorSpace
+    posterTextureB.anisotropy = renderer.capabilities.getMaxAnisotropy?.() ?? 1
+  }
+
   // ---- Animation state ----
   const closedAngle = 0
   const openAngle = -THREE.MathUtils.degToRad(108) // open ~108°
@@ -479,6 +571,10 @@ function initMacbook() {
   let currentOpen = targetOpen
   let targetZoom = clamp01(props.zoomProgress)
   let currentZoom = targetZoom
+  // Not eased in the loop: the caller already drives it from a smoothed scroll
+  // channel, and easing it again would let the footage lag behind the sweep
+  // that is supposed to be causing the change.
+  let currentBlend = clamp01(props.screenBlend)
 
   setOpenProgress = (p: number) => {
     targetOpen = clamp01(p)
@@ -497,71 +593,50 @@ function initMacbook() {
   let animId = 0
   let isVisible = false
 
+  function tearDownVideo(video: HTMLVideoElement | null, onPlaying: (() => void) | null) {
+    if (!video) return
+    video.pause()
+    if (onPlaying) video.removeEventListener('playing', onPlaying)
+    // Both the attribute and the <source> children have to go before load(),
+    // or the reload just re-picks a source and keeps the download alive.
+    video.removeAttribute('src')
+    video.replaceChildren()
+    video.load()
+  }
+
   function disposeVideo() {
-    screenVideo?.pause()
-    if (screenVideo) {
-      if (onVideoPlaying) screenVideo.removeEventListener('playing', onVideoPlaying)
-      // Both the attribute and the <source> children have to go before load(),
-      // or the reload just re-picks a source and keeps the download alive.
-      screenVideo.removeAttribute('src')
-      screenVideo.replaceChildren()
-      screenVideo.load()
-    }
+    tearDownVideo(screenVideo, onVideoPlaying)
     onVideoPlaying = null
     videoTexture?.dispose()
     screenVideo = null
     videoTexture = null
   }
 
-  function playVideo() {
-    if (!screenVideo || !isVisible) return
-    const playAttempt = screenVideo.play()
-    if (playAttempt) {
-      playAttempt.catch(() => {
-        // Muted autoplay is expected to work, but keep the poster if a browser blocks it.
-      })
-    }
+  function disposeVideoB() {
+    tearDownVideo(screenVideoB, onVideoPlayingB)
+    onVideoPlayingB = null
+    videoTextureB?.dispose()
+    screenVideoB = null
+    videoTextureB = null
   }
 
-  // The video element autoplays, which makes browsers fetch the full file the
-  // moment src is set - preload='metadata' is ignored. Init runs 600px before
-  // the section is visible, so hold the source until the laptop is actually
-  // approaching the viewport (the 300px observer below).
-  let videoAllowed = false
-  let pendingVideoSources: ScreenVideoSource[] | undefined
-
-  setVideoSource = (sources?: ScreenVideoSource[]) => {
-    pendingVideoSources = sources
-    disposeVideo()
-    screenMat.map = posterTexture
-    screenMat.needsUpdate = true
-
-    if (!sources?.length || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      renderer.render(scene, camera)
-      return
-    }
-
-    if (!videoAllowed) return
-
-    const video = document.createElement('video')
-    // <source> children rather than .src: the browser runs its own resource
-    // selection over the typed list, so a device without AV1 decode skips
-    // straight to the H.264 file instead of downloading one it cannot play.
-    video.append(...sources.map((source) => {
-      const el = document.createElement('source')
-      el.src = source.src
-      el.type = source.type
-      return el
-    }))
-    video.muted = true
-    video.defaultMuted = true
+  /**
+   * Builds one autoplaying, muted, looping screen recording and its texture.
+   * Both footage layers go through here so the resource-selection and mobile
+   * autoplay details only exist in one place.
+   */
+  function createScreenVideo(
+    sources: ScreenVideoSource[],
+    onReady: (video: HTMLVideoElement, texture: THREE.VideoTexture) => void,
+  ): { video: HTMLVideoElement, texture: THREE.VideoTexture, onPlaying: () => void } {
+    // The shared builder is tuned for the segment-scrubbed phone screens, which
+    // play one slice and stop. The laptop instead runs its recording end to end
+    // on a loop, and `preload` drops back to metadata because autoplay already
+    // forces the full fetch (see the gating comment below).
+    const video = createScreenVideoElement(sources)
     video.loop = true
     video.autoplay = true
-    video.playsInline = true
     video.preload = 'metadata'
-    video.setAttribute('muted', '')
-    video.setAttribute('playsinline', '')
-    video.setAttribute('webkit-playsinline', '')
 
     const texture = new THREE.VideoTexture(video)
     texture.colorSpace = THREE.SRGBColorSpace
@@ -569,28 +644,156 @@ function initMacbook() {
     texture.magFilter = THREE.LinearFilter
     texture.generateMipmaps = false
 
-    screenVideo = video
-    videoTexture = texture
-
     // A playing VideoTexture needs a render per frame, so playback has to pull
     // the idle loop (see animate) back out of its parked state.
-    onVideoPlaying = () => wake()
-    video.addEventListener('playing', onVideoPlaying)
+    const onPlaying = () => wake()
+    video.addEventListener('playing', onPlaying)
+    video.addEventListener('loadeddata', () => onReady(video, texture), { once: true })
 
-    video.addEventListener('loadeddata', () => {
-      if (videoTexture !== texture) return
-      applyFootageTransform(texture, video.videoWidth, video.videoHeight)
-      screenMat.map = texture
+    return { video, texture, onPlaying }
+  }
+
+  function shouldPlayPrimary() {
+    // Outside the cross-fade only one layer is on screen, so only one decodes.
+    // On low-power devices the primary is dropped as soon as it is the minority
+    // of the mix: its last frame is already fading out under the handoff card,
+    // and a phone should never decode two 1440x904 streams at once.
+    if (currentBlend >= (isLowPower ? 0.5 : 0.999)) return false
+    return true
+  }
+
+  function shouldPlaySecondary() {
+    return currentBlend > 0.001
+  }
+
+  function playVideo() {
+    if (!isVisible) return
+
+    const attempt = (video: HTMLVideoElement | null, wanted: boolean) => {
+      if (!video) return
+      if (!wanted) {
+        video.pause()
+        return
+      }
+      const playAttempt = video.play()
+      if (playAttempt) {
+        playAttempt.catch(() => {
+          // Muted autoplay is expected to work, but keep the poster if a browser blocks it.
+        })
+      }
+    }
+
+    attempt(screenVideo, shouldPlayPrimary())
+    attempt(screenVideoB, shouldPlaySecondary())
+  }
+
+  function pauseVideos() {
+    screenVideo?.pause()
+    screenVideoB?.pause()
+  }
+
+  // The video element autoplays, which makes browsers fetch the full file the
+  // moment src is set - preload='metadata' is ignored. Init runs 600px before
+  // the section is visible, so hold the source until the laptop is actually
+  // approaching the viewport (the 300px observer below). The secondary layer
+  // gets the same treatment through `armSecondary`, driven by the caller from
+  // scroll position rather than by an observer, because it only needs to exist
+  // once the handoff is close.
+  let videoAllowed = false
+  let videoAllowedB = false
+  let pendingVideoSources: ScreenVideoSource[] | undefined
+  let pendingVideoSourcesB: ScreenVideoSource[] | undefined
+
+  function prefersReducedMotion() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  }
+
+  setVideoSource = (sources?: ScreenVideoSource[]) => {
+    pendingVideoSources = sources
+    disposeVideo()
+    screenMat.map = posterTexture
+    screenMat.needsUpdate = true
+
+    if (!sources?.length || prefersReducedMotion()) {
+      renderer.render(scene, camera)
+      return
+    }
+
+    if (!videoAllowed) return
+
+    const { video, texture, onPlaying } = createScreenVideo(sources, (readyVideo, readyTexture) => {
+      if (videoTexture !== readyTexture) return
+      applyFootageTransform(readyTexture, readyVideo.videoWidth, readyVideo.videoHeight)
+      screenMat.map = readyTexture
       screenMat.needsUpdate = true
       renderer.render(scene, camera)
       playVideo()
-    }, { once: true })
+    })
+
+    screenVideo = video
+    videoTexture = texture
+    onVideoPlaying = onPlaying
 
     video.load()
     playVideo()
   }
 
+  setVideoSourceB = (sources?: ScreenVideoSource[]) => {
+    pendingVideoSourcesB = sources
+    disposeVideoB()
+    screenMatB.map = posterTextureB
+    screenMatB.needsUpdate = true
+
+    if (!sources?.length || prefersReducedMotion()) {
+      renderer.render(scene, camera)
+      return
+    }
+
+    if (!videoAllowedB) return
+
+    const { video, texture, onPlaying } = createScreenVideo(sources, (readyVideo, readyTexture) => {
+      if (videoTextureB !== readyTexture) return
+      applyFootageTransform(readyTexture, readyVideo.videoWidth, readyVideo.videoHeight)
+      screenMatB.map = readyTexture
+      screenMatB.needsUpdate = true
+      renderer.render(scene, camera)
+      playVideo()
+    })
+
+    screenVideoB = video
+    videoTextureB = texture
+    onVideoPlayingB = onPlaying
+
+    video.load()
+    playVideo()
+  }
+
+  setArmSecondary = (armed: boolean) => {
+    if (!armed || videoAllowedB) return
+    videoAllowedB = true
+    if (pendingVideoSourcesB?.length) setVideoSourceB?.(pendingVideoSourcesB)
+  }
+
+  setScreenBlend = (b: number) => {
+    const next = clamp01(b)
+    if (next === currentBlend) return
+    currentBlend = next
+
+    screenMatB.opacity = next
+    // Skipping the draw call entirely while the layer is invisible keeps act 1
+    // exactly as cheap as it was before the second layer existed.
+    screenMatB.visible = next > 0.001
+
+    playVideo()
+    wake()
+  }
+
+  updateTextureB(props.screenshotSrcB)
   setVideoSource(props.videoSources)
+  setVideoSourceB(props.videoSourcesB)
+  setArmSecondary(props.armSecondary)
+  screenMatB.opacity = currentBlend
+  screenMatB.visible = currentBlend > 0.001
 
   // Shared singleton - replaces a per-instance window mousemove listener.
   // animate() reads sharedMouse.latest each frame; tilt result is identical
@@ -601,6 +804,10 @@ function initMacbook() {
     const eased = smoothstep(currentOpen)
     const zoomT = currentZoom
     lidGroup.rotation.x = closedAngle + (openAngle - closedAngle) * eased
+
+    const screenWake = smootherstep(currentOpen / 0.045)
+    const openFade = smoothstep((currentOpen - 0.045) / 0.955)
+    screenBounceLight.intensity = screenWake * THREE.MathUtils.lerp(0.55, 0.135, openFade)
 
     macbook.rotation.x = currentTiltX
     macbook.rotation.y = currentTiltY
@@ -652,6 +859,7 @@ function initMacbook() {
       && Math.abs(targetTiltX - currentTiltX) < 1e-4
       && Math.abs(targetTiltY - currentTiltY) < 1e-4
       && (!screenVideo || screenVideo.paused)
+      && (!screenVideoB || screenVideoB.paused)
 
     if (settled) {
       animId = 0
@@ -722,7 +930,7 @@ function initMacbook() {
         if (!document.hidden) playVideo()
         wake()
       } else {
-        screenVideo?.pause()
+        pauseVideos()
       }
     },
     { threshold: 0 },
@@ -731,7 +939,7 @@ function initMacbook() {
 
   const onDocumentVisibilityChange = () => {
     if (document.hidden) {
-      screenVideo?.pause()
+      pauseVideos()
       return
     }
     if (isVisible) {
@@ -796,12 +1004,18 @@ function initMacbook() {
     animId = 0
 
     updateTexture = null
+    updateTextureB = null
     setVideoSource = null
+    setVideoSourceB = null
+    setScreenBlend = null
+    setArmSecondary = null
     setOpenProgress = null
     setZoomProgress = null
     setAlignEl = null
     disposeVideo()
+    disposeVideoB()
     posterTexture.dispose()
+    posterTextureB?.dispose()
     kbTex.dispose()
     renderer.dispose()
     if (!contextBroken) renderer.forceContextLoss()
@@ -855,6 +1069,40 @@ watch(
     if (setVideoSource) setVideoSource(sources)
     else initMacbook()
   },
+)
+
+watch(
+  () => props.screenshotSrcB,
+  (src) => {
+    if (updateTextureB) updateTextureB(src)
+    else initMacbook()
+  },
+)
+
+watch(
+  () => props.videoSourcesB,
+  (sources) => {
+    if (setVideoSourceB) setVideoSourceB(sources)
+    else initMacbook()
+  },
+)
+
+watch(
+  () => props.screenBlend,
+  (b) => {
+    if (setScreenBlend) setScreenBlend(b ?? 0)
+    else initMacbook()
+  },
+  { immediate: true },
+)
+
+watch(
+  () => props.armSecondary,
+  (armed) => {
+    if (setArmSecondary) setArmSecondary(armed ?? false)
+    else if (armed) initMacbook()
+  },
+  { immediate: true },
 )
 
 watch(
