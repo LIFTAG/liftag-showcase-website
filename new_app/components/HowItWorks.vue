@@ -24,6 +24,11 @@ const prVisible     = ref(false)
 const prBurstKey    = ref(0)
 const hiwIntroEntered = ref(false)
 const reduceMotion  = ref(false)
+// Reactive twin of the plain `mobileHIWLayout` flag below (that one stays
+// non-reactive since it's read every rAF tick) - only exists to gate the
+// desktop-only cursor-warped grid in the template.
+const isMobileHIW = ref(false)
+const showGridWarp = computed(() => !isMobileHIW.value && !reduceMotion.value)
 
 const prBurstParticles = [
   { x: '-42px', y: '-34px', rotate: '-22deg', delay: '0ms', color: 'var(--liftag-primary)' },
@@ -860,6 +865,7 @@ onMounted(async () => {
   const media = window.matchMedia('(max-width: 768px)')
   const syncMobileLayout = () => {
     mobileHIWLayout = media.matches
+    isMobileHIW.value = mobileHIWLayout
     glassPaneRectDirty = true
     cancelAnimationFrame(rafId)
 
@@ -917,6 +923,18 @@ onBeforeUnmount(() => {
   >
     <div class="hiw-sticky">
       <div class="hiw-bg-glow"></div>
+      <!-- Desktop-only cursor-warped grid, same shader as Hero/FinalCta - this
+           section has no static-grid fallback since it never had a grid before. -->
+      <LazyCursorGridWarp
+        v-if="showGridWarp"
+        :line-alpha="0.03"
+        :mask-center-x="0.5"
+        :mask-center-y="0.42"
+        :mask-rx="0.55"
+        :mask-ry="0.5"
+        :mask-inner="0.15"
+        :mask-outer="0.85"
+      />
       <canvas ref="curveCanvas" class="hiw-curve-canvas"></canvas>
 
       <div class="hiw-header">
