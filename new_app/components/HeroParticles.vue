@@ -29,10 +29,13 @@ const props = withDefaults(defineProps<{
   dprCap?: number
   /** Couple the field to the shared cursor (disable on touch layouts). */
   interactive?: boolean
+  /** Render the cursor-warped background grid in the same scene/draw batch. */
+  gridWarp?: boolean
 }>(), {
   count: 1200,
   dprCap: 1.75,
   interactive: true,
+  gridWarp: true,
 })
 
 const mount = ref<HTMLElement | null>(null)
@@ -43,12 +46,30 @@ const CAM_Z = 60
 /** Reveal floor on re-entry so the field never replays the full fade-in. */
 const REENTRY_REVEAL_FLOOR = 0.35
 
+// Background grid warp: same 80px cell as the CSS grid it replaces on desktop
+// (see Hero.vue), rendered as one extra full-screen quad in this component's
+// existing scene/renderer/rAF loop instead of a second canvas + GL context.
+const GRID_CELL_PX = 80
+const GRID_WARP_RADIUS_PX = 190
+const GRID_WARP_STRENGTH_PX = 16
+const GRID_LINE_ALPHA = 0.035
+/** Mirrors the CSS mask: radial-gradient(ellipse 90% 80% at 60% 40%, black 20%, transparent 80%). */
+const GRID_MASK_CENTER_X = 0.6
+const GRID_MASK_CENTER_Y = 0.6 // CSS y=40% from top -> UV y=60% from bottom
+const GRID_MASK_RX = 0.45
+const GRID_MASK_RY = 0.4
+const GRID_MASK_INNER = 0.2
+const GRID_MASK_OUTER = 0.8
+
 let renderer: THREE.WebGLRenderer | null = null
 let scene: THREE.Scene | null = null
 let camera: THREE.PerspectiveCamera | null = null
 let material: THREE.ShaderMaterial | null = null
 let geometry: THREE.BufferGeometry | null = null
 let points: THREE.Points | null = null
+let gridGeometry: THREE.PlaneGeometry | null = null
+let gridMaterial: THREE.ShaderMaterial | null = null
+let gridMesh: THREE.Mesh | null = null
 
 let rafId = 0
 let running = false
@@ -230,6 +251,76 @@ function buildGeometry(count: number, aspect: number) {
   return geo
 }
 
+// A flat, unrotated plane at z=0 - the same reference depth `mouseWorld` is
+// already expressed in (see the mouseTarget calc in frame()), so the grid
+// reads the cursor with zero extra projection math. Local xy therefore equals
+// world xy, which is why the vertex shader below skips a normal matrix.
+const gridVertexShader = /* glsl */ `
+  varying vec2 vPos;
+  varying vec2 vUv2;
+
+  void main() {
+    vPos = position.xy;
+    vUv2 = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+// Classic inverse-warp lookup: sample the procedural grid at
+// (fragment - displacement) so lines visually bulge *away* from the cursor,
+// like a lens pressing into the plane. fwidth() keeps the lines a soft ~1px
+// wide at any zoom without a texture or a second draw pass.
+const gridFragmentShader = /* glsl */ `
+  uniform vec2 uMouse;
+  uniform float uCellSize;
+  uniform float uWarpRadius;
+  uniform float uWarpStrength;
+  uniform float uOpacity;
+  uniform float uReveal;
+  varying vec2 vPos;
+  varying vec2 vUv2;
+
+  void main() {
+    vec2 toCursor = vPos - uMouse;
+    float dist = length(toCursor);
+    float falloff = exp(-(dist * dist) / max(uWarpRadius * uWarpRadius, 0.0001));
+    vec2 dir = toCursor / max(dist, 0.0001);
+    vec2 displaced = vPos - dir * uWarpStrength * falloff;
+
+    vec2 guv = displaced / uCellSize;
+    vec2 gridD = fwidth(guv);
+    vec2 gridAA = abs(fract(guv - 0.5) - 0.5) / max(gridD, vec2(0.0001));
+    float line = 1.0 - min(min(gridAA.x, gridAA.y), 1.0);
+
+    vec2 m = vUv2 - vec2(${GRID_MASK_CENTER_X.toFixed(2)}, ${GRID_MASK_CENTER_Y.toFixed(2)});
+    m.x /= ${GRID_MASK_RX.toFixed(2)};
+    m.y /= ${GRID_MASK_RY.toFixed(2)};
+    float r = length(m);
+    float mask = clamp(1.0 - (r - ${GRID_MASK_INNER.toFixed(2)}) / ${(GRID_MASK_OUTER - GRID_MASK_INNER).toFixed(2)}, 0.0, 1.0);
+
+    float alpha = line * uOpacity * mask * uReveal;
+    if (alpha < 0.001) discard;
+    gl_FragColor = vec4(1.0, 1.0, 1.0, alpha);
+  }
+`
+
+function buildGridGeometry(aspect: number) {
+  const { halfW, halfH } = halfExtentsAt(CAM_Z, aspect)
+  // Margin so a mid-resize frame (before the debounced rebuild lands) never
+  // shows a seam at the plane's edge.
+  const margin = 1.2
+  return new THREE.PlaneGeometry(halfW * 2 * margin, halfH * 2 * margin)
+}
+
+function updateGridUniforms(widthPx: number, aspect: number) {
+  if (!gridMaterial) return
+  const { halfW } = halfExtentsAt(CAM_Z, aspect)
+  const unitsPerPx = (halfW * 2) / Math.max(widthPx, 1)
+  gridMaterial.uniforms.uCellSize.value = GRID_CELL_PX * unitsPerPx
+  gridMaterial.uniforms.uWarpRadius.value = GRID_WARP_RADIUS_PX * unitsPerPx
+  gridMaterial.uniforms.uWarpStrength.value = GRID_WARP_STRENGTH_PX * unitsPerPx
+}
+
 function init() {
   const host = mount.value
   if (!host || !disposed || contextBroken) return
@@ -289,6 +380,29 @@ function init() {
   points.frustumCulled = false
   scene.add(points)
 
+  if (props.gridWarp) {
+    gridGeometry = buildGridGeometry(aspect)
+    gridMaterial = new THREE.ShaderMaterial({
+      vertexShader: gridVertexShader,
+      fragmentShader: gridFragmentShader,
+      transparent: true,
+      depthWrite: false,
+      depthTest: false,
+      uniforms: {
+        uMouse: { value: mouseWorld },
+        uCellSize: { value: GRID_CELL_PX },
+        uWarpRadius: { value: GRID_WARP_RADIUS_PX },
+        uWarpStrength: { value: GRID_WARP_STRENGTH_PX },
+        uOpacity: { value: GRID_LINE_ALPHA },
+        uReveal: { value: 0 },
+      },
+    })
+    updateGridUniforms(width, aspect)
+    gridMesh = new THREE.Mesh(gridGeometry, gridMaterial)
+    gridMesh.frustumCulled = false
+    scene.add(gridMesh)
+  }
+
   onContextLost = (e: Event) => {
     e.preventDefault()
     contextBroken = true
@@ -332,12 +446,17 @@ function disposeScene() {
   }
   geometry?.dispose()
   material?.dispose()
+  gridGeometry?.dispose()
+  gridMaterial?.dispose()
   renderer = null
   scene = null
   camera = null
   geometry = null
   material = null
   points = null
+  gridGeometry = null
+  gridMaterial = null
+  gridMesh = null
   disposed = true
   mouseArmed = false
   mouseWorld.set(9999, 9999)
@@ -361,6 +480,7 @@ function frame(now: number) {
 
   revealLinear = Math.min(1, revealLinear + dt * 0.0007)
   u.uReveal.value = 1 - Math.pow(1 - revealLinear, 3)
+  if (gridMaterial) gridMaterial.uniforms.uReveal.value = u.uReveal.value
 
   u.uScroll.value = window.scrollY * 0.02
 
@@ -471,6 +591,13 @@ function handleResize() {
   camera.aspect = width / height
   camera.updateProjectionMatrix()
   renderer.setSize(width, height)
+
+  if (gridMesh) {
+    gridGeometry?.dispose()
+    gridGeometry = buildGridGeometry(camera.aspect)
+    gridMesh.geometry = gridGeometry
+    updateGridUniforms(width, camera.aspect)
+  }
 }
 
 onMounted(() => {

@@ -355,12 +355,17 @@ onMounted(() => {
   // entrance delay
   heroEntranceTimer = setTimeout(() => { entered.value = true }, 80)
 
+  // One-time check, same as the laser reveal's own reduced-motion gate below -
+  // this doesn't need a change listener since a user toggling the OS setting
+  // mid-session is not a case this hero optimizes for.
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
   heroMobileMql = window.matchMedia('(max-width: 768px)')
   isMobile.value = heroMobileMql.matches
-  showHeroParticles.value = !heroMobileMql.matches
+  showHeroParticles.value = !heroMobileMql.matches && !prefersReducedMotion
   onHeroMobileChange = (e: MediaQueryListEvent) => {
     isMobile.value = e.matches
-    showHeroParticles.value = !e.matches
+    showHeroParticles.value = !e.matches && !prefersReducedMotion
     if (e.matches) {
       cleanupHeroLasers()
       heroLaserDone.value = true
@@ -516,7 +521,12 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
     />
 
     <!-- ── Subtle grid ── -->
+    <!-- Static fallback for mobile, prefers-reduced-motion, and pre-hydration:
+         desktop swaps to the cursor-warped GPU version rendered inside
+         HeroParticles (same 80px cell / mask, see its gridWarp shader) once
+         showHeroParticles flips true, so the two never show at once. -->
     <div
+      v-if="!showHeroParticles"
       :style="{
         position: 'absolute',
         inset: 0,

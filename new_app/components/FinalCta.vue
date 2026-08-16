@@ -3,9 +3,14 @@ const sectionRef = ref<HTMLElement | null>(null)
 const chargeAnchor = ref<HTMLElement | null>(null)
 const chargeP = ref(0)
 const charged = ref(false)
+// Desktop-only cursor-warped grid (see CursorGridWarp.vue); mobile and
+// prefers-reduced-motion keep the static drifting CSS grid below unchanged.
+const showGridWarp = ref(false)
 
 let observer: IntersectionObserver | null = null
 let motionMql: MediaQueryList | null = null
+let mobileMql: MediaQueryList | null = null
+let onMobileChange: ((event: MediaQueryListEvent) => void) | null = null
 let rafId = 0
 let inView = false
 let documentVisible = true
@@ -89,6 +94,13 @@ onMounted(() => {
     chargeP.value = 1
   }
 
+  mobileMql = window.matchMedia('(max-width: 768px)')
+  showGridWarp.value = !mobileMql.matches && !reduceMotion
+  onMobileChange = (e: MediaQueryListEvent) => {
+    showGridWarp.value = !e.matches && !reduceMotion
+  }
+  mobileMql.addEventListener('change', onMobileChange)
+
   if (!sectionRef.value) return
   observer = new IntersectionObserver(
     ([entry]) => {
@@ -107,6 +119,9 @@ onBeforeUnmount(() => {
   observer = null
   motionMql?.removeEventListener('change', onMotionChange)
   motionMql = null
+  if (mobileMql && onMobileChange) mobileMql.removeEventListener('change', onMobileChange)
+  mobileMql = null
+  onMobileChange = null
   document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
 })
 </script>
@@ -136,8 +151,11 @@ onBeforeUnmount(() => {
 
     <!-- Grid mask: the mask stays fixed on the wrapper while the oversized
          grid child drifts one 80px pattern period via transform, looping
-         seamlessly on the compositor. -->
+         seamlessly on the compositor. Static fallback for mobile and
+         prefers-reduced-motion; desktop swaps to the cursor-warped GPU
+         version (same 80px cell, mask and drift baked into its shader). -->
     <div
+      v-if="!showGridWarp"
       :style="{
         position: 'absolute',
         inset: 0,
@@ -159,6 +177,17 @@ onBeforeUnmount(() => {
         }"
       />
     </div>
+    <LazyCursorGridWarp
+      v-if="showGridWarp"
+      :line-alpha="0.04"
+      :drift-px-per-sec="4.44"
+      :mask-center-x="0.5"
+      :mask-center-y="0.5"
+      :mask-rx="0.35"
+      :mask-ry="0.25"
+      :mask-inner="0.3"
+      :mask-outer="0.8"
+    />
 
     <div class="container" style="position: relative;">
       <!-- Logo -->
