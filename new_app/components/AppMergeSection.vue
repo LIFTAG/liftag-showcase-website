@@ -185,7 +185,7 @@ const mockApps: MockApp[] = [
   {
     key: 'calendar',
     name: 'Calendar',
-    replaces: 'Reminders, notifications',
+    replaces: 'Reminders',
     gradient: 'linear-gradient(145deg, #ffcb6b 0%, #f59e0b 46%, #5b2200 100%)',
     accent: '#fff5d8',
     glow: 'rgba(245,158,11,0.34)',
