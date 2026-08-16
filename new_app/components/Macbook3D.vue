@@ -592,6 +592,12 @@ function initMacbook() {
   let currentTiltY = -0.06
   let animId = 0
   let isVisible = false
+  // Set by a video's frame callback; cleared once that frame has been drawn.
+  let videoFrameDirty = false
+  let cancelPrimaryFrames: (() => void) | null = null
+  let cancelSecondaryFrames: (() => void) | null = null
+  let primaryFrameGated = false
+  let secondaryFrameGated = false
 
   function tearDownVideo(video: HTMLVideoElement | null, onPlaying: (() => void) | null) {
     if (!video) return
@@ -605,6 +611,9 @@ function initMacbook() {
   }
 
   function disposeVideo() {
+    cancelPrimaryFrames?.()
+    cancelPrimaryFrames = null
+    primaryFrameGated = false
     tearDownVideo(screenVideo, onVideoPlaying)
     onVideoPlaying = null
     videoTexture?.dispose()
@@ -613,6 +622,9 @@ function initMacbook() {
   }
 
   function disposeVideoB() {
+    cancelSecondaryFrames?.()
+    cancelSecondaryFrames = null
+    secondaryFrameGated = false
     tearDownVideo(screenVideoB, onVideoPlayingB)
     onVideoPlayingB = null
     videoTextureB?.dispose()
@@ -628,7 +640,13 @@ function initMacbook() {
   function createScreenVideo(
     sources: ScreenVideoSource[],
     onReady: (video: HTMLVideoElement, texture: THREE.VideoTexture) => void,
-  ): { video: HTMLVideoElement, texture: THREE.VideoTexture, onPlaying: () => void } {
+  ): {
+      video: HTMLVideoElement
+      texture: THREE.VideoTexture
+      onPlaying: () => void
+      cancelFrames: () => void
+      frameGated: boolean
+    } {
     // The shared builder is tuned for the segment-scrubbed phone screens, which
     // play one slice and stop. The laptop instead runs its recording end to end
     // on a loop, and `preload` drops back to metadata because autoplay already
@@ -650,7 +668,36 @@ function initMacbook() {
     video.addEventListener('playing', onPlaying)
     video.addEventListener('loadeddata', () => onReady(video, texture), { once: true })
 
-    return { video, texture, onPlaying }
+    // THREE.VideoTexture re-uploads the frame on every render, so a 30fps
+    // recording costs two 1440x904 uploads per displayed frame on a 60Hz
+    // screen - and during the cross-fade, four. Driving needsUpdate from the
+    // browser's own frame callback uploads once per real video frame instead,
+    // and tells the loop when a redraw is worth doing at all.
+    const host = video as HTMLVideoElement & {
+      requestVideoFrameCallback?: (cb: () => void) => number
+      cancelVideoFrameCallback?: (handle: number) => void
+    }
+    const frameGated = typeof host.requestVideoFrameCallback === 'function'
+    let frameHandle = 0
+
+    if (frameGated) {
+      texture.update = () => {}
+      const onFrame = () => {
+        texture.needsUpdate = true
+        videoFrameDirty = true
+        frameHandle = host.requestVideoFrameCallback!(onFrame)
+        wake()
+      }
+      frameHandle = host.requestVideoFrameCallback!(onFrame)
+    }
+
+    const cancelFrames = () => {
+      if (!frameHandle) return
+      host.cancelVideoFrameCallback?.(frameHandle)
+      frameHandle = 0
+    }
+
+    return { video, texture, onPlaying, cancelFrames, frameGated }
   }
 
   function shouldPlayPrimary() {
@@ -721,7 +768,7 @@ function initMacbook() {
 
     if (!videoAllowed) return
 
-    const { video, texture, onPlaying } = createScreenVideo(sources, (readyVideo, readyTexture) => {
+    const { video, texture, onPlaying, cancelFrames, frameGated } = createScreenVideo(sources, (readyVideo, readyTexture) => {
       if (videoTexture !== readyTexture) return
       applyFootageTransform(readyTexture, readyVideo.videoWidth, readyVideo.videoHeight)
       screenMat.map = readyTexture
@@ -733,6 +780,8 @@ function initMacbook() {
     screenVideo = video
     videoTexture = texture
     onVideoPlaying = onPlaying
+    cancelPrimaryFrames = cancelFrames
+    primaryFrameGated = frameGated
 
     video.load()
     playVideo()
@@ -751,7 +800,7 @@ function initMacbook() {
 
     if (!videoAllowedB) return
 
-    const { video, texture, onPlaying } = createScreenVideo(sources, (readyVideo, readyTexture) => {
+    const { video, texture, onPlaying, cancelFrames, frameGated } = createScreenVideo(sources, (readyVideo, readyTexture) => {
       if (videoTextureB !== readyTexture) return
       applyFootageTransform(readyTexture, readyVideo.videoWidth, readyVideo.videoHeight)
       screenMatB.map = readyTexture
@@ -763,6 +812,8 @@ function initMacbook() {
     screenVideoB = video
     videoTextureB = texture
     onVideoPlayingB = onPlaying
+    cancelSecondaryFrames = cancelFrames
+    secondaryFrameGated = frameGated
 
     video.load()
     playVideo()
@@ -854,14 +905,16 @@ function initMacbook() {
     // Nothing left to interpolate and no video frames arriving - draw the
     // settled pose once and park. The video guard is load-bearing: a playing
     // VideoTexture needs a render every frame or the screen freezes.
-    const settled = Math.abs(targetOpen - currentOpen) < 1e-4
+    const poseSettled = Math.abs(targetOpen - currentOpen) < 1e-4
       && Math.abs(targetZoom - currentZoom) < 1e-4
       && Math.abs(targetTiltX - currentTiltX) < 1e-4
       && Math.abs(targetTiltY - currentTiltY) < 1e-4
-      && (!screenVideo || screenVideo.paused)
+    const videosIdle = (!screenVideo || screenVideo.paused)
       && (!screenVideoB || screenVideoB.paused)
 
-    if (settled) {
+    // Nothing left to interpolate and no video frames arriving - draw the
+    // settled pose once and park.
+    if (poseSettled && videosIdle) {
       animId = 0
       currentOpen = targetOpen
       currentZoom = targetZoom
@@ -873,6 +926,19 @@ function initMacbook() {
     }
 
     animId = requestAnimationFrame(animate)
+
+    // Playback is the only thing moving, every playing video reports its own
+    // frames, and none has presented a new one since the last draw. The
+    // picture on screen is still correct, so skip the render - this is what
+    // keeps a 30fps recording from costing 60 full scene draws a second during
+    // the dwell. A video without requestVideoFrameCallback disables the gate,
+    // because then there is no way to know when a frame arrived.
+    const framesGated = (!screenVideo || screenVideo.paused || primaryFrameGated)
+      && (!screenVideoB || screenVideoB.paused || secondaryFrameGated)
+
+    if (poseSettled && framesGated && !videoFrameDirty) return
+
+    videoFrameDirty = false
 
     currentOpen += (targetOpen - currentOpen) * 0.14
     currentZoom += (targetZoom - currentZoom) * 0.14

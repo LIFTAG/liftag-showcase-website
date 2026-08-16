@@ -151,15 +151,15 @@ let hasEntered = false
 let dashboardVideoQuery: MediaQueryList | null = null
 let lastTickKey = ''
 let idleFrames = 0
+let runwayPx = 1
 
 function exitSlice(p: number, start: number, duration: number) {
   return smoothstep((p - start) / duration)
 }
 
-function setExitMotion(section: HTMLElement, key: string, value: number, y: number, blur: number) {
+function setExitMotion(section: HTMLElement, key: string, value: number, y: number) {
   section.style.setProperty(`--exit-${key}`, String(value))
   section.style.setProperty(`--exit-${key}-y`, `${value * y}px`)
-  section.style.setProperty(`--exit-${key}-blur`, `${value * blur}px`)
 }
 
 // Both inputs are CSS custom properties written by the loops above - the lerped
@@ -184,6 +184,7 @@ function getScrollProgress() {
   const rect = section.getBoundingClientRect()
   const viewportH = useStableViewportHeight() || window.innerHeight
   const available = Math.max(1, rect.height - viewportH)
+  runwayPx = available
   return clamp01(-rect.top / available)
 }
 
@@ -204,9 +205,15 @@ function tick() {
     return
   }
 
-  // Quantized to 1/200 - finer than any of these vars can resolve on screen,
-  // and it lets an unchanged frame skip ~25 setProperty calls entirely.
-  const p = reduceMotion ? 1 : Math.round(getScrollProgress() * 200) / 200
+  // Quantized to roughly one scroll pixel, not to a fixed fraction. A fixed
+  // 1/200 was fine when this section was 300vh, but the two-act runway is 4.6
+  // viewports, which stretched the same step to ~18px of scroll - and the sweep
+  // crosses a whole viewport width in under a tenth of the journey, so it moved
+  // in 80px jumps. Deriving the step from the runway keeps the resolution
+  // constant however long the section gets, and an unchanged frame still parks.
+  const raw = getScrollProgress()
+  const steps = Math.max(200, Math.round(runwayPx))
+  const p = reduceMotion ? 1 : Math.round(raw * steps) / steps
   const tickKey = `${p}|${reduceMotion}`
 
   if (tickKey === lastTickKey) {
@@ -290,16 +297,16 @@ function tick() {
     section.style.setProperty('--exit-flow-scale', String(1 - exitFlow * 0.018))
     // The exit belongs entirely to act 2 now - act 1's copy is long gone by the
     // time the section starts flowing away into Trainers.
-    setExitMotion(section, 'copy', exitSlice(exitP, 0.928, 0.058), -28, 8)
-    setExitMotion(section, 'feature-0', exitSlice(exitP, 0.936, 0.052), -20, 5)
-    setExitMotion(section, 'feature-1', exitSlice(exitP, 0.944, 0.048), -24, 6)
-    setExitMotion(section, 'feature-2', exitSlice(exitP, 0.952, 0.044), -28, 7)
-    setExitMotion(section, 'chip-clients', exitSlice(exitP, 0.936, 0.052), -28, 6)
-    setExitMotion(section, 'chip-month', exitSlice(exitP, 0.944, 0.048), -32, 7)
-    setExitMotion(section, 'chip-focus', exitSlice(exitP, 0.952, 0.044), -34, 7)
-    setExitMotion(section, 'stage-glow', exitSlice(exitP, 0.930, 0.058), -18, 16)
-    setExitMotion(section, 'macbook', exitSlice(exitP, 0.944, 0.052), -46, 10)
-    setExitMotion(section, 'bg', exitSlice(exitP, 0.944, 0.052), -30, 3)
+    setExitMotion(section, 'copy', exitSlice(exitP, 0.928, 0.058), -28)
+    setExitMotion(section, 'feature-0', exitSlice(exitP, 0.936, 0.052), -20)
+    setExitMotion(section, 'feature-1', exitSlice(exitP, 0.944, 0.048), -24)
+    setExitMotion(section, 'feature-2', exitSlice(exitP, 0.952, 0.044), -28)
+    setExitMotion(section, 'chip-clients', exitSlice(exitP, 0.936, 0.052), -28)
+    setExitMotion(section, 'chip-month', exitSlice(exitP, 0.944, 0.048), -32)
+    setExitMotion(section, 'chip-focus', exitSlice(exitP, 0.952, 0.044), -34)
+    setExitMotion(section, 'stage-glow', exitSlice(exitP, 0.930, 0.058), -18)
+    setExitMotion(section, 'macbook', exitSlice(exitP, 0.944, 0.052), -46)
+    setExitMotion(section, 'bg', exitSlice(exitP, 0.944, 0.052), -30)
   }
 }
 
@@ -678,7 +685,6 @@ onBeforeUnmount(() => {
                 '--i': i,
                 '--exit-row': `var(--exit-feature-${i})`,
                 '--exit-row-y': `var(--exit-feature-${i}-y)`,
-                '--exit-row-blur': `var(--exit-feature-${i}-blur)`,
               }"
             >
               <span class="dashboard-feature-line" aria-hidden="true"></span>
@@ -746,34 +752,24 @@ onBeforeUnmount(() => {
   --exit-p: 0;
   --exit-copy: 0;
   --exit-copy-y: 0px;
-  --exit-copy-blur: 0px;
   --exit-feature-0: 0;
   --exit-feature-0-y: 0px;
-  --exit-feature-0-blur: 0px;
   --exit-feature-1: 0;
   --exit-feature-1-y: 0px;
-  --exit-feature-1-blur: 0px;
   --exit-feature-2: 0;
   --exit-feature-2-y: 0px;
-  --exit-feature-2-blur: 0px;
   --exit-chip-clients: 0;
   --exit-chip-clients-y: 0px;
-  --exit-chip-clients-blur: 0px;
   --exit-chip-month: 0;
   --exit-chip-month-y: 0px;
-  --exit-chip-month-blur: 0px;
   --exit-chip-focus: 0;
   --exit-chip-focus-y: 0px;
-  --exit-chip-focus-blur: 0px;
   --exit-stage-glow: 0;
   --exit-stage-glow-y: 0px;
-  --exit-stage-glow-blur: 0px;
   --exit-macbook: 0;
   --exit-macbook-y: 0px;
-  --exit-macbook-blur: 0px;
   --exit-bg: 0;
   --exit-bg-y: 0px;
-  --exit-bg-blur: 0px;
   --exit-flow-y: 0px;
   --exit-flow-scale: 1;
   position: relative;
@@ -973,7 +969,6 @@ onBeforeUnmount(() => {
   --i: 0;
   --exit-row: 0;
   --exit-row-y: 0px;
-  --exit-row-blur: 0px;
   position: relative;
   padding: 18px 0;
   will-change: opacity, transform;
@@ -1474,8 +1469,11 @@ onBeforeUnmount(() => {
 /* A full-viewport backdrop blur is far too expensive to leave mounted for the
    whole section, so it is attached only while the card is actually on screen. */
 .dashboard-section.is-card-active .coach-handoff-scrim {
-  backdrop-filter: blur(calc(var(--card-p) * 16px)) saturate(1.1);
-  -webkit-backdrop-filter: blur(calc(var(--card-p) * 16px)) saturate(1.1);
+  /* Fixed radius. Animating the blur radius makes the browser regenerate the
+     blurred backdrop from scratch every frame; the parent's opacity already
+     fades the whole scrim in, so the radius never needs to move. */
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
 }
 
 .coach-handoff-copy {
@@ -1542,8 +1540,9 @@ onBeforeUnmount(() => {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--liftag-r-lg);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  /* No backdrop-filter here on purpose: unlike the handoff card this is on
+     screen for the entire locked window - the most expensive stretch of the
+     section - and at 82% opacity the blur was buying nothing. */
   /* Rides the punch-in: appears as the camera dives into the screen and is
      gone again by the time it has pulled back out. */
   opacity: var(--zoom-p);

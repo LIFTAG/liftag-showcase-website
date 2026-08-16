@@ -35,17 +35,32 @@ export const DASHBOARD_JOURNEY = {
   cardOutEnd: 0.560,
   dwellEnd: 0.635,
   unzoomEnd: 0.775,
-  coachChromeEnd: 0.845,
+  // Halfway through the un-zoom, deliberately: the coach copy materialises
+  // while the laptop is still travelling back out, so the reveal is one
+  // movement rather than a camera move followed by a separate fade-in.
+  coachStart: 0.705,
+  coachChromeEnd: 0.825,
   exitStart: 0.925,
 } as const
 
 /**
  * Where the footage handover lands along the rail, as a 0-1 fraction of its
- * width. Derived rather than hand-placed so the tick can never drift away from
- * the swap it is marking when the phase boundaries are retuned.
+ * width.
+ *
+ * Keyed to the *middle* of the cross-fade, not its end. The two recordings
+ * dissolve into each other, so the moment a reader registers as "it changed"
+ * is when the incoming one takes the majority - marking `swapEnd` instead put
+ * the tick 13% of the track late, and the footage visibly changed well before
+ * the fill reached it.
+ *
+ * Derived rather than hand-placed so it cannot drift away from the swap it is
+ * marking when the phase boundaries are retuned.
  */
+export const DASHBOARD_SWAP_MIDPOINT
+  = (DASHBOARD_JOURNEY.swapStart + DASHBOARD_JOURNEY.swapEnd) / 2
+
 export const DASHBOARD_RAIL_SWITCH_AT
-  = (DASHBOARD_JOURNEY.swapEnd - DASHBOARD_JOURNEY.zoomEnd)
+  = (DASHBOARD_SWAP_MIDPOINT - DASHBOARD_JOURNEY.zoomEnd)
     / (DASHBOARD_JOURNEY.dwellEnd - DASHBOARD_JOURNEY.zoomEnd)
 
 export function clamp01(v: number) {
@@ -99,6 +114,7 @@ export function mapDashboardJourney(
     cardOutEnd,
     dwellEnd,
     unzoomEnd,
+    coachStart,
     coachChromeEnd,
     exitStart,
   } = DASHBOARD_JOURNEY
@@ -129,10 +145,10 @@ export function mapDashboardJourney(
   // measure of remaining scroll, so easing it would misreport the distance.
   const rail = span(t, zoomEnd, dwellEnd)
 
-  // Act 2's copy is only allowed to exist once the camera is back out; gating
-  // it on unzoomEnd rather than on `zoom` keeps it off-screen during the
-  // punch-in, which passes through the same zoom values on the way in.
-  const coach = smoothstep(span(t, unzoomEnd, coachChromeEnd))
+  // Gated on an explicit boundary rather than on `zoom`, because the punch-in
+  // passes through the same zoom values on the way in - keying off the number
+  // alone would fade the coach copy up over act 1.
+  const coach = smoothstep(span(t, coachStart, coachChromeEnd))
 
   const exit = smoothstep(span(t, exitStart, 1))
 

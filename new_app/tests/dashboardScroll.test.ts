@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import {
   DASHBOARD_JOURNEY,
   DASHBOARD_RAIL_SWITCH_AT,
+  DASHBOARD_SWAP_MIDPOINT,
   mapDashboardJourney,
 } from '../utils/dashboardScroll.ts'
 
@@ -14,6 +15,7 @@ const {
   cardOutEnd,
   dwellEnd,
   unzoomEnd,
+  coachStart,
   coachChromeEnd,
 } = DASHBOARD_JOURNEY
 
@@ -72,15 +74,32 @@ test('the camera is locked at full zoom across the entire handoff', () => {
   }
 })
 
-test('the un-zoom pulls back out before act 2 copy arrives', () => {
-  const midUnzoom = mapDashboardJourney((dwellEnd + unzoomEnd) / 2)
+test('act 2 copy starts arriving partway through the un-zoom, not after it', () => {
+  // The reveal is meant to read as one movement: the copy materialises while
+  // the laptop is still travelling back out.
   assert.ok(
-    midUnzoom.zoom > 0 && midUnzoom.zoom < 1,
-    `zoom should be pulling back, got ${midUnzoom.zoom}`,
+    coachStart > dwellEnd && coachStart < unzoomEnd,
+    `coachStart ${coachStart} should fall inside the un-zoom (${dwellEnd}..${unzoomEnd})`,
   )
-  assert.equal(midUnzoom.coach, 0, 'coach copy must not appear while the camera is inside the screen')
+
+  const atStart = mapDashboardJourney(coachStart)
+  assert.ok(atStart.zoom > 0, 'the camera should still be pulling back when the copy starts')
+  assert.equal(atStart.coach, 0)
+
+  const justAfter = mapDashboardJourney(coachStart + 0.02)
+  assert.ok(justAfter.coach > 0, 'coach copy should be fading in during the un-zoom')
+  assert.ok(justAfter.zoom > 0, 'and it should overlap the tail of the camera move')
 
   assert.equal(mapDashboardJourney(unzoomEnd).zoom, 0)
+})
+
+test('act 2 copy stays hidden through the punch-in and the dwell', () => {
+  for (let p = 0; p <= dwellEnd; p += 1 / 400) {
+    assert.equal(
+      mapDashboardJourney(p).coach, 0,
+      `coach copy leaked into act 1 or the dwell at p=${p}`,
+    )
+  }
 })
 
 test('act 2 copy is fully in before the exit begins', () => {
@@ -162,18 +181,29 @@ test('the rail runs the locked window and is full when the un-zoom starts', () =
   assert.ok(mapDashboardJourney((zoomEnd + dwellEnd) / 2).rail > 0)
 })
 
-test('the rail tick sits exactly where the footage finishes swapping', () => {
-  const atTick = mapDashboardJourney(swapEnd)
+test('the rail tick sits where the footage visibly changes over', () => {
+  const atTick = mapDashboardJourney(DASHBOARD_SWAP_MIDPOINT)
 
   assert.ok(
     Math.abs(atTick.rail - DASHBOARD_RAIL_SWITCH_AT) < 1e-12,
-    `rail was ${atTick.rail} at the swap but the tick is drawn at ${DASHBOARD_RAIL_SWITCH_AT}`,
+    `rail was ${atTick.rail} at the swap midpoint but the tick is drawn at ${DASHBOARD_RAIL_SWITCH_AT}`,
   )
   assert.ok(
     DASHBOARD_RAIL_SWITCH_AT > 0 && DASHBOARD_RAIL_SWITCH_AT < 1,
     'the tick has to land inside the rail to be visible',
   )
-  assert.equal(atTick.blend, 1, 'the footage must be fully swapped when the fill reaches the tick')
+
+  // The handover reads as done when the incoming footage takes the majority,
+  // which is what the tick has to line up with - not the end of the fade.
+  assert.ok(
+    Math.abs(atTick.blend - 0.5) < 1e-9,
+    `the incoming footage should be half mixed in at the tick, got ${atTick.blend}`,
+  )
+
+  // And the fill must still be short of the tick while the old footage leads.
+  const early = mapDashboardJourney(DASHBOARD_SWAP_MIDPOINT - 0.02)
+  assert.ok(early.blend < 0.5)
+  assert.ok(early.rail < DASHBOARD_RAIL_SWITCH_AT, 'fill overtook the tick before the change')
 })
 
 test('reduced motion stacks both acts statically with the coach footage shown', () => {
