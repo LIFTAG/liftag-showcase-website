@@ -282,7 +282,7 @@ onBeforeUnmount(() => {
 
     <div class="container" style="position: relative;">
       <!-- Header -->
-      <div :style="{ textAlign: 'center', marginBottom: '80px' }">
+      <div :style="{ textAlign: 'center', marginBottom: '28px' }">
         <Eyebrow color="#CCFF00" :style="{ justifyContent: 'center' }">▸ PROGRESS &amp; INSIGHTS</Eyebrow>
         <SectionTitle :max="700" :style="{ textAlign: 'center', margin: '0 auto' }">
           Watch the numbers <span class="lime">compound.</span>
@@ -301,6 +301,12 @@ onBeforeUnmount(() => {
           Volume, PRs, 1RM estimates, streaks, body-part splits, workout history, rest trends. Every
           dimension of your training in one place.
         </p>
+      </div>
+
+      <div class="progress-plate-hero" aria-hidden="true">
+        <ClientOnly>
+          <LazyForgedPrPlate />
+        </ClientOnly>
       </div>
 
       <!-- 3-col layout -->
@@ -419,14 +425,8 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <!-- CENTER: forged plate + phone -->
+        <!-- CENTER phone -->
         <div class="progress-stage">
-          <div class="progress-plate-mount" aria-hidden="true">
-            <ClientOnly>
-              <LazyForgedPrPlate />
-            </ClientOnly>
-          </div>
-
           <div class="progress-phone-float">
             <div class="progress-phone-glow" aria-hidden="true" />
             <div :key="screenPulse" class="progress-phone-pulse" aria-hidden="true" />
@@ -626,24 +626,21 @@ onBeforeUnmount(() => {
   --pane-my: 0;
 }
 
+.progress-plate-hero {
+  position: relative;
+  width: min(520px, 78vw);
+  aspect-ratio: 1;
+  margin: 4px auto 36px;
+  pointer-events: none;
+  contain: layout paint;
+}
+
 .progress-stage {
   position: relative;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.progress-plate-mount {
-  position: absolute;
-  left: 50%;
-  top: 38%;
-  width: min(560px, 70vw);
-  aspect-ratio: 1;
-  transform: translate(-50%, -52%);
-  z-index: 1;
-  pointer-events: none;
-  contain: layout paint;
 }
 
 .progress-phone-float {
@@ -959,9 +956,9 @@ onBeforeUnmount(() => {
     will-change: auto;
   }
 
-  .progress-plate-mount {
-    width: min(360px, 92vw);
-    top: 36%;
+  .progress-plate-hero {
+    width: min(340px, 88vw);
+    margin-bottom: 20px;
   }
 }
 </style>

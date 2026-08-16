@@ -21,12 +21,13 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useSharedMouse } from '../composables/useSharedMouse'
 import {
+  PLATE_REST_TILT,
   plateIdleSway,
   platePhaseAt,
   platePointerTilt,
 } from '../utils/forgedPlate'
 
-const CAM_Z = 4.15
+const CAM_Z = 3.72
 const FOCAL = 1.85
 
 const mount = ref<HTMLElement | null>(null)
@@ -58,10 +59,10 @@ let dpr = 1
 let bufW = 0
 let bufH = 0
 
-let rotX = 0.48
-let rotY = -0.20
-let targetRotX = 0.48
-let targetRotY = -0.20
+let rotX = PLATE_REST_TILT.rotX
+let rotY = PLATE_REST_TILT.rotY
+let targetRotX = PLATE_REST_TILT.rotX
+let targetRotY = PLATE_REST_TILT.rotY
 
 type Uniforms = {
   uRes: WebGLUniformLocation | null
@@ -144,7 +145,7 @@ const fragmentSource = /* glsl */ `
     p.xy *= 1.0 + uSquash * 0.05;
     p.z  *= 1.0 - uSquash * 0.24;
 
-    float amp = uPour * 0.108 + uLive * 0.014;
+    float amp = uPour * 0.086 + uLive * 0.006;
     if (amp > 0.0004) {
       vec3 w1 = vec3(
         sin(p.y * 4.8 + p.z * 2.2 + uTime * 1.35),
@@ -160,19 +161,19 @@ const fragmentSource = /* glsl */ `
     }
 
     float radial = length(p.xy);
-    float face = sdCyl(p, 0.96, 0.048);
-    float hole = sdCyl(p, 0.168, 0.16);
-    float plate = smax(face, -hole, 0.012);
-    plate = smin(plate, sdTorus(p, 0.915, 0.086), 0.028);
-    plate = smin(plate, sdTorus(p, 0.205, 0.038), 0.016);
+    float face = sdCyl(p, 0.96, 0.052);
+    float hole = sdCyl(p, 0.188, 0.18);
+    float plate = smax(face, -hole, 0.010);
+    plate = smin(plate, sdTorus(p, 0.908, 0.094), 0.022);
+    plate = smin(plate, sdTorus(p, 0.228, 0.042), 0.014);
 
-    float band = smoothstep(0.22, 0.30, radial) * smoothstep(0.88, 0.78, radial);
-    plate += sin(radial * 62.0) * 0.0020 * band;
+    float band = smoothstep(0.26, 0.34, radial) * smoothstep(0.86, 0.76, radial);
+    plate += sin(radial * 48.0) * 0.0014 * band;
 
-    if (p.z > -0.04 && p.z < 0.22 && band > 0.0) {
+    if (p.z > -0.04 && p.z < 0.24 && band > 0.0) {
       float glyph = stampSample(p.xy);
       float front = smoothstep(-0.008, 0.018, p.z);
-      plate += glyph * uStampD * 0.078 * front * band;
+      plate += glyph * uStampD * 0.11 * front * band;
     }
 
     float ringR = 0.26 + uShock * 0.68;
@@ -203,12 +204,12 @@ const fragmentSource = /* glsl */ `
   }
 
   vec3 envSample(vec3 d) {
-    vec3 col = mix(vec3(0.003, 0.005, 0.003), vec3(0.016, 0.020, 0.010), d.y * 0.5 + 0.5);
+    vec3 col = mix(vec3(0.010, 0.014, 0.010), vec3(0.048, 0.058, 0.030), d.y * 0.5 + 0.5);
 
-    col += vec3(1.00, 0.98, 0.92) * pow(max(dot(d, normalize(vec3(-0.42, 0.72, 0.55))), 0.0), 48.0) * 4.4;
-    col += vec3(0.80, 1.00, 0.05) * pow(max(dot(d, normalize(vec3(0.55, 0.38, 0.74))), 0.0), 18.0) * (1.05 + uSettle * 0.55);
-    col += vec3(1.00, 0.14, 0.32) * pow(max(dot(d, normalize(vec3(0.32, -0.78, -0.54))), 0.0), 16.0) * 1.18;
-    col += vec3(0.70, 1.00, 0.12) * pow(max(dot(d, normalize(vec3(-0.62, -0.15, 0.77))), 0.0), 10.0) * 0.32;
+    col += vec3(1.00, 0.98, 0.92) * pow(max(dot(d, normalize(vec3(-0.42, 0.72, 0.55))), 0.0), 36.0) * 6.2;
+    col += vec3(0.80, 1.00, 0.05) * pow(max(dot(d, normalize(vec3(0.55, 0.38, 0.74))), 0.0), 12.0) * (1.55 + uSettle * 0.70);
+    col += vec3(1.00, 0.14, 0.32) * pow(max(dot(d, normalize(vec3(0.32, -0.78, -0.54))), 0.0), 11.0) * 1.65;
+    col += vec3(0.70, 1.00, 0.12) * pow(max(dot(d, normalize(vec3(-0.62, -0.15, 0.77))), 0.0), 8.0) * 0.55;
 
     float strip = sin(d.y * 16.0 + d.x * 4.0 + uTime * 0.16);
     float cross = sin(d.x * 12.0 - d.z * 7.0 - uTime * 0.11);
@@ -280,23 +281,28 @@ const fragmentSource = /* glsl */ `
     spec *= mix(vec3(0.88, 0.90, 0.94), irid, iridMix);
 
     float glyph = stampSample(p.xy);
-    float stampAo = 1.0 - glyph * uStampD * 0.58;
-    float stampEdge = abs(stampSample(p.xy + vec2(0.004, 0.0)) - stampSample(p.xy - vec2(0.004, 0.0)))
-      + abs(stampSample(p.xy + vec2(0.0, 0.004)) - stampSample(p.xy - vec2(0.0, 0.004)));
+    float stampAo = 1.0 - glyph * uStampD * 0.78;
+    float stampEdge = abs(stampSample(p.xy + vec2(0.0035, 0.0)) - stampSample(p.xy - vec2(0.0035, 0.0)))
+      + abs(stampSample(p.xy + vec2(0.0, 0.0035)) - stampSample(p.xy - vec2(0.0, 0.0035)));
     spec *= stampAo;
-    spec += irid * stampEdge * uStampD * 0.55;
+    spec += irid * stampEdge * uStampD * 0.95;
+    spec += vec3(0.72, 1.0, 0.12) * glyph * uStampD * 0.16 * facing;
 
     float vein = sin(radial * 6.2 - atan(p.y, p.x) * 3.0 - uTime * 0.72);
     vein = smoothstep(0.90, 1.0, vein) * (uPour * 0.85 + uLive * 0.22);
 
-    vec3 col = spec * (0.16 + 0.84 * fres);
+    vec3 col = spec * (0.24 + 0.76 * fres);
     col += vec3(0.80, 1.0, 0.12) * pow(1.0 - facing, 3.0) * 0.34;
     col += vec3(1.00, 0.16, 0.32) * pow(1.0 - facing, 3.0) * 0.16;
     col += vec3(1.00, 0.32, 0.06) * vein * 0.42;
     col += vec3(0.85, 1.00, 0.15) * vein * 0.22;
     col += vec3(1.00, 0.28, 0.06) * uPour * 0.22 * (0.35 + 0.65 * facing);
 
-    col = 1.0 - exp(-max(col, 0.0) * 1.06);
+    float rimBand = smoothstep(0.82, 0.90, radial) * smoothstep(1.02, 0.94, radial);
+    col += vec3(0.92, 1.0, 0.55) * rimBand * fres * 0.42;
+    col += irid * rimBand * 0.28;
+
+    col = 1.0 - exp(-max(col, 0.0) * 1.28);
     col += (hash(gl_FragCoord.xy + fract(uTime) * 91.7) - 0.5) * 0.012;
     col = clamp(col, 0.0, 1.0);
 
@@ -332,19 +338,19 @@ function drawStamp(canvas: HTMLCanvasElement) {
 
   ctx.save()
   ctx.filter = 'blur(2.6px)'
-  ctx.font = `700 ${Math.round(w * 0.20)}px "Space Grotesk", system-ui, sans-serif`
-  ctx.fillText('225', w * 0.5, h * 0.34)
-  ctx.font = `700 ${Math.round(w * 0.048)}px "Space Grotesk", system-ui, sans-serif`
-  ctx.fillText('LB', w * 0.5, h * 0.455)
+  ctx.font = `700 ${Math.round(w * 0.24)}px "Space Grotesk", system-ui, sans-serif`
+  ctx.fillText('225', w * 0.5, h * 0.30)
+  ctx.font = `700 ${Math.round(w * 0.052)}px "Space Grotesk", system-ui, sans-serif`
+  ctx.fillText('LB', w * 0.5, h * 0.43)
   ctx.restore()
 
   ctx.save()
-  ctx.globalAlpha = 0.7
-  ctx.filter = 'blur(0.7px)'
-  ctx.font = `700 ${Math.round(w * 0.20)}px "Space Grotesk", system-ui, sans-serif`
-  ctx.fillText('225', w * 0.5, h * 0.34)
-  ctx.font = `700 ${Math.round(w * 0.048)}px "Space Grotesk", system-ui, sans-serif`
-  ctx.fillText('LB', w * 0.5, h * 0.455)
+  ctx.globalAlpha = 0.78
+  ctx.filter = 'blur(0.6px)'
+  ctx.font = `700 ${Math.round(w * 0.24)}px "Space Grotesk", system-ui, sans-serif`
+  ctx.fillText('225', w * 0.5, h * 0.30)
+  ctx.font = `700 ${Math.round(w * 0.052)}px "Space Grotesk", system-ui, sans-serif`
+  ctx.fillText('LB', w * 0.5, h * 0.43)
   ctx.restore()
 }
 
@@ -396,8 +402,8 @@ function renderFrame(now: number) {
 
 function applyTilt(now: number, live: number) {
   if (reduceMotion) {
-    targetRotX = 0.48
-    targetRotY = -0.20
+    targetRotX = PLATE_REST_TILT.rotX
+    targetRotY = PLATE_REST_TILT.rotY
     rotX = targetRotX
     rotY = targetRotY
     return
@@ -673,7 +679,61 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="mount" class="forged-pr-plate" aria-hidden="true" />
+  <div ref="mount" class="forged-pr-plate" aria-hidden="true">
+    <svg class="forged-pr-plate-fallback" viewBox="0 0 200 200" focusable="false">
+      <defs>
+        <radialGradient id="forged-plate-face" cx="36%" cy="30%" r="72%">
+          <stop offset="0%" stop-color="#d7e0cc" />
+          <stop offset="28%" stop-color="#8b9480" />
+          <stop offset="58%" stop-color="#2a2e26" />
+          <stop offset="100%" stop-color="#080908" />
+        </radialGradient>
+        <linearGradient id="forged-plate-rim" x1="8%" y1="0%" x2="92%" y2="100%">
+          <stop offset="0%" stop-color="#e8ff6a" />
+          <stop offset="22%" stop-color="#f4f7ef" />
+          <stop offset="48%" stop-color="#7a8188" />
+          <stop offset="72%" stop-color="#ff4d73" />
+          <stop offset="100%" stop-color="#c8ff3a" />
+        </linearGradient>
+        <filter id="forged-plate-stamp" x="-20%" y="-20%" width="140%" height="140%">
+          <feOffset dx="0" dy="1" in="SourceAlpha" result="off" />
+          <feGaussianBlur stdDeviation="1.2" in="off" result="blur" />
+          <feComposite in="blur" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="inner" />
+          <feColorMatrix
+            in="inner"
+            type="matrix"
+            values="0 0 0 0 0.08  0 0 0 0 0.12  0 0 0 0 0.04  0 0 0 0.85 0"
+          />
+        </filter>
+      </defs>
+      <circle cx="100" cy="104" r="78" fill="rgba(204,255,0,0.08)" />
+      <circle cx="108" cy="108" r="70" fill="rgba(255,45,85,0.07)" />
+      <circle cx="100" cy="100" r="86" fill="url(#forged-plate-face)" stroke="url(#forged-plate-rim)" stroke-width="13" />
+      <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(255,255,255,0.16)" stroke-width="1.2" />
+      <circle cx="100" cy="100" r="22" fill="none" stroke="#9aa394" stroke-width="4" />
+      <circle cx="100" cy="100" r="16" fill="#050505" />
+      <text
+        x="100"
+        y="78"
+        text-anchor="middle"
+        fill="#1b2014"
+        font-family="Space Grotesk, system-ui, sans-serif"
+        font-size="34"
+        font-weight="700"
+        filter="url(#forged-plate-stamp)"
+      >225</text>
+      <text
+        x="100"
+        y="96"
+        text-anchor="middle"
+        fill="#3d4534"
+        font-family="Space Grotesk, system-ui, sans-serif"
+        font-size="8"
+        font-weight="700"
+        letter-spacing="0.18em"
+      >LB</text>
+    </svg>
+  </div>
 </template>
 
 <style scoped>
@@ -684,12 +744,24 @@ onBeforeUnmount(() => {
   contain: layout paint style;
 }
 
+.forged-pr-plate-fallback {
+  position: absolute;
+  inset: 6%;
+  width: 88%;
+  height: 88%;
+  display: block;
+}
+
 .forged-pr-plate :deep(canvas) {
   position: absolute;
   inset: 0;
   display: block;
   width: 100%;
   height: 100%;
+  opacity: 0;
+}
+
+.forged-pr-plate.is-live .forged-pr-plate-fallback {
   opacity: 0;
 }
 

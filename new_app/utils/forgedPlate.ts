@@ -38,8 +38,8 @@ const LIVE_START_MS = 1480
 const LIVE_END_MS = 2200
 
 export const PLATE_REST_TILT = {
-  rotX: 0.48,
-  rotY: -0.20,
+  rotX: 0.58,
+  rotY: -0.16,
 } as const
 
 const SETTLED_PHASE: PlatePhase = {
@@ -75,7 +75,7 @@ export function platePhaseAt(elapsedMs: number, reduceMotion = false): PlatePhas
   const squashOut = spanProgress(t, SQUASH_PEAK_MS, SQUASH_OUT_MS)
   const squash = squashIn * (1 - squashOut)
   const shock = spanProgress(t, SHOCK_START_MS, SHOCK_END_MS)
-  const live = 0.12 * settle + 0.48 * spanProgress(t, LIVE_START_MS, LIVE_END_MS)
+  const live = 0.08 * settle + 0.36 * spanProgress(t, LIVE_START_MS, LIVE_END_MS)
 
   return { pour, settle, stamp, squash, shock, live }
 }
