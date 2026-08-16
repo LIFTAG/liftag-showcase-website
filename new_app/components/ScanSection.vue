@@ -287,6 +287,12 @@ onBeforeUnmount(() => {
               zIndex: 4,
             }"
           >
+            <!--
+              The card is transformed (scanQrMotionTransform), so it forms a
+              stacking context and the free rim cannot sit behind it. Masked
+              variant instead - same fix as .gyms-qr-sticker-rim.
+            -->
+            <div class="prism-rim prism-rim--masked scan-qr-sticker-rim" aria-hidden="true"></div>
             <img
               src="/uploads/qr-code-160.webp"
               srcset="/uploads/qr-code-112.webp 112w, /uploads/qr-code-160.webp 160w, /uploads/qr-code-224.webp 224w, /uploads/qr-code.webp 400w"
@@ -621,6 +627,15 @@ onBeforeUnmount(() => {
   transform-origin: center;
   transform-style: preserve-3d;
   will-change: transform;
+}
+
+/* Same spectral edge as .get__rim (pages/get.vue) and .gyms-qr-sticker-rim
+   (GymsSection.vue). Masked variant because the host is transformed. */
+.scan-qr-sticker-rim {
+  --prism-inset: 5px;
+  --prism-radius: 17px;
+  --prism-strength: 0.55;
+  z-index: 5;
 }
 
 .scan-phone-camera {
