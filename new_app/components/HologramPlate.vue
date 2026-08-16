@@ -146,7 +146,7 @@ const faceName = computed(() => props.label.toUpperCase())
   content: '';
   position: absolute;
   inset: 0;
-  opacity: 0.1;
+  opacity: calc(var(--holo-face) * 0.14);
   background: linear-gradient(
     118deg,
     rgb(150, 255, 225) 0%,
@@ -160,9 +160,18 @@ const faceName = computed(() => props.label.toUpperCase())
   mix-blend-mode: overlay;
 }
 
+.holo-plate::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: radial-gradient(ellipse 78% 72% at 50% 46%, transparent 42%, oklch(0.12 0.012 118 / 0.55) 100%);
+}
+
 .holo-grain {
   inset: 0;
-  opacity: 0.22;
+  opacity: 0.28;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='160' height='160' filter='url(%23g)'/></svg>");
   background-size: 160px 160px;
   mix-blend-mode: overlay;
@@ -178,16 +187,17 @@ const faceName = computed(() => props.label.toUpperCase())
   font-size: 34px;
   letter-spacing: -0.06em;
   text-transform: uppercase;
-  color: oklch(0.72 0.03 110 / 0.16);
-  opacity: calc(0.9 - var(--holo-face) * 0.55);
+  color: oklch(0.7 0.02 110 / 0.07);
+  opacity: calc(1 - var(--holo-face) * 0.7);
 }
 
 .holo-sheet {
-  top: -28%;
-  bottom: -28%;
-  width: 46%;
+  top: -30%;
+  bottom: -30%;
+  width: 34%;
   left: 0;
-  transform: translate3d(calc(var(--holo-travel) * 210% - 70%), 0, 0) rotate(18deg);
+  z-index: 3;
+  transform: translate3d(calc(var(--holo-travel) * 240% - 40%), 0, 0) rotate(18deg);
   mix-blend-mode: plus-lighter;
   will-change: transform;
 }
@@ -218,22 +228,22 @@ const faceName = computed(() => props.label.toUpperCase())
 }
 
 .holo-sheet--cyan {
-  width: 38%;
+  width: 28%;
   background: linear-gradient(90deg, transparent, rgb(150, 255, 225), transparent);
   opacity: 0.38;
   transform: translate3d(
-    calc(var(--holo-travel) * 210% - 74% + var(--holo-ax) * -6px),
+    calc(var(--holo-travel) * 240% - 46% + var(--holo-ax) * -6px),
     0,
     0
   ) rotate(18deg);
 }
 
 .holo-sheet--red {
-  width: 38%;
+  width: 28%;
   background: linear-gradient(90deg, transparent, rgb(255, 45, 85), transparent);
   opacity: 0.32;
   transform: translate3d(
-    calc(var(--holo-travel) * 210% - 66% + var(--holo-ax) * 6px),
+    calc(var(--holo-travel) * 240% - 34% + var(--holo-ax) * 6px),
     0,
     0
   ) rotate(18deg);
@@ -241,6 +251,7 @@ const faceName = computed(() => props.label.toUpperCase())
 
 .holo-latent {
   inset: 28px 16px 36px;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -250,12 +261,12 @@ const faceName = computed(() => props.label.toUpperCase())
 }
 
 .holo-qr {
-  width: 72%;
-  max-width: 124px;
+  width: 58%;
+  max-width: 104px;
   height: auto;
   aspect-ratio: 1;
   object-fit: contain;
-  filter: invert(1) contrast(1.18);
+  filter: invert(1) contrast(1.22);
   mix-blend-mode: screen;
 }
 
@@ -264,12 +275,12 @@ const faceName = computed(() => props.label.toUpperCase())
   font-family: var(--liftag-font-headline);
   font-weight: 700;
   font-style: italic;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.05;
   letter-spacing: -0.04em;
   text-align: center;
   text-transform: uppercase;
-  color: oklch(0.94 0.09 118);
+  color: oklch(0.96 0.04 110);
   text-shadow:
     calc(var(--holo-ax) * -2.4px) 0 rgb(255, 45, 85),
     calc(var(--holo-ax) * 2.4px) 0 rgb(150, 255, 225);
@@ -280,6 +291,7 @@ const faceName = computed(() => props.label.toUpperCase())
   top: 12px;
   right: 12px;
   left: 12px;
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -310,6 +322,7 @@ const faceName = computed(() => props.label.toUpperCase())
   right: 12px;
   bottom: 12px;
   left: 12px;
+  z-index: 5;
   font-size: 8px;
   letter-spacing: 0.18em;
 }

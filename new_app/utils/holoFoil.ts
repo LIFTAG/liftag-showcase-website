@@ -38,8 +38,9 @@ export const HOLO_AY_WEIGHT = 0.15
  */
 export const HOLO_DEMO_UNLOCK = HOLO_UNLOCK_PEAK - HOLO_REST_PHASE
 
-/** Phase where the rainbow sheet starts entering from the left. */
-export const HOLO_SHEET_START = 0.45
+/** Phase where the rainbow sheet starts entering from the left.
+ *  Rest (0.5) sits just before this so the plate is dark until the tilt. */
+export const HOLO_SHEET_START = 0.535
 
 /** Phase span over which the sheet travels across the plate. */
 export const HOLO_SHEET_SPAN = 0.35

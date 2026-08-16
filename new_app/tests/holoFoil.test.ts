@@ -49,11 +49,11 @@ test('sticky reveal keeps the face lit after the sheet has settled', () => {
   assert.equal(holoFace(HOLO_UNLOCK_PEAK, 0.2), 1)
 })
 
-test('the rainbow sheet is still entering at rest and has crossed at the peak', () => {
+test('the rainbow sheet is still off the plate at rest and mid-cross at the peak', () => {
   const rest = holoSheetTravel(HOLO_REST_PHASE)
   const peak = holoSheetTravel(HOLO_UNLOCK_PEAK)
-  assert.ok(rest > 0 && rest < 0.25)
-  assert.ok(peak > 0.7 && peak < 0.9)
+  assert.ok(rest <= 0)
+  assert.ok(peak > 0.45 && peak < 0.65)
 })
 
 test('hue walks the prism ramp with the viewing phase and stays in 0..1', () => {
