@@ -54,7 +54,6 @@ onNuxtReady(() => {
          visibility trigger), so hydration always completes before anything
          visible fires. -->
     <LazyScanSection :hydrate-on-visible="{ rootMargin: '800px' }" />
-    <LazyQrPortalSection :hydrate-on-visible="{ rootMargin: '800px' }" />
     <LazyHowItWorks :hydrate-on-visible="{ rootMargin: '800px' }" />
     <LazyLiftersSection :hydrate-on-visible="{ rootMargin: '800px' }" />
     <LazyProgressSection :hydrate-on-visible="{ rootMargin: '800px' }" />
