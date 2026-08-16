@@ -25,10 +25,6 @@ export const MACBOOK_DASHBOARD_SOURCE_HEIGHT = 904
 export const MACBOOK_DASHBOARD_CONTENT_ASPECT = MACBOOK_DASHBOARD_SOURCE_WIDTH
   / MACBOOK_DASHBOARD_SOURCE_HEIGHT
 
-// `ScreenVideoSource` used to live here too. It now lives beside the shared
-// element builder in `utils/screenVideo.ts`, which every screen-footage caller
-// already imports - two exported types with the same name were free to drift.
-
 export type ScreenTextureUVs = {
   offsetX: number
   offsetY: number

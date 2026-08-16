@@ -26,7 +26,11 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
     :target="!comingSoon && isExternal ? '_blank' : undefined"
     :rel="!comingSoon && isExternal ? 'noopener' : undefined"
     class="app-store-btn"
-    :class="{ 'app-store-btn--apple': isApple, 'app-store-btn--soon': comingSoon }"
+    :class="{
+      'app-store-btn--apple': isApple,
+      'app-store-btn--google': !isApple,
+      'app-store-btn--soon': comingSoon,
+    }"
     :aria-label="label"
     :aria-disabled="comingSoon ? 'true' : undefined"
   >
@@ -61,6 +65,10 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
 
 <style scoped>
 .app-store-btn {
+  --app-store-idle-rgb: 90, 144, 255;
+  --app-store-idle-light-rgb: 182, 208, 255;
+  --app-store-idle-duration: 3.25s;
+  --app-store-idle-delay: -0.2s;
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -95,8 +103,8 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(circle at 22% 12%, rgba(255, 232, 72, 0.24), transparent 48%),
-    radial-gradient(circle at 86% 88%, rgba(255, 210, 42, 0.1), transparent 44%);
+    radial-gradient(circle at 22% 12%, rgba(var(--app-store-idle-light-rgb), 0.26), transparent 48%),
+    radial-gradient(circle at 86% 88%, rgba(var(--app-store-idle-rgb), 0.12), transparent 44%);
   opacity: 0;
   transition: opacity 280ms ease;
 }
@@ -114,9 +122,9 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
       from 14deg,
       transparent 0deg,
       transparent 205deg,
-      rgba(255, 247, 145, 0.92) 256deg,
-      rgba(255, 222, 48, 0.72) 292deg,
-      rgba(204, 255, 0, 0.38) 328deg,
+      rgba(var(--app-store-idle-light-rgb), 0.92) 256deg,
+      rgba(var(--app-store-idle-rgb), 0.76) 292deg,
+      rgba(var(--app-store-idle-rgb), 0.36) 328deg,
       transparent 354deg
     );
   opacity: 0;
@@ -136,7 +144,7 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
   inset: -42% auto -42% -34%;
   width: 42%;
   pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgba(255, 248, 176, 0.28), transparent);
+  background: linear-gradient(90deg, transparent, rgba(var(--app-store-idle-light-rgb), 0.3), transparent);
   opacity: 1;
   transform: skewX(-18deg) translateX(-120%);
   transition: transform 560ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -229,6 +237,13 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
   color: var(--liftag-primary);
 }
 
+.app-store-btn--google {
+  --app-store-idle-rgb: 52, 202, 113;
+  --app-store-idle-light-rgb: 182, 255, 202;
+  --app-store-idle-duration: 4.15s;
+  --app-store-idle-delay: -1.7s;
+}
+
 .app-store-btn__icon {
   display: grid;
   place-items: center;
@@ -279,25 +294,36 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
   white-space: nowrap;
 }
 
-@media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
-  .app-store-btn--apple:not(.app-store-btn--soon) {
-    animation: appStorePhoneBeacon 3.25s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+@media (prefers-reduced-motion: no-preference) {
+  .app-store-btn:not(.app-store-btn--soon) {
+    animation: appStorePhoneBeacon var(--app-store-idle-duration) cubic-bezier(0.16, 1, 0.3, 1) var(--app-store-idle-delay) infinite;
     transform-origin: center;
     will-change: border-color, box-shadow, transform;
   }
 
-  .app-store-btn--apple:not(.app-store-btn--soon)::before {
-    animation: appStorePhoneAura 3.25s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  .app-store-btn:not(.app-store-btn--soon)::before {
+    animation: appStorePhoneAura var(--app-store-idle-duration) cubic-bezier(0.16, 1, 0.3, 1) var(--app-store-idle-delay) infinite;
   }
 
-  .app-store-btn--apple:not(.app-store-btn--soon)::after {
-    animation: appStorePhoneRim 3.25s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  .app-store-btn:not(.app-store-btn--soon)::after {
+    animation: appStorePhoneRim var(--app-store-idle-duration) cubic-bezier(0.16, 1, 0.3, 1) var(--app-store-idle-delay) infinite;
     will-change: opacity, transform;
   }
 
-  .app-store-btn--apple:not(.app-store-btn--soon) .app-store-btn__shine {
-    animation: appStorePhoneGlint 3.25s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  .app-store-btn:not(.app-store-btn--soon) .app-store-btn__shine {
+    animation: appStorePhoneGlint var(--app-store-idle-duration) cubic-bezier(0.16, 1, 0.3, 1) var(--app-store-idle-delay) infinite;
     will-change: opacity, transform;
+  }
+}
+
+/* Let intentional desktop hover/focus feedback take over from the ambient
+   idle cycle rather than competing for transform, glow, and shine values. */
+@media (hover: hover) and (pointer: fine) {
+  .app-store-btn:not(.app-store-btn--soon):is(:hover, :focus-visible),
+  .app-store-btn:not(.app-store-btn--soon):is(:hover, :focus-visible)::before,
+  .app-store-btn:not(.app-store-btn--soon):is(:hover, :focus-visible)::after,
+  .app-store-btn:not(.app-store-btn--soon):is(:hover, :focus-visible) .app-store-btn__shine {
+    animation: none;
   }
 }
 
@@ -317,24 +343,24 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
   }
 
   7% {
-    border-color: rgba(255, 235, 72, 0.72);
+    border-color: rgba(var(--app-store-idle-rgb), 0.76);
     background:
-      linear-gradient(135deg, rgba(255, 226, 56, 0.2), transparent 44%),
+      linear-gradient(135deg, rgba(var(--app-store-idle-rgb), 0.22), transparent 44%),
       rgba(13, 14, 8, 0.9);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.14),
       0 17px 38px rgba(0, 0, 0, 0.4),
-      0 0 22px rgba(255, 229, 70, 0.3),
-      0 0 46px rgba(255, 222, 48, 0.2);
+      0 0 22px rgba(var(--app-store-idle-rgb), 0.32),
+      0 0 46px rgba(var(--app-store-idle-rgb), 0.2);
     transform: translate3d(0, 0, 0) scale(1.018);
   }
 
   16% {
-    border-color: rgba(255, 228, 72, 0.4);
+    border-color: rgba(var(--app-store-idle-rgb), 0.42);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.11),
       0 15px 35px rgba(0, 0, 0, 0.36),
-      0 0 18px rgba(255, 222, 48, 0.16);
+      0 0 18px rgba(var(--app-store-idle-rgb), 0.18);
     transform: translate3d(0, 0, 0) scale(1.006);
   }
 

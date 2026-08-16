@@ -12,6 +12,9 @@ const imageCache = new Map<string, Promise<HTMLImageElement>>()
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { useSharedMouse, delayedSampleAt, onMouseEvent } from '../composables/useSharedMouse'
+import { coverFitScreenUVs } from '../utils/macbookScreen'
+import type { ScreenVideoSegment, ScreenVideoSource } from '../utils/screenVideo'
+import { createScreenVideoElement, createSegmentPlayback } from '../utils/screenVideo'
 
 const emit = defineEmits<{
   ready: []
@@ -19,6 +22,12 @@ const emit = defineEmits<{
 
 const props = withDefaults(defineProps<{
   screenshotSrc: string
+  // Screen footage that takes over the display from `screenshotSrc`. The
+  // screenshot stays loaded underneath as the poster for reduced motion and
+  // for the window before the first video frame decodes.
+  videoSources?: ScreenVideoSource[]
+  // Which slice of that footage the screen is showing. See ScreenVideoSegment.
+  videoSegment?: ScreenVideoSegment
   tiltDelayMs?: number
   screenTransition?: boolean
   screenTransitionDirection?: 'up' | 'down' | 'left' | 'right'
@@ -35,6 +44,8 @@ const props = withDefaults(defineProps<{
   // deliberately separate from the continuously interactive pointer path.
   idleMotion?: boolean
 }>(), {
+  videoSources: undefined,
+  videoSegment: undefined,
   tiltDelayMs: 0,
   screenTransition: false,
   screenTransitionDirection: 'up',
@@ -47,6 +58,8 @@ const props = withDefaults(defineProps<{
 const containerRef = ref<HTMLDivElement | null>(null)
 let cleanup: (() => void) | null = null
 let updateTexture: ((src: string) => void) | null = null
+let setVideoSources: ((sources?: ScreenVideoSource[]) => void) | null = null
+let setVideoSegment: ((segment?: ScreenVideoSegment) => void) | null = null
 let initObserver: IntersectionObserver | null = null
 let initialized = false
 
@@ -458,6 +471,17 @@ function initPhone() {
       .then((nextImage) => {
         if (requestId !== textureRequestId || src !== currentSrc) return
 
+        // With footage bound to the screen the canvas is off screen, so the
+        // swipe would animate something nobody can see. Keep the poster
+        // current - reduced motion and video teardown both fall back to it -
+        // and skip both the transition and the redraw it would need.
+        if (videoTexture) {
+          currentScreenImage = nextImage
+          screenTransition = null
+          drawStaticScreen(nextImage)
+          return
+        }
+
         if (!props.screenTransition || !previousImage || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
           currentScreenImage = nextImage
           screenTransition = null
@@ -477,6 +501,97 @@ function initPhone() {
         if (isVisible && !animId) animate()
       })
       .catch(() => {})
+  }
+
+  let screenVideo: HTMLVideoElement | null = null
+  let videoTexture: THREE.VideoTexture | null = null
+  let videoPlayback: ReturnType<typeof createSegmentPlayback> | null = null
+  let onVideoPlaying: (() => void) | null = null
+  // initPhone runs 600px out. Autoplay-adjacent playback makes a browser fetch
+  // the whole file the moment a source is attached, so hold the sources until
+  // the phone is actually approaching the viewport (the 300px observer below).
+  let videoAllowed = false
+  let pendingVideoSources: ScreenVideoSource[] | undefined
+
+  function videoRunning() {
+    return Boolean(screenVideo && !screenVideo.paused && !screenVideo.ended)
+  }
+
+  function disposeVideo() {
+    videoPlayback?.dispose()
+    if (screenVideo) {
+      if (onVideoPlaying) screenVideo.removeEventListener('playing', onVideoPlaying)
+      // Both the attribute and the <source> children have to go before load(),
+      // or the reload just re-picks a source and keeps the download alive.
+      screenVideo.removeAttribute('src')
+      screenVideo.replaceChildren()
+      screenVideo.load()
+    }
+    videoTexture?.dispose()
+    videoPlayback = null
+    onVideoPlaying = null
+    screenVideo = null
+    videoTexture = null
+  }
+
+  setVideoSources = (sources?: ScreenVideoSource[]) => {
+    pendingVideoSources = sources
+    disposeVideo()
+    screenMat.map = activeTexture
+    screenMat.needsUpdate = true
+
+    if (!sources?.length || reducedMotionMql.matches) {
+      if (isVisible) renderer.render(scene, camera)
+      return
+    }
+
+    if (!videoAllowed) return
+
+    const video = createScreenVideoElement(sources)
+    const texture = new THREE.VideoTexture(video)
+    texture.colorSpace = THREE.SRGBColorSpace
+    texture.minFilter = THREE.LinearFilter
+    texture.magFilter = THREE.LinearFilter
+    texture.generateMipmaps = false
+
+    screenVideo = video
+    videoTexture = texture
+
+    // A playing VideoTexture needs a render per frame, so playback has to pull
+    // the loop (see animate) back out of its parked state.
+    onVideoPlaying = () => {
+      if (!animId && isVisible && !document.hidden && !motionHeld) animate()
+    }
+    video.addEventListener('playing', onVideoPlaying)
+
+    video.addEventListener('loadeddata', () => {
+      if (videoTexture !== texture) return
+
+      const uv = coverFitScreenUVs({
+        sourceWidth: video.videoWidth,
+        sourceHeight: video.videoHeight,
+        screenWidth: scrW,
+        screenHeight: scrH,
+      })
+      texture.wrapS = THREE.ClampToEdgeWrapping
+      texture.wrapT = THREE.ClampToEdgeWrapping
+      texture.repeat.set(uv.repeatX, uv.repeatY)
+      texture.offset.set(uv.offsetX, uv.offsetY)
+
+      screenMat.map = texture
+      screenMat.needsUpdate = true
+      if (isVisible) renderer.render(scene, camera)
+    }, { once: true })
+
+    videoPlayback = createSegmentPlayback(video)
+    videoPlayback.setSegment(props.videoSegment)
+    videoPlayback.setActive(isVisible && !document.hidden && !motionHeld)
+
+    video.load()
+  }
+
+  setVideoSegment = (segment?: ScreenVideoSegment) => {
+    videoPlayback?.setSegment(segment)
   }
 
   let gyroActive = false
@@ -512,6 +627,10 @@ function initPhone() {
   // sharedMouse.samples (delay > 0), so behaviour matches the original to
   // within one rAF frame.
   const sharedMouse = props.interactive ? useSharedMouse() : null
+
+  // Records the sources so the 300px observer below can attach them; nothing
+  // is fetched until it does.
+  setVideoSources(props.videoSources)
 
   function clearIdleTimer() {
     if (!idleTimer) return
@@ -598,14 +717,16 @@ function initPhone() {
       return
     }
 
-    if (props.interactive || screenTransition || idleMotionActive) {
+    if (props.interactive || screenTransition || idleMotionActive || videoRunning()) {
       animId = requestAnimationFrame(animate)
     } else {
       animId = 0
     }
 
     const now = performance.now()
-    let shouldRender = props.interactive || Boolean(screenTransition)
+    // A playing VideoTexture uploads a new frame every tick; skipping the draw
+    // would leave the screen on whichever frame was last rendered.
+    let shouldRender = props.interactive || Boolean(screenTransition) || videoRunning()
 
     if (props.interactive && !gyroActive && !reducedMotionMql.matches && sharedMouse) {
       const delay = Math.max(0, props.tiltDelayMs)
@@ -634,7 +755,7 @@ function initPhone() {
         Math.abs(targetRotX - currentRotX),
         Math.abs(targetRotY - currentRotY),
       )
-      if (tiltDelta < tiltConvergeEpsilon && !screenTransition && !idleMotionActive) {
+      if (tiltDelta < tiltConvergeEpsilon && !screenTransition && !idleMotionActive && !videoRunning()) {
         currentRotX = targetRotX
         currentRotY = targetRotY
         parkTilt = true
@@ -691,7 +812,9 @@ function initPhone() {
   const resumeMotion = () => {
     if (!isVisible || document.hidden || motionHeld) return
 
-    if (props.interactive || screenTransition) {
+    videoPlayback?.setActive(true)
+
+    if (props.interactive || screenTransition || videoRunning()) {
       if (!animId) animate()
     } else {
       renderer.render(scene, camera)
@@ -700,9 +823,22 @@ function initPhone() {
   }
 
   const suspendMotion = () => {
+    videoPlayback?.setActive(false)
     clearIdleTimer()
     resetIdlePose()
   }
+
+  const videoObserver = new IntersectionObserver(
+    (entries) => {
+      if (!entries[0]?.isIntersecting) return
+
+      videoObserver.disconnect()
+      videoAllowed = true
+      if (pendingVideoSources?.length) setVideoSources?.(pendingVideoSources)
+    },
+    { rootMargin: '300px 0px' },
+  )
+  videoObserver.observe(container)
 
   const visObserver = new IntersectionObserver(
     (entries) => {
@@ -731,6 +867,9 @@ function initPhone() {
   window.addEventListener('liftag:nav-open-change', onNavOpenChange)
 
   const onReducedMotionChange = () => {
+    // Turning the preference on tears the footage down and leaves the still
+    // screenshot on the screen; turning it off re-attaches it.
+    setVideoSources?.(pendingVideoSources)
     clearIdleTimer()
     resetIdlePose()
     // resetIdlePose() only rewinds the current pose. Rewinding the targets too
@@ -778,11 +917,15 @@ function initPhone() {
     idleMotionActive = false
     unsubscribeMouse?.()
     gyroCleanup?.()
+    videoObserver.disconnect()
     visObserver.disconnect()
     isVisible = false
     cancelAnimationFrame(animId)
 
     updateTexture = null
+    setVideoSources = null
+    setVideoSegment = null
+    disposeVideo()
     activeTexture.dispose()
     renderer.domElement.removeEventListener('webglcontextlost', onContextLost)
     renderer.dispose()
@@ -836,6 +979,9 @@ watch(
     }
   },
 )
+
+watch(() => props.videoSources, (sources) => setVideoSources?.(sources))
+watch(() => props.videoSegment, (segment) => setVideoSegment?.(segment))
 </script>
 
 <template>

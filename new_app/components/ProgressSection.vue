@@ -948,23 +948,5 @@ onBeforeUnmount(() => {
     will-change: auto;
   }
 
-  .progress-cycle-indicator {
-    background: rgba(255, 255, 255, 0.075);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
-  }
-
-  .progress-cycle-indicator span {
-    background: linear-gradient(90deg, rgba(204, 255, 0, 0.32), rgba(204, 255, 0, 0.72));
-    box-shadow: 0 0 10px rgba(204, 255, 0, 0.28);
-  }
-
-  .progress-screen-dot::before {
-    background: rgba(255, 255, 255, 0.14);
-  }
-
-  .progress-screen-dot.is-active::before {
-    background: rgba(204, 255, 0, 0.72);
-    box-shadow: 0 0 10px rgba(204, 255, 0, 0.34);
-  }
 }
 </style>

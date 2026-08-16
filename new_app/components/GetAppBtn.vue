@@ -461,10 +461,6 @@ withDefaults(defineProps<{
     will-change: opacity, transform;
   }
 
-  .get-app-btn--hero .get-app-btn__shine {
-    animation: getAppHeroGlint 3.25s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-    will-change: opacity, transform;
-  }
 }
 
 @keyframes getAppHeroRim {
@@ -482,30 +478,6 @@ withDefaults(defineProps<{
   22% {
     opacity: 0;
     transform: translate3d(0, 0, 0) rotate(252deg);
-  }
-}
-
-@keyframes getAppHeroGlint {
-  0%,
-  10%,
-  58%,
-  100% {
-    opacity: 0;
-    transform: skewX(-18deg) translateX(-150%);
-  }
-
-  12% {
-    opacity: 0.92;
-  }
-
-  25% {
-    opacity: 0.92;
-    transform: skewX(-18deg) translateX(650%);
-  }
-
-  28% {
-    opacity: 0;
-    transform: skewX(-18deg) translateX(720%);
   }
 }
 

@@ -1,6 +1,10 @@
 <script setup lang="ts">
+import type { ScreenVideoSource } from '../utils/screenVideo'
+
 const step = ref(0)
 const phoneSwipeDirection = ref<'left' | 'right'>('left')
+const screenReplayKey = ref(0)
+const videoCycleKey = ref(0)
 const hoveredStep = ref<number | null>(null)
 const exitingStep = ref<number | null>(null)
 const scanCycleMs = 3200
@@ -9,19 +13,37 @@ const documentVisible = ref(true)
 const reduceMotion = ref(false)
 const phoneLayout = ref(false)
 const sectionRef = ref<HTMLElement | null>(null)
-let cycleInterval: ReturnType<typeof setInterval> | null = null
+let cycleTimer: ReturnType<typeof setTimeout> | null = null
 let exitTimer: ReturnType<typeof setTimeout> | null = null
 let scanObserver: IntersectionObserver | null = null
 let motionMql: MediaQueryList | null = null
 let phoneLayoutMql: MediaQueryList | null = null
+let segmentStartedAt = 0
+// Hovering parks the cycle without rewinding the footage: the slice plays on to
+// its frozen tail and waits there, so releasing the row resumes what is left of
+// this step rather than starting it over. Every other pause - scrolled away,
+// hidden tab - stops the footage mid-slice instead, and those resume by
+// replaying the slice so picture and timer start together again.
+let parkedByHover = false
 
 function syncCycleInterval() {
   const borderDrivesCycle = phoneLayout.value && !reduceMotion.value
-  if (inView.value && documentVisible.value && hoveredStep.value === null && !borderDrivesCycle) {
-    startCycleInterval()
-  } else {
-    clearCycleInterval()
+
+  if (!inView.value || !documentVisible.value || hoveredStep.value !== null || borderDrivesCycle) {
+    parkedByHover = hoveredStep.value !== null
+    clearCycleTimer()
+    return
   }
+
+  if (parkedByHover) {
+    parkedByHover = false
+    // A hover held past the end of the slice leaves no time on the clock, so
+    // letting go moves straight on to the next step.
+    scheduleNextStep(scanCycleMs - (performance.now() - segmentStartedAt))
+    return
+  }
+
+  restartSegment()
 }
 
 function onDocumentVisibilityChange() {
@@ -61,6 +83,32 @@ const steps = [
   },
 ]
 
+// AV1 first, H.264 as the universal fallback - same cut, and the AV1 encode is
+// roughly 40% of the bytes.
+const SCAN_VIDEO_SOURCES: ScreenVideoSource[] = [
+  { src: '/assets/videos/scan-flow.av1.mp4', type: 'video/mp4; codecs="av01.0.08M.08"' },
+  { src: '/assets/videos/scan-flow.mp4', type: 'video/mp4; codecs="avc1.640028"' },
+]
+
+// One continuous capture of a real scan, cut so each step owns one `scanCycleMs`
+// slice: the viewfinder sweep and lock-on, then the exercise opening and the
+// log-set screen settling. The second slice holds on its final frame for the
+// last ~0.4s, so a step that stops cycling - hovered, or paused off screen -
+// rests on a still rather than on whatever frame it happened to reach.
+const SCAN_VIDEO_SEGMENTS = [
+  { start: 0, end: 3.2 },
+  { start: 3.2, end: 6.4 },
+]
+
+// videoCycleKey re-arms the current slice from its start. It advances whenever
+// the step timer is re-armed - coming back on screen, or a hover being
+// released - so the footage restarts alongside the timer instead of resuming
+// mid-slice against a step that starts counting from zero.
+const scanVideoSegment = computed(() => ({
+  ...(SCAN_VIDEO_SEGMENTS[step.value] ?? SCAN_VIDEO_SEGMENTS[0]),
+  key: videoCycleKey.value,
+}))
+
 function screenSrcset(src: string) {
   if (!src.startsWith('/assets/screens/') || !src.endsWith('.webp')) return undefined
 
@@ -78,9 +126,22 @@ function setStep(nextStep: number) {
   }, 320)
   phoneSwipeDirection.value = nextStep > step.value ? 'left' : 'right'
   step.value = nextStep
+  // A new step means a new slice of footage, so the clock this step is measured
+  // against starts here too.
+  segmentStartedAt = performance.now()
 }
 
 function selectStep(nextStep: number) {
+  // The first pane starts selected, so tapping it does not change `src` and the
+  // phone has nothing to transition. On the phone layout, advance a separate
+  // key to replay the same screen swipe without altering the selected step.
+  if (nextStep === step.value && phoneLayout.value && !reduceMotion.value) {
+    screenReplayKey.value += 1
+    videoCycleKey.value += 1
+    segmentStartedAt = performance.now()
+    return
+  }
+
   setStep(nextStep)
   syncCycleInterval()
 }
@@ -88,8 +149,8 @@ function selectStep(nextStep: number) {
 function setHoveredStep(nextStep: number) {
   if (phoneLayout.value) return
   hoveredStep.value = nextStep
-  clearCycleInterval()
   setStep(nextStep)
+  syncCycleInterval()
 }
 
 function clearHoveredStep(stepIndex: number) {
@@ -154,24 +215,33 @@ onMounted(() => {
   scanObserver.observe(sectionRef.value)
 })
 
-function clearCycleInterval() {
-  if (cycleInterval === null) return
-  clearInterval(cycleInterval)
-  cycleInterval = null
+function clearCycleTimer() {
+  if (cycleTimer === null) return
+  clearTimeout(cycleTimer)
+  cycleTimer = null
 }
 
-function startCycleInterval() {
-  clearCycleInterval()
-  cycleInterval = setInterval(() => {
-    if (hoveredStep.value !== null) return
-    setStep((step.value + 1) % 2)
-  }, scanCycleMs)
+// A self-scheduling timeout rather than an interval, so a step can be handed a
+// part-cycle when it resumes from a hover with time already spent.
+function scheduleNextStep(delay: number) {
+  clearCycleTimer()
+  cycleTimer = setTimeout(() => {
+    cycleTimer = null
+    setStep((step.value + 1) % steps.length)
+    scheduleNextStep(scanCycleMs)
+  }, Math.max(0, delay))
+}
+
+function restartSegment() {
+  videoCycleKey.value += 1
+  segmentStartedAt = performance.now()
+  scheduleNextStep(scanCycleMs)
 }
 
 watch(inView, () => syncCycleInterval())
 
 onBeforeUnmount(() => {
-  clearCycleInterval()
+  clearCycleTimer()
   if (exitTimer) clearTimeout(exitTimer)
   scanObserver?.disconnect()
   scanObserver = null
@@ -255,10 +325,13 @@ onBeforeUnmount(() => {
                 <div class="scan-phone-camera">
                   <Phone
                     :src="steps[step].screen"
+                    :video-sources="SCAN_VIDEO_SOURCES"
+                    :video-segment="scanVideoSegment"
                     :scale="1.05"
                     sizes="(max-width: 768px) 36vw, 280px"
                     screen-transition
                     :screen-transition-direction="phoneSwipeDirection"
+                    :screen-transition-key="screenReplayKey"
                   />
                   <div v-if="step === 0" class="scan-phone-laser-overlay" aria-hidden="true">
                     <span class="scan-phone-laser-rail">
@@ -287,6 +360,12 @@ onBeforeUnmount(() => {
               zIndex: 4,
             }"
           >
+            <!--
+              The card is transformed (scanQrMotionTransform), so it forms a
+              stacking context and the free rim cannot sit behind it. Masked
+              variant instead - same fix as .gyms-qr-sticker-rim.
+            -->
+            <div class="prism-rim prism-rim--masked scan-qr-sticker-rim" aria-hidden="true"></div>
             <img
               src="/uploads/qr-code-160.webp"
               srcset="/uploads/qr-code-112.webp 112w, /uploads/qr-code-160.webp 160w, /uploads/qr-code-224.webp 224w, /uploads/qr-code.webp 400w"
@@ -573,6 +652,21 @@ onBeforeUnmount(() => {
   bottom: -29px;
 }
 
+/* The inactive row is translated 28px clear of the active one, so between the
+   two boxes sits a band that belongs to neither and swallows the pointer on the
+   way across. Extend the upper row's target down by exactly that offset - the
+   two rows then meet whichever of them is currently the translated one. */
+@media (min-width: 769px) and (prefers-reduced-motion: no-preference) {
+  .scan-step-row.has-row-below::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    height: 28px;
+  }
+}
+
 .scan-step-row.is-active::before {
   opacity: 1;
   background: linear-gradient(180deg, #f0ff8a 0%, #ccff00 72%, rgba(204, 255, 0, 0.4) 100%);
@@ -623,6 +717,15 @@ onBeforeUnmount(() => {
   will-change: transform;
 }
 
+/* Same spectral edge as .get__rim (pages/get.vue) and .gyms-qr-sticker-rim
+   (GymsSection.vue). Masked variant because the host is transformed. */
+.scan-qr-sticker-rim {
+  --prism-inset: 5px;
+  --prism-radius: 17px;
+  --prism-strength: 0.55;
+  z-index: 5;
+}
+
 .scan-phone-camera {
   position: relative;
   width: 280px;
@@ -631,28 +734,23 @@ onBeforeUnmount(() => {
   will-change: transform;
 }
 
+/* Registered on the scan frame the footage draws for itself, so the sweep runs
+   inside those corner brackets instead of alongside them. The insets are
+   measured off the rendered 3D phone rather than derived from the screenshot's
+   flat geometry - the screen mesh sits inside the bezel and carries a resting
+   tilt, so the footage does not land where a plain 393x852 box would put it.
+   There is deliberately no frame of our own here: the recording has one. */
 .scan-phone-laser-overlay {
   position: absolute;
-  top: 36%;
-  left: 22.4%;
-  right: 22.4%;
+  top: 36.9%;
+  left: 18.1%;
+  right: 18.7%;
   aspect-ratio: 1;
   overflow: hidden;
   pointer-events: none;
   z-index: 14;
   border-radius: 18px;
   mix-blend-mode: screen;
-}
-
-.scan-phone-laser-overlay::before {
-  content: '';
-  position: absolute;
-  inset: 4px;
-  border: 1px solid rgba(204, 255, 0, 0.34);
-  border-radius: 16px;
-  box-shadow:
-    inset 0 0 18px rgba(204, 255, 0, 0.12),
-    0 0 22px rgba(204, 255, 0, 0.14);
 }
 
 /* The sweep translates a full-height rail (translateY% of the rail equals the
@@ -831,10 +929,12 @@ onBeforeUnmount(() => {
     border-width: 2px !important;
   }
 
+  /* The phone layout draws the footage flat at the device's own aspect, so here
+     the insets are the frame's position in the recording plus the 2px bezel. */
   .scan-phone-laser-overlay {
-    top: 34.8%;
-    left: 21%;
-    right: 21%;
+    top: 35.2%;
+    left: 18.4%;
+    right: 18.4%;
     border-radius: 10px;
   }
 
@@ -892,16 +992,21 @@ onBeforeUnmount(() => {
     --scan-border-progress: 0deg;
     background: conic-gradient(
       from -0.25turn,
-      rgba(204, 255, 0, 0.1) 0turn,
-      rgba(204, 255, 0, 0.22) calc(var(--scan-border-progress) - 0.075turn),
-      rgba(204, 255, 0, 0.42) calc(var(--scan-border-progress) - 0.028turn),
-      rgba(204, 255, 0, 0.68) calc(var(--scan-border-progress) - 0.012turn),
+      rgba(204, 255, 0, 0.46) 0turn,
+      rgba(204, 255, 0, 0.62) calc(var(--scan-border-progress) - 0.09turn),
+      rgba(204, 255, 0, 0.8) calc(var(--scan-border-progress) - 0.032turn),
+      rgba(204, 255, 0, 0.93) calc(var(--scan-border-progress) - 0.012turn),
       #f0ff8a calc(var(--scan-border-progress) - 0.004turn),
       #ccff00 var(--scan-border-progress),
       transparent var(--scan-border-progress),
       transparent 1turn
     );
-    box-shadow: none;
+    /* The glow follows the drawn arc rather than illuminating the whole card,
+       so the trail can approach the tip's energy without reading as a static
+       border. */
+    filter:
+      drop-shadow(0 0 3px rgba(204, 255, 0, 0.86))
+      drop-shadow(0 0 9px rgba(204, 255, 0, 0.58));
     opacity: 1;
     transform: translate3d(-50%, -50%, 0);
     transform-origin: center;
@@ -918,6 +1023,7 @@ onBeforeUnmount(() => {
     inset: 2px;
     border-radius: 12px;
     background: rgb(15, 19, 0);
+    box-shadow: inset 0 0 14px rgba(204, 255, 0, 0.08);
     pointer-events: none;
   }
 

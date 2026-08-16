@@ -5,7 +5,11 @@
 // emits `ready`, so a slower chunk fetch only lengthens the placeholder window.
 const Phone3D = defineAsyncComponent(() => import('./Phone3D.vue'))
 
+import type { ScreenVideoSegment, ScreenVideoSource } from '../utils/screenVideo'
+import { createSegmentPlayback } from '../utils/screenVideo'
+
 const MOBILE_PHONE_MQL = '(max-width: 768px)'
+const REDUCED_MOTION_MQL = '(prefers-reduced-motion: reduce)'
 const PHONE_PRELOAD_MARGIN = '800px 0px'
 const staticScreenPreloadCache = new Map<string, Promise<void>>()
 
@@ -41,10 +45,15 @@ function preferredScreenSrc(src: string | undefined) {
 
 const props = withDefaults(defineProps<{
   src?: string
+  // Screen footage that replaces the still `src` on the display. `src` stays
+  // the poster: it covers the load, and it is what reduced motion keeps.
+  videoSources?: ScreenVideoSource[]
+  videoSegment?: ScreenVideoSegment
   scale?: number
   tiltDelayMs?: number
   screenTransition?: boolean
   screenTransitionDirection?: 'up' | 'down' | 'left' | 'right'
+  screenTransitionKey?: string | number
   style?: Record<string, string>
   lite?: boolean
   enableMobile3d?: boolean
@@ -55,10 +64,13 @@ const props = withDefaults(defineProps<{
   sizes?: string
   staticBezel?: boolean
 }>(), {
+  videoSources: undefined,
+  videoSegment: undefined,
   scale: 1,
   tiltDelayMs: 0,
   screenTransition: false,
   screenTransitionDirection: 'up',
+  screenTransitionKey: 0,
   lite: false,
   enableMobile3d: false,
   interactive3d: true,
@@ -75,6 +87,9 @@ const renderStaticMockup = ref(false)
 const render3dEnabled = ref(false)
 const phone3dReady = ref(false)
 const isNearViewport = ref(false)
+const reduceMotion = ref(false)
+const staticVideoRef = ref<HTMLVideoElement | null>(null)
+const staticVideoOnScreen = ref(false)
 const staticDisplaySrc = ref(preferredScreenSrc(props.src))
 
 const render3dPhone = computed(() => (
@@ -84,6 +99,17 @@ const render3dPhone = computed(() => (
   && !renderStaticMockup.value
 ))
 const renderStaticPhone = computed(() => Boolean(props.src) && !render3dPhone.value)
+// Gated on `renderStaticMockup` rather than `renderStaticPhone`: the latter is
+// also briefly true on desktop while Phone3D's chunk loads, and mounting the
+// footage there would start a fetch that the 3D path immediately abandons.
+const renderStaticVideo = computed(() => (
+  Boolean(props.src)
+  && Boolean(props.videoSources?.length)
+  && hasMounted.value
+  && renderStaticMockup.value
+  && isNearViewport.value
+  && !reduceMotion.value
+))
 const phoneClasses = computed(() => ({
   'phone--3d': render3dPhone.value,
   'phone--static-mockup': renderStaticPhone.value,
@@ -101,7 +127,12 @@ const imageFetchPriority = computed(() => props.priority ? 'high' : 'auto')
 
 let mobileMql: MediaQueryList | null = null
 let onMobileChange: ((event: MediaQueryListEvent) => void) | null = null
+let motionMql: MediaQueryList | null = null
+let onMotionChange: ((event: MediaQueryListEvent) => void) | null = null
 let nearViewportObserver: IntersectionObserver | null = null
+let onScreenObserver: IntersectionObserver | null = null
+let onDocumentVisibilityChange: (() => void) | null = null
+let staticPlayback: ReturnType<typeof createSegmentPlayback> | null = null
 let staticScreenRequestId = 0
 
 function queueStaticScreen(src: string | undefined) {
@@ -124,6 +155,21 @@ watch(() => props.src, (src) => {
 
   primeScreen(src)
 })
+
+// The 2D screen has no render loop of its own, so the segment controller owns
+// playback here: it seeks each new segment to its start and parks the element
+// on the segment's last frame.
+watch(staticVideoRef, (video) => {
+  staticPlayback?.dispose()
+  staticPlayback = null
+  if (!video) return
+
+  staticPlayback = createSegmentPlayback(video)
+  staticPlayback.setSegment(props.videoSegment)
+  staticPlayback.setActive(staticVideoOnScreen.value && !document.hidden)
+})
+
+watch(() => props.videoSegment, (segment) => staticPlayback?.setSegment(segment))
 
 watch(render3dPhone, () => {
   phone3dReady.value = false
@@ -160,6 +206,31 @@ onMounted(() => {
     mobileMql.addEventListener('change', onMobileChange)
   }
 
+  if (props.videoSources?.length) {
+    motionMql = window.matchMedia(REDUCED_MOTION_MQL)
+    reduceMotion.value = motionMql.matches
+    onMotionChange = (event) => { reduceMotion.value = event.matches }
+    motionMql.addEventListener('change', onMotionChange)
+
+    onDocumentVisibilityChange = () => {
+      staticPlayback?.setActive(staticVideoOnScreen.value && !document.hidden)
+    }
+    document.addEventListener('visibilitychange', onDocumentVisibilityChange)
+
+    if (typeof IntersectionObserver !== 'undefined' && phoneRef.value) {
+      onScreenObserver = new IntersectionObserver(
+        (entries) => {
+          staticVideoOnScreen.value = entries[0]?.isIntersecting ?? false
+          staticPlayback?.setActive(staticVideoOnScreen.value && !document.hidden)
+        },
+        { threshold: 0 },
+      )
+      onScreenObserver.observe(phoneRef.value)
+    } else {
+      staticVideoOnScreen.value = true
+    }
+  }
+
   hasMounted.value = true
 
   if (props.priority || typeof IntersectionObserver === 'undefined') {
@@ -185,8 +256,17 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   nearViewportObserver?.disconnect()
+  onScreenObserver?.disconnect()
+  staticPlayback?.dispose()
+  staticPlayback = null
   if (mobileMql && onMobileChange) {
     mobileMql.removeEventListener('change', onMobileChange)
+  }
+  if (motionMql && onMotionChange) {
+    motionMql.removeEventListener('change', onMotionChange)
+  }
+  if (onDocumentVisibilityChange) {
+    document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
   }
 })
 </script>
@@ -218,6 +298,8 @@ onBeforeUnmount(() => {
           class="phone-3d-renderer"
           :class="{ 'phone-3d-renderer--ready': phone3dReady }"
           :screenshot-src="phone3dScreenshotSrc"
+          :video-sources="props.videoSources"
+          :video-segment="props.videoSegment"
           :tilt-delay-ms="props.tiltDelayMs"
           :screen-transition="props.screenTransition"
           :screen-transition-direction="props.screenTransitionDirection"
@@ -241,22 +323,39 @@ onBeforeUnmount(() => {
         />
       </template>
     </ClientOnly>
-    <Transition
-      v-else-if="props.src"
-      :name="staticTransitionName"
-    >
-      <img
-        :key="staticDisplaySrc"
-        class="phone-static-screen"
-        :src="staticDisplaySrc"
-        alt="LIFTAG screen"
+    <template v-else-if="props.src">
+      <Transition :name="staticTransitionName">
+        <img
+          :key="`${staticDisplaySrc}-${props.screenTransitionKey}`"
+          class="phone-static-screen"
+          :src="staticDisplaySrc"
+          alt="LIFTAG screen"
+          width="393"
+          height="852"
+          :loading="imageLoading"
+          decoding="async"
+          :fetchpriority="imageFetchPriority"
+        />
+      </Transition>
+      <video
+        v-if="renderStaticVideo"
+        ref="staticVideoRef"
+        class="phone-static-screen phone-static-video"
+        muted
+        playsinline
+        preload="auto"
         width="393"
         height="852"
-        :loading="imageLoading"
-        decoding="async"
-        :fetchpriority="imageFetchPriority"
-      />
-    </Transition>
+        aria-hidden="true"
+      >
+        <source
+          v-for="source in props.videoSources"
+          :key="source.src"
+          :src="source.src"
+          :type="source.type"
+        />
+      </video>
+    </template>
     <slot v-else />
   </div>
 </template>
@@ -269,6 +368,13 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   border-radius: inherit;
+  object-fit: cover;
+}
+
+/* Sits over the still screenshot, which stays mounted underneath as the poster
+   for the window before the first decoded frame. */
+.phone-static-video {
+  z-index: 2;
   object-fit: cover;
 }
 
@@ -335,6 +441,27 @@ onBeforeUnmount(() => {
 
 .phone--static-mockup::after {
   display: none;
+}
+
+/* Source screenshots include their own status chrome, but the captured Dynamic
+   Island geometry is not perfectly consistent. On phone layouts, place one
+   shared island above every static 2D device. Hero phones opt out through the
+   frameless variant so their bespoke 3D treatment remains untouched. */
+@media (max-width: 768px) {
+  .phone--static-mockup:not(.phone--static-frameless)::before {
+    content: '';
+    position: absolute;
+    z-index: 2;
+    top: 1.8%;
+    left: 50%;
+    width: 32%;
+    height: 4.1%;
+    border-radius: 999px;
+    background: #020302;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.38);
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
 }
 
 .phone-static-fade-enter-active,
