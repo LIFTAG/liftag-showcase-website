@@ -72,6 +72,7 @@ export default defineNuxtPlugin(() => {
     root.style.setProperty('--liftag-stable-vh-340', `${stableHeight * 3.4}px`)
     root.style.setProperty('--liftag-stable-vh-380', `${stableHeight * 3.8}px`)
     root.style.setProperty('--liftag-stable-vh-470', `${stableHeight * 4.7}px`)
+    root.style.setProperty('--liftag-stable-vh-560', `${stableHeight * 5.6}px`)
 
     root.dataset.liftagShortViewport = stableHeight <= SHORT_VIEWPORT_HEIGHT_PX ? 'true' : 'false'
   }
