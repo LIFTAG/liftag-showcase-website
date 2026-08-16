@@ -705,6 +705,22 @@ onBeforeUnmount(() => {
             Even coaches get their own <span class="lime">dashboard.</span>
           </p>
         </div>
+
+        <!-- What the laser leaves behind. An exact duplicate of the copy above,
+             clipped to the part of the frame the beam has already crossed, with
+             everything transparent except the two words that get re-keyed to
+             act 2's red. Duplicating the whole block rather than just the words
+             is what guarantees the glyphs land on the same pixels; the
+             transparent remainder means no text is ever painted twice. -->
+        <div class="coach-handoff-burn">
+          <div class="coach-handoff-copy is-burn">
+            <span class="protocol coach-handoff-eyebrow">▸ COACHING</span>
+            <p class="display coach-handoff-title">
+              Even coaches get their own <span>dashboard.</span>
+            </p>
+          </div>
+        </div>
+
         <div class="coach-handoff-sweep"></div>
       </div>
 
@@ -748,6 +764,15 @@ onBeforeUnmount(() => {
   --sweep-p: 0;
   --blend-p: 0;
   --rail-p: 0;
+  /* The live handover colour: lime while the gym footage still leads, act 2's
+     red once the coach footage has taken over. Defined once because two things
+     have to agree on it exactly - the leading edge of the rail's fill and the
+     laser that is crossing the frame at the same moment. */
+  --handoff-key: color-mix(
+    in srgb,
+    var(--liftag-primary),
+    var(--liftag-red-neon) calc(var(--blend-p) * 100%)
+  );
   --coach-p: 0;
   --exit-p: 0;
   --exit-copy: 0;
@@ -1496,20 +1521,52 @@ onBeforeUnmount(() => {
   color: #fff;
 }
 
+/* Full-bleed so the clip can be expressed against the frame the beam crosses
+   rather than against the centred copy box, which would need its own offset
+   maths. The inner copy re-centres itself exactly as the original does. */
+.coach-handoff-burn {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  clip-path: inset(0 calc(100% - var(--sweep-p) * 100vw) 0 0);
+}
+
+.coach-handoff-copy.is-burn,
+.coach-handoff-copy.is-burn .coach-handoff-title {
+  color: transparent;
+}
+
+/* Everything the beam has passed is re-keyed to act 2's accent - it arrives
+   burnt in, ahead of the section it belongs to. */
+.coach-handoff-copy.is-burn .coach-handoff-eyebrow,
+.coach-handoff-copy.is-burn .coach-handoff-title > span {
+  color: var(--liftag-red-neon);
+  text-shadow: 0 0 22px rgba(255, 45, 85, 0.55);
+}
+
 /* The sweep is what the eye credits for the change: the footage cross-fade
    happens behind it, so a single object crossing the frame reads as a wipe
    rather than as a dissolve. It also covers the case where the second encode
    is still buffering when the swap is due. */
 .coach-handoff-sweep {
   position: absolute;
+  z-index: 3;
   top: -10%;
   bottom: -10%;
   left: 0;
   width: 3px;
-  background: linear-gradient(180deg, transparent, var(--liftag-primary) 18%, #fff 50%, var(--liftag-primary) 82%, transparent);
+  /* Keyed to --handoff-key, so the beam is always exactly the colour the tip
+     of the rail is showing at that instant: lime on the way in, red by the
+     time it has finished crossing. The core stays white-hot regardless.
+     This is the one thing here that repaints rather than just recompositing,
+     but it is a 3px line and only for the span of the swap. */
+  background: linear-gradient(180deg, transparent, var(--handoff-key) 18%, #fff 50%, var(--handoff-key) 82%, transparent);
   box-shadow:
-    0 0 24px 6px rgba(204, 255, 0, 0.55),
-    0 0 90px 26px rgba(204, 255, 0, 0.22);
+    0 0 24px 6px color-mix(in srgb, transparent, var(--handoff-key) 55%),
+    0 0 90px 26px color-mix(in srgb, transparent, var(--handoff-key) 22%);
   transform: translate3d(calc(var(--sweep-p) * 100vw), 0, 0);
   /* Only lit while it is actually travelling. */
   opacity: calc(4 * var(--sweep-p) * (1 - var(--sweep-p)));
@@ -1585,11 +1642,7 @@ onBeforeUnmount(() => {
   inset: 0 auto 0 0;
   width: calc(var(--rail-p) * 100%);
   border-radius: inherit;
-  background: linear-gradient(
-    90deg,
-    var(--liftag-primary),
-    color-mix(in srgb, var(--liftag-primary), var(--liftag-red-neon) calc(var(--blend-p) * 100%))
-  );
+  background: linear-gradient(90deg, var(--liftag-primary), var(--handoff-key));
   box-shadow: 0 0 12px rgba(204, 255, 0, 0.45);
 }
 
