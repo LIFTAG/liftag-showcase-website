@@ -778,6 +778,23 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 768px) {
+  /* At the top of a phone viewport the hero should meet a completely clear
+     nav. Bring the lime lower edge in with the same state that enables the
+     blurred surface on the first real scroll pixel. */
+  .site-nav::after {
+    opacity: 0;
+    transform: scaleX(0.72);
+    animation: none;
+    transition:
+      opacity 350ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 350ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .site-nav.is-scrolled::after {
+    opacity: 0.38;
+    transform: scaleX(1);
+  }
+
   .nav-actions {
     animation-delay: 420ms;
   }
@@ -841,6 +858,18 @@ onBeforeUnmount(() => {
   .nav-mobile-toggle .line,
   .nav-mobile-drawer {
     transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (max-width: 768px) {
+  .site-nav::after {
+    opacity: 0 !important;
+    transform: scaleX(1) !important;
+    transition: none !important;
+  }
+
+  .site-nav.is-scrolled::after {
+    opacity: 0.38 !important;
   }
 }
 </style>

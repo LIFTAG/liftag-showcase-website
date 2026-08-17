@@ -5,14 +5,20 @@ import type { CatalogCategoryRef } from '~/types/catalog'
  * Muscle chips with the app's treatment: primary muscle lime-tinted,
  * secondaries muted. Each chip filters the exercise library.
  */
-defineProps<{
+const props = defineProps<{
   primary?: CatalogCategoryRef | null
   secondary?: CatalogCategoryRef[]
+  /** App Focus-header chips: smaller, no uppercase mono. */
+  compact?: boolean
 }>()
 </script>
 
 <template>
-  <ul class="muscle-chips" aria-label="Muscles worked">
+  <ul
+    class="muscle-chips"
+    :class="{ 'muscle-chips--compact': props.compact }"
+    aria-label="Muscles worked"
+  >
     <li v-if="primary">
       <NuxtLink :to="`/exercises?muscle=${primary.slug}`" class="muscle-chip muscle-chip--primary">
         {{ primary.name }}
@@ -66,6 +72,36 @@ defineProps<{
 
 .muscle-chip--primary:hover {
   border-color: var(--liftag-primary);
+  color: var(--liftag-primary);
+}
+
+.muscle-chips--compact {
+  gap: 6px;
+}
+
+.muscle-chips--compact .muscle-chip {
+  padding: 2px 8px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--liftag-fg-tertiary);
+  font-family: var(--liftag-font-body);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.muscle-chips--compact .muscle-chip--primary {
+  background: rgba(204, 255, 0, 0.19);
+  color: var(--liftag-primary);
+}
+
+.muscle-chips--compact .muscle-chip:hover {
+  color: #fff;
+}
+
+.muscle-chips--compact .muscle-chip--primary:hover {
   color: var(--liftag-primary);
 }
 </style>

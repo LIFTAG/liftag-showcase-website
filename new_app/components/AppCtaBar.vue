@@ -54,10 +54,10 @@ function dismiss() {
       <div class="app-cta__pill">
         <img src="/assets/qr/app-icon.png" width="34" height="34" alt="" class="app-cta__icon">
         <span class="app-cta__copy">
-          <span class="app-cta__title">{{ props.message }}</span>
+          <span class="app-cta__title">Log it in the app</span>
           <span class="app-cta__sub">Free on iOS &amp; Android</span>
         </span>
-        <NuxtLink to="/get" class="app-cta__btn">Get the app</NuxtLink>
+        <NuxtLink to="/get" class="app-cta__btn">Get</NuxtLink>
         <button type="button" class="app-cta__close" aria-label="Dismiss" @click="dismiss">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true">
             <path d="M6 6l12 12M18 6L6 18" />
@@ -109,9 +109,9 @@ function dismiss() {
 .app-cta__pill {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   width: min(560px, 100%);
-  padding: 10px 12px;
+  padding: 8px 8px 8px 10px;
   border: 1px solid rgba(204, 255, 0, 0.32);
   border-radius: 999px;
   background: rgba(10, 10, 10, 0.86);
@@ -143,22 +143,26 @@ function dismiss() {
 }
 
 .app-cta__sub {
+  overflow: hidden;
   color: var(--liftag-fg-tertiary);
   font-size: 11px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .app-cta__btn {
   flex: 0 0 auto;
-  padding: 10px 16px;
+  min-width: 92px;
+  padding: 10px 28px;
   border-radius: 999px;
   background: var(--liftag-primary);
   color: var(--liftag-fg-on-primary);
   font-family: var(--liftag-font-body);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
   text-decoration: none;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -256,6 +260,17 @@ function dismiss() {
   .app-cta-enter-active,
   .app-cta-leave-active {
     transition: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .app-cta {
+    right: max(12px, var(--liftag-safe-right));
+    left: max(12px, var(--liftag-safe-left));
+  }
+
+  .app-cta__icon {
+    display: none;
   }
 }
 

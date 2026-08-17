@@ -4,7 +4,11 @@ const props = defineProps<{
   placeholder: string
 }>()
 
-const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+  focus: [event: FocusEvent]
+  blur: [event: FocusEvent]
+}>()
 
 const inputRef = ref<HTMLInputElement | null>(null)
 
@@ -15,6 +19,10 @@ function onInput(event: Event) {
 function clear() {
   emit('update:modelValue', '')
   inputRef.value?.focus()
+}
+
+function finishSearch() {
+  inputRef.value?.blur()
 }
 
 // "/" jumps to search from anywhere on the page, like the app's picker.
@@ -46,8 +54,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       autocorrect="off"
       autocapitalize="none"
       spellcheck="false"
+      enterkeyhint="search"
       aria-label="Search exercises"
       @input="onInput"
+      @focus="emit('focus', $event)"
+      @blur="emit('blur', $event)"
+      @keydown.enter="finishSearch"
     >
     <button
       v-if="props.modelValue.length > 0"

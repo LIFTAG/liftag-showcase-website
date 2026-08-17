@@ -13,9 +13,45 @@ const props = defineProps<{
   name: string
 }>()
 
+const emit = defineEmits<{
+  playing: [value: boolean]
+}>()
+
 const playing = ref(false)
+const posterFailed = ref(false)
+const cinemaViewport = ref(false)
+const cinemaDismissed = ref(false)
 const videoRef = ref<HTMLVideoElement | null>(null)
 let hls: Hls | null = null
+let cinemaQuery: MediaQueryList | null = null
+
+watch(() => props.poster, () => {
+  posterFailed.value = false
+})
+
+/** Native Fullscreen needs a fresh gesture after rotation. Use a CSS cinema
+ *  view only for phone-shaped coarse-pointer viewports, never desktop. */
+const isCinema = computed(() => playing.value && cinemaViewport.value && !cinemaDismissed.value)
+
+function syncCinemaViewport() {
+  cinemaViewport.value = Boolean(cinemaQuery?.matches)
+  if (!cinemaViewport.value) cinemaDismissed.value = false
+}
+
+function setCinemaLock(on: boolean) {
+  if (!import.meta.client) return
+  document.documentElement.classList.toggle('cat-player-cinema', on)
+}
+
+watch(isCinema, setCinemaLock)
+
+function exitCinema() {
+  cinemaDismissed.value = true
+}
+
+function onKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape' && isCinema.value) exitCinema()
+}
 
 const youTubeId = computed(() => {
   if (!props.videoUrl) return null
@@ -30,6 +66,7 @@ const isHlsSource = computed(() => Boolean(props.videoUrl && /\.m3u8(\?|$)/i.tes
 async function play() {
   if (!props.videoUrl || playing.value) return
   playing.value = true
+  emit('playing', true)
   if (youTubeId.value) return
   await nextTick()
   const video = videoRef.value
@@ -49,14 +86,27 @@ async function play() {
   video.play().catch(() => {})
 }
 
+onMounted(() => {
+  cinemaQuery = window.matchMedia(
+    '(orientation: landscape) and (max-width: 1024px) and (max-height: 600px) and (pointer: coarse)',
+  )
+  syncCinemaViewport()
+  cinemaQuery.addEventListener('change', syncCinemaViewport)
+  window.addEventListener('keydown', onKeydown)
+})
+
 onBeforeUnmount(() => {
+  cinemaQuery?.removeEventListener('change', syncCinemaViewport)
+  cinemaQuery = null
+  window.removeEventListener('keydown', onKeydown)
+  setCinemaLock(false)
   hls?.destroy()
   hls = null
 })
 </script>
 
 <template>
-  <div class="cat-player">
+  <div class="cat-player" :class="{ 'is-playing': playing, 'is-cinema': isCinema }">
     <template v-if="playing && videoUrl">
       <iframe
         v-if="youTubeId"
@@ -79,18 +129,23 @@ onBeforeUnmount(() => {
 
     <template v-else>
       <img
-        v-if="poster"
+        v-if="poster && !posterFailed"
         class="cat-player__poster"
         :src="poster"
         :alt="name"
         fetchpriority="high"
         decoding="async"
+        @error="posterFailed = true"
       >
       <span v-else class="cat-player__placeholder" aria-hidden="true">{{ name.slice(0, 1) }}</span>
+      <div v-if="$slots.overlay" class="cat-player__chrome">
+        <slot name="overlay" />
+      </div>
       <button
         v-if="videoUrl"
         type="button"
         class="cat-player__cta"
+        :aria-label="`Watch ${name} instructions`"
         @click="play"
       >
         <span class="cat-player__cta-ring">
@@ -98,9 +153,21 @@ onBeforeUnmount(() => {
             <path d="M0 0.9c0-.7.8-1.2 1.4-.8l8 5.1c.6.4.6 1.2 0 1.6l-8 5.1c-.6.4-1.4-.1-1.4-.8V.9Z" />
           </svg>
         </span>
-        Watch instructions
+        <span class="cat-player__cta-label">Watch instructions</span>
       </button>
     </template>
+
+    <button
+      v-if="isCinema"
+      type="button"
+      class="cat-player__cinema-close"
+      aria-label="Exit full-screen video"
+      @click="exitCinema"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+        <path d="M6 6l12 12M18 6 6 18" />
+      </svg>
+    </button>
   </div>
 </template>
 
@@ -128,6 +195,13 @@ onBeforeUnmount(() => {
   object-fit: cover;
 }
 
+.cat-player__chrome {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
 .cat-player__placeholder {
   display: grid;
   place-items: center;
@@ -142,6 +216,7 @@ onBeforeUnmount(() => {
 
 .cat-player__cta {
   position: absolute;
+  z-index: 2;
   left: 50%;
   bottom: 18px;
   display: inline-flex;
@@ -176,5 +251,59 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   background: var(--liftag-primary);
   color: var(--liftag-fg-on-primary);
+}
+
+.cat-player.is-cinema {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  width: 100vw;
+  width: 100dvw;
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  aspect-ratio: auto;
+  border: 0;
+  border-radius: 0;
+  background: #000;
+}
+
+.cat-player.is-cinema .cat-player__video,
+.cat-player.is-cinema .cat-player__frame {
+  object-fit: contain;
+}
+
+.cat-player__cinema-close {
+  position: absolute;
+  top: max(12px, var(--liftag-safe-top));
+  right: max(12px, var(--liftag-safe-right));
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.68);
+  color: #fff;
+  cursor: pointer;
+}
+
+.cat-player__cinema-close:focus-visible {
+  outline: 2px solid var(--liftag-primary);
+  outline-offset: 2px;
+}
+
+:global(html.cat-player-cinema),
+:global(html.cat-player-cinema body) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+:global(html.cat-player-cinema .site-nav) {
+  visibility: hidden;
+  pointer-events: none;
 }
 </style>

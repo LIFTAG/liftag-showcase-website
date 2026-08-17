@@ -88,16 +88,17 @@ useLiftagStructuredData([
           screen the app opens when you scan a machine's QR tag.
         </p>
 
+        <p v-if="index" class="ma-stats">
+          <span>{{ index.machines.length }} machines</span>
+          <span class="ma-stats-dot" aria-hidden="true">·</span>
+          <NuxtLink to="/exercises" class="ma-stats-link">{{ index.exercises.length }} exercises</NuxtLink>
+        </p>
+
         <CatalogSearch
           v-model="query"
           placeholder="Search machines… leg press, cable tower, pec deck"
           class="ma-search"
         />
-
-        <p v-if="index" class="protocol ma-stats">
-          {{ index.machines.length }} MACHINES ·
-          <NuxtLink to="/exercises" class="ma-stats-link">{{ index.exercises.length }} EXERCISES</NuxtLink>
-        </p>
       </header>
 
       <nav v-if="categories.length" class="container ma-chips" aria-label="Filter by muscle group">
@@ -161,7 +162,7 @@ useLiftagStructuredData([
 }
 
 .ma-hero {
-  padding: 150px 0 26px;
+  padding: 150px 0 14px;
 }
 
 .ma-eyebrow {
@@ -184,13 +185,29 @@ useLiftagStructuredData([
 }
 
 .ma-search {
-  margin-top: 34px;
+  margin-top: 12px;
 }
 
 .ma-stats {
-  margin: 18px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 8px;
+  margin: 22px 0 0;
   color: var(--liftag-fg-tertiary);
+  font-family: var(--liftag-font-mono);
   font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ma-stats > :not(.ma-stats-dot) {
+  white-space: nowrap;
+}
+
+.ma-stats-dot {
+  color: var(--liftag-fg-dim);
 }
 
 .ma-stats-link {
@@ -204,10 +221,11 @@ useLiftagStructuredData([
 
 .ma-chips {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  padding-top: 20px;
+  padding-top: 12px;
   padding-bottom: 8px;
-  overflow-x: auto;
+  overflow-x: visible;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -257,7 +275,7 @@ useLiftagStructuredData([
 
 .ma-results {
   padding-top: 26px;
-  padding-bottom: 110px;
+  padding-bottom: 48px;
 }
 
 .ma-grid {
@@ -289,20 +307,59 @@ useLiftagStructuredData([
 
 @media (max-width: 900px) {
   .ma-hero {
-    padding-top: calc(120px + var(--liftag-safe-top));
+    padding-top: calc(var(--liftag-safe-top) + 80px);
   }
 }
 
 @media (max-width: 768px) {
+  .ma-hero {
+    padding:
+      calc(var(--liftag-safe-top) + 84px)
+      max(16px, var(--liftag-safe-right))
+      8px
+      max(16px, var(--liftag-safe-left));
+  }
+
+  .ma-eyebrow {
+    margin-bottom: 12px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+  }
+
+  .ma-title {
+    font-size: clamp(40px, 10.5vw, 56px);
+  }
+
+  .ma-lead {
+    margin-top: 14px;
+    font-size: 15px;
+  }
+
+  .ma-search {
+    margin-top: 12px;
+  }
+
+  .ma-stats {
+    margin-top: 16px;
+  }
+
+  .ma-chips {
+    flex-wrap: nowrap;
+    padding-top: 8px;
+    padding-bottom: 0;
+    padding-left: max(16px, var(--liftag-safe-left));
+    padding-right: max(16px, var(--liftag-safe-right));
+    overflow-x: auto;
+  }
+
+  .ma-results {
+    padding-top: 8px !important;
+    padding-bottom: 24px !important;
+  }
+
   .ma-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
-  }
-}
-
-@media (max-width: 620px) {
-  .ma-hero {
-    padding: 112px 0 20px;
   }
 }
 </style>

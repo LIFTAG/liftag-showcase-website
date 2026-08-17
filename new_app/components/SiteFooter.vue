@@ -67,6 +67,8 @@ const socialLinks = [
 
 const markWord = 'LIFTAG'
 const outlineFilterId = 'footer-mark-union-outline'
+const route = useRoute()
+const compactHandoff = computed(() => /^\/(?:exercises|machines)(?:\/|$)/.test(route.path))
 
 const markRef = ref<HTMLElement | null>(null)
 
@@ -139,10 +141,10 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <footer class="site-footer">
+  <footer class="site-footer" :class="{ 'site-footer--compact': compactHandoff }">
     <div class="container footer-grid">
       <!-- Logo + tagline column -->
-      <div class="footer-col reveal">
+      <div class="footer-col">
         <div class="footer-brand">
           <img
             src="/assets/logo.svg"
@@ -158,7 +160,7 @@ onBeforeUnmount(() => {
         </p>
       </div>
 
-      <div class="footer-col reveal">
+      <div class="footer-col">
         <a href="/#all-in-one" class="protocol footer-col-heading footer-heading-link">Product</a>
         <ul class="footer-link-list">
           <li v-for="item in productLinks" :key="item.label">
@@ -167,7 +169,7 @@ onBeforeUnmount(() => {
         </ul>
       </div>
 
-      <div class="footer-col reveal">
+      <div class="footer-col">
         <span class="protocol footer-col-heading">Guides</span>
         <ul class="footer-link-list">
           <li v-for="item in guideLinks" :key="item.label">
@@ -176,7 +178,7 @@ onBeforeUnmount(() => {
         </ul>
       </div>
 
-      <div class="footer-col reveal">
+      <div class="footer-col">
         <span class="protocol footer-col-heading">Legal</span>
         <ul class="footer-link-list">
           <li v-for="item in legalLinks" :key="item.label">
@@ -265,10 +267,9 @@ onBeforeUnmount(() => {
     max(32px, var(--liftag-safe-left));
 }
 
-.footer-col:nth-child(1) { transition-delay: 0ms; }
-.footer-col:nth-child(2) { transition-delay: 60ms; }
-.footer-col:nth-child(3) { transition-delay: 120ms; }
-.footer-col:nth-child(4) { transition-delay: 180ms; }
+.site-footer--compact {
+  padding-top: 32px;
+}
 
 .footer-mark {
   --fill-p: 0;

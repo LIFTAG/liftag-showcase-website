@@ -341,8 +341,7 @@ a.ma-crumb:hover {
 
 @media (max-width: 1024px) {
   .ma-layout {
-    grid-template-columns: 1fr;
-    gap: 30px;
+    gap: clamp(24px, 3.5vw, 36px);
   }
 
   .ma-ex-grid {
@@ -351,7 +350,12 @@ a.ma-crumb:hover {
   }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 768px) {
+  .ma-layout {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
   .ma-breadcrumb {
     padding-top: calc(104px + var(--liftag-safe-top));
   }

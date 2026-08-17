@@ -10,12 +10,61 @@ useLiftagSeo({
 })
 
 const route = useRoute()
-const router = useRouter()
 
 const { data: index, error, refresh } = await useCatalogIndex()
 
 const query = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const muscle = ref(typeof route.query.muscle === 'string' ? route.query.muscle : '')
+const searchShellRef = ref<HTMLElement | null>(null)
+const searchFocused = ref(false)
+const searchActive = computed(() => searchFocused.value || query.value.trim().length > 0)
+let searchVisibilityTimer: ReturnType<typeof setTimeout> | null = null
+
+function activateSearch(event: FocusEvent) {
+  searchFocused.value = true
+
+  if (!import.meta.client || !window.matchMedia('(max-width: 768px)').matches) return
+
+  // Sticky positioning normally keeps the field clear of the fixed nav. Some
+  // mobile browsers still perform their own focus scroll before the keyboard
+  // has finished resizing the visual viewport, so repair only genuinely
+  // obscured positions instead of jumping every search back to the hero.
+  const ensureSearchIsVisible = () => {
+    const input = event.target as HTMLInputElement
+    const rect = input.getBoundingClientRect()
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight
+    const navBottom = document.querySelector('.site-nav')?.getBoundingClientRect().bottom ?? 76
+    if (rect.top < navBottom + 4 || rect.bottom > viewportHeight - 12) {
+      input.closest<HTMLElement>('.ex-search-shell')
+        ?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    }
+  }
+
+  requestAnimationFrame(ensureSearchIsVisible)
+  if (searchVisibilityTimer) clearTimeout(searchVisibilityTimer)
+  searchVisibilityTimer = setTimeout(() => {
+    ensureSearchIsVisible()
+    searchVisibilityTimer = null
+  }, 280)
+}
+
+function deactivateSearch() {
+  if (searchVisibilityTimer) clearTimeout(searchVisibilityTimer)
+  searchVisibilityTimer = null
+  searchFocused.value = false
+}
+
+onBeforeUnmount(() => {
+  if (searchVisibilityTimer) clearTimeout(searchVisibilityTimer)
+})
+
+function scrollMobileResultsToStart() {
+  const shell = searchShellRef.value
+  if (!shell) return
+  const navBottom = document.querySelector('.site-nav')?.getBoundingClientRect().bottom ?? 76
+  const navClearance = Math.max(76, navBottom)
+  window.scrollTo({ top: Math.max(0, shell.offsetTop - navClearance), behavior: 'auto' })
+}
 
 const PAGE_SIZE = 48
 const visibleCount = ref(PAGE_SIZE)
@@ -56,15 +105,25 @@ const filtered = computed<CatalogIndexExercise[]>(() => {
 
 const visible = computed(() => filtered.value.slice(0, visibleCount.value))
 
-// Keep filters shareable without spamming history.
-watch([query, muscle], ([q, m]) => {
+// Keep filters shareable without asking Vue Router to navigate on every
+// keystroke. A router replace invokes the app's scroll behavior, which can move
+// the focused input while the phone keyboard is opening.
+watch([query, muscle], ([q, m], [previousQuery, previousMuscle]) => {
   visibleCount.value = PAGE_SIZE
-  router.replace({
-    query: {
-      ...(q ? { q } : {}),
-      ...(m ? { muscle: m } : {}),
-    },
-  })
+  if (!import.meta.client) return
+
+  const url = new URL(window.location.href)
+  if (q) url.searchParams.set('q', q)
+  else url.searchParams.delete('q')
+  if (m) url.searchParams.set('muscle', m)
+  else url.searchParams.delete('muscle')
+  window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`)
+
+  const startedTyping = q.trim().length > 0 && previousQuery.trim().length === 0
+  const changedMuscle = m !== previousMuscle
+  if (window.matchMedia('(max-width: 768px)').matches && (startedTyping || changedMuscle)) {
+    nextTick(scrollMobileResultsToStart)
+  }
 })
 
 function toggleMuscle(slug: string) {
@@ -108,7 +167,7 @@ useLiftagStructuredData([
 </script>
 
 <template>
-  <div class="ex-index">
+  <div class="ex-index" :class="{ 'is-searching': searchActive }">
     <main>
       <header class="ex-hero container">
         <p class="protocol ex-eyebrow">EXERCISE LIBRARY · LIFTAG</p>
@@ -118,40 +177,49 @@ useLiftagStructuredData([
           instruction videos, and the muscles behind every movement.
         </p>
 
-        <CatalogSearch
-          v-model="query"
-          placeholder="Search exercises… bench press, lat pulldown, squat"
-          class="ex-search"
-        />
-
-        <p v-if="index" class="protocol ex-stats">
-          {{ index.exercises.length }} EXERCISES ·
-          <NuxtLink to="/machines" class="ex-stats-link">{{ index.machines.length }} MACHINES</NuxtLink>
-          · {{ index.categories.length }} MUSCLE GROUPS
+        <p v-if="index" class="ex-stats">
+          <span>{{ index.exercises.length }} exercises</span>
+          <span class="ex-stats-dot" aria-hidden="true">·</span>
+          <NuxtLink to="/machines" class="ex-stats-link">{{ index.machines.length }} machines</NuxtLink>
+          <span class="ex-stats-dot" aria-hidden="true">·</span>
+          <span>{{ index.categories.length }} muscles</span>
         </p>
+
       </header>
 
-      <nav v-if="categories.length" class="container ex-chips" aria-label="Filter by muscle group">
-        <button
-          type="button"
-          class="ex-chip"
-          :class="{ 'is-active': muscle === '' }"
-          @click="muscle = ''"
-        >
-          All
-        </button>
-        <button
-          v-for="category in categories"
-          :key="category.slug"
-          type="button"
-          class="ex-chip"
-          :class="{ 'is-active': muscle === category.slug }"
-          @click="toggleMuscle(category.slug)"
-        >
-          {{ category.name }}
-          <span class="ex-chip__count">{{ categoryCounts.get(category.slug) ?? 0 }}</span>
-        </button>
-      </nav>
+      <div ref="searchShellRef" class="ex-search-shell">
+        <div class="container ex-search-tools">
+          <CatalogSearch
+            v-model="query"
+            placeholder="Search exercises…"
+            class="ex-search"
+            @focus="activateSearch"
+            @blur="deactivateSearch"
+          />
+
+          <nav v-if="categories.length" class="ex-chips" aria-label="Filter by muscle group">
+            <button
+              type="button"
+              class="ex-chip"
+              :class="{ 'is-active': muscle === '' }"
+              @click="muscle = ''"
+            >
+              All
+            </button>
+            <button
+              v-for="category in categories"
+              :key="category.slug"
+              type="button"
+              class="ex-chip"
+              :class="{ 'is-active': muscle === category.slug }"
+              @click="toggleMuscle(category.slug)"
+            >
+              {{ category.name }}
+              <span class="ex-chip__count">{{ categoryCounts.get(category.slug) ?? 0 }}</span>
+            </button>
+          </nav>
+        </div>
+      </div>
 
       <section class="container ex-results" aria-label="Exercises">
         <div v-if="error" class="ex-empty">
@@ -214,7 +282,7 @@ useLiftagStructuredData([
 }
 
 .ex-hero {
-  padding: 150px 0 26px;
+  padding: 150px 0 0;
 }
 
 .ex-eyebrow {
@@ -236,14 +304,31 @@ useLiftagStructuredData([
   line-height: 1.65;
 }
 
-.ex-search {
-  margin-top: 34px;
+.ex-search-tools {
+  padding-top: 12px;
+  padding-bottom: 8px;
 }
 
 .ex-stats {
-  margin: 18px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 8px;
+  margin: 22px 0 0;
   color: var(--liftag-fg-tertiary);
+  font-family: var(--liftag-font-mono);
   font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ex-stats > :not(.ex-stats-dot) {
+  white-space: nowrap;
+}
+
+.ex-stats-dot {
+  color: var(--liftag-fg-dim);
 }
 
 .ex-stats-link {
@@ -257,10 +342,10 @@ useLiftagStructuredData([
 
 .ex-chips {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  padding-top: 20px;
-  padding-bottom: 8px;
-  overflow-x: auto;
+  padding-top: 12px;
+  overflow-x: visible;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -341,7 +426,7 @@ useLiftagStructuredData([
 }
 
 .ex-machines-band {
-  padding-bottom: 110px;
+  padding-bottom: 24px;
 }
 
 .ex-machines-band__inner {
@@ -389,24 +474,186 @@ useLiftagStructuredData([
 
 @media (max-width: 900px) {
   .ex-hero {
-    padding-top: calc(120px + var(--liftag-safe-top));
+    padding-top: calc(var(--liftag-safe-top) + 80px);
   }
 }
 
 @media (max-width: 768px) {
+  .ex-hero {
+    padding:
+      calc(var(--liftag-safe-top) + 84px)
+      max(16px, var(--liftag-safe-right))
+      10px
+      max(16px, var(--liftag-safe-left));
+  }
+
+  .ex-eyebrow {
+    margin-bottom: 12px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+  }
+
+  .ex-title {
+    font-size: clamp(40px, 10.5vw, 56px);
+  }
+
+  .ex-lead {
+    margin-top: 14px;
+    font-size: 15px;
+  }
+
+  /* Search is its own sticky workspace on phones. Keeping it outside the hero
+     means its containing block extends through the results, so it cannot get
+     trapped above the software keyboard when the page is already scrolled. */
+  .ex-search-shell {
+    position: sticky;
+    top: calc(76px + var(--liftag-safe-top));
+    z-index: 30;
+    scroll-margin-top: calc(76px + var(--liftag-safe-top));
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(7, 8, 6, 0.96);
+  }
+
+  .ex-search-tools {
+    padding:
+      8px
+      max(16px, var(--liftag-safe-right))
+      7px
+      max(16px, var(--liftag-safe-left));
+  }
+
+  .ex-search {
+    max-width: none;
+  }
+
+  .ex-search :deep(.cat-search__input) {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .ex-search :deep(.cat-search__icon) {
+    margin-left: 14px;
+  }
+
+  .ex-search :deep(.cat-search__clear) {
+    width: 36px;
+    height: 36px;
+    margin-right: 4px;
+  }
+
+  .ex-index.is-searching .ex-search-shell {
+    border-bottom-color: rgba(204, 255, 0, 0.18);
+    box-shadow: 0 10px 24px rgba(4, 5, 3, 0.3);
+  }
+
+  .ex-index.is-searching :deep(.app-cta) {
+    display: none;
+  }
+
+  .ex-index.is-searching .ex-machines-band {
+    display: none;
+  }
+
+  .ex-stats {
+    margin-top: 16px;
+  }
+
+  .ex-chips {
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin: 0 -1px;
+    padding: 7px 1px 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  .ex-chip {
+    min-height: 32px;
+    padding: 7px 12px;
+    font-size: 10px;
+  }
+
+  .ex-results {
+    padding-top: 8px !important;
+    padding-bottom: 20px !important;
+  }
+
   .ex-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--liftag-border-soft);
+  }
+
+  .ex-grid :deep(.ex-tile) {
+    display: grid;
+    grid-template-columns: 84px minmax(0, 1fr) 16px;
+    gap: 12px;
+    align-items: center;
+    min-height: 76px;
+    padding: 6px 2px;
+    overflow: visible;
+    border: 0;
+    border-bottom: 1px solid var(--liftag-border-soft);
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .ex-grid :deep(.ex-tile:hover) {
+    border-bottom-color: var(--liftag-border-soft);
+    transform: none;
+  }
+
+  .ex-grid :deep(.ex-tile:active) {
+    background: rgba(204, 255, 0, 0.055);
+  }
+
+  .ex-grid :deep(.ex-tile::after) {
+    width: 7px;
+    height: 7px;
+    border-top: 1px solid var(--liftag-fg-dim);
+    border-right: 1px solid var(--liftag-fg-dim);
+    content: '';
+    transform: rotate(45deg);
+  }
+
+  .ex-grid :deep(.ex-tile__media) {
+    width: 84px;
+    height: 64px;
+    aspect-ratio: auto;
+    border-radius: 9px;
+  }
+
+  .ex-grid :deep(.ex-tile__body) {
+    min-width: 0;
+    gap: 4px;
+    padding: 0;
+  }
+
+  .ex-grid :deep(.ex-tile__name) {
+    font-size: 14px;
+    line-height: 1.25;
+  }
+
+  .ex-grid :deep(.ex-tile__label) {
+    overflow: hidden;
+    font-size: 9px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ex-grid :deep(.ex-tile__play) {
+    right: 6px;
+    bottom: 6px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .ex-machines-band {
+    padding-bottom: 0;
   }
 
   .ex-machines-band__inner {
-    padding: 30px 24px;
-  }
-}
-
-@media (max-width: 620px) {
-  .ex-hero {
-    padding: 112px 0 20px;
+    padding: 24px 18px;
   }
 }
 </style>

@@ -103,12 +103,14 @@ if (videoUrl.value && exercise.value) {
 }
 
 useLiftagStructuredData(structuredData)
+
+const heroPlaying = ref(false)
 </script>
 
 <template>
   <div v-if="exercise" class="ex-detail">
-    <main class="container">
-      <nav class="ex-breadcrumb" aria-label="Breadcrumb">
+    <main class="ex-main">
+      <nav class="container ex-breadcrumb" aria-label="Breadcrumb">
         <NuxtLink to="/exercises" class="protocol ex-crumb">EXERCISES</NuxtLink>
         <span class="ex-crumb-sep" aria-hidden="true">/</span>
         <NuxtLink
@@ -120,13 +122,28 @@ useLiftagStructuredData(structuredData)
         </NuxtLink>
       </nav>
 
-      <div class="ex-layout">
+      <div class="ex-stage" :class="{ 'is-playing': heroPlaying }">
         <div class="ex-media">
           <CatalogVideoPlayer
             :video-url="videoUrl"
             :poster="exercise.imageUrl"
             :name="name"
-          />
+            @playing="heroPlaying = true"
+          >
+            <template #overlay>
+              <div class="ex-hero-ui">
+                <div class="ex-hero-scrim" aria-hidden="true" />
+                <div class="ex-hero-overlay">
+                  <p class="ex-name ex-name--hero" aria-hidden="true">{{ name }}</p>
+                  <CatalogMuscleChips
+                    compact
+                    :primary="exercise.primaryCategory"
+                    :secondary="secondaryMuscles"
+                  />
+                </div>
+              </div>
+            </template>
+          </CatalogVideoPlayer>
         </div>
 
         <div class="ex-info">
@@ -174,7 +191,7 @@ useLiftagStructuredData(structuredData)
         </div>
       </div>
 
-      <section v-if="related.length" class="ex-related" aria-label="Related exercises">
+      <section v-if="related.length" class="container ex-related" aria-label="Related exercises">
         <h2 class="protocol ex-section-title">
           MORE {{ exercise.primaryCategory?.name?.toUpperCase() }} EXERCISES
         </h2>
@@ -202,7 +219,7 @@ useLiftagStructuredData(structuredData)
     radial-gradient(circle at 80% 6%, rgba(204, 255, 0, 0.08), transparent 30%),
     #000;
   color: #fff;
-  padding-bottom: 120px;
+  padding-bottom: 48px;
 }
 
 .ex-breadcrumb {
@@ -227,16 +244,24 @@ useLiftagStructuredData(structuredData)
   font-size: 10px;
 }
 
-.ex-layout {
+.ex-stage {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
   gap: 44px;
   align-items: start;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding-right: max(32px, var(--liftag-safe-right));
+  padding-left: max(32px, var(--liftag-safe-left));
 }
 
 .ex-media {
   position: sticky;
   top: 96px;
+}
+
+.ex-hero-ui {
+  display: none;
 }
 
 .ex-name {
@@ -345,13 +370,8 @@ useLiftagStructuredData(structuredData)
 }
 
 @media (max-width: 1024px) {
-  .ex-layout {
-    grid-template-columns: 1fr;
-    gap: 30px;
-  }
-
-  .ex-media {
-    position: static;
+  .ex-stage {
+    gap: clamp(24px, 3.5vw, 36px);
   }
 
   .ex-related-grid {
@@ -360,9 +380,216 @@ useLiftagStructuredData(structuredData)
   }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 880px) {
+  .ex-stage {
+    padding-right: max(20px, var(--liftag-safe-right));
+    padding-left: max(20px, var(--liftag-safe-left));
+  }
+}
+
+@media (max-width: 768px) {
+  .ex-detail {
+    background: #0e0e0e;
+    padding-bottom: 32px;
+  }
+
   .ex-breadcrumb {
-    padding-top: calc(104px + var(--liftag-safe-top));
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .ex-stage {
+    display: flex;
+    flex-direction: column;
+    max-width: none;
+    margin: 0;
+    padding: 0 !important;
+    gap: 0;
+  }
+
+  .ex-media {
+    position: relative;
+    top: auto;
+    width: 100%;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  .ex-media :deep(.cat-player:not(.is-cinema)) {
+    /* Fill from the top of the navbar, then a 4:3 photo below it. */
+    aspect-ratio: auto;
+    width: 100%;
+    height: calc(var(--liftag-safe-top) + 56px + 100vw * 3 / 4);
+    max-height: 78svh;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .ex-media :deep(.cat-player__poster),
+  .ex-media :deep(.cat-player__video) {
+    object-position: top center;
+  }
+
+  .ex-media :deep(.cat-player__cta) {
+    left: auto;
+    right: max(8px, var(--liftag-safe-right));
+    top: auto;
+    bottom: 8px;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 8px;
+    border: 0;
+    background: transparent;
+    transform: none;
+  }
+
+  .ex-media :deep(.cat-player__cta:hover) {
+    box-shadow: none;
+  }
+
+  .ex-media :deep(.cat-player__cta-ring) {
+    width: 28px;
+    height: 28px;
+    padding: 0 0 0 2px;
+    border: 1px solid rgba(204, 255, 0, 0.62);
+    background: rgba(14, 14, 14, 0.78);
+    color: var(--liftag-primary);
+    box-shadow: 0 0 18px rgba(204, 255, 0, 0.12);
+  }
+
+  .ex-media :deep(.cat-player__cta-ring svg) {
+    width: 9px;
+    height: 11px;
+  }
+
+  .ex-media :deep(.cat-player__cta-label) {
+    display: none;
+  }
+
+  .ex-media :deep(.cat-player__cta:focus-visible) {
+    outline: none;
+  }
+
+  .ex-media :deep(.cat-player__cta:focus-visible .cat-player__cta-ring) {
+    outline: 2px solid var(--liftag-primary);
+    outline-offset: 2px;
+  }
+
+  .ex-hero-ui {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+
+  .ex-hero-scrim {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.2) 18%, transparent 32%),
+      linear-gradient(to top, rgba(14, 14, 14, 0.92) 0%, rgba(14, 14, 14, 0.4) 28%, transparent 52%);
+  }
+
+  .ex-hero-overlay {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    gap: 8px;
+    padding: 0 60px 16px 16px;
+  }
+
+  .ex-hero-overlay :deep(.muscle-chips) {
+    pointer-events: auto;
+  }
+
+  .ex-name--hero {
+    font-family: var(--liftag-font-headline);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .ex-info {
+    position: relative;
+    z-index: 2;
+    margin: 0;
+    padding: 20px max(20px, var(--liftag-safe-right)) 0 max(20px, var(--liftag-safe-left));
+    background: #0e0e0e;
+  }
+
+  .ex-related,
+  .ex-machines {
+    padding-top: 28px !important;
+    padding-bottom: 0 !important;
+    overflow: visible !important;
+  }
+
+  .ex-info > .ex-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .ex-info > .ex-muscles {
+    display: none;
+  }
+
+  .ex-meta {
+    margin-top: 0;
+  }
+
+  .ex-description {
+    margin-top: 16px;
+  }
+
+  .ex-related {
+    margin-top: 36px;
+  }
+
+  .ex-stage.is-playing .ex-media :deep(.cat-player:not(.is-cinema)) {
+    height: auto;
+    max-height: none;
+    aspect-ratio: 16 / 9;
+  }
+
+  .ex-stage.is-playing .ex-media {
+    padding-top: calc(var(--liftag-safe-top) + 72px);
+  }
+
+  .ex-stage.is-playing .ex-info > .ex-name {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    font-size: 22px;
+  }
+
+  .ex-stage.is-playing .ex-info > .ex-muscles {
+    display: flex;
+  }
+
+  .ex-log-panel {
+    margin-top: 22px;
+    padding: 18px 16px;
+  }
+}
+
+@media (max-width: 620px) {
+  .ex-related-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 </style>
