@@ -51,6 +51,9 @@ Existing workout apps treat the gym as a generic surface. In reality, every gym 
 - iOS: https://apps.apple.com/app/id6761140080
 - Android: https://play.google.com/store/apps/details?id=com.liftag.app
 - Instagram: https://www.instagram.com/liftag.fit/
+- TikTok: https://www.tiktok.com/@liftag
+- X: https://x.com/liftag_fit
+- YouTube: https://www.youtube.com/@liftag_fit
 - Reddit: https://www.reddit.com/r/liftag/
 - Support: https://liftag.fit/contact/support
 - Gym partnership: https://liftag.fit/contact/partner
