@@ -4,6 +4,25 @@ import { useReveal } from '~/composables/useReveal'
 const description
   = 'Coach where your clients already train. Build your profile inside LIFTAG, get discovered by lifters, share routines, and track real progress.'
 
+const faqs = [
+  {
+    question: 'How do I apply to become a coach?',
+    answer: 'Download the LIFTAG app, then open Profile and tap Become a Trainer. Fill out your application with your bio, specializations, experience, and location. It takes a couple of minutes, then our team reviews it.',
+  },
+  {
+    question: 'How long does approval take?',
+    answer: 'Each application is reviewed by our team. You get a notification the moment a decision is made, and you can keep editing your application while it is still pending.',
+  },
+  {
+    question: 'Can I coach online and in person?',
+    answer: 'Yes. You choose whether you offer online coaching, in-person coaching, or both, and set your location so nearby lifters can find you in the directory.',
+  },
+  {
+    question: 'Where do clients find me once I am approved?',
+    answer: 'Approved coaches appear in the in-app LIFTAG trainer directory, where lifters search and filter by specialty, experience, gym, and location, then contact you directly.',
+  },
+]
+
 useLiftagSeo({
   title: 'Become a Coach on LIFTAG | Train Clients Where They Lift',
   description,
@@ -17,24 +36,7 @@ useLiftagStructuredData([
     { name: 'LIFTAG', path: '/' },
     { name: 'Become a Coach', path: '/become-a-coach' },
   ]),
-  liftagFAQPage([
-    {
-      question: 'How do I apply to become a coach?',
-      answer: 'Download the LIFTAG app, then open Profile and tap Become a Trainer. Fill out your application with your bio, specializations, experience, and location. It takes a couple of minutes, then our team reviews it.',
-    },
-    {
-      question: 'How long does approval take?',
-      answer: 'Each application is reviewed by our team. You get a notification the moment a decision is made, and you can keep editing your application while it is still pending.',
-    },
-    {
-      question: 'Can I coach online and in person?',
-      answer: 'Yes. You choose whether you offer online coaching, in-person coaching, or both, and set your location so nearby lifters can find you in the directory.',
-    },
-    {
-      question: 'Where do clients find me once I am approved?',
-      answer: 'Approved coaches appear in the in-app LIFTAG trainer directory, where lifters search and filter by specialty, experience, gym, and location, then contact you directly.',
-    },
-  ]),
+  liftagFAQPage(faqs),
 ])
 
 useReveal()
@@ -203,18 +205,6 @@ const essentials: Essential[] = [
   { title: 'Client progress at a glance', body: 'Volume trends, PRs, and estimated 1RM for every client, pulled from the sets they actually logged.', icon: 'chart' },
 ]
 
-/* ── FAQ ── */
-const faqs = [
-  { q: 'How do I apply to become a coach?', a: 'Download the LIFTAG app, then open Profile and tap Become a Trainer. Fill out your application with your bio, specializations, experience, and location. It takes a couple of minutes, then our team reviews it.' },
-  { q: 'How long does approval take?', a: 'Each application is reviewed by our team. You get a notification the moment a decision is made, and you can keep editing your application while it is still pending.' },
-  { q: 'Can I coach online and in person?', a: 'Yes. You choose whether you offer online coaching, in-person coaching, or both, and set your location so nearby lifters can find you in the directory.' },
-  { q: 'Where do clients find me once I am approved?', a: 'Approved coaches appear in the in-app LIFTAG trainer directory, where lifters search and filter by specialty, experience, gym, and location, then contact you directly.' },
-]
-
-const openFaq = ref(0)
-function toggleFaq(i: number) {
-  openFaq.value = openFaq.value === i ? -1 : i
-}
 </script>
 
 <template>
@@ -537,22 +527,11 @@ function toggleFaq(i: number) {
               <p class="protocol coach-eyebrow"><span class="coach-eyebrow-tick" aria-hidden="true" />Common questions</p>
               <h2 class="display coach-faq-title">Before you<br ><span class="accent">apply.</span></h2>
             </header>
-            <div class="coach-faq-list reveal">
-              <div
-                v-for="(item, i) in faqs"
-                :key="item.q"
-                class="coach-faq-item"
-                :class="{ 'is-open': openFaq === i }"
-              >
-                <button type="button" class="coach-faq-q" :aria-expanded="openFaq === i" @click="toggleFaq(i)">
-                  <span>{{ item.q }}</span>
-                  <span class="coach-faq-plus" aria-hidden="true">+</span>
-                </button>
-                <div class="coach-faq-a">
-                  <p>{{ item.a }}</p>
-                </div>
-              </div>
-            </div>
+            <FaqAccordion
+              class="reveal"
+              :items="faqs"
+              id-prefix="coach-faq"
+            />
           </div>
         </div>
       </section>
@@ -1658,77 +1637,6 @@ function toggleFaq(i: number) {
 
 .coach-faq-title {
   font-size: clamp(30px, 4vw, 52px);
-}
-
-.coach-faq-list {
-  display: grid;
-  gap: 10px;
-}
-
-.coach-faq-item {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  background: rgba(11, 11, 11, 0.72);
-  overflow: hidden;
-  transition: border-color 240ms ease;
-}
-
-.coach-faq-item.is-open {
-  border-color: var(--coach-accent-line);
-}
-
-.coach-faq-q {
-  width: 100%;
-  text-align: left;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 22px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  font-family: var(--liftag-font-headline);
-  font-weight: 700;
-  font-style: italic;
-  font-size: clamp(17px, 1.9vw, 20px);
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  color: #fff;
-}
-
-.coach-faq-plus {
-  flex-shrink: 0;
-  color: var(--coach-accent);
-  font-family: var(--liftag-font-mono);
-  font-size: 22px;
-  line-height: 1;
-  font-style: normal;
-  transition: transform 240ms ease;
-}
-
-.coach-faq-item.is-open .coach-faq-plus {
-  transform: rotate(45deg);
-}
-
-.coach-faq-a {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 320ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.coach-faq-item.is-open .coach-faq-a {
-  max-height: 560px;
-}
-
-.coach-faq-a p {
-  margin: 0;
-  padding: 0 24px 22px;
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 15.5px;
-  font-weight: 300;
-  line-height: 1.65;
-  max-width: 680px;
 }
 
 /* ───────── FINAL CTA ───────── */

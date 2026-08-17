@@ -279,16 +279,11 @@ const picks: Pick[] = [
 
           <section class="guide-faq">
             <h2>Frequently asked questions</h2>
-            <div class="guide-faq-list">
-              <details
-                v-for="item in faqs"
-                :key="item.question"
-                class="guide-faq-item"
-              >
-                <summary>{{ item.question }}</summary>
-                <p>{{ item.answer }}</p>
-              </details>
-            </div>
+            <FaqAccordion
+              class="guide-faq-list"
+              :items="faqs"
+              id-prefix="guide-faq"
+            />
           </section>
 
           <section class="guide-method">
@@ -479,34 +474,7 @@ const picks: Pick[] = [
 }
 
 .guide-faq-list {
-  display: grid;
-  gap: 10px;
   margin-top: 18px;
-}
-
-.guide-faq-item {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  background: rgba(11, 18, 21, 0.72);
-  padding: 20px 24px;
-}
-
-.guide-faq-item summary {
-  cursor: pointer;
-  color: #fff;
-  font-family: var(--liftag-font-headline);
-  font-size: 17px;
-  font-weight: 700;
-  font-style: italic;
-  text-transform: uppercase;
-}
-
-.guide-faq-item p {
-  margin: 14px 0 0;
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 15px;
-  font-weight: 300;
-  line-height: 1.65;
 }
 
 .guide-method .protocol {
