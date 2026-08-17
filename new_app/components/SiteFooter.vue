@@ -31,25 +31,21 @@ const legalLinks: FooterLink[] = [
 const socialLinks = [
   {
     key: 'instagram',
-    label: 'INSTAGRAM',
     href: 'https://www.instagram.com/liftag.fit/',
     aria: 'Liftag on Instagram',
   },
   {
     key: 'tiktok',
-    label: 'TIKTOK',
     href: 'https://www.tiktok.com/@liftag',
     aria: 'Liftag on TikTok',
   },
   {
     key: 'x',
-    label: 'X',
     href: 'https://x.com/liftag_fit',
     aria: 'Liftag on X',
   },
   {
     key: 'youtube',
-    label: 'YOUTUBE',
     href: 'https://www.youtube.com/@liftag_fit',
     aria: 'Liftag on YouTube',
   },
@@ -285,7 +281,6 @@ onBeforeUnmount(() => {
                 />
               </template>
             </svg>
-            <span class="protocol">{{ social.label }}</span>
           </a>
         </div>
         <span class="protocol" style="color: #666;">v1.0 · IOS AND ANDROID</span>
@@ -522,14 +517,16 @@ onBeforeUnmount(() => {
 .footer-socials {
   display: inline-flex;
   align-items: center;
-  gap: 14px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .footer-social-link {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
   color: rgba(255, 255, 255, 0.54);
   text-decoration: none;
   transition:
@@ -545,8 +542,8 @@ onBeforeUnmount(() => {
 }
 
 .footer-social-icon {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   flex: 0 0 auto;
 }
 
