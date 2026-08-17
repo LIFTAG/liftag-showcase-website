@@ -241,7 +241,7 @@ onBeforeUnmount(() => {
             </svg>
           </a>
         </div>
-        <span class="protocol" style="color: #666;">v1.0 · IOS AND ANDROID</span>
+        <span class="protocol" style="color: #666;">Available on · IOS AND ANDROID</span>
       </div>
     </div>
 
