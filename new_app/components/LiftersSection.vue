@@ -13,6 +13,8 @@ interface FeatureCardProps {
   title: string
   body: string
   compact?: boolean
+  href?: string
+  linkLabel?: string
 }
 
 const cards: FeatureCardProps[] = [
@@ -71,6 +73,8 @@ const cards: FeatureCardProps[] = [
     title: '250+ exercises. Form videos.',
     body: 'Vetted by coaches, not influencers.',
     compact: true,
+    href: '/exercises',
+    linkLabel: 'Browse the library',
   },
 ]
 
@@ -433,6 +437,14 @@ onBeforeUnmount(() => {
             >
               {{ card.body }}
             </p>
+            <NuxtLink
+              v-if="card.href"
+              :to="card.href"
+              class="lifters-card-link"
+              @click.stop
+            >
+              {{ card.linkLabel ?? 'Learn more' }} →
+            </NuxtLink>
           </div>
         </div>
       </div>
@@ -464,6 +476,22 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.lifters-card-link {
+  display: inline-block;
+  margin-top: 12px;
+  color: var(--liftag-primary);
+  font-family: var(--liftag-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.lifters-card-link:hover {
+  color: #fff;
+}
+
 .lifters-card {
   --spot-x: 50%;
   --spot-y: 50%;

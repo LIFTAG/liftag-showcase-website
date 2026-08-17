@@ -99,6 +99,17 @@ export default defineNuxtConfig({
     '/terms-and-conditions': { prerender: true },
     '/cs/**': { prerender: true },
     '/sk/**': { prerender: true },
+    // Catalog pages regenerate on Vercel at most hourly: new exercises appear
+    // without a redeploy, and a build never has to prerender the whole catalog.
+    '/exercises': { isr: 3600 },
+    '/exercises/**': { isr: 3600 },
+    '/machines': { isr: 3600 },
+    '/machines/**': { isr: 3600 },
+    '/api/catalog/**': {
+      headers: {
+        'cache-control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+      },
+    },
     '/get': {
       headers: {
         'x-robots-tag': 'noindex, nofollow',

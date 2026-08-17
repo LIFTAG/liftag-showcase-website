@@ -15,7 +15,7 @@ const navLinks = computed<[string, string][]>(() => [
   ['Lifters', sectionHref('#lifters')],
   ['Gyms', sectionHref('#gyms')],
   ['Trainers', sectionHref('#trainers')],
-  ['How it works', sectionHref('#how')],
+  ['Exercises', '/exercises'],
   ['Guides', '/guides'],
 ])
 
