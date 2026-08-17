@@ -60,8 +60,6 @@ useLiftagStructuredData([
 
 <template>
   <div class="guides-hub">
-    <SiteNav />
-
     <main>
       <header class="guides-hero container">
         <p class="protocol guides-eyebrow">GUIDES · LIFTAG</p>
@@ -82,8 +80,6 @@ useLiftagStructuredData([
         </article>
       </section>
     </main>
-
-    <SiteFooter />
   </div>
 </template>
 

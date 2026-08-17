@@ -72,8 +72,6 @@ const contactEmail = 'support@liftag.fit'
 
 <template>
   <div class="legal-page">
-    <SiteNav />
-
     <main>
       <article class="legal">
         <header class="legal-hero container">
@@ -99,8 +97,6 @@ const contactEmail = 'support@liftag.fit'
         </div>
       </article>
     </main>
-
-    <SiteFooter />
   </div>
 </template>
 

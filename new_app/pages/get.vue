@@ -24,6 +24,8 @@
  * whereas the https listing is claimed by the Play Store app via App Links and
  * resolves from inside a WebView.
  */
+definePageMeta({ layout: false })
+
 const SHARE_URL = 'https://liftag.fit/get'
 
 type View = Platform | 'escape'

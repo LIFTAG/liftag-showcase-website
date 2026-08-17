@@ -133,8 +133,6 @@ const picks: Pick[] = [
 
 <template>
   <div class="seo-page">
-    <SiteNav />
-
     <main>
       <article class="guide">
         <header class="guide-hero container">
@@ -295,8 +293,6 @@ const picks: Pick[] = [
         </div>
       </article>
     </main>
-
-    <SiteFooter />
   </div>
 </template>
 
