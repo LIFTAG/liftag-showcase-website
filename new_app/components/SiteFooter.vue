@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { siInstagram, siReddit, siTiktok, siX, siYoutube } from 'simple-icons'
+
 interface FooterLink {
   label: string
   href: string
@@ -33,21 +35,31 @@ const socialLinks = [
     key: 'instagram',
     href: 'https://www.instagram.com/liftag.fit/',
     aria: 'Liftag on Instagram',
+    path: siInstagram.path,
   },
   {
     key: 'tiktok',
     href: 'https://www.tiktok.com/@liftag',
     aria: 'Liftag on TikTok',
+    path: siTiktok.path,
   },
   {
     key: 'x',
     href: 'https://x.com/liftag_fit',
     aria: 'Liftag on X',
+    path: siX.path,
   },
   {
     key: 'youtube',
     href: 'https://www.youtube.com/@liftag_fit',
     aria: 'Liftag on YouTube',
+    path: siYoutube.path,
+  },
+  {
+    key: 'reddit',
+    href: 'https://www.reddit.com/r/liftag/',
+    aria: 'Liftag on Reddit',
+    path: siReddit.path,
   },
 ] as const
 
@@ -173,37 +185,11 @@ onBeforeUnmount(() => {
 
     </div>
 
-    <!-- Feedback callout -->
-    <div class="container footer-feedback">
-      <p class="footer-feedback-text">
-        Do you have feedback? Feel free to share it on our subreddit.
-      </p>
-      <a
-        href="https://www.reddit.com/r/liftag/"
-        class="footer-reddit-btn"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="r/liftag subreddit"
-      >
-        <svg
-          class="footer-reddit-icon"
-          viewBox="0 0 32 32"
-          fill="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            d="M16 0C7.163 0 0 7.163 0 16s7.163 16 16 16 16-7.163 16-16S24.837 0 16 0zm7.94 16.957c.024.18.036.36.036.541 0 3.494-4.066 6.327-9.082 6.327-5.015 0-9.08-2.833-9.08-6.327 0-.18.012-.36.036-.541-.776-.347-1.32-1.12-1.32-2.02 0-1.22.99-2.21 2.21-2.21.6 0 1.146.24 1.546.63 1.508-1.05 3.564-1.728 5.844-1.81L15.235 6.1l3.74.794c.131-.66.71-1.157 1.408-1.157.795 0 1.44.645 1.44 1.44s-.645 1.439-1.44 1.439c-.776 0-1.408-.615-1.435-1.385l-3.357-.713-1.04 4.99c2.246.097 4.272.775 5.762 1.81.4-.39.946-.63 1.547-.63 1.22 0 2.21.99 2.21 2.21 0 .9-.545 1.673-1.32 2.02zM10.31 17.46c0 .795-.645 1.44-1.44 1.44s-1.44-.645-1.44-1.44.645-1.44 1.44-1.44 1.44.645 1.44 1.44zm9.6 0c0 .795-.645 1.44-1.44 1.44s-1.44-.645-1.44-1.44.645-1.44 1.44-1.44 1.44.645 1.44 1.44zm-1.04 3.347c.18.18.18.474 0 .654-1.04 1.04-3.025 1.12-3.602 1.12-.578 0-2.563-.08-3.602-1.12-.18-.18-.18-.474 0-.654.18-.18.474-.18.654 0 .655.655 2.054.887 2.948.887.894 0 2.293-.232 2.948-.887.18-.18.474-.18.654 0z"
-          />
-        </svg>
-        <span class="protocol">r/LIFTAG</span>
-      </a>
-    </div>
-
     <!-- Bottom bar -->
     <div
       class="container"
       style="
-        margin-top: 24px;
+        margin-top: 48px;
         padding-top: 24px;
         border-top: 1px solid rgba(255,255,255,0.05);
         display: flex;
@@ -228,62 +214,14 @@ onBeforeUnmount(() => {
             <svg
               class="footer-social-icon"
               viewBox="0 0 24 24"
-              fill="none"
+              fill="currentColor"
               aria-hidden="true"
             >
-              <template v-if="social.key === 'instagram'">
-                <rect
-                  x="5.25"
-                  y="5.25"
-                  width="13.5"
-                  height="13.5"
-                  rx="4"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                />
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="3.15"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                />
-                <circle
-                  cx="16.45"
-                  cy="7.65"
-                  r="1.05"
-                  fill="currentColor"
-                />
-              </template>
-              <path
-                v-else-if="social.key === 'tiktok'"
-                fill="currentColor"
-                d="M14.2 3.2v9.15a3.55 3.55 0 1 1-2.25-3.3V6.7A6.2 6.2 0 0 0 16.4 8.4V5.9a6.1 6.1 0 0 0 3.4 1.05V4.4A6.1 6.1 0 0 1 16.4 3.4V3.2h-2.2z"
-              />
-              <path
-                v-else-if="social.key === 'x'"
-                fill="currentColor"
-                d="M14.4 10.2 21.7 2h-2.1l-6.3 7.2L8.3 2H2.6l7.7 11L2.6 22h2.1l6.7-7.6L15.7 22h5.7l-7-11.8zm-2.3 2.6-.8-1.1L5.2 3.7h2.6l4.9 6.9.8 1.1 6.4 8.9h-2.6l-5.2-7.3z"
-              />
-              <template v-else>
-                <rect
-                  x="3.4"
-                  y="6.2"
-                  width="17.2"
-                  height="11.6"
-                  rx="3.2"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                />
-                <path
-                  fill="currentColor"
-                  d="M10.5 9.5v5l4.6-2.5-4.6-2.5z"
-                />
-              </template>
+              <path :d="social.path" />
             </svg>
           </a>
         </div>
-        <span class="protocol" style="color: #666;">v1.0 · IOS AND ANDROID</span>
+        <span class="protocol" style="color: #666;">Available on · IOS AND ANDROID</span>
       </div>
     </div>
 
@@ -542,60 +480,9 @@ onBeforeUnmount(() => {
 }
 
 .footer-social-icon {
+  display: block;
   width: 24px;
   height: 24px;
-  flex: 0 0 auto;
-}
-
-.footer-feedback {
-  margin-top: 48px;
-  padding: 18px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.015);
-}
-
-.footer-feedback-text {
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 13px;
-  font-weight: 300;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.footer-reddit-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  color: rgba(255, 255, 255, 0.78);
-  text-decoration: none;
-  transition:
-    color 200ms ease,
-    border-color 200ms ease,
-    background 200ms ease,
-    transform 200ms ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .footer-reddit-btn:hover {
-    color: #CCFF00;
-    border-color: rgba(204, 255, 0, 0.45);
-    background: rgba(204, 255, 0, 0.06);
-    transform: translateY(-1px);
-  }
-}
-
-.footer-reddit-icon {
-  width: 20px;
-  height: 20px;
   flex: 0 0 auto;
 }
 </style>
