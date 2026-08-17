@@ -19,14 +19,7 @@ if (exercise.value.slug && exercise.value.slug !== param) {
 const name = computed(() => exercise.value?.name ?? '')
 const canonicalSlug = computed(() => exercise.value?.slug ?? param)
 
-const videoUrl = computed(() => {
-  const videos = exercise.value?.videos ?? []
-  const preferred = videos
-    .filter(video => video.locale === 'en')
-    .sort((a, b) => a.displayOrder - b.displayOrder)
-  const fallback = [...videos].sort((a, b) => a.displayOrder - b.displayOrder)
-  return (preferred[0] ?? fallback[0])?.url ?? null
-})
+const videoUrl = computed(() => preferredCatalogVideoUrl(exercise.value?.videos ?? []))
 
 const secondaryMuscles = computed(() => {
   const primarySlug = exercise.value?.primaryCategory?.slug
@@ -128,7 +121,7 @@ const heroPlaying = ref(false)
             :video-url="videoUrl"
             :poster="exercise.imageUrl"
             :name="name"
-            @playing="heroPlaying = true"
+            @playing="heroPlaying = $event"
           >
             <template #overlay>
               <div class="ex-hero-ui">
@@ -159,7 +152,11 @@ const heroPlaying = ref(false)
             :secondary="secondaryMuscles"
           />
 
-          <p v-if="exercise.description" class="ex-description">{{ exercise.description }}</p>
+          <CatalogExpandableNote
+            v-if="exercise.description"
+            class="ex-description"
+            :text="exercise.description"
+          />
 
           <div class="ex-log-panel">
             <p class="protocol ex-log-panel__eyebrow">IN THE APP</p>
@@ -203,6 +200,7 @@ const heroPlaying = ref(false)
             :name="row.name"
             :image-url="row.imageUrl"
             :has-video="row.hasVideo"
+            :preview-video-url="row.previewVideoUrl"
           />
         </div>
       </section>

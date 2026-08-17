@@ -72,13 +72,12 @@ function dismiss() {
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
         </button>
-        <img
-          src="/assets/qr/get.svg"
-          width="112"
-          height="112"
-          alt="QR code that opens the LIFTAG install page"
+        <InstallQrCode
           class="app-cta__qr"
-        >
+          size="112px"
+          padding="6px"
+          radius="10px"
+        />
         <div class="app-cta__card-copy">
           <p class="app-cta__title">{{ props.message }} in the app</p>
           <p class="app-cta__sub">Point your phone camera at the code</p>
@@ -199,9 +198,7 @@ function dismiss() {
 }
 
 .app-cta__qr {
-  border-radius: 10px;
-  background: #fff;
-  padding: 6px;
+  flex: 0 0 auto;
 }
 
 .app-cta__card-copy {

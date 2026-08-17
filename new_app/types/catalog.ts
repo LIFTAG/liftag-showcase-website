@@ -99,6 +99,7 @@ export interface CatalogIndexExercise {
   categories: string[]
   isCompound: boolean | null
   hasVideo: boolean
+  previewVideoUrl: string | null
 }
 
 export interface CatalogIndexMachine {

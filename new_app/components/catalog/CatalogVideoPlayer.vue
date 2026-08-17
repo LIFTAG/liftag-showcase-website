@@ -24,6 +24,7 @@ const cinemaDismissed = ref(false)
 const videoRef = ref<HTMLVideoElement | null>(null)
 let hls: Hls | null = null
 let cinemaQuery: MediaQueryList | null = null
+let playbackRequest = 0
 
 watch(() => props.poster, () => {
   posterFailed.value = false
@@ -49,6 +50,24 @@ function exitCinema() {
   cinemaDismissed.value = true
 }
 
+function stop() {
+  playbackRequest += 1
+  const video = videoRef.value
+
+  video?.pause()
+  hls?.destroy()
+  hls = null
+
+  if (video) {
+    video.removeAttribute('src')
+    video.load()
+  }
+
+  playing.value = false
+  cinemaDismissed.value = false
+  emit('playing', false)
+}
+
 function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape' && isCinema.value) exitCinema()
 }
@@ -65,15 +84,17 @@ const isHlsSource = computed(() => Boolean(props.videoUrl && /\.m3u8(\?|$)/i.tes
 
 async function play() {
   if (!props.videoUrl || playing.value) return
+  const request = ++playbackRequest
   playing.value = true
   emit('playing', true)
   if (youTubeId.value) return
   await nextTick()
   const video = videoRef.value
-  if (!video) return
+  if (!video || request !== playbackRequest || !playing.value) return
 
   if (isHlsSource.value && !video.canPlayType('application/vnd.apple.mpegurl')) {
     const HlsCtor = (await import('hls.js')).default
+    if (request !== playbackRequest || !playing.value) return
     if (HlsCtor.isSupported()) {
       hls = new HlsCtor()
       hls.loadSource(props.videoUrl)
@@ -158,11 +179,11 @@ onBeforeUnmount(() => {
     </template>
 
     <button
-      v-if="isCinema"
+      v-if="playing"
       type="button"
-      class="cat-player__cinema-close"
-      aria-label="Exit full-screen video"
-      @click="exitCinema"
+      class="cat-player__close"
+      aria-label="Close video and show exercise image"
+      @click="stop"
     >
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
         <path d="M6 6l12 12M18 6 6 18" />
@@ -274,15 +295,15 @@ onBeforeUnmount(() => {
   object-fit: contain;
 }
 
-.cat-player__cinema-close {
+.cat-player__close {
   position: absolute;
   top: max(12px, var(--liftag-safe-top));
   right: max(12px, var(--liftag-safe-right));
   z-index: 3;
-  display: grid;
+  display: none;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 999px;
@@ -291,9 +312,19 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
-.cat-player__cinema-close:focus-visible {
+.cat-player.is-cinema .cat-player__close {
+  display: grid;
+}
+
+.cat-player__close:focus-visible {
   outline: 2px solid var(--liftag-primary);
   outline-offset: 2px;
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+  .cat-player.is-playing:not(.is-cinema) .cat-player__close {
+    display: grid;
+  }
 }
 
 :global(html.cat-player-cinema),

@@ -96,24 +96,7 @@ onMounted(() => {
       </div>
 
       <div class="get__qr">
-        <div class="get__panel">
-          <!--
-            Sits behind the panel's opaque background, so it only ever shows as
-            a rim outside the border box. It must stay outside: the code's
-            decode margin is already spent on the centre mark below.
-          -->
-          <div class="prism-rim get__rim" aria-hidden="true"></div>
-          <img
-            src="/assets/qr/get.svg"
-            width="260"
-            height="260"
-            alt="QR code that opens the LIFTAG install page"
-            class="get__code"
-          >
-          <span class="get__mark" aria-hidden="true">
-            <img src="/assets/qr/app-icon.png" width="60" height="60" alt="">
-          </span>
-        </div>
+        <InstallQrCode size="clamp(200px, 24vw, 260px)" />
         <p class="protocol get__url">liftag.fit/get</p>
       </div>
     </div>
@@ -190,61 +173,6 @@ onMounted(() => {
   display: grid;
   justify-items: center;
   gap: 18px;
-  /* Traps the rim's negative z-index here. Without a stacking context of its
-     own the rim falls all the way back past .get's opaque black and vanishes. */
-  isolation: isolate;
-}
-
-.get__panel {
-  position: relative;
-  display: grid;
-  place-items: center;
-  padding: 18px;
-  border-radius: var(--liftag-r-xl);
-  background: #fbfdf5;
-  box-shadow:
-    0 0 0 1px rgba(204, 255, 0, 0.28),
-    0 24px 70px rgba(0, 0, 0, 0.55),
-    0 0 44px rgba(204, 255, 0, 0.14);
-}
-
-/* Neither .get__panel nor .get__inner creates a stacking context (no
-   transform, filter or opacity), so a negative z-index child paints behind the
-   panel's own background while staying above the page. That is what turns the
-   shared .prism-rim into a ring here without a mask. */
-.get__rim {
-  z-index: -1;
-  --prism-inset: 5px;
-  --prism-radius: calc(var(--liftag-r-xl) + 5px);
-  --prism-strength: 0.85;
-}
-
-.get__code {
-  display: block;
-  width: clamp(200px, 24vw, 260px);
-  height: auto;
-}
-
-/* The app icon itself, on a light pad that separates its dark ground from the
-   modules. Safe over the code: error correction is level H, and this was
-   verified to still decode with the whole 23% square below treated as lost —
-   a square is the worst case, covering more area than a disc of equal width. */
-.get__mark {
-  position: absolute;
-  display: grid;
-  place-items: center;
-  width: 23%;
-  aspect-ratio: 1;
-  border-radius: 24%;
-  background: #fbfdf5;
-}
-
-.get__mark img {
-  width: 86%;
-  height: auto;
-  display: block;
-  /* Matches the squircle the stores mask the icon with. */
-  border-radius: 22%;
 }
 
 .get__url {

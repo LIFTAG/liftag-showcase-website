@@ -109,7 +109,11 @@ useLiftagStructuredData([
             :secondary="machine.categories"
           />
 
-          <p v-if="machine.description" class="ma-description">{{ machine.description }}</p>
+          <CatalogExpandableNote
+            v-if="machine.description"
+            class="ma-description"
+            :text="machine.description"
+          />
 
           <div class="ma-scan-panel">
             <p class="protocol ma-scan-panel__eyebrow">AT A PARTNER GYM?</p>
@@ -137,6 +141,7 @@ useLiftagStructuredData([
             :image-url="exercise.imageUrl"
             :label="exercise.primaryCategory?.name"
             :has-video="exercise.videos.length > 0"
+            :preview-video-url="preferredCatalogVideoUrl(exercise.videos)"
           />
         </div>
 

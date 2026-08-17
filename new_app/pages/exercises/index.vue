@@ -17,7 +17,6 @@ const query = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const muscle = ref(typeof route.query.muscle === 'string' ? route.query.muscle : '')
 const searchShellRef = ref<HTMLElement | null>(null)
 const searchFocused = ref(false)
-const searchActive = computed(() => searchFocused.value || query.value.trim().length > 0)
 let searchVisibilityTimer: ReturnType<typeof setTimeout> | null = null
 
 function activateSearch(event: FocusEvent) {
@@ -35,12 +34,14 @@ function activateSearch(event: FocusEvent) {
     const viewportHeight = window.visualViewport?.height ?? window.innerHeight
     const navBottom = document.querySelector('.site-nav')?.getBoundingClientRect().bottom ?? 76
     if (rect.top < navBottom + 4 || rect.bottom > viewportHeight - 12) {
-      input.closest<HTMLElement>('.ex-search-shell')
-        ?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+      scrollMobileResultsToStart()
     }
   }
 
-  requestAnimationFrame(ensureSearchIsVisible)
+  nextTick(() => {
+    scrollMobileResultsToStart()
+    requestAnimationFrame(ensureSearchIsVisible)
+  })
   if (searchVisibilityTimer) clearTimeout(searchVisibilityTimer)
   searchVisibilityTimer = setTimeout(() => {
     ensureSearchIsVisible()
@@ -119,9 +120,10 @@ watch([query, muscle], ([q, m], [previousQuery, previousMuscle]) => {
   else url.searchParams.delete('muscle')
   window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`)
 
-  const startedTyping = q.trim().length > 0 && previousQuery.trim().length === 0
+  const changedQuery = q !== previousQuery
   const changedMuscle = m !== previousMuscle
-  if (window.matchMedia('(max-width: 768px)').matches && (startedTyping || changedMuscle)) {
+  const shouldResetResults = changedMuscle || (searchFocused.value && changedQuery)
+  if (window.matchMedia('(max-width: 768px)').matches && shouldResetResults) {
     nextTick(scrollMobileResultsToStart)
   }
 })
@@ -167,7 +169,7 @@ useLiftagStructuredData([
 </script>
 
 <template>
-  <div class="ex-index" :class="{ 'is-searching': searchActive }">
+  <div class="ex-index" :class="{ 'is-searching': searchFocused }">
     <main>
       <header class="ex-hero container">
         <p class="protocol ex-eyebrow">EXERCISE LIBRARY · LIFTAG</p>
@@ -187,37 +189,39 @@ useLiftagStructuredData([
 
       </header>
 
-      <div ref="searchShellRef" class="ex-search-shell">
-        <div class="container ex-search-tools">
-          <CatalogSearch
-            v-model="query"
-            placeholder="Search exercises…"
-            class="ex-search"
-            @focus="activateSearch"
-            @blur="deactivateSearch"
-          />
+      <div ref="searchShellRef" class="ex-search-anchor">
+        <div class="ex-search-shell">
+          <div class="container ex-search-tools">
+            <CatalogSearch
+              v-model="query"
+              placeholder="Search exercises…"
+              class="ex-search"
+              @focus="activateSearch"
+              @blur="deactivateSearch"
+            />
 
-          <nav v-if="categories.length" class="ex-chips" aria-label="Filter by muscle group">
-            <button
-              type="button"
-              class="ex-chip"
-              :class="{ 'is-active': muscle === '' }"
-              @click="muscle = ''"
-            >
-              All
-            </button>
-            <button
-              v-for="category in categories"
-              :key="category.slug"
-              type="button"
-              class="ex-chip"
-              :class="{ 'is-active': muscle === category.slug }"
-              @click="toggleMuscle(category.slug)"
-            >
-              {{ category.name }}
-              <span class="ex-chip__count">{{ categoryCounts.get(category.slug) ?? 0 }}</span>
-            </button>
-          </nav>
+            <nav v-if="categories.length" class="ex-chips" aria-label="Filter by muscle group">
+              <button
+                type="button"
+                class="ex-chip"
+                :class="{ 'is-active': muscle === '' }"
+                @click="muscle = ''"
+              >
+                All
+              </button>
+              <button
+                v-for="category in categories"
+                :key="category.slug"
+                type="button"
+                class="ex-chip"
+                :class="{ 'is-active': muscle === category.slug }"
+                @click="toggleMuscle(category.slug)"
+              >
+                {{ category.name }}
+                <span class="ex-chip__count">{{ categoryCounts.get(category.slug) ?? 0 }}</span>
+              </button>
+            </nav>
+          </div>
         </div>
       </div>
 
@@ -242,6 +246,7 @@ useLiftagStructuredData([
               :image-url="exercise.imageUrl"
               :label="exercise.primaryCategory ? categoryNames.get(exercise.primaryCategory) : null"
               :has-video="exercise.hasVideo"
+              :preview-video-url="exercise.previewVideoUrl"
             />
           </div>
           <div v-if="filtered.length > visibleCount" class="ex-more">
@@ -342,10 +347,11 @@ useLiftagStructuredData([
 
 .ex-chips {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-wrap: nowrap;
+  gap: 4px;
   padding-top: 12px;
-  overflow-x: visible;
+  padding-bottom: 2px;
+  overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -356,18 +362,19 @@ useLiftagStructuredData([
 
 .ex-chip {
   display: inline-flex;
-  flex: 0 0 auto;
-  gap: 7px;
+  flex: 1 0 auto;
+  gap: 3px;
   align-items: center;
-  padding: 9px 16px;
+  justify-content: center;
+  padding: 8px 7px;
   border: 1px solid var(--liftag-border);
   border-radius: 999px;
   background: transparent;
   color: var(--liftag-fg-muted);
   font-family: var(--liftag-font-mono);
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   cursor: pointer;
   transition: border-color 200ms ease, color 200ms ease, background-color 200ms ease;
@@ -386,7 +393,7 @@ useLiftagStructuredData([
 
 .ex-chip__count {
   color: var(--liftag-fg-dim);
-  font-size: 10px;
+  font-size: 8.5px;
 }
 
 .ex-chip.is-active .ex-chip__count {
@@ -466,6 +473,18 @@ useLiftagStructuredData([
   text-decoration: none;
 }
 
+@media (min-width: 769px) {
+  .ex-hero,
+  .ex-search-tools,
+  .ex-results,
+  .ex-machines-band {
+    width: calc(100% - 64px);
+    max-width: 1240px;
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
+
 @media (max-width: 1080px) {
   .ex-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -502,14 +521,17 @@ useLiftagStructuredData([
     font-size: 15px;
   }
 
-  /* Search is its own sticky workspace on phones. Keeping it outside the hero
-     means its containing block extends through the results, so it cannot get
-     trapped above the software keyboard when the page is already scrolled. */
-  .ex-search-shell {
+  /* Keep the whole search workspace in normal flow, then pin that workspace
+     below the fixed nav for the full results scroll. This must not depend on
+     input focus: phone browsers can change focus state while the user scrolls
+     or while the software keyboard resizes the visual viewport. */
+  .ex-search-anchor {
     position: sticky;
     top: calc(76px + var(--liftag-safe-top));
     z-index: 30;
-    scroll-margin-top: calc(76px + var(--liftag-safe-top));
+  }
+
+  .ex-search-shell {
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     background: rgba(7, 8, 6, 0.96);
   }
@@ -568,6 +590,7 @@ useLiftagStructuredData([
   }
 
   .ex-chip {
+    flex: 0 0 auto;
     min-height: 32px;
     padding: 7px 12px;
     font-size: 10px;
@@ -579,12 +602,17 @@ useLiftagStructuredData([
   }
 
   .ex-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .ex-index.is-searching .ex-grid {
     grid-template-columns: minmax(0, 1fr);
     gap: 0;
     border-top: 1px solid var(--liftag-border-soft);
   }
 
-  .ex-grid :deep(.ex-tile) {
+  .ex-index.is-searching .ex-grid :deep(.ex-tile) {
     display: grid;
     grid-template-columns: 84px minmax(0, 1fr) 16px;
     gap: 12px;
@@ -598,16 +626,16 @@ useLiftagStructuredData([
     background: transparent;
   }
 
-  .ex-grid :deep(.ex-tile:hover) {
+  .ex-index.is-searching .ex-grid :deep(.ex-tile:hover) {
     border-bottom-color: var(--liftag-border-soft);
     transform: none;
   }
 
-  .ex-grid :deep(.ex-tile:active) {
+  .ex-index.is-searching .ex-grid :deep(.ex-tile:active) {
     background: rgba(204, 255, 0, 0.055);
   }
 
-  .ex-grid :deep(.ex-tile::after) {
+  .ex-index.is-searching .ex-grid :deep(.ex-tile::after) {
     width: 7px;
     height: 7px;
     border-top: 1px solid var(--liftag-fg-dim);
@@ -616,32 +644,36 @@ useLiftagStructuredData([
     transform: rotate(45deg);
   }
 
-  .ex-grid :deep(.ex-tile__media) {
+  .ex-index.is-searching .ex-grid :deep(.ex-tile__media) {
     width: 84px;
     height: 64px;
     aspect-ratio: auto;
     border-radius: 9px;
   }
 
-  .ex-grid :deep(.ex-tile__body) {
+  .ex-index.is-searching .ex-grid :deep(.ex-tile__body) {
     min-width: 0;
     gap: 4px;
     padding: 0;
   }
 
-  .ex-grid :deep(.ex-tile__name) {
+  .ex-index.is-searching .ex-grid :deep(.ex-tile__body::before) {
+    content: none;
+  }
+
+  .ex-index.is-searching .ex-grid :deep(.ex-tile__name) {
     font-size: 14px;
     line-height: 1.25;
   }
 
-  .ex-grid :deep(.ex-tile__label) {
+  .ex-index.is-searching .ex-grid :deep(.ex-tile__label) {
     overflow: hidden;
     font-size: 9px;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .ex-grid :deep(.ex-tile__play) {
+  .ex-index.is-searching .ex-grid :deep(.ex-tile__play) {
     right: 6px;
     bottom: 6px;
     width: 24px;

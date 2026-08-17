@@ -1,4 +1,5 @@
 import type { CatalogIndexPayload } from '../../../types/catalog'
+import { preferredCatalogVideoUrl } from '../../../utils/catalogVideo'
 
 /**
  * Lightweight search index for the /exercises and /machines pages: every
@@ -22,6 +23,7 @@ export default defineEventHandler(async (): Promise<CatalogIndexPayload> => {
         categories: exercise.categories.map(category => category.slug),
         isCompound: exercise.isCompound,
         hasVideo: exercise.videos.length > 0,
+        previewVideoUrl: preferredCatalogVideoUrl(exercise.videos),
       })),
     machines: snapshot.machines.map(machine => ({
       id: machine.id,
