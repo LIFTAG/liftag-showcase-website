@@ -164,6 +164,9 @@ export const liftagOrganization = {
   ],
   sameAs: [
     'https://www.instagram.com/liftag.fit/',
+    'https://www.tiktok.com/@liftag',
+    'https://x.com/liftag_fit',
+    'https://www.youtube.com/@liftag_fit',
     'https://www.reddit.com/r/liftag/',
     APP_STORE_URL,
     PLAY_STORE_URL,
