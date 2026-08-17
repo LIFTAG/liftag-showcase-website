@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { siInstagram, siTiktok, siX, siYoutube } from 'simple-icons'
+
 interface FooterLink {
   label: string
   href: string
@@ -33,21 +35,25 @@ const socialLinks = [
     key: 'instagram',
     href: 'https://www.instagram.com/liftag.fit/',
     aria: 'Liftag on Instagram',
+    path: siInstagram.path,
   },
   {
     key: 'tiktok',
     href: 'https://www.tiktok.com/@liftag',
     aria: 'Liftag on TikTok',
+    path: siTiktok.path,
   },
   {
     key: 'x',
     href: 'https://x.com/liftag_fit',
     aria: 'Liftag on X',
+    path: siX.path,
   },
   {
     key: 'youtube',
     href: 'https://www.youtube.com/@liftag_fit',
     aria: 'Liftag on YouTube',
+    path: siYoutube.path,
   },
 ] as const
 
@@ -228,58 +234,10 @@ onBeforeUnmount(() => {
             <svg
               class="footer-social-icon"
               viewBox="0 0 24 24"
-              fill="none"
+              fill="currentColor"
               aria-hidden="true"
             >
-              <template v-if="social.key === 'instagram'">
-                <rect
-                  x="5.25"
-                  y="5.25"
-                  width="13.5"
-                  height="13.5"
-                  rx="4"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                />
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="3.15"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                />
-                <circle
-                  cx="16.45"
-                  cy="7.65"
-                  r="1.05"
-                  fill="currentColor"
-                />
-              </template>
-              <path
-                v-else-if="social.key === 'tiktok'"
-                fill="currentColor"
-                d="M14.2 3.2v9.15a3.55 3.55 0 1 1-2.25-3.3V6.7A6.2 6.2 0 0 0 16.4 8.4V5.9a6.1 6.1 0 0 0 3.4 1.05V4.4A6.1 6.1 0 0 1 16.4 3.4V3.2h-2.2z"
-              />
-              <path
-                v-else-if="social.key === 'x'"
-                fill="currentColor"
-                d="M14.4 10.2 21.7 2h-2.1l-6.3 7.2L8.3 2H2.6l7.7 11L2.6 22h2.1l6.7-7.6L15.7 22h5.7l-7-11.8zm-2.3 2.6-.8-1.1L5.2 3.7h2.6l4.9 6.9.8 1.1 6.4 8.9h-2.6l-5.2-7.3z"
-              />
-              <template v-else>
-                <rect
-                  x="3.4"
-                  y="6.2"
-                  width="17.2"
-                  height="11.6"
-                  rx="3.2"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                />
-                <path
-                  fill="currentColor"
-                  d="M10.5 9.5v5l4.6-2.5-4.6-2.5z"
-                />
-              </template>
+              <path :d="social.path" />
             </svg>
           </a>
         </div>
@@ -542,6 +500,7 @@ onBeforeUnmount(() => {
 }
 
 .footer-social-icon {
+  display: block;
   width: 24px;
   height: 24px;
   flex: 0 0 auto;
