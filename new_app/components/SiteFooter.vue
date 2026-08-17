@@ -463,8 +463,8 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   color: rgba(255, 255, 255, 0.54);
   text-decoration: none;
   transition:
@@ -481,8 +481,8 @@ onBeforeUnmount(() => {
 
 .footer-social-icon {
   display: block;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   flex: 0 0 auto;
 }
 </style>
