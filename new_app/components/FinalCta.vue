@@ -225,7 +225,7 @@ onBeforeUnmount(() => {
         }"
       >
         <div ref="chargeAnchor" data-magnetic="16" class="final-cta-magnet">
-          <GetAppBtn idle-rim />
+          <GetAppBtn />
         </div>
       </div>
 
@@ -302,6 +302,7 @@ onBeforeUnmount(() => {
 
 .final-cta-magnet {
   display: inline-flex;
+  border-radius: 14px;
 }
 
 .final-store-buttons {
@@ -323,7 +324,9 @@ onBeforeUnmount(() => {
   animation: finalStoreGlow 5.6s ease-in-out infinite;
 }
 
-.final-cta-section.is-charged .final-cta-magnet :deep(.get-app-btn) {
+/* Keep the one-shot charge bloom on the magnetic wrapper. Applying it to the
+   button would replace GetAppBtn's repeating beacon animation after READY. */
+.final-cta-section.is-charged .final-cta-magnet {
   animation: finalChargeBloom 900ms cubic-bezier(0.16, 1, 0.3, 1) 1;
 }
 
@@ -386,7 +389,7 @@ onBeforeUnmount(() => {
   .final-logo-wrap,
   .final-logo-ring,
   .final-store-buttons::before,
-  .final-cta-section.is-charged .final-cta-magnet :deep(.get-app-btn) {
+  .final-cta-section.is-charged .final-cta-magnet {
     animation: none;
   }
 }

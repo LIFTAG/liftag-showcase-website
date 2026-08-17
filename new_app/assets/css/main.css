@@ -105,6 +105,22 @@
   --liftag-safe-bottom: env(safe-area-inset-bottom, 0px);
   --liftag-safe-left: env(safe-area-inset-left, 0px);
 
+  /* Fixed-nav geometry, both written by SiteNav on the client.
+
+     --liftag-nav-h is the bar's measured height, so anything that parks itself
+     directly under the bar (the sticky catalog search) lands on its bottom edge
+     instead of on a hardcoded guess. The fallback below is what the bar measures
+     to today, and only covers the frames before SiteNav mounts.
+
+     --liftag-vv-top is visualViewport.offsetTop: how far the visible area has
+     been pushed down inside the layout viewport, which is what a software
+     keyboard does on a phone. Fixed and sticky boxes are positioned against the
+     layout viewport, so without adding this offset they park above the visible
+     area while the keyboard is open - the nav scrolls out of sight and a sticky
+     header lands off-screen. */
+  --liftag-nav-h: calc(73px + var(--liftag-safe-top));
+  --liftag-vv-top: 0px;
+
   /* Radii */
   --liftag-r-sm: 8px;
   --liftag-r-md: 12px;

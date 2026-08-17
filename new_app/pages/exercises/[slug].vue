@@ -164,7 +164,7 @@ const heroPlaying = ref(false)
               Scan the machine's QR tag and this exercise opens ready to log:
               sets, rest timer, PRs, and your whole progression for {{ name }}.
             </p>
-            <GetAppBtn label="Get LIFTAG free" idle-rim />
+            <GetAppBtn label="Get LIFTAG free" />
           </div>
 
           <section v-if="machines.length" class="ex-machines" aria-label="Machines for this exercise">
@@ -561,8 +561,13 @@ const heroPlaying = ref(false)
     aspect-ratio: 16 / 9;
   }
 
+  /* Playback drops the video clear of the nav, and at the top of the page the
+     nav is still fully transparent - so this padding strip is what shows
+     through it. Left to the page background it reads as a grey bar hanging off
+     the top of the screen; black lets the bar disappear into the video frame. */
   .ex-stage.is-playing .ex-media {
     padding-top: calc(var(--liftag-safe-top) + 72px);
+    background: #000;
   }
 
   .ex-stage.is-playing .ex-info > .ex-name {

@@ -22,7 +22,76 @@ const navLinks = computed<[string, string][]>(() => [
 let _onScroll: (() => void) | null = null
 let _onResize: (() => void) | null = null
 let _onViewportChange: (() => void) | null = null
+let _onVisualViewportResize: (() => void) | null = null
+let _onVisualViewportScroll: (() => void) | null = null
 let _mobileQuery: MediaQueryList | null = null
+
+// The bar's height feeds every box that parks under it - today the sticky
+// catalog search. Padding, the safe-area inset and the control row all move it,
+// so publish the measured value rather than asking each consumer to guess.
+let navResizeObserver: ResizeObserver | null = null
+
+function publishNavHeight() {
+  const el = navRoot.value
+  if (!el) return
+  document.documentElement.style.setProperty('--liftag-nav-h', `${el.offsetHeight}px`)
+}
+
+// A software keyboard shrinks the visual viewport and pushes it down inside the
+// layout viewport. `position: fixed` resolves against the layout viewport, so
+// without this offset the bar sits above the visible area for as long as the
+// keyboard is open - it looks like the nav vanished the moment the caret lands
+// in a field. Sticky headers park against the same origin, hence the shared var.
+//
+// Two dampers, both there because this bar carries a backdrop blur and any
+// correction to its position is plainly visible:
+//
+// - The offset is only chased while something has actually taken a large bite
+//   out of the visible area. Phone browsers report small transient offsets
+//   during ordinary rubber-band scrolling, and following those wobbles the bar
+//   for no reason.
+// - Once a keyboard is up, small offsets that arrive mid-scroll are held until
+//   the scrolling settles. Chasing every event puts the correction a frame or
+//   more behind the scroll, which reads as the bar shivering against the page.
+//   Anything large still lands immediately, so a real shift never lags.
+const KEYBOARD_MIN_INSET_PX = 120
+const OFFSET_SETTLE_DELAY_MS = 120
+const OFFSET_IMMEDIATE_PX = 8
+
+let publishedViewportTop = 0
+let viewportSettleTimer: ReturnType<typeof setTimeout> | null = null
+
+function readVisualViewportTop() {
+  const viewport = window.visualViewport
+  if (!viewport) return 0
+  const inset = document.documentElement.clientHeight - viewport.height
+  if (inset < KEYBOARD_MIN_INSET_PX) return 0
+  return Math.max(0, Math.round(viewport.offsetTop))
+}
+
+function writeVisualViewportTop(offset: number) {
+  if (offset === publishedViewportTop) return
+  publishedViewportTop = offset
+  document.documentElement.style.setProperty('--liftag-vv-top', `${offset}px`)
+}
+
+function publishVisualViewportTop(immediate: boolean) {
+  if (viewportSettleTimer) {
+    clearTimeout(viewportSettleTimer)
+    viewportSettleTimer = null
+  }
+
+  const offset = readVisualViewportTop()
+  if (immediate || Math.abs(offset - publishedViewportTop) >= OFFSET_IMMEDIATE_PX) {
+    writeVisualViewportTop(offset)
+    return
+  }
+
+  viewportSettleTimer = setTimeout(() => {
+    viewportSettleTimer = null
+    writeVisualViewportTop(readVisualViewportTop())
+  }, OFFSET_SETTLE_DELAY_MS)
+}
 
 // The open drawer covers the viewport with a 70% black tint under a 20px
 // backdrop blur, and the browser re-runs that blur for every frame its backdrop
@@ -112,12 +181,38 @@ onMounted(() => {
     })
   }
   window.addEventListener('scroll', _onScroll, { passive: true })
+
+  publishNavHeight()
+  if (typeof ResizeObserver !== 'undefined') {
+    navResizeObserver = new ResizeObserver(publishNavHeight)
+    navResizeObserver.observe(navRoot.value!)
+  }
+
+  publishVisualViewportTop(true)
+  // The keyboard both resizes the visible area and scrolls it inside the layout
+  // viewport, and phone browsers fire those as separate events. A resize is the
+  // keyboard itself opening or closing and has to land at once; a scroll is the
+  // damped path described above.
+  _onVisualViewportResize = () => publishVisualViewportTop(true)
+  _onVisualViewportScroll = () => publishVisualViewportTop(false)
+  window.visualViewport?.addEventListener('resize', _onVisualViewportResize, { passive: true })
+  window.visualViewport?.addEventListener('scroll', _onVisualViewportScroll, { passive: true })
 })
 
 onBeforeUnmount(() => {
   publishNavOpen(false)
   docResizeObserver?.disconnect()
   docResizeObserver = null
+  navResizeObserver?.disconnect()
+  navResizeObserver = null
+  if (viewportSettleTimer) clearTimeout(viewportSettleTimer)
+  viewportSettleTimer = null
+  if (_onVisualViewportResize) {
+    window.visualViewport?.removeEventListener('resize', _onVisualViewportResize)
+  }
+  if (_onVisualViewportScroll) {
+    window.visualViewport?.removeEventListener('scroll', _onVisualViewportScroll)
+  }
   if (_onScroll) window.removeEventListener('scroll', _onScroll)
   if (_onResize) window.removeEventListener('resize', _onResize)
   if (_mobileQuery && _onViewportChange) {
@@ -131,14 +226,18 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <!-- Sticky header -->
+  <!-- Sticky header. `top` is not 0: --liftag-vv-top is how far a software
+       keyboard has pushed the visible area down inside the layout viewport this
+       bar is fixed to. Without it the bar rides above the visible area for as
+       long as a field is focused, which reads as the nav disappearing. It stays
+       0px whenever no keyboard is up. -->
   <header
     ref="navRoot"
     class="site-nav"
     :class="{ 'is-open': open, 'is-scrolled': scrolled }"
     :style="{
       position: 'fixed',
-      top: 0,
+      top: 'var(--liftag-vv-top, 0px)',
       left: 0,
       right: 0,
       zIndex: 100,
@@ -238,7 +337,7 @@ onBeforeUnmount(() => {
       Dashboard
     </a>
     <div class="nav-store-buttons">
-      <GetAppBtn label="Get the app" idle-rim />
+      <GetAppBtn label="Get the app" />
     </div>
   </div>
 </template>

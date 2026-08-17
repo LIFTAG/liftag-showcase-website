@@ -15,56 +15,19 @@ const { data: index, error, refresh } = await useCatalogIndex()
 
 const query = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const muscle = ref(typeof route.query.muscle === 'string' ? route.query.muscle : '')
-const searchShellRef = ref<HTMLElement | null>(null)
 const searchFocused = ref(false)
-let searchVisibilityTimer: ReturnType<typeof setTimeout> | null = null
 
-function activateSearch(event: FocusEvent) {
+// Focus and blur only switch the results into their compact list shape. They
+// deliberately do not move the page: the search row is sticky under the nav, so
+// it stays reachable wherever the reader already is, and yanking the scroll back
+// to the first result on every focus and every keystroke was the worst part of
+// searching from a phone.
+function activateSearch() {
   searchFocused.value = true
-
-  if (!import.meta.client || !window.matchMedia('(max-width: 768px)').matches) return
-
-  // Sticky positioning normally keeps the field clear of the fixed nav. Some
-  // mobile browsers still perform their own focus scroll before the keyboard
-  // has finished resizing the visual viewport, so repair only genuinely
-  // obscured positions instead of jumping every search back to the hero.
-  const ensureSearchIsVisible = () => {
-    const input = event.target as HTMLInputElement
-    const rect = input.getBoundingClientRect()
-    const viewportHeight = window.visualViewport?.height ?? window.innerHeight
-    const navBottom = document.querySelector('.site-nav')?.getBoundingClientRect().bottom ?? 76
-    if (rect.top < navBottom + 4 || rect.bottom > viewportHeight - 12) {
-      scrollMobileResultsToStart()
-    }
-  }
-
-  nextTick(() => {
-    scrollMobileResultsToStart()
-    requestAnimationFrame(ensureSearchIsVisible)
-  })
-  if (searchVisibilityTimer) clearTimeout(searchVisibilityTimer)
-  searchVisibilityTimer = setTimeout(() => {
-    ensureSearchIsVisible()
-    searchVisibilityTimer = null
-  }, 280)
 }
 
 function deactivateSearch() {
-  if (searchVisibilityTimer) clearTimeout(searchVisibilityTimer)
-  searchVisibilityTimer = null
   searchFocused.value = false
-}
-
-onBeforeUnmount(() => {
-  if (searchVisibilityTimer) clearTimeout(searchVisibilityTimer)
-})
-
-function scrollMobileResultsToStart() {
-  const shell = searchShellRef.value
-  if (!shell) return
-  const navBottom = document.querySelector('.site-nav')?.getBoundingClientRect().bottom ?? 76
-  const navClearance = Math.max(76, navBottom)
-  window.scrollTo({ top: Math.max(0, shell.offsetTop - navClearance), behavior: 'auto' })
 }
 
 const PAGE_SIZE = 48
@@ -109,7 +72,7 @@ const visible = computed(() => filtered.value.slice(0, visibleCount.value))
 // Keep filters shareable without asking Vue Router to navigate on every
 // keystroke. A router replace invokes the app's scroll behavior, which can move
 // the focused input while the phone keyboard is opening.
-watch([query, muscle], ([q, m], [previousQuery, previousMuscle]) => {
+watch([query, muscle], ([q, m]) => {
   visibleCount.value = PAGE_SIZE
   if (!import.meta.client) return
 
@@ -119,13 +82,6 @@ watch([query, muscle], ([q, m], [previousQuery, previousMuscle]) => {
   if (m) url.searchParams.set('muscle', m)
   else url.searchParams.delete('muscle')
   window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`)
-
-  const changedQuery = q !== previousQuery
-  const changedMuscle = m !== previousMuscle
-  const shouldResetResults = changedMuscle || (searchFocused.value && changedQuery)
-  if (window.matchMedia('(max-width: 768px)').matches && shouldResetResults) {
-    nextTick(scrollMobileResultsToStart)
-  }
 })
 
 function toggleMuscle(slug: string) {
@@ -189,7 +145,7 @@ useLiftagStructuredData([
 
       </header>
 
-      <div ref="searchShellRef" class="ex-search-anchor">
+      <div class="ex-search-anchor">
         <div class="ex-search-shell">
           <div class="container ex-search-tools">
             <CatalogSearch
@@ -521,19 +477,34 @@ useLiftagStructuredData([
     font-size: 15px;
   }
 
+  /* The tinted radial wash the desktop page carries is what made the opaque
+     search bar read as a grey band against it on a phone: an OLED-black page
+     with a near-black strip pinned across it shows every point of difference.
+     Flat black on both, so the pinned row is invisible until it has content
+     scrolling under it. */
+  .ex-index {
+    background: #000;
+  }
+
   /* Keep the whole search workspace in normal flow, then pin that workspace
      below the fixed nav for the full results scroll. This must not depend on
      input focus: phone browsers can change focus state while the user scrolls
-     or while the software keyboard resizes the visual viewport. */
+     or while the software keyboard resizes the visual viewport.
+
+     Both terms are published by SiteNav: the measured bar height (a hardcoded
+     76px left a visible gap under the nav's progress hairline, the bar is 64px
+     plus the safe-area inset) and the keyboard's push of the visible area,
+     which sticky resolves against the layout viewport and would otherwise
+     ignore - parking this row off-screen for as long as the keyboard is up. */
   .ex-search-anchor {
     position: sticky;
-    top: calc(76px + var(--liftag-safe-top));
+    top: calc(var(--liftag-nav-h) + var(--liftag-vv-top, 0px));
     z-index: 30;
   }
 
   .ex-search-shell {
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    background: rgba(7, 8, 6, 0.96);
+    background: #000;
   }
 
   .ex-search-tools {

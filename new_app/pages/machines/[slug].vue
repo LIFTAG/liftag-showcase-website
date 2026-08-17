@@ -121,7 +121,7 @@ useLiftagStructuredData([
               This is the screen the app opens when you scan the QR tag on a
               {{ name }} — pick the exercise, watch the setup, log your sets.
             </p>
-            <GetAppBtn label="Get LIFTAG free" idle-rim />
+            <GetAppBtn label="Get LIFTAG free" />
           </div>
         </div>
       </div>
