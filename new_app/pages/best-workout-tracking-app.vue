@@ -262,8 +262,6 @@ const cards: AppCard[] = [
 
 <template>
   <div class="seo-page">
-    <SiteNav />
-
     <main>
       <section class="bwt-hero">
         <div class="container">
@@ -410,8 +408,6 @@ const cards: AppCard[] = [
         </div>
       </section>
     </main>
-
-    <SiteFooter />
   </div>
 </template>
 

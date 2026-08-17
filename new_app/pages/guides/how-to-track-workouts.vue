@@ -58,8 +58,6 @@ useLiftagStructuredData([
 
 <template>
   <div class="seo-page">
-    <SiteNav />
-
     <main>
       <article class="guide">
         <header class="guide-hero container">
@@ -213,8 +211,6 @@ useLiftagStructuredData([
         </div>
       </article>
     </main>
-
-    <SiteFooter />
   </div>
 </template>
 

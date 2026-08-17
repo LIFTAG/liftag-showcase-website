@@ -82,8 +82,6 @@ function sendAnother() {
 
 <template>
   <div class="contact-shell">
-    <SiteNav />
-
     <main class="contact-page">
       <section class="contact-hero">
         <div
@@ -197,8 +195,6 @@ function sendAnother() {
         </div>
       </section>
     </main>
-
-    <SiteFooter />
   </div>
 </template>
 

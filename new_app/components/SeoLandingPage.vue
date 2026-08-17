@@ -28,8 +28,6 @@ defineProps<{
 
 <template>
   <div class="seo-page">
-    <SiteNav />
-
     <main>
       <section class="seo-hero">
         <div class="container seo-hero-grid">
@@ -81,8 +79,6 @@ defineProps<{
         </div>
       </section>
     </main>
-
-    <SiteFooter />
   </div>
 </template>
 

@@ -45,7 +45,6 @@ onNuxtReady(() => {
 <template>
   <div>
     <FilmGrain />
-    <SiteNav />
     <Hero />
     <PartnerMarquee />
     <!-- hydrate-on-visible defers each section's JS until the reader nears it.
@@ -67,6 +66,5 @@ onNuxtReady(() => {
     <LazyRoadmap :hydrate-on-visible="{ rootMargin: '800px' }" />
     <HomeFaq />
     <LazyFinalCta :hydrate-on-visible="{ rootMargin: '800px' }" />
-    <LazySiteFooter :hydrate-on-visible="{ rootMargin: '800px' }" />
   </div>
 </template>

@@ -209,8 +209,6 @@ const essentials: Essential[] = [
 
 <template>
   <div class="coach-page">
-    <SiteNav />
-
     <main>
       <!-- ───────────────── HERO ───────────────── -->
       <section class="coach-hero" :class="{ 'is-entered': entered }">
@@ -560,8 +558,6 @@ const essentials: Essential[] = [
         </div>
       </section>
     </main>
-
-    <SiteFooter />
   </div>
 </template>
 
