@@ -73,16 +73,11 @@ defineProps<{
         <div class="container">
           <p class="protocol seo-eyebrow">Common questions</p>
           <h2 class="display seo-faq-title">Common <span class="lime">questions.</span></h2>
-          <div class="seo-faq-list">
-            <details
-              v-for="item in faqs"
-              :key="item.question"
-              class="seo-faq-item"
-            >
-              <summary>{{ item.question }}</summary>
-              <p>{{ item.answer }}</p>
-            </details>
-          </div>
+          <FaqAccordion
+            class="seo-faq-list"
+            :items="faqs"
+            id-prefix="seo-faq"
+          />
         </div>
       </section>
     </main>
@@ -209,8 +204,7 @@ defineProps<{
   text-transform: uppercase;
 }
 
-.seo-panel p,
-.seo-faq-item p {
+.seo-panel p {
   margin: 18px 0 0;
   color: rgba(255, 255, 255, 0.62);
   font-size: 16px;
@@ -225,26 +219,7 @@ defineProps<{
 }
 
 .seo-faq-list {
-  display: grid;
-  gap: 10px;
   margin-top: 24px;
-}
-
-.seo-faq-item {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  background: rgba(11, 18, 21, 0.72);
-  padding: 20px 24px;
-}
-
-.seo-faq-item summary {
-  cursor: pointer;
-  color: #fff;
-  font-family: var(--liftag-font-headline);
-  font-size: 20px;
-  font-weight: 700;
-  font-style: italic;
-  text-transform: uppercase;
 }
 
 @media (max-width: 900px) {

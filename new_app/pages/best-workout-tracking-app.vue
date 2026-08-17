@@ -390,16 +390,11 @@ const cards: AppCard[] = [
         <div class="container">
           <p class="protocol bwt-eyebrow">Common questions</p>
           <h2 class="bwt-section-title">Common questions</h2>
-          <div class="bwt-faq-list">
-            <details
-              v-for="item in faqs"
-              :key="item.question"
-              class="bwt-faq-item"
-            >
-              <summary>{{ item.question }}</summary>
-              <p>{{ item.answer }}</p>
-            </details>
-          </div>
+          <FaqAccordion
+            class="bwt-faq-list"
+            :items="faqs"
+            id-prefix="bwt-faq"
+          />
         </div>
       </section>
 
@@ -674,34 +669,7 @@ const cards: AppCard[] = [
 }
 
 .bwt-faq-list {
-  display: grid;
-  gap: 10px;
   margin-top: 24px;
-}
-
-.bwt-faq-item {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  background: rgba(11, 18, 21, 0.72);
-  padding: 20px 24px;
-}
-
-.bwt-faq-item summary {
-  cursor: pointer;
-  color: #fff;
-  font-family: var(--liftag-font-headline);
-  font-size: 18px;
-  font-weight: 700;
-  font-style: italic;
-  text-transform: uppercase;
-}
-
-.bwt-faq-item p {
-  margin: 14px 0 0;
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 15px;
-  font-weight: 300;
-  line-height: 1.65;
 }
 
 .bwt-method-body {
