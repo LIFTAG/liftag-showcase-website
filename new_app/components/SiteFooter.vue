@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { siInstagram, siTiktok, siX, siYoutube } from 'simple-icons'
+import { siInstagram, siReddit, siTiktok, siX, siYoutube } from 'simple-icons'
 
 interface FooterLink {
   label: string
@@ -54,6 +54,12 @@ const socialLinks = [
     href: 'https://www.youtube.com/@liftag_fit',
     aria: 'Liftag on YouTube',
     path: siYoutube.path,
+  },
+  {
+    key: 'reddit',
+    href: 'https://www.reddit.com/r/liftag/',
+    aria: 'Liftag on Reddit',
+    path: siReddit.path,
   },
 ] as const
 
@@ -179,37 +185,11 @@ onBeforeUnmount(() => {
 
     </div>
 
-    <!-- Feedback callout -->
-    <div class="container footer-feedback">
-      <p class="footer-feedback-text">
-        Do you have feedback? Feel free to share it on our subreddit.
-      </p>
-      <a
-        href="https://www.reddit.com/r/liftag/"
-        class="footer-reddit-btn"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="r/liftag subreddit"
-      >
-        <svg
-          class="footer-reddit-icon"
-          viewBox="0 0 32 32"
-          fill="currentColor"
-          aria-hidden="true"
-        >
-          <path
-            d="M16 0C7.163 0 0 7.163 0 16s7.163 16 16 16 16-7.163 16-16S24.837 0 16 0zm7.94 16.957c.024.18.036.36.036.541 0 3.494-4.066 6.327-9.082 6.327-5.015 0-9.08-2.833-9.08-6.327 0-.18.012-.36.036-.541-.776-.347-1.32-1.12-1.32-2.02 0-1.22.99-2.21 2.21-2.21.6 0 1.146.24 1.546.63 1.508-1.05 3.564-1.728 5.844-1.81L15.235 6.1l3.74.794c.131-.66.71-1.157 1.408-1.157.795 0 1.44.645 1.44 1.44s-.645 1.439-1.44 1.439c-.776 0-1.408-.615-1.435-1.385l-3.357-.713-1.04 4.99c2.246.097 4.272.775 5.762 1.81.4-.39.946-.63 1.547-.63 1.22 0 2.21.99 2.21 2.21 0 .9-.545 1.673-1.32 2.02zM10.31 17.46c0 .795-.645 1.44-1.44 1.44s-1.44-.645-1.44-1.44.645-1.44 1.44-1.44 1.44.645 1.44 1.44zm9.6 0c0 .795-.645 1.44-1.44 1.44s-1.44-.645-1.44-1.44.645-1.44 1.44-1.44 1.44.645 1.44 1.44zm-1.04 3.347c.18.18.18.474 0 .654-1.04 1.04-3.025 1.12-3.602 1.12-.578 0-2.563-.08-3.602-1.12-.18-.18-.18-.474 0-.654.18-.18.474-.18.654 0 .655.655 2.054.887 2.948.887.894 0 2.293-.232 2.948-.887.18-.18.474-.18.654 0z"
-          />
-        </svg>
-        <span class="protocol">r/LIFTAG</span>
-      </a>
-    </div>
-
     <!-- Bottom bar -->
     <div
       class="container"
       style="
-        margin-top: 24px;
+        margin-top: 48px;
         padding-top: 24px;
         border-top: 1px solid rgba(255,255,255,0.05);
         display: flex;
@@ -503,58 +483,6 @@ onBeforeUnmount(() => {
   display: block;
   width: 24px;
   height: 24px;
-  flex: 0 0 auto;
-}
-
-.footer-feedback {
-  margin-top: 48px;
-  padding: 18px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.015);
-}
-
-.footer-feedback-text {
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 13px;
-  font-weight: 300;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.footer-reddit-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  color: rgba(255, 255, 255, 0.78);
-  text-decoration: none;
-  transition:
-    color 200ms ease,
-    border-color 200ms ease,
-    background 200ms ease,
-    transform 200ms ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .footer-reddit-btn:hover {
-    color: #CCFF00;
-    border-color: rgba(204, 255, 0, 0.45);
-    background: rgba(204, 255, 0, 0.06);
-    transform: translateY(-1px);
-  }
-}
-
-.footer-reddit-icon {
-  width: 20px;
-  height: 20px;
   flex: 0 0 auto;
 }
 </style>
