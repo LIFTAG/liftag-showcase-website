@@ -221,7 +221,7 @@ onBeforeUnmount(() => {
             </svg>
           </a>
         </div>
-        <span class="protocol" style="color: #666;">Available on · IOS AND ANDROID</span>
+        <span class="protocol footer-stores">Available on · <a href="/get" class="footer-stores-link">IOS AND ANDROID</a></span>
       </div>
     </div>
 
@@ -484,5 +484,21 @@ onBeforeUnmount(() => {
   width: 20px;
   height: 20px;
   flex: 0 0 auto;
+}
+
+.footer-stores {
+  color: #666;
+}
+
+.footer-stores-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 200ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .footer-stores-link:hover {
+    color: #CCFF00;
+  }
 }
 </style>
