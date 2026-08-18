@@ -63,3 +63,4 @@ User-agent: CCBot
 Allow: /
 
 Sitemap: https://liftag.fit/sitemap.xml
+Sitemap: https://liftag.fit/sitemap-catalog.xml

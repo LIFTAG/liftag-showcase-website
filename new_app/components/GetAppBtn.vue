@@ -22,13 +22,7 @@ withDefaults(defineProps<{
   compact?: boolean
   /** High-contrast equipment-plate treatment for primary hero placement. */
   hero?: boolean
-  /**
-   * Idle 1px yellow rim that rotates around the badge. This is the old
-   * iOS install-button beat, restored on the closing download CTA after
-   * the two store buttons merged into one.
-   */
-  idleRim?: boolean
-}>(), { label: 'Download LIFTAG', compact: false, hero: false, idleRim: false })
+}>(), { label: 'Download LIFTAG', compact: false, hero: false })
 </script>
 
 <template>
@@ -38,7 +32,6 @@ withDefaults(defineProps<{
     :class="{
       'get-app-btn--compact': compact,
       'get-app-btn--hero': hero,
-      'get-app-btn--idle-rim': idleRim && !hero,
     }"
     :aria-label="`${label}, available on the App Store and Google Play`"
   >
@@ -79,6 +72,9 @@ withDefaults(defineProps<{
 <style scoped>
 /* Deliberately mirrors AppStoreBtn's shell so the two read as one family. */
 .get-app-btn {
+  --get-app-idle-rgb: 204, 255, 0;
+  --get-app-idle-light-rgb: 255, 247, 145;
+  --get-app-idle-duration: 3.25s;
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -112,8 +108,8 @@ withDefaults(defineProps<{
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(circle at 20% 10%, rgba(255, 232, 72, 0.22), transparent 50%),
-    radial-gradient(circle at 88% 90%, rgba(204, 255, 0, 0.12), transparent 46%);
+    radial-gradient(circle at 22% 12%, rgba(var(--get-app-idle-light-rgb), 0.26), transparent 48%),
+    radial-gradient(circle at 86% 88%, rgba(var(--get-app-idle-rgb), 0.12), transparent 44%);
   opacity: 0;
   transition: opacity 280ms ease;
 }
@@ -123,7 +119,8 @@ withDefaults(defineProps<{
   inset: -42% auto -42% -34%;
   width: 42%;
   pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgba(255, 248, 176, 0.26), transparent);
+  background: linear-gradient(90deg, transparent, rgba(var(--get-app-idle-light-rgb), 0.3), transparent);
+  opacity: 1;
   transform: skewX(-18deg) translateX(-120%);
   transition: transform 560ms cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -178,14 +175,14 @@ withDefaults(defineProps<{
   outline-offset: 3px;
 }
 
-/* Closing CTA: the thin yellow arc that used to idle on the iOS badge.
-   Sits on the inner edge (inset 0) so overflow:hidden still shows the
-   1px ring instead of clipping an outset stroke. */
-.get-app-btn--idle-rim::after {
+/* Every merged store button gets the same four-part idle beacon as the
+   individual /get badges, recolored to LIFTAG yellow. The hero is a separate
+   equipment-plate treatment and keeps its own motion below. */
+.get-app-btn:not(.get-app-btn--hero)::after {
   content: '';
   position: absolute;
-  inset: 0;
-  z-index: 3;
+  inset: -1px;
+  z-index: 1;
   padding: 1px;
   pointer-events: none;
   border-radius: inherit;
@@ -194,9 +191,9 @@ withDefaults(defineProps<{
       from 14deg,
       transparent 0deg,
       transparent 205deg,
-      rgba(255, 247, 145, 0.92) 256deg,
-      rgba(255, 222, 48, 0.72) 292deg,
-      rgba(204, 255, 0, 0.38) 328deg,
+      rgba(var(--get-app-idle-light-rgb), 0.92) 256deg,
+      rgba(var(--get-app-idle-rgb), 0.76) 292deg,
+      rgba(var(--get-app-idle-rgb), 0.36) 328deg,
       transparent 354deg
     );
   opacity: 0;
@@ -212,13 +209,96 @@ withDefaults(defineProps<{
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .get-app-btn--idle-rim::after {
-    animation: getAppIdleRim 3.25s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  .get-app-btn:not(.get-app-btn--hero) {
+    animation: getAppPhoneBeacon var(--get-app-idle-duration) cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    transform-origin: center;
+    will-change: border-color, box-shadow, transform;
+  }
+
+  .get-app-btn:not(.get-app-btn--hero)::before {
+    animation: getAppPhoneAura var(--get-app-idle-duration) cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  }
+
+  .get-app-btn:not(.get-app-btn--hero)::after {
+    animation: getAppPhoneRim var(--get-app-idle-duration) cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    will-change: opacity, transform;
+  }
+
+  .get-app-btn:not(.get-app-btn--hero) .get-app-btn__shine {
+    animation: getAppPhoneGlint var(--get-app-idle-duration) cubic-bezier(0.16, 1, 0.3, 1) infinite;
     will-change: opacity, transform;
   }
 }
 
-@keyframes getAppIdleRim {
+/* Intentional hover/focus feedback takes over cleanly from the ambient cycle. */
+@media (hover: hover) and (pointer: fine) {
+  .get-app-btn:not(.get-app-btn--hero):is(:hover, :focus-visible),
+  .get-app-btn:not(.get-app-btn--hero):is(:hover, :focus-visible)::before,
+  .get-app-btn:not(.get-app-btn--hero):is(:hover, :focus-visible)::after,
+  .get-app-btn:not(.get-app-btn--hero):is(:hover, :focus-visible) .get-app-btn__shine {
+    animation: none;
+  }
+}
+
+@keyframes getAppPhoneBeacon {
+  0%,
+  62%,
+  100% {
+    border-color: rgba(204, 255, 0, 0.28);
+    background:
+      linear-gradient(135deg, rgba(204, 255, 0, 0.13), transparent 40%),
+      rgba(7, 10, 8, 0.82);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 14px 34px rgba(0, 0, 0, 0.34),
+      0 0 0 rgba(var(--get-app-idle-rgb), 0);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  7% {
+    border-color: rgba(var(--get-app-idle-rgb), 0.76);
+    background:
+      linear-gradient(135deg, rgba(var(--get-app-idle-rgb), 0.22), transparent 44%),
+      rgba(13, 14, 8, 0.9);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      0 17px 38px rgba(0, 0, 0, 0.4),
+      0 0 22px rgba(var(--get-app-idle-rgb), 0.32),
+      0 0 46px rgba(var(--get-app-idle-rgb), 0.2);
+    transform: translate3d(0, 0, 0) scale(1.018);
+  }
+
+  16% {
+    border-color: rgba(var(--get-app-idle-rgb), 0.42);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.11),
+      0 15px 35px rgba(0, 0, 0, 0.36),
+      0 0 18px rgba(var(--get-app-idle-rgb), 0.18);
+    transform: translate3d(0, 0, 0) scale(1.006);
+  }
+
+  28% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes getAppPhoneAura {
+  0%,
+  58%,
+  100% {
+    opacity: 0;
+  }
+
+  8% {
+    opacity: 1;
+  }
+
+  20% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes getAppPhoneRim {
   0%,
   58%,
   100% {
@@ -233,6 +313,25 @@ withDefaults(defineProps<{
   22% {
     opacity: 0;
     transform: translate3d(0, 0, 0) rotate(252deg);
+  }
+}
+
+@keyframes getAppPhoneGlint {
+  0%,
+  10%,
+  58%,
+  100% {
+    opacity: 0;
+    transform: skewX(-18deg) translateX(-120%);
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  26% {
+    opacity: 0;
+    transform: skewX(-18deg) translateX(420%);
   }
 }
 

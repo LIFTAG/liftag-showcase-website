@@ -35,7 +35,14 @@ export default defineNuxtConfig({
         // and is what makes env(safe-area-inset-*) resolve to anything but 0.
         // Everything that must stay clear of the cutout reads the
         // --liftag-safe-* tokens in assets/css/main.css.
-        { name: 'viewport', content: 'width=device-width,initial-scale=1,viewport-fit=cover' },
+        //
+        // interactive-widget=resizes-content asks the browser to shrink the
+        // layout viewport (not just the visual one) when the software keyboard
+        // opens, so fixed and sticky boxes stay where the user can see them
+        // with no JS compensation. Chrome/Firefox/Samsung on Android honor it;
+        // engines that don't (iOS Safari today) ignore the token and keep the
+        // --liftag-vv-top fallback published by SiteNav.
+        { name: 'viewport', content: 'width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content' },
         { name: 'description', content: 'Tap NFC tags or scan QR codes on gym machines. LIFTAG opens exercise setup videos, set logging, rest timers, and progress tracking.' },
         { name: 'theme-color', content: '#000000' },
         { name: 'format-detection', content: 'telephone=no' },
@@ -99,6 +106,17 @@ export default defineNuxtConfig({
     '/terms-and-conditions': { prerender: true },
     '/cs/**': { prerender: true },
     '/sk/**': { prerender: true },
+    // Catalog pages regenerate on Vercel at most hourly: new exercises appear
+    // without a redeploy, and a build never has to prerender the whole catalog.
+    '/exercises': { isr: 3600 },
+    '/exercises/**': { isr: 3600 },
+    '/machines': { isr: 3600 },
+    '/machines/**': { isr: 3600 },
+    '/api/catalog/**': {
+      headers: {
+        'cache-control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
+      },
+    },
     '/get': {
       headers: {
         'x-robots-tag': 'noindex, nofollow',
