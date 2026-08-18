@@ -41,7 +41,9 @@ function publishNavHeight() {
 // layout viewport. `position: fixed` resolves against the layout viewport, so
 // without this offset the bar sits above the visible area for as long as the
 // keyboard is open - it looks like the nav vanished the moment the caret lands
-// in a field. Sticky headers park against the same origin, hence the shared var.
+// in a field. (The catalog's search bar used to consume this var for its sticky
+// top as well; it now opens a scroll-locked full-screen search mode instead,
+// so the nav is the only consumer left.)
 //
 // Two dampers, both there because this bar carries a backdrop blur and any
 // correction to its position is plainly visible:

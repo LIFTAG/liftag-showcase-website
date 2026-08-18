@@ -6,6 +6,7 @@
  * and YouTube links (iframe embed).
  */
 import type Hls from 'hls.js'
+import { CATALOG_VIDEOS_ENABLED } from '~/utils/catalogVideo'
 
 const props = defineProps<{
   videoUrl: string | null
@@ -13,11 +14,14 @@ const props = defineProps<{
   name: string
 }>()
 
+const enabledVideoUrl = computed(() => (CATALOG_VIDEOS_ENABLED ? props.videoUrl : null))
+
 const emit = defineEmits<{
   playing: [value: boolean]
 }>()
 
 const playing = ref(false)
+const ended = ref(false)
 const posterFailed = ref(false)
 const cinemaViewport = ref(false)
 const cinemaDismissed = ref(false)
@@ -64,6 +68,7 @@ function stop() {
   }
 
   playing.value = false
+  ended.value = false
   cinemaDismissed.value = false
   emit('playing', false)
 }
@@ -73,17 +78,18 @@ function onKeydown(event: KeyboardEvent) {
 }
 
 const youTubeId = computed(() => {
-  if (!props.videoUrl) return null
-  const match = props.videoUrl.match(
+  if (!enabledVideoUrl.value) return null
+  const match = enabledVideoUrl.value.match(
     /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/,
   )
   return match?.[1] ?? null
 })
 
-const isHlsSource = computed(() => Boolean(props.videoUrl && /\.m3u8(\?|$)/i.test(props.videoUrl)))
+const isHlsSource = computed(() => Boolean(enabledVideoUrl.value && /\.m3u8(\?|$)/i.test(enabledVideoUrl.value)))
 
 async function play() {
-  if (!props.videoUrl || playing.value) return
+  const source = enabledVideoUrl.value
+  if (!source || playing.value) return
   const request = ++playbackRequest
   playing.value = true
   emit('playing', true)
@@ -97,12 +103,33 @@ async function play() {
     if (request !== playbackRequest || !playing.value) return
     if (HlsCtor.isSupported()) {
       hls = new HlsCtor()
-      hls.loadSource(props.videoUrl)
+      hls.loadSource(source)
       hls.attachMedia(video)
     }
   }
   else {
-    video.src = props.videoUrl
+    video.src = source
+  }
+  video.play().catch(() => {})
+}
+
+function onEnded() {
+  ended.value = true
+}
+
+function onPlaybackResume() {
+  ended.value = false
+}
+
+function replay() {
+  ended.value = false
+  const video = videoRef.value
+  if (!video) return
+  try {
+    video.currentTime = 0
+  }
+  catch {
+    // Some HLS attachments reject a seek before the first fragment lands.
   }
   video.play().catch(() => {})
 }
@@ -128,7 +155,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="cat-player" :class="{ 'is-playing': playing, 'is-cinema': isCinema }">
-    <template v-if="playing && videoUrl">
+    <template v-if="playing && enabledVideoUrl">
       <iframe
         v-if="youTubeId"
         class="cat-player__frame"
@@ -142,10 +169,27 @@ onBeforeUnmount(() => {
         ref="videoRef"
         class="cat-player__video"
         :poster="poster ?? undefined"
-        controls
+        :controls="!ended"
         playsinline
         preload="auto"
+        @ended="onEnded"
+        @play="onPlaybackResume"
       />
+      <button
+        v-if="ended && !youTubeId"
+        type="button"
+        class="cat-player__cta"
+        :aria-label="`Replay ${name} instructions`"
+        @click="replay"
+      >
+        <span class="cat-player__cta-ring cat-player__cta-ring--replay">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2.5 12a9.5 9.5 0 1 0 2.4-6.3" />
+            <path d="M2.5 4.5v5h5" />
+          </svg>
+        </span>
+        <span class="cat-player__cta-label">Replay</span>
+      </button>
     </template>
 
     <template v-else>
@@ -163,7 +207,7 @@ onBeforeUnmount(() => {
         <slot name="overlay" />
       </div>
       <button
-        v-if="videoUrl"
+        v-if="enabledVideoUrl"
         type="button"
         class="cat-player__cta"
         :aria-label="`Watch ${name} instructions`"
@@ -272,6 +316,10 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   background: var(--liftag-primary);
   color: var(--liftag-fg-on-primary);
+}
+
+.cat-player__cta-ring--replay {
+  padding-left: 0;
 }
 
 .cat-player.is-cinema {

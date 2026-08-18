@@ -15,20 +15,120 @@ const { data: index, error, refresh } = await useCatalogIndex()
 
 const query = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const muscle = ref(typeof route.query.muscle === 'string' ? route.query.muscle : '')
-const searchFocused = ref(false)
 
-// Focus and blur only switch the results into their compact list shape. They
-// deliberately do not move the page: the search row is sticky under the nav, so
-// it stays reachable wherever the reader already is, and yanking the scroll back
-// to the first result on every focus and every keystroke was the worst part of
-// searching from a phone.
+// Full-screen search mode, phone breakpoint only. Focusing the field enters
+// it; only the Cancel button, leaving the page, or growing past the phone
+// breakpoint exits. Blur deliberately does not: the keyboard's Search key
+// collapses the keyboard and leaves the full-screen list up for browsing.
+//
+// While the mode is open the input sits at the very top of the layout
+// viewport and the page scroll is locked, so iOS never has to offset the
+// visual viewport to reveal the caret. The sticky bar this replaces chased
+// that offset from JS (--liftag-vv-top), always a frame behind the scroll,
+// which is what read as the bar shivering.
+const searchOpen = ref(false)
+const searchFieldFocused = ref(false)
+const rootEl = ref<HTMLElement | null>(null)
+const isMobile = ref(false)
+let mobileQuery: MediaQueryList | null = null
+let onMobileChange: (() => void) | null = null
+
+// Body scroll lock, the position: fixed variant - overflow: hidden alone does
+// not stop iOS Safari from scrolling the page behind an overlay.
+let lockedScrollY = 0
+let scrollLocked = false
+
+function lockBodyScroll() {
+  if (scrollLocked) return
+  scrollLocked = true
+  lockedScrollY = window.scrollY
+  const body = document.body
+  body.style.position = 'fixed'
+  body.style.top = `-${lockedScrollY}px`
+  body.style.left = '0'
+  body.style.right = '0'
+  body.style.width = '100%'
+}
+
+function unlockBodyScroll() {
+  if (!scrollLocked) return
+  scrollLocked = false
+  const body = document.body
+  body.style.position = ''
+  body.style.top = ''
+  body.style.left = ''
+  body.style.right = ''
+  body.style.width = ''
+  window.scrollTo(0, lockedScrollY)
+}
+
 function activateSearch() {
-  searchFocused.value = true
+  searchFieldFocused.value = true
+  if (isMobile.value) openSearch()
 }
 
 function deactivateSearch() {
-  searchFocused.value = false
+  searchFieldFocused.value = false
 }
+
+function openSearch() {
+  if (searchOpen.value) return
+  searchOpen.value = true
+  lockBodyScroll()
+}
+
+function closeSearch() {
+  if (!searchOpen.value) return
+  searchOpen.value = false
+  unlockBodyScroll()
+  updateKeyboardInset()
+  const active = document.activeElement
+  if (active instanceof HTMLElement) active.blur()
+}
+
+// The software keyboard covers the bottom of the internal results scroller,
+// so pad the scroller by the keyboard's height. visualViewport resize is a
+// discrete open/close event - unlike the per-frame scroll events the old
+// sticky compensation chased - so this padding cannot shiver mid-scroll.
+// Same threshold SiteNav uses to tell a keyboard from URL-bar wobble.
+const KEYBOARD_MIN_INSET_PX = 120
+let onViewportResize: (() => void) | null = null
+
+function updateKeyboardInset() {
+  const root = rootEl.value
+  if (!root) return
+  const viewport = window.visualViewport
+  const inset = searchOpen.value && viewport
+    ? Math.round(document.documentElement.clientHeight - viewport.height)
+    : 0
+  root.style.setProperty('--ex-kb-inset', `${inset >= KEYBOARD_MIN_INSET_PX ? inset : 0}px`)
+}
+
+// Native lists drop the keyboard as soon as you start browsing the results.
+function onResultsTouchMove() {
+  if (!searchOpen.value || !searchFieldFocused.value) return
+  const active = document.activeElement
+  if (active instanceof HTMLElement) active.blur()
+}
+
+onMounted(() => {
+  mobileQuery = window.matchMedia('(max-width: 768px)')
+  onMobileChange = () => {
+    isMobile.value = Boolean(mobileQuery?.matches)
+    if (!isMobile.value) closeSearch()
+  }
+  onMobileChange()
+  mobileQuery.addEventListener('change', onMobileChange)
+
+  onViewportResize = () => updateKeyboardInset()
+  window.visualViewport?.addEventListener('resize', onViewportResize, { passive: true })
+})
+
+onBeforeUnmount(() => {
+  unlockBodyScroll()
+  if (mobileQuery && onMobileChange) mobileQuery.removeEventListener('change', onMobileChange)
+  if (onViewportResize) window.visualViewport?.removeEventListener('resize', onViewportResize)
+})
 
 const PAGE_SIZE = 48
 const visibleCount = ref(PAGE_SIZE)
@@ -125,7 +225,7 @@ useLiftagStructuredData([
 </script>
 
 <template>
-  <div class="ex-index" :class="{ 'is-searching': searchFocused }">
+  <div ref="rootEl" class="ex-index" :class="{ 'is-search-open': searchOpen }">
     <main>
       <header class="ex-hero container">
         <p class="protocol ex-eyebrow">EXERCISE LIBRARY · LIFTAG</p>
@@ -148,13 +248,23 @@ useLiftagStructuredData([
       <div class="ex-search-anchor">
         <div class="ex-search-shell">
           <div class="container ex-search-tools">
-            <CatalogSearch
-              v-model="query"
-              placeholder="Search exercises…"
-              class="ex-search"
-              @focus="activateSearch"
-              @blur="deactivateSearch"
-            />
+            <div class="ex-search-row">
+              <CatalogSearch
+                v-model="query"
+                placeholder="Search exercises…"
+                class="ex-search"
+                @focus="activateSearch"
+                @blur="deactivateSearch"
+              />
+              <button
+                v-if="searchOpen"
+                type="button"
+                class="ex-search-cancel"
+                @click="closeSearch"
+              >
+                Cancel
+              </button>
+            </div>
 
             <nav v-if="categories.length" class="ex-chips" aria-label="Filter by muscle group">
               <button
@@ -181,7 +291,11 @@ useLiftagStructuredData([
         </div>
       </div>
 
-      <section class="container ex-results" aria-label="Exercises">
+      <section
+        class="container ex-results"
+        aria-label="Exercises"
+        @touchmove.passive="onResultsTouchMove"
+      >
         <div v-if="error" class="ex-empty">
           <p>The exercise library did not load.</p>
           <button type="button" class="btn-ghost" @click="() => refresh()">Try again</button>
@@ -268,6 +382,31 @@ useLiftagStructuredData([
 .ex-search-tools {
   padding-top: 12px;
   padding-bottom: 8px;
+}
+
+.ex-search-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.ex-search {
+  flex: 1 1 auto;
+}
+
+/* Rendered only while the full-screen search mode is open (phone only). */
+.ex-search-cancel {
+  flex: 0 0 auto;
+  padding: 10px 4px 10px 12px;
+  border: none;
+  background: transparent;
+  color: var(--liftag-primary);
+  font-family: var(--liftag-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 
 .ex-stats {
@@ -486,19 +625,18 @@ useLiftagStructuredData([
     background: #000;
   }
 
-  /* Keep the whole search workspace in normal flow, then pin that workspace
-     below the fixed nav for the full results scroll. This must not depend on
-     input focus: phone browsers can change focus state while the user scrolls
-     or while the software keyboard resizes the visual viewport.
-
-     Both terms are published by SiteNav: the measured bar height (a hardcoded
-     76px left a visible gap under the nav's progress hairline, the bar is 64px
-     plus the safe-area inset) and the keyboard's push of the visible area,
-     which sticky resolves against the layout viewport and would otherwise
-     ignore - parking this row off-screen for as long as the keyboard is up. */
+  /* Browsing state: the search workspace stays in normal flow and pins below
+     the fixed nav for the full results scroll. --liftag-nav-h is the bar's
+     measured height published by SiteNav (a hardcoded 76px left a visible gap
+     under the nav's progress hairline). The top is a constant while scrolling
+     - the old --liftag-vv-top keyboard term is gone; a JS-chased offset always
+     lands a frame behind the compositor and read as the bar shivering. The
+     keyboard case now belongs to the full-screen search mode below, where the
+     input sits at the top of the layout viewport and the page scroll is
+     locked, so the visual viewport never offsets in the first place. */
   .ex-search-anchor {
     position: sticky;
-    top: calc(var(--liftag-nav-h) + var(--liftag-vv-top, 0px));
+    top: var(--liftag-nav-h);
     z-index: 30;
   }
 
@@ -534,16 +672,64 @@ useLiftagStructuredData([
     margin-right: 4px;
   }
 
-  .ex-index.is-searching .ex-search-shell {
+  /* Full-screen search mode: the whole <main> becomes a fixed flex column
+     above the nav, the search row is its pinned header, and the results grid
+     is an internal scroller. Nothing in here tracks the visual viewport while
+     scrolling, which is what made the old keyboard-compensated sticky bar
+     shiver. */
+  .ex-index.is-search-open main {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: flex;
+    flex-direction: column;
+    background: #000;
+    animation: exSearchModeIn 200ms ease-out;
+  }
+
+  .ex-index.is-search-open .ex-hero {
+    display: none;
+  }
+
+  .ex-index.is-search-open .ex-search-anchor {
+    position: static;
+    flex: 0 0 auto;
+  }
+
+  /* The overlay covers the nav, so its header row takes over the safe-area
+     inset the nav normally absorbs. */
+  .ex-index.is-search-open .ex-search-tools {
+    padding-top: calc(var(--liftag-safe-top) + 10px);
+  }
+
+  /* !important mirrors the browsing-state .ex-results paddings above, which
+     need it against .container. --ex-kb-inset is the software keyboard's
+     height, written from discrete visualViewport open/close resizes, so the
+     tail of the list stays reachable while typing. */
+  .ex-index.is-search-open .ex-results {
+    flex: 1 1 auto;
+    align-self: stretch;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    margin-right: 0;
+    margin-left: 0;
+    padding-bottom: calc(20px + var(--liftag-safe-bottom) + var(--ex-kb-inset, 0px)) !important;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ex-index.is-search-open .ex-search-shell {
     border-bottom-color: rgba(204, 255, 0, 0.18);
     box-shadow: 0 10px 24px rgba(4, 5, 3, 0.3);
   }
 
-  .ex-index.is-searching :deep(.app-cta) {
+  .ex-index.is-search-open :deep(.app-cta) {
     display: none;
   }
 
-  .ex-index.is-searching .ex-machines-band {
+  .ex-index.is-search-open .ex-machines-band {
     display: none;
   }
 
@@ -577,17 +763,21 @@ useLiftagStructuredData([
     gap: 10px;
   }
 
-  .ex-index.is-searching .ex-grid {
+  .ex-index.is-search-open .ex-grid {
+    width: 100%;
     grid-template-columns: minmax(0, 1fr);
+    justify-items: stretch;
     gap: 0;
     border-top: 1px solid var(--liftag-border-soft);
   }
 
-  .ex-index.is-searching .ex-grid :deep(.ex-tile) {
+  .ex-index.is-search-open .ex-grid :deep(.ex-tile) {
     display: grid;
     grid-template-columns: 84px minmax(0, 1fr) 16px;
     gap: 12px;
     align-items: center;
+    width: 100%;
+    min-width: 0;
     min-height: 76px;
     padding: 6px 2px;
     overflow: visible;
@@ -597,16 +787,16 @@ useLiftagStructuredData([
     background: transparent;
   }
 
-  .ex-index.is-searching .ex-grid :deep(.ex-tile:hover) {
+  .ex-index.is-search-open .ex-grid :deep(.ex-tile:hover) {
     border-bottom-color: var(--liftag-border-soft);
     transform: none;
   }
 
-  .ex-index.is-searching .ex-grid :deep(.ex-tile:active) {
+  .ex-index.is-search-open .ex-grid :deep(.ex-tile:active) {
     background: rgba(204, 255, 0, 0.055);
   }
 
-  .ex-index.is-searching .ex-grid :deep(.ex-tile::after) {
+  .ex-index.is-search-open .ex-grid :deep(.ex-tile::after) {
     width: 7px;
     height: 7px;
     border-top: 1px solid var(--liftag-fg-dim);
@@ -615,36 +805,39 @@ useLiftagStructuredData([
     transform: rotate(45deg);
   }
 
-  .ex-index.is-searching .ex-grid :deep(.ex-tile__media) {
+  .ex-index.is-search-open .ex-grid :deep(.ex-tile__media) {
     width: 84px;
     height: 64px;
     aspect-ratio: auto;
     border-radius: 9px;
   }
 
-  .ex-index.is-searching .ex-grid :deep(.ex-tile__body) {
+  .ex-index.is-search-open .ex-grid :deep(.ex-tile__body) {
     min-width: 0;
     gap: 4px;
     padding: 0;
   }
 
-  .ex-index.is-searching .ex-grid :deep(.ex-tile__body::before) {
+  .ex-index.is-search-open .ex-grid :deep(.ex-tile__body::before) {
     content: none;
   }
 
-  .ex-index.is-searching .ex-grid :deep(.ex-tile__name) {
+  .ex-index.is-search-open .ex-grid :deep(.ex-tile__name) {
+    overflow: hidden;
     font-size: 14px;
     line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .ex-index.is-searching .ex-grid :deep(.ex-tile__label) {
+  .ex-index.is-search-open .ex-grid :deep(.ex-tile__label) {
     overflow: hidden;
     font-size: 9px;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .ex-index.is-searching .ex-grid :deep(.ex-tile__play) {
+  .ex-index.is-search-open .ex-grid :deep(.ex-tile__play) {
     right: 6px;
     bottom: 6px;
     width: 24px;
@@ -657,6 +850,26 @@ useLiftagStructuredData([
 
   .ex-machines-band__inner {
     padding: 24px 18px;
+  }
+}
+
+/* The transform clears at animation end (no fill), so the fixed overlay is
+   not left inside a transform containing block. */
+@keyframes exSearchModeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ex-index.is-search-open main {
+    animation: none;
   }
 }
 </style>

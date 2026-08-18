@@ -160,11 +160,11 @@ const heroPlaying = ref(false)
 
           <div class="ex-log-panel">
             <p class="protocol ex-log-panel__eyebrow">IN THE APP</p>
+            <GetAppBtn label="Get LIFTAG free" />
             <p class="ex-log-panel__copy">
               Scan the machine's QR tag and this exercise opens ready to log:
               sets, rest timer, PRs, and your whole progression for {{ name }}.
             </p>
-            <GetAppBtn label="Get LIFTAG free" />
           </div>
 
           <section v-if="machines.length" class="ex-machines" aria-label="Machines for this exercise">

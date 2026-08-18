@@ -117,11 +117,11 @@ useLiftagStructuredData([
 
           <div class="ma-scan-panel">
             <p class="protocol ma-scan-panel__eyebrow">AT A PARTNER GYM?</p>
+            <GetAppBtn label="Get LIFTAG free" />
             <p class="ma-scan-panel__copy">
               This is the screen the app opens when you scan the QR tag on a
               {{ name }} — pick the exercise, watch the setup, log your sets.
             </p>
-            <GetAppBtn label="Get LIFTAG free" />
           </div>
         </div>
       </div>
@@ -140,7 +140,7 @@ useLiftagStructuredData([
             :name="exercise.name"
             :image-url="exercise.imageUrl"
             :label="exercise.primaryCategory?.name"
-            :has-video="exercise.videos.length > 0"
+            :has-video="catalogHasVideo(exercise.videos)"
             :preview-video-url="preferredCatalogVideoUrl(exercise.videos)"
           />
         </div>

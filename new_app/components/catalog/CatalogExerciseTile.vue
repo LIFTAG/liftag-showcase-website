@@ -4,6 +4,7 @@
  * name + muscle footer, and a lazy desktop hover preview when video exists.
  */
 import type Hls from 'hls.js'
+import { CATALOG_VIDEOS_ENABLED } from '~/utils/catalogVideo'
 
 const props = defineProps<{
   to: string
@@ -13,6 +14,9 @@ const props = defineProps<{
   hasVideo?: boolean
   previewVideoUrl?: string | null
 }>()
+
+const showVideo = computed(() => CATALOG_VIDEOS_ENABLED && Boolean(props.hasVideo))
+const previewUrl = computed(() => (CATALOG_VIDEOS_ENABLED ? props.previewVideoUrl : null))
 
 const previewRef = ref<HTMLVideoElement | null>(null)
 const previewMounted = ref(false)
@@ -24,8 +28,8 @@ let hls: Hls | null = null
 let previewRequest = 0
 
 const youTubeId = computed(() => {
-  if (!props.previewVideoUrl) return null
-  const match = props.previewVideoUrl.match(
+  if (!previewUrl.value) return null
+  const match = previewUrl.value.match(
     /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/,
   )
   return match?.[1] ?? null
@@ -50,7 +54,7 @@ function stopPreview() {
 
 function syncPreviewCapability() {
   previewCapable.value = Boolean(
-    props.previewVideoUrl
+    previewUrl.value
     && pointerQuery?.matches
     && !motionQuery?.matches,
   )
@@ -62,7 +66,7 @@ function markPreviewVisible(request: number) {
 }
 
 async function startPreview() {
-  const source = props.previewVideoUrl
+  const source = previewUrl.value
   if (!source || !previewCapable.value || previewMounted.value) return
 
   const request = ++previewRequest
@@ -94,7 +98,7 @@ async function startPreview() {
   video.play().catch(() => stopPreview())
 }
 
-watch(() => props.previewVideoUrl, () => {
+watch(previewUrl, () => {
   stopPreview()
   syncPreviewCapability()
 })
@@ -155,7 +159,7 @@ onBeforeUnmount(() => {
         @playing="markPreviewVisible(previewRequest)"
         @error="stopPreview"
       />
-      <span v-if="hasVideo" class="ex-tile__play" aria-hidden="true">
+      <span v-if="showVideo" class="ex-tile__play" aria-hidden="true">
         <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor">
           <path d="M0 0.9c0-.7.8-1.2 1.4-.8l8 5.1c.6.4.6 1.2 0 1.6l-8 5.1c-.6.4-1.4-.1-1.4-.8V.9Z" />
         </svg>

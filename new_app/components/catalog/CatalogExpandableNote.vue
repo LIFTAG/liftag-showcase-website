@@ -156,7 +156,7 @@ onBeforeUnmount(() => {
     display: -webkit-box;
     overflow: hidden;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 6;
+    -webkit-line-clamp: 3;
   }
 
   .catalog-note__toggle {
