@@ -160,6 +160,11 @@ export function createSegmentPlayback(video: HTMLVideoElement) {
     scheduleFrame()
   }
 
+  // Re-arms itself on every healthy check, so a segment is watched for its
+  // whole run rather than only the first STALL_WATCH_MS after play() starts.
+  // A cold cache can play a step or more off its own buffer and only stall
+  // once that runs dry mid-segment - a one-shot check right after play()
+  // misses that and leaves the segment frozen with no further recovery.
   function armStallWatch() {
     clearStallWatch()
     if (!segment || disposed) return
@@ -170,7 +175,12 @@ export function createSegmentPlayback(video: HTMLVideoElement) {
       stallTimer = null
       if (disposed || !active || segment !== expected) return
       if (video.currentTime >= expected.end) return
-      if (!video.paused && video.currentTime > origin + 0.02) return
+
+      if (!video.paused && video.currentTime > origin + 0.02) {
+        armStallWatch()
+        return
+      }
+
       if (stallRetries >= MAX_STALL_RETRIES) return
 
       stallRetries += 1

@@ -66,14 +66,14 @@ useLiftagStructuredData([
 
 <template>
   <div v-if="machine" class="ma-detail">
-    <main class="container">
-      <nav class="ma-breadcrumb" aria-label="Breadcrumb">
+    <main class="ma-main">
+      <nav class="container ma-breadcrumb" aria-label="Breadcrumb">
         <NuxtLink to="/machines" class="protocol ma-crumb">MACHINES</NuxtLink>
         <span class="ma-crumb-sep" aria-hidden="true">/</span>
         <span class="protocol ma-crumb ma-crumb--current">{{ name }}</span>
       </nav>
 
-      <div class="ma-layout">
+      <div class="ma-stage">
         <div class="ma-media">
           <div class="ma-photo">
             <img
@@ -84,6 +84,18 @@ useLiftagStructuredData([
               decoding="async"
             >
             <span v-else class="ma-photo__placeholder" aria-hidden="true">{{ name.slice(0, 1) }}</span>
+
+            <div class="ma-hero-ui">
+              <div class="ma-hero-scrim" aria-hidden="true" />
+              <div class="ma-hero-overlay">
+                <p class="ma-name ma-name--hero" aria-hidden="true">{{ name }}</p>
+                <CatalogMuscleChips
+                  v-if="machine.categories.length"
+                  compact
+                  :secondary="machine.categories"
+                />
+              </div>
+            </div>
           </div>
           <div v-if="photos.length > 1" class="ma-thumbs" role="tablist" aria-label="Machine photos">
             <button
@@ -126,7 +138,7 @@ useLiftagStructuredData([
         </div>
       </div>
 
-      <section class="ma-exercises" aria-label="Exercises on this machine">
+      <section class="container ma-exercises" aria-label="Exercises on this machine">
         <h2 class="protocol ma-section-title">
           EXERCISES ON THIS MACHINE
           <span v-if="exercises.length" class="ma-section-count">{{ exercises.length }}</span>
@@ -163,7 +175,7 @@ useLiftagStructuredData([
     radial-gradient(circle at 14% 8%, rgba(204, 255, 0, 0.08), transparent 30%),
     #000;
   color: #fff;
-  padding-bottom: 120px;
+  padding-bottom: 48px;
 }
 
 .ma-breadcrumb {
@@ -192,14 +204,24 @@ a.ma-crumb:hover {
   font-size: 10px;
 }
 
-.ma-layout {
+.ma-stage {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
   gap: 44px;
   align-items: start;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding-right: max(32px, var(--liftag-safe-right));
+  padding-left: max(32px, var(--liftag-safe-left));
+}
+
+.ma-media {
+  position: sticky;
+  top: 96px;
 }
 
 .ma-photo {
+  position: relative;
   overflow: hidden;
   aspect-ratio: 4 / 3;
   border: 1px solid var(--liftag-border-strong);
@@ -224,6 +246,10 @@ a.ma-crumb:hover {
   font-size: 120px;
   font-style: italic;
   font-weight: 700;
+}
+
+.ma-hero-ui {
+  display: none;
 }
 
 .ma-thumbs {
@@ -301,16 +327,16 @@ a.ma-crumb:hover {
   line-height: 1.6;
 }
 
-.ma-exercises {
-  margin-top: 74px;
-}
-
 .ma-section-title {
   display: flex;
   gap: 12px;
   align-items: baseline;
   margin: 0 0 16px;
   color: var(--liftag-fg-tertiary);
+}
+
+.ma-exercises {
+  margin-top: 74px;
 }
 
 .ma-section-count {
@@ -345,7 +371,7 @@ a.ma-crumb:hover {
 }
 
 @media (max-width: 1024px) {
-  .ma-layout {
+  .ma-stage {
     gap: clamp(24px, 3.5vw, 36px);
   }
 
@@ -355,14 +381,144 @@ a.ma-crumb:hover {
   }
 }
 
+@media (max-width: 880px) {
+  .ma-stage {
+    padding-right: max(20px, var(--liftag-safe-right));
+    padding-left: max(20px, var(--liftag-safe-left));
+  }
+}
+
 @media (max-width: 768px) {
-  .ma-layout {
-    grid-template-columns: 1fr;
-    gap: 30px;
+  .ma-detail {
+    background: #0e0e0e;
+    padding-bottom: 32px;
   }
 
   .ma-breadcrumb {
-    padding-top: calc(104px + var(--liftag-safe-top));
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .ma-stage {
+    display: flex;
+    flex-direction: column;
+    max-width: none;
+    margin: 0;
+    padding: 0 !important;
+    gap: 0;
+  }
+
+  .ma-media {
+    position: relative;
+    top: auto;
+    width: 100%;
+    margin: 0;
+  }
+
+  .ma-photo {
+    aspect-ratio: auto;
+    width: 100%;
+    height: calc(var(--liftag-safe-top) + 56px + 100vw * 3 / 4);
+    max-height: 78svh;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .ma-photo img {
+    object-position: top center;
+  }
+
+  .ma-hero-ui {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+
+  .ma-hero-scrim {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.2) 18%, transparent 32%),
+      linear-gradient(to top, rgba(14, 14, 14, 0.92) 0%, rgba(14, 14, 14, 0.4) 28%, transparent 52%);
+  }
+
+  .ma-hero-overlay {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    gap: 8px;
+    padding: 0 max(16px, var(--liftag-safe-right)) 16px max(16px, var(--liftag-safe-left));
+  }
+
+  .ma-hero-overlay :deep(.muscle-chips) {
+    pointer-events: auto;
+  }
+
+  .ma-name--hero {
+    font-family: var(--liftag-font-headline);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .ma-thumbs {
+    margin-top: 0;
+    padding: 10px max(16px, var(--liftag-safe-right)) 0 max(16px, var(--liftag-safe-left));
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .ma-thumbs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ma-thumb {
+    flex: 0 0 auto;
+  }
+
+  .ma-info {
+    position: relative;
+    z-index: 2;
+    margin: 0;
+    padding: 20px max(20px, var(--liftag-safe-right)) 0 max(20px, var(--liftag-safe-left));
+    background: #0e0e0e;
+  }
+
+  .ma-exercises {
+    padding-top: 28px !important;
+    padding-bottom: 0 !important;
+    overflow: visible !important;
+    margin-top: 36px;
+  }
+
+  .ma-info > .ma-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .ma-info > .ma-muscles {
+    display: none;
+  }
+
+  .ma-description {
+    margin-top: 16px;
+  }
+
+  .ma-scan-panel {
+    margin-top: 22px;
+    padding: 18px 16px;
   }
 }
 </style>

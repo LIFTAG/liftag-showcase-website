@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { test } from 'node:test'
+import { mock, test } from 'node:test'
 import {
   SEGMENT_CUT_EPSILON,
   createSegmentPlayback,
@@ -56,6 +56,11 @@ function createMockVideo(init?: {
       time = next
       this.seeking = true
       this.ended = false
+    },
+    // Decoding advances currentTime on its own, unlike an app-driven seek -
+    // this must not register as one of the `set currentTime` calls above.
+    advance(next: number) {
+      time = next
     },
     play() {
       this.playCount += 1
@@ -119,6 +124,37 @@ test('looping back to TAP/SCAN from the ended tail seeks to 0', () => {
 
     assert.equal(video.paused, false)
     assert.ok(video.playCount >= 1)
+  } finally {
+    playback.dispose()
+  }
+})
+
+test('a stall that develops after the first watch window still gets nudged', (t) => {
+  // A cold cache can coast on the buffer built up during the previous
+  // segment for a bit before it actually runs dry. A watchdog that only
+  // checks once, right after play() starts, sees that early progress and
+  // never looks again - so a stall arriving after that first window used to
+  // freeze the segment for good, with no further recovery attempt.
+  mock.timers.enable({ apis: ['setTimeout'] })
+  t.after(() => mock.timers.reset())
+
+  const video = createMockVideo({ currentTime: 3.2, paused: true })
+  const playback = createSegmentPlayback(video as unknown as HTMLVideoElement)
+
+  playback.setActive(true)
+  playback.setSegment({ start: 3.2, end: 6.4 })
+
+  try {
+    assert.equal(video.seekCount, 0)
+
+    // First watch window: still playing off the old segment's buffer.
+    video.advance(3.5)
+    mock.timers.tick(320)
+    assert.equal(video.seekCount, 0)
+
+    // Second watch window: the buffer has run dry and playback has stalled.
+    mock.timers.tick(320)
+    assert.equal(video.seekCount, 1)
   } finally {
     playback.dispose()
   }
