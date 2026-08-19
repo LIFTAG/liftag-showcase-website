@@ -3,14 +3,19 @@ import { test } from 'node:test'
 import {
   HOLO_AX_WEIGHT,
   HOLO_DEMO_UNLOCK,
+  HOLO_POINTER_RANGE,
   HOLO_REST_PHASE,
   HOLO_UNLOCK_HALF,
   HOLO_UNLOCK_PEAK,
+  clampHoloAxis,
   holoFace,
   holoHueT,
   holoPhase,
+  holoPointerTilt,
+  holoScrollTilt,
   holoSheetTravel,
   holoUnlock,
+  holoViewportProgress,
 } from '../utils/holoFoil.ts'
 
 test('a centred pointer sits at rest phase and does not unlock', () => {
@@ -60,4 +65,43 @@ test('hue walks the prism ramp with the viewing phase and stays in 0..1', () => 
   assert.equal(holoHueT(-0.2), 0)
   assert.equal(holoHueT(0.4), 0.4)
   assert.equal(holoHueT(1.4), 1)
+})
+
+test('axis values clamp to the pointer cube', () => {
+  assert.equal(clampHoloAxis(-4), -1)
+  assert.equal(clampHoloAxis(0.25), 0.25)
+  assert.equal(clampHoloAxis(2), 1)
+})
+
+test('scroll progress at the bottom of the viewport stays locked', () => {
+  const { ax, ay } = holoScrollTilt(0)
+  assert.equal(holoUnlock(holoPhase(ax, ay)), 0)
+})
+
+test('scroll progress at mid-viewport reconstructs the latent image', () => {
+  const { ax, ay } = holoScrollTilt(0.5)
+  const phase = holoPhase(ax, ay)
+  assert.ok(Math.abs(phase - HOLO_UNLOCK_PEAK) < 0.03)
+  assert.ok(holoUnlock(phase) > 0.8)
+})
+
+test('scroll progress at the top of the viewport walks past the lobe', () => {
+  const { ax, ay } = holoScrollTilt(1)
+  assert.equal(holoUnlock(holoPhase(ax, ay)), 0)
+})
+
+test('viewport progress is 0 at the bottom, 1 at the top, 0.5 when centred', () => {
+  assert.equal(holoViewportProgress(1000, 0, 1000), 0)
+  assert.equal(holoViewportProgress(0, 0, 1000), 1)
+  assert.equal(holoViewportProgress(400, 200, 1000), 0.5)
+})
+
+test('pointer tilt is zero over the sticker centre and saturates outside the plate', () => {
+  const rect = { left: 100, top: 50, width: 200, height: 100 }
+  assert.deepEqual(holoPointerTilt(200, 100, rect), { ax: 0, ay: 0 })
+  const edge = holoPointerTilt(100, 100, rect).ax
+  assert.ok(edge < 0 && edge > -1)
+  assert.equal(holoPointerTilt(-200, 100, rect).ax, -1)
+  assert.equal(holoPointerTilt(800, 100, rect).ax, 1)
+  assert.equal(HOLO_POINTER_RANGE, 1.8)
 })

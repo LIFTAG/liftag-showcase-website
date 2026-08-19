@@ -956,13 +956,46 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
             transition: 'opacity 1000ms 1300ms ease',
           }"
         >
-          <div
-            :style="{
-              fontFamily: '\'JetBrains Mono\', monospace',
-              fontWeight: 800, fontSize: '11px',
-              letterSpacing: '0.15em', color: '#0E0E0E',
-            }"
-          >🏆 NEW PR</div>
+          <div class="hero-pr-tag">
+            <svg
+              class="hero-pr-icon"
+              viewBox="0 0 16 16"
+              width="13"
+              height="13"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M4.1 2.1h7.8v3.2c0 2.15-1.75 3.9-3.9 3.9s-3.9-1.75-3.9-3.9V2.1z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.45"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M4.1 3.15H2.55A1.45 1.45 0 0 0 2.55 6c.85 0 1.4-.4 1.55-1"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.45"
+                stroke-linecap="round"
+              />
+              <path
+                d="M11.9 3.15h1.55A1.45 1.45 0 0 1 13.45 6c-.85 0-1.4-.4-1.55-1"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.45"
+                stroke-linecap="round"
+              />
+              <path
+                d="M8 9.2v2.15M6.15 11.35h3.7M5.2 13.85h5.6"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.45"
+                stroke-linecap="round"
+              />
+            </svg>
+            NEW PR
+          </div>
           <div
             :style="{
               fontFamily: '\'Space Grotesk\', sans-serif',
@@ -1143,6 +1176,22 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 
 .cursor-glow-red {
   background: radial-gradient(circle, rgba(255, 45, 85, 0.11) 0%, transparent 58%);
+}
+
+.hero-pr-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: #0E0E0E;
+}
+
+.hero-pr-icon {
+  display: block;
+  flex-shrink: 0;
 }
 
 .hero-volume-chip {

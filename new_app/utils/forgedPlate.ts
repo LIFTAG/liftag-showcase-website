@@ -15,7 +15,7 @@ export type PlatePhase = {
   stamp: number
   /** 0..1 momentary flatten as the press hits. */
   squash: number
-  /** 0..1 shockwave travelling out from the stamp. */
+  /** 0..1 shockwave travelling out from the stamp. Also the chrome-to-steel quench. */
   shock: number
   /** Residual life after the press: iridescence and micro-pour. */
   live: number

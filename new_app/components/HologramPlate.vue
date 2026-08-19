@@ -1,91 +1,218 @@
 <script setup lang="ts">
 /**
- * Manufactured foil security sticker. Not glass, not a spinning prism rim.
+ * Manufactured foil security sticker. A thin physical card, not glass
+ * and not a spinning prism rim.
  *
- * One rectangle. Viewing angle is a number. Colour is a function of that
- * number. A second image (QR + exercise name) only reconstructs inside a
- * narrow lobe, then settles. Pointer moves never re-render this component:
- * useLerpVars already publishes --<prefix>-mx / --<prefix>-my, and the
- * plate reads them in calc().
+ * Viewing angle is a number. Colour is a function of that number. A
+ * second image (QR + exercise name) only reconstructs inside a narrow
+ * lobe. The card itself tilts in 3D so the foil reads as a real tag:
+ * desktop uses the cursor relative to the plate, phone breakpoints use
+ * scroll through the viewport. Neither path re-renders Vue: the loop
+ * writes --holo-tilt-x / --holo-tilt-y and CSS does the rest.
  */
+import { onMouseEvent, useSharedMouse } from '../composables/useSharedMouse'
 import {
   HOLO_AX_WEIGHT,
   HOLO_AY_WEIGHT,
   HOLO_REST_PHASE,
-  HOLO_SHEET_SPAN,
-  HOLO_SHEET_START,
+  HOLO_REST_RX_DEG,
+  HOLO_REST_RY_DEG,
+  HOLO_TILT_RX_DEG,
+  HOLO_TILT_RY_DEG,
   HOLO_UNLOCK_HALF,
   HOLO_UNLOCK_PEAK,
+  holoPointerTilt,
+  holoScrollTilt,
+  holoViewportProgress,
 } from '~/utils/holoFoil'
 
 const props = withDefaults(defineProps<{
   label?: string
   serial?: string
-  live?: boolean
-  /** CSS var prefix published by useLerpVars (gym, scan, …). */
+  /** CSS var prefix published by useLerpVars (gym, scan, …). Fallback only. */
   anglePrefix?: string
   qrSrc?: string
   qrSrcset?: string
 }>(), {
   label: 'Cable Lat Pulldown',
   serial: '#042',
-  live: false,
   anglePrefix: 'gym',
   qrSrc: '/uploads/qr-code-160.webp',
   qrSrcset: '/uploads/qr-code-112.webp 112w, /uploads/qr-code-160.webp 160w, /uploads/qr-code-224.webp 224w, /uploads/qr-code.webp 400w',
 })
 
+const root = ref<HTMLElement | null>(null)
+const near = useNearViewport(root, '160px 0px')
+
 const plateStyle = computed(() => ({
-  '--holo-ax': `var(--${props.anglePrefix}-mx, 0)`,
-  '--holo-ay': `var(--${props.anglePrefix}-my, 0)`,
+  '--holo-ax': `var(--holo-tilt-x, var(--${props.anglePrefix}-mx, 0))`,
+  '--holo-ay': `var(--holo-tilt-y, var(--${props.anglePrefix}-my, 0))`,
   '--holo-rest': String(HOLO_REST_PHASE),
   '--holo-peak': String(HOLO_UNLOCK_PEAK),
   '--holo-half': String(HOLO_UNLOCK_HALF),
   '--holo-axw': String(HOLO_AX_WEIGHT),
   '--holo-ayw': String(HOLO_AY_WEIGHT),
-  '--holo-sheet-start': String(HOLO_SHEET_START),
-  '--holo-sheet-span': String(HOLO_SHEET_SPAN),
+  '--holo-rx': String(HOLO_TILT_RX_DEG),
+  '--holo-ry': String(HOLO_TILT_RY_DEG),
+  '--holo-rest-rx': String(HOLO_REST_RX_DEG),
+  '--holo-rest-ry': String(HOLO_REST_RY_DEG),
 }))
 
 const faceName = computed(() => props.label.toUpperCase())
+
+const CONVERGE = 0.005
+const LERP = 0.06
+const VAR_PRECISION = 4
+
+let stopTilt: (() => void) | null = null
+
+onMounted(() => {
+  const el = root.value
+  if (!el) return
+
+  const phoneMql = window.matchMedia('(max-width: 768px)')
+  const motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
+  const val = { x: 0, y: 0 }
+  let rafId = 0
+
+  const publish = (x: number, y: number) => {
+    el.style.setProperty('--holo-tilt-x', x.toFixed(VAR_PRECISION))
+    el.style.setProperty('--holo-tilt-y', y.toFixed(VAR_PRECISION))
+  }
+
+  const clearTilt = () => {
+    el.style.removeProperty('--holo-tilt-x')
+    el.style.removeProperty('--holo-tilt-y')
+  }
+
+  const target = () => {
+    if (motionMql.matches) return { ax: 0, ay: 0 }
+    if (phoneMql.matches) {
+      const rect = el.getBoundingClientRect()
+      return holoScrollTilt(holoViewportProgress(rect.top, rect.height, window.innerHeight))
+    }
+    const mouse = useSharedMouse().latest
+    if (!mouse.hasPointer) return { ax: 0, ay: 0 }
+    return holoPointerTilt(mouse.clientX, mouse.clientY, el.getBoundingClientRect())
+  }
+
+  const tick = () => {
+    const next = target()
+    val.x += (next.ax - val.x) * LERP
+    val.y += (next.ay - val.y) * LERP
+    const dx = next.ax - val.x
+    const dy = next.ay - val.y
+    if (Math.abs(dx) < CONVERGE && Math.abs(dy) < CONVERGE) {
+      val.x = next.ax
+      val.y = next.ay
+      publish(val.x, val.y)
+      rafId = 0
+      return
+    }
+    publish(val.x, val.y)
+    rafId = requestAnimationFrame(tick)
+  }
+
+  const wake = () => {
+    if (!near.value || motionMql.matches) return
+    if (rafId === 0) rafId = requestAnimationFrame(tick)
+  }
+
+  const stop = () => {
+    if (rafId !== 0) cancelAnimationFrame(rafId)
+    rafId = 0
+  }
+
+  const onMotionChange = (event: MediaQueryListEvent) => {
+    if (event.matches) {
+      stop()
+      val.x = 0
+      val.y = 0
+      clearTilt()
+      return
+    }
+    wake()
+  }
+
+  const onPhoneChange = () => {
+    if (motionMql.matches) return
+    wake()
+  }
+
+  const onScroll = () => {
+    if (phoneMql.matches) wake()
+  }
+
+  const stopNear = watch(near, (isNear) => {
+    if (isNear) wake()
+    else stop()
+  })
+
+  motionMql.addEventListener('change', onMotionChange)
+  phoneMql.addEventListener('change', onPhoneChange)
+  window.addEventListener('scroll', onScroll, { passive: true })
+  const unsubMouse = onMouseEvent(wake)
+  if (near.value && !motionMql.matches) wake()
+
+  stopTilt = () => {
+    stop()
+    stopNear()
+    motionMql.removeEventListener('change', onMotionChange)
+    phoneMql.removeEventListener('change', onPhoneChange)
+    window.removeEventListener('scroll', onScroll)
+    unsubMouse()
+    stopTilt = null
+  }
+})
+
+onBeforeUnmount(() => {
+  stopTilt?.()
+})
 </script>
 
 <template>
   <figure
+    ref="root"
     class="holo"
-    :class="{ 'is-live': live }"
     :style="plateStyle"
     :aria-label="`LIFTAG foil machine tag. ${label} appears when the plate is tilted.`"
   >
-    <div class="holo-plate">
-      <div class="holo-foil" aria-hidden="true" />
-      <div class="holo-grain" aria-hidden="true" />
-      <div class="holo-mark" aria-hidden="true">LIFTAG</div>
+    <div class="holo-shadow" aria-hidden="true" />
+    <div class="holo-body">
+      <div class="holo-edge" aria-hidden="true" />
+      <div class="holo-plate">
+        <div class="holo-foil" aria-hidden="true" />
+        <div class="holo-grain" aria-hidden="true" />
+        <div class="holo-mark" aria-hidden="true">LIFTAG</div>
 
-      <div class="holo-sheet holo-sheet--cyan" aria-hidden="true" />
-      <div class="holo-sheet holo-sheet--core" aria-hidden="true" />
-      <div class="holo-sheet holo-sheet--red" aria-hidden="true" />
+        <div class="holo-latent">
+          <img
+            class="holo-qr"
+            :src="qrSrc"
+            :srcset="qrSrcset"
+            sizes="132px"
+            alt=""
+            width="160"
+            height="160"
+            loading="lazy"
+            decoding="async"
+          >
+        </div>
 
-      <div class="holo-latent">
-        <img
-          class="holo-qr"
-          :src="qrSrc"
-          :srcset="qrSrcset"
-          sizes="132px"
-          alt=""
-          width="160"
-          height="160"
-          loading="lazy"
-          decoding="async"
-        >
-        <div class="holo-name" aria-hidden="true">{{ faceName }}</div>
+        <div class="holo-spec" aria-hidden="true" />
+        <div class="holo-fresnel" aria-hidden="true" />
+
+        <div class="holo-chrome">
+          <span class="holo-brand">LIFTAG</span>
+          <span class="holo-serial">{{ serial }}</span>
+        </div>
+        <div class="holo-foot">TAP OR SCAN</div>
       </div>
-
-      <div class="holo-chrome">
-        <span class="holo-brand">LIFTAG</span>
-        <span class="holo-serial">{{ serial }}</span>
+      <div class="holo-name" aria-hidden="true">
+        <span class="holo-name-layer holo-name-layer--back">{{ faceName }}</span>
+        <span class="holo-name-layer holo-name-layer--mid">{{ faceName }}</span>
+        <span class="holo-name-layer holo-name-layer--face">{{ faceName }}</span>
       </div>
-      <div class="holo-foot">TAP OR SCAN</div>
     </div>
   </figure>
 </template>
@@ -98,32 +225,87 @@ const faceName = computed(() => props.label.toUpperCase())
   );
   --holo-lobe: max(0, 1 - abs(var(--holo-phase) - var(--holo-peak)) / var(--holo-half));
   --holo-face: max(var(--holo-reveal, 0), var(--holo-lobe));
-  --holo-travel: calc((var(--holo-phase) - var(--holo-sheet-start)) / var(--holo-sheet-span));
-  width: 100%;
-  height: 100%;
-  margin: 0;
-}
-
-.holo-plate {
+  --holo-glint: calc(abs(var(--holo-ax)) * 0.55 + abs(var(--holo-ay)) * 0.35);
   position: relative;
   width: 100%;
   height: 100%;
+  margin: 0;
+  perspective: 900px;
+  perspective-origin:
+    calc(50% + var(--holo-ax) * 8%)
+    calc(42% + var(--holo-ay) * 6%);
+  transform-style: preserve-3d;
+}
+
+.holo-shadow,
+.holo-body,
+.holo-edge,
+.holo-plate {
+  position: absolute;
+  inset: 0;
+}
+
+.holo-shadow {
+  inset: 14% 10% 2%;
+  border-radius: 18px;
+  background: oklch(0.08 0.012 118 / 0.5);
+  filter: blur(14px);
+  /* Keep the unrotated shadow plane behind every point of the tilted card. */
+  transform: translate3d(
+    calc(var(--holo-ax) * 8px),
+    calc(12px + var(--holo-ay) * 6px),
+    -32px
+  );
+  pointer-events: none;
+}
+
+.holo-body {
+  transform-style: preserve-3d;
+  transform:
+    rotateX(calc(var(--holo-rest-rx) * 1deg + var(--holo-ay) * var(--holo-rx) * 1deg))
+    rotateY(calc(var(--holo-rest-ry) * 1deg + var(--holo-ax) * var(--holo-ry) * -1deg));
+  pointer-events: none;
+}
+
+.holo-edge {
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      145deg,
+      oklch(0.52 0.04 110) 0%,
+      oklch(0.22 0.018 118) 38%,
+      oklch(0.11 0.01 118) 100%
+    );
+  transform: translate3d(
+    calc(1px + var(--holo-ax) * 1.6px),
+    calc(1.5px + var(--holo-ay) * 1.2px),
+    -3px
+  );
+  box-shadow: 0 0 0 1px oklch(0.58 0.03 110 / 0.28);
+}
+
+.holo-plate {
   overflow: hidden;
   border-radius: 16px;
   isolation: isolate;
   background: oklch(0.17 0.014 118);
+  transform: translateZ(0.5px);
   box-shadow:
     0 0 0 1px oklch(0.62 0.018 110 / 0.55),
     inset 0 1px 0 oklch(0.48 0.02 110 / 0.45),
     inset 0 -1px 0 oklch(0.1 0.01 118 / 0.7),
+    inset calc(var(--holo-ax) * -6px) calc(var(--holo-ay) * -4px) 10px oklch(0.92 0.05 110 / 0.12),
+    inset calc(var(--holo-ax) * 5px) calc(var(--holo-ay) * 3px) 8px oklch(0.08 0.01 118 / 0.32),
     0 22px 48px oklch(0.08 0.01 118 / 0.62);
 }
 
 .holo-foil,
 .holo-grain,
 .holo-mark,
-.holo-sheet,
 .holo-latent,
+.holo-name,
+.holo-spec,
+.holo-fresnel,
 .holo-chrome,
 .holo-foot {
   position: absolute;
@@ -133,7 +315,6 @@ const faceName = computed(() => props.label.toUpperCase())
 .holo-foil {
   inset: 0;
   background:
-    linear-gradient(165deg, oklch(0.28 0.02 118 / 0.55), transparent 42%),
     repeating-linear-gradient(
       108deg,
       oklch(0.22 0.016 118 / 0.18) 0 1px,
@@ -146,7 +327,7 @@ const faceName = computed(() => props.label.toUpperCase())
   content: '';
   position: absolute;
   inset: 0;
-  opacity: calc(var(--holo-face) * 0.14);
+  opacity: calc(0.06 + var(--holo-face) * 0.16 + var(--holo-glint) * 0.12);
   background: linear-gradient(
     118deg,
     rgb(150, 255, 225) 0%,
@@ -189,74 +370,49 @@ const faceName = computed(() => props.label.toUpperCase())
   text-transform: uppercase;
   color: oklch(0.7 0.02 110 / 0.07);
   opacity: calc(1 - var(--holo-face) * 0.7);
-}
-
-.holo-sheet {
-  top: -30%;
-  bottom: -30%;
-  width: 34%;
-  left: 0;
-  z-index: 3;
-  transform: translate3d(calc(var(--holo-travel) * 240% - 40%), 0, 0) rotate(18deg);
-  mix-blend-mode: plus-lighter;
-  will-change: transform;
-}
-
-.holo-sheet--core {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgb(150, 255, 225) 18%,
-    rgb(204, 255, 0) 42%,
-    rgb(255, 246, 190) 56%,
-    rgb(255, 178, 30) 72%,
-    rgb(255, 45, 85) 86%,
-    transparent 100%
+  transform: translate3d(
+    calc(var(--holo-ax) * 4px),
+    calc(var(--holo-ay) * 3px),
+    0
   );
-  opacity: 0.72;
 }
 
-.holo-sheet--core::after {
-  content: '';
-  position: absolute;
+.holo-spec {
   inset: 0;
-  background: repeating-linear-gradient(
-    -18deg,
-    transparent 0 1px,
-    oklch(0.95 0.04 110 / 0.14) 1px 2px
+  z-index: 3;
+  background: radial-gradient(
+    120% 90% at
+      calc(42% + var(--holo-ax) * -34%)
+      calc(28% + var(--holo-ay) * -26%),
+    oklch(0.98 0.02 110 / 0.38) 0%,
+    oklch(0.9 0.04 110 / 0.1) 28%,
+    transparent 52%
   );
+  mix-blend-mode: overlay;
+  opacity: calc(0.35 + var(--holo-glint) * 0.55);
 }
 
-.holo-sheet--cyan {
-  width: 28%;
-  background: linear-gradient(90deg, transparent, rgb(150, 255, 225), transparent);
-  opacity: 0.38;
-  transform: translate3d(
-    calc(var(--holo-travel) * 240% - 46% + var(--holo-ax) * -6px),
-    0,
-    0
-  ) rotate(18deg);
-}
-
-.holo-sheet--red {
-  width: 28%;
-  background: linear-gradient(90deg, transparent, rgb(255, 45, 85), transparent);
-  opacity: 0.32;
-  transform: translate3d(
-    calc(var(--holo-travel) * 240% - 34% + var(--holo-ax) * 6px),
-    0,
-    0
-  ) rotate(18deg);
+.holo-fresnel {
+  inset: 0;
+  z-index: 5;
+  border-radius: inherit;
+  background: linear-gradient(
+    calc(118deg + var(--holo-ax) * 18deg),
+    oklch(0.95 0.03 110 / calc(var(--holo-glint) * 0.16)) 0%,
+    transparent 36%,
+    transparent 62%,
+    oklch(0.2 0.02 118 / calc(0.12 + var(--holo-glint) * 0.18)) 100%
+  );
+  box-shadow:
+    inset 0 0 0 1px oklch(0.86 0.04 110 / calc(0.12 + var(--holo-glint) * 0.28));
 }
 
 .holo-latent {
-  inset: 28px 16px 36px;
+  inset: 28px 16px 52px;
   z-index: 2;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
+  align-items: flex-end;
+  justify-content: center;
   opacity: var(--holo-face);
 }
 
@@ -266,25 +422,74 @@ const faceName = computed(() => props.label.toUpperCase())
   height: auto;
   aspect-ratio: 1;
   object-fit: contain;
-  filter: invert(1) contrast(1.22);
+  transform: translate3d(
+    calc(var(--holo-ax) * -5px),
+    calc(var(--holo-ay) * -4px),
+    0
+  );
+  filter:
+    invert(1) contrast(1.22)
+    drop-shadow(calc(var(--holo-ax) * -2px) 0 0 rgb(255, 45, 85))
+    drop-shadow(calc(var(--holo-ax) * 2px) 0 0 rgb(150, 255, 225));
   mix-blend-mode: screen;
 }
 
 .holo-name {
-  max-width: 100%;
+  --name-ex: calc(var(--holo-face) * (3px + var(--holo-glint) * 5px));
+  right: 12px;
+  bottom: 28px;
+  left: 12px;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  opacity: var(--holo-face);
+  transform: translate3d(
+    calc(var(--holo-ax) * -3px),
+    calc(var(--holo-ay) * -2px),
+    10px
+  );
+}
+
+.holo-name-layer {
+  grid-area: 1 / 1;
+  max-width: 9.4em;
   font-family: var(--liftag-font-headline);
   font-weight: 700;
   font-style: italic;
   font-size: 12px;
-  line-height: 1.05;
-  letter-spacing: -0.04em;
+  line-height: 1.08;
+  letter-spacing: -0.045em;
   text-align: center;
   text-transform: uppercase;
-  color: oklch(0.96 0.04 110);
+  text-wrap: balance;
+}
+
+.holo-name-layer--back {
+  color: oklch(0.2 0.03 118);
+  transform: translate3d(
+    calc(var(--holo-ax) * var(--name-ex)),
+    calc(var(--holo-ay) * var(--name-ex) * 0.75),
+    0
+  );
+}
+
+.holo-name-layer--mid {
+  color: rgb(204, 255, 0);
+  transform: translate3d(
+    calc(var(--holo-ax) * var(--name-ex) * 0.5),
+    calc(var(--holo-ay) * var(--name-ex) * 0.38),
+    0
+  );
+  opacity: calc(0.35 + var(--holo-glint) * 0.4);
+}
+
+.holo-name-layer--face {
+  color: oklch(0.97 0.03 110);
   text-shadow:
-    calc(var(--holo-ax) * -2.4px) 0 rgb(255, 45, 85),
-    calc(var(--holo-ax) * 2.4px) 0 rgb(150, 255, 225);
-  mix-blend-mode: plus-lighter;
+    calc(var(--holo-ax) * -2px) 0 0 rgb(255, 45, 85),
+    calc(var(--holo-ax) * 2px) 0 0 rgb(150, 255, 225),
+    calc(var(--holo-ax) * var(--name-ex) * 0.35) calc(var(--holo-ay) * var(--name-ex) * 0.25) 0 oklch(0.55 0.12 118),
+    calc(var(--holo-ax) * var(--name-ex) * 0.7) calc(var(--holo-ay) * var(--name-ex) * 0.5) 0 oklch(0.32 0.08 118);
 }
 
 .holo-chrome {
@@ -327,47 +532,21 @@ const faceName = computed(() => props.label.toUpperCase())
   letter-spacing: 0.18em;
 }
 
-.holo.is-live {
-  animation: holoUnlock 8s var(--ease-out-expo) infinite;
-}
-
-@keyframes holoUnlock {
-  0%, 8% {
-    --holo-demo: 0;
-    --holo-reveal: 0;
-  }
-  24% {
-    --holo-demo: 0.1;
-    --holo-reveal: 0;
-  }
-  36% {
-    --holo-demo: 0.22;
-    --holo-reveal: 0.4;
-  }
-  44%, 68% {
-    --holo-demo: 0.2;
-    --holo-reveal: 1;
-  }
-  84% {
-    --holo-demo: 0.06;
-    --holo-reveal: 0.2;
-  }
-  100% {
-    --holo-demo: 0;
-    --holo-reveal: 0;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .holo,
-  .holo.is-live {
-    animation: none;
-    --holo-demo: 0.22;
-    --holo-reveal: 0.92;
+  .holo {
+    --holo-reveal: 1;
+    perspective: none;
   }
 
-  .holo-sheet {
-    will-change: auto;
+  .holo-body,
+  .holo-edge,
+  .holo-shadow,
+  .holo-mark,
+  .holo-latent,
+  .holo-qr,
+  .holo-name,
+  .holo-name-layer {
+    transform: none;
   }
 }
 </style>

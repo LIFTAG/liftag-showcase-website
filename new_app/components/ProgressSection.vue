@@ -292,6 +292,7 @@ onBeforeUnmount(() => {
           </p>
         </div>
         <div class="progress-plate-hero" aria-hidden="true">
+          <div class="progress-plate-glow" />
           <ClientOnly>
             <LazyForgedPrPlate />
           </ClientOnly>
@@ -613,15 +614,18 @@ onBeforeUnmount(() => {
 .progress-section {
   --pane-mx: 0;
   --pane-my: 0;
+  --plate-quench: 0;
 }
 
 .progress-hero-glow {
-  --glow-top: 38%;
-  --glow-left: 72%;
+  --glow-top: 42%;
+  --glow-left: 74%;
   --glow-right: auto;
-  --glow-size: 760px;
-  --glow-blur: 80px;
-  --glow-falloff: 65%;
+  --glow-size: 780px;
+  --glow-blur: 88px;
+  --glow-falloff: 66%;
+  --glow-color: rgba(204, 255, 0, 0.09);
+  opacity: var(--plate-quench);
 }
 
 .progress-hero {
@@ -653,6 +657,17 @@ onBeforeUnmount(() => {
   pointer-events: none;
   overflow: visible;
   contain: layout;
+}
+
+.progress-plate-glow {
+  position: absolute;
+  inset: 8% 6% 0;
+  background:
+    radial-gradient(ellipse 62% 54% at 50% 56%, rgba(204, 255, 0, 0.14), transparent 68%),
+    radial-gradient(ellipse 40% 32% at 48% 70%, rgba(204, 255, 0, 0.08), transparent 72%);
+  filter: blur(28px);
+  pointer-events: none;
+  opacity: var(--plate-quench);
 }
 
 .progress-stage {
@@ -988,9 +1003,10 @@ onBeforeUnmount(() => {
   }
 
   .progress-hero-glow {
-    --glow-top: 28%;
+    --glow-top: 30%;
     --glow-left: 50%;
     --glow-size: 720px;
+    --glow-color: rgba(204, 255, 0, 0.08);
   }
 
   .progress-hero {

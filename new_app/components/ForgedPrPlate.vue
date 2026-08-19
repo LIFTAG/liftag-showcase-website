@@ -11,6 +11,10 @@
 //   1. a living pour that never fully dies (domain warp + molten veins)
 //   2. a thin-film rainbow split on the rim and the stamp edges, lit by the
 //      same lime key and red-neon kick the rest of the page uses
+// The last pulse (the shock that travels out of the stamp) quenches that
+// chrome into dark steel, rim included. After the quench the plate sits in a
+// lime room light: black metal, with the stamped 20 / KG still catching that
+// green. No white-hot press flash.
 //
 // Sharpness is mostly free on this island: the canvas tracks native DPR (2.5
 // on phones, 2 on desktop), the silhouette uses leftover SDF coverage instead
@@ -69,6 +73,7 @@ let motionMql: MediaQueryList | null = null
 let dpr = 1
 let bufW = 0
 let bufH = 0
+let quenchRoot: HTMLElement | null = null
 
 let rotX = PLATE_REST_TILT.rotX
 let rotY = PLATE_REST_TILT.rotY
@@ -187,9 +192,9 @@ const fragmentSource = /* glsl */ `
       plate += glyph * uStampD * 0.11 * front * band;
     }
 
-    float ringR = 0.26 + uShock * 0.68;
-    float ring = exp(-(radial - ringR) * (radial - ringR) * 380.0);
-    plate -= ring * (1.0 - uShock) * uStampD * 0.018 * smoothstep(-0.01, 0.02, p.z);
+    float ringR = 0.26 + uShock * 0.92;
+    float ring = exp(-(radial - ringR) * (radial - ringR) * 320.0);
+    plate -= ring * (1.0 - uShock) * uStampD * 0.012 * smoothstep(-0.01, 0.02, p.z);
 
     return plate;
   }
@@ -239,6 +244,15 @@ const fragmentSource = /* glsl */ `
     return irid;
   }
 
+  // Shock ring is the quench front. The last of the pulse finishes the rim
+  // so no chrome halo is left on the settled plate.
+  float quenchAt(float radial) {
+    float ringR = 0.26 + uShock * 0.92;
+    float front = smoothstep(ringR + 0.12, ringR - 0.04, radial);
+    float finish = smoothstep(0.68, 1.0, uShock);
+    return smoothstep(0.0, 0.05, uShock) * mix(front, 1.0, finish);
+  }
+
   void main() {
     vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / min(uRes.x, uRes.y);
 
@@ -247,10 +261,16 @@ const fragmentSource = /* glsl */ `
     vec3 ro = rotX(rotY(roW, -uRot.y), -uRot.x);
     vec3 rd = rotX(rotY(rdW, -uRot.y), -uRot.x);
 
-    vec3 bloom = vec3(0.0);
-    bloom += vec3(0.78, 1.0, 0.06) * exp(-length(uv - vec2(-0.22, 0.06)) * 7.5) * 0.26;
-    bloom += vec3(1.00, 0.14, 0.32) * exp(-length(uv - vec2(0.26, 0.10)) * 8.0) * 0.18;
-    bloom *= smoothstep(0.74, 0.20, length(uv));
+    vec3 chromeBloom = vec3(0.0);
+    chromeBloom += vec3(0.78, 1.0, 0.06) * exp(-length(uv - vec2(-0.22, 0.06)) * 7.5) * 0.26;
+    chromeBloom += vec3(1.00, 0.14, 0.32) * exp(-length(uv - vec2(0.26, 0.10)) * 8.0) * 0.18;
+    chromeBloom *= smoothstep(0.74, 0.20, length(uv));
+
+    vec3 limeBloom = vec3(0.70, 1.0, 0.06) * exp(-length(uv - vec2(0.04, 0.02)) * 4.4) * 0.18;
+    limeBloom += vec3(0.78, 1.0, 0.10) * exp(-length(uv - vec2(-0.02, -0.16)) * 5.6) * 0.10;
+    limeBloom *= smoothstep(0.88, 0.22, length(uv));
+
+    vec3 bloom = mix(chromeBloom, limeBloom, uShock);
     float ba = clamp(max(max(bloom.r, bloom.g), bloom.b) * 1.15, 0.0, 1.0);
 
     float b = dot(ro, rd);
@@ -291,31 +311,44 @@ const fragmentSource = /* glsl */ `
     vec3 Rred = normalize(R - nW * 0.028);
     vec3 spec = vec3(envSample(Rlime).r, envSample(R).g, envSample(Rred).b);
 
+    float quench = quenchAt(radial);
     vec3 irid = iridescence(facing, radial);
-    float iridMix = 0.30 + fres * 0.48 + uPour * 0.20;
+    float iridMix = (0.30 + fres * 0.48 + uPour * 0.20) * (1.0 - quench);
     spec *= mix(vec3(0.88, 0.90, 0.94), irid, iridMix);
 
+    float luma = dot(spec, vec3(0.22, 0.72, 0.06));
+    vec3 steel = vec3(luma) * vec3(0.90, 0.93, 0.88) * mix(0.22, 0.52, facing);
+    spec = mix(spec, steel, quench);
+
+    vec3 lime = vec3(0.70, 1.0, 0.08);
+    float limeSpec = pow(max(dot(R, normalize(vec3(0.18, 0.62, 0.72))), 0.0), 16.0);
+    float limeWrap = pow(max(dot(nW, normalize(vec3(0.06, -0.58, 0.64))), 0.0), 1.8);
+    float limeRim = pow(1.0 - facing, 2.8);
+    spec += lime * quench * (limeSpec * 0.72 + limeWrap * 0.14 + limeRim * 0.06);
+
     float glyph = stampSample(p.xy);
-    float stampAo = 1.0 - glyph * uStampD * 0.78;
+    float stampAo = 1.0 - glyph * uStampD * mix(0.78, 0.72, quench);
     float stampEdge = abs(stampSample(p.xy + vec2(0.0035, 0.0)) - stampSample(p.xy - vec2(0.0035, 0.0)))
       + abs(stampSample(p.xy + vec2(0.0, 0.0035)) - stampSample(p.xy - vec2(0.0, 0.0035)));
     spec *= stampAo;
-    spec += irid * stampEdge * uStampD * 0.95;
-    spec += vec3(0.72, 1.0, 0.12) * glyph * uStampD * 0.16 * facing;
+    spec += mix(irid, lime, quench) * stampEdge * uStampD * mix(0.95, 0.85, quench);
+    spec += mix(vec3(0.72, 1.0, 0.12), vec3(0.28, 0.32, 0.22), quench) * glyph * uStampD * mix(0.16, 0.28, quench) * (0.40 + 0.60 * facing);
+    spec += lime * quench * glyph * uStampD * smoothstep(0.10, -0.24, p.y) * 0.18;
 
     float vein = sin(radial * 6.2 - atan(p.y, p.x) * 3.0 - uTime * 0.72);
     vein = smoothstep(0.90, 1.0, vein) * (uPour * 0.85 + uLive * 0.22);
 
-    vec3 col = spec * (0.24 + 0.76 * fres);
-    col += vec3(0.80, 1.0, 0.12) * pow(1.0 - facing, 3.0) * 0.34;
-    col += vec3(1.00, 0.16, 0.32) * pow(1.0 - facing, 3.0) * 0.16;
-    col += vec3(1.00, 0.32, 0.06) * vein * 0.42;
-    col += vec3(0.85, 1.00, 0.15) * vein * 0.22;
+    float glow = 1.0 - quench;
+    vec3 col = spec * mix(0.24 + 0.76 * fres, 0.20 + 0.70 * fres, quench);
+    col += vec3(0.80, 1.0, 0.12) * pow(1.0 - facing, 3.0) * 0.34 * glow;
+    col += vec3(1.00, 0.16, 0.32) * pow(1.0 - facing, 3.0) * 0.16 * glow;
+    col += vec3(1.00, 0.32, 0.06) * vein * 0.42 * glow;
+    col += vec3(0.85, 1.00, 0.15) * vein * 0.22 * glow;
     col += vec3(1.00, 0.28, 0.06) * uPour * 0.22 * (0.35 + 0.65 * facing);
 
     float rimBand = smoothstep(0.82, 0.90, radial) * smoothstep(1.02, 0.94, radial);
-    col += vec3(0.92, 1.0, 0.55) * rimBand * fres * 0.42;
-    col += irid * rimBand * 0.28;
+    col += vec3(0.92, 1.0, 0.55) * rimBand * fres * 0.42 * glow;
+    col += irid * rimBand * 0.28 * glow;
 
     col = 1.0 - exp(-max(col, 0.0) * 1.28);
     col += (hash(gl_FragCoord.xy) - 0.5) * 0.004;
@@ -352,21 +385,21 @@ function drawStamp(canvas: HTMLCanvasElement) {
   ctx.textBaseline = 'middle'
   ctx.fillStyle = '#fff'
 
+  const stampFont = `700 ${Math.round(w * 0.24)}px "Space Grotesk", system-ui, sans-serif`
+
   ctx.save()
   ctx.filter = 'blur(2.6px)'
-  ctx.font = `700 ${Math.round(w * 0.24)}px "Space Grotesk", system-ui, sans-serif`
-  ctx.fillText('225', w * 0.5, h * 0.30)
-  ctx.font = `700 ${Math.round(w * 0.052)}px "Space Grotesk", system-ui, sans-serif`
-  ctx.fillText('LB', w * 0.5, h * 0.43)
+  ctx.font = stampFont
+  ctx.fillText('20', w * 0.5, h * 0.30)
+  ctx.fillText('KG', w * 0.5, h * 0.70)
   ctx.restore()
 
   ctx.save()
   ctx.globalAlpha = 0.78
   ctx.filter = 'blur(0.6px)'
-  ctx.font = `700 ${Math.round(w * 0.24)}px "Space Grotesk", system-ui, sans-serif`
-  ctx.fillText('225', w * 0.5, h * 0.30)
-  ctx.font = `700 ${Math.round(w * 0.052)}px "Space Grotesk", system-ui, sans-serif`
-  ctx.fillText('LB', w * 0.5, h * 0.43)
+  ctx.font = stampFont
+  ctx.fillText('20', w * 0.5, h * 0.30)
+  ctx.fillText('KG', w * 0.5, h * 0.70)
   ctx.restore()
 }
 
@@ -412,12 +445,27 @@ function resizeBuffer() {
   gl.viewport(0, 0, width, height)
 }
 
+function publishQuench(amount: number) {
+  const host = mount.value
+  if (!host) return
+  if (!quenchRoot || !quenchRoot.isConnected) {
+    quenchRoot = host.closest<HTMLElement>('.progress-section')
+  }
+  quenchRoot?.style.setProperty('--plate-quench', amount.toFixed(3))
+}
+
+function clearQuench() {
+  quenchRoot?.style.removeProperty('--plate-quench')
+  quenchRoot = null
+}
+
 function renderFrame(now: number) {
   if (!gl || !program || !uniforms) return
 
   const elapsed = reduceMotion ? 4000 : Math.max(0, now - startedAt)
   const phase = platePhaseAt(elapsed, reduceMotion)
   resizeBuffer()
+  publishQuench(phase.shock)
 
   gl.uniform2f(uniforms.uRes, bufW, bufH)
   gl.uniform4f(uniforms.uPhase, now * 0.001, phase.pour, phase.stamp, phase.squash)
@@ -611,6 +659,7 @@ function disposeScene() {
   }
   canvasEl?.remove()
   mount.value?.classList.remove('is-live')
+  clearQuench()
 
   gl = null
   canvasEl = null
@@ -714,10 +763,10 @@ onBeforeUnmount(() => {
     <svg class="forged-pr-plate-fallback" viewBox="0 0 200 200" focusable="false">
       <defs>
         <radialGradient id="forged-plate-face" cx="36%" cy="30%" r="72%">
-          <stop offset="0%" stop-color="#d7e0cc" />
-          <stop offset="28%" stop-color="#8b9480" />
-          <stop offset="58%" stop-color="#2a2e26" />
-          <stop offset="100%" stop-color="#080908" />
+          <stop offset="0%" stop-color="#6a727c" />
+          <stop offset="28%" stop-color="#3a4048" />
+          <stop offset="58%" stop-color="#16191d" />
+          <stop offset="100%" stop-color="#070809" />
         </radialGradient>
         <linearGradient id="forged-plate-rim" x1="8%" y1="0%" x2="92%" y2="100%">
           <stop offset="0%" stop-color="#e8ff6a" />
@@ -747,22 +796,22 @@ onBeforeUnmount(() => {
         x="100"
         y="78"
         text-anchor="middle"
-        fill="#1b2014"
+        fill="#1a2210"
         font-family="Space Grotesk, system-ui, sans-serif"
         font-size="34"
         font-weight="700"
         filter="url(#forged-plate-stamp)"
-      >225</text>
+      >20</text>
       <text
         x="100"
-        y="96"
+        y="122"
         text-anchor="middle"
-        fill="#3d4534"
+        fill="#1a2210"
         font-family="Space Grotesk, system-ui, sans-serif"
-        font-size="8"
+        font-size="34"
         font-weight="700"
-        letter-spacing="0.18em"
-      >LB</text>
+        filter="url(#forged-plate-stamp)"
+      >KG</text>
     </svg>
   </div>
 </template>

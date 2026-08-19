@@ -898,6 +898,7 @@ section {
     justify-content: center;
     height: auto !important;
     margin-bottom: 8px;
+    padding: 20px 8px 28px;
   }
   .gyms-machine-motion {
     display: none !important;

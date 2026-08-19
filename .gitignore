@@ -48,3 +48,7 @@ AGENTS.md
 
 # Local graphify knowledge graph outputs
 graphify-out/
+
+# Isolated Remotion reel package
+remotion/node_modules/
+remotion/out/

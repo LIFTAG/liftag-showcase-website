@@ -1,0 +1,26 @@
+{
+  "name": "liftag-reel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LIFTAG website refresh Instagram reel",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts WebsiteRefresh out/website-refresh.mp4",
+    "render:sk": "remotion render src/index.ts WebsiteRefreshSK out/website-refresh-sk.mp4",
+    "render:square": "remotion render src/index.ts WebsiteRefreshSquare out/website-refresh-square.mp4",
+    "render:sk:square": "remotion render src/index.ts WebsiteRefreshSquareSK out/website-refresh-sk-square.mp4",
+    "still": "remotion still src/index.ts WebsiteRefresh"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.513",
+    "@remotion/google-fonts": "4.0.513",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.513"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.18",
+    "@types/react-dom": "18.3.5",
+    "typescript": "5.9.3"
+  }
+}

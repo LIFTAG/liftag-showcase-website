@@ -9,7 +9,9 @@
     "preview": "pnpm --dir new_app preview",
     "start": "pnpm --dir new_app start",
     "typecheck": "pnpm --dir new_app typecheck",
-    "verify": "pnpm --dir new_app verify"
+    "verify": "pnpm --dir new_app verify",
+    "reel": "pnpm --dir remotion studio",
+    "reel:render": "pnpm --dir remotion render:sk"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1"

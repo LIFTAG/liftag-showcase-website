@@ -61,7 +61,10 @@ function gymMotionTransform(
     + ` rotate(calc(var(--gym-mx) * ${rotateFactor}deg))`
 }
 
-const gymQrStickerMotion = computed(() => gymMotionTransform(-24, -16, -1.4, 'rotate(4deg)'))
+// The sticker is a physical tag: HologramPlate owns the 3D tilt. This
+// wrapper only holds the crooked rest pose so the card does not also
+// slide around in 2D and fight the foil.
+const gymQrStickerMotion = 'rotate(4deg)'
 const gymMachineMotion = computed(() => gymMotionTransform(18, 12, 1.1))
 const gymBackPhoneMotion = computed(() => gymMotionTransform(14, 10, 0.7))
 const gymFrontPhoneMotion = computed(() => gymMotionTransform(-20, -14, -1.1))
@@ -171,7 +174,7 @@ onBeforeUnmount(() => {
             }"
           >
             <div
-              class="gyms-qr-sticker-card gyms-float"
+              class="gyms-qr-sticker-card"
               :style="{
                 width: '180px',
                 height: '210px',
@@ -181,7 +184,6 @@ onBeforeUnmount(() => {
                 label="Cable Lat Pulldown"
                 serial="#042"
                 angle-prefix="gym"
-                :live="gymLive"
               />
             </div>
           </div>
