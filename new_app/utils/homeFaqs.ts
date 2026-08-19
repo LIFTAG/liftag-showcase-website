@@ -20,6 +20,10 @@ export const homeFaqs = [
     answer: 'Yes. LIFTAG works as a full workout tracker without tags. The tags are an accelerator for partner gyms; the app itself supports manual exercise selection, logging, programs, and progress tracking everywhere.',
   },
   {
+    question: 'Can I browse LIFTAG exercises without the app?',
+    answer: 'Yes. The full exercise library is on the web at liftag.fit/exercises: setup photos, muscles worked, and machine mappings, searchable by name or muscle group. Logging still happens in the app.',
+  },
+  {
     question: 'Which gyms have LIFTAG tags installed?',
     answer: 'Partner gyms appear inside the LIFTAG app on a discovery map. The network is expanding through gyms that opt in to install NFC tags and QR codes on their equipment.',
   },
