@@ -7,6 +7,7 @@ export type ReelCopy = {
   refresh: string;
   product: string;
   productParts: readonly [string, string, string];
+  libraryParts: readonly [string, string];
   tagline: string;
   productTracking: string;
 };
@@ -19,6 +20,7 @@ export const COPY: Record<Locale, ReelCopy> = {
     refresh: 'REFRESH',
     product: 'SCAN  ·  LOG  ·  PROGRESS',
     productParts: ['SCAN', 'LOG', 'PROGRESS'],
+    libraryParts: ['EVERY LIFT', 'ON THE WEB'],
     tagline: 'FOR LIFTERS.  BY LIFTERS.',
     productTracking: '0.2em',
   },
@@ -29,6 +31,7 @@ export const COPY: Record<Locale, ReelCopy> = {
     refresh: 'REFRESH',
     product: 'SKENUJ  ·  ZALOGUJ  ·  SLEDUJ',
     productParts: ['SKENUJ', 'ZALOGUJ', 'SLEDUJ'],
+    libraryParts: ['KAŽDÝ CVÍK', 'NA WEBE'],
     tagline: 'PRE LIFTEROV.  OD LIFTEROV.',
     productTracking: '0.12em',
   },

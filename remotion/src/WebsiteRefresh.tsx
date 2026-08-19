@@ -336,27 +336,70 @@ const refreshStyle = (fontSize: number): React.CSSProperties => ({
   paddingRight: '0.22em',
 });
 
+const captionRow = (
+  layout: Layout,
+  tracking: string,
+  parts: readonly string[],
+  ops: readonly number[],
+): React.ReactNode => (
+  <div
+    style={{
+      position: 'absolute',
+      left: layout.contentX,
+      top: layout.captionY,
+      display: 'flex',
+      alignItems: 'center',
+      gap: layout.variant === 'square' ? 12 : 16,
+      fontFamily: fonts.proto,
+      fontSize: layout.captionSize,
+      fontWeight: 500,
+      letterSpacing: tracking,
+      color: COLORS.lime,
+    }}
+  >
+    {parts.map((part, i) => {
+      const op = ops[i] ?? 0;
+      return (
+        <React.Fragment key={part}>
+          {i > 0 ? (
+            <span style={{opacity: op * 0.55, letterSpacing: 0}}>·</span>
+          ) : null}
+          <span style={{opacity: op}}>{part}</span>
+        </React.Fragment>
+      );
+    })}
+  </div>
+);
+
 const ProductScene: React.FC<{frame: number; layout: Layout; copy: ReelCopy}> = ({
   frame,
   layout,
   copy,
 }) => {
-  const opacity = fadeWindow(frame, [154, 162], [228, 246]);
+  const opacity = fadeWindow(frame, [154, 162], [288, 308]);
   if (opacity <= 0) return null;
 
-  const recede = clampInterpolate(frame, [228, 246], [0, 1], easeDesigned);
-  const mark = fadeWindow(frame, [160, 172], [224, 238]);
+  const recede = clampInterpolate(frame, [288, 308], [0, 1], easeDesigned);
+  const mark = fadeWindow(frame, [160, 172], [284, 300]);
   const siteIn = clampInterpolate(frame, [156, 176], [0, 1], easeOutExp);
   const scan = clampInterpolate(frame, [168, 198], [0, 1], easeDesigned);
   const sweep = clampInterpolate(frame, [186, 220], [0, 1], easeDesigned);
   const imageScale = clampInterpolate(frame, [168, 226], [1.055, 1], easeDesigned);
-  const part0 = fadeWindow(frame, [172, 184], [224, 238]);
-  const part1 = fadeWindow(frame, [180, 192], [224, 238]);
-  const part2 = fadeWindow(frame, [188, 200], [224, 238]);
+  const page = clampInterpolate(frame, [208, 230], [0, 1], easeDesigned);
+  const libScan = clampInterpolate(frame, [212, 242], [0, 1], easeDesigned);
+  const libSweep = clampInterpolate(frame, [226, 268], [0, 1], easeDesigned);
+  const libScale = clampInterpolate(frame, [212, 270], [1.05, 1], easeDesigned);
+  const part0 = fadeWindow(frame, [172, 184], [208, 222]);
+  const part1 = fadeWindow(frame, [180, 192], [208, 222]);
+  const part2 = fadeWindow(frame, [188, 200], [208, 222]);
+  const lib0 = fadeWindow(frame, [220, 234], [288, 304]);
+  const lib1 = fadeWindow(frame, [226, 240], [288, 304]);
   const idle = Math.sin(frame / 36) * 1.2;
   const idleY = Math.sin(frame / 44) * 3;
   const groupY = recede * 80 + idleY * (1 - recede);
   const groupScale = 1 - recede * 0.1;
+  const heroOp = siteIn * (1 - page);
+  const libOp = page;
 
   return (
     <AbsoluteFill style={{opacity}}>
@@ -401,49 +444,43 @@ const ProductScene: React.FC<{frame: number; layout: Layout; copy: ReelCopy}> = 
           transformOrigin: 'center center',
         }}
       >
-        <SitePlate
-          src="screens/site-hero.jpg"
-          width={layout.siteW}
-          height={layout.siteH}
-          rotateY={-8 + siteIn * 3 + idle * (1 - recede)}
-          rotateX={4.5 - siteIn * 2.5}
-          translateX={0}
-          translateY={(1 - siteIn) * 140}
-          scale={0.94 + siteIn * 0.06}
-          opacity={siteIn}
-          sweep={sweep}
-          scan={scan}
-          imageScale={imageScale}
-          reflect={layout.variant === 'reel'}
-        />
+        {heroOp > 0.01 ? (
+          <SitePlate
+            src="screens/site-hero.jpg"
+            width={layout.siteW}
+            height={layout.siteH}
+            rotateY={-8 + siteIn * 3 + idle * (1 - recede) - page * 10}
+            rotateX={4.5 - siteIn * 2.5}
+            translateX={-page * 36}
+            translateY={(1 - siteIn) * 140}
+            scale={0.94 + siteIn * 0.06 - page * 0.04}
+            opacity={heroOp}
+            sweep={sweep}
+            scan={scan}
+            imageScale={imageScale}
+            reflect={layout.variant === 'reel'}
+          />
+        ) : null}
+        {libOp > 0.01 ? (
+          <SitePlate
+            src="screens/site-library.jpg"
+            width={layout.siteW}
+            height={layout.siteH}
+            rotateY={4 - page * 10 + idle * (1 - recede)}
+            rotateX={3 - page * 1.5}
+            translateX={(1 - page) * 48}
+            translateY={(1 - page) * 90}
+            scale={0.92 + page * 0.08}
+            opacity={libOp}
+            sweep={libSweep}
+            scan={libScan}
+            imageScale={libScale}
+            reflect={layout.variant === 'reel'}
+          />
+        ) : null}
       </div>
-      <div
-        style={{
-          position: 'absolute',
-          left: layout.contentX,
-          top: layout.captionY,
-          display: 'flex',
-          alignItems: 'center',
-          gap: layout.variant === 'square' ? 12 : 16,
-          fontFamily: fonts.proto,
-          fontSize: layout.captionSize,
-          fontWeight: 500,
-          letterSpacing: copy.productTracking,
-          color: COLORS.lime,
-        }}
-      >
-        {copy.productParts.map((part, i) => {
-          const op = i === 0 ? part0 : i === 1 ? part1 : part2;
-          return (
-            <React.Fragment key={part}>
-              {i > 0 ? (
-                <span style={{opacity: op * 0.55, letterSpacing: 0}}>·</span>
-              ) : null}
-              <span style={{opacity: op}}>{part}</span>
-            </React.Fragment>
-          );
-        })}
-      </div>
+      {captionRow(layout, copy.productTracking, copy.productParts, [part0, part1, part2])}
+      {captionRow(layout, copy.productTracking, copy.libraryParts, [lib0, lib1])}
     </AbsoluteFill>
   );
 };
@@ -453,18 +490,18 @@ const EndCard: React.FC<{frame: number; layout: Layout; copy: ReelCopy}> = ({
   layout,
   copy,
 }) => {
-  const opacity = fadeWindow(frame, [228, 236], [1000, 1001]);
+  const opacity = fadeWindow(frame, [288, 296], [1000, 1001]);
   if (opacity <= 0) return null;
 
-  const urlProgress = clampInterpolate(frame, [232, 256], [0, 1], Easing.inOut(Easing.quad));
-  const urlScale = clampInterpolate(frame, [232, 252], [1.08, 1], easeOutExp);
-  const tag = clampInterpolate(frame, [244, 258], [0, 1], easeDesigned);
-  const mark = clampInterpolate(frame, [230, 244], [0, 1], easeDesigned);
-  const markScale = clampInterpolate(frame, [230, 246], [0.86, 1], easeOutExp);
-  const under = clampInterpolate(frame, [248, 264], [0, 1], easeDesigned);
-  const tagTrack = clampInterpolate(frame, [244, 262], [0.26, 0.16], easeDesigned);
+  const urlProgress = clampInterpolate(frame, [292, 316], [0, 1], Easing.inOut(Easing.quad));
+  const urlScale = clampInterpolate(frame, [292, 312], [1.08, 1], easeOutExp);
+  const tag = clampInterpolate(frame, [304, 318], [0, 1], easeDesigned);
+  const mark = clampInterpolate(frame, [290, 304], [0, 1], easeDesigned);
+  const markScale = clampInterpolate(frame, [290, 306], [0.86, 1], easeOutExp);
+  const under = clampInterpolate(frame, [308, 324], [0, 1], easeDesigned);
+  const tagTrack = clampInterpolate(frame, [304, 322], [0.26, 0.16], easeDesigned);
   const caretOn =
-    urlProgress > 0.98 && frame < 276 && Math.floor(frame / 7) % 2 === 0;
+    urlProgress > 0.98 && frame < 336 && Math.floor(frame / 7) % 2 === 0;
 
   return (
     <AbsoluteFill style={{opacity}}>

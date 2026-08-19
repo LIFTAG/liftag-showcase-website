@@ -34,16 +34,16 @@ const MOTES: ReadonlyArray<Mote> = Array.from({length: MOTE_COUNT}, (_, i) => ({
 const BRACKET = 18;
 
 export const Atmosphere: React.FC<AtmosphereProps> = ({frame, layout}) => {
-  const live = Math.min(frame, 280);
+  const live = Math.min(frame, 340);
   const isSquare = layout.variant === 'square';
   const breath = 0.0575 + 0.0125 * Math.sin((live / 18) * Math.PI);
   const laser = fadeWindow(frame, [32, 40], [70, 78]);
   const punch = fadeWindow(frame, [112, 116], [120, 128]);
-  const product = fadeWindow(frame, [154, 166], [228, 246]);
+  const product = fadeWindow(frame, [154, 166], [288, 308]);
   const glow = breath + laser * 0.034 + punch * 0.048 + product * 0.02;
 
   const statementFloor = fadeWindow(frame, [80, 96], [142, 156]);
-  const productFloor = fadeWindow(frame, [154, 168], [228, 246]);
+  const productFloor = fadeWindow(frame, [154, 168], [288, 308]);
   const floorOpacity =
     statementFloor * (isSquare ? 0.085 : 0.095) + productFloor * 0.055;
 

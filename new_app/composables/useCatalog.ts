@@ -5,12 +5,12 @@ import type {
 } from '~/types/catalog'
 
 /** Shared search index; one fetch per render, deduped across pages. */
-export function useCatalogIndex(opts?: { lazy?: boolean, server?: boolean }) {
+export function useCatalogIndex() {
   const requestFetch = useRequestFetch()
   return useAsyncData<CatalogIndexPayload>(
     'catalog-index',
     () => requestFetch<CatalogIndexPayload>('/api/catalog/search-index'),
-    { dedupe: 'defer', ...opts },
+    { dedupe: 'defer' },
   )
 }
 

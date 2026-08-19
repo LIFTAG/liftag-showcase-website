@@ -36,7 +36,7 @@ export const COLORS = {
 } as const;
 
 export const FPS = 30;
-export const DURATION = 300;
+export const DURATION = 360;
 
 export type Variant = 'reel' | 'square';
 

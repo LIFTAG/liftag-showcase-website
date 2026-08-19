@@ -1209,11 +1209,11 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 
 .hero-nfc-model {
   position: absolute;
-  top: 380px;
-  left: 6px;
+  top: 400px;
+  left: 26px;
   z-index: 8;
-  width: 128px;
-  height: 128px;
+  width: 88px;
+  height: 88px;
   pointer-events: none;
   transform-style: preserve-3d;
   will-change: transform, opacity;

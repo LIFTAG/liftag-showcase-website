@@ -294,13 +294,13 @@ onBeforeUnmount(() => {
 
       <figure
         class="scan-token-stage"
-        aria-label="LIFTAG NFC tap token. Move to tilt the glass coin."
+        aria-label="Stylized LIFTAG NFC tag for illustration. The real tag looks different. Move to tilt."
       >
         <TapTokenCore />
         <figcaption class="scan-token-caption">
           <span class="scan-token-caption-name protocol">NFC machine tag</span>
-          <span class="scan-token-caption-note protocol">Optional add-on</span>
-          <span class="scan-token-caption-note protocol">(below the QR code sticker)</span>
+          <span class="scan-token-caption-note protocol">Optional add-on · below the QR</span>
+          <span class="scan-token-caption-note protocol">Illustration only · not the real tag</span>
         </figcaption>
       </figure>
 
@@ -676,8 +676,8 @@ onBeforeUnmount(() => {
 .scan-wrap {
   --scan-grid-top: 100px;
   --scan-phone-h: 680px;
-  --scan-token: 280px;
-  --scan-token-lift: 36px;
+  --scan-token: 200px;
+  --scan-token-lift: 24px;
   display: grid;
   grid-template-columns: 1fr 1.1fr;
 }
@@ -712,7 +712,7 @@ onBeforeUnmount(() => {
 .scan-token-caption {
   position: absolute;
   left: 50%;
-  bottom: -40px;
+  bottom: -48px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -921,14 +921,14 @@ onBeforeUnmount(() => {
     grid-row: 3;
     justify-self: center;
     align-self: center;
-    width: min(78vw, 320px);
-    min-height: min(78vw, 320px);
-    margin: 48px auto 8px;
+    width: min(56vw, 220px);
+    min-height: min(56vw, 220px);
+    margin: 48px auto 36px;
     filter: drop-shadow(0 22px 32px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 28px rgba(204, 255, 0, 0.14));
   }
 
   .scan-token-caption {
-    bottom: -38px;
+    bottom: -46px;
   }
 
   .scan-grid-2col {
@@ -1155,8 +1155,8 @@ onBeforeUnmount(() => {
   }
 
   .scan-token-stage {
-    width: min(82vw, 300px);
-    min-height: min(82vw, 300px);
+    width: min(62vw, 200px);
+    min-height: min(62vw, 200px);
     margin-top: 36px;
   }
 
@@ -1188,10 +1188,10 @@ onBeforeUnmount(() => {
   }
 
   :deep(html[data-liftag-short-viewport="true"] .scan-token-stage) {
-    width: min(70vw, 260px);
-    min-height: min(70vw, 260px);
+    width: min(50vw, 180px);
+    min-height: min(50vw, 180px);
     margin-top: 36px;
-    margin-bottom: 4px;
+    margin-bottom: 28px;
   }
 
   :deep(html[data-liftag-short-viewport="true"] .scan-phone-area) {

@@ -2,7 +2,7 @@
 
 Standalone Remotion project. Isolated from the Nuxt app in `new_app/`.
 
-Primary composition `WebsiteRefreshSK`: 1080x1920, 30fps, 300 frames (10.0s), Slovak.
+Primary composition `WebsiteRefreshSK`: 1080x1920, 30fps, 360 frames (12.0s), Slovak.
 English twin: `WebsiteRefresh`. Square: `WebsiteRefreshSquareSK` / `WebsiteRefreshSquare`.
 
 ## Studio
@@ -46,7 +46,7 @@ Stills (QA a single frame):
 pnpm still out/stills/f0016.png --frame=16
 ```
 
-Useful check frames: 16 (charge), 55 (laser), 110 (statement), 190 (phones), 260 (end card).
+Useful check frames: 16 (charge), 55 (laser), 110 (statement), 190 (hero site), 240 (library), 320 (end card).
 
 Outputs land in `out/`. That folder is gitignored.
 
@@ -55,8 +55,8 @@ Caption and cover-frame notes live in `CAPTION.md`.
 ## Instagram export notes
 
 - H.264, `yuv420p`, 1080x1920, 30fps
-- This piece is 10 seconds. Reels allow up to 90 seconds.
-- Mute-safe: last 20 frames hold still on `liftag.fit`
+- This piece is 12 seconds. Reels allow up to 90 seconds.
+- Mute-safe: last 24 frames hold still on `liftag.fit`
 - Keep must-read type inside x=80-960, y=280-1480 (IG chrome + like column)
 
 Render config in `remotion.config.ts` already sets H.264 / yuv420p / CRF 18.

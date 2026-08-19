@@ -24,6 +24,9 @@ const prVisible     = ref(false)
 const prBurstKey    = ref(0)
 const hiwIntroEntered = ref(false)
 const reduceMotion  = ref(false)
+const panelEls      = ref<HTMLElement[]>([])
+const mobilePanelsIn = reactive([false, false, false])
+const logSetHint    = ref(false)
 
 const prBurstParticles = [
   { x: '-42px', y: '-34px', rotate: '-22deg', delay: '0ms', color: 'var(--liftag-primary)' },
@@ -43,7 +46,11 @@ let scrollCleanup: (() => void) | null = null
 let mobileQueryCleanup: (() => void) | null = null
 let intersectionObs: IntersectionObserver | null = null
 let motionQueryCleanup: (() => void) | null = null
+let mobilePanelObs: IntersectionObserver | null = null
 let mobileHIWLayout = false
+let mobileLogRaf = 0
+let mobileChartRaf = 0
+let logHintTimer = 0
 
 // Marker flash timestamps (non-reactive, mutated in rAF)
 const MARKER_COUNT = 10
@@ -514,7 +521,10 @@ function updateHIW(p: number, sectionRect?: DOMRect, scrollChanged = true) {
   chartDisplayP += (targetChartP - chartDisplayP) * 0.14
   if (Math.abs(targetChartP - chartDisplayP) < 0.001) chartDisplayP = targetChartP
   const easedP = Math.max(0, Math.min(1, chartDisplayP))
+  applyChartProgress(easedP)
+}
 
+function applyChartProgress(easedP: number) {
   const dot = chartDot.value
   const clipRect = chartClipRect.value
   if (dot && easedP > 0.001) {
@@ -534,10 +544,120 @@ function updateHIW(p: number, sectionRect?: DOMRect, scrollChanged = true) {
     if (clipRect) clipRect.setAttribute('width', '0')
   }
 
-  // Stats count up
   if (statStrength.value) statStrength.value.textContent = `+${Math.round(easedP * 32)}%`
   if (statSessions.value) statSessions.value.textContent = String(Math.round(easedP * 24))
   if (statPRs.value)      statPRs.value.textContent      = String(Math.round(easedP * 7))
+}
+
+function applyMobileLog(p: number) {
+  if (weightEl.value) weightEl.value.textContent = String(Math.round(p * 85))
+  if (repsEl.value) repsEl.value.textContent = String(Math.round(p * 9))
+}
+
+function cancelMobileDemos() {
+  cancelAnimationFrame(mobileLogRaf)
+  cancelAnimationFrame(mobileChartRaf)
+  mobileLogRaf = 0
+  mobileChartRaf = 0
+  if (logHintTimer) {
+    clearTimeout(logHintTimer)
+    logHintTimer = 0
+  }
+}
+
+function unbindMobilePanelObserver() {
+  mobilePanelObs?.disconnect()
+  mobilePanelObs = null
+}
+
+function bindMobilePanelObserver() {
+  unbindMobilePanelObserver()
+  const panels = [panelEls.value[0], panelEls.value[1], panelEls.value[2]].filter(
+    (el): el is HTMLElement => Boolean(el),
+  )
+  if (!panels.length) return
+
+  mobilePanelObs = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting || !mobileHIWLayout) return
+        const raw = (entry.target as HTMLElement).dataset.hiwPanel
+        const index = raw == null ? Number.NaN : Number(raw)
+        if (!Number.isInteger(index)) return
+        playMobilePanel(index)
+        mobilePanelObs?.unobserve(entry.target)
+      })
+    },
+    { threshold: 0.32, rootMargin: '0px 0px -10% 0px' },
+  )
+  panels.forEach((el) => mobilePanelObs!.observe(el))
+}
+
+function playMobilePanel(index: number) {
+  if (index < 0 || index > 2 || mobilePanelsIn[index]) return
+  mobilePanelsIn[index] = true
+
+  if (reduceMotion.value) {
+    if (index === 1) applyMobileLog(1)
+    if (index === 2) applyChartProgress(1)
+    return
+  }
+
+  if (index === 1) animateMobileLog()
+  if (index === 2) animateMobileChart()
+}
+
+function animateMobileLog() {
+  cancelAnimationFrame(mobileLogRaf)
+  const duration = 700
+  const t0 = performance.now()
+  const tick = (now: number) => {
+    if (!mobileHIWLayout) return
+    const k = Math.min(1, (now - t0) / duration)
+    const eased = 1 - Math.pow(1 - k, 3)
+    applyMobileLog(eased)
+    if (k < 1) {
+      mobileLogRaf = requestAnimationFrame(tick)
+      return
+    }
+    applyMobileLog(1)
+    if (prVisible.value) return
+    logSetHint.value = true
+    if (logHintTimer) clearTimeout(logHintTimer)
+    logHintTimer = window.setTimeout(() => {
+      logSetHint.value = false
+      logHintTimer = 0
+    }, 1400)
+  }
+  mobileLogRaf = requestAnimationFrame(tick)
+}
+
+function animateMobileChart() {
+  cancelAnimationFrame(mobileChartRaf)
+  const duration = 900
+  const t0 = performance.now()
+  const tick = (now: number) => {
+    if (!mobileHIWLayout) return
+    const k = Math.min(1, (now - t0) / duration)
+    const eased = 1 - Math.pow(1 - k, 3)
+    applyChartProgress(eased)
+    if (k < 1) mobileChartRaf = requestAnimationFrame(tick)
+    else applyChartProgress(1)
+  }
+  mobileChartRaf = requestAnimationFrame(tick)
+}
+
+function resetMobileDemoValues() {
+  applyMobileLog(0)
+  applyChartProgress(0)
+}
+
+function snapMobileDemosFinal() {
+  mobilePanelsIn[0] = true
+  mobilePanelsIn[1] = true
+  mobilePanelsIn[2] = true
+  applyMobileLog(1)
+  applyChartProgress(1)
 }
 
 function updateScanHoverEffect(p: number) {
@@ -746,10 +866,12 @@ function handleHIWChartMove(event: PointerEvent) {
     ?? (event.currentTarget as HTMLElement).getBoundingClientRect()
   chartHovered = true
   chartHoverTargetP = Math.max(0.02, Math.min(1, (event.clientX - rect.left) / Math.max(1, rect.width)))
+  if (mobileHIWLayout && mobilePanelsIn[2]) applyChartProgress(chartHoverTargetP)
 }
 
 function resetHIWChartHover() {
   chartHovered = false
+  if (mobileHIWLayout && mobilePanelsIn[2]) applyChartProgress(1)
 }
 
 // ─── rAF loop ─────────────────────────────────────────────────────────────
@@ -785,22 +907,27 @@ function scrollToPanel(i: number) {
   window.scrollTo({ top: sectionTop + targetP * sectionH, behavior: 'smooth' })
 }
 
-function showStaticMobileState() {
-  hiwIntroEntered.value = true
+function activateMobileHIWLayout() {
+  hiwIntroEntered.value = false
+  prVisible.value = false
+  logSetHint.value = false
   resetMobileScanEffect()
-
   trackRef.value?.style.removeProperty('transform')
-  if (weightEl.value) weightEl.value.textContent = '85'
-  if (repsEl.value) repsEl.value.textContent = '9'
-  if (chartClipRect.value) chartClipRect.value.setAttribute('width', '290')
-  if (chartDot.value) {
-    chartDot.value.setAttribute('cx', '280')
-    chartDot.value.setAttribute('cy', '20')
-    chartDot.value.setAttribute('opacity', '1')
+  cancelMobileDemos()
+  unbindMobilePanelObserver()
+
+  if (reduceMotion.value) {
+    snapMobileDemosFinal()
+    return
   }
-  if (statStrength.value) statStrength.value.textContent = '+32%'
-  if (statSessions.value) statSessions.value.textContent = '24'
-  if (statPRs.value) statPRs.value.textContent = '7'
+
+  mobilePanelsIn[0] = false
+  mobilePanelsIn[1] = false
+  mobilePanelsIn[2] = false
+  resetMobileDemoValues()
+  void nextTick().then(() => {
+    if (mobileHIWLayout && !reduceMotion.value) bindMobilePanelObserver()
+  })
 }
 
 // ─── LOG SET button ───────────────────────────────────────────────────────
@@ -809,6 +936,7 @@ function handleLogSet() {
   const r = repsEl.value
   if (w?.textContent !== '85' || r?.textContent !== '9') return
 
+  logSetHint.value = false
   prVisible.value = true
   prBurstKey.value += 1
 }
@@ -830,10 +958,7 @@ onMounted(async () => {
   }
   const onResize = () => {
     glassPaneRectDirty = true
-    if (mobileHIWLayout) {
-      showStaticMobileState()
-      return
-    }
+    if (mobileHIWLayout) return
     sizeHIWCurveCanvas()
     refreshScanRects()
     updateHIW(getHIWProgress())
@@ -854,9 +979,17 @@ onMounted(async () => {
   syncReduceMotion()
   const onMotionChange = () => {
     syncReduceMotion()
+    if (mobileHIWLayout) {
+      if (reduceMotion.value) {
+        cancelMobileDemos()
+        unbindMobilePanelObserver()
+        snapMobileDemosFinal()
+      }
+      return
+    }
     // The curve's flash/label state is wall-clock driven; without a forced pass
     // the idle-frame skip would hold the previous rendering until the next scroll.
-    if (!mobileHIWLayout) updateHIW(getHIWProgress())
+    updateHIW(getHIWProgress())
   }
   motionMedia.addEventListener('change', onMotionChange)
   motionQueryCleanup = () => motionMedia.removeEventListener('change', onMotionChange)
@@ -868,10 +1001,16 @@ onMounted(async () => {
     cancelAnimationFrame(rafId)
 
     if (mobileHIWLayout) {
-      showStaticMobileState()
+      activateMobileHIWLayout()
       return
     }
 
+    unbindMobilePanelObserver()
+    cancelMobileDemos()
+    logSetHint.value = false
+    mobilePanelsIn[0] = false
+    mobilePanelsIn[1] = false
+    mobilePanelsIn[2] = false
     scanEffectResetForMobile = false
     sizeHIWCurveCanvas()
     refreshScanRects()
@@ -904,6 +1043,8 @@ onBeforeUnmount(() => {
   glassPaneEl = null
   glassPaneRect = null
   glassPaneAreaRect = null
+  unbindMobilePanelObserver()
+  cancelMobileDemos()
   intersectionObs?.disconnect()
   resizeCleanup?.()
   scrollCleanup?.()
@@ -930,7 +1071,15 @@ onBeforeUnmount(() => {
       <div ref="trackRef" class="hiw-track">
 
         <!-- Panel 01: Scan -->
-        <div class="hiw-panel">
+        <div
+          class="hiw-panel"
+          :class="{ 'hiw-panel-in': mobilePanelsIn[0] }"
+          data-hiw-panel="0"
+          :ref="(el) => { if (el) panelEls[0] = el as HTMLElement }"
+        >
+          <div class="hiw-spine-col" aria-hidden="true">
+            <span class="hiw-spine-node"></span>
+          </div>
           <div class="hiw-panel-number">01</div>
           <div
             ref="scanPane"
@@ -967,7 +1116,15 @@ onBeforeUnmount(() => {
         </div>
 
         <!-- Panel 02: Track -->
-        <div class="hiw-panel">
+        <div
+          class="hiw-panel"
+          :class="{ 'hiw-panel-in': mobilePanelsIn[1] }"
+          data-hiw-panel="1"
+          :ref="(el) => { if (el) panelEls[1] = el as HTMLElement }"
+        >
+          <div class="hiw-spine-col" aria-hidden="true">
+            <span class="hiw-spine-node"></span>
+          </div>
           <div class="hiw-panel-number">02</div>
           <div
             class="hiw-glass-pane"
@@ -996,7 +1153,7 @@ onBeforeUnmount(() => {
                 </div>
                 <div
                   class="hiw-log-btn"
-                  :class="{ 'is-confirmed': prVisible }"
+                  :class="{ 'is-confirmed': prVisible, 'hiw-log-hint': logSetHint && !prVisible }"
                   role="button"
                   tabindex="0"
                   aria-label="Log set"
@@ -1042,7 +1199,15 @@ onBeforeUnmount(() => {
         </div>
 
         <!-- Panel 03: Progress -->
-        <div class="hiw-panel">
+        <div
+          class="hiw-panel"
+          :class="{ 'hiw-panel-in': mobilePanelsIn[2] }"
+          data-hiw-panel="2"
+          :ref="(el) => { if (el) panelEls[2] = el as HTMLElement }"
+        >
+          <div class="hiw-spine-col" aria-hidden="true">
+            <span class="hiw-spine-node"></span>
+          </div>
           <div class="hiw-panel-number">03</div>
           <div
             class="hiw-glass-pane"
@@ -1263,6 +1428,10 @@ onBeforeUnmount(() => {
   justify-content: center;
   padding: 0 60px;
   position: relative;
+}
+
+.hiw-spine-col {
+  display: none;
 }
 
 .hiw-panel-number {
@@ -1767,6 +1936,9 @@ onBeforeUnmount(() => {
     0 0 34px rgba(204, 255, 0, 0.16);
   animation: logSetButtonPop 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+.hiw-log-btn.hiw-log-hint:not(.is-confirmed) {
+  animation: hiwLogHintPulse 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
 
 .hiw-log-pr-stage {
   position: relative;
@@ -1850,6 +2022,20 @@ onBeforeUnmount(() => {
   0% { transform: scale(0.96); }
   42% { transform: scale(1.05); }
   100% { transform: scale(1); }
+}
+
+@keyframes hiwLogHintPulse {
+  0% {
+    box-shadow: 0 0 0 rgba(204, 255, 0, 0);
+  }
+  38% {
+    box-shadow:
+      0 0 18px rgba(204, 255, 0, 0.48),
+      0 0 34px rgba(204, 255, 0, 0.16);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(204, 255, 0, 0);
+  }
 }
 
 @keyframes prValuePop {
@@ -2064,8 +2250,8 @@ circle[fill="var(--liftag-primary)"] {
     transform: none !important;
   }
   .hiw-scan-line {
-    animation: hiwMobileScanSweep 1.85s cubic-bezier(0.45, 0, 0.2, 1) infinite;
-    will-change: transform;
+    animation: none;
+    will-change: auto;
   }
   .hiw-qr-icon {
     transform: none !important;
@@ -2097,6 +2283,187 @@ circle[fill="var(--liftag-primary)"] {
   .hiw-dots {
     display: none;
   }
+
+  /* Protocol spine: one loop, not three loose cards. */
+  .hiw-spine-col {
+    display: block;
+    position: absolute;
+    left: 6px;
+    top: 0;
+    bottom: -28px;
+    width: 12px;
+    z-index: 4;
+    pointer-events: none;
+  }
+  .hiw-panel:last-child .hiw-spine-col {
+    bottom: 0;
+  }
+  .hiw-spine-col::before,
+  .hiw-spine-col::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(-50%);
+  }
+  .hiw-spine-col::before {
+    top: 0;
+    height: 50%;
+  }
+  .hiw-spine-col::after {
+    top: 50%;
+    bottom: 0;
+  }
+  .hiw-panel:first-child .hiw-spine-col::before {
+    content: none;
+  }
+  .hiw-panel:last-child .hiw-spine-col::after {
+    content: none;
+  }
+  .hiw-panel.hiw-panel-in .hiw-spine-col::before,
+  .hiw-panel.hiw-panel-in .hiw-spine-col::after {
+    background: rgba(204, 255, 0, 0.28);
+  }
+  .hiw-spine-node {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    transform: translate(-50%, -50%) scale(0.72);
+    transition:
+      background 420ms cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 420ms cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 420ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .hiw-panel.hiw-panel-in .hiw-spine-node {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow);
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  /* Per-card entrance. Neutralize desktop first/last-child scroll choreography. */
+  .hiw-panel .hiw-panel-number,
+  .hiw-panel:first-child .hiw-panel-number,
+  .hiw-panel:last-child .hiw-panel-number {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.92);
+    filter: none;
+    transition:
+      opacity 620ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 720ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .hiw-panel.hiw-panel-in .hiw-panel-number,
+  .hiw-panel.hiw-panel-in:first-child .hiw-panel-number,
+  .hiw-panel.hiw-panel-in:last-child .hiw-panel-number {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .hiw-panel .hiw-glass-pane,
+  .hiw-panel:first-child .hiw-glass-pane,
+  .hiw-panel:last-child .hiw-glass-pane {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0) scale(0.97);
+    filter: none;
+    transition:
+      opacity 680ms cubic-bezier(0.16, 1, 0.3, 1) 80ms,
+      transform 760ms cubic-bezier(0.16, 1, 0.3, 1) 80ms,
+      box-shadow 0.4s ease,
+      border-color 0.4s ease;
+  }
+  .hiw-panel.hiw-panel-in .hiw-glass-pane,
+  .hiw-panel.hiw-panel-in:first-child .hiw-glass-pane,
+  .hiw-panel.hiw-panel-in:last-child .hiw-glass-pane {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+
+  .hiw-panel .hiw-panel-visual,
+  .hiw-panel .hiw-panel-title,
+  .hiw-panel .hiw-panel-desc,
+  .hiw-panel .hiw-panel-line,
+  .hiw-panel:first-child .hiw-panel-visual,
+  .hiw-panel:first-child .hiw-panel-title,
+  .hiw-panel:first-child .hiw-panel-desc,
+  .hiw-panel:first-child .hiw-panel-line,
+  .hiw-panel:last-child .hiw-panel-visual,
+  .hiw-panel:last-child .hiw-panel-title,
+  .hiw-panel:last-child .hiw-panel-desc,
+  .hiw-panel:last-child .hiw-panel-line {
+    opacity: 0;
+    transform: translateY(16px);
+    filter: none;
+    transition:
+      opacity 640ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .hiw-panel.hiw-panel-in .hiw-panel-visual,
+  .hiw-panel.hiw-panel-in:first-child .hiw-panel-visual,
+  .hiw-panel.hiw-panel-in:last-child .hiw-panel-visual {
+    opacity: 1;
+    transform: none;
+    transition-delay: 200ms;
+  }
+  .hiw-panel.hiw-panel-in .hiw-panel-title,
+  .hiw-panel.hiw-panel-in:first-child .hiw-panel-title,
+  .hiw-panel.hiw-panel-in:last-child .hiw-panel-title {
+    opacity: 1;
+    transform: none;
+    transition-delay: 320ms;
+  }
+  .hiw-panel.hiw-panel-in .hiw-panel-desc,
+  .hiw-panel.hiw-panel-in:first-child .hiw-panel-desc,
+  .hiw-panel.hiw-panel-in:last-child .hiw-panel-desc {
+    opacity: 1;
+    transform: none;
+    transition-delay: 400ms;
+  }
+  .hiw-panel.hiw-panel-in .hiw-panel-line,
+  .hiw-panel.hiw-panel-in:first-child .hiw-panel-line,
+  .hiw-panel.hiw-panel-in:last-child .hiw-panel-line {
+    opacity: 1;
+    transform: none;
+    transition-delay: 480ms;
+  }
+
+  .hiw-panel:first-child .hiw-scan-corners span {
+    opacity: 0;
+    transform: scale(0.62);
+  }
+  .hiw-panel.hiw-panel-in:first-child .hiw-scan-corners span {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .hiw-panel.hiw-panel-in:first-child .hiw-scan-corners span:nth-child(1) {
+    transition-delay: 460ms;
+  }
+  .hiw-panel.hiw-panel-in:first-child .hiw-scan-corners span:nth-child(2) {
+    transition-delay: 520ms;
+  }
+  .hiw-panel.hiw-panel-in:first-child .hiw-scan-corners span:nth-child(3) {
+    transition-delay: 580ms;
+  }
+  .hiw-panel.hiw-panel-in:first-child .hiw-scan-corners span:nth-child(4) {
+    transition-delay: 640ms;
+  }
+  .hiw-panel:first-child .hiw-scan-line {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  .hiw-panel.hiw-panel-in:first-child .hiw-scan-line {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+    animation: hiwMobileScanSweep 1.85s cubic-bezier(0.45, 0, 0.2, 1) 720ms infinite;
+    will-change: transform;
+  }
 }
 
 /* ── Reduced motion ───────────────────────────────────── */
@@ -2106,8 +2473,59 @@ circle[fill="var(--liftag-primary)"] {
 @media (prefers-reduced-motion: reduce) {
   .hiw-bg-glow,
   .hiw-scan-line,
-  .hiw-log-pb {
+  .hiw-log-pb,
+  .hiw-log-btn.hiw-log-hint {
     animation: none;
+  }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .hiw-panel .hiw-panel-number,
+  .hiw-panel:first-child .hiw-panel-number,
+  .hiw-panel:last-child .hiw-panel-number,
+  .hiw-panel.hiw-panel-in .hiw-panel-number,
+  .hiw-panel .hiw-glass-pane,
+  .hiw-panel:first-child .hiw-glass-pane,
+  .hiw-panel:last-child .hiw-glass-pane,
+  .hiw-panel.hiw-panel-in .hiw-glass-pane,
+  .hiw-panel .hiw-panel-visual,
+  .hiw-panel .hiw-panel-title,
+  .hiw-panel .hiw-panel-desc,
+  .hiw-panel .hiw-panel-line,
+  .hiw-panel:first-child .hiw-panel-visual,
+  .hiw-panel:first-child .hiw-panel-title,
+  .hiw-panel:first-child .hiw-panel-desc,
+  .hiw-panel:first-child .hiw-panel-line,
+  .hiw-panel:last-child .hiw-panel-visual,
+  .hiw-panel:last-child .hiw-panel-title,
+  .hiw-panel:last-child .hiw-panel-desc,
+  .hiw-panel:last-child .hiw-panel-line,
+  .hiw-panel.hiw-panel-in .hiw-panel-visual,
+  .hiw-panel.hiw-panel-in .hiw-panel-title,
+  .hiw-panel.hiw-panel-in .hiw-panel-desc,
+  .hiw-panel.hiw-panel-in .hiw-panel-line,
+  .hiw-panel:first-child .hiw-scan-corners span,
+  .hiw-panel.hiw-panel-in:first-child .hiw-scan-corners span,
+  .hiw-panel:first-child .hiw-scan-line,
+  .hiw-panel.hiw-panel-in:first-child .hiw-scan-line,
+  .hiw-spine-node,
+  .hiw-panel.hiw-panel-in .hiw-spine-node {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    clip-path: none;
+    animation: none;
+    transition: none;
+  }
+  .hiw-panel .hiw-panel-number,
+  .hiw-panel:first-child .hiw-panel-number,
+  .hiw-panel:last-child .hiw-panel-number,
+  .hiw-panel.hiw-panel-in .hiw-panel-number {
+    transform: translate(-50%, -50%);
+  }
+  .hiw-spine-node,
+  .hiw-panel.hiw-panel-in .hiw-spine-node {
+    transform: translate(-50%, -50%);
   }
 }
 </style>

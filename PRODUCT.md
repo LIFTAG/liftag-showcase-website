@@ -36,14 +36,13 @@ LIFTAG positions itself like a high-end SaaS product built for real training. Th
 3. **Scan** - Make the QR machine scan use case instantly understandable.
 4. **How It Works** - Show the loop: scan, track sets, watch progress compound.
 5. **Lifters** - Position LIFTAG as the serious training companion.
-6. **Library** - The public web catalog: search every lift, filter by muscle, open setup pages.
-7. **Progress** - Make analytics and PR tracking feel tangible.
-8. **App Merge** - Show LIFTAG replacing scattered gym apps and tools.
-9. **Trainers** - Expand into coaching profiles and trainer discovery.
-10. **Gyms** - Explain the free QR kit, verified gym presence, and member value.
-11. **Dashboard** - Signal professional-grade analytics and operational visibility.
-12. **Roadmap** - Show the platform vision beyond launch features.
-13. **Final CTA** - Bring the promise back to action: track real progress, scan real machines, skip the spreadsheet.
+6. **Progress** - Make analytics and PR tracking feel tangible.
+7. **App Merge** - Show LIFTAG replacing scattered gym apps and tools.
+8. **Trainers** - Expand into coaching profiles and trainer discovery.
+9. **Gyms** - Explain the free QR kit, verified gym presence, and member value.
+10. **Dashboard** - Signal professional-grade analytics and operational visibility.
+11. **Roadmap** - Show the platform vision beyond launch features.
+12. **Final CTA** - Bring the promise back to action: track real progress, scan real machines, skip the spreadsheet.
 
 ### Design Principles
 

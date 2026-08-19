@@ -61,7 +61,6 @@ onNuxtReady(() => {
     <LazyScanSection :hydrate-on-visible="{ rootMargin: '800px' }" />
     <LazyHowItWorks :hydrate-on-visible="{ rootMargin: '800px' }" />
     <LazyLiftersSection :hydrate-on-visible="{ rootMargin: '800px' }" />
-    <LazyCatalogSection :hydrate-on-visible="{ rootMargin: '800px' }" />
     <LazyProgressSection :hydrate-on-visible="{ rootMargin: '800px' }" />
     <LazyAppMergeSection :hydrate-on-visible="{ rootMargin: '800px' }" />
     <LazyGymsSection :hydrate-on-visible="{ rootMargin: '800px' }" />
