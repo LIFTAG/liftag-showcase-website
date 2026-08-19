@@ -240,7 +240,7 @@ useLiftagStructuredData([
           <span class="ex-stats-dot" aria-hidden="true">·</span>
           <NuxtLink to="/machines" class="ex-stats-link">{{ index.machines.length }} machines</NuxtLink>
           <span class="ex-stats-dot" aria-hidden="true">·</span>
-          <NuxtLink to="/muscles" class="ex-stats-link">{{ index.categories.length }} muscle groups</NuxtLink>
+          <span>{{ index.categories.length }} muscle groups</span>
         </p>
 
       </header>

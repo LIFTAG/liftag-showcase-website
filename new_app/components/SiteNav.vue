@@ -14,6 +14,7 @@ let nativeScrollTimeline = false
 const sectionHref = (hash: string) => route.path === '/' ? hash : `/${hash}`
 
 const navLinks = computed<[string, string][]>(() => [
+  ['Demo', sectionHref('#demo')],
   ['Lifters', sectionHref('#lifters')],
   ['Gyms', sectionHref('#gyms')],
   ['Trainers', sectionHref('#trainers')],
@@ -572,6 +573,7 @@ onBeforeUnmount(() => {
 .nav-link:nth-child(3) { animation-delay: 500ms; }
 .nav-link:nth-child(4) { animation-delay: 570ms; }
 .nav-link:nth-child(5) { animation-delay: 640ms; }
+.nav-link:nth-child(6) { animation-delay: 710ms; }
 
 .nav-link::after {
   content: '';

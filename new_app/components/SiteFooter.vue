@@ -7,6 +7,7 @@ interface FooterLink {
 }
 
 const productLinks: FooterLink[] = [
+  { label: 'Demo', href: '/#demo' },
   { label: 'Exercise Library', href: '/exercises' },
   { label: 'Machine Catalog', href: '/machines' },
   { label: 'For Lifters', href: '/for-lifters' },

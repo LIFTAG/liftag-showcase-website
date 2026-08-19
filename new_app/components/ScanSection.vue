@@ -260,6 +260,9 @@ onBeforeUnmount(() => {
       overflow: 'hidden',
     }"
   >
+    <!-- Shareable alias for https://liftag.fit/#demo. Kept as a separate node
+         so existing #scan links keep working. -->
+    <span id="demo" class="scan-hash-alias" aria-hidden="true" />
     <!-- Lime atmosphere glow -->
     <div
       :style="{
@@ -550,6 +553,16 @@ onBeforeUnmount(() => {
 .scan-section {
   --scan-mx: 0;
   --scan-my: 0;
+}
+
+.scan-hash-alias {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 .scan-step-row {
