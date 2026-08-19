@@ -34,7 +34,7 @@ const faqs = [
   },
   {
     question: 'Is LIFTAG actually better than Strong or Hevy?',
-    answer: 'It depends on the lifter. For pure set logging on a familiar exercise list, Strong and Hevy are excellent and Hevy has a more developed social layer. For lifters who want the right exercise opened directly from a gym machine and a tracker built around the gym itself, LIFTAG is currently the only app in this category. The honest call: pick the one that fits how you actually train.',
+    answer: 'It depends on the lifter. For pure set logging on a familiar exercise list, Strong and Hevy are excellent and Hevy has a more developed social layer. For machine-tag platforms (scan or tap the equipment itself), LIFTAG is the free-core pick; Liftd, ScanLiftLog, and RepTag are the other dedicated options. That comparison lives on the QR and NFC gym tracking page. The honest call: pick the one that fits how you actually train.',
   },
   {
     question: 'Why should I trust this comparison if LIFTAG wrote it?',
@@ -44,7 +44,12 @@ const faqs = [
 
 useLiftagStructuredData([
   liftagOrganization,
-  liftagMobileApplication,
+  liftagSoftwareApplication,
+  liftagWebPage({
+    path,
+    name: 'Best workout tracking app in 2026',
+    description,
+  }),
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
     { name: 'Best workout tracking app', path },
@@ -271,6 +276,7 @@ const cards: AppCard[] = [
           <div class="bwt-actions">
             <a href="/" class="btn-primary">See LIFTAG</a>
             <a href="#table" class="btn-ghost">Jump to comparison</a>
+            <a href="/best-gym-qr-nfc-app" class="btn-ghost">Gym QR + NFC platforms</a>
           </div>
 
           <div class="bwt-tldr">
@@ -384,6 +390,28 @@ const cards: AppCard[] = [
         </div>
       </section>
 
+      <section class="bwt-library">
+        <div class="container">
+          <p class="protocol bwt-eyebrow">Exercise library</p>
+          <h2 class="bwt-section-title">The lifts you will actually log</h2>
+          <p class="bwt-section-lead">
+            LIFTAG’s public library is the same catalog the app logs against. Start with the big three, or browse by muscle.
+          </p>
+          <ul class="bwt-library-list">
+            <li><a href="/exercises/barbell-bench-press">Barbell bench press</a></li>
+            <li><a href="/exercises/barbell-back-squat">Barbell back squat</a></li>
+            <li><a href="/exercises/conventional-deadlift">Conventional deadlift</a></li>
+            <li><a href="/exercises/pull-up">Pull-up</a></li>
+            <li><a href="/muscles/chest">Chest exercises</a></li>
+            <li><a href="/muscles">All muscle groups</a></li>
+          </ul>
+          <p class="bwt-section-lead">
+            Also: <a href="/guides/best-free-workout-tracker">best free workout tracker</a>
+            and <a href="/guides/strong-vs-hevy-vs-liftag">Strong vs Hevy vs LIFTAG</a>.
+          </p>
+        </div>
+      </section>
+
       <section class="bwt-faq">
         <div class="container">
           <p class="protocol bwt-eyebrow">Common questions</p>
@@ -489,10 +517,33 @@ const cards: AppCard[] = [
 .bwt-table-section,
 .bwt-cards-section,
 .bwt-when,
+.bwt-library,
 .bwt-faq,
 .bwt-method {
   padding: 64px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.bwt-library-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bwt-library-list a {
+  color: var(--liftag-primary);
+  text-decoration: none;
+}
+
+.bwt-library-list a:hover {
+  text-decoration: underline;
+}
+
+.bwt-library .bwt-section-lead a {
+  color: var(--liftag-primary);
 }
 
 .bwt-section-title {

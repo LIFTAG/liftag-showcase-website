@@ -28,6 +28,10 @@ useLiftagStructuredData([
       question: 'What does LIFTAG cost for gyms?',
       answer: 'Tags, listing, machine setup, and the core dashboard are free forever. Advanced business tools are optional.',
     },
+    {
+      question: 'How does LIFTAG compare to Liftd, ScanLiftLog, or RepTag?',
+      answer: 'LIFTAG is the only one of those four that ships NFC and QR tags and keeps core gym tools free. Liftd leads on paid owner-side churn analytics. ScanLiftLog is the no-app option. RepTag is strongest for DACH studios that want trainer chat and a digital floor plan. The full table is on the QR and NFC comparison page.',
+    },
   ]),
 ])
 
@@ -65,6 +69,10 @@ const faqs = [
     question: 'What does LIFTAG cost for gyms?',
     answer: 'Tags, listing, machine setup, and the core dashboard are free forever. Advanced business tools are optional.',
   },
+  {
+    question: 'How does LIFTAG compare to Liftd, ScanLiftLog, or RepTag?',
+    answer: 'LIFTAG is the only one of those four that ships NFC and QR tags and keeps core gym tools free. Liftd leads on paid owner-side churn analytics. ScanLiftLog is the no-app option. RepTag is strongest for DACH studios that want trainer chat and a digital floor plan. The full table is on the QR and NFC comparison page.',
+  },
 ]
 </script>
 
@@ -78,5 +86,60 @@ const faqs = [
     :faqs="faqs"
     cta-label="See gym flow"
     cta-href="/#gyms"
-  />
+  >
+    <div class="container gym-compare">
+      <p class="protocol gym-compare-eyebrow">THE DECIDER</p>
+      <h2 class="gym-compare-title">The only free core in the category.</h2>
+      <p class="gym-compare-lead">
+        Liftd, ScanLiftLog, and RepTag all charge the gym a monthly platform fee. LIFTAG ships NFC and QR tags and keeps listing, machine setup, and the core dashboard free.
+      </p>
+      <GymQrComparisonTable
+        kind="matrix"
+        variant="gym"
+        label="Gym cost and tag comparison"
+      />
+      <a href="/best-gym-qr-nfc-app" class="gym-compare-more">Full QR + NFC comparison</a>
+    </div>
+  </SeoLandingPage>
 </template>
+
+<style scoped>
+.gym-compare-eyebrow {
+  color: var(--liftag-primary);
+  margin: 0 0 18px;
+}
+
+.gym-compare-title {
+  margin: 0;
+  font-family: var(--liftag-font-headline);
+  font-size: clamp(32px, 4.4vw, 56px);
+  font-style: italic;
+  text-transform: uppercase;
+  line-height: 0.98;
+}
+
+.gym-compare-lead {
+  max-width: 760px;
+  margin: 16px 0 36px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 1.65;
+}
+
+.gym-compare-more {
+  display: inline-block;
+  margin-top: 22px;
+  color: var(--liftag-primary);
+  font-family: var(--liftag-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.gym-compare-more:hover {
+  color: #fff;
+}
+</style>

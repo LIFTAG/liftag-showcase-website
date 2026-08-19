@@ -26,7 +26,7 @@ const faqs = [
   },
   {
     question: 'Which workout apps support tap and scan at gym machines?',
-    answer: 'LIFTAG is the workout and set tracking app built specifically around NFC and QR machine tags. Strong, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor, and Fitbod are all general-purpose loggers without a machine-level integration. A handful of equipment manufacturers also use proprietary QR codes for their own apps, but those typically only cover their brand of machines.',
+    answer: 'The dedicated machine-tag category is still small. LIFTAG ships NFC and QR tags and keeps core gym tools free. Liftd is QR-primary with optional NFC and paid gym analytics. ScanLiftLog is QR-only in the browser. RepTag is QR-first with a strong web fallback and a paid studio platform. Strong, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor, and Fitbod are general-purpose loggers without machine tags.',
   },
   {
     question: 'How does a gym install LIFTAG NFC and QR machine tags?',
@@ -61,12 +61,12 @@ useLiftagStructuredData([
     <main>
       <article class="guide">
         <header class="guide-hero container">
-          <p class="protocol guide-eyebrow"><a href="/guides">GUIDES</a> · MACHINE SYNC · UPDATED MAY 2026</p>
+          <p class="protocol guide-eyebrow"><a href="/guides">GUIDES</a> · MACHINE SYNC · UPDATED AUG 2026</p>
           <h1 class="display guide-title" v-html="title"></h1>
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
             <a href="/" class="btn-primary">See the LIFTAG flow</a>
-            <a href="/for-gyms" class="btn-ghost">For gym owners</a>
+            <a href="/best-gym-qr-nfc-app" class="btn-ghost">Compare gym QR platforms</a>
           </div>
         </header>
 
@@ -140,24 +140,38 @@ useLiftagStructuredData([
           <section>
             <h2>Which apps support QR and NFC gym tracking</h2>
             <p>
-              The honest landscape as of 2026:
+              The honest landscape as of August 2026. True “scan the machine, log the set” platforms are still a small category. Most gym QR codes are still for check-in, class booking, or a form video.
             </p>
             <h3>LIFTAG</h3>
             <p>
-              The workout and set tracking app built specifically around NFC and QR machine tags. Free on iOS and Android. Each tag opens the exact exercise for that machine with gym-specific setup video and the set logger one screen away. Trainer, gym, and lifter surfaces all live in the same platform.
+              Dual NFC + QR tags shipped free. Core gym tools free forever. Gym-filmed trainer videos on the exact machines. Full standalone tracker with PRs, estimated 1RM, volume trends, and body-part splits. Verified gym discovery map included in the free core.
+            </p>
+            <h3>Liftd</h3>
+            <p>
+              Closest overall competitor, especially for gym owners who will pay for utilization and silent-churn analytics. QR is primary, NFC is supported if the gym supplies tags. Member app is free. Gym pricing starts at $39/mo.
+            </p>
+            <h3>ScanLiftLog</h3>
+            <p>
+              QR labels only. Camera scan opens a browser or home-screen PWA. No account required, history stays on-device by default. Strongest no-app and privacy pitch. Gyms pay $30 to $150/mo by machine count.
+            </p>
+            <h3>RepTag</h3>
+            <p>
+              Strongest in DE / AT / CH. QR on every device, web fallback for cues and videos, optional app for logging. Trainer chat, booking, challenges, and a digital floor plan. 150 €/mo excl. VAT. Currently in pilot.
             </p>
             <h3>Equipment manufacturer apps</h3>
             <p>
-              A handful of equipment brands ship proprietary QR codes that open their own app. These typically cover only their brand of machines and tend not to function as full workout trackers; they are closer to instruction manuals.
+              A handful of equipment brands ship proprietary codes that open their own app. These typically cover only their brand of machines and tend not to function as full workout trackers; they are closer to instruction manuals.
             </p>
             <h3>General-purpose workout trackers</h3>
             <p>
               Strong, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor, and Fitbod are good general-purpose loggers but do not have a machine-level QR or NFC integration. They expect the lifter to find the exercise manually in a list.
             </p>
             <p>
-              If you want to compare the full workout-tracker landscape across machine integration, social features, and pricing, the
+              The head-to-head table for this category lives on the
+              <a href="/best-gym-qr-nfc-app">QR and NFC gym tracking comparison</a>.
+              If you want the broader set-logger landscape (Strong, Hevy, FitNotes, and the rest), use the
               <a href="/best-workout-tracking-app">best workout tracking app</a>
-              page has a head-to-head table.
+              page.
             </p>
           </section>
 

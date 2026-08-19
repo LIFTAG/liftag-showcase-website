@@ -11,10 +11,14 @@ useLiftagSeo({
 
 const route = useRoute()
 
+const muscleQuery = typeof route.query.muscle === 'string' ? route.query.muscle : ''
+if (muscleQuery && isMuscleSlug(muscleQuery)) {
+  await navigateTo(musclePath(muscleQuery), { redirectCode: 301, replace: true })
+}
+
 const { data: index, error, refresh } = await useCatalogIndex()
 
 const query = ref(typeof route.query.q === 'string' ? route.query.q : '')
-const muscle = ref(typeof route.query.muscle === 'string' ? route.query.muscle : '')
 
 // Full-screen search mode, phone breakpoint only. Focusing the field enters
 // it; only the Cancel button, leaving the page, or growing past the phone
@@ -153,10 +157,6 @@ const categoryCounts = computed(() => {
 
 const filtered = computed<CatalogIndexExercise[]>(() => {
   let rows = index.value?.exercises ?? []
-  if (muscle.value) {
-    rows = rows.filter(exercise =>
-      exercise.primaryCategory === muscle.value || exercise.categories.includes(muscle.value))
-  }
   const tokens = normalizeCatalogQuery(query.value).split(/\s+/).filter(Boolean)
   if (tokens.length > 0) {
     rows = rows.filter((exercise) => {
@@ -172,21 +172,16 @@ const visible = computed(() => filtered.value.slice(0, visibleCount.value))
 // Keep filters shareable without asking Vue Router to navigate on every
 // keystroke. A router replace invokes the app's scroll behavior, which can move
 // the focused input while the phone keyboard is opening.
-watch([query, muscle], ([q, m]) => {
+watch(query, (q) => {
   visibleCount.value = PAGE_SIZE
   if (!import.meta.client) return
 
   const url = new URL(window.location.href)
   if (q) url.searchParams.set('q', q)
   else url.searchParams.delete('q')
-  if (m) url.searchParams.set('muscle', m)
-  else url.searchParams.delete('muscle')
+  url.searchParams.delete('muscle')
   window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`)
 })
-
-function toggleMuscle(slug: string) {
-  muscle.value = muscle.value === slug ? '' : slug
-}
 
 // Exercise photos come from the catalog CDN; open the connection before the
 // first tile image is requested.
@@ -208,19 +203,24 @@ useHead(() => ({
 
 useLiftagStructuredData([
   liftagOrganization,
-  liftagMobileApplication,
+  liftagSoftwareApplication,
+  liftagWebPage({
+    path: '/exercises',
+    name: 'LIFTAG Exercise Library',
+    description,
+    type: 'CollectionPage',
+  }),
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
     { name: 'Exercise Library', path: '/exercises' },
   ]),
-  {
-    '@type': 'CollectionPage',
-    '@id': 'https://liftag.fit/exercises#page',
-    'name': 'LIFTAG Exercise Library',
-    'url': 'https://liftag.fit/exercises',
-    description,
-    'isPartOf': { '@id': 'https://liftag.fit/#website' },
-  },
+  liftagItemList({
+    name: 'Exercise muscle groups',
+    items: MUSCLE_HUBS.map(hub => ({
+      name: hub.name,
+      url: `https://liftag.fit${musclePath(hub.slug)}`,
+    })),
+  }),
 ])
 </script>
 
@@ -240,7 +240,7 @@ useLiftagStructuredData([
           <span class="ex-stats-dot" aria-hidden="true">·</span>
           <NuxtLink to="/machines" class="ex-stats-link">{{ index.machines.length }} machines</NuxtLink>
           <span class="ex-stats-dot" aria-hidden="true">·</span>
-          <span>{{ index.categories.length }} muscles</span>
+          <NuxtLink to="/muscles" class="ex-stats-link">{{ index.categories.length }} muscle groups</NuxtLink>
         </p>
 
       </header>
@@ -266,26 +266,22 @@ useLiftagStructuredData([
               </button>
             </div>
 
-            <nav v-if="categories.length" class="ex-chips" aria-label="Filter by muscle group">
-              <button
-                type="button"
-                class="ex-chip"
-                :class="{ 'is-active': muscle === '' }"
-                @click="muscle = ''"
+            <nav v-if="categories.length" class="ex-chips" aria-label="Browse by muscle group">
+              <NuxtLink
+                to="/exercises"
+                class="ex-chip is-active"
               >
                 All
-              </button>
-              <button
+              </NuxtLink>
+              <NuxtLink
                 v-for="category in categories"
                 :key="category.slug"
-                type="button"
+                :to="musclePath(category.slug)"
                 class="ex-chip"
-                :class="{ 'is-active': muscle === category.slug }"
-                @click="toggleMuscle(category.slug)"
               >
                 {{ category.name }}
                 <span class="ex-chip__count">{{ categoryCounts.get(category.slug) ?? 0 }}</span>
-              </button>
+              </NuxtLink>
             </nav>
           </div>
         </div>
@@ -303,7 +299,7 @@ useLiftagStructuredData([
 
         <div v-else-if="index && filtered.length === 0" class="ex-empty">
           <p>No exercises match <strong v-if="query">“{{ query }}”</strong><template v-else>this filter</template>.</p>
-          <button type="button" class="btn-ghost" @click="query = ''; muscle = ''">Clear search</button>
+          <button type="button" class="btn-ghost" @click="query = ''">Clear search</button>
         </div>
 
         <template v-else>
@@ -470,6 +466,7 @@ useLiftagStructuredData([
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.04em;
+  text-decoration: none;
   text-transform: uppercase;
   cursor: pointer;
   transition: border-color 200ms ease, color 200ms ease, background-color 200ms ease;

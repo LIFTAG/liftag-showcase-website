@@ -2,6 +2,12 @@
  * One encode of the screen footage. A list of these is offered to the browser
  * in preference order (modern codec first, H.264 baseline last) and it plays
  * the first entry it can decode.
+ *
+ * Every file behind one of these must be written with `-movflags +faststart`.
+ * With the `moov` index trailing the media data, WebKit has to range-request
+ * the tail before it can decode a single frame and it buffers the file far
+ * less eagerly afterwards - which is what used to strand the scan-flow LOG
+ * slice mid-segment on its first pass.
  */
 export type ScreenVideoSource = {
   src: string
@@ -23,6 +29,15 @@ export type ScreenVideoSegment = {
   start: number
   end: number
   key?: number
+}
+
+export type SegmentPlaybackOptions = {
+  /**
+   * Fired when the active segment stops presenting frames for a watch window,
+   * and again when it recovers. A caller that keeps a still image behind the
+   * element can uncover it on `true` rather than leave a frozen frame on show.
+   */
+  onStarvedChange?: (starved: boolean) => void
 }
 
 function segmentToken(segment: ScreenVideoSegment) {
@@ -79,6 +94,9 @@ type VideoFrameHost = HTMLVideoElement & {
 
 // Numeric so Node tests can drive the controller without a DOM HTMLMediaElement.
 const HAVE_METADATA = 1
+// Below this the element holds nothing decoded past the frame on screen: it is
+// waiting on bytes, not stuck, and resumes by itself once the fetch catches up.
+const HAVE_FUTURE_DATA = 3
 const STALL_WATCH_MS = 320
 const SEEK_FALLBACK_MS = 400
 const MAX_STALL_RETRIES = 2
@@ -96,7 +114,10 @@ const MAX_STALL_RETRIES = 2
  * decoders, so the LOG step stays on the just-scanned QR frame while the
  * loading bar keeps cycling.
  */
-export function createSegmentPlayback(video: HTMLVideoElement) {
+export function createSegmentPlayback(
+  video: HTMLVideoElement,
+  options: SegmentPlaybackOptions = {},
+) {
   const host = video as VideoFrameHost
   const useFrameCallback = typeof host.requestVideoFrameCallback === 'function'
   const canUseRaf = typeof requestAnimationFrame === 'function'
@@ -108,6 +129,7 @@ export function createSegmentPlayback(video: HTMLVideoElement) {
   let disposed = false
   let seekSeq = 0
   let stallRetries = 0
+  let starved = false
   let stallTimer: ReturnType<typeof setTimeout> | null = null
   let seekFallbackTimer: ReturnType<typeof setTimeout> | null = null
   let onSeeked: (() => void) | null = null
@@ -127,6 +149,12 @@ export function createSegmentPlayback(video: HTMLVideoElement) {
       : canUseRaf
         ? requestAnimationFrame(onFrame)
         : setTimeout(onFrame, 16) as unknown as number
+  }
+
+  function setStarved(next: boolean) {
+    if (starved === next || disposed) return
+    starved = next
+    options.onStarvedChange?.(next)
   }
 
   function clearStallWatch() {
@@ -153,6 +181,8 @@ export function createSegmentPlayback(video: HTMLVideoElement) {
 
     if (video.currentTime >= segment.end) {
       clearStallWatch()
+      // Parking on the frozen tail is the point of a segment, not a stall.
+      setStarved(false)
       video.pause()
       return
     }
@@ -160,11 +190,11 @@ export function createSegmentPlayback(video: HTMLVideoElement) {
     scheduleFrame()
   }
 
-  // Re-arms itself on every healthy check, so a segment is watched for its
-  // whole run rather than only the first STALL_WATCH_MS after play() starts.
-  // A cold cache can play a step or more off its own buffer and only stall
-  // once that runs dry mid-segment - a one-shot check right after play()
-  // misses that and leaves the segment frozen with no further recovery.
+  // Re-arms itself on every check, so a segment is watched for its whole run
+  // rather than only the first STALL_WATCH_MS after play() starts. A cold
+  // cache can play a step or more off its own buffer and only stall once that
+  // runs dry mid-segment - a one-shot check right after play() misses that and
+  // leaves the segment frozen with no further recovery.
   function armStallWatch() {
     clearStallWatch()
     if (!segment || disposed) return
@@ -177,18 +207,48 @@ export function createSegmentPlayback(video: HTMLVideoElement) {
       if (video.currentTime >= expected.end) return
 
       if (!video.paused && video.currentTime > origin + 0.02) {
+        stallRetries = 0
+        setStarved(false)
         armStallWatch()
         return
       }
 
-      if (stallRetries >= MAX_STALL_RETRIES) return
+      setStarved(true)
 
-      stallRetries += 1
-      const nudge = Math.min(
-        expected.end - SEGMENT_CUT_EPSILON,
-        Math.max(origin, expected.start) + 1 / 60,
-      )
-      seekThenPlay(nudge)
+      // Waiting on bytes rather than wedged. Seeking here would throw the
+      // in-flight fetch away, and scan-flow carries keyframes only at 0s and
+      // 3.2s, so the seek would also force a decode from the top of the slice
+      // - the recovery costing more than the stall. Keep watching instead;
+      // `canplay` restarts playback the moment the data lands.
+      if (video.readyState < HAVE_FUTURE_DATA) {
+        armStallWatch()
+        return
+      }
+
+      // Decoded frames are available and the clock still is not moving, so the
+      // pipeline itself is wedged. Re-kick it without touching currentTime
+      // first, and only pay for a seek if that does not take.
+      if (stallRetries < MAX_STALL_RETRIES) {
+        stallRetries += 1
+
+        if (stallRetries === 1) {
+          video.pause()
+          play()
+          return
+        }
+
+        const nudge = Math.min(
+          expected.end - SEGMENT_CUT_EPSILON,
+          Math.max(origin, expected.start) + 1 / 60,
+        )
+        seekThenPlay(nudge)
+        return
+      }
+
+      // Budget spent. Stay armed rather than giving up for the rest of the
+      // segment: an element that frees itself later still gets noticed, and
+      // the starved flag keeps the still underneath on show until it does.
+      armStallWatch()
     }, STALL_WATCH_MS)
   }
 
@@ -249,6 +309,7 @@ export function createSegmentPlayback(video: HTMLVideoElement) {
       clearSeekWait()
       clearStallWatch()
       cancelFrame()
+      setStarved(false)
       video.pause()
       return
     }
@@ -261,6 +322,7 @@ export function createSegmentPlayback(video: HTMLVideoElement) {
     if (token !== armed) {
       armed = token
       stallRetries = 0
+      setStarved(false)
       if (shouldSeekToSegmentStart(video.currentTime, segment.start, video.ended)) {
         seekThenPlay(segment.start)
       } else {
@@ -279,8 +341,23 @@ export function createSegmentPlayback(video: HTMLVideoElement) {
     clearStallWatch()
     cancelFrame()
   }
+  // WebKit can pause an element outright when a fetch runs dry and leave it
+  // paused once the bytes land. Routing back through sync() rather than
+  // play() keeps the arming rules - a slice that has not been seeked to its
+  // start yet still gets seeked, and a parked tail stays parked.
+  const onCanPlay = () => {
+    // A seek we started is still settling; its own handler resumes playback.
+    if (onSeeked) return
+    sync()
+  }
+  const onPlaying = () => {
+    stallRetries = 0
+    setStarved(false)
+  }
   video.addEventListener('loadedmetadata', onLoadedMetadata)
   video.addEventListener('ended', onEnded)
+  video.addEventListener('canplay', onCanPlay)
+  video.addEventListener('playing', onPlaying)
 
   return {
     setSegment(next: ScreenVideoSegment | null | undefined) {
@@ -299,6 +376,8 @@ export function createSegmentPlayback(video: HTMLVideoElement) {
       cancelFrame()
       video.removeEventListener('loadedmetadata', onLoadedMetadata)
       video.removeEventListener('ended', onEnded)
+      video.removeEventListener('canplay', onCanPlay)
+      video.removeEventListener('playing', onPlaying)
       video.pause()
     },
   }

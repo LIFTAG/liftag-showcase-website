@@ -26,7 +26,7 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
-      title: 'LIFTAG | NFC and QR Workout Tracking for Gyms',
+      title: 'LIFTAG | Workout Tracker with NFC and QR Gym Tags',
       htmlAttrs: { lang: 'en' },
       meta: [
         { charset: 'utf-8' },
@@ -43,7 +43,7 @@ export default defineNuxtConfig({
         // engines that don't (iOS Safari today) ignore the token and keep the
         // --liftag-vv-top fallback published by SiteNav.
         { name: 'viewport', content: 'width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content' },
-        { name: 'description', content: 'Tap NFC tags or scan QR codes on gym machines. LIFTAG opens exercise setup videos, set logging, rest timers, and progress tracking.' },
+        { name: 'description', content: 'LIFTAG is a free workout tracker. Tap NFC tags or scan QR codes on gym machines to open setup videos, log sets, run rest timers, and track progress.' },
         { name: 'theme-color', content: '#000000' },
         { name: 'format-detection', content: 'telephone=no' },
         { name: 'apple-itunes-app', content: 'app-id=6761140080' },
@@ -99,6 +99,7 @@ export default defineNuxtConfig({
     '/become-a-coach': { prerender: true },
     '/qr-nfc-gym-tags': { prerender: true },
     '/best-workout-tracking-app': { prerender: true },
+    '/best-gym-qr-nfc-app': { prerender: true },
     '/guides': { prerender: true },
     '/guides/**': { prerender: true },
     '/contact/**': { prerender: true },
@@ -112,6 +113,8 @@ export default defineNuxtConfig({
     '/exercises/**': { isr: 3600 },
     '/machines': { isr: 3600 },
     '/machines/**': { isr: 3600 },
+    '/muscles': { isr: 3600 },
+    '/muscles/**': { isr: 3600 },
     '/api/catalog/**': {
       headers: {
         'cache-control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',

@@ -77,7 +77,7 @@ useLiftagStructuredData([
               You can train hard for years without ever writing anything down. People do it. They also tend to stop progressing somewhere around year three because their training drifts and they cannot see it. Tracking is the cheapest insurance policy in lifting.
             </p>
             <p>
-              The point of tracking is not nostalgia. It is signal. You log enough sets in enough weeks and you start to see whether your bench press is actually going up or has been stuck at the same top set for five months. You catch that you keep sandbagging back day, or that you only ever squat heavy when you are well-rested. The data is boring on any given day and brutal across a quarter.
+              The point of tracking is not nostalgia. It is signal. You log enough sets in enough weeks and you start to see whether your <a href="/exercises/barbell-bench-press">bench press</a> is actually going up or has been stuck at the same top set for five months. You catch that you keep sandbagging back day, or that you only ever <a href="/exercises/barbell-back-squat">squat</a> heavy when you are well-rested. The data is boring on any given day and brutal across a quarter.
             </p>
             <p>
               Lifters who track consistently tend to:

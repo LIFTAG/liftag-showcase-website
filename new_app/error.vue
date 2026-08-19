@@ -29,6 +29,7 @@ const links = [
   { href: '/for-lifters', label: 'For lifters' },
   { href: '/guides', label: 'Guides' },
   { href: '/best-workout-tracking-app', label: 'Compare trackers' },
+  { href: '/best-gym-qr-nfc-app', label: 'Compare gym QR platforms' },
   { href: '/contact/support', label: 'Support' },
 ]
 </script>

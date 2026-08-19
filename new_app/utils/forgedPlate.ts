@@ -104,6 +104,25 @@ export function platePointerTilt(mx: number, my: number) {
   }
 }
 
+/**
+ * Phone breakpoint has no hovering pointer, so the plate would otherwise sit
+ * dead at PLATE_REST_TILT until the press-settle sway kicks in. Scroll takes
+ * over the same role the pointer plays on desktop, at a fraction of the
+ * excursion (~2.9deg / ~5.2deg vs. the pointer's ~8.6deg / ~14.9deg) so the
+ * plate flexes as it crosses the viewport instead of swinging like a card.
+ */
+export const PLATE_SCROLL_ROT_X_SPAN = 0.05
+export const PLATE_SCROLL_ROT_Y_SPAN = 0.09
+
+export function plateScrollTilt(progress: number) {
+  const p = clamp01(progress)
+  const t = (p - 0.5) * 2
+  return {
+    rotX: PLATE_REST_TILT.rotX + t * PLATE_SCROLL_ROT_X_SPAN,
+    rotY: PLATE_REST_TILT.rotY + t * PLATE_SCROLL_ROT_Y_SPAN,
+  }
+}
+
 export function plateIdleSway(elapsedMs: number, live: number) {
   const t = elapsedMs * 0.001
   const amount = clamp01(live)

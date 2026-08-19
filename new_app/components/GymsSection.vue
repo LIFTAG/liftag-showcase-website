@@ -432,6 +432,13 @@ onBeforeUnmount(() => {
               >
                 Partner with us
               </a>
+              <a
+                href="/best-gym-qr-nfc-app"
+                class="btn-ghost"
+                style="padding: 14px 24px; font-size: 12px; text-decoration: none; display: inline-block;"
+              >
+                Compare gym QR platforms
+              </a>
             </div>
           </div>
         </div>

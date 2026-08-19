@@ -33,13 +33,16 @@ import { useSharedMouse } from '../composables/useSharedMouse'
 import {
   PLATE_CAM_Z,
   PLATE_FOCAL,
+  PLATE_PHONE_MAX_WIDTH,
   PLATE_REST_TILT,
   plateBufferScale,
   plateIdleSway,
   platePhaseAt,
   platePointerTilt,
   platePresentIntervalMs,
+  plateScrollTilt,
 } from '../utils/forgedPlate'
+import { holoViewportProgress } from '../utils/holoFoil'
 
 const CAM_Z = PLATE_CAM_Z
 const FOCAL = PLATE_FOCAL
@@ -484,14 +487,21 @@ function applyTilt(now: number, live: number) {
     return
   }
 
-  const mouse = useSharedMouse().latest
-  const pointer = platePointerTilt(
-    mouse.hasPointer ? mouse.mx : 0,
-    mouse.hasPointer ? mouse.my : 0,
-  )
+  let base: { rotX: number, rotY: number }
+  if (window.innerWidth <= PLATE_PHONE_MAX_WIDTH) {
+    const rect = mount.value?.getBoundingClientRect()
+    const progress = rect ? holoViewportProgress(rect.top, rect.height, window.innerHeight) : 0.5
+    base = plateScrollTilt(progress)
+  } else {
+    const mouse = useSharedMouse().latest
+    base = platePointerTilt(
+      mouse.hasPointer ? mouse.mx : 0,
+      mouse.hasPointer ? mouse.my : 0,
+    )
+  }
   const sway = plateIdleSway(now - startedAt, live)
-  targetRotX = pointer.rotX + sway.rotX
-  targetRotY = pointer.rotY + sway.rotY
+  targetRotX = base.rotX + sway.rotX
+  targetRotY = base.rotY + sway.rotY
   rotX += (targetRotX - rotX) * 0.07
   rotY += (targetRotY - rotY) * 0.07
 }
@@ -715,7 +725,7 @@ onMounted(() => {
       intersecting = Boolean(entry?.isIntersecting)
       syncVisibility()
     },
-    { rootMargin: '80px 0px', threshold: 0.12 },
+    { rootMargin: '480px 0px', threshold: 0.12 },
   )
   io.observe(host)
 

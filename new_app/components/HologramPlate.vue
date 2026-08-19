@@ -186,17 +186,38 @@ onBeforeUnmount(() => {
         <div class="holo-mark" aria-hidden="true">LIFTAG</div>
 
         <div class="holo-latent">
-          <img
-            class="holo-qr"
-            :src="qrSrc"
-            :srcset="qrSrcset"
-            sizes="132px"
-            alt=""
-            width="160"
-            height="160"
-            loading="lazy"
-            decoding="async"
-          >
+          <div class="holo-qr-stack">
+            <div
+              v-for="tone in ['red', 'cyan']"
+              :key="tone"
+              class="holo-qr-tint"
+              :class="`holo-qr-tint--${tone}`"
+              aria-hidden="true"
+            >
+              <img
+                class="holo-qr-src"
+                :src="qrSrc"
+                :srcset="qrSrcset"
+                sizes="132px"
+                alt=""
+                width="160"
+                height="160"
+                loading="lazy"
+                decoding="async"
+              >
+            </div>
+            <img
+              class="holo-qr-src holo-qr-face"
+              :src="qrSrc"
+              :srcset="qrSrcset"
+              sizes="132px"
+              alt=""
+              width="160"
+              height="160"
+              loading="lazy"
+              decoding="async"
+            >
+          </div>
         </div>
 
         <div class="holo-spec" aria-hidden="true" />
@@ -416,21 +437,52 @@ onBeforeUnmount(() => {
   opacity: var(--holo-face);
 }
 
-.holo-qr {
+.holo-qr-stack {
+  position: relative;
   width: 58%;
   max-width: 104px;
-  height: auto;
   aspect-ratio: 1;
-  object-fit: contain;
   transform: translate3d(
     calc(var(--holo-ax) * -5px),
     calc(var(--holo-ay) * -4px),
     0
   );
-  filter:
-    invert(1) contrast(1.22)
-    drop-shadow(calc(var(--holo-ax) * -2px) 0 0 rgb(255, 45, 85))
-    drop-shadow(calc(var(--holo-ax) * 2px) 0 0 rgb(150, 255, 225));
+}
+
+.holo-qr-tint,
+.holo-qr-face {
+  position: absolute;
+  inset: 0;
+}
+
+.holo-qr-src {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: invert(1) contrast(1.22);
+}
+
+.holo-qr-tint {
+  isolation: isolate;
+  mix-blend-mode: screen;
+}
+
+.holo-qr-tint img {
+  mix-blend-mode: multiply;
+}
+
+.holo-qr-tint--red {
+  background: rgb(255, 45, 85);
+  transform: translate3d(calc(var(--holo-ax) * -2px), 0, 0);
+}
+
+.holo-qr-tint--cyan {
+  background: rgb(150, 255, 225);
+  transform: translate3d(calc(var(--holo-ax) * 2px), 0, 0);
+}
+
+.holo-qr-face {
   mix-blend-mode: screen;
 }
 
@@ -543,7 +595,8 @@ onBeforeUnmount(() => {
   .holo-shadow,
   .holo-mark,
   .holo-latent,
-  .holo-qr,
+  .holo-qr-stack,
+  .holo-qr-tint,
   .holo-name,
   .holo-name-layer {
     transform: none;

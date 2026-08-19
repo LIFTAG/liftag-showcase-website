@@ -32,11 +32,35 @@ const guides = [
     title: 'Best workout tracking app',
     body: 'An honest head-to-head of LIFTAG against Strong, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor, and Fitbod.',
   },
+  {
+    href: '/best-gym-qr-nfc-app',
+    eyebrow: 'COMPARISON',
+    title: 'Best gym QR and NFC app',
+    body: 'LIFTAG versus Liftd, ScanLiftLog, and RepTag: free tags, gym cost, NFC, and who actually wins each row.',
+  },
+  {
+    href: '/guides/best-free-workout-tracker',
+    eyebrow: 'COMPARISON',
+    title: 'Best free workout tracker',
+    body: 'What you actually get without paying on LIFTAG, Strong, Hevy, and FitNotes — and where each free tier stops.',
+  },
+  {
+    href: '/guides/strong-vs-hevy-vs-liftag',
+    eyebrow: 'COMPARISON',
+    title: 'Strong vs Hevy vs LIFTAG',
+    body: 'The comparison people type: logging speed, free tiers, social features, and gym machine tags.',
+  },
+  {
+    href: '/guides/nfc-tags-for-gym-equipment',
+    eyebrow: 'GYM TECH',
+    title: 'NFC tags for gym equipment',
+    body: 'What to put on each machine, where to stick it, and why a dual NFC + QR plate beats QR alone.',
+  },
 ]
 
 useLiftagStructuredData([
   liftagOrganization,
-  liftagMobileApplication,
+  liftagSoftwareApplication,
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
     { name: 'Guides', path: '/guides' },

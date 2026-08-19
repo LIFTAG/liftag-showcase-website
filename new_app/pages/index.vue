@@ -2,18 +2,24 @@
 import { useReveal } from '~/composables/useReveal'
 import { homeFaqs } from '~/utils/homeFaqs'
 
-const description = 'Tap NFC tags or scan QR codes on gym machines with LIFTAG. Open exercise setup videos, log sets, run rest timers, and track workout progress from one app.'
+const description = 'LIFTAG is a free workout tracker for serious lifters. Tap NFC tags or scan QR codes on gym machines to open setup videos, log sets, run rest timers, and track progress.'
 
 useLiftagSeo({
-  title: 'LIFTAG | NFC and QR Workout Tracking for Gyms',
+  title: 'LIFTAG | Workout Tracker with NFC and QR Gym Tags',
   description,
   path: '/',
 })
 
 useLiftagStructuredData([
   liftagOrganization,
-  liftagMobileApplication,
+  liftagSoftwareApplication,
   liftagWebSite,
+  liftagWebPage({
+    path: '/',
+    name: 'LIFTAG workout tracker',
+    description,
+    aboutId: APP_ID,
+  }),
   liftagFAQPage(homeFaqs),
 ])
 

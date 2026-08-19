@@ -90,6 +90,11 @@ const isNearViewport = ref(false)
 const reduceMotion = ref(false)
 const staticVideoRef = ref<HTMLVideoElement | null>(null)
 const staticVideoOnScreen = ref(false)
+// The element is transparent until it has a decoded frame, and goes
+// transparent again whenever the segment controller reports it starved, so the
+// still screenshot underneath covers both instead of a blank or frozen video.
+const staticVideoHasFrame = ref(false)
+const staticVideoStarved = ref(false)
 const staticDisplaySrc = ref(preferredScreenSrc(props.src))
 
 const render3dPhone = computed(() => (
@@ -115,6 +120,7 @@ const phoneClasses = computed(() => ({
   'phone--static-mockup': renderStaticPhone.value,
   'phone--static-frameless': renderStaticPhone.value && !props.staticBezel,
 }))
+const staticVideoVisible = computed(() => staticVideoHasFrame.value && !staticVideoStarved.value)
 const staticTransitionName = computed(() => {
   if (!props.screenTransition) return 'phone-static-fade'
   return `phone-static-${props.screenTransitionDirection}`
@@ -133,6 +139,7 @@ let nearViewportObserver: IntersectionObserver | null = null
 let onScreenObserver: IntersectionObserver | null = null
 let onDocumentVisibilityChange: (() => void) | null = null
 let staticPlayback: ReturnType<typeof createSegmentPlayback> | null = null
+let detachStaticVideo: (() => void) | null = null
 let staticScreenRequestId = 0
 
 function queueStaticScreen(src: string | undefined) {
@@ -162,9 +169,22 @@ watch(() => props.src, (src) => {
 watch(staticVideoRef, (video) => {
   staticPlayback?.dispose()
   staticPlayback = null
+  detachStaticVideo?.()
+  detachStaticVideo = null
+  staticVideoHasFrame.value = false
+  staticVideoStarved.value = false
   if (!video) return
 
-  staticPlayback = createSegmentPlayback(video)
+  const onLoadedData = () => { staticVideoHasFrame.value = true }
+  // HAVE_CURRENT_DATA: a source that was already decoded (a remount over a warm
+  // cache) may never fire `loadeddata` again after this listener attaches.
+  if (video.readyState >= 2) staticVideoHasFrame.value = true
+  video.addEventListener('loadeddata', onLoadedData)
+  detachStaticVideo = () => video.removeEventListener('loadeddata', onLoadedData)
+
+  staticPlayback = createSegmentPlayback(video, {
+    onStarvedChange: (starved) => { staticVideoStarved.value = starved },
+  })
   staticPlayback.setSegment(props.videoSegment)
   staticPlayback.setActive(staticVideoOnScreen.value && !document.hidden)
 })
@@ -259,6 +279,8 @@ onBeforeUnmount(() => {
   onScreenObserver?.disconnect()
   staticPlayback?.dispose()
   staticPlayback = null
+  detachStaticVideo?.()
+  detachStaticVideo = null
   if (mobileMql && onMobileChange) {
     mobileMql.removeEventListener('change', onMobileChange)
   }
@@ -341,6 +363,7 @@ onBeforeUnmount(() => {
         v-if="renderStaticVideo"
         ref="staticVideoRef"
         class="phone-static-screen phone-static-video"
+        :class="{ 'phone-static-video--hidden': !staticVideoVisible }"
         muted
         playsinline
         webkit-playsinline
@@ -373,10 +396,18 @@ onBeforeUnmount(() => {
 }
 
 /* Sits over the still screenshot, which stays mounted underneath as the poster
-   for the window before the first decoded frame. */
+   - for the window before the first decoded frame, and again any time the
+   footage runs dry mid-segment. Uncovering it there is what keeps a starved
+   decoder from showing as a frozen frame. */
 .phone-static-video {
   z-index: 2;
   object-fit: cover;
+  opacity: 1;
+  transition: opacity 180ms ease;
+}
+
+.phone-static-video--hidden {
+  opacity: 0;
 }
 
 .phone-3d-stage {
@@ -511,6 +542,10 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .phone-static-video {
+    transition: none;
+  }
+
   .phone-3d-placeholder,
   .phone-3d-placeholder--hidden,
   .phone-3d-renderer {

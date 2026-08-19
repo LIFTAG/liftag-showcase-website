@@ -206,18 +206,17 @@ useHead(() => ({
 
 useLiftagStructuredData([
   liftagOrganization,
+  liftagSoftwareApplication,
+  liftagWebPage({
+    path: '/machines',
+    name: 'LIFTAG Machine Catalog',
+    description,
+    type: 'CollectionPage',
+  }),
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
     { name: 'Machines', path: '/machines' },
   ]),
-  {
-    '@type': 'CollectionPage',
-    '@id': 'https://liftag.fit/machines#page',
-    'name': 'LIFTAG Machine Catalog',
-    'url': 'https://liftag.fit/machines',
-    description,
-    'isPartOf': { '@id': 'https://liftag.fit/#website' },
-  },
 ])
 </script>
 

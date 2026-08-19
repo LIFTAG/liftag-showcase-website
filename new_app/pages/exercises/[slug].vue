@@ -18,6 +18,8 @@ if (exercise.value.slug && exercise.value.slug !== param) {
 
 const name = computed(() => exercise.value?.name ?? '')
 const canonicalSlug = computed(() => exercise.value?.slug ?? param)
+const overlay = computed(() => exerciseOverlay(canonicalSlug.value))
+const path = computed(() => `/exercises/${canonicalSlug.value}`)
 
 const videoUrl = computed(() => preferredCatalogVideoUrl(exercise.value?.videos ?? []))
 
@@ -26,7 +28,7 @@ const secondaryMuscles = computed(() => {
   return (exercise.value?.categories ?? []).filter(category => category.slug !== primarySlug)
 })
 
-const movementLabel = computed(() => {
+const movementKind = computed(() => {
   if (exercise.value?.isCompound === true) return 'Compound'
   if (exercise.value?.isCompound === false) return 'Isolation'
   return null
@@ -45,57 +47,169 @@ const loggingLabel = computed(() => {
 
 const machines = computed(() => exercise.value?.machines ?? [])
 
-// Related lifts from the shared search index (same primary muscle).
+const steps = computed(() => {
+  if (overlay.value?.steps?.length) return overlay.value.steps
+  return descriptionToHowToSteps(exercise.value?.description)
+})
+
+const overview = computed(() => {
+  const description = exercise.value?.description?.trim()
+  if (!description) return null
+  if (overlay.value?.steps?.length) return description
+  const leftover = splitSentences(description).filter(sentence => !steps.value.includes(sentence))
+  return leftover.length ? leftover.join(' ') : null
+})
+
+const faqs = computed(() => {
+  const generated = defaultExerciseFaqs({
+    name: name.value,
+    primaryMuscle: exercise.value?.primaryCategory?.name,
+    secondaryMuscles: secondaryMuscles.value.map(muscle => muscle.name),
+    machines: machines.value.map(machine => machine.name),
+    loggingLabel: loggingLabel.value || null,
+  })
+  const extra = overlay.value?.faqs ?? []
+  const seen = new Set(extra.map(item => item.question.toLowerCase()))
+  return [...extra, ...generated.filter(item => !seen.has(item.question.toLowerCase()))]
+})
+
+// Related lifts: overlay order first, then same primary muscle.
 const { data: index } = await useCatalogIndex()
 const related = computed(() => {
+  const rows = index.value?.exercises ?? []
+  const currentId = exercise.value?.id
+  const bySlug = new Map(rows.map(row => [row.slug, row]))
+  const picked: typeof rows = []
+  const seen = new Set<string>()
+
+  for (const slug of overlay.value?.relatedSlugs ?? []) {
+    const row = bySlug.get(slug)
+    if (!row || row.id === currentId || seen.has(row.id)) continue
+    picked.push(row)
+    seen.add(row.id)
+  }
+
   const primary = exercise.value?.primaryCategory?.slug
-  if (!primary || !index.value) return []
-  return index.value.exercises
-    .filter(row => row.primaryCategory === primary && row.id !== exercise.value?.id)
-    .slice(0, 4)
+  if (primary) {
+    for (const row of rows) {
+      if (picked.length >= 8) break
+      if (row.id === currentId || seen.has(row.id)) continue
+      if (row.primaryCategory !== primary) continue
+      picked.push(row)
+      seen.add(row.id)
+    }
+  }
+
+  return picked.slice(0, 8)
 })
 
-const pageDescription = computed(() => {
-  const raw = exercise.value?.description
-    ?? `${name.value}: setup, instruction video, and muscles worked, from the LIFTAG exercise library.`
-  return raw.length > 155 ? `${raw.slice(0, 152).trimEnd()}…` : raw
-})
+const pageDescription = computed(() => exerciseMetaDescription({
+  name: name.value,
+  overlay: overlay.value?.metaDescription,
+  description: exercise.value?.description,
+  isCompound: exercise.value?.isCompound,
+  primaryMuscle: exercise.value?.primaryCategory?.name,
+}))
+
+const imageAlt = computed(() => exerciseImageAlt({
+  name: name.value,
+  primaryMuscle: exercise.value?.primaryCategory?.name,
+  isCompound: exercise.value?.isCompound,
+}))
+
+const muscleHubSlug = computed(() => exercise.value?.primaryCategory?.slug ?? null)
+const muscleHubName = computed(() => exercise.value?.primaryCategory?.name ?? null)
 
 useLiftagSeo({
-  title: `${name.value} | Muscles Worked, Setup & Video | LIFTAG`,
+  title: overlay.value?.title ?? exerciseTitle(name.value),
   description: pageDescription.value,
-  path: `/exercises/${canonicalSlug.value}`,
+  path: path.value,
   ...(exercise.value?.imageUrl ? { image: exercise.value.imageUrl } : {}),
 })
 
-const structuredData: Record<string, unknown>[] = [
-  liftagOrganization,
-  liftagBreadcrumbs([
+const imageObject = computed(() => exercise.value?.imageUrl
+  ? liftagImageObject({
+      url: exercise.value.imageUrl,
+      name: imageAlt.value,
+      caption: imageAlt.value,
+      description: pageDescription.value,
+    })
+  : null)
+
+const structuredData = computed(() => {
+  const crumbs = [
     { name: 'LIFTAG', path: '/' },
     { name: 'Exercise Library', path: '/exercises' },
-    ...(exercise.value?.primaryCategory
-      ? [{
-          name: exercise.value.primaryCategory.name,
-          path: `/exercises?muscle=${exercise.value.primaryCategory.slug}`,
-        }]
-      : []),
-    { name: name.value, path: `/exercises/${canonicalSlug.value}` },
-  ]),
-]
+  ]
+  if (muscleHubSlug.value && muscleHubName.value) {
+    crumbs.push({ name: muscleHubName.value, path: musclePath(muscleHubSlug.value) })
+  }
+  crumbs.push({ name: name.value, path: path.value })
 
-if (videoUrl.value && exercise.value) {
-  structuredData.push({
-    '@type': 'VideoObject',
-    'name': `${name.value} instructions`,
-    'description': pageDescription.value,
-    'thumbnailUrl': exercise.value.imageUrl ?? 'https://liftag.fit/og-image.jpg',
-    'contentUrl': videoUrl.value,
-    'uploadDate': exercise.value.createdAt,
-    'publisher': { '@id': 'https://liftag.fit/#organization' },
-  })
-}
+  const graph: Record<string, unknown>[] = [
+    liftagOrganization,
+    liftagSoftwareApplication,
+    liftagWebPage({
+      path: path.value,
+      name: name.value,
+      description: pageDescription.value,
+      image: exercise.value?.imageUrl ?? undefined,
+      aboutId: `https://liftag.fit${path.value}#exercise`,
+      primaryImage: imageObject.value ?? undefined,
+    }),
+    liftagBreadcrumbs(crumbs),
+    liftagPhysicalActivity({
+      name: name.value,
+      description: pageDescription.value,
+      path: path.value,
+      image: exercise.value?.imageUrl,
+      category: muscleHubName.value,
+      muscles: [
+        exercise.value?.primaryCategory?.name,
+        ...secondaryMuscles.value.map(muscle => muscle.name),
+      ].filter((item): item is string => Boolean(item)),
+    }),
+  ]
 
-useLiftagStructuredData(structuredData)
+  if (imageObject.value) graph.push(imageObject.value)
+
+  if (videoUrl.value && exercise.value) {
+    graph.push(liftagVideoObject({
+      name: `${name.value} instructions`,
+      description: pageDescription.value,
+      contentUrl: videoUrl.value,
+      thumbnailUrl: exercise.value.imageUrl ?? 'https://liftag.fit/og-image.jpg',
+      uploadDate: exercise.value.createdAt,
+    }))
+  }
+
+  if (steps.value.length) {
+    graph.push(liftagHowTo({
+      name: `How to do ${name.value}`,
+      description: pageDescription.value,
+      steps: steps.value,
+      image: exercise.value?.imageUrl ?? undefined,
+      videoUrl: videoUrl.value,
+      path: path.value,
+    }))
+  }
+
+  if (faqs.value.length) graph.push(liftagFAQPage(faqs.value))
+
+  if (related.value.length) {
+    graph.push(liftagItemList({
+      name: `Related ${muscleHubName.value ?? ''} exercises`.replace(/\s+/g, ' ').trim(),
+      items: related.value.map(row => ({
+        name: row.name,
+        url: `https://liftag.fit/exercises/${row.slug}`,
+      })),
+    }))
+  }
+
+  return graph
+})
+
+useLiftagStructuredData(structuredData.value)
 
 const heroPlaying = ref(false)
 </script>
@@ -108,7 +222,7 @@ const heroPlaying = ref(false)
         <span class="ex-crumb-sep" aria-hidden="true">/</span>
         <NuxtLink
           v-if="exercise.primaryCategory"
-          :to="`/exercises?muscle=${exercise.primaryCategory.slug}`"
+          :to="musclePath(exercise.primaryCategory.slug)"
           class="protocol ex-crumb"
         >
           {{ exercise.primaryCategory.name }}
@@ -120,7 +234,7 @@ const heroPlaying = ref(false)
           <CatalogVideoPlayer
             :video-url="videoUrl"
             :poster="exercise.imageUrl"
-            :name="name"
+            :name="imageAlt"
             @playing="heroPlaying = $event"
           >
             <template #overlay>
@@ -143,7 +257,7 @@ const heroPlaying = ref(false)
           <h1 class="display ex-name">{{ name }}</h1>
 
           <p class="protocol ex-meta">
-            <template v-if="movementLabel">{{ movementLabel }} · </template>{{ loggingLabel }}
+            <template v-if="movementKind">{{ movementKind }} · </template>{{ loggingLabel }}
           </p>
 
           <CatalogMuscleChips
@@ -152,11 +266,7 @@ const heroPlaying = ref(false)
             :secondary="secondaryMuscles"
           />
 
-          <CatalogExpandableNote
-            v-if="exercise.description"
-            class="ex-description"
-            :text="exercise.description"
-          />
+          <p v-if="overview" class="ex-description">{{ overview }}</p>
 
           <div class="ex-log-panel">
             <p class="protocol ex-log-panel__eyebrow">IN THE APP</p>
@@ -175,7 +285,7 @@ const heroPlaying = ref(false)
                   <img
                     v-if="machine.photoUrl"
                     :src="machine.photoUrl"
-                    alt=""
+                    :alt="`${machine.name} — gym machine for ${name}`"
                     loading="lazy"
                     decoding="async"
                     class="ex-machine-link__img"
@@ -187,6 +297,62 @@ const heroPlaying = ref(false)
           </section>
         </div>
       </div>
+
+      <article class="container ex-article">
+        <section v-if="steps.length" class="ex-block" aria-label="How to perform">
+          <h2 class="protocol ex-section-title">HOW TO DO {{ name.toUpperCase() }}</h2>
+          <ol class="ex-steps">
+            <li v-for="(step, stepIndex) in steps" :key="stepIndex">{{ step }}</li>
+          </ol>
+        </section>
+
+        <section v-if="overlay?.mistakes?.length" class="ex-block">
+          <h2 class="protocol ex-section-title">COMMON MISTAKES</h2>
+          <ul class="ex-prose-list">
+            <li v-for="mistake in overlay.mistakes" :key="mistake.title">
+              <strong>{{ mistake.title }}.</strong>
+              {{ mistake.body }}
+            </li>
+          </ul>
+        </section>
+
+        <section v-if="overlay?.variations?.length" class="ex-block">
+          <h2 class="protocol ex-section-title">VARIATIONS</h2>
+          <ul class="ex-link-list">
+            <li v-for="variation in overlay.variations" :key="variation.slug">
+              <NuxtLink :to="`/exercises/${variation.slug}`">{{ variation.name }}</NuxtLink>
+              — {{ variation.note }}
+            </li>
+          </ul>
+        </section>
+
+        <section v-if="overlay?.progressions?.length" class="ex-block">
+          <h2 class="protocol ex-section-title">PROGRESSIONS</h2>
+          <ol class="ex-steps">
+            <li v-for="(item, itemIndex) in overlay.progressions" :key="itemIndex">{{ item }}</li>
+          </ol>
+        </section>
+
+        <section v-if="overlay?.programming" class="ex-block">
+          <h2 class="protocol ex-section-title">PROGRAMMING NOTES</h2>
+          <p class="ex-prose">{{ overlay.programming }}</p>
+        </section>
+
+        <section v-if="overlay?.equipmentAlternatives?.length" class="ex-block">
+          <h2 class="protocol ex-section-title">EQUIPMENT ALTERNATIVES</h2>
+          <ul class="ex-link-list">
+            <li v-for="item in overlay.equipmentAlternatives" :key="item.slug">
+              <NuxtLink :to="`/exercises/${item.slug}`">{{ item.name }}</NuxtLink>
+              — {{ item.note }}
+            </li>
+          </ul>
+        </section>
+
+        <section v-if="faqs.length" class="ex-block" aria-label="Frequently asked questions">
+          <h2 class="protocol ex-section-title">FREQUENTLY ASKED QUESTIONS</h2>
+          <FaqAccordion class="ex-faq" :items="faqs" id-prefix="ex-faq" />
+        </section>
+      </article>
 
       <section v-if="related.length" class="container ex-related" aria-label="Related exercises">
         <h2 class="protocol ex-section-title">
@@ -367,6 +533,59 @@ const heroPlaying = ref(false)
   gap: 14px;
 }
 
+.ex-article {
+  max-width: 880px;
+  margin-top: 64px;
+}
+
+.ex-block {
+  padding: 28px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ex-block:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.ex-steps,
+.ex-prose-list,
+.ex-link-list {
+  margin: 0;
+  padding: 0 0 0 22px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1.7;
+}
+
+.ex-steps li,
+.ex-prose-list li,
+.ex-link-list li {
+  margin-bottom: 12px;
+}
+
+.ex-prose {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1.7;
+}
+
+.ex-link-list a {
+  color: var(--liftag-primary);
+  text-decoration: none;
+}
+
+.ex-link-list a:hover {
+  text-decoration: underline;
+}
+
+.ex-faq {
+  margin-top: 8px;
+}
+
 @media (max-width: 1024px) {
   .ex-stage {
     gap: clamp(24px, 3.5vw, 36px);
@@ -524,10 +743,15 @@ const heroPlaying = ref(false)
   }
 
   .ex-related,
-  .ex-machines {
+  .ex-machines,
+  .ex-article {
     padding-top: 28px !important;
     padding-bottom: 0 !important;
     overflow: visible !important;
+  }
+
+  .ex-article {
+    margin-top: 12px;
   }
 
   .ex-info > .ex-name {

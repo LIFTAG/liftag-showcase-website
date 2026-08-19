@@ -67,6 +67,10 @@ defineProps<{
         </div>
       </section>
 
+      <div v-if="$slots.default" class="seo-extra">
+        <slot />
+      </div>
+
       <section class="seo-faq">
         <div class="container">
           <p class="protocol seo-eyebrow">Common questions</p>
@@ -169,6 +173,7 @@ defineProps<{
 }
 
 .seo-content,
+.seo-extra,
 .seo-faq {
   padding: 72px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.06);

@@ -3,7 +3,7 @@ import type { CatalogCategoryRef } from '~/types/catalog'
 
 /**
  * Muscle chips with the app's treatment: primary muscle lime-tinted,
- * secondaries muted. Each chip filters the exercise library.
+ * secondaries muted. Each chip opens the muscle hub page.
  */
 const props = defineProps<{
   primary?: CatalogCategoryRef | null
@@ -20,12 +20,12 @@ const props = defineProps<{
     aria-label="Muscles worked"
   >
     <li v-if="primary">
-      <NuxtLink :to="`/exercises?muscle=${primary.slug}`" class="muscle-chip muscle-chip--primary">
+      <NuxtLink :to="musclePath(primary.slug)" class="muscle-chip muscle-chip--primary">
         {{ primary.name }}
       </NuxtLink>
     </li>
     <li v-for="muscle in secondary ?? []" :key="muscle.slug">
-      <NuxtLink :to="`/exercises?muscle=${muscle.slug}`" class="muscle-chip">
+      <NuxtLink :to="musclePath(muscle.slug)" class="muscle-chip">
         {{ muscle.name }}
       </NuxtLink>
     </li>

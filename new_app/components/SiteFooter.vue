@@ -19,12 +19,30 @@ const productLinks: FooterLink[] = [
   { label: 'Support', href: '/contact/support' },
 ]
 
+const libraryLinks: FooterLink[] = [
+  { label: 'All muscles', href: '/muscles' },
+  { label: 'Chest', href: '/muscles/chest' },
+  { label: 'Back', href: '/muscles/back' },
+  { label: 'Shoulders', href: '/muscles/shoulders' },
+  { label: 'Quads', href: '/muscles/quadriceps' },
+  { label: 'Hamstrings', href: '/muscles/hamstrings' },
+  { label: 'Glutes', href: '/muscles/glutes' },
+  { label: 'Abs', href: '/muscles/abs' },
+  { label: 'Bench press', href: '/exercises/barbell-bench-press' },
+  { label: 'Back squat', href: '/exercises/barbell-back-squat' },
+  { label: 'Deadlift', href: '/exercises/conventional-deadlift' },
+]
+
 const guideLinks: FooterLink[] = [
   { label: 'All Guides', href: '/guides' },
   { label: 'Best Workout Tracking App', href: '/best-workout-tracking-app' },
+  { label: 'Best Gym QR + NFC App', href: '/best-gym-qr-nfc-app' },
+  { label: 'Best Free Workout Tracker', href: '/guides/best-free-workout-tracker' },
+  { label: 'Strong vs Hevy vs LIFTAG', href: '/guides/strong-vs-hevy-vs-liftag' },
   { label: 'How to Track Workouts', href: '/guides/how-to-track-workouts' },
   { label: 'Best App for Powerlifting', href: '/guides/best-workout-app-for-powerlifting' },
   { label: 'QR + NFC Gym Tracking', href: '/guides/qr-nfc-gym-tracking' },
+  { label: 'NFC Tags for Gym Equipment', href: '/guides/nfc-tags-for-gym-equipment' },
 ]
 
 const legalLinks: FooterLink[] = [
@@ -68,7 +86,7 @@ const socialLinks = [
 const markWord = 'LIFTAG'
 const outlineFilterId = 'footer-mark-union-outline'
 const route = useRoute()
-const compactHandoff = computed(() => /^\/(?:exercises|machines)(?:\/|$)/.test(route.path))
+const compactHandoff = computed(() => /^\/(?:exercises|machines|muscles)(?:\/|$)/.test(route.path))
 
 const markRef = ref<HTMLElement | null>(null)
 
@@ -164,6 +182,15 @@ onBeforeUnmount(() => {
         <a href="/#all-in-one" class="protocol footer-col-heading footer-heading-link">Product</a>
         <ul class="footer-link-list">
           <li v-for="item in productLinks" :key="item.label">
+            <a :href="item.href" class="footer-link">{{ item.label }}</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <NuxtLink to="/muscles" class="protocol footer-col-heading footer-heading-link">Library</NuxtLink>
+        <ul class="footer-link-list">
+          <li v-for="item in libraryLinks" :key="item.label">
             <a :href="item.href" class="footer-link">{{ item.label }}</a>
           </li>
         </ul>
@@ -363,7 +390,7 @@ onBeforeUnmount(() => {
 
 .footer-grid {
   display: grid;
-  grid-template-columns: minmax(240px, 1.4fr) minmax(150px, 0.7fr) minmax(170px, 0.7fr) minmax(150px, 0.6fr);
+  grid-template-columns: minmax(220px, 1.2fr) minmax(140px, 0.65fr) minmax(140px, 0.65fr) minmax(170px, 0.7fr) minmax(140px, 0.55fr);
   gap: 48px;
   overflow-x: clip;
 }
