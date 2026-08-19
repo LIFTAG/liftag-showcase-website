@@ -79,11 +79,16 @@ let contextBroken = false
 let lastFrame = 0
 let revealLinear = 0
 let everInitialized = false
+// Mirrors Phone3D: the open mobile nav's backdrop blur repaints every
+// underlying frame. Pause the loop; do not dispose, so closing the drawer
+// resumes the same field instead of recompiling shaders.
+let motionHeld = false
 
 let io: IntersectionObserver | null = null
 let resizeObserver: ResizeObserver | null = null
 let resizeTimer: ReturnType<typeof setTimeout> | null = null
 let onVisibility: (() => void) | null = null
+let onNavOpenChange: ((event: Event) => void) | null = null
 let onContextLost: ((e: Event) => void) | null = null
 
 const mouseWorld = new THREE.Vector2(9999, 9999)
@@ -573,7 +578,7 @@ function syncWallUniforms(dt: number, u: THREE.ShaderMaterial['uniforms']) {
 }
 
 function startLoop() {
-  if (running || disposed || document.hidden) return
+  if (running || disposed || document.hidden || motionHeld) return
   running = true
   lastFrame = 0
   rafId = requestAnimationFrame(frame)
@@ -631,6 +636,16 @@ onMounted(() => {
   }
   document.addEventListener('visibilitychange', onVisibility)
 
+  motionHeld = document.documentElement.hasAttribute('data-liftag-nav-open')
+  onNavOpenChange = (event: Event) => {
+    const next = Boolean((event as CustomEvent<{ open?: boolean }>).detail?.open)
+    if (next === motionHeld) return
+    motionHeld = next
+    if (motionHeld) stopLoop()
+    else if (intersecting) startLoop()
+  }
+  window.addEventListener('liftag:nav-open-change', onNavOpenChange)
+
   resizeObserver = new ResizeObserver(() => {
     if (resizeTimer) clearTimeout(resizeTimer)
     resizeTimer = setTimeout(handleResize, 150)
@@ -648,6 +663,10 @@ onBeforeUnmount(() => {
   if (onVisibility) {
     document.removeEventListener('visibilitychange', onVisibility)
     onVisibility = null
+  }
+  if (onNavOpenChange) {
+    window.removeEventListener('liftag:nav-open-change', onNavOpenChange)
+    onNavOpenChange = null
   }
   stopLoop()
   disposeScene()

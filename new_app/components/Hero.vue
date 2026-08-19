@@ -20,12 +20,16 @@ const cursorGlowTone = ref<'green' | 'red'>('green')
 // Phones render only the front-center device. Its Three.js path runs in lite,
 // non-interactive mode so the stronger 3D framing does not add an idle loop.
 const isMobile = ref(false)
-// The GPU particle field is desktop-only: on phones its per-frame simulation
-// plus a second WebGL context was the bulk of the hero's jank. Starts false so
-// SSR and the first client render agree, then desktops switch it on in
-// onMounted - phones never mount the component or fetch its three.js chunk.
+// Particle field starts false so SSR and the first client render agree, then
+// onMounted turns it on wherever motion is allowed. Phones get a lite budget
+// (fewer points, 1x DPR, no cursor or grid warp) so the second WebGL context
+// does not reintroduce the jank that used to keep this desktop-only.
 const showHeroParticles = ref(false)
 const heroRoot = ref<HTMLElement | null>(null)
+const PHONE_PARTICLE_COUNT = 400
+const DESKTOP_PARTICLE_COUNT = 1200
+const PHONE_PARTICLE_DPR_CAP = 1
+const DESKTOP_PARTICLE_DPR_CAP = 1.75
 
 // smooth lerp (factor 0.06 matches React source). Gated on the section being
 // near the viewport so mousemoves far down the page do not wake this loop.
@@ -109,6 +113,11 @@ const heroLaserGapMs = 55
 const heroLaserDone = ref(false)
 const heroDetailsEntered = computed(() => entered.value && heroLaserDone.value)
 const heroTitleEls: HTMLElement[] = []
+const mobileTitleEls: HTMLElement[] = []
+const mobileTitleLines: [string, string][] = [
+  [words[0], words[1]],
+  [words[2], words[3]],
+]
 let heroLaserStarted = false
 let heroLaserCancelled = false
 const heroLaserTimers: ReturnType<typeof setTimeout>[] = []
@@ -118,6 +127,27 @@ const heroLaserNodes = new Set<HTMLElement>()
 function setHeroTitleEl(el: Element | null, index: number) {
   if (el instanceof HTMLElement) heroTitleEls[index] = el
 }
+
+function setMobileTitleEl(el: Element | null, index: number) {
+  if (el instanceof HTMLElement) mobileTitleEls[index] = el
+}
+
+function markTitleElsDone(els: HTMLElement[]) {
+  els.forEach((el) => el?.classList.add('reveal-done'))
+}
+
+function laserTargets() {
+  return isMobile.value || window.matchMedia('(max-width: 768px)').matches
+    ? mobileTitleEls
+    : heroTitleEls
+}
+
+const heroMobileDetailsStyle = computed(() => ({
+  opacity: heroDetailsEntered.value ? 1 : 0,
+  transform: heroDetailsEntered.value ? 'translateY(0)' : 'translateY(14px)',
+  pointerEvents: (heroDetailsEntered.value ? 'auto' : 'none') as 'auto' | 'none',
+  transition: 'opacity 700ms 120ms cubic-bezier(0.16,1,0.3,1), transform 700ms 120ms cubic-bezier(0.16,1,0.3,1)',
+}))
 
 function heroLaserClass(word: string, index: number) {
   return {
@@ -205,8 +235,13 @@ function runHeroLaserReveal(
   const isGreen = el.classList.contains('hero-laser-green')
   const rect = el.getBoundingClientRect()
   const fontSize = Number.parseFloat(window.getComputedStyle(el).fontSize) || rect.height
-  const rightClipPad = isGreen && fromRight ? fontSize * 0.14 : 0
-  const rightClipInset = rightClipPad > 0 ? `${-rightClipPad}px` : '0'
+  // Italic Space Grotesk hangs past the layout box (R, Y). On desktop each
+  // word is `display: block` so the line width hides it; on phones the words
+  // are shrink-wrapped, so a 0% right inset clips FOR / BY. Keep a hang pad
+  // on every word, and a slightly larger one on the lime from-right sweeps.
+  const italicHang = fontSize * 0.18
+  const rightClipPad = isGreen && fromRight ? Math.max(fontSize * 0.14, italicHang) : italicHang
+  const rightClipInset = `-${rightClipPad}px`
   const beam = document.createElement('div')
 
   const syncBeam = (beamPercent: number) => {
@@ -252,7 +287,7 @@ function runHeroLaserReveal(
       if (fromRight) {
         el.style.clipPath = `inset(-20% ${rightClipInset} -20% ${100 - Math.min(pos, 100)}%)`
       } else {
-        el.style.clipPath = `inset(-20% ${100 - Math.min(pos, 100)}% -20% 0)`
+        el.style.clipPath = `inset(-20% calc(${100 - Math.min(pos, 100)}% - ${rightClipPad}px) -20% 0)`
       }
 
       el.style.setProperty('--laser-pos', `${beamPercent}%`)
@@ -261,7 +296,9 @@ function runHeroLaserReveal(
 
       if (now - lastSparkTime > 70 && t > 0.04 && t < 0.92) {
         lastSparkTime = now
-        emitHeroLaserSparks(el, beamPercent, isGreen)
+        // Body-appended spark nodes force layout; skip them on the phone
+        // laser so the clip-path sweep and particle walls stay the cost.
+        if (!isMobile.value) emitHeroLaserSparks(el, beamPercent, isGreen)
       }
 
       if (t < 1) {
@@ -273,7 +310,7 @@ function runHeroLaserReveal(
       else releaseHeroLaserWall()
       el.classList.remove('sweeping')
       el.classList.add('reveal-done')
-      el.style.clipPath = `inset(-20% ${rightClipInset} -20% 0)`
+      el.style.removeProperty('clip-path')
       beam.style.animation = 'heroLaserChargeShrink 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards'
       queueHeroLaserTimer(() => {
         beam.remove()
@@ -290,19 +327,19 @@ function runAllHeroLaserReveals() {
   if (heroLaserStarted) return
   heroLaserStarted = true
 
-  if (isMobile.value || window.matchMedia('(max-width: 768px)').matches) {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     resetHeroParticleField()
-    heroTitleEls.forEach((el) => el?.classList.add('reveal-done'))
+    markTitleElsDone(heroTitleEls)
+    markTitleElsDone(mobileTitleEls)
     heroLaserDone.value = true
     return
   }
 
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    resetHeroParticleField()
-    heroTitleEls.forEach((el) => el?.classList.add('reveal-done'))
-    heroLaserDone.value = true
-    return
-  }
+  const targets = laserTargets()
+  const inactive = targets === mobileTitleEls ? heroTitleEls : mobileTitleEls
+  // The other layout is `display: none` at this breakpoint. Mark it revealed
+  // so a later resize does not leave a clipped title on the newly visible set.
+  markTitleElsDone(inactive)
 
   const revealNext = (sequenceIndex: number) => {
     const index = heroLaserSequence[sequenceIndex]
@@ -313,7 +350,7 @@ function runAllHeroLaserReveals() {
     }
 
     runHeroLaserReveal(
-      heroTitleEls[index],
+      targets[index],
       index % 2 === 1,
       heroLaserSweepMs,
       () => {
@@ -373,14 +410,16 @@ onMounted(() => {
 
   heroMobileMql = window.matchMedia('(max-width: 768px)')
   isMobile.value = heroMobileMql.matches
-  showHeroParticles.value = !heroMobileMql.matches && !prefersReducedMotion
+  showHeroParticles.value = !prefersReducedMotion
   onHeroMobileChange = (e: MediaQueryListEvent) => {
     isMobile.value = e.matches
-    showHeroParticles.value = !e.matches && !prefersReducedMotion
-    if (e.matches) {
-      cleanupHeroLasers()
-      heroLaserDone.value = true
-    }
+    showHeroParticles.value = !prefersReducedMotion
+    // Crossing 768px swaps which title is visible. Abort a half-finished
+    // sweep rather than continue it against the wrong rects.
+    cleanupHeroLasers()
+    markTitleElsDone(heroTitleEls)
+    markTitleElsDone(mobileTitleEls)
+    heroLaserDone.value = true
   }
   heroMobileMql.addEventListener('change', onHeroMobileChange)
 
@@ -532,12 +571,12 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
     />
 
     <!-- ── Subtle grid ── -->
-    <!-- Static fallback for mobile, prefers-reduced-motion, and pre-hydration:
-         desktop swaps to the cursor-warped GPU version rendered inside
-         HeroParticles (same 80px cell / mask, see its gridWarp shader) once
-         showHeroParticles flips true, so the two never show at once. -->
+    <!-- Static fallback for phones (lite particles skip the GPU grid warp),
+         prefers-reduced-motion, and pre-hydration. Desktop swaps to the
+         cursor-warped GPU version inside HeroParticles once that field is on,
+         so the two never show at once on that layout. -->
     <div
-      v-if="!showHeroParticles"
+      v-if="isMobile || !showHeroParticles"
       :style="{
         position: 'absolute',
         inset: 0,
@@ -563,12 +602,16 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 
     <!-- ── GPU particle field (single draw call, self-gating) ── -->
     <!-- Lazy: keeps three.js out of the eager chunk (see index.vue idle warmup).
-         Desktop only - phones drop the field entirely rather than render a
-         reduced one. -->
+         Phones mount a lite field (no cursor, no grid warp, 1x DPR) so the
+         laser walls still have particles to push without a second full-cost
+         context. Keyed so a 768px resize rebuilds at the matching budget. -->
     <LazyHeroParticles
       v-if="showHeroParticles"
-      :count="1200"
-      :dpr-cap="1.75"
+      :key="isMobile ? 'mobile' : 'desktop'"
+      :count="isMobile ? PHONE_PARTICLE_COUNT : DESKTOP_PARTICLE_COUNT"
+      :dpr-cap="isMobile ? PHONE_PARTICLE_DPR_CAP : DESKTOP_PARTICLE_DPR_CAP"
+      :interactive="!isMobile"
+      :grid-warp="!isMobile"
       style="z-index: 2"
     />
 
@@ -1018,38 +1061,50 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
         zIndex: 4,
       }"
     >
-      <div
-        class="hero-mobile-copy"
-        :style="{
-          opacity: entered ? 1 : 0,
-          transform: entered ? 'translateY(0)' : 'translateY(14px)',
-          transition: 'opacity 700ms 120ms cubic-bezier(0.16,1,0.3,1), transform 700ms 120ms cubic-bezier(0.16,1,0.3,1)',
-        }"
-      >
+      <div class="hero-mobile-copy">
         <p class="hero-mobile-title">
-          <span>For <span class="lime">lifters.</span></span>
-          <span>By <span class="lime">lifters.</span></span>
+          <span
+            v-for="(line, lineIndex) in mobileTitleLines"
+            :key="lineIndex"
+            class="hero-title-line"
+          >
+            <template v-for="(word, wordIndex) in line" :key="wordIndex">
+              <span v-if="wordIndex > 0">{{ ' ' }}</span>
+              <span v-if="isLime(word)" class="hero-mobile-lime-word">
+                <span
+                  :ref="(el) => setMobileTitleEl(el as Element | null, lineIndex * 2 + wordIndex)"
+                  :class="heroLaserClass(word, lineIndex * 2 + wordIndex)"
+                  :style="{ color: '#CCFF00' }"
+                >{{ word }}</span>
+                <span class="hero-title-glow" aria-hidden="true">{{ word }}</span>
+              </span>
+              <span
+                v-else
+                :ref="(el) => setMobileTitleEl(el as Element | null, lineIndex * 2 + wordIndex)"
+                :class="heroLaserClass(word, lineIndex * 2 + wordIndex)"
+                :style="{ color: '#fff' }"
+              >{{ word }}</span>
+            </template>
+          </span>
         </p>
 
-        <p class="hero-mobile-kicker">Your all-in-one fitness app.</p>
+        <div class="hero-mobile-details" :style="heroMobileDetailsStyle">
+          <p class="hero-mobile-kicker">Your all-in-one fitness app.</p>
 
-        <p class="hero-mobile-copyline hero-mobile-copyline--tablet">
-          Tap NFC or scan QR at the machine. Core workout tracking is free forever. Premium intelligence is optional.
-        </p>
+          <p class="hero-mobile-copyline hero-mobile-copyline--tablet">
+            Tap NFC or scan QR at the machine. Core workout tracking is free forever. Premium intelligence is optional.
+          </p>
 
-        <div class="hero-mobile-actions">
-          <GetAppBtn hero label="Get LIFTAG" />
-          <a href="#scan" class="hero-mobile-secondary">See how it works</a>
+          <div class="hero-mobile-actions">
+            <GetAppBtn hero label="Get LIFTAG" />
+            <a href="#scan" class="hero-mobile-secondary">See how it works</a>
+          </div>
         </div>
       </div>
 
       <div
         class="hero-mobile-visual"
-        :style="{
-          opacity: entered ? 1 : 0,
-          transform: entered ? 'translateY(0)' : 'translateY(18px)',
-          transition: 'opacity 780ms 260ms cubic-bezier(0.16,1,0.3,1), transform 780ms 260ms cubic-bezier(0.16,1,0.3,1)',
-        }"
+        :class="{ 'is-entered': entered }"
       >
         <div class="hero-mobile-rail">
           <div class="hero-mobile-proof" aria-label="LIFTAG tap, scan, and tracking flow">
@@ -1062,28 +1117,26 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 
         <div class="hero-mobile-device">
           <div class="hero-mobile-device-glow" aria-hidden="true" />
-          <Phone
-            src="/assets/screens/hero-dashboard.webp"
-            :scale="1"
-            :tilt-delay-ms="0"
-            lite
-            enable-mobile3d
-            :interactive3d="false"
-            :static-bezel="false"
-            crisp3d
-            idle3d
-            priority
-          />
+          <div class="hero-mobile-phone-stage">
+            <Phone
+              src="/assets/screens/hero-dashboard.webp"
+              :scale="1"
+              :tilt-delay-ms="0"
+              lite
+              enable-mobile3d
+              :interactive3d="false"
+              :static-bezel="false"
+              crisp3d
+              idle3d
+              priority
+            />
+          </div>
         </div>
       </div>
 
       <p
         class="hero-mobile-copyline hero-mobile-copyline--phone"
-        :style="{
-          opacity: entered ? 1 : 0,
-          transform: entered ? 'translateY(0)' : 'translateY(14px)',
-          transition: 'opacity 700ms 340ms cubic-bezier(0.16,1,0.3,1), transform 700ms 340ms cubic-bezier(0.16,1,0.3,1)',
-        }"
+        :style="heroMobileDetailsStyle"
       >
         Tap NFC or scan QR at the machine. Core workout tracking is free forever. Premium intelligence is optional.
       </p>
@@ -1234,6 +1287,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
   display: grid;
   gap: 0;
   margin: 0;
+  overflow: visible;
   font-family: var(--liftag-font-headline);
   font-size: clamp(48px, 13.6vw, 62px);
   font-style: italic;
@@ -1245,10 +1299,25 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 
 .hero-mobile-title > span {
   display: block;
+  overflow: visible;
+  white-space: nowrap;
 }
 
-.hero-mobile-title .lime {
-  display: inline;
+/* clip-path needs a box. The global laser class is `display: block` (one
+   stacked word per desktop line); override so two words stay on one line.
+   Extra right pad holds italic R/Y hang without shifting the next word. */
+.hero-mobile-title .hero-laser-reveal,
+.hero-mobile-lime-word {
+  display: inline-block;
+}
+
+.hero-mobile-title .hero-laser-reveal {
+  padding-right: 0.22em;
+  margin-right: -0.22em;
+}
+
+.hero-mobile-lime-word {
+  position: relative;
 }
 
 .hero-mobile-kicker {
@@ -1318,9 +1387,16 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
   aspect-ratio: 393 / 852;
 }
 
-.hero-mobile-device :deep(.phone) {
+.hero-mobile-phone-stage {
   position: relative;
   z-index: 2;
+  width: 100%;
+  height: 100%;
+  perspective: 1100px;
+  transform-origin: 50% 88%;
+}
+
+.hero-mobile-device :deep(.phone) {
   width: 100% !important;
 }
 
@@ -1449,7 +1525,10 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 
   /* The centre device remains the single lightweight Three.js scene. These
      two rear devices are pre-rendered 180px WebPs, so their choreography adds
-     no canvases, input listeners, or JavaScript animation loops. */
+     no canvases, input listeners, or JavaScript animation loops. Each of the
+     three has its own enter (different delay, axis, and duration) so they
+     never read as one group fade. Idle is a second animation that only
+     takes transform after the enter has settled. */
   .hero-mobile-device::before,
   .hero-mobile-device::after {
     position: absolute;
@@ -1469,26 +1548,104 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
     background-size: contain;
     backface-visibility: hidden;
     filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.58));
-    will-change: transform;
+    opacity: 0;
+    will-change: transform, opacity;
   }
 
   .hero-mobile-device::before {
     background-image: url('/assets/screens/hero-workout-360.webp');
-    opacity: 0.62;
     transform: translate3d(-100%, 8%, 0) perspective(900px) rotateY(19deg) rotateZ(-6deg) scale(0.84);
-    animation: heroRearLeftIdle var(--hero-phone-cycle) var(--hero-phone-motion-delay) linear infinite;
   }
 
   .hero-mobile-device::after {
     background-image: url('/assets/screens/hero-progress-360.webp');
-    opacity: 0.56;
     transform: translate3d(0, 5%, 0) perspective(900px) rotateY(-19deg) rotateZ(6deg) scale(0.84);
-    animation: heroRearRightIdle var(--hero-phone-cycle) var(--hero-phone-motion-delay) linear infinite;
+  }
+
+  .hero-mobile-phone-stage,
+  .hero-mobile-device-glow {
+    opacity: 0;
+  }
+
+  .hero-mobile-visual.is-entered .hero-mobile-device::before {
+    animation:
+      heroPhoneLeftEnter 1080ms 70ms cubic-bezier(0.16, 1, 0.3, 1) both,
+      heroRearLeftIdle var(--hero-phone-cycle) var(--hero-phone-motion-delay) linear infinite;
+  }
+
+  .hero-mobile-visual.is-entered .hero-mobile-device::after {
+    animation:
+      heroPhoneRightEnter 1180ms 360ms cubic-bezier(0.22, 1, 0.32, 1) both,
+      heroRearRightIdle var(--hero-phone-cycle) var(--hero-phone-motion-delay) linear infinite;
+  }
+
+  .hero-mobile-visual.is-entered .hero-mobile-phone-stage {
+    animation: heroPhoneCenterEnter 900ms 190ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .hero-mobile-visual.is-entered .hero-mobile-device-glow {
+    animation: heroPhoneGlowEnter 1200ms 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .hero-mobile-rail {
+    opacity: 0;
+    transform: translate3d(-10px, 12px, 0);
+  }
+
+  .hero-mobile-visual.is-entered .hero-mobile-rail {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 700ms 240ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 700ms 240ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .hero-scroll-cue {
     display: none !important;
   }
+}
+
+/* Independent entries: same transform function list as the idle rest pose
+   so the second animation can take over without a jump. */
+@keyframes heroPhoneLeftEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(-128%, 22%, 0) perspective(900px) rotateY(42deg) rotateZ(-12deg) scale(0.68);
+  }
+
+  to {
+    opacity: 0.62;
+    transform: translate3d(-100%, 8%, 0) perspective(900px) rotateY(19deg) rotateZ(-6deg) scale(0.84);
+  }
+}
+
+@keyframes heroPhoneRightEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(24%, 16%, 0) perspective(900px) rotateY(-44deg) rotateZ(11deg) scale(0.66);
+  }
+
+  to {
+    opacity: 0.56;
+    transform: translate3d(0, 5%, 0) perspective(900px) rotateY(-19deg) rotateZ(6deg) scale(0.84);
+  }
+}
+
+@keyframes heroPhoneCenterEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20%, 0) scale(0.86) rotateX(9deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1) rotateX(0deg);
+  }
+}
+
+@keyframes heroPhoneGlowEnter {
+  from { opacity: 0; }
+  to { opacity: 0.95; }
 }
 
 /* The rear devices make one quiet out-and-back drift while the centre phone
@@ -1531,9 +1688,29 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 
 @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
   .hero-mobile-device::before,
-  .hero-mobile-device::after {
+  .hero-mobile-device::after,
+  .hero-mobile-phone-stage,
+  .hero-mobile-device-glow,
+  .hero-mobile-rail {
     animation: none;
+    transition: none;
     will-change: auto;
+    opacity: 1;
+    transform: none;
+  }
+
+  .hero-mobile-device::before {
+    opacity: 0.62;
+    transform: translate3d(-100%, 8%, 0) perspective(900px) rotateY(19deg) rotateZ(-6deg) scale(0.84);
+  }
+
+  .hero-mobile-device::after {
+    opacity: 0.56;
+    transform: translate3d(0, 5%, 0) perspective(900px) rotateY(-19deg) rotateZ(6deg) scale(0.84);
+  }
+
+  .hero-mobile-device-glow {
+    opacity: 0.95;
   }
 }
 
@@ -1542,7 +1719,9 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
    `paused` keeps their place in the shared 10.5s cadence, so closing the drawer
    resumes the choreography rather than restarting it. */
 :global(html[data-liftag-nav-open="true"] .hero-mobile-device::before),
-:global(html[data-liftag-nav-open="true"] .hero-mobile-device::after) {
+:global(html[data-liftag-nav-open="true"] .hero-mobile-device::after),
+:global(html[data-liftag-nav-open="true"] .hero-mobile-phone-stage),
+:global(html[data-liftag-nav-open="true"] .hero-mobile-device-glow) {
   animation-play-state: paused;
 }
 
