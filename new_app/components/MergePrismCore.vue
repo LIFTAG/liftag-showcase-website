@@ -30,9 +30,21 @@
 //   • lazy-inits only while the shared field is armed AND the core has charge
 //   • disposes when the pin releases
 //   • pauses while the document is hidden
+//
+// After ignite crosses the existing crack threshold the implicit solid is
+// replaced by rasterized pyramidal shards that tile the dual octahedron.
+// Charge, swell, spin, and the 3-IOR path are unchanged until that frame.
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useMergeParticleField } from '../composables/useMergeParticleField'
 import { prismBufferScale } from '../utils/mergePrism'
+import {
+  SHARD_FLOATS_PER_VERT,
+  SHARD_MAX_VERTS,
+  clipIntersectionFaces,
+  poseShards,
+  shardFade,
+  writeShardMesh,
+} from '../utils/mergePrismShards'
 
 const props = withDefaults(defineProps<{
   /** Eight lights, one per mock app: unit direction + linear rgb. */
@@ -75,6 +87,8 @@ let gl: WebGLRenderingContext | null = null
 let canvasEl: HTMLCanvasElement | null = null
 let program: WebGLProgram | null = null
 let buffer: WebGLBuffer | null = null
+let shardProgram: WebGLProgram | null = null
+let shardBuffer: WebGLBuffer | null = null
 let loseContext: WEBGL_lose_context | null = null
 
 let rafId = 0
@@ -118,7 +132,19 @@ type Uniforms = {
   uIconDir: WebGLUniformLocation | null
   uIconCol: WebGLUniformLocation | null
 }
+type ShardUniforms = {
+  uRes: WebGLUniformLocation | null
+  uPhase: WebGLUniformLocation | null
+  uMix: WebGLUniformLocation | null
+  uIconDir: WebGLUniformLocation | null
+  uIconCol: WebGLUniformLocation | null
+}
 let uniforms: Uniforms | null = null
+let shardUniforms: ShardUniforms | null = null
+let gemPosLoc = 0
+let shardPosLoc = 0
+let shardNrmLoc = 1
+const shardScratch = new Float32Array(SHARD_MAX_VERTS * SHARD_FLOATS_PER_VERT)
 
 const vertexSource = /* glsl */ `
   attribute vec2 aPos;
@@ -421,6 +447,101 @@ const fragmentSource = /* glsl */ `
   }
 `
 
+const shardVertexSource = /* glsl */ `
+  attribute vec3 aPosition;
+  attribute vec3 aNormal;
+  uniform vec2 uRes;
+  varying vec3 vPos;
+  varying vec3 vN;
+
+  void main() {
+    float minR = min(uRes.x, uRes.y);
+    float viewZ = max(${CAM_Z.toFixed(2)} - aPosition.z, 0.05);
+    float ndcZ = (viewZ - 0.45) / 6.0 * 2.0 - 1.0;
+    gl_Position = vec4(
+      aPosition.x * ${FOCAL.toFixed(2)} * (2.0 * minR / uRes.x),
+      aPosition.y * ${FOCAL.toFixed(2)} * (2.0 * minR / uRes.y),
+      ndcZ * viewZ,
+      viewZ
+    );
+    vPos = aPosition;
+    vN = aNormal;
+  }
+`
+
+const shardFragmentSource = /* glsl */ `
+  precision highp float;
+
+  uniform vec2 uRes;
+  uniform vec4 uPhase;
+  uniform vec4 uMix;
+  uniform vec3 uIconDir[${ICON_COUNT}];
+  uniform vec4 uIconCol[${ICON_COUNT}];
+  varying vec3 vPos;
+  varying vec3 vN;
+
+  #define uCharge uPhase.y
+
+  float pow8(float x) {
+    float a = x * x;
+    a = a * a;
+    return a * a;
+  }
+
+  float pow16(float x) {
+    float a = pow8(x);
+    return a * a;
+  }
+
+  vec3 envSample(vec3 d) {
+    vec3 col = mix(vec3(0.002, 0.004, 0.002), vec3(0.009, 0.015, 0.004), d.y * 0.5 + 0.5);
+
+    col += vec3(1.0, 1.0, 0.92) * pow16(max(dot(d, vec3(-0.436, 0.698, 0.568)), 0.0)) * 3.6;
+    col += vec3(0.78, 1.0, 0.02) * pow8(max(dot(d, vec3(0.578, 0.368, 0.728)), 0.0)) * (0.55 + uCharge * 1.20);
+    col += vec3(1.0, 0.16, 0.32) * pow8(max(dot(d, vec3(0.276, -0.862, -0.424)), 0.0)) * 0.60;
+
+    float strip = sin(d.y * 14.0 + d.x * 3.4 + uPhase.x * 0.22);
+    float crossB = sin(d.x * 11.0 - d.z * 6.0 - uPhase.x * 0.14);
+    col += vec3(0.58, 0.78, 0.42) * smoothstep(0.93, 1.0, strip) * 0.85;
+    col += vec3(0.72, 0.86, 0.60) * smoothstep(0.95, 1.0, crossB) * 0.70;
+
+    for (int i = 0; i < ${ICON_COUNT}; i++) {
+      float e = uIconCol[i].w;
+      if (e > 0.0) {
+        col += uIconCol[i].rgb * pow8(max(dot(d, uIconDir[i]), 0.0)) * e * 1.5;
+      }
+    }
+    return col;
+  }
+
+  void main() {
+    vec2 uv = (gl_FragCoord.xy - 0.5 * uRes) / min(uRes.x, uRes.y);
+    vec3 ro = vec3(0.0, 0.0, ${CAM_Z.toFixed(2)});
+    vec3 rd = normalize(vPos - ro);
+    vec3 n = normalize(vN);
+    if (dot(n, -rd) < 0.0) n = -n;
+
+    float facing = max(dot(-rd, n), 0.0);
+    float fres = 0.035 + 0.965 * pow(1.0 - facing, 5.0);
+    vec3 refl = envSample(reflect(rd, n));
+    vec3 refrDir = refract(rd, n, 1.0 / ${IOR.toFixed(3)});
+    vec3 refr = dot(refrDir, refrDir) > 0.5 ? envSample(refrDir) : refl;
+    float thick = 0.16 / max(facing, 0.12);
+    vec3 tint = exp(-thick * vec3(0.55, 0.18, 2.40) * 2.1);
+    vec3 glass = mix(refr * tint, refl, fres);
+    float rim = 1.0 - facing;
+    glass += vec3(0.80, 1.0, 0.10) * rim * rim * rim * (0.22 + uCharge * 0.55);
+
+    glass *= uMix.x * uMix.y;
+    glass *= smoothstep(0.50, 0.28, max(abs(uv.x), abs(uv.y)));
+    glass = max(glass, vec3(0.0));
+    glass = 1.0 - exp(-glass * 1.15);
+    glass = clamp(glass, 0.0, 1.0);
+    float a = clamp(max(max(glass.r, glass.g), glass.b) * 1.35, 0.0, 1.0);
+    gl_FragColor = vec4(glass, a);
+  }
+`
+
 function compile(context: WebGLRenderingContext, type: number, source: string) {
   const shader = context.createShader(type)
   if (!shader) return null
@@ -434,6 +555,32 @@ function compile(context: WebGLRenderingContext, type: number, source: string) {
     return null
   }
   return shader
+}
+
+function linkProgram(
+  context: WebGLRenderingContext,
+  vsSource: string,
+  fsSource: string,
+) {
+  const vs = compile(context, context.VERTEX_SHADER, vsSource)
+  const fs = compile(context, context.FRAGMENT_SHADER, fsSource)
+  const prog = vs && fs ? context.createProgram() : null
+  if (!vs || !fs || !prog) {
+    if (vs) context.deleteShader(vs)
+    if (fs) context.deleteShader(fs)
+    return null
+  }
+  context.attachShader(prog, vs)
+  context.attachShader(prog, fs)
+  context.linkProgram(prog)
+  context.deleteShader(vs)
+  context.deleteShader(fs)
+  if (!context.getProgramParameter(prog, context.LINK_STATUS)) {
+    if (import.meta.dev) console.error('[MergePrismCore]', context.getProgramInfoLog(prog))
+    context.deleteProgram(prog)
+    return null
+  }
+  return prog
 }
 
 function buildPlanes(out: Float32Array, rx: number, ry: number, rz: number) {
@@ -527,7 +674,7 @@ function init() {
     alpha: true,
     premultipliedAlpha: true,
     antialias: false,
-    depth: false,
+    depth: true,
     stencil: false,
     powerPreference: 'low-power',
   }
@@ -547,25 +694,8 @@ function init() {
     return
   }
 
-  const vs = compile(context, context.VERTEX_SHADER, vertexSource)
-  const fs = compile(context, context.FRAGMENT_SHADER, fragmentSource)
-  const prog = vs && fs ? context.createProgram() : null
-
-  if (!vs || !fs || !prog) {
-    if (vs) context.deleteShader(vs)
-    if (fs) context.deleteShader(fs)
-    contextBroken = true
-    return
-  }
-
-  context.attachShader(prog, vs)
-  context.attachShader(prog, fs)
-  context.linkProgram(prog)
-  context.deleteShader(vs)
-  context.deleteShader(fs)
-
-  if (!context.getProgramParameter(prog, context.LINK_STATUS)) {
-    context.deleteProgram(prog)
+  const prog = linkProgram(context, vertexSource, fragmentSource)
+  if (!prog) {
     contextBroken = true
     return
   }
@@ -585,9 +715,9 @@ function init() {
   )
 
   context.useProgram(prog)
-  const posLoc = context.getAttribLocation(prog, 'aPos')
-  context.enableVertexAttribArray(posLoc)
-  context.vertexAttribPointer(posLoc, 2, context.FLOAT, false, 0, 0)
+  gemPosLoc = context.getAttribLocation(prog, 'aPos')
+  context.enableVertexAttribArray(gemPosLoc)
+  context.vertexAttribPointer(gemPosLoc, 2, context.FLOAT, false, 0, 0)
 
   uniforms = {
     uRes: context.getUniformLocation(prog, 'uRes'),
@@ -600,6 +730,22 @@ function init() {
     uIconCol: context.getUniformLocation(prog, 'uIconCol[0]'),
   }
 
+  const shatter = linkProgram(context, shardVertexSource, shardFragmentSource)
+  if (shatter) {
+    shardProgram = shatter
+    shardBuffer = context.createBuffer()
+    shardPosLoc = context.getAttribLocation(shatter, 'aPosition')
+    shardNrmLoc = context.getAttribLocation(shatter, 'aNormal')
+    shardUniforms = {
+      uRes: context.getUniformLocation(shatter, 'uRes'),
+      uPhase: context.getUniformLocation(shatter, 'uPhase'),
+      uMix: context.getUniformLocation(shatter, 'uMix'),
+      uIconDir: context.getUniformLocation(shatter, 'uIconDir[0]'),
+      uIconCol: context.getUniformLocation(shatter, 'uIconCol[0]'),
+    }
+  }
+
+  context.disable(context.CULL_FACE)
   context.disable(context.DEPTH_TEST)
   context.disable(context.BLEND)
   context.clearColor(0, 0, 0, 0)
@@ -632,6 +778,8 @@ function disposeScene() {
   if (gl) {
     if (buffer) gl.deleteBuffer(buffer)
     if (program) gl.deleteProgram(program)
+    if (shardBuffer) gl.deleteBuffer(shardBuffer)
+    if (shardProgram) gl.deleteProgram(shardProgram)
     if (!contextBroken) loseContext?.loseContext()
   }
   canvasEl?.remove()
@@ -640,7 +788,10 @@ function disposeScene() {
   canvasEl = null
   program = null
   buffer = null
+  shardProgram = null
+  shardBuffer = null
   uniforms = null
+  shardUniforms = null
   loseContext = null
   disposed = true
   bufW = 0
@@ -728,7 +879,10 @@ function frame(now: number) {
   // logo intro begins, which is the moment the shell has to burst.
   const swellT = Math.min(1, Math.max(0, (charge - SWELL_START) / SWELL_SPAN))
   const seed = SEED_GROW * Math.exp(swellT ** 1.5 * SWELL_K)
-  const grow = (seed + crack * crack * BURST_GROW) * (compact ? 1.38 : 1)
+  // Shards replace the inflate-and-fade. Until crack is live the extra term
+  // is zero either way, so the charged gem is the same size as before.
+  const shatterLive = crack > 0.002 && !!shardProgram && !!shardBuffer && !!shardUniforms
+  const grow = (seed + (shatterLive ? 0 : crack * crack * BURST_GROW)) * (compact ? 1.38 : 1)
 
   const spin = 0.055 + charge * 0.16 + ignite * 0.55
   angA[0] += dt * spin * 0.62
@@ -742,6 +896,7 @@ function frame(now: number) {
 
   resizeBuffer()
 
+  gl.useProgram(program)
   gl.uniform2f(uniforms.uRes, bufW, bufH)
   gl.uniform4f(uniforms.uPhase, now * 0.001, charge, ignite, core.flash)
   // At full swell this sits between the LIFTAG icon shell and the inner orbit
@@ -757,13 +912,82 @@ function frame(now: number) {
   )
   // The ring keeps travelling after the shell is gone, so the boundary the
   // crystal threw off is still opening around the logo that came out of it.
-  gl.uniform4f(uniforms.uMix, shell, core.fade, aura, 0.16 + ignite * 0.17)
+  gl.uniform4f(uniforms.uMix, shatterLive ? 0 : shell, core.fade, aura, 0.16 + ignite * 0.17)
   gl.uniform3fv(uniforms.uPlaneA, planeA)
   gl.uniform3fv(uniforms.uPlaneB, planeB)
   gl.uniform3fv(uniforms.uIconDir, iconDir)
   gl.uniform4fv(uniforms.uIconCol, iconCol)
 
+  if (shatterLive) drawShatter(now, crack, 0.270 * grow, 0.258 * grow)
+  else gl.drawArrays(gl.TRIANGLES, 0, 3)
+}
+
+function bindGemAttribs() {
+  if (!gl || !buffer) return
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+  gl.enableVertexAttribArray(gemPosLoc)
+  gl.vertexAttribPointer(gemPosLoc, 2, gl.FLOAT, false, 0, 0)
+  if (shardPosLoc >= 0 && shardPosLoc !== gemPosLoc) gl.disableVertexAttribArray(shardPosLoc)
+  if (shardNrmLoc >= 0 && shardNrmLoc !== gemPosLoc && shardNrmLoc !== shardPosLoc) {
+    gl.disableVertexAttribArray(shardNrmLoc)
+  }
+}
+
+function bindShardAttribs() {
+  if (!gl || !shardBuffer) return
+  gl.bindBuffer(gl.ARRAY_BUFFER, shardBuffer)
+  gl.enableVertexAttribArray(shardPosLoc)
+  gl.vertexAttribPointer(shardPosLoc, 3, gl.FLOAT, false, 24, 0)
+  gl.enableVertexAttribArray(shardNrmLoc)
+  gl.vertexAttribPointer(shardNrmLoc, 3, gl.FLOAT, false, 24, 12)
+  if (gemPosLoc >= 0 && gemPosLoc !== shardPosLoc && gemPosLoc !== shardNrmLoc) {
+    gl.disableVertexAttribArray(gemPosLoc)
+  }
+}
+
+function drawShatter(now: number, crack: number, slabA: number, slabB: number) {
+  if (!gl || !program || !uniforms || !shardProgram || !shardBuffer || !shardUniforms) return
+
+  const faces = clipIntersectionFaces(planeA, slabA, planeB, slabB)
+  const posed = poseShards(faces, crack)
+  const vertCount = writeShardMesh(posed, shardScratch)
+  const core = mergeField.core
+
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+  // Flash, aura, and the spectral ring stay on the implicit pass with the
+  // shell forced off so the old inflate-and-fade body does not draw.
+  gl.disable(gl.DEPTH_TEST)
+  gl.disable(gl.BLEND)
+  gl.useProgram(program)
+  bindGemAttribs()
   gl.drawArrays(gl.TRIANGLES, 0, 3)
+
+  if (vertCount >= 3) {
+    gl.useProgram(shardProgram)
+    bindShardAttribs()
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      shardScratch.subarray(0, vertCount * SHARD_FLOATS_PER_VERT),
+      gl.DYNAMIC_DRAW,
+    )
+    gl.uniform2f(shardUniforms.uRes, bufW, bufH)
+    gl.uniform4f(shardUniforms.uPhase, now * 0.001, core.charge, core.ignite, core.flash)
+    gl.uniform4f(shardUniforms.uMix, shardFade(crack), core.fade, 0, 0)
+    gl.uniform3fv(shardUniforms.uIconDir, iconDir)
+    gl.uniform4fv(shardUniforms.uIconCol, iconCol)
+
+    gl.enable(gl.DEPTH_TEST)
+    gl.depthFunc(gl.LEQUAL)
+    gl.enable(gl.BLEND)
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
+    gl.drawArrays(gl.TRIANGLES, 0, vertCount)
+  }
+
+  gl.disable(gl.DEPTH_TEST)
+  gl.disable(gl.BLEND)
+  gl.useProgram(program)
+  bindGemAttribs()
 }
 
 function startLoop() {
