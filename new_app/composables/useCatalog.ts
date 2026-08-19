@@ -1,81 +1,47 @@
 import type {
   CatalogExercise,
   CatalogIndexPayload,
-  CatalogItemResponse,
   CatalogMachine,
 } from '~/types/catalog'
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
 /** Shared search index; one fetch per render, deduped across pages. */
 export function useCatalogIndex() {
+  const requestFetch = useRequestFetch()
   return useAsyncData<CatalogIndexPayload>(
     'catalog-index',
-    () => $fetch<CatalogIndexPayload>('/api/catalog/search-index'),
+    () => requestFetch<CatalogIndexPayload>('/api/catalog/search-index'),
     { dedupe: 'defer' },
   )
 }
 
-async function fetchExerciseByParam(base: string, param: string): Promise<CatalogExercise | null> {
-  try {
-    const res = await $fetch<CatalogItemResponse<CatalogExercise>>(
-      `/v1/catalog/exercise-templates/${param}`,
-      { baseURL: base, timeout: 8000, headers: { 'Accept-Language': 'en' } },
-    )
-    return res.data
-  }
-  catch {
-    return null
-  }
-}
-
-async function fetchMachineByParam(base: string, param: string): Promise<CatalogMachine | null> {
-  try {
-    const res = await $fetch<CatalogItemResponse<CatalogMachine>>(
-      `/v1/catalog/machine-templates/${param}`,
-      { baseURL: base, timeout: 8000, headers: { 'Accept-Language': 'en' } },
-    )
-    return res.data
-  }
-  catch {
-    return null
-  }
-}
-
 /**
- * Resolve an exercise by slug (canonical URL) or UUID. Older API deployments
- * only accept UUIDs on the show endpoint, so a failed slug lookup falls back
- * to slug -> id via the site's own search index.
+ * Resolve an exercise by slug or UUID through the site's own catalog route.
+ * That route maps slugs via the cached snapshot; the upstream show endpoint
+ * only accepts UUIDs and 422s on a slug, which used to 404 the page when the
+ * relative search-index fallback could not run (ISR / Vercel).
  *
- * The runtime config is read before the first await: these helpers run
- * inside useAsyncData handlers, where the Nuxt instance is gone after the
- * first suspension point.
+ * useRequestFetch is grabbed before the first await so the Nuxt instance is
+ * still available inside a useAsyncData handler.
  */
 export async function resolveCatalogExercise(param: string): Promise<CatalogExercise | null> {
-  const base = String(useRuntimeConfig().public.apiBaseUrl)
-  const direct = await fetchExerciseByParam(base, param)
-  if (direct) return direct
-  if (UUID_RE.test(param)) return null
+  const requestFetch = useRequestFetch()
   try {
-    const index = await $fetch<CatalogIndexPayload>('/api/catalog/search-index')
-    const hit = index.exercises.find(exercise => exercise.slug === param)
-    return hit ? await fetchExerciseByParam(base, hit.id) : null
+    return await requestFetch<CatalogExercise>(
+      `/api/catalog/exercises/${encodeURIComponent(param)}`,
+    )
   }
   catch {
     return null
   }
 }
 
-/** Machine counterpart of resolveCatalogExercise, same fallback strategy. */
+/** Machine counterpart of resolveCatalogExercise. */
 export async function resolveCatalogMachine(param: string): Promise<CatalogMachine | null> {
-  const base = String(useRuntimeConfig().public.apiBaseUrl)
-  const direct = await fetchMachineByParam(base, param)
-  if (direct) return direct
-  if (UUID_RE.test(param)) return null
+  const requestFetch = useRequestFetch()
   try {
-    const index = await $fetch<CatalogIndexPayload>('/api/catalog/search-index')
-    const hit = index.machines.find(machine => machine.slug === param)
-    return hit ? await fetchMachineByParam(base, hit.id) : null
+    return await requestFetch<CatalogMachine>(
+      `/api/catalog/machines/${encodeURIComponent(param)}`,
+    )
   }
   catch {
     return null

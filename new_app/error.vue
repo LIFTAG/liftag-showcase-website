@@ -105,6 +105,10 @@ const links = [
   margin-top: 40px;
 }
 
+.error-actions a {
+  text-decoration: none;
+}
+
 .error-links {
   display: flex;
   flex-wrap: wrap;
