@@ -290,6 +290,7 @@ onBeforeUnmount(() => {
             Volume, PRs, 1RM estimates, streaks, body-part splits, workout history, rest trends. Every
             dimension of your training in one place.
           </p>
+          <GymScoreboard class="progress-hero-board" />
         </div>
         <div class="progress-plate-hero" aria-hidden="true">
           <div class="progress-plate-glow" />
@@ -647,6 +648,10 @@ onBeforeUnmount(() => {
   line-height: 1.6;
   max-width: 520px;
   margin: 24px 0 0;
+}
+
+.progress-hero-board {
+  margin-top: 28px;
 }
 
 .progress-plate-hero {
@@ -1021,6 +1026,11 @@ onBeforeUnmount(() => {
   .progress-hero-text {
     font-size: 16px;
     max-width: 560px;
+  }
+
+  .progress-hero-board {
+    margin-top: 22px;
+    max-width: 100%;
   }
 
   .progress-plate-hero {

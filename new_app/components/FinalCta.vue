@@ -1,16 +1,27 @@
 <script setup lang="ts">
+// Async so FinalCta hydrating on a phone never pulls three.js. ChargeBeam
+// still no-ops on mobile / reduced-motion if it is mounted by mistake.
+const ChargeBeam = defineAsyncComponent(() => import('./ChargeBeam.vue'))
+
 const sectionRef = ref<HTMLElement | null>(null)
 const chargeAnchor = ref<HTMLElement | null>(null)
 const chargeP = ref(0)
 const charged = ref(false)
+const showChargeBeam = ref(false)
 
 let observer: IntersectionObserver | null = null
 let motionMql: MediaQueryList | null = null
+let mobileMql: MediaQueryList | null = null
 let rafId = 0
 let inView = false
 let documentVisible = true
 let reduceMotion = false
 let latched = false
+
+function syncChargeBeamGate() {
+  const mobile = Boolean(mobileMql?.matches)
+  showChargeBeam.value = !mobile && !reduceMotion
+}
 
 const chargeLabel = computed(() => {
   const n = Math.round(chargeP.value * 100)
@@ -66,6 +77,7 @@ function onDocumentVisibilityChange() {
 
 function onMotionChange() {
   reduceMotion = Boolean(motionMql?.matches)
+  syncChargeBeamGate()
   if (reduceMotion) {
     stopLoop()
     latched = true
@@ -76,6 +88,10 @@ function onMotionChange() {
   }
 }
 
+function onMobileChange() {
+  syncChargeBeamGate()
+}
+
 onMounted(() => {
   documentVisible = !document.hidden
   document.addEventListener('visibilitychange', onDocumentVisibilityChange)
@@ -83,6 +99,11 @@ onMounted(() => {
   motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
   reduceMotion = motionMql.matches
   motionMql.addEventListener('change', onMotionChange)
+
+  mobileMql = window.matchMedia('(max-width: 768px)')
+  mobileMql.addEventListener('change', onMobileChange)
+  syncChargeBeamGate()
+
   if (reduceMotion) {
     latched = true
     charged.value = true
@@ -107,6 +128,8 @@ onBeforeUnmount(() => {
   observer = null
   motionMql?.removeEventListener('change', onMotionChange)
   motionMql = null
+  mobileMql?.removeEventListener('change', onMobileChange)
+  mobileMql = null
   document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
 })
 </script>
@@ -115,7 +138,7 @@ onBeforeUnmount(() => {
   <section
     ref="sectionRef"
     class="final-cta-section"
-    :class="{ 'is-charged': charged }"
+    :class="{ 'is-charged': charged, 'has-charge-beam': showChargeBeam }"
     :style="{
       background: '#000',
       padding: '160px 0 120px',
@@ -125,42 +148,24 @@ onBeforeUnmount(() => {
       overflow: 'hidden',
     }"
   >
-    <!-- Radial glow background -->
+    <!-- Radial glow. Dims as the volumetric beam takes over so type stays readable. -->
     <div
-      :style="{
-        position: 'absolute',
-        inset: 0,
-        background: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(204,255,0,0.18), transparent 60%)',
-      }"
+      class="final-cta-wash"
+      :style="showChargeBeam ? { opacity: 1 - chargeP * 0.6 } : undefined"
     />
 
     <!-- Grid mask: the mask stays fixed on the wrapper while the oversized
          grid child drifts one 80px pattern period via transform, looping
          seamlessly on the compositor. -->
-    <div
-      :style="{
-        position: 'absolute',
-        inset: 0,
-        maskImage: 'radial-gradient(ellipse 70% 50% at 50% 50%, black 30%, transparent 80%)',
-        WebkitMaskImage: 'radial-gradient(ellipse 70% 50% at 50% 50%, black 30%, transparent 80%)',
-      }"
-    >
-      <div
-        class="final-cta-grid"
-        :style="{
-          position: 'absolute',
-          top: '-80px',
-          left: '-80px',
-          right: 0,
-          bottom: 0,
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
-          backgroundSize: '80px 80px',
-        }"
-      />
+    <div class="final-cta-grid-mask">
+      <div class="final-cta-grid" />
     </div>
 
-    <div class="container" style="position: relative;">
+    <ClientOnly>
+      <ChargeBeam v-if="showChargeBeam" :charge="chargeP" />
+    </ClientOnly>
+
+    <div class="container final-cta-copy">
       <!-- Logo -->
       <div class="final-logo-wrap">
         <span class="final-logo-ring ring-one" aria-hidden="true" />
@@ -238,13 +243,50 @@ onBeforeUnmount(() => {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: 0;
   pointer-events: none;
   background: radial-gradient(360px circle at 50% 48%, rgba(204, 255, 0, 0.12), transparent 70%);
   animation: finalAuraBreathe 6.2s ease-in-out infinite;
 }
 
+.final-cta-wash {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(204, 255, 0, 0.18), transparent 60%);
+}
+
+.final-cta-grid-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse 70% 50% at 50% 50%, black 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 50% at 50% 50%, black 30%, transparent 80%);
+}
+
 .final-cta-grid {
+  position: absolute;
+  top: -80px;
+  left: -80px;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 80px 80px;
   animation: finalGridDrift 18s linear infinite;
+}
+
+.final-cta-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.final-cta-section.has-charge-beam::after {
+  animation: none;
+  opacity: 0;
 }
 
 .final-logo-wrap {

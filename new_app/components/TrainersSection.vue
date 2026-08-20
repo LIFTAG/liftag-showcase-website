@@ -255,6 +255,11 @@ onBeforeUnmount(() => {
     />
 
     <div class="container" style="position: relative; z-index: 1;">
+      <div class="trainers-pass-stage" aria-hidden="true">
+        <ClientOnly>
+          <LazyCoachPass />
+        </ClientOnly>
+      </div>
       <SectionHeader eyebrow-color="#FF2D55" :copy-max="440">
         <template #eyebrow>▸ FOR TRAINERS &amp; COACHES</template>
         <template #title>
@@ -558,6 +563,37 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.trainers-pass-stage {
+  position: absolute;
+  top: -160px;
+  left: 0;
+  width: 250px;
+  height: 430px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.trainers-pass-stage :deep(.coach-pass.is-live) {
+  pointer-events: auto;
+}
+
+@media (min-width: 769px) {
+  .trainers-section :deep(.section-header-2col) {
+    padding-left: 276px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1100px) {
+  .trainers-pass-stage {
+    width: 196px;
+    height: 380px;
+  }
+
+  .trainers-section :deep(.section-header-2col) {
+    padding-left: 196px;
+  }
+}
+
 .trainers-section::after {
   content: '';
   position: absolute;
@@ -805,6 +841,16 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 768px) {
+  .trainers-pass-stage {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 148px;
+    height: 252px;
+    margin: 0 auto 24px;
+    z-index: 1;
+  }
+
   .trainers-mobile-tabs {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr));

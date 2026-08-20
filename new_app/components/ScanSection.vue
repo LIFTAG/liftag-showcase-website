@@ -296,7 +296,14 @@ onBeforeUnmount(() => {
         class="scan-token-stage"
         aria-label="Stylized LIFTAG NFC tag for illustration. The real tag looks different. Move to tilt."
       >
-        <TapTokenCore />
+        <div class="scan-token-core-wrap">
+          <TapTokenCore />
+        </div>
+        <ScanLockOn
+          :active="inView"
+          :cycle-ms="scanCycleMs"
+          :cycle-key="step === 0 ? videoCycleKey : 0"
+        />
         <figcaption class="scan-token-caption">
           <span class="scan-token-caption-name protocol">NFC machine tag</span>
           <span class="scan-token-caption-note protocol">Optional add-on · below the QR</span>
@@ -704,9 +711,25 @@ onBeforeUnmount(() => {
   justify-self: start;
   width: var(--scan-token);
   min-height: var(--scan-token);
-  margin: calc(var(--scan-grid-top) + var(--scan-phone-h) - var(--scan-token) - var(--scan-token-lift)) 0 0;
+  margin: calc(var(--scan-grid-top) + var(--scan-phone-h) - var(--scan-token) - var(--scan-token-lift)) 0 88px;
   aspect-ratio: 1;
+  overflow: visible;
+}
+
+.scan-token-core-wrap {
+  position: absolute;
+  inset: 0;
   filter: drop-shadow(0 28px 40px rgba(0, 0, 0, 0.72)) drop-shadow(0 0 36px rgba(204, 255, 0, 0.16));
+}
+
+/* Lock-on sits under the token, not over the phone QR. Caption occupies
+   the first ~48px below the coin; this HUD hangs just under that. */
+.scan-token-stage > .scan-lock-on {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 56px);
+  z-index: 5;
+  transform: translateX(-50%);
 }
 
 .scan-token-caption {
@@ -923,7 +946,10 @@ onBeforeUnmount(() => {
     align-self: center;
     width: min(56vw, 220px);
     min-height: min(56vw, 220px);
-    margin: 48px auto 36px;
+    margin: 72px auto 96px;
+  }
+
+  .scan-token-core-wrap {
     filter: drop-shadow(0 22px 32px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 28px rgba(204, 255, 0, 0.14));
   }
 
@@ -1157,7 +1183,7 @@ onBeforeUnmount(() => {
   .scan-token-stage {
     width: min(62vw, 200px);
     min-height: min(62vw, 200px);
-    margin-top: 36px;
+    margin-top: 56px;
   }
 
   .scan-phone-area {
