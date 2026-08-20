@@ -49,6 +49,9 @@ AGENTS.md
 # Local graphify knowledge graph outputs
 graphify-out/
 
+# Local Lighthouse dumps
+lh-reports/
+
 # Isolated Remotion reel package
 remotion/node_modules/
 remotion/out/

@@ -8,6 +8,8 @@
 
 <template>
   <SiteNav />
-  <slot />
-  <LazySiteFooter :hydrate-on-visible="{ rootMargin: '800px' }" />
+  <main>
+    <slot />
+  </main>
+  <LazySiteFooter class="below-fold" :hydrate-on-visible="{ rootMargin: '200px' }" />
 </template>

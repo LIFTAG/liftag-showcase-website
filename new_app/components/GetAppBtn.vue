@@ -33,7 +33,6 @@ withDefaults(defineProps<{
       'get-app-btn--compact': compact,
       'get-app-btn--hero': hero,
     }"
-    :aria-label="`${label}, available on the App Store and Google Play`"
   >
     <span class="get-app-btn__shine" aria-hidden="true" />
 

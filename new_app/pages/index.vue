@@ -25,24 +25,33 @@ useLiftagStructuredData([
 
 useReveal()
 
-// The hero phone screenshot is the LCP element on every viewport; without a
-// preload it queues behind the font preloads and ~30 lazy <img> tags.
+// The hero phone screenshot is the LCP element on every viewport. Split the
+// preload by viewport so a 390px run fetches 360w (~22KB) and desktop fetches
+// 560w, and neither layout preloads the other's candidate.
 useHead({
   link: [
-    { rel: 'preload', as: 'image', href: '/assets/screens/hero-dashboard-560.webp', fetchpriority: 'high' },
+    {
+      rel: 'preload',
+      as: 'image',
+      type: 'image/webp',
+      href: '/assets/screens/hero-dashboard-360.webp',
+      imagesrcset: '/assets/screens/hero-dashboard-360.webp 360w, /assets/screens/hero-dashboard-560.webp 560w, /assets/screens/hero-dashboard-640.webp 640w',
+      imagesizes: '(max-width: 768px) min(46vw, 180px), 280px',
+      media: '(max-width: 768px)',
+      fetchpriority: 'high',
+    },
+    {
+      rel: 'preload',
+      as: 'image',
+      type: 'image/webp',
+      href: '/assets/screens/hero-dashboard-560.webp',
+      media: '(min-width: 769px)',
+      fetchpriority: 'high',
+    },
   ],
 })
 
-// three.js lives in an async chunk (nothing imports it statically) so it no
-// longer competes with the LCP image and fonts. Warm it once the page is idle
-// so the hero particles and 3D phones still appear on their usual schedule.
-// Warming through a consumer component (not `import('three')` directly) keeps
-// the unused parts of three tree-shaken out of the chunk.
 onNuxtReady(() => {
-  // Phones mount a lite particle field after first paint (see Hero.vue). Do
-  // not idle-warm that chunk here: it would contend with the LCP screenshot.
-  // Phone3D stays desktop-only, so warming it on a 390px run would only cost
-  // bandwidth.
   if (!window.matchMedia('(max-width: 768px)').matches) {
     import('~/components/HeroParticles.vue').catch(() => {})
     import('~/components/Phone3D.vue').catch(() => {})
@@ -52,27 +61,25 @@ onNuxtReady(() => {
 
 <template>
   <div>
-    <FilmGrain />
+    <div class="film-grain" aria-hidden="true" />
     <Hero />
-    <PartnerMarquee />
-    <!-- hydrate-on-visible defers each section's JS until the reader nears it.
-         The 800px margin exceeds every internal activation threshold (Phone.vue's
-         800px preload observer, the 600px 3D init observers, useReveal's 12%
-         visibility trigger), so hydration always completes before anything
-         visible fires. -->
-    <LazyScanSection :hydrate-on-visible="{ rootMargin: '800px' }" />
-    <LazyHowItWorks :hydrate-on-visible="{ rootMargin: '800px' }" />
-    <LazyLiftersSection :hydrate-on-visible="{ rootMargin: '800px' }" />
-    <LazyProgressSection :hydrate-on-visible="{ rootMargin: '800px' }" />
-    <LazyAppMergeSection :hydrate-on-visible="{ rootMargin: '800px' }" />
-    <LazyGymsSection :hydrate-on-visible="{ rootMargin: '800px' }" />
+    <LazyPartnerMarquee :hydrate-on-idle="2000" />
+    <!-- 200px is enough to hydrate before a section is on screen, and small
+         enough that a 700px Lighthouse viewport does not pull HowItWorks /
+         Dashboard JS into the TBT window. -->
+    <LazyScanSection :hydrate-on-visible="{ rootMargin: '200px' }" />
+    <LazyHowItWorks :hydrate-on-visible="{ rootMargin: '200px' }" />
+    <LazyLiftersSection class="below-fold" :hydrate-on-visible="{ rootMargin: '200px' }" />
+    <LazyProgressSection :hydrate-on-visible="{ rootMargin: '200px' }" />
+    <LazyAppMergeSection :hydrate-on-visible="{ rootMargin: '200px' }" />
+    <LazyGymsSection class="below-fold" :hydrate-on-visible="{ rootMargin: '200px' }" />
     <!-- DashboardSection runs both dashboard acts: the gym MacBook punches in,
          hands the screen over to the coach dashboard, then un-zooms into the
          coach story that TrainersSection picks up. Keep these three adjacent. -->
-    <LazyDashboardSection :hydrate-on-visible="{ rootMargin: '800px' }" />
-    <LazyTrainersSection :hydrate-on-visible="{ rootMargin: '800px' }" />
-    <LazyRoadmap :hydrate-on-visible="{ rootMargin: '800px' }" />
-    <HomeFaq />
-    <LazyFinalCta :hydrate-on-visible="{ rootMargin: '800px' }" />
+    <LazyDashboardSection :hydrate-on-visible="{ rootMargin: '200px' }" />
+    <LazyTrainersSection class="below-fold" :hydrate-on-visible="{ rootMargin: '200px' }" />
+    <LazyRoadmap class="below-fold" :hydrate-on-visible="{ rootMargin: '200px' }" />
+    <LazyHomeFaq class="below-fold" :hydrate-on-visible="{ rootMargin: '200px' }" />
+    <LazyFinalCta class="below-fold" :hydrate-on-visible="{ rootMargin: '200px' }" />
   </div>
 </template>
