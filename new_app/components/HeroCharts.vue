@@ -307,8 +307,8 @@ onBeforeUnmount(() => {
         <template v-if="l1[idx]">
           <!-- r/opacity are authored as attributes, not left to the keyframes:
                they are the resting pose whenever the pulse is off (phones,
-               reduced motion), and a geometry attribute needs no CSS `r`
-               support to render. -->
+               reduced motion). The pulse itself scales via transform so it
+               stays composited; CSS `r` is not. -->
           <circle
             class="hero-dot-outer"
             :cx="l1[idx][0]"
@@ -441,14 +441,18 @@ onBeforeUnmount(() => {
 }
 
 @keyframes heroDotOuterPulse {
-  0%, 100% { r: 5; opacity: 0.04; }
-  50%      { r: 8; opacity: 0.08; }
+  0%, 100% { transform: scale(0.77); opacity: 0.04; }
+  50%      { transform: scale(1.23); opacity: 0.08; }
 }
 @keyframes heroDotMidPulse {
   0%, 100% { opacity: 0.28; }
   50%      { opacity: 0.40; }
 }
-.hero-dot-outer { animation: heroDotOuterPulse 10.47s ease-in-out infinite; }
+.hero-dot-outer {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: heroDotOuterPulse 10.47s ease-in-out infinite;
+}
 .hero-dot-mid   { animation: heroDotMidPulse   10.47s ease-in-out infinite; }
 
 /* Phones hold the dots at their resting pose. `r` and `opacity` are not

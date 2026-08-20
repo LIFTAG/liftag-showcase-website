@@ -671,6 +671,13 @@ onBeforeUnmount(() => {
   stroke-dashoffset: -134;
 }
 
+.nav-mobile-drawer:not(.is-open) :deep(.get-app-btn),
+.nav-mobile-drawer:not(.is-open) :deep(.get-app-btn)::before,
+.nav-mobile-drawer:not(.is-open) :deep(.get-app-btn)::after,
+.nav-mobile-drawer:not(.is-open) :deep(.get-app-btn .get-app-btn__shine) {
+  animation: none;
+}
+
 .nav-mobile-drawer {
   position: fixed;
   top: calc(60px + var(--liftag-safe-top));
@@ -729,7 +736,7 @@ onBeforeUnmount(() => {
 .nav-drawer-link {
   color: #fff;
   text-decoration: none;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--liftag-font-headline);
   font-weight: 700;
   font-style: italic;
   font-size: 28px;
@@ -831,9 +838,9 @@ onBeforeUnmount(() => {
 }
 
 @keyframes navMarkSnap {
-  0% { transform: scale(0.62) rotate(-24deg); filter: drop-shadow(0 0 0 rgba(204, 255, 0, 0)); }
+  0% { transform: scale(0.62) rotate(-24deg); }
   62% { transform: scale(1.12) rotate(5deg); }
-  100% { transform: scale(1) rotate(0); filter: drop-shadow(0 0 14px rgba(204, 255, 0, 0.5)); }
+  100% { transform: scale(1) rotate(0); }
 }
 
 @keyframes navWordReveal {

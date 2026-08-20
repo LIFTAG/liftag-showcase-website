@@ -208,7 +208,7 @@ withDefaults(defineProps<{
   .get-app-btn:not(.get-app-btn--hero) {
     animation: getAppPhoneBeacon var(--get-app-idle-duration) cubic-bezier(0.16, 1, 0.3, 1) infinite;
     transform-origin: center;
-    will-change: border-color, box-shadow, transform;
+    will-change: transform;
   }
 
   .get-app-btn:not(.get-app-btn--hero)::before {
@@ -240,36 +240,14 @@ withDefaults(defineProps<{
   0%,
   62%,
   100% {
-    border-color: rgba(204, 255, 0, 0.28);
-    background:
-      linear-gradient(135deg, rgba(204, 255, 0, 0.13), transparent 40%),
-      rgba(7, 10, 8, 0.82);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 14px 34px rgba(0, 0, 0, 0.34),
-      0 0 0 rgba(var(--get-app-idle-rgb), 0);
     transform: translate3d(0, 0, 0) scale(1);
   }
 
   7% {
-    border-color: rgba(var(--get-app-idle-rgb), 0.76);
-    background:
-      linear-gradient(135deg, rgba(var(--get-app-idle-rgb), 0.22), transparent 44%),
-      rgba(13, 14, 8, 0.9);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.14),
-      0 17px 38px rgba(0, 0, 0, 0.4),
-      0 0 22px rgba(var(--get-app-idle-rgb), 0.32),
-      0 0 46px rgba(var(--get-app-idle-rgb), 0.2);
     transform: translate3d(0, 0, 0) scale(1.018);
   }
 
   16% {
-    border-color: rgba(var(--get-app-idle-rgb), 0.42);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.11),
-      0 15px 35px rgba(0, 0, 0, 0.36),
-      0 0 18px rgba(var(--get-app-idle-rgb), 0.18);
     transform: translate3d(0, 0, 0) scale(1.006);
   }
 
