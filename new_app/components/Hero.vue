@@ -208,15 +208,15 @@ function queueHeroLaserRaf(fn: (now: number) => void) {
 
 type HeroLaserWallTrack = { leadX: number; now: number }
 
-function publishHeroLaserWallFromEl(
-  el: HTMLElement,
+function publishHeroLaserWallFromBox(
+  rect: { left: number; top: number; width: number; height: number },
   fromRight: boolean,
   progress: number,
   strength: number,
   now: number,
   track: HeroLaserWallTrack | null,
 ): HeroLaserWallTrack {
-  const box = revealedWordBox(el.getBoundingClientRect(), fromRight, progress)
+  const box = revealedWordBox(rect, fromRight, progress)
   const vx = track && now > track.now
     ? (box.leadingX - track.leadX) / ((now - track.now) / 1000)
     : 0
@@ -224,10 +224,7 @@ function publishHeroLaserWallFromEl(
   return { leadX: box.leadingX, now }
 }
 
-function emitHeroLaserSparks(el: HTMLElement, posPercent: number, isGreen: boolean) {
-  const rect = el.getBoundingClientRect()
-  const x = rect.left + (posPercent / 100) * rect.width
-  const y = rect.top + rect.height / 2
+function emitHeroLaserSparks(x: number, y: number, isGreen: boolean) {
   const count = 1 + Math.floor(Math.random() * 2)
 
   for (let i = 0; i < count; i++) {
@@ -236,8 +233,7 @@ function emitHeroLaserSparks(el: HTMLElement, posPercent: number, isGreen: boole
     const dist = 12 + Math.random() * 28
 
     spark.className = 'hero-laser-spark'
-    spark.style.left = `${x}px`
-    spark.style.top = `${y}px`
+    spark.style.translate = `${x}px ${y}px`
     spark.style.background = isGreen ? 'var(--liftag-primary)' : 'var(--liftag-red-neon)'
     spark.style.boxShadow = isGreen
       ? '0 0 4px var(--liftag-primary), 0 0 8px var(--liftag-primary-glow)'
@@ -275,20 +271,20 @@ function runHeroLaserReveal(
   // on every word, and a slightly larger one on the lime from-right sweeps.
   const italicHang = fontSize * 0.18
   const rightClipPad = isGreen && fromRight ? Math.max(fontSize * 0.14, italicHang) : italicHang
-  const rightClipInset = `-${rightClipPad}px`
+  const wordRect = { left: rect.left, top: rect.top, width: rect.width, height: rect.height }
+  const beamTravelWidth = wordRect.width + (fromRight ? rightClipPad : 0)
   const beam = document.createElement('div')
 
   const syncBeam = (beamPercent: number) => {
-    const liveRect = el.getBoundingClientRect()
-    const beamTravelWidth = liveRect.width + (fromRight ? rightClipPad : 0)
-    const x = liveRect.left + (beamPercent / 100) * beamTravelWidth
-
-    beam.style.left = `${x}px`
-    beam.style.top = `${liveRect.top - liveRect.height * 0.2}px`
-    beam.style.height = `${liveRect.height * 1.4}px`
+    const x = wordRect.left + (beamPercent / 100) * beamTravelWidth
+    el.style.setProperty('--laser-x', `${(beamPercent / 100) * wordRect.width}px`)
+    beam.style.setProperty('--beam-x', `${x}px`)
+    beam.style.setProperty('--beam-y', `${wordRect.top - wordRect.height * 0.2}px`)
+    return x
   }
 
   beam.className = `hero-laser-charge-beam ${isGreen ? 'green' : 'red'}`
+  beam.style.setProperty('--beam-h', `${wordRect.height * 1.4}px`)
   syncBeam(fromRight ? 100 : 0)
   document.body.appendChild(beam)
   heroLaserNodes.add(beam)
@@ -300,7 +296,7 @@ function runHeroLaserReveal(
   const charge = (now: number) => {
     if (!charging) return
     const t = Math.min((now - chargeStart) / heroLaserChargeMs, 1)
-    wallTrack = publishHeroLaserWallFromEl(el, fromRight, 0, t, now, wallTrack)
+    wallTrack = publishHeroLaserWallFromBox(wordRect, fromRight, 0, t, now, wallTrack)
     if (t < 1) queueHeroLaserRaf(charge)
   }
   queueHeroLaserRaf(charge)
@@ -308,7 +304,6 @@ function runHeroLaserReveal(
   queueHeroLaserTimer(() => {
     charging = false
     el.classList.add('sweeping')
-    el.style.setProperty('--laser-pos', fromRight ? '100%' : '0%')
     const start = performance.now()
     let lastSparkTime = 0
 
@@ -317,16 +312,16 @@ function runHeroLaserReveal(
       const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
       const pos = eased * 100
       const beamPercent = fromRight ? 100 - pos : pos
-
-      el.style.setProperty('--laser-pos', `${beamPercent}%`)
-      syncBeam(beamPercent)
-      wallTrack = publishHeroLaserWallFromEl(el, fromRight, eased, 1, now, wallTrack)
+      const beamX = syncBeam(beamPercent)
+      wallTrack = publishHeroLaserWallFromBox(wordRect, fromRight, eased, 1, now, wallTrack)
 
       if (now - lastSparkTime > 70 && t > 0.04 && t < 0.92) {
         lastSparkTime = now
         // Body-appended spark nodes force layout; skip them on the phone
         // laser so the clip-path sweep and particle walls stay the cost.
-        if (!isMobile.value) emitHeroLaserSparks(el, beamPercent, isGreen)
+        if (!isMobile.value) {
+          emitHeroLaserSparks(beamX, wordRect.top + wordRect.height / 2, isGreen)
+        }
       }
 
       if (t < 1) {
@@ -2071,6 +2066,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 }
 
 .hero-scroll-pulse {
+  transform-origin: top center;
   animation: scrollPulse 2s ease-in-out infinite;
 }
 
