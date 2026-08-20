@@ -517,8 +517,9 @@ const heroPlaying = ref(false)
   font-size: 10px;
 }
 
-.ex-muscles {
-  margin-top: 18px;
+/* Chip list resets margin to 0; :deep beats that so this gap actually shows. */
+.ex-info :deep(.ex-muscles) {
+  margin-top: 22px;
 }
 
 .ex-description {
@@ -761,6 +762,15 @@ const heroPlaying = ref(false)
   .ex-media :deep(.cat-player__cta-ring svg) {
     width: 9px;
     height: 11px;
+  }
+
+  .ex-media :deep(.cat-player__cta-ring--replay) {
+    padding: 0;
+  }
+
+  .ex-media :deep(.cat-player__cta-ring--replay svg) {
+    width: 13px;
+    height: 13px;
   }
 
   .ex-media :deep(.cat-player__cta-label) {

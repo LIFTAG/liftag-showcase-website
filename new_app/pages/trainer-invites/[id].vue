@@ -13,6 +13,7 @@ useHead({
   meta: [
     { charset: 'utf-8' },
     { name: 'viewport', content: 'width=device-width,initial-scale=1' },
+    { name: 'description', content: 'You have a trainer invite on LIFTAG. Open it in the app to connect with your coach.' },
     { name: 'robots', content: 'noindex,nofollow' },
     {
       name: 'apple-itunes-app',

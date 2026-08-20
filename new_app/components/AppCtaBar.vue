@@ -52,7 +52,7 @@ function dismiss() {
     >
       <!-- Phone pill -->
       <div class="app-cta__pill">
-        <img src="/assets/qr/app-icon.png" width="34" height="34" alt="" class="app-cta__icon">
+        <img src="/assets/qr/app-icon.png" width="34" height="34" alt="LIFTAG" class="app-cta__icon">
         <span class="app-cta__copy">
           <span class="app-cta__title">Log it in the app</span>
           <span class="app-cta__sub">Free on iOS &amp; Android</span>

@@ -32,17 +32,19 @@ const props = withDefaults(defineProps<{
   /** CSS var prefix published by useLerpVars (gym, scan, …). Fallback only. */
   anglePrefix?: string
   qrSrc?: string
-  qrSrcset?: string
 }>(), {
   label: 'Cable Lat Pulldown',
   serial: '#042',
   anglePrefix: 'gym',
   qrSrc: '/uploads/qr-code-160.webp',
-  qrSrcset: '/uploads/qr-code-112.webp 112w, /uploads/qr-code-160.webp 160w, /uploads/qr-code-224.webp 224w, /uploads/qr-code.webp 400w',
 })
 
 const root = ref<HTMLElement | null>(null)
 const near = useNearViewport(root, '160px 0px')
+
+const qrLayerStyle = computed(() => ({
+  backgroundImage: `url("${props.qrSrc}")`,
+}))
 
 const plateStyle = computed(() => ({
   '--holo-ax': `var(--holo-tilt-x, var(--${props.anglePrefix}-mx, 0))`,
@@ -185,38 +187,17 @@ onBeforeUnmount(() => {
         <div class="holo-grain" aria-hidden="true" />
         <div class="holo-mark" aria-hidden="true">LIFTAG</div>
 
-        <div class="holo-latent">
+        <div class="holo-latent" aria-hidden="true">
           <div class="holo-qr-stack">
             <div
               v-for="tone in ['red', 'cyan']"
               :key="tone"
               class="holo-qr-tint"
               :class="`holo-qr-tint--${tone}`"
-              aria-hidden="true"
             >
-              <img
-                class="holo-qr-src"
-                :src="qrSrc"
-                :srcset="qrSrcset"
-                sizes="132px"
-                alt=""
-                width="160"
-                height="160"
-                loading="lazy"
-                decoding="async"
-              >
+              <span class="holo-qr-src" :style="qrLayerStyle" />
             </div>
-            <img
-              class="holo-qr-src holo-qr-face"
-              :src="qrSrc"
-              :srcset="qrSrcset"
-              sizes="132px"
-              alt=""
-              width="160"
-              height="160"
-              loading="lazy"
-              decoding="async"
-            >
+            <span class="holo-qr-src holo-qr-face" :style="qrLayerStyle" />
           </div>
         </div>
 
@@ -459,7 +440,9 @@ onBeforeUnmount(() => {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
   filter: invert(1) contrast(1.22);
 }
 
@@ -468,7 +451,7 @@ onBeforeUnmount(() => {
   mix-blend-mode: screen;
 }
 
-.holo-qr-tint img {
+.holo-qr-tint .holo-qr-src {
   mix-blend-mode: multiply;
 }
 

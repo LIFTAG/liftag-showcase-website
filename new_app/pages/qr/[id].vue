@@ -13,6 +13,7 @@ useHead({
   meta: [
     { charset: 'utf-8' },
     { name: 'viewport', content: 'width=device-width,initial-scale=1' },
+    { name: 'description', content: 'This LIFTAG gym tag opens the exercise in the app. Get LIFTAG on iOS or Android to scan and log the set.' },
     { name: 'robots', content: 'noindex,nofollow' },
     {
       name: 'apple-itunes-app',

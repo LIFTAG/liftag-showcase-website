@@ -183,9 +183,8 @@ onBeforeUnmount(() => {
         @click="replay"
       >
         <span class="cat-player__cta-ring cat-player__cta-ring--replay">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M2.5 12a9.5 9.5 0 1 0 2.4-6.3" />
-            <path d="M2.5 4.5v5h5" />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
           </svg>
         </span>
         <span class="cat-player__cta-label">Replay</span>
