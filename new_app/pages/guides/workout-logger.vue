@@ -216,6 +216,8 @@ useLiftagStructuredData([
               <a href="/best-workout-tracking-app">2026 workout tracking app comparison</a>.
               Three-app slice:
               <a href="/guides/strong-vs-hevy-vs-liftag">Strong vs Hevy vs LIFTAG</a>.
+              2026 logger ranking:
+              <a href="/guides/best-workout-logger">best workout logger</a>.
             </p>
           </section>
 
