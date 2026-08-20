@@ -117,6 +117,7 @@ useLiftagStructuredData([
               Paste-ready boilerplate, logos, and store IDs live on the
               <a href="/press">press page</a>.
               If you are comparing workout loggers, start with
+              <a href="/guides/best-workout-logger">the workout logger guide</a>,
               <a href="/best-workout-tracking-app">the 2026 tracker comparison</a>,
               <a href="/guides/best-free-workout-tracker">the free-tier page</a>,
               and the <a href="/guides/workout-logger">workout logger vs tracker</a> guide.

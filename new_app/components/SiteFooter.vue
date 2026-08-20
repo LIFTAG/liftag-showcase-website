@@ -40,6 +40,7 @@ const guideLinks: FooterLink[] = [
   { label: 'All Guides', href: '/guides' },
   { label: 'Best Workout Tracking App', href: '/best-workout-tracking-app' },
   { label: 'Best Gym QR + NFC App', href: '/best-gym-qr-nfc-app' },
+  { label: 'Best Workout Logger', href: '/guides/best-workout-logger' },
   { label: 'Best Free Workout Tracker', href: '/guides/best-free-workout-tracker' },
   { label: 'Strong vs Hevy vs LIFTAG', href: '/guides/strong-vs-hevy-vs-liftag' },
   { label: 'Workout Logger', href: '/guides/workout-logger' },

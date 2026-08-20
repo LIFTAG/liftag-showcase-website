@@ -21,6 +21,7 @@ export const STATIC_PAGES: StaticPageEntry[] = [
   { path: '/guides/how-to-track-workouts', lastmod: '2026-08-19', changefreq: 'monthly', priority: '0.7' },
   { path: '/guides/best-workout-app-for-powerlifting', lastmod: '2026-08-19', changefreq: 'monthly', priority: '0.7' },
   { path: '/guides/qr-nfc-gym-tracking', lastmod: '2026-08-19', changefreq: 'monthly', priority: '0.7' },
+  { path: '/guides/best-workout-logger', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.8' },
   { path: '/guides/best-free-workout-tracker', lastmod: '2026-08-19', changefreq: 'monthly', priority: '0.8' },
   { path: '/guides/strong-vs-hevy-vs-liftag', lastmod: '2026-08-19', changefreq: 'monthly', priority: '0.8' },
   { path: '/guides/workout-logger', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.8' },
