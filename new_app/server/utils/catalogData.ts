@@ -5,6 +5,7 @@ import type {
   CatalogMachine,
 } from '../../types/catalog'
 import type { CatalogLocale } from '../../utils/catalogLocale'
+import { scheduleIndexNowSubmit } from './indexNowSubmit'
 
 const PAGE_LIMIT = 100
 /** 30 pages x 100 rows is ~7x today's catalog; a runaway loop stops here. */
@@ -54,7 +55,16 @@ export const getCatalogSnapshot = defineCachedFunction(
       fetchAllPages<CatalogMachine>(base, '/v1/catalog/machine-templates', lang),
       fetchAllPages<CatalogCategory>(base, '/v1/catalog/exercise-categories', lang),
     ])
-    return { exercises, machines, categories, fetchedAt: new Date().toISOString() }
+    const snapshot: CatalogSnapshot = {
+      exercises,
+      machines,
+      categories,
+      fetchedAt: new Date().toISOString(),
+    }
+    // English snapshot owns IndexNow URLs (SK slugs are included there).
+    // Fire-and-forget so sitemap-catalog.xml cannot 500 on IndexNow failure.
+    if (lang === 'en') scheduleIndexNowSubmit(snapshot)
+    return snapshot
   },
   {
     name: 'catalog-snapshot',

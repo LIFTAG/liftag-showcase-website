@@ -10,6 +10,10 @@
       "headers": [{ "key": "Content-Type", "value": "application/json" }]
     },
     {
+      "source": "/liftag-a91aeac60beb0c9cca6b09312a630913.txt",
+      "headers": [{ "key": "Content-Type", "value": "text/plain; charset=utf-8" }]
+    },
+    {
       "source": "/auth/:path*",
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     },

@@ -168,6 +168,10 @@ export default defineNuxtConfig({
     typeCheck: false,
     tsConfig: {
       exclude: ['../tests/**'],
+      compilerOptions: {
+        // node --test loads these utils via ESM and needs .ts specifiers.
+        allowImportingTsExtensions: true,
+      },
     },
   },
 })
