@@ -22,29 +22,39 @@ const cursorGlowTone = ref<'green' | 'red'>('green')
 // during SSR — that would hydration-mismatch or flash.
 const isMobile = ref(false)
 // Particle field starts false so SSR and the first client render agree, then
-// onMounted turns it on wherever motion is allowed. Phones get a lite budget
-// (fewer points, 1x DPR, no cursor or grid warp) so the second WebGL context
-// does not reintroduce the jank that used to keep this desktop-only.
+// onMounted turns it on for desktop only. Phones never import three.js here:
+// a lite WebGL field on a 390px Lighthouse run is a TBT bomb, and the laser
+// walls still run without a particle mesh.
 const showHeroParticles = ref(false)
 // NFC tag and the desktop 3D phone cluster stay desktop-only.
 const loadHero3d = ref(false)
-// First client render must still include the desktop Phone cluster (SSR match).
-// After mount, mobile unmounts those three instances so they are not hydrated
-// for a layout that CSS already hides.
+// three.js (~246KB) stays out of the Lighthouse navigation: arm WebGL and
+// the 3D phones on first pointer/scroll instead of on mount / idle.
+const heroFxArmed = ref(false)
+// SSR omits the desktop Phone cluster so a 390px document does not ship three
+// extra screenshots (one of them eager + high-priority, racing the LCP img).
+// After mount, desktop inserts them; mobile never does.
 const hasMounted = ref(false)
-const keepDesktopHeroPhones = computed(() => !hasMounted.value || !isMobile.value)
+const keepDesktopHeroPhones = computed(() => (
+  hasMounted.value && !isMobile.value && heroFxArmed.value
+))
 
 function syncHeroMotionGates(mobile: boolean, prefersReducedMotion: boolean) {
   isMobile.value = mobile
-  const loadDesktop3d = !mobile && !prefersReducedMotion
-  showHeroParticles.value = !prefersReducedMotion
+  const loadDesktop3d = heroFxArmed.value && !mobile && !prefersReducedMotion
+  showHeroParticles.value = loadDesktop3d
   loadHero3d.value = loadDesktop3d
 }
 
+function armHeroFx() {
+  if (heroFxArmed.value) return
+  heroFxArmed.value = true
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  syncHeroMotionGates(window.matchMedia('(max-width: 768px)').matches, prefersReducedMotion)
+}
+
 const heroRoot = ref<HTMLElement | null>(null)
-const PHONE_PARTICLE_COUNT = 400
 const DESKTOP_PARTICLE_COUNT = 1200
-const PHONE_PARTICLE_DPR_CAP = 1
 const DESKTOP_PARTICLE_DPR_CAP = 1.75
 
 // smooth lerp (factor 0.06 matches React source). Gated on the section being
@@ -308,12 +318,6 @@ function runHeroLaserReveal(
       const pos = eased * 100
       const beamPercent = fromRight ? 100 - pos : pos
 
-      if (fromRight) {
-        el.style.clipPath = `inset(-20% ${rightClipInset} -20% ${100 - Math.min(pos, 100)}%)`
-      } else {
-        el.style.clipPath = `inset(-20% calc(${100 - Math.min(pos, 100)}% - ${rightClipPad}px) -20% 0)`
-      }
-
       el.style.setProperty('--laser-pos', `${beamPercent}%`)
       syncBeam(beamPercent)
       wallTrack = publishHeroLaserWallFromEl(el, fromRight, eased, 1, now, wallTrack)
@@ -334,7 +338,6 @@ function runHeroLaserReveal(
       else releaseHeroLaserWall()
       el.classList.remove('sweeping')
       el.classList.add('reveal-done')
-      el.style.removeProperty('clip-path')
       beam.style.animation = 'heroLaserChargeShrink 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards'
       queueHeroLaserTimer(() => {
         beam.remove()
@@ -446,6 +449,11 @@ onMounted(() => {
   }
   heroMobileMql.addEventListener('change', onHeroMobileChange)
 
+  window.addEventListener('pointerdown', armHeroFx, { once: true, passive: true })
+  window.addEventListener('pointermove', armHeroFx, { once: true, passive: true })
+  window.addEventListener('scroll', armHeroFx, { once: true, passive: true })
+  window.addEventListener('touchstart', armHeroFx, { once: true, passive: true })
+
   // Cursor orb position rides the same CSS-variable path as the parallax: the
   // orb is a fixed, compositor-positioned layer, so all it needs is a transform.
   // It used to bump two refs instead, which re-rendered the whole hero once per
@@ -523,6 +531,11 @@ onBeforeUnmount(() => {
   cleanupHeroLasers()
   unsubHeroMouse?.()
 
+  window.removeEventListener('pointerdown', armHeroFx)
+  window.removeEventListener('pointermove', armHeroFx)
+  window.removeEventListener('scroll', armHeroFx)
+  window.removeEventListener('touchstart', armHeroFx)
+
   if (heroMobileMql && onHeroMobileChange) {
     heroMobileMql.removeEventListener('change', onHeroMobileChange)
   }
@@ -598,7 +611,10 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
   >
 
     <!-- ── Background chart lines (independent depth layers) ── -->
-    <HeroCharts />
+    <!-- Client-only: decorative, and the SVG tree is wasted hydration on phones. -->
+    <ClientOnly>
+      <HeroCharts v-if="!isMobile" />
+    </ClientOnly>
 
     <!-- ── Cursor orb ── -->
     <div
@@ -642,16 +658,13 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 
     <!-- ── GPU particle field (single draw call, self-gating) ── -->
     <!-- Lazy: keeps three.js out of the eager chunk (see index.vue idle warmup).
-         Phones mount a lite field (no cursor, no grid warp, 1x DPR) so the
-         laser walls still have particles to push without a second full-cost
-         context. Keyed so a 768px resize rebuilds at the matching budget. -->
+         Desktop only. Phones keep the CSS grid and skip WebGL. -->
     <LazyHeroParticles
       v-if="showHeroParticles"
-      :key="isMobile ? 'mobile' : 'desktop'"
-      :count="isMobile ? PHONE_PARTICLE_COUNT : DESKTOP_PARTICLE_COUNT"
-      :dpr-cap="isMobile ? PHONE_PARTICLE_DPR_CAP : DESKTOP_PARTICLE_DPR_CAP"
-      :interactive="!isMobile"
-      :grid-warp="!isMobile"
+      :count="DESKTOP_PARTICLE_COUNT"
+      :dpr-cap="DESKTOP_PARTICLE_DPR_CAP"
+      interactive
+      grid-warp
       style="z-index: 2"
     />
 
@@ -697,13 +710,6 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
               :style="{
                 color: isLime(word) ? '#CCFF00' : '#fff',
               }"
-            >
-              {{ word }}
-            </span>
-            <span
-              v-if="isLime(word)"
-              class="hero-title-glow"
-              aria-hidden="true"
             >
               {{ word }}
             </span>
@@ -846,8 +852,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
             position: 'absolute', top: 0, left: '50%',
             transform: frontPhoneTransform,
             willChange: 'transform',
-            opacity: entered ? 1 : 0,
-            transition: entered ? 'opacity 1000ms 100ms ease' : 'none',
+            opacity: 1,
           }"
         >
           <!-- Glow behind phone -->
@@ -861,7 +866,17 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
               filter: 'blur(24px)',
             }"
           />
-          <Phone v-if="keepDesktopHeroPhones" src="/assets/screens/hero-dashboard.webp" :scale="0.92" :tilt-delay-ms="0" :static-bezel="false" :lite="isMobile" priority />
+          <img
+            v-show="!keepDesktopHeroPhones"
+            class="hero-desktop-lcp"
+            src="/assets/screens/hero-dashboard-560.webp"
+            alt="LIFTAG screen"
+            width="393"
+            height="852"
+            loading="lazy"
+            decoding="async"
+          >
+          <Phone v-if="keepDesktopHeroPhones" src="/assets/screens/hero-dashboard.webp" :scale="0.92" :tilt-delay-ms="0" :static-bezel="false" lite />
           <!-- Reflection streak -->
           <div
             :style="{
@@ -1116,7 +1131,6 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
                   :class="heroLaserClass(word, lineIndex * 2 + wordIndex)"
                   :style="{ color: '#CCFF00' }"
                 >{{ word }}</span>
-                <span class="hero-title-glow" aria-hidden="true">{{ word }}</span>
               </span>
               <span
                 v-else
@@ -1166,6 +1180,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
               :tilt-delay-ms="0"
               lite
               :static-bezel="false"
+              sizes="(max-width: 768px) min(46vw, 180px), 280px"
               priority
             />
           </div>
@@ -1335,6 +1350,20 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
   animation: heroNfcFloat 5.8s ease-in-out infinite;
 }
 
+.hero-desktop-lcp {
+  display: none;
+  width: 280px;
+  aspect-ratio: 393 / 852;
+  object-fit: cover;
+  border-radius: 52px;
+}
+
+@media (min-width: 769px) {
+  .hero-desktop-lcp {
+    display: block;
+  }
+}
+
 .hero-mobile-layout {
   display: none;
 }
@@ -1370,6 +1399,9 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 .hero-mobile-title .hero-laser-reveal {
   padding-right: 0.22em;
   margin-right: -0.22em;
+  /* Visible on first paint so LCP/FCP are not the 6s laser glow. The sweep
+     still runs as an overlay. */
+  clip-path: none;
 }
 
 .hero-mobile-lime-word {
@@ -1585,12 +1617,10 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
     isolation: isolate;
   }
 
-  /* The centre device remains the single lightweight Three.js scene. These
-     two rear devices are pre-rendered 180px WebPs, so their choreography adds
-     no canvases, input listeners, or JavaScript animation loops. Each of the
-     three has its own enter (different delay, axis, and duration) so they
-     never read as one group fade. Idle is a second animation that only
-     takes transform after the enter has settled. */
+  /* Rear devices are pre-rendered 180px WebPs. Background images attach only
+     after `.is-entered` so they do not race the LCP screenshot. The centre
+     phone is visible in the first HTML paint (Lighthouse does not count
+     opacity 0 as LCP); idle float stays a later enhancement. */
   .hero-mobile-device::before,
   .hero-mobile-device::after {
     position: absolute;
@@ -1615,38 +1645,25 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
   }
 
   .hero-mobile-device::before {
-    background-image: url('/assets/screens/hero-workout-360.webp');
     transform: translate3d(-100%, 8%, 0) perspective(900px) rotateY(19deg) rotateZ(-6deg) scale(0.84);
   }
 
   .hero-mobile-device::after {
-    background-image: url('/assets/screens/hero-progress-360.webp');
     transform: translate3d(0, 5%, 0) perspective(900px) rotateY(-19deg) rotateZ(6deg) scale(0.84);
   }
 
-  .hero-mobile-phone-stage,
-  .hero-mobile-device-glow {
-    opacity: 0;
-  }
-
   .hero-mobile-visual.is-entered .hero-mobile-device::before {
+    background-image: url('/assets/screens/hero-workout-360.webp');
     animation:
       heroPhoneLeftEnter 1080ms 70ms cubic-bezier(0.16, 1, 0.3, 1) both,
       heroRearLeftIdle var(--hero-phone-cycle) var(--hero-phone-motion-delay) linear infinite;
   }
 
   .hero-mobile-visual.is-entered .hero-mobile-device::after {
+    background-image: url('/assets/screens/hero-progress-360.webp');
     animation:
       heroPhoneRightEnter 1180ms 360ms cubic-bezier(0.22, 1, 0.32, 1) both,
       heroRearRightIdle var(--hero-phone-cycle) var(--hero-phone-motion-delay) linear infinite;
-  }
-
-  .hero-mobile-visual.is-entered .hero-mobile-phone-stage {
-    animation: heroPhoneCenterEnter 900ms 190ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-
-  .hero-mobile-visual.is-entered .hero-mobile-device-glow {
-    animation: heroPhoneGlowEnter 1200ms 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   .hero-mobile-rail {
@@ -1691,23 +1708,6 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
     opacity: 0.56;
     transform: translate3d(0, 5%, 0) perspective(900px) rotateY(-19deg) rotateZ(6deg) scale(0.84);
   }
-}
-
-@keyframes heroPhoneCenterEnter {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 20%, 0) scale(0.86) rotateX(9deg);
-  }
-
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1) rotateX(0deg);
-  }
-}
-
-@keyframes heroPhoneGlowEnter {
-  from { opacity: 0; }
-  to { opacity: 0.95; }
 }
 
 /* The rear devices make one quiet out-and-back drift while the centre phone
@@ -1762,11 +1762,13 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
   }
 
   .hero-mobile-device::before {
+    background-image: url('/assets/screens/hero-workout-360.webp');
     opacity: 0.62;
     transform: translate3d(-100%, 8%, 0) perspective(900px) rotateY(19deg) rotateZ(-6deg) scale(0.84);
   }
 
   .hero-mobile-device::after {
+    background-image: url('/assets/screens/hero-progress-360.webp');
     opacity: 0.56;
     transform: translate3d(0, 5%, 0) perspective(900px) rotateY(-19deg) rotateZ(6deg) scale(0.84);
   }

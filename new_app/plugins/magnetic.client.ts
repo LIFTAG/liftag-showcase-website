@@ -111,8 +111,26 @@ function scan() {
 
 export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.hook('app:mounted', () => {
+    if (!magneticAllowed()) return
+
     scan()
-    const mo = new MutationObserver(scan)
-    mo.observe(document.body, { childList: true, subtree: true })
+
+    // Hero and nav magnets exist on first paint. Below-fold CTAs (FinalCta)
+    // hydrate later; wait for idle before walking the whole tree on every
+    // mutation so the observer does not compete with LCP / TBT.
+    const startObserver = () => {
+      const mo = new MutationObserver(scan)
+      mo.observe(document.body, { childList: true, subtree: true })
+    }
+
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number
+    }
+    if (idleWindow.requestIdleCallback) {
+      idleWindow.requestIdleCallback(startObserver, { timeout: 4000 })
+      return
+    }
+
+    window.setTimeout(startObserver, 1)
   })
 })

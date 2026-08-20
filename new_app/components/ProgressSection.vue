@@ -438,7 +438,7 @@ onBeforeUnmount(() => {
               :aria-label="`Screen ${i + 1}`"
               @click="setScreen(i)"
               :style="{
-                width: screen === i ? '24px' : '10px',
+                width: screen === i ? '32px' : '24px',
               }"
             />
           </div>
@@ -843,6 +843,9 @@ onBeforeUnmount(() => {
   border: none;
   background: transparent;
   cursor: pointer;
+  box-sizing: border-box;
+  min-width: 24px;
+  min-height: 24px;
   padding: 8px 0;
   display: flex;
   align-items: center;

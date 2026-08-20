@@ -43,6 +43,14 @@ function preferredScreenSrc(src: string | undefined) {
   return screenVariant(src, 560) ?? src ?? ''
 }
 
+function screenSrcset(src: string | undefined) {
+  const w360 = screenVariant(src, 360)
+  const w560 = screenVariant(src, 560)
+  const w640 = screenVariant(src, 640)
+  if (!w360 || !w560 || !w640) return undefined
+  return `${w360} 360w, ${w560} 560w, ${w640} 640w`
+}
+
 const props = withDefaults(defineProps<{
   src?: string
   // Screen footage that replaces the still `src` on the display. `src` stays
@@ -130,6 +138,7 @@ const phone3dScreenshotSrc = computed(() => (
 ))
 const imageLoading = computed(() => props.priority ? 'eager' : 'lazy')
 const imageFetchPriority = computed(() => props.priority ? 'high' : 'auto')
+const staticScreenSrcset = computed(() => screenSrcset(props.src))
 
 let mobileMql: MediaQueryList | null = null
 let onMobileChange: ((event: MediaQueryListEvent) => void) | null = null
@@ -195,13 +204,18 @@ watch(render3dPhone, () => {
   phone3dReady.value = false
 }, { flush: 'sync' })
 
+function isPhoneDisplayed() {
+  return Boolean(phoneRef.value?.getClientRects().length)
+}
+
 function prefetchPhone3d() {
-  if (!props.src || renderStaticMockup.value) return
+  if (!props.src || renderStaticMockup.value || !isPhoneDisplayed()) return
   import('./Phone3D.vue').catch(() => {})
 }
 
 function activatePhone() {
   if (isNearViewport.value) return
+  if (!isPhoneDisplayed()) return
 
   isNearViewport.value = true
   // Overlap the async chunk fetch with the static-screen decode below.
@@ -323,6 +337,8 @@ onBeforeUnmount(() => {
           class="phone-3d-placeholder"
           :class="{ 'phone-3d-placeholder--hidden': phone3dReady }"
           :src="staticDisplaySrc"
+          :srcset="staticScreenSrcset"
+          :sizes="staticScreenSrcset ? props.sizes : undefined"
           alt="LIFTAG screen"
           width="393"
           height="852"
@@ -349,6 +365,8 @@ onBeforeUnmount(() => {
         <img
           class="phone-static-screen"
           :src="staticDisplaySrc"
+          :srcset="staticScreenSrcset"
+          :sizes="staticScreenSrcset ? props.sizes : undefined"
           alt="LIFTAG screen"
           width="393"
           height="852"
@@ -364,6 +382,8 @@ onBeforeUnmount(() => {
           :key="`${staticDisplaySrc}-${props.screenTransitionKey}`"
           class="phone-static-screen"
           :src="staticDisplaySrc"
+          :srcset="staticScreenSrcset"
+          :sizes="staticScreenSrcset ? props.sizes : undefined"
           alt="LIFTAG screen"
           width="393"
           height="852"

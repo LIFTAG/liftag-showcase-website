@@ -1,4 +1,17 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+
+const DEFERRED_CHUNK = /(?:^|\/)(?:ScanSection|HowItWorks|LiftersSection|ProgressSection|AppMergeSection|GymsSection|DashboardSection|TrainersSection|Roadmap|FinalCta|SiteFooter|HomeFaq|FaqAccordion|PartnerMarquee|Phone3D|Macbook3D|HeroParticles|NfcTag3D|ForgedPrPlate|HologramPlate|MergeParticles|MergePrismCore|MergeBurstHalo|RoadmapParticles|TapTokenCore)(?:\.vue)?(?:-|\.|$)/
+
+function isThreeManifestEntry(key: string, entry: { name?: string, file?: string }) {
+  return entry.name === 'three' || key.includes('node_modules/three') || Boolean(entry.file?.includes('three'))
+}
+
+function isDeferredManifestEntry(key: string, entry: { name?: string, file?: string }) {
+  return DEFERRED_CHUNK.test(key) || DEFERRED_CHUNK.test(entry.name ?? '') || DEFERRED_CHUNK.test(entry.file ?? '')
+}
+
+const LONG_CACHE = 'public, max-age=31536000, stale-while-revalidate=86400'
+
 export default defineNuxtConfig({
   compatibilityDate: '2026-04-26',
   devtools: { enabled: true },
@@ -57,9 +70,13 @@ export default defineNuxtConfig({
         { rel: 'alternate', type: 'text/plain', href: 'https://liftag.fit/llms.txt', title: 'llms.txt' },
         { rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: '/assets/fonts/inter-latin.woff2' },
         { rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: '/assets/fonts/space-grotesk-latin.woff2' },
-        { rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: '/assets/fonts/jetbrains-mono-latin.woff2' },
       ],
     },
+  },
+  // Keep SSR CSS inlined. Extracting below-fold files made 15 render-blocking
+  // stylesheets and dropped mobile FCP from 2.8s to 5.9s in lab.
+  features: {
+    inlineStyles: true,
   },
   vite: {
     build: {
@@ -79,13 +96,20 @@ export default defineNuxtConfig({
     // chunk that statically imports it (Phone3D, Macbook3D, macbookScreen,
     // particles). The hashed three file is not named "three-*.js", so match
     // on entry.name and on the static-import closure.
+    //
+    // Lazy homepage sections have the same problem: hydrate-on-visible still
+    // lists them as the page's dynamic imports, so Nuxt modulepreloads (fetch
+    // + compile) ~400KB of JS during load. Drop preload on those entries;
+    // prefetch stays so a later idle pass can warm them.
     'build:manifest': (manifest) => {
       const threeKeys = new Set<string>()
       for (const [key, entry] of Object.entries(manifest)) {
-        if (entry.name === 'three' || key.includes('node_modules/three') || entry.file?.includes('three')) {
+        if (isThreeManifestEntry(key, entry)) {
           threeKeys.add(key)
           entry.preload = false
           entry.prefetch = false
+        } else if (isDeferredManifestEntry(key, entry)) {
+          entry.preload = false
         }
       }
       let grew = true
@@ -156,6 +180,13 @@ export default defineNuxtConfig({
         'cache-control': 'no-store',
       },
     },
+    '/assets/**': { headers: { 'cache-control': LONG_CACHE } },
+    '/uploads/**': { headers: { 'cache-control': LONG_CACHE } },
+    '/logo.png': { headers: { 'cache-control': LONG_CACHE } },
+    '/logo.svg': { headers: { 'cache-control': LONG_CACHE } },
+    '/logo_silhouette.svg': { headers: { 'cache-control': LONG_CACHE } },
+    '/logo-apple-touch.png': { headers: { 'cache-control': LONG_CACHE } },
+    '/og-image.jpg': { headers: { 'cache-control': LONG_CACHE } },
   },
   nitro: {
     prerender: {

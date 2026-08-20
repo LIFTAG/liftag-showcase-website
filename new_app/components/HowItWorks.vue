@@ -2130,31 +2130,44 @@ circle[fill="var(--liftag-primary)"] {
   left: 50%;
   transform: translate3d(-50%, var(--hiw-dots-shift), 0);
   display: flex;
-  gap: 12px;
+  gap: 8px;
   z-index: 10;
   opacity: var(--hiw-dots-opacity);
   pointer-events: auto;
 }
 
 .hiw-dot {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.hiw-dot::after {
+  content: '';
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.15);
-  cursor: pointer;
+  box-shadow: none;
   transition: width 0.4s ease, background-color 0.4s ease, box-shadow 0.4s ease, border-radius 0.4s ease, transform 0.4s ease;
 }
-.hiw-dot:hover {
+
+.hiw-dot:hover::after {
   background: rgba(255, 255, 255, 0.4);
   transform: scale(1.3);
 }
-.hiw-dot.active {
-  background: var(--liftag-primary);
-  box-shadow: 0 0 10px var(--liftag-primary-glow);
+.hiw-dot.active::after {
   width: 20px;
   border-radius: 4px;
+  background: var(--liftag-primary);
+  box-shadow: 0 0 10px var(--liftag-primary-glow);
 }
-.hiw-dot.active:hover {
+.hiw-dot.active:hover::after {
   background: var(--liftag-primary);
   transform: scale(1.1);
 }

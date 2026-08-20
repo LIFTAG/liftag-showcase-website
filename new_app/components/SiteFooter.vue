@@ -238,7 +238,7 @@ onBeforeUnmount(() => {
         gap: 16px;
       "
     >
-      <span class="protocol" style="color: #666;">© 2026 LIFTAG · BRATISLAVA · BUILT BY LIFTERS</span>
+      <span class="protocol footer-copy">© 2026 LIFTAG · BRATISLAVA · BUILT BY LIFTERS</span>
       <div class="footer-bottom-actions">
         <div class="footer-socials">
           <a
@@ -524,8 +524,9 @@ onBeforeUnmount(() => {
   flex: 0 0 auto;
 }
 
+.footer-copy,
 .footer-stores {
-  color: #666;
+  color: #a8a8a8;
 }
 
 .footer-stores-link {
