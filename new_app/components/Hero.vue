@@ -21,11 +21,12 @@ const cursorGlowTone = ref<'green' | 'red'>('green')
 // onMounted then reads matchMedia; do not v-if the desktop grid on that flag
 // during SSR — that would hydration-mismatch or flash.
 const isMobile = ref(false)
-// Three.js hero extras (particles + NFC tag) start false so SSR and the first
-// client render agree: no WebGL. onMounted turns them on only when motion is
-// allowed AND the viewport is desktop. Laser sparks already no-op on phones;
-// the CSS grid fallback covers the field while this is off.
+// Particle field starts false so SSR and the first client render agree, then
+// onMounted turns it on wherever motion is allowed. Phones get a lite budget
+// (fewer points, 1x DPR, no cursor or grid warp) so the second WebGL context
+// does not reintroduce the jank that used to keep this desktop-only.
 const showHeroParticles = ref(false)
+// NFC tag and the desktop 3D phone cluster stay desktop-only.
 const loadHero3d = ref(false)
 // First client render must still include the desktop Phone cluster (SSR match).
 // After mount, mobile unmounts those three instances so they are not hydrated
@@ -36,7 +37,7 @@ const keepDesktopHeroPhones = computed(() => !hasMounted.value || !isMobile.valu
 function syncHeroMotionGates(mobile: boolean, prefersReducedMotion: boolean) {
   isMobile.value = mobile
   const loadDesktop3d = !mobile && !prefersReducedMotion
-  showHeroParticles.value = loadDesktop3d
+  showHeroParticles.value = !prefersReducedMotion
   loadHero3d.value = loadDesktop3d
 }
 
@@ -610,10 +611,10 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
     />
 
     <!-- ── Subtle grid ── -->
-    <!-- Static fallback for phones (no particle field), prefers-reduced-motion,
-         and pre-hydration. Desktop swaps to the cursor-warped GPU version
-         inside HeroParticles once that field is on, so the two never show at
-         once on that layout. -->
+    <!-- Static fallback for phones (lite particles skip the GPU grid warp),
+         prefers-reduced-motion, and pre-hydration. Desktop swaps to the
+         cursor-warped GPU version inside HeroParticles once that field is on,
+         so the two never show at once on that layout. -->
     <div
       v-if="isMobile || !showHeroParticles"
       :style="{
@@ -641,9 +642,9 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 
     <!-- ── GPU particle field (single draw call, self-gating) ── -->
     <!-- Lazy: keeps three.js out of the eager chunk (see index.vue idle warmup).
-         Desktop-only: phones keep the CSS grid fallback above. Laser reveal
-         does not need a particle field; spark emission already no-ops on
-         mobile. Keyed so a 768px resize rebuilds at the matching budget. -->
+         Phones mount a lite field (no cursor, no grid warp, 1x DPR) so the
+         laser walls still have particles to push without a second full-cost
+         context. Keyed so a 768px resize rebuilds at the matching budget. -->
     <LazyHeroParticles
       v-if="showHeroParticles"
       :key="isMobile ? 'mobile' : 'desktop'"

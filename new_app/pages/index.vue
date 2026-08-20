@@ -39,8 +39,10 @@ useHead({
 // Warming through a consumer component (not `import('three')` directly) keeps
 // the unused parts of three tree-shaken out of the chunk.
 onNuxtReady(() => {
-  // Mobile hero stays on the CSS grid + static phone mockup. Idle-warming
-  // either consumer would pull the three.js chunk into a 390px Lighthouse run.
+  // Phones mount a lite particle field after first paint (see Hero.vue). Do
+  // not idle-warm that chunk here: it would contend with the LCP screenshot.
+  // Phone3D stays desktop-only, so warming it on a 390px run would only cost
+  // bandwidth.
   if (!window.matchMedia('(max-width: 768px)').matches) {
     import('~/components/HeroParticles.vue').catch(() => {})
     import('~/components/Phone3D.vue').catch(() => {})
