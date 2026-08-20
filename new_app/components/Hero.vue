@@ -1820,20 +1820,6 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
     max-width: 100%;
   }
 
-  .hero-mobile-copybeat::before {
-    content: '';
-    position: absolute;
-    right: 8%;
-    bottom: -1px;
-    left: 8%;
-    height: 1px;
-    background: var(--liftag-primary);
-    opacity: 0;
-    pointer-events: none;
-    transform: scaleX(0);
-    transform-origin: left center;
-  }
-
   .hero-mobile-copybeat-scan {
     position: absolute;
     top: -2px;
@@ -1880,10 +1866,6 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 
   .hero-mobile-copyline--phone.is-entered .hero-mobile-copybeat-scan {
     animation: heroPhoneCopyScan 640ms calc(50ms + var(--beat) * 150ms) cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-
-  .hero-mobile-copyline--phone.is-entered .hero-mobile-copybeat::before {
-    animation: heroPhoneCopyRule 720ms calc(180ms + var(--beat) * 150ms) cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   .hero-mobile-copyline--phone.is-entered .hero-mobile-copykey {
@@ -2102,7 +2084,6 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 
   .hero-mobile-copybeat-text,
   .hero-mobile-copybeat-scan,
-  .hero-mobile-copybeat::before,
   .hero-mobile-copykey {
     animation: none !important;
   }
@@ -2112,8 +2093,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
     transform: none !important;
   }
 
-  .hero-mobile-copybeat-scan,
-  .hero-mobile-copybeat::before {
+  .hero-mobile-copybeat-scan {
     display: none !important;
   }
 
@@ -2162,22 +2142,6 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
   100% {
     opacity: 0;
     transform: translate3d(0, 0, 0);
-  }
-}
-
-@keyframes heroPhoneCopyRule {
-  0% {
-    opacity: 0;
-    transform: scaleX(0);
-  }
-
-  36% {
-    opacity: 0.55;
-  }
-
-  100% {
-    opacity: 0;
-    transform: scaleX(1);
   }
 }
 
