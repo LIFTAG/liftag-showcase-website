@@ -4,6 +4,7 @@ import {
   APP_ID,
   liftagHowTo,
   liftagSoftwareApplication,
+  liftagWebPage,
   liftagWebSite,
 } from '../utils/seoSchema.ts'
 
@@ -20,6 +21,16 @@ test('exposes a WebSite search action on the exercise library', () => {
     action.target.urlTemplate,
     'https://liftag.fit/exercises?q={search_term_string}',
   )
+})
+
+test('marks the company page as an AboutPage', () => {
+  const page = liftagWebPage({
+    path: '/about',
+    name: 'About LIFTAG',
+    description: 'Company facts.',
+    type: 'AboutPage',
+  })
+  assert.equal(page['@type'], 'AboutPage')
 })
 
 test('emits HowTo steps that match visible copy', () => {

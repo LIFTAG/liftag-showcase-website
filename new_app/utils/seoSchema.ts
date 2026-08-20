@@ -199,7 +199,7 @@ export function liftagWebPage(opts: {
   path: string
   name: string
   description: string
-  type?: 'WebPage' | 'CollectionPage' | 'ContactPage'
+  type?: 'WebPage' | 'CollectionPage' | 'ContactPage' | 'AboutPage'
   image?: string
   aboutId?: string
   primaryImage?: Record<string, unknown>

@@ -123,7 +123,9 @@ useLiftagStructuredData([
               NTAG213 is enough for a URL. Step up only if you have a reason. Do not buy mystery eBay chips and hope they survive a squat rack. Durability is the sticker laminate and the adhesive, not the NFC forum type number on a spreadsheet.
             </p>
             <p>
-              If you do not want to source any of that, that is the kit LIFTAG sends partner gyms: both radios, mapped to the catalog, free at the core. <a href="/contact/partner">Ask for a rollout</a>.
+              If you do not want to source any of that, that is the kit LIFTAG sends partner gyms: both radios, mapped to the catalog, free at the core. The floor walk is
+              <a href="/guides/gym-nfc-rollout">how gyms roll out NFC tags</a>.
+              <a href="/contact/partner">Ask for a rollout</a>.
             </p>
           </section>
 

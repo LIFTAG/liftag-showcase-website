@@ -22,7 +22,7 @@ const faqs = [
   },
   {
     question: 'Do I need to log RPE or rest time?',
-    answer: 'Optional but useful. RPE captures how hard a set felt, which helps you adjust loads when fatigue and life stress shift week to week. Rest time matters because longer rest typically allows higher performance, so comparing sets across very different rest periods can be misleading.',
+    answer: 'Optional but useful. RPE captures how hard a set felt, which helps you adjust loads when fatigue and life stress shift week to week. Rest time matters because longer rest typically allows higher performance, so comparing sets across very different rest periods can be misleading. See the RPE guide and the progressive overload guide on this site.',
   },
   {
     question: 'How long should I track workouts before I see progress?',
@@ -99,7 +99,7 @@ useLiftagStructuredData([
               <li><strong>Weight.</strong> Whatever was on the bar or the stack.</li>
               <li><strong>Reps.</strong> The actual reps performed, not the planned ones.</li>
               <li><strong>Rest time.</strong> How long you waited between sets.</li>
-              <li><strong>RPE or RIR (optional).</strong> How hard the set felt, on a one-to-ten scale. RPE 10 means a true grinder, no reps left. RPE 8 means roughly two reps in the tank.</li>
+              <li><strong>RPE or RIR (optional).</strong> How hard the set felt, on a one-to-ten scale. RPE 10 means a true grinder, no reps left. RPE 8 means roughly two reps in the tank. Full note: <a href="/guides/what-is-rpe-lifting">what is RPE in lifting</a>. How to add load after: <a href="/guides/progressive-overload">progressive overload</a>.</li>
             </ol>
             <p>
               Anything beyond those four is a bonus. Notes are helpful; a single line per session like "back tight on second set" or "switched grip" will save you in six weeks when you cannot remember why a lift suddenly felt different.

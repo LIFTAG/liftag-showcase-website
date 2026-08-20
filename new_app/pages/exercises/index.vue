@@ -164,7 +164,11 @@ const filtered = computed<CatalogIndexExercise[]>(() => {
       return tokens.every(token => haystack.includes(token))
     })
   }
-  return rows
+  return [...rows].sort((a, b) => {
+    const byPopularity = (b.popularity ?? 0) - (a.popularity ?? 0)
+    if (byPopularity !== 0) return byPopularity
+    return a.name.localeCompare(b.name)
+  })
 })
 
 const visible = computed(() => filtered.value.slice(0, visibleCount.value))

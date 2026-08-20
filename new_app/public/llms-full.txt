@@ -39,6 +39,8 @@ See https://liftag.fit/best-gym-qr-nfc-app for the machine-tag comparison and ht
 - Partner-gym discovery on a map.
 - Gym-specific exercise instruction videos filmed on the actual equipment.
 - A public exercise library (400+ lifts) and machine catalog on liftag.fit, organized by muscle group, with setup cues and the same log-in-app path used on the floor.
+- Guides on RPE, progressive overload, and gym NFC rollouts at https://liftag.fit/guides
+- Company facts at https://liftag.fit/about
 
 ## Why LIFTAG was built
 

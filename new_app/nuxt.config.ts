@@ -102,6 +102,7 @@ export default defineNuxtConfig({
     '/best-gym-qr-nfc-app': { prerender: true },
     '/guides': { prerender: true },
     '/guides/**': { prerender: true },
+    '/about': { prerender: true },
     '/contact/**': { prerender: true },
     '/privacy-policy': { prerender: true },
     '/terms-and-conditions': { prerender: true },

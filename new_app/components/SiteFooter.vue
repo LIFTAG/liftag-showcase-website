@@ -15,6 +15,7 @@ const productLinks: FooterLink[] = [
   { label: 'Become a Coach', href: '/become-a-coach' },
   { label: 'For Gyms', href: '/for-gyms' },
   { label: 'NFC + QR Tags', href: '/qr-nfc-gym-tags' },
+  { label: 'About', href: '/about' },
   { label: 'Roadmap', href: '/#roadmap' },
   { label: 'Partner with us', href: '/contact/partner' },
   { label: 'Support', href: '/contact/support' },
@@ -44,6 +45,9 @@ const guideLinks: FooterLink[] = [
   { label: 'Best App for Powerlifting', href: '/guides/best-workout-app-for-powerlifting' },
   { label: 'QR + NFC Gym Tracking', href: '/guides/qr-nfc-gym-tracking' },
   { label: 'NFC Tags for Gym Equipment', href: '/guides/nfc-tags-for-gym-equipment' },
+  { label: 'What is RPE', href: '/guides/what-is-rpe-lifting' },
+  { label: 'Progressive Overload', href: '/guides/progressive-overload' },
+  { label: 'Gym NFC Rollout', href: '/guides/gym-nfc-rollout' },
 ]
 
 const legalLinks: FooterLink[] = [

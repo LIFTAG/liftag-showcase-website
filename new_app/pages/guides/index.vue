@@ -56,6 +56,24 @@ const guides = [
     title: 'NFC tags for gym equipment',
     body: 'What to put on each machine, where to stick it, and why a dual NFC + QR plate beats QR alone.',
   },
+  {
+    href: '/guides/what-is-rpe-lifting',
+    eyebrow: 'LIFTING',
+    title: 'What is RPE in lifting',
+    body: 'How to rate a set, when to log RPE in a workout tracker, and how it pairs with rest time and load.',
+  },
+  {
+    href: '/guides/progressive-overload',
+    eyebrow: 'LIFTING',
+    title: 'Progressive overload',
+    body: 'How to add load, reps, or sets without lying to the log — and how a tracker makes the next jump obvious.',
+  },
+  {
+    href: '/guides/gym-nfc-rollout',
+    eyebrow: 'GYMS',
+    title: 'Gym NFC tag rollout',
+    body: 'How a club tags a floor, then 12 locations, without a fake case-study quote. The actual LIFTAG rollout.',
+  },
 ]
 
 useLiftagStructuredData([

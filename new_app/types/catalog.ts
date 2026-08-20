@@ -48,6 +48,8 @@ export interface CatalogExercise {
   categories: CatalogCategoryRef[]
   /** Only present on the show endpoint (newer API versions). */
   machines?: CatalogMachineRef[]
+  /** Catalog ranking score. Additive; older API versions omit it. */
+  popularity?: number
   createdAt: string
   updatedAt: string | null
 }
@@ -100,6 +102,7 @@ export interface CatalogIndexExercise {
   isCompound: boolean | null
   hasVideo: boolean
   previewVideoUrl: string | null
+  popularity: number
 }
 
 export interface CatalogIndexMachine {

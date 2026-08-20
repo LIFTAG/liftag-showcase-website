@@ -1,10 +1,11 @@
 import type { CatalogVideo } from '~/types/catalog'
 
 /**
- * Public catalog instruction videos. Flip on when the library is ready to
- * show play CTAs, tile badges, hover previews, and VideoObject markup.
+ * Public catalog instruction videos. Players, badges, VideoObject, and the
+ * video sitemap only render for exercises that actually have a URL — this
+ * flag is the global kill switch, not a per-row gate.
  */
-export const CATALOG_VIDEOS_ENABLED = false
+export const CATALOG_VIDEOS_ENABLED = true
 
 /** Pick the same deterministic instruction video everywhere the catalog appears. */
 export function preferredCatalogVideoUrl(videos: readonly CatalogVideo[]): string | null {

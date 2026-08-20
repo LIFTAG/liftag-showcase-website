@@ -24,6 +24,7 @@ export default defineEventHandler(async (): Promise<CatalogIndexPayload> => {
         isCompound: exercise.isCompound,
         hasVideo: catalogHasVideo(exercise.videos),
         previewVideoUrl: preferredCatalogVideoUrl(exercise.videos),
+        popularity: typeof exercise.popularity === 'number' ? exercise.popularity : 0,
       })),
     machines: snapshot.machines.map(machine => ({
       id: machine.id,
