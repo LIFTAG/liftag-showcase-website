@@ -28,29 +28,23 @@ const isMobile = ref(false)
 const showHeroParticles = ref(false)
 // NFC tag and the desktop 3D phone cluster stay desktop-only.
 const loadHero3d = ref(false)
-// three.js (~246KB) stays out of the Lighthouse navigation: arm WebGL and
-// the 3D phones on first pointer/scroll instead of on mount / idle.
-const heroFxArmed = ref(false)
 // SSR omits the desktop Phone cluster so a 390px document does not ship three
 // extra screenshots (one of them eager + high-priority, racing the LCP img).
 // After mount, desktop inserts them; mobile never does.
+// Do not wait for a pointer: gating WebGL/phones on first mousemove left the
+// hero empty (static LCP img, no particles, no grid warp) until the cursor
+// moved. three.js still stays out of the eager chunk via LazyHeroParticles
+// and async Phone3D.
 const hasMounted = ref(false)
 const keepDesktopHeroPhones = computed(() => (
-  hasMounted.value && !isMobile.value && heroFxArmed.value
+  hasMounted.value && !isMobile.value
 ))
 
 function syncHeroMotionGates(mobile: boolean, prefersReducedMotion: boolean) {
   isMobile.value = mobile
-  const loadDesktop3d = heroFxArmed.value && !mobile && !prefersReducedMotion
+  const loadDesktop3d = !mobile && !prefersReducedMotion
   showHeroParticles.value = loadDesktop3d
   loadHero3d.value = loadDesktop3d
-}
-
-function armHeroFx() {
-  if (heroFxArmed.value) return
-  heroFxArmed.value = true
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  syncHeroMotionGates(window.matchMedia('(max-width: 768px)').matches, prefersReducedMotion)
 }
 
 const heroRoot = ref<HTMLElement | null>(null)
@@ -441,11 +435,6 @@ onMounted(() => {
   }
   heroMobileMql.addEventListener('change', onHeroMobileChange)
 
-  window.addEventListener('pointerdown', armHeroFx, { once: true, passive: true })
-  window.addEventListener('pointermove', armHeroFx, { once: true, passive: true })
-  window.addEventListener('scroll', armHeroFx, { once: true, passive: true })
-  window.addEventListener('touchstart', armHeroFx, { once: true, passive: true })
-
   // Cursor orb position rides the same CSS-variable path as the parallax: the
   // orb is a fixed, compositor-positioned layer, so all it needs is a transform.
   // It used to bump two refs instead, which re-rendered the whole hero once per
@@ -522,11 +511,6 @@ onBeforeUnmount(() => {
   cursorGlowRaf = 0
   cleanupHeroLasers()
   unsubHeroMouse?.()
-
-  window.removeEventListener('pointerdown', armHeroFx)
-  window.removeEventListener('pointermove', armHeroFx)
-  window.removeEventListener('scroll', armHeroFx)
-  window.removeEventListener('touchstart', armHeroFx)
 
   if (heroMobileMql && onHeroMobileChange) {
     heroMobileMql.removeEventListener('change', onHeroMobileChange)
@@ -868,7 +852,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
             loading="lazy"
             decoding="async"
           >
-          <Phone v-if="keepDesktopHeroPhones" src="/assets/screens/hero-dashboard.webp" :scale="0.92" :tilt-delay-ms="0" :static-bezel="false" lite />
+          <Phone v-if="keepDesktopHeroPhones" src="/assets/screens/hero-dashboard.webp" :scale="0.92" :tilt-delay-ms="0" :static-bezel="false" lite priority />
           <!-- Reflection streak -->
           <div
             :style="{

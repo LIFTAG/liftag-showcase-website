@@ -903,9 +903,17 @@ function initPhone() {
     })
   }
   window.addEventListener('resize', onResize, { passive: true })
+  // The hero phones mount after hydration, so the first clientWidth can be 0
+  // before the cluster's layout. Window resize never fires for that, and the
+  // old pointer-gated remount is gone, so observe the container itself.
+  const resizeObserver = typeof ResizeObserver === 'undefined'
+    ? null
+    : new ResizeObserver(onResize)
+  resizeObserver?.observe(container)
 
   cleanup = () => {
     window.removeEventListener('resize', onResize)
+    resizeObserver?.disconnect()
     if (resizeRaf) {
       cancelAnimationFrame(resizeRaf)
       resizeRaf = 0
