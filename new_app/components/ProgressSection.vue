@@ -949,11 +949,11 @@ onBeforeUnmount(() => {
 @keyframes progressDotPulse {
   0%, 100% {
     opacity: 0.86;
-    filter: drop-shadow(0 0 7px rgba(204, 255, 0, 0.72));
+    transform: scale(1);
   }
   45% {
     opacity: 1;
-    filter: drop-shadow(0 0 14px rgba(204, 255, 0, 0.92));
+    transform: scale(1.12);
   }
 }
 

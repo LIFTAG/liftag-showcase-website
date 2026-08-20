@@ -671,6 +671,13 @@ onBeforeUnmount(() => {
   stroke-dashoffset: -134;
 }
 
+.nav-mobile-drawer:not(.is-open) :deep(.get-app-btn),
+.nav-mobile-drawer:not(.is-open) :deep(.get-app-btn)::before,
+.nav-mobile-drawer:not(.is-open) :deep(.get-app-btn)::after,
+.nav-mobile-drawer:not(.is-open) :deep(.get-app-btn .get-app-btn__shine) {
+  animation: none;
+}
+
 .nav-mobile-drawer {
   position: fixed;
   top: calc(60px + var(--liftag-safe-top));
@@ -831,9 +838,9 @@ onBeforeUnmount(() => {
 }
 
 @keyframes navMarkSnap {
-  0% { transform: scale(0.62) rotate(-24deg); filter: drop-shadow(0 0 0 rgba(204, 255, 0, 0)); }
+  0% { transform: scale(0.62) rotate(-24deg); }
   62% { transform: scale(1.12) rotate(5deg); }
-  100% { transform: scale(1) rotate(0); filter: drop-shadow(0 0 14px rgba(204, 255, 0, 0.5)); }
+  100% { transform: scale(1) rotate(0); }
 }
 
 @keyframes navWordReveal {
@@ -842,8 +849,8 @@ onBeforeUnmount(() => {
 }
 
 @keyframes navItemIn {
-  0% { opacity: 0; transform: translate3d(0, -14px, 0) skewX(-9deg); filter: blur(5px); }
-  100% { opacity: 1; transform: translate3d(0, 0, 0) skewX(0); filter: blur(0); }
+  0% { opacity: 0; transform: translate3d(0, -14px, 0) skewX(-9deg); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) skewX(0); }
 }
 
 @keyframes navActionsIn {
