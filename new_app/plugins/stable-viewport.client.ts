@@ -5,6 +5,9 @@ const MAX_REASONABLE_MOBILE_SCREEN_HEIGHT_PX = 1600
 
 export default defineNuxtPlugin(() => {
   if (!import.meta.client) return
+  // Initial values are published by the inline head script in
+  // server/plugins/pagespeedHead.ts so first paint already has a stable
+  // height. This plugin only keeps them fresh on resize / rotation.
 
   const root = document.documentElement
   let stableHeight = 0

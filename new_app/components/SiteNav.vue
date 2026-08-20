@@ -736,7 +736,7 @@ onBeforeUnmount(() => {
 .nav-drawer-link {
   color: #fff;
   text-decoration: none;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--liftag-font-headline);
   font-weight: 700;
   font-style: italic;
   font-size: 28px;

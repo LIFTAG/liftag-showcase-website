@@ -70,7 +70,6 @@ export default defineNuxtConfig({
         { rel: 'alternate', type: 'text/plain', href: 'https://liftag.fit/llms.txt', title: 'llms.txt' },
         { rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: '/assets/fonts/inter-latin.woff2' },
         { rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: '/assets/fonts/space-grotesk-latin.woff2' },
-        { rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: '/assets/fonts/jetbrains-mono-latin.woff2' },
       ],
     },
   },

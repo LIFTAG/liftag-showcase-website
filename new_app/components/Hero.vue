@@ -136,8 +136,9 @@ const heroLaserSequence = [0, 1, 2, 3]
 const heroLaserChargeMs = 140
 const heroLaserSweepMs = 390
 const heroLaserGapMs = 55
-const heroLaserDone = ref(false)
-const heroDetailsEntered = computed(() => entered.value && heroLaserDone.value)
+// Copy/CTA paint with the 80ms entrance, not after the 2.6s laser. Gating
+// them on the sweep left the hero half-empty for Speed Index (5.0s lab).
+const heroDetailsEntered = computed(() => entered.value)
 const heroTitleEls: HTMLElement[] = []
 const mobileTitleEls: HTMLElement[] = []
 const mobileTitleLines: [string, string][] = [
@@ -353,7 +354,6 @@ function runAllHeroLaserReveals() {
     resetHeroParticleField()
     markTitleElsDone(heroTitleEls)
     markTitleElsDone(mobileTitleEls)
-    heroLaserDone.value = true
     return
   }
 
@@ -367,7 +367,6 @@ function runAllHeroLaserReveals() {
     const index = heroLaserSequence[sequenceIndex]
 
     if (index === undefined) {
-      heroLaserDone.value = true
       return
     }
 
@@ -421,7 +420,6 @@ let onHeroScroll: (() => void) | null = null
 onMounted(() => {
   heroLaserStarted = false
   heroLaserCancelled = false
-  heroLaserDone.value = false
   // entrance delay
   heroEntranceTimer = setTimeout(() => { entered.value = true }, 80)
 
@@ -440,7 +438,6 @@ onMounted(() => {
     cleanupHeroLasers()
     markTitleElsDone(heroTitleEls)
     markTitleElsDone(mobileTitleEls)
-    heroLaserDone.value = true
   }
   heroMobileMql.addEventListener('change', onHeroMobileChange)
 
@@ -685,7 +682,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
           class="hero-title-laser"
           :style="{
             margin: '0 0 28px',
-            fontFamily: '\'Space Grotesk\', system-ui, sans-serif',
+            fontFamily: 'var(--liftag-font-headline)',
             fontWeight: 700,
             fontStyle: 'italic',
             textTransform: 'uppercase',
@@ -764,7 +761,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
           <div :ref="(el) => (stat1.el.value = el as HTMLElement | null)">
             <div
               :style="{
-                fontFamily: '\'JetBrains Mono\', monospace',
+                fontFamily: 'var(--liftag-font-mono)',
                 fontWeight: 800,
                 fontSize: 'clamp(22px, 2.4vw, 32px)',
                 color: '#fff',
@@ -778,7 +775,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
           <div :ref="(el) => (stat2.el.value = el as HTMLElement | null)">
             <div
               :style="{
-                fontFamily: '\'JetBrains Mono\', monospace',
+                fontFamily: 'var(--liftag-font-mono)',
                 fontWeight: 800,
                 fontSize: 'clamp(22px, 2.4vw, 32px)',
                 color: '#fff',
@@ -792,7 +789,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
           <div :ref="(el) => (stat4.el.value = el as HTMLElement | null)">
             <div
               :style="{
-                fontFamily: '\'JetBrains Mono\', monospace',
+                fontFamily: 'var(--liftag-font-mono)',
                 fontWeight: 800,
                 fontSize: 'clamp(22px, 2.4vw, 32px)',
                 color: '#fff',
@@ -926,7 +923,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
             <div class="protocol" :style="{ color: '#CCFF00', fontSize: '9px' }">NFC + QR · MACHINE SYNC</div>
             <div
               :style="{
-                fontFamily: '\'Space Grotesk\', sans-serif',
+                fontFamily: 'var(--liftag-font-headline)',
                 fontWeight: 700, fontSize: '14px',
                 fontStyle: 'italic', textTransform: 'uppercase',
                 letterSpacing: '-0.02em', marginTop: '2px',
@@ -977,7 +974,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
           <div class="protocol" :style="{ color: 'rgba(255,255,255,0.35)', fontSize: '9px' }">VOLUME · TODAY</div>
           <div
             :style="{
-              fontFamily: '\'JetBrains Mono\', monospace',
+              fontFamily: 'var(--liftag-font-mono)',
               fontWeight: 800, fontSize: '28px',
               color: '#CCFF00', letterSpacing: '-0.02em', marginTop: '4px',
             }"
@@ -987,7 +984,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
           <div
             :style="{
               fontSize: '11px', color: '#22C55E',
-              fontFamily: '\'JetBrains Mono\', monospace',
+              fontFamily: 'var(--liftag-font-mono)',
               fontWeight: 700, marginTop: '4px',
               display: 'flex', alignItems: 'center', gap: '4px',
             }"
@@ -1091,7 +1088,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
           </div>
           <div
             :style="{
-              fontFamily: '\'Space Grotesk\', sans-serif',
+              fontFamily: 'var(--liftag-font-headline)',
               fontWeight: 700, fontSize: '18px',
               fontStyle: 'italic', color: '#0E0E0E',
               letterSpacing: '-0.03em', textTransform: 'uppercase', marginTop: '2px',
@@ -1301,7 +1298,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--liftag-font-mono);
   font-weight: 800;
   font-size: 11px;
   letter-spacing: 0.15em;
