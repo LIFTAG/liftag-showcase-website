@@ -133,6 +133,8 @@ useLiftagStructuredData([
             </p>
             <p>
               Paper versus a dedicated workout logger — and why people type logger instead of tracker — is on the <a href="/guides/workout-logger">workout logger guide</a>.
+              The 2026 picks live on the
+              <a href="/guides/best-workout-logger">best workout logger</a> comparison.
             </p>
             <p>
               The honest answer is that the best tracker is the one you actually use. The thresholds that matter: every set logged, every session, for at least one full training block. If a tool fails that test for you, switch.

@@ -39,6 +39,12 @@ const guides = [
     body: 'LIFTAG versus Liftd, ScanLiftLog, and RepTag: free tags, gym cost, NFC, and who actually wins each row.',
   },
   {
+    href: '/guides/best-workout-logger',
+    eyebrow: 'COMPARISON',
+    title: 'Best workout logger',
+    body: 'Logger vs tracker vs paper logbook. Which apps actually write the set down in 2026: LIFTAG, Strong, Hevy, FitNotes.',
+  },
+  {
     href: '/guides/best-free-workout-tracker',
     eyebrow: 'COMPARISON',
     title: 'Best free workout tracker',
