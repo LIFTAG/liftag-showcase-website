@@ -730,8 +730,8 @@ section {
   50% { transform: translateY(-12px); }
 }
 @keyframes scrollPulse {
-  /* Origin stays top. Flipping it mid-cycle is not composited and shows up
-     as layout shift on a desktop PageSpeed trace. */
+  /* Origin stays top. Flipping it mid-cycle is not composited and was
+     showing up as layout shift on the desktop PageSpeed trace. */
   0% { transform: scaleY(0) translateY(0); opacity: 0; }
   40% { transform: scaleY(1) translateY(0); opacity: 1; }
   60% { transform: scaleY(1) translateY(0); opacity: 1; }
@@ -785,8 +785,8 @@ section {
   opacity: 0;
   pointer-events: none;
   transition: opacity 100ms ease;
-  /* `left` on this glow was a CLS culprit: each sweep frame moved a large
-     ink rect. `translate` stays on the compositor. */
+  /* `left` on this glow was the desktop CLS culprit: each sweep frame moved
+     a large ink rect. `translate` stays on the compositor. */
   translate: var(--laser-x, 0px) 0;
 }
 .hero-laser-reveal::before {
@@ -871,8 +871,8 @@ section {
   100% { opacity: 1; transform: translateX(-50%) scaleY(1); }
 }
 @keyframes heroLaserChargeShrink {
-  0% { opacity: 1; transform: translateX(-50%) scaleY(1); transform-origin: bottom center; }
-  100% { opacity: 0; transform: translateX(-50%) scaleY(0); transform-origin: bottom center; }
+  0% { opacity: 1; transform: translateX(-50%) scaleY(1); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(var(--beam-h, 0px)) scaleY(0); }
 }
 .hero-laser-spark {
   position: fixed;

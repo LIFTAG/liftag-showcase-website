@@ -455,12 +455,9 @@ onBeforeUnmount(() => {
 }
 .hero-dot-mid   { animation: heroDotMidPulse   10.47s ease-in-out infinite; }
 
-/* Phones hold the dots at their resting pose. `r` and `opacity` are not
-   compositable, so each pulse frame is a main-thread repaint inside a
-   viewport-sized SVG that sits directly behind the fixed nav and its mobile
-   drawer - the one piece of the hero that never stopped repainting, and the
-   reason the nav and the marquee below it stuttered while the hero was on
-   screen. The frozen pose is a mid-cycle frame of the same animation: on a
+/* Phones hold the dots at their resting pose. Even a composited scale
+   pulse is wasted work behind the fixed nav on a 390px Lighthouse run.
+   The frozen pose is a mid-cycle frame of the same animation: on a
    phone these are two background dots drifting between 4% and 8% opacity over
    ten seconds, so holding them reads as identical. */
 @media (max-width: 768px), (prefers-reduced-motion: reduce) {

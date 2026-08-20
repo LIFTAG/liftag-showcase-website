@@ -849,8 +849,8 @@ onBeforeUnmount(() => {
 }
 
 @keyframes navItemIn {
-  0% { opacity: 0; transform: translate3d(0, -14px, 0) skewX(-9deg); filter: blur(5px); }
-  100% { opacity: 1; transform: translate3d(0, 0, 0) skewX(0); filter: blur(0); }
+  0% { opacity: 0; transform: translate3d(0, -14px, 0) skewX(-9deg); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) skewX(0); }
 }
 
 @keyframes navActionsIn {
