@@ -1,8 +1,15 @@
 import { catalogHasVideo, preferredCatalogVideoUrl } from '../../utils/catalogVideo'
 import { sitemapXml, videoUrlEntry, xmlHeaders } from '../../utils/sitemapXml'
 
+const VIDEO_SITEMAP_NS = 'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"'
+
 export default defineEventHandler(async (event) => {
-  const snapshot = await getCatalogSnapshot()
+  const headers = xmlHeaders()
+  setHeader(event, 'content-type', headers['content-type'])
+  setHeader(event, 'cache-control', headers['cache-control'])
+
+  const snapshot = await getCatalogSnapshotOrNull()
+  if (!snapshot) return sitemapXml('', VIDEO_SITEMAP_NS)
 
   const entries = snapshot.exercises
     .filter(exercise => exercise.slug && catalogHasVideo(exercise.videos) && exercise.imageUrl)
@@ -21,11 +28,5 @@ export default defineEventHandler(async (event) => {
     })
     .filter((entry): entry is string => Boolean(entry))
 
-  const headers = xmlHeaders()
-  setHeader(event, 'content-type', headers['content-type'])
-  setHeader(event, 'cache-control', headers['cache-control'])
-  return sitemapXml(
-    entries.join('\n'),
-    'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"',
-  )
+  return sitemapXml(entries.join('\n'), VIDEO_SITEMAP_NS)
 })

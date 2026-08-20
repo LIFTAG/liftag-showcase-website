@@ -43,5 +43,6 @@ export default {
     'belt-squat-good-morning',
     'barbell-back-squat',
     'nordic-hamstring-curl',
+    'back-extension-hyperextension',
   ],
 } satisfies ExerciseOverlay

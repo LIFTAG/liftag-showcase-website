@@ -39,5 +39,6 @@ export default {
     'seated-dumbbell-bicep-curl',
     'standing-dumbbell-bicep-curl',
     'machine-preacher-curl',
+    'concentration-curl',
   ],
 } satisfies ExerciseOverlay

@@ -3,13 +3,17 @@ import type {
   CatalogIndexPayload,
   CatalogMachine,
 } from '~/types/catalog'
+import type { CatalogLocale } from '~/utils/catalogLocale'
 
 /** Shared search index; one fetch per render, deduped across pages. */
-export function useCatalogIndex() {
+export function useCatalogIndex(locale: CatalogLocale = 'en') {
   const requestFetch = useRequestFetch()
+  const key = locale === 'sk' ? 'catalog-index-sk' : 'catalog-index'
   return useAsyncData<CatalogIndexPayload>(
-    'catalog-index',
-    () => requestFetch<CatalogIndexPayload>('/api/catalog/search-index'),
+    key,
+    () => locale === 'sk'
+      ? requestFetch<CatalogIndexPayload>('/api/catalog/search-index', { query: { locale: 'sk' } })
+      : requestFetch<CatalogIndexPayload>('/api/catalog/search-index'),
     { dedupe: 'defer' },
   )
 }
@@ -23,12 +27,16 @@ export function useCatalogIndex() {
  * useRequestFetch is grabbed before the first await so the Nuxt instance is
  * still available inside a useAsyncData handler.
  */
-export async function resolveCatalogExercise(param: string): Promise<CatalogExercise | null> {
+export async function resolveCatalogExercise(
+  param: string,
+  locale: CatalogLocale = 'en',
+): Promise<CatalogExercise | null> {
   const requestFetch = useRequestFetch()
   try {
-    return await requestFetch<CatalogExercise>(
-      `/api/catalog/exercises/${encodeURIComponent(param)}`,
-    )
+    const path = `/api/catalog/exercises/${encodeURIComponent(param)}`
+    return locale === 'sk'
+      ? await requestFetch<CatalogExercise>(path, { query: { locale: 'sk' } })
+      : await requestFetch<CatalogExercise>(path)
   }
   catch {
     return null

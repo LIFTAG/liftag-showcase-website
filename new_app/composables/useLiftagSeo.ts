@@ -1,3 +1,4 @@
+import { exerciseHreflangAlternates } from '~/utils/catalogLocale'
 import {
   DEFAULT_OG_IMAGE,
   SITE_URL,
@@ -124,4 +125,9 @@ export function liftagLegalAlternates(kind: 'privacy' | 'terms'): LiftagAlternat
     { hreflang: 'cs', path: `/cs/${slug}` },
     { hreflang: 'x-default', path: `/${slug}` },
   ]
+}
+
+/** Exercise library only: en + sk. No cs — the catalog API does not translate Czech. */
+export function liftagExerciseAlternates(slug?: string): LiftagAlternate[] {
+  return exerciseHreflangAlternates(slug)
 }

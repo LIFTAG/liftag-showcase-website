@@ -408,6 +408,9 @@ onBeforeUnmount(() => {
       'is-coach-active': coachProgress > 0.5,
     }"
   >
+    <!-- `#trainers` is this MacBook handoff, not TrainersSection. Native hash
+         scroll can only land at the section's start; JS then seeks cardFull. -->
+    <span id="trainers" class="dashboard-trainers-anchor" aria-hidden="true"></span>
     <div class="dashboard-sticky">
       <div class="dashboard-bg" aria-hidden="true">
         <div class="dashboard-grid"></div>
@@ -742,6 +745,19 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.dashboard-trainers-anchor {
+  position: absolute;
+  /* DASHBOARD_JOURNEY.cardFull of the pinned runway (section minus one
+     viewport). Native `#trainers` scroll then lands on the risen handoff
+     card; JS seeks the same Y so a late layout pass can still correct. */
+  top: calc(0.435 * (100% - var(--liftag-stable-vh, 100vh)));
+  left: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 .dashboard-section {
   --lid-p: 0;
   --scroll-p: 0;

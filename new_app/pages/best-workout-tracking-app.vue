@@ -406,8 +406,9 @@ const cards: AppCard[] = [
             <li><a href="/muscles">All muscle groups</a></li>
           </ul>
           <p class="bwt-section-lead">
-            Also: <a href="/guides/best-free-workout-tracker">best free workout tracker</a>
-            and <a href="/guides/strong-vs-hevy-vs-liftag">Strong vs Hevy vs LIFTAG</a>.
+            Also: <a href="/guides/best-free-workout-tracker">best free workout tracker</a>,
+            <a href="/guides/strong-vs-hevy-vs-liftag">Strong vs Hevy vs LIFTAG</a>,
+            and <a href="/guides/workout-logger">workout logger vs tracker</a>.
           </p>
         </div>
       </section>

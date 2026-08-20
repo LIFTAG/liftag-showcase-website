@@ -75,13 +75,30 @@ export default defineNuxtConfig({
   hooks: {
     // All three.js consumers are async components behind viewport observers,
     // and pages/index.vue warms the chunk on idle. Without this hook Nuxt
-    // still emits <link rel="modulepreload"> for it, putting ~180KB gzip back
-    // in contention with the LCP image and fonts on first paint.
+    // still emits <link rel="modulepreload"> for the library and for every
+    // chunk that statically imports it (Phone3D, Macbook3D, macbookScreen,
+    // particles). The hashed three file is not named "three-*.js", so match
+    // on entry.name and on the static-import closure.
     'build:manifest': (manifest) => {
-      for (const entry of Object.values(manifest)) {
-        if (entry.name === 'three' || entry.file?.includes('three')) {
+      const threeKeys = new Set<string>()
+      for (const [key, entry] of Object.entries(manifest)) {
+        if (entry.name === 'three' || key.includes('node_modules/three') || entry.file?.includes('three')) {
+          threeKeys.add(key)
           entry.preload = false
           entry.prefetch = false
+        }
+      }
+      let grew = true
+      while (grew) {
+        grew = false
+        for (const [key, entry] of Object.entries(manifest)) {
+          if (threeKeys.has(key)) continue
+          const staticImports = entry.imports ?? []
+          if (!staticImports.some(id => threeKeys.has(id))) continue
+          threeKeys.add(key)
+          entry.preload = false
+          entry.prefetch = false
+          grew = true
         }
       }
     },
@@ -103,11 +120,16 @@ export default defineNuxtConfig({
     '/guides': { prerender: true },
     '/guides/**': { prerender: true },
     '/about': { prerender: true },
+    '/press': { prerender: true },
     '/contact/**': { prerender: true },
     '/privacy-policy': { prerender: true },
     '/terms-and-conditions': { prerender: true },
     '/cs/**': { prerender: true },
     '/sk/**': { prerender: true },
+    // More specific than `/sk/**` so 434 SK exercises are not prerendered at
+    // build. Legal pages under /sk/privacy-policy still prerender.
+    '/sk/exercises': { isr: 3600 },
+    '/sk/exercises/**': { isr: 3600 },
     // Catalog pages regenerate on Vercel at most hourly: new exercises appear
     // without a redeploy, and a build never has to prerender the whole catalog.
     '/exercises': { isr: 3600 },
@@ -116,6 +138,13 @@ export default defineNuxtConfig({
     '/machines/**': { isr: 3600 },
     '/muscles': { isr: 3600 },
     '/muscles/**': { isr: 3600 },
+    // Index and marketing URLs are static. Catalog sitemaps stay ISR so a
+    // Search Console fetch never waits on a cold catalog aggregation.
+    '/sitemap.xml': { prerender: true },
+    '/sitemap-pages.xml': { prerender: true },
+    '/sitemap-catalog.xml': { isr: 3600 },
+    '/sitemap-images.xml': { isr: 3600 },
+    '/sitemap-videos.xml': { isr: 3600 },
     '/api/catalog/**': {
       headers: {
         'cache-control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
@@ -126,6 +155,12 @@ export default defineNuxtConfig({
         'x-robots-tag': 'noindex, nofollow',
         'cache-control': 'no-store',
       },
+    },
+  },
+  nitro: {
+    prerender: {
+      // Not linked from HTML, so the crawler would skip them without this list.
+      routes: ['/sitemap.xml', '/sitemap-pages.xml'],
     },
   },
   typescript: {

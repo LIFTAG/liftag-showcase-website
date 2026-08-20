@@ -1,3 +1,4 @@
+import { parseCatalogLocale } from '../../../../utils/catalogLocale'
 import { resolveExerciseFromCatalog } from '../../../utils/catalogResolve'
 
 export default defineEventHandler(async (event) => {
@@ -6,7 +7,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Missing exercise' })
   }
 
-  const exercise = await resolveExerciseFromCatalog(param)
+  const locale = parseCatalogLocale(getQuery(event).locale)
+  const exercise = await resolveExerciseFromCatalog(param, locale)
   if (!exercise) {
     throw createError({ statusCode: 404, statusMessage: 'Exercise not found' })
   }

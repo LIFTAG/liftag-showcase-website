@@ -225,7 +225,6 @@ onBeforeUnmount(() => {
 
 <template>
   <section
-    id="trainers"
     ref="sectionRef"
     class="trainers-section"
     :class="{ 'is-live': sectionInView, 'is-hover-locked': hoveredTrainer !== null }"

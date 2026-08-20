@@ -51,6 +51,12 @@ const guides = [
     body: 'The comparison people type: logging speed, free tiers, social features, and gym machine tags.',
   },
   {
+    href: '/guides/workout-logger',
+    eyebrow: 'COMPARISON',
+    title: 'Workout logger vs tracker',
+    body: 'What a workout logger actually is, how it differs from a tracker and a paper logbook, and which app — or notebook — to pick.',
+  },
+  {
     href: '/guides/nfc-tags-for-gym-equipment',
     eyebrow: 'GYM TECH',
     title: 'NFC tags for gym equipment',

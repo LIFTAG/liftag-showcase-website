@@ -195,19 +195,26 @@ watch(render3dPhone, () => {
   phone3dReady.value = false
 }, { flush: 'sync' })
 
+function prefetchPhone3d() {
+  if (!props.src || renderStaticMockup.value) return
+  import('./Phone3D.vue').catch(() => {})
+}
+
 function activatePhone() {
   if (isNearViewport.value) return
 
   isNearViewport.value = true
   // Overlap the async chunk fetch with the static-screen decode below.
-  import('./Phone3D.vue').catch(() => {})
+  // Skip the import on static mockups: Phone3D is not rendered there, and
+  // pulling it in anyway downloaded three.js on every mobile hero phone.
+  prefetchPhone3d()
   primeScreen(props.src)
 }
 
 function primeScreen(requestedSrc: string | undefined) {
   return queueStaticScreen(requestedSrc).finally(() => {
     if (requestedSrc === props.src) {
-      render3dEnabled.value = true
+      render3dEnabled.value = !renderStaticMockup.value
     }
   })
 }
@@ -219,7 +226,13 @@ onMounted(() => {
     onMobileChange = (event) => {
       renderStaticMockup.value = event.matches && !props.enableMobile3d
 
-      if (!renderStaticMockup.value && isNearViewport.value) {
+      if (renderStaticMockup.value) {
+        render3dEnabled.value = false
+        return
+      }
+
+      if (isNearViewport.value) {
+        prefetchPhone3d()
         primeScreen(props.src)
       }
     }

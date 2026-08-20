@@ -4,7 +4,9 @@ import {
   DASHBOARD_JOURNEY,
   DASHBOARD_RAIL_SWITCH_AT,
   DASHBOARD_SWAP_MIDPOINT,
+  isTrainersHash,
   mapDashboardJourney,
+  trainerHandoffOffset,
 } from '../utils/dashboardScroll.ts'
 
 const {
@@ -55,6 +57,17 @@ test('the handoff card is fully up before the footage finishes swapping', () => 
   assert.equal(state.zoom, 1)
   assert.equal(state.card, 1)
   assert.ok(state.blend > 0 && state.blend < 1, `blend should be mid-swap, got ${state.blend}`)
+})
+
+test('the trainers hash offset is the fully-risen handoff card', () => {
+  const sectionHeight = 5600
+  const viewportHeight = 1000
+  const offset = trainerHandoffOffset(sectionHeight, viewportHeight)
+
+  assert.equal(offset, cardFull * (sectionHeight - viewportHeight))
+  assert.equal(mapDashboardJourney(cardFull).card, 1)
+  assert.ok(isTrainersHash('#trainers'))
+  assert.equal(isTrainersHash('#dashboard'), false)
 })
 
 test('the dwell holds the coach footage alone on a locked screen', () => {

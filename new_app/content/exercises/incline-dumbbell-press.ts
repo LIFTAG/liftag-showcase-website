@@ -22,5 +22,5 @@ export default {
     'Add a pause at the bottom before you add load.',
   ],
   programming: 'Pair this with a flat press or a fly, not with another steep incline. 3–4 sets of 8–12. Note the bench hole number if the gym’s inclines are not labeled.',
-  relatedSlugs: ['barbell-incline-bench-press', 'flat-dumbbell-bench-press', 'incline-dumbbell-fly'],
+  relatedSlugs: ['barbell-incline-bench-press', 'flat-dumbbell-bench-press', 'incline-dumbbell-fly', 'high-to-low-cable-fly'],
 } satisfies ExerciseOverlay

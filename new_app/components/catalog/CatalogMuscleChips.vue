@@ -3,30 +3,41 @@ import type { CatalogCategoryRef } from '~/types/catalog'
 
 /**
  * Muscle chips with the app's treatment: primary muscle lime-tinted,
- * secondaries muted. Each chip opens the muscle hub page.
+ * secondaries muted. Default links go to the muscle hub; SK pages pass toFor.
  */
 const props = defineProps<{
   primary?: CatalogCategoryRef | null
   secondary?: CatalogCategoryRef[]
   /** App Focus-header chips: smaller, no uppercase mono. */
   compact?: boolean
+  ariaLabel?: string
+  nameFor?: (slug: string, fallback: string) => string
+  toFor?: (slug: string) => string
 }>()
+
+function chipName(slug: string, fallback: string): string {
+  return props.nameFor?.(slug, fallback) ?? fallback
+}
+
+function chipTo(slug: string): string {
+  return props.toFor?.(slug) ?? musclePath(slug)
+}
 </script>
 
 <template>
   <ul
     class="muscle-chips"
     :class="{ 'muscle-chips--compact': props.compact }"
-    aria-label="Muscles worked"
+    :aria-label="props.ariaLabel ?? 'Muscles worked'"
   >
     <li v-if="primary">
-      <NuxtLink :to="musclePath(primary.slug)" class="muscle-chip muscle-chip--primary">
-        {{ primary.name }}
+      <NuxtLink :to="chipTo(primary.slug)" class="muscle-chip muscle-chip--primary">
+        {{ chipName(primary.slug, primary.name) }}
       </NuxtLink>
     </li>
     <li v-for="muscle in secondary ?? []" :key="muscle.slug">
-      <NuxtLink :to="musclePath(muscle.slug)" class="muscle-chip">
-        {{ muscle.name }}
+      <NuxtLink :to="chipTo(muscle.slug)" class="muscle-chip">
+        {{ chipName(muscle.slug, muscle.name) }}
       </NuxtLink>
     </li>
   </ul>

@@ -168,6 +168,8 @@ useLiftagStructuredData([
             <p>
               Head-to-head on Strong versus Hevy versus LIFTAG, including paid tiers, lives on
               <a href="/guides/strong-vs-hevy-vs-liftag">its own page</a>.
+              If you searched for a workout logger rather than a tracker, including a paper logbook, start with the
+              <a href="/guides/workout-logger">workout logger comparison</a>.
             </p>
           </section>
 

@@ -39,5 +39,6 @@ export default {
     'trap-bar-deadlift',
     'barbell-romanian-deadlift-rdl',
     'barbell-back-squat',
+    'barbell-power-clean',
   ],
 } satisfies ExerciseOverlay

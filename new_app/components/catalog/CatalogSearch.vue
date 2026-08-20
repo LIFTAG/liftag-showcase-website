@@ -1,8 +1,13 @@
 <script setup lang="ts">
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue: string
   placeholder: string
-}>()
+  ariaLabel?: string
+  clearAriaLabel?: string
+}>(), {
+  ariaLabel: 'Search exercises',
+  clearAriaLabel: 'Clear search',
+})
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
@@ -55,7 +60,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       autocapitalize="none"
       spellcheck="false"
       enterkeyhint="search"
-      aria-label="Search exercises"
+      :aria-label="props.ariaLabel"
       @input="onInput"
       @focus="emit('focus', $event)"
       @blur="emit('blur', $event)"
@@ -65,7 +70,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       v-if="props.modelValue.length > 0"
       type="button"
       class="cat-search__clear"
-      aria-label="Clear search"
+      :aria-label="props.clearAriaLabel"
       @click="clear"
     >
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">

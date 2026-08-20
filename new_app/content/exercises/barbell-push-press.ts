@@ -44,5 +44,6 @@ export default {
     'landmine-press',
     'seated-dumbbell-shoulder-press',
     'machine-shoulder-press',
+    'barbell-power-clean',
   ],
 } satisfies ExerciseOverlay

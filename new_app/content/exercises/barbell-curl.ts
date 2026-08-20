@@ -39,5 +39,6 @@ export default {
     'incline-dumbbell-curl',
     'chin-up',
     'standing-dumbbell-bicep-curl',
+    'hammer-curls',
   ],
 } satisfies ExerciseOverlay

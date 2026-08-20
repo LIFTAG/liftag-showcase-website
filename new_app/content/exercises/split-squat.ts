@@ -41,6 +41,7 @@ export default {
   ],
   relatedSlugs: [
     'dumbbell-bulgarian-split-squat',
+    'barbell-bulgarian-split-squat',
     'walking-lunge',
     'dumbbell-lunge',
     'barbell-lunge',

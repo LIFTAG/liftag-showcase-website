@@ -78,7 +78,7 @@ useLiftagStructuredData([
               from the machine itself.
             </p>
             <p>
-              We built LIFTAG. That is a conflict of interest. Strong still wins on raw logging speed. Hevy still wins on community. Read the rows, not the headline.
+              We built LIFTAG. That is a conflict of interest. Strong still wins on raw logging speed. Hevy still wins on community. Read the rows, not the headline. FitNotes and a paper logbook sit on the <a href="/guides/workout-logger">workout logger vs tracker</a> page, which is the comparison for people who typed logger.
             </p>
           </section>
 

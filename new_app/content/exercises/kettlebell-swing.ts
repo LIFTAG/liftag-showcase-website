@@ -43,6 +43,7 @@ export default {
     'barbell-romanian-deadlift-rdl',
     'dumbbell-swing',
     'barbell-hip-thrust',
+    'cable-pull-through',
     'conventional-deadlift',
   ],
 } satisfies ExerciseOverlay

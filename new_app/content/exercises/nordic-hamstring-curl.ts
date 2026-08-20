@@ -47,6 +47,7 @@ export default {
     'glute-ham-raise',
     'barbell-romanian-deadlift-rdl',
     'machine-lying-leg-curl',
+    'machine-seated-leg-curl',
     'barbell-good-morning',
   ],
 } satisfies ExerciseOverlay

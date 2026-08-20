@@ -39,5 +39,7 @@ export default {
     'hanging-leg-raise',
     'cable-pallof-press',
     'hollow-body-hold',
+    'crunch',
+    'kneeling-ab-rollout',
   ],
 } satisfies ExerciseOverlay

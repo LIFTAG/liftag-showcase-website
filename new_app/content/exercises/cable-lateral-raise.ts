@@ -39,6 +39,7 @@ export default {
     },
   ],
   relatedSlugs: [
+    'standing-dumbbell-lateral-raise',
     'machine-lateral-raise',
     'shoulder-facepulls',
     'barbell-upright-row',

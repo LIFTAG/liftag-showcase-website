@@ -28,7 +28,7 @@ export const liftagOrganization = {
   '@id': ORGANIZATION_ID,
   name: 'LIFTAG',
   legalName: 'LIFTAG',
-  alternateName: ['Liftag', 'liftag.fit', 'LIFTAG Workout Tracker'],
+  alternateName: ['Liftag', 'liftag.fit', 'LIFTAG Workout Tracker', 'LIFTAG Workout Logger'],
   url: `${SITE_URL}/`,
   description: 'LIFTAG is a workout and set tracking app for serious lifters. Tap NFC tags or scan QR codes on gym machines to open the right exercise, log sets, and track progress.',
   email: 'support@liftag.fit',
@@ -70,6 +70,8 @@ export const liftagOrganization = {
   ],
   knowsAbout: [
     'workout tracking',
+    'workout logger',
+    'workout logbook',
     'set logging',
     'NFC gym tags',
     'QR codes for gym machines',
@@ -82,7 +84,7 @@ export const liftagSoftwareApplication = {
   '@type': ['SoftwareApplication', 'MobileApplication'],
   '@id': APP_ID,
   name: 'LIFTAG',
-  alternateName: ['Liftag', 'LIFTAG Workout Tracker'],
+  alternateName: ['Liftag', 'LIFTAG Workout Tracker', 'LIFTAG Workout Logger'],
   url: `${SITE_URL}/`,
   applicationCategory: 'HealthApplication',
   applicationSubCategory: 'Fitness',
@@ -203,6 +205,7 @@ export function liftagWebPage(opts: {
   image?: string
   aboutId?: string
   primaryImage?: Record<string, unknown>
+  inLanguage?: string
 }) {
   const url = absoluteUrl(opts.path)
   return {
@@ -215,7 +218,7 @@ export function liftagWebPage(opts: {
     about: opts.aboutId ? { '@id': opts.aboutId } : { '@id': ORGANIZATION_ID },
     primaryImageOfPage: opts.primaryImage
       ?? (opts.image ? { '@type': 'ImageObject', url: opts.image } : { '@type': 'ImageObject', url: DEFAULT_OG_IMAGE }),
-    inLanguage: 'en',
+    inLanguage: opts.inLanguage ?? 'en',
   }
 }
 
@@ -245,6 +248,8 @@ export function liftagHowTo(opts: {
   image?: string
   videoUrl?: string | null
   path: string
+  stepName?: (index: number) => string
+  inLanguage?: string
 }) {
   const url = absoluteUrl(opts.path)
   return {
@@ -252,13 +257,14 @@ export function liftagHowTo(opts: {
     '@id': `${url}#howto`,
     name: opts.name,
     description: opts.description,
+    inLanguage: opts.inLanguage ?? 'en',
     url,
     ...(opts.image ? { image: opts.image } : {}),
     ...(opts.videoUrl ? { video: { contentUrl: opts.videoUrl } } : {}),
     step: opts.steps.map((text, index) => ({
       '@type': 'HowToStep',
       position: index + 1,
-      name: `Step ${index + 1}`,
+      name: opts.stepName?.(index) ?? `Step ${index + 1}`,
       text,
     })),
   }

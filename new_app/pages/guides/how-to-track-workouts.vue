@@ -132,6 +132,9 @@ useLiftagStructuredData([
               The most accurate when used. Almost no one uses it consistently. If you love the analog ritual, pair it with an app for the chart and PR side.
             </p>
             <p>
+              Paper versus a dedicated workout logger — and why people type logger instead of tracker — is on the <a href="/guides/workout-logger">workout logger guide</a>.
+            </p>
+            <p>
               The honest answer is that the best tracker is the one you actually use. The thresholds that matter: every set logged, every session, for at least one full training block. If a tool fails that test for you, switch.
             </p>
           </section>

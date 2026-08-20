@@ -1,21 +1,13 @@
-import { catalogHasVideo } from '../../utils/catalogVideo'
-import { sitemapIndexXml, xmlHeaders } from '../../utils/sitemapXml'
+import { defaultSitemapIndexXml, xmlHeaders } from '../../utils/sitemapXml'
 
-export default defineEventHandler(async (event) => {
-  const snapshot = await getCatalogSnapshot()
-  const hasVideos = snapshot.exercises.some(exercise => catalogHasVideo(exercise.videos))
-
-  const sitemaps = [
-    { path: '/sitemap-pages.xml', lastmod: snapshot.fetchedAt },
-    { path: '/sitemap-catalog.xml', lastmod: snapshot.fetchedAt },
-    { path: '/sitemap-images.xml', lastmod: snapshot.fetchedAt },
-  ]
-  if (hasVideos) {
-    sitemaps.push({ path: '/sitemap-videos.xml', lastmod: snapshot.fetchedAt })
-  }
-
+/**
+ * The index must not touch the catalog API. Search Console fetches this URL
+ * first; a cold catalog timeout here is reported as "Couldn't fetch" on the
+ * whole sitemap even when the child files are fine.
+ */
+export default defineEventHandler((event) => {
   const headers = xmlHeaders()
   setHeader(event, 'content-type', headers['content-type'])
   setHeader(event, 'cache-control', headers['cache-control'])
-  return sitemapIndexXml(sitemaps)
+  return defaultSitemapIndexXml()
 })

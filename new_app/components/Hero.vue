@@ -17,14 +17,29 @@ const entered = ref(false)
 // Tone flips on a custom event, not on pointer movement, so it stays reactive.
 // The orb's position does not - see --hero-cursor-x / --hero-cursor-y below.
 const cursorGlowTone = ref<'green' | 'red'>('green')
-// Phones render only the front-center device. Its Three.js path runs in lite,
-// non-interactive mode so the stronger 3D framing does not add an idle loop.
+// Starts false on SSR so both layouts exist and CSS media queries pick one.
+// onMounted then reads matchMedia; do not v-if the desktop grid on that flag
+// during SSR — that would hydration-mismatch or flash.
 const isMobile = ref(false)
-// Particle field starts false so SSR and the first client render agree, then
-// onMounted turns it on wherever motion is allowed. Phones get a lite budget
-// (fewer points, 1x DPR, no cursor or grid warp) so the second WebGL context
-// does not reintroduce the jank that used to keep this desktop-only.
+// Three.js hero extras (particles + NFC tag) start false so SSR and the first
+// client render agree: no WebGL. onMounted turns them on only when motion is
+// allowed AND the viewport is desktop. Laser sparks already no-op on phones;
+// the CSS grid fallback covers the field while this is off.
 const showHeroParticles = ref(false)
+const loadHero3d = ref(false)
+// First client render must still include the desktop Phone cluster (SSR match).
+// After mount, mobile unmounts those three instances so they are not hydrated
+// for a layout that CSS already hides.
+const hasMounted = ref(false)
+const keepDesktopHeroPhones = computed(() => !hasMounted.value || !isMobile.value)
+
+function syncHeroMotionGates(mobile: boolean, prefersReducedMotion: boolean) {
+  isMobile.value = mobile
+  const loadDesktop3d = !mobile && !prefersReducedMotion
+  showHeroParticles.value = loadDesktop3d
+  loadHero3d.value = loadDesktop3d
+}
+
 const heroRoot = ref<HTMLElement | null>(null)
 const PHONE_PARTICLE_COUNT = 400
 const DESKTOP_PARTICLE_COUNT = 1200
@@ -148,6 +163,14 @@ const heroMobileDetailsStyle = computed(() => ({
   pointerEvents: (heroDetailsEntered.value ? 'auto' : 'none') as 'auto' | 'none',
   transition: 'opacity 700ms 120ms cubic-bezier(0.16,1,0.3,1), transform 700ms 120ms cubic-bezier(0.16,1,0.3,1)',
 }))
+
+// Phone-only copy sits under the devices, often below the first fold. Arm the
+// scan-lock when that block is actually on screen, and only after the title
+// laser has finished so the two reveals never talk over each other.
+const phoneCopyRoot = ref<HTMLElement | null>(null)
+const phoneCopyInView = ref(false)
+const phoneCopyEntered = computed(() => heroDetailsEntered.value && phoneCopyInView.value)
+let phoneCopyIo: IntersectionObserver | null = null
 
 function heroLaserClass(word: string, index: number) {
   return {
@@ -409,11 +432,10 @@ onMounted(() => {
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   heroMobileMql = window.matchMedia('(max-width: 768px)')
-  isMobile.value = heroMobileMql.matches
-  showHeroParticles.value = !prefersReducedMotion
+  syncHeroMotionGates(heroMobileMql.matches, prefersReducedMotion)
+  hasMounted.value = true
   onHeroMobileChange = (e: MediaQueryListEvent) => {
-    isMobile.value = e.matches
-    showHeroParticles.value = !prefersReducedMotion
+    syncHeroMotionGates(e.matches, prefersReducedMotion)
     // Crossing 768px swaps which title is visible. Abort a half-finished
     // sweep rather than continue it against the wrong rects.
     cleanupHeroLasers()
@@ -476,6 +498,21 @@ onMounted(() => {
   window.addEventListener('scroll', onHeroScroll, { passive: true })
 
   queueHeroLaserTimer(runAllHeroLaserReveals, 280)
+
+  if (prefersReducedMotion) {
+    phoneCopyInView.value = true
+  }
+  else if (phoneCopyRoot.value) {
+    phoneCopyIo = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return
+        phoneCopyInView.value = true
+        phoneCopyIo?.disconnect()
+      },
+      { threshold: 0.15 },
+    )
+    phoneCopyIo.observe(phoneCopyRoot.value)
+  }
 })
 
 onBeforeUnmount(() => {
@@ -494,6 +531,8 @@ onBeforeUnmount(() => {
   if (onHeroScroll) {
     window.removeEventListener('scroll', onHeroScroll)
   }
+  phoneCopyIo?.disconnect()
+  phoneCopyIo = null
 
   heroEntranceTimer = null
   heroMobileMql = null
@@ -571,10 +610,10 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
     />
 
     <!-- ── Subtle grid ── -->
-    <!-- Static fallback for phones (lite particles skip the GPU grid warp),
-         prefers-reduced-motion, and pre-hydration. Desktop swaps to the
-         cursor-warped GPU version inside HeroParticles once that field is on,
-         so the two never show at once on that layout. -->
+    <!-- Static fallback for phones (no particle field), prefers-reduced-motion,
+         and pre-hydration. Desktop swaps to the cursor-warped GPU version
+         inside HeroParticles once that field is on, so the two never show at
+         once on that layout. -->
     <div
       v-if="isMobile || !showHeroParticles"
       :style="{
@@ -602,9 +641,9 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 
     <!-- ── GPU particle field (single draw call, self-gating) ── -->
     <!-- Lazy: keeps three.js out of the eager chunk (see index.vue idle warmup).
-         Phones mount a lite field (no cursor, no grid warp, 1x DPR) so the
-         laser walls still have particles to push without a second full-cost
-         context. Keyed so a 768px resize rebuilds at the matching budget. -->
+         Desktop-only: phones keep the CSS grid fallback above. Laser reveal
+         does not need a particle field; spark emission already no-ops on
+         mobile. Keyed so a 768px resize rebuilds at the matching budget. -->
     <LazyHeroParticles
       v-if="showHeroParticles"
       :key="isMobile ? 'mobile' : 'desktop'"
@@ -782,7 +821,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
             filter: 'drop-shadow(0 24px 40px rgba(0,0,0,0.55))',
           }"
         >
-          <Phone src="/assets/screens/hero-workout.webp" :scale="0.7" :tilt-delay-ms="140" :static-bezel="false" lite />
+          <Phone v-if="keepDesktopHeroPhones" src="/assets/screens/hero-workout.webp" :scale="0.7" :tilt-delay-ms="140" :static-bezel="false" lite />
         </div>
 
         <!-- Back-right phone -->
@@ -797,7 +836,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
             filter: 'drop-shadow(0 22px 36px rgba(0,0,0,0.55))',
           }"
         >
-          <Phone src="/assets/screens/hero-progress.webp" :scale="0.64" :tilt-delay-ms="230" :static-bezel="false" lite />
+          <Phone v-if="keepDesktopHeroPhones" src="/assets/screens/hero-progress.webp" :scale="0.64" :tilt-delay-ms="230" :static-bezel="false" lite />
         </div>
 
         <!-- Front center phone (main) -->
@@ -821,7 +860,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
               filter: 'blur(24px)',
             }"
           />
-          <Phone src="/assets/screens/hero-dashboard.webp" :scale="0.92" :tilt-delay-ms="0" :static-bezel="false" :lite="isMobile" priority />
+          <Phone v-if="keepDesktopHeroPhones" src="/assets/screens/hero-dashboard.webp" :scale="0.92" :tilt-delay-ms="0" :static-bezel="false" :lite="isMobile" priority />
           <!-- Reflection streak -->
           <div
             :style="{
@@ -899,7 +938,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
         >
           <div class="hero-nfc-tag-3d">
             <ClientOnly>
-              <LazyNfcTag3D />
+              <LazyNfcTag3D v-if="loadHero3d" />
             </ClientOnly>
           </div>
         </div>
@@ -1118,16 +1157,14 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
         <div class="hero-mobile-device">
           <div class="hero-mobile-device-glow" aria-hidden="true" />
           <div class="hero-mobile-phone-stage">
+            <!-- Static mockup: enable-mobile3d would import Phone3D (and the
+                 three.js chunk) on the 390px Lighthouse path. -->
             <Phone
               src="/assets/screens/hero-dashboard.webp"
               :scale="1"
               :tilt-delay-ms="0"
               lite
-              enable-mobile3d
-              :interactive3d="false"
               :static-bezel="false"
-              crisp3d
-              idle3d
               priority
             />
           </div>
@@ -1135,10 +1172,28 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
       </div>
 
       <p
+        ref="phoneCopyRoot"
         class="hero-mobile-copyline hero-mobile-copyline--phone"
-        :style="heroMobileDetailsStyle"
+        :class="{ 'is-entered': phoneCopyEntered }"
       >
-        Tap NFC or scan QR at the machine. Core workout tracking is free forever. Premium intelligence is optional.
+        <span class="hero-mobile-copybeat" style="--beat: 0">
+          <span class="hero-mobile-copybeat-scan" aria-hidden="true" />
+          <span class="hero-mobile-copybeat-text">
+            Tap <span class="hero-mobile-copykey">NFC</span> or scan <span class="hero-mobile-copykey">QR</span> at the machine.
+          </span>
+        </span>
+        <span class="hero-mobile-copybeat" style="--beat: 1">
+          <span class="hero-mobile-copybeat-scan" aria-hidden="true" />
+          <span class="hero-mobile-copybeat-text">
+            Core workout tracking is <span class="hero-mobile-copykey">free forever</span>.
+          </span>
+        </span>
+        <span class="hero-mobile-copybeat" style="--beat: 2">
+          <span class="hero-mobile-copybeat-scan" aria-hidden="true" />
+          <span class="hero-mobile-copybeat-text">
+            Premium intelligence is optional.
+          </span>
+        </span>
       </p>
     </div>
 
@@ -1339,6 +1394,12 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
   font-size: 16px;
   font-weight: 300;
   line-height: 1.45;
+}
+
+.hero-mobile-copybeat,
+.hero-mobile-copybeat-scan,
+.hero-mobile-copybeat-text {
+  display: contents;
 }
 
 /* The install CTA is the page's conversion action, so on phones it leads:
@@ -1744,10 +1805,89 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
   }
 
   .hero-mobile-copyline--phone {
-    display: block;
+    display: grid;
+    justify-items: center;
+    gap: 0.5em;
     justify-self: center;
     margin: 0;
     text-align: center;
+  }
+
+  .hero-mobile-copybeat {
+    position: relative;
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .hero-mobile-copybeat::before {
+    content: '';
+    position: absolute;
+    right: 8%;
+    bottom: -1px;
+    left: 8%;
+    height: 1px;
+    background: var(--liftag-primary);
+    opacity: 0;
+    pointer-events: none;
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+
+  .hero-mobile-copybeat-scan {
+    position: absolute;
+    top: -2px;
+    right: auto;
+    bottom: -2px;
+    left: 0;
+    display: block;
+    width: 100%;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate3d(-100%, 0, 0);
+  }
+
+  .hero-mobile-copybeat-scan::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 2px;
+    border-radius: 1px;
+    background: #fff;
+    box-shadow:
+      0 0 5px #fff,
+      0 0 14px var(--liftag-primary),
+      0 0 32px var(--liftag-primary);
+  }
+
+  .hero-mobile-copybeat-text {
+    display: inline-block;
+    max-width: 100%;
+    clip-path: inset(0 100% 0 -0.16em);
+    transform: translate3d(0, 0.42em, 0);
+  }
+
+  .hero-mobile-copykey {
+    font-weight: 500;
+    color: inherit;
+  }
+
+  .hero-mobile-copyline--phone.is-entered .hero-mobile-copybeat-text {
+    animation: heroPhoneCopyReveal 640ms calc(50ms + var(--beat) * 150ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .hero-mobile-copyline--phone.is-entered .hero-mobile-copybeat-scan {
+    animation: heroPhoneCopyScan 640ms calc(50ms + var(--beat) * 150ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .hero-mobile-copyline--phone.is-entered .hero-mobile-copybeat::before {
+    animation: heroPhoneCopyRule 720ms calc(180ms + var(--beat) * 150ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .hero-mobile-copyline--phone.is-entered .hero-mobile-copykey {
+    animation: heroPhoneCopyKey 760ms calc(240ms + var(--beat) * 150ms) cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 }
 
@@ -1959,6 +2099,27 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
   .hero-nfc-tag-3d {
     animation: none;
   }
+
+  .hero-mobile-copybeat-text,
+  .hero-mobile-copybeat-scan,
+  .hero-mobile-copybeat::before,
+  .hero-mobile-copykey {
+    animation: none !important;
+  }
+
+  .hero-mobile-copybeat-text {
+    clip-path: none !important;
+    transform: none !important;
+  }
+
+  .hero-mobile-copybeat-scan,
+  .hero-mobile-copybeat::before {
+    display: none !important;
+  }
+
+  .hero-mobile-copykey {
+    color: rgba(255, 255, 255, 0.9);
+  }
 }
 
 @keyframes heroNfcFloat {
@@ -1969,6 +2130,65 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 
   50% {
     transform: translate3d(0, -7px, 8px);
+  }
+}
+
+@keyframes heroPhoneCopyReveal {
+  from {
+    clip-path: inset(0 100% 0 -0.16em);
+    transform: translate3d(0, 0.42em, 0);
+  }
+
+  to {
+    clip-path: inset(0 -0.22em 0 -0.16em);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes heroPhoneCopyScan {
+  0% {
+    opacity: 0;
+    transform: translate3d(-100%, 0, 0);
+  }
+
+  14% {
+    opacity: 1;
+  }
+
+  78% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes heroPhoneCopyRule {
+  0% {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+
+  36% {
+    opacity: 0.55;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes heroPhoneCopyKey {
+  0%,
+  42% {
+    color: var(--liftag-primary);
+  }
+
+  100% {
+    color: rgba(255, 255, 255, 0.9);
   }
 }
 </style>

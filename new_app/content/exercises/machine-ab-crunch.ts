@@ -33,5 +33,6 @@ export default {
     'kneeling-cable-crunch',
     'hanging-leg-raise',
     'russian-twist',
+    'kneeling-ab-rollout',
   ],
 } satisfies ExerciseOverlay

@@ -1,4 +1,5 @@
 import type { CatalogIndexPayload } from '../../../types/catalog'
+import { parseCatalogLocale } from '../../../utils/catalogLocale'
 import { catalogHasVideo, preferredCatalogVideoUrl } from '../../../utils/catalogVideo'
 
 /**
@@ -6,9 +7,12 @@ import { catalogHasVideo, preferredCatalogVideoUrl } from '../../../utils/catalo
  * system exercise, machine, and muscle category in one payload the client
  * filters instantly. Cache headers come from the `/api/catalog/**` route
  * rule; the upstream aggregation is cached by getCatalogSnapshot.
+ *
+ * `?locale=sk` returns Slovak names (and English aliases). Default is `en`.
  */
-export default defineEventHandler(async (): Promise<CatalogIndexPayload> => {
-  const snapshot = await getCatalogSnapshot()
+export default defineEventHandler(async (event): Promise<CatalogIndexPayload> => {
+  const locale = parseCatalogLocale(getQuery(event).locale)
+  const snapshot = await getCatalogSnapshot(locale)
 
   return {
     exercises: snapshot.exercises

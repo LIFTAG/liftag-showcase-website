@@ -63,6 +63,90 @@ export const DASHBOARD_RAIL_SWITCH_AT
   = (DASHBOARD_SWAP_MIDPOINT - DASHBOARD_JOURNEY.zoomEnd)
     / (DASHBOARD_JOURNEY.dwellEnd - DASHBOARD_JOURNEY.zoomEnd)
 
+/** In-page hash for the coach-dashboard handoff, not TrainersSection's top. */
+export const TRAINERS_HASH = '#trainers'
+
+export function isTrainersHash(hash: string | undefined | null): boolean {
+  return hash === TRAINERS_HASH
+}
+
+/**
+ * Document Y of the "Even coaches get their own dashboard." card: fully risen
+ * over the punched-in MacBook, which is `cardFull` of the pinned runway.
+ *
+ * Viewport height must match DashboardSection's progress math (the published
+ * `--liftag-stable-vh-px` when it is set) or the hash lands a beat early/late.
+ */
+export function trainerHandoffOffset(sectionHeight: number, viewportHeight: number): number {
+  return DASHBOARD_JOURNEY.cardFull * Math.max(1, sectionHeight - viewportHeight)
+}
+
+function dashboardViewportHeight(): number {
+  const cssHeight = Number.parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue('--liftag-stable-vh-px'),
+  )
+  if (Number.isFinite(cssHeight) && cssHeight > 0) return cssHeight
+  return window.innerHeight
+}
+
+function dashboardRunwayReady(section: HTMLElement): boolean {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return Boolean(section.querySelector('.coach-copy-head'))
+  }
+  return section.getBoundingClientRect().height > dashboardViewportHeight() * 2
+}
+
+/** Scroll the window to the coach handoff. Returns false if the target is not in the DOM. */
+export function scrollToTrainerHandoff(): boolean {
+  const target = trainerHandoffScrollTarget()
+  if (target) {
+    if ('el' in target) {
+      document.querySelector<HTMLElement>(target.el)?.scrollIntoView({ block: 'start' })
+      return true
+    }
+    window.scrollTo({ top: target.top, left: target.left, behavior: target.behavior })
+    return true
+  }
+
+  // Lazy sections may exist before the pinned runway has its 560vh height.
+  // The `#trainers` sentinel is already placed at cardFull, so this is the
+  // same beat, just without the stable-vh correction.
+  const sentinel = document.getElementById('trainers')
+  if (!sentinel) return false
+  sentinel.scrollIntoView({ block: 'start' })
+  return true
+}
+
+/**
+ * Vue Router / window.scrollTo payload for `#trainers`. Null while the
+ * dashboard section is missing or has not taken on its pinned height yet.
+ */
+export function trainerHandoffScrollTarget():
+  | { top: number, left: number, behavior: 'auto' }
+  | { el: string, top: number, behavior: 'auto' }
+  | null {
+  if (typeof window === 'undefined') return null
+  const section = document.getElementById('dashboard')
+  if (!section || !dashboardRunwayReady(section)) return null
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    // Reduced motion releases the pin and stacks both acts as plain document
+    // flow - the handoff card never renders there, so land on act 2's heading.
+    return {
+      el: section.querySelector('.coach-copy-head') ? '.coach-copy-head' : '#dashboard',
+      top: 0,
+      behavior: 'auto',
+    }
+  }
+
+  const rect = section.getBoundingClientRect()
+  return {
+    top: window.scrollY + rect.top + trainerHandoffOffset(rect.height, dashboardViewportHeight()),
+    left: 0,
+    behavior: 'auto',
+  }
+}
+
 export function clamp01(v: number) {
   return Math.max(0, Math.min(1, v))
 }

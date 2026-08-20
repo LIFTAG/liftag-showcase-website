@@ -5,7 +5,7 @@ const INSTRUCTION_START_RE = /^(lie|sit|stand|take|lower|press|pull|set|keep|bra
 export function splitSentences(text: string): string[] {
   const cleaned = text.replace(/\s+/g, ' ').trim()
   if (!cleaned) return []
-  const parts = cleaned.split(/(?<=[.!?])\s+(?=[A-Z“"])/)
+  const parts = cleaned.split(/(?<=[.!?])\s+(?=\p{Lu}|[“"„])/u)
   return parts.map(part => part.trim()).filter(Boolean)
 }
 
@@ -68,6 +68,48 @@ export function exerciseTitle(name: string): string {
   const short = `${name} | Muscles Worked & How to Log | LIFTAG`
   if (short.length <= 62) return short
   return `${name} | LIFTAG Exercise Library`
+}
+
+export function exerciseTitleSk(name: string): string {
+  const suffix = ' | Ako cvičiť | LIFTAG'
+  const full = `${name}${suffix}`
+  if (full.length <= 62) return full
+  return `${name} | LIFTAG`
+}
+
+export function exerciseMetaDescriptionSk(opts: {
+  name: string
+  description?: string | null
+  isCompound?: boolean | null
+  primaryMuscle?: string | null
+}): string {
+  if (opts.description?.trim()) return clipMetaDescription(opts.description)
+  const kind = opts.isCompound === true
+    ? 'komplexný'
+    : opts.isCompound === false ? 'izolačný' : null
+  const muscle = opts.primaryMuscle?.toLowerCase()
+  const lead = kind && muscle
+    ? `${opts.name} je ${kind} cvik na ${muscle}.`
+    : muscle
+      ? `${opts.name} je cvik na ${muscle}.`
+      : `${opts.name} z knižnice cvikov LIFTAG.`
+  return clipMetaDescription(
+    `${lead} Nastavenie, zapojené svaly, stroje a ako zalogovať každú sériu v aplikácii LIFTAG.`,
+  )
+}
+
+export function exerciseImageAltSk(opts: {
+  name: string
+  primaryMuscle?: string | null
+  isCompound?: boolean | null
+}): string {
+  const kind = opts.isCompound === true
+    ? 'komplexný'
+    : opts.isCompound === false ? 'izolačný' : null
+  const muscle = opts.primaryMuscle
+  if (kind && muscle) return `${opts.name} — ${muscle.toLowerCase()} ${kind} cvik v knižnici LIFTAG`
+  if (muscle) return `${opts.name} — cvik na ${muscle.toLowerCase()} v knižnici LIFTAG`
+  return `${opts.name} — cvik v knižnici LIFTAG`
 }
 
 export function exerciseImageAlt(opts: {
@@ -134,6 +176,50 @@ export function defaultExerciseFaqs(opts: {
     faqs.push({
       question: `Do I need a partner gym to track ${opts.name}?`,
       answer: `No. LIFTAG logs ${opts.name} at any gym from the exercise library. NFC and QR tags are an accelerator at partner gyms, not a requirement.`,
+    })
+  }
+  return faqs
+}
+
+function joinListSk(items: string[]): string {
+  if (items.length === 0) return ''
+  if (items.length === 1) return items[0]!
+  return `${items.slice(0, -1).join(', ')} a ${items[items.length - 1]}`
+}
+
+/** Slovak templates of defaultExerciseFaqs. SK pages must not emit the English FAQs. */
+export function defaultExerciseFaqsSk(opts: {
+  name: string
+  primaryMuscle?: string | null
+  secondaryMuscles?: string[]
+  machines?: string[]
+  loggingLabel?: string | null
+}): Array<{ question: string, answer: string }> {
+  const muscles = [opts.primaryMuscle, ...(opts.secondaryMuscles ?? [])].filter(Boolean) as string[]
+  const muscleList = muscles.length ? joinListSk(muscles) : 'svaly uvedené na tejto stránke'
+  const faqs = [
+    {
+      question: `Ako zalogujem ${opts.name} v LIFTAG-u?`,
+      answer: opts.loggingLabel
+        ? `Otvor ${opts.name} v LIFTAG-u, alebo prilož NFC tag / naskenuj QR kód na stroji v partnerskej posilňovni. Každú pracovnú sériu zaloguj ako ${opts.loggingLabel.toLowerCase()}. Časovač odpočinku sa spustí po uložení série a osobné rekordy aj odhad 1RM sa aktualizujú automaticky.`
+        : `Otvor ${opts.name} v LIFTAG-u, alebo prilož NFC tag / naskenuj QR kód na stroji v partnerskej posilňovni. Zaloguj každú pracovnú sériu, spusti časovač odpočinku a sleduj progres tohto cviku na jednom mieste.`,
+    },
+    {
+      question: `Aké svaly zapája ${opts.name}?`,
+      answer: `${opts.name} primárne trénuje ${muscleList}. LIFTAG priradí každú sériu k týmto svalovým partiám, aby týždenný objem a rozdelenie podľa partií ostali presné.`,
+    },
+  ]
+  if (opts.machines && opts.machines.length > 0) {
+    const machineList = joinListSk(opts.machines.slice(0, 4))
+    faqs.push({
+      question: `Na ktorých strojoch môžem cvičiť ${opts.name}?`,
+      answer: `${opts.name} je v katalógu LIFTAG priradený k ${machineList}. V partnerskej posilňovni tag na týchto strojoch otvorí tento cvik s poznámkami k nastaveniu, pripravený na logovanie.`,
+    })
+  }
+  else {
+    faqs.push({
+      question: `Potrebujem partnerskú posilňovňu, aby som mohol sledovať ${opts.name}?`,
+      answer: `Nie. LIFTAG zaloguje ${opts.name} v akejkoľvek posilňovni z knižnice cvikov. NFC a QR tagy v partnerských posilňovniach to len urýchlia, nie sú podmienkou.`,
     })
   }
   return faqs

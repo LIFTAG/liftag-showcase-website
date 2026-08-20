@@ -1,7 +1,12 @@
 import { imageUrlEntry, sitemapXml, xmlHeaders } from '../../utils/sitemapXml'
 
 export default defineEventHandler(async (event) => {
-  const snapshot = await getCatalogSnapshot()
+  const headers = xmlHeaders()
+  setHeader(event, 'content-type', headers['content-type'])
+  setHeader(event, 'cache-control', headers['cache-control'])
+
+  const snapshot = await getCatalogSnapshotOrNull()
+  if (!snapshot) return sitemapXml('')
 
   const entries = [
     ...snapshot.exercises
@@ -24,9 +29,6 @@ export default defineEventHandler(async (event) => {
       })),
   ]
 
-  const headers = xmlHeaders()
-  setHeader(event, 'content-type', headers['content-type'])
-  setHeader(event, 'cache-control', headers['cache-control'])
   return sitemapXml(
     entries.join('\n'),
     'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"',

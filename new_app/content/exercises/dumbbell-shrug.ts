@@ -42,5 +42,6 @@ export default {
     'standing-barbell-overhead-press',
     'trap-bar-deadlift',
     'conventional-deadlift',
+    'barbell-shrugs',
   ],
 } satisfies ExerciseOverlay

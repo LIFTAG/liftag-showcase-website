@@ -48,6 +48,7 @@ export default {
     'split-squat',
     'walking-lunge',
     'dumbbell-lunge',
+    'barbell-bulgarian-split-squat',
     'barbell-back-squat',
   ],
 } satisfies ExerciseOverlay

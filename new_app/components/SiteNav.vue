@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { DASHBOARD_JOURNEY } from '~/utils/dashboardScroll'
+import { scrollToTrainerHandoff } from '~/utils/dashboardScroll'
 
 const scrolled = ref(false)
 const open = ref(false)
@@ -22,35 +22,16 @@ const navLinks = computed<[string, string][]>(() => [
   ['Guides', '/guides'],
 ])
 
-// "Trainers" is a promise about DashboardSection's coach act, not
-// TrainersSection's own top: the "Even coaches get their own dashboard." beat
-// is the laser-handoff card inside the pinned MacBook scroll-jack, not
-// anything TrainersSection renders itself. A plain #trainers anchor can only
-// land on id="trainers" (that section's top), so this intercepts the click and
-// drives the scroll position by hand instead.
+// "Trainers" is the MacBook coach-handoff, not TrainersSection. Direct
+// `#trainers` loads are handled in plugins/trainer-hash-scroll.client.ts;
+// this intercepts same-page nav clicks (pushState would not run Vue Router).
 function onNavLinkClick(label: string, href: string, event: MouseEvent) {
   if (label !== 'Trainers' || route.path !== '/') return
-  const section = document.getElementById('dashboard')
-  if (!section) return // no DashboardSection on this route variant; fall back to the plain anchor
+  if (!document.getElementById('dashboard')) return
 
   event.preventDefault()
   window.history.pushState(null, '', href)
-
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    // Reduced motion releases the pin and stacks both acts as plain
-    // document flow (see DashboardSection.vue) - the handoff card never
-    // renders there, so land on act 2's real heading instead.
-    const coachHead = section.querySelector<HTMLElement>('.coach-copy-head')
-    ;(coachHead ?? section).scrollIntoView({ block: 'start' })
-    return
-  }
-
-  const rect = section.getBoundingClientRect()
-  const available = Math.max(1, rect.height - window.innerHeight)
-  const sectionTop = window.scrollY + rect.top
-  // cardFull: the exact scroll fraction where the handoff card is fully
-  // painted in (see DASHBOARD_JOURNEY in utils/dashboardScroll.ts).
-  window.scrollTo({ top: sectionTop + DASHBOARD_JOURNEY.cardFull * available })
+  scrollToTrainerHandoff()
 }
 
 let _onScroll: (() => void) | null = null

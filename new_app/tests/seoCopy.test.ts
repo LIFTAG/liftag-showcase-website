@@ -2,10 +2,14 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
   clipMetaDescription,
+  defaultExerciseFaqs,
+  defaultExerciseFaqsSk,
   descriptionToHowToSteps,
   exerciseImageAlt,
   exerciseMetaDescription,
+  exerciseMetaDescriptionSk,
   exerciseTitle,
+  exerciseTitleSk,
   splitSentences,
 } from '../utils/seoCopy.ts'
 
@@ -64,5 +68,41 @@ test('writes image alts that name the muscle and movement type', () => {
   assert.equal(
     exerciseImageAlt({ name: 'Barbell Bench Press', primaryMuscle: 'Chest', isCompound: true }),
     'Barbell Bench Press — chest compound exercise in the LIFTAG library',
+  )
+})
+
+test('splits Slovak sentences that start with a non-ASCII capital', () => {
+  assert.deepEqual(
+    splitSentences('Prvá veta. Úchop je široký. Ďalšia veta.'),
+    ['Prvá veta.', 'Úchop je široký.', 'Ďalšia veta.'],
+  )
+})
+
+test('Slovak FAQs stay in Slovak and join lists with a', () => {
+  const faqs = defaultExerciseFaqsSk({
+    name: 'Tlaky na lavičke',
+    primaryMuscle: 'Hrudník',
+    secondaryMuscles: ['Triceps', 'Ramena'],
+    machines: ['Bench press', 'Smith machine'],
+    loggingLabel: 'Váha × opakovania',
+  })
+  assert.equal(faqs.length, 3)
+  assert.equal(faqs.some(item => /How do I log|What muscles does|Which gym machines/.test(item.question)), false)
+  assert.match(faqs[0]?.question ?? '', /Ako zalogujem Tlaky na lavičke/)
+  assert.match(faqs[1]?.answer ?? '', /Hrudník, Triceps a Ramena/)
+  assert.match(faqs[2]?.question ?? '', /Na ktorých strojoch/)
+})
+
+test('English generated FAQs are unchanged', () => {
+  const faqs = defaultExerciseFaqs({ name: 'Barbell Bench Press', primaryMuscle: 'Chest' })
+  assert.match(faqs[0]?.question ?? '', /^How do I log Barbell Bench Press/)
+})
+
+test('Slovak titles and meta descriptions clip API copy', () => {
+  assert.equal(exerciseTitleSk('Tlaky na lavičke'), 'Tlaky na lavičke | Ako cvičiť | LIFTAG')
+  assert.ok(exerciseTitleSk('A'.repeat(80)).endsWith('| LIFTAG'))
+  assert.equal(
+    exerciseMetaDescriptionSk({ name: 'Tlaky', description: 'Sadni na lavičku a tlač.' }),
+    'Sadni na lavičku a tlač.',
   )
 })
