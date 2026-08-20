@@ -99,7 +99,7 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="escape__inner">
-      <img src="/assets/qr/app-icon.png" width="72" height="72" alt="" class="escape__icon">
+      <img src="/assets/qr/app-icon.png" width="72" height="72" alt="LIFTAG" class="escape__icon">
 
       <h1 class="display escape__title">{{ heading }}</h1>
       <p class="escape__body">{{ body }}</p>

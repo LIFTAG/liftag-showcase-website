@@ -536,7 +536,7 @@ const essentials: Essential[] = [
 
       <!-- ───────────────── FINAL CTA ───────────────── -->
       <section class="coach-final">
-        <img src="/assets/img/bench-press.webp" alt="" aria-hidden="true" class="coach-final-bg" >
+        <span class="coach-final-bg" aria-hidden="true" />
         <span class="coach-final-vignette" aria-hidden="true" />
         <span class="coach-final-glow" aria-hidden="true" />
 
@@ -1646,9 +1646,7 @@ const essentials: Essential[] = [
 .coach-final-bg {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  background: url('/assets/img/bench-press.webp') center / cover no-repeat;
   opacity: 0.22;
   filter: grayscale(0.3) contrast(1.05);
 }

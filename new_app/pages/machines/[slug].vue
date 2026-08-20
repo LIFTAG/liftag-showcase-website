@@ -132,7 +132,7 @@ useLiftagStructuredData([
               :aria-label="`Photo ${photoIndex + 1}`"
               @click="activePhoto = photoIndex"
             >
-              <img :src="photo" alt="" loading="lazy" decoding="async">
+              <img :src="photo" :alt="`${name} photo ${photoIndex + 1}`" loading="lazy" decoding="async">
             </button>
           </div>
         </div>

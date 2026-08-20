@@ -935,9 +935,10 @@ onBeforeUnmount(() => {
       v-if="reduceMotion && stillUrl"
       class="tap-token-still"
       :src="stillUrl"
-      alt=""
+      alt="LIFTAG gym tag"
       width="640"
       height="640"
+      aria-hidden="true"
     >
     <p
       v-if="!reduceMotion && !hintGone"

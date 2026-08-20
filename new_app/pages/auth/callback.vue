@@ -10,6 +10,7 @@ useHead({
   meta: [
     { charset: 'utf-8' },
     { name: 'viewport', content: 'width=device-width,initial-scale=1' },
+    { name: 'description', content: 'Finish signing in to LIFTAG, or download the workout tracker on iOS and Android.' },
     { name: 'robots', content: 'noindex,nofollow' },
     { name: 'apple-itunes-app', content: `app-id=${APP_STORE_APP_ID}` },
   ],

@@ -28,7 +28,7 @@ const panelStyle = computed(() => ({
         class="install-qr__code"
       >
       <span class="install-qr__mark" aria-hidden="true">
-        <img src="/assets/qr/app-icon.png" width="60" height="60" alt="">
+        <img src="/assets/qr/app-icon.png" width="60" height="60" alt="LIFTAG">
       </span>
     </div>
   </div>
