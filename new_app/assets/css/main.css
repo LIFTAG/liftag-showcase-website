@@ -762,11 +762,13 @@ section {
   display: block;
   position: relative;
   z-index: 2;
-  /* Visible in the first HTML paint. Clipping until JS finishes the 4-word
-     sweep made LCP the delayed lime glow (1.3s desktop / 6.4s mobile). The
-     beam and sparks still run as an overlay. */
-  clip-path: none;
+  /* Hidden until the laser wall sweeps the word open. `from-right` starts
+     from the opposite edge. Layout box stays put (clip-path is paint-only). */
+  clip-path: inset(-20% 100% -20% 0);
   contain: layout;
+}
+.hero-laser-reveal.from-right {
+  clip-path: inset(-20% 0 -20% 100%);
 }
 .hero-laser-reveal.hero-laser-green {
   text-shadow:
@@ -833,6 +835,12 @@ section {
 }
 .hero-laser-reveal.reveal-done {
   clip-path: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-laser-reveal,
+  .hero-laser-reveal.from-right {
+    clip-path: none;
+  }
 }
 .hero-laser-reveal.reveal-done::after,
 .hero-laser-reveal.reveal-done::before {

@@ -39,6 +39,7 @@ const hasMounted = ref(false)
 const keepDesktopHeroPhones = computed(() => (
   hasMounted.value && !isMobile.value
 ))
+const frontPhoneReady = ref(false)
 
 function syncHeroMotionGates(mobile: boolean, prefersReducedMotion: boolean) {
   isMobile.value = mobile
@@ -266,6 +267,7 @@ function runHeroLaserReveal(
   // on every word, and a slightly larger one on the lime from-right sweeps.
   const italicHang = fontSize * 0.18
   const rightClipPad = isGreen && fromRight ? Math.max(fontSize * 0.14, italicHang) : italicHang
+  const rightClipInset = `-${rightClipPad}px`
   const wordRect = { left: rect.left, top: rect.top, width: rect.width, height: rect.height }
   const beamTravelWidth = wordRect.width + (fromRight ? rightClipPad : 0)
   const beam = document.createElement('div')
@@ -307,6 +309,11 @@ function runHeroLaserReveal(
       const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
       const pos = eased * 100
       const beamPercent = fromRight ? 100 - pos : pos
+      if (fromRight) {
+        el.style.clipPath = `inset(-20% ${rightClipInset} -20% ${100 - Math.min(pos, 100)}%)`
+      } else {
+        el.style.clipPath = `inset(-20% calc(${100 - Math.min(pos, 100)}% - ${rightClipPad}px) -20% 0)`
+      }
       const beamX = syncBeam(beamPercent)
       wallTrack = publishHeroLaserWallFromBox(wordRect, fromRight, eased, 1, now, wallTrack)
 
@@ -328,6 +335,7 @@ function runHeroLaserReveal(
       else releaseHeroLaserWall()
       el.classList.remove('sweeping')
       el.classList.add('reveal-done')
+      el.style.removeProperty('clip-path')
       beam.style.animation = 'heroLaserChargeShrink 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards'
       queueHeroLaserTimer(() => {
         beam.remove()
@@ -828,7 +836,8 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
             position: 'absolute', top: 0, left: '50%',
             transform: frontPhoneTransform,
             willChange: 'transform',
-            opacity: 1,
+            opacity: entered && frontPhoneReady ? 1 : 0,
+            transition: entered && frontPhoneReady ? 'opacity 1000ms 100ms ease' : 'none',
           }"
         >
           <!-- Glow behind phone -->
@@ -842,17 +851,15 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
               filter: 'blur(24px)',
             }"
           />
-          <img
-            v-show="!keepDesktopHeroPhones"
-            class="hero-desktop-lcp"
-            src="/assets/screens/hero-dashboard-560.webp"
-            alt="LIFTAG screen"
-            width="393"
-            height="852"
-            loading="lazy"
-            decoding="async"
-          >
-          <Phone v-if="keepDesktopHeroPhones" src="/assets/screens/hero-dashboard.webp" :scale="0.92" :tilt-delay-ms="0" :static-bezel="false" lite priority />
+          <Phone
+            v-if="keepDesktopHeroPhones"
+            src="/assets/screens/hero-dashboard.webp"
+            :scale="0.92"
+            :tilt-delay-ms="0"
+            :static-bezel="false"
+            priority
+            @ready="frontPhoneReady = true"
+          />
           <!-- Reflection streak -->
           <div
             :style="{
@@ -1326,20 +1333,6 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
   animation: heroNfcFloat 5.8s ease-in-out infinite;
 }
 
-.hero-desktop-lcp {
-  display: none;
-  width: 280px;
-  aspect-ratio: 393 / 852;
-  object-fit: cover;
-  border-radius: 52px;
-}
-
-@media (min-width: 769px) {
-  .hero-desktop-lcp {
-    display: block;
-  }
-}
-
 .hero-mobile-layout {
   display: none;
 }
@@ -1375,9 +1368,6 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 .hero-mobile-title .hero-laser-reveal {
   padding-right: 0.22em;
   margin-right: -0.22em;
-  /* Visible on first paint so LCP/FCP are not the 6s laser glow. The sweep
-     still runs as an overlay. */
-  clip-path: none;
 }
 
 .hero-mobile-lime-word {
