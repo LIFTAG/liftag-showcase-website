@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
-const DEFERRED_CHUNK = /(?:^|\/)(?:ScanSection|HowItWorks|LiftersSection|ProgressSection|AppMergeSection|GymsSection|DashboardSection|TrainersSection|Roadmap|FinalCta|SiteFooter|HomeFaq|FaqAccordion|PartnerMarquee|Phone3D|Macbook3D|HeroParticles|NfcTag3D|ForgedPrPlate|HologramPlate|MergeParticles|MergePrismCore|MergeBurstHalo|RoadmapParticles|TapTokenCore)(?:\.vue)?(?:-|\.|$)/
+const DEFERRED_CHUNK = /(?:^|\/)(?:ScanSection|HowItWorks|LiftersSection|ProgressSection|AppMergeSection|GymsSection|DashboardSection|TrainersSection|Roadmap|FinalCta|SiteFooter|HomeFaq|FaqAccordion|PartnerMarquee|Phone3D|Macbook3D|HeroParticles|HeroDesktop|HeroMobile|HeroCharts|NfcTag3D|ForgedPrPlate|HologramPlate|MergeParticles|MergePrismCore|MergeBurstHalo|RoadmapParticles|TapTokenCore)(?:\.vue)?(?:-|\.|$)/
 
 function isThreeManifestEntry(key: string, entry: { name?: string, file?: string }) {
   return entry.name === 'three' || key.includes('node_modules/three') || Boolean(entry.file?.includes('three'))
@@ -90,17 +90,16 @@ export default defineNuxtConfig({
     },
   },
   hooks: {
-    // All three.js consumers are async components behind viewport observers,
-    // and pages/index.vue warms the chunk on idle. Without this hook Nuxt
-    // still emits <link rel="modulepreload"> for the library and for every
-    // chunk that statically imports it (Phone3D, Macbook3D, macbookScreen,
-    // particles). The hashed three file is not named "three-*.js", so match
-    // on entry.name and on the static-import closure.
+    // All three.js consumers are async components behind viewport observers.
+    // Without this hook Nuxt still emits <link rel="modulepreload"> for the
+    // library and for every chunk that statically imports it (Phone3D,
+    // Macbook3D, macbookScreen, particles). The hashed three file is not named
+    // "three-*.js", so match on entry.name and on the static-import closure.
     //
     // Lazy homepage sections have the same problem: hydrate-on-visible still
     // lists them as the page's dynamic imports, so Nuxt modulepreloads (fetch
-    // + compile) ~400KB of JS during load. Drop preload on those entries;
-    // prefetch stays so a later idle pass can warm them.
+    // + compile) ~400KB of JS during load. Drop preload and prefetch on those
+    // entries so Lighthouse's idle window does not parse them into TBT.
     'build:manifest': (manifest) => {
       const threeKeys = new Set<string>()
       for (const [key, entry] of Object.entries(manifest)) {
@@ -110,6 +109,7 @@ export default defineNuxtConfig({
           entry.prefetch = false
         } else if (isDeferredManifestEntry(key, entry)) {
           entry.preload = false
+          entry.prefetch = false
         }
       }
       let grew = true
