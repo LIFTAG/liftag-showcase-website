@@ -52,9 +52,12 @@ const CARD_R = 0.08
 const CLIP_DROP = 0.22
 const ANCHOR_Y = 1.72
 const ROPE_SPAN = 1.46
+const FRAME_SLOT_W = 250
+const FRAME_SLOT_W_NARROW = 196
 const FACE_NAME = 'MAYA KOVAC'
 const FACE_CITY = 'BRATISLAVA'
 const FACE_SERIAL = 'CP-08-19'
+const MAX_LATERAL = 0.5
 
 const mount = ref<HTMLElement | null>(null)
 const live = ref(false)
@@ -602,6 +605,11 @@ function satisfyConstraints() {
     last.y = anchorY + dy * s
     last.z = anchorZ + dz * s
   }
+
+  const lateral = last.x - anchorX
+  if (Math.abs(lateral) > MAX_LATERAL) {
+    last.x = anchorX + Math.sign(lateral) * MAX_LATERAL
+  }
 }
 
 function integrate(dt: number, windX: number, windZ: number) {
@@ -917,6 +925,7 @@ async function initScene() {
   camera = new THREE.PerspectiveCamera(28, width / height, 0.1, 40)
   camera.position.set(0.38, 0.05, 4.85)
   camera.lookAt(0.05, -0.55, 0)
+  frameCamera(width, height)
 
   scene.add(new THREE.HemisphereLight(0xf4f1e8, 0x1a120c, 0.7))
   scene.add(new THREE.AmbientLight(0xffffff, 0.55))
@@ -1071,13 +1080,27 @@ async function initScene() {
   }
 }
 
+function frameCamera(width: number, height: number) {
+  if (!camera) return
+  const slotW = height >= 400 ? FRAME_SLOT_W : FRAME_SLOT_W_NARROW
+  const extra = Math.max(0, width - slotW)
+  if (extra > 1) {
+    const leftBias = height >= 400 ? 0.32 : 0.5
+    const leftOverscan = extra * leftBias
+    camera.setViewOffset(slotW, height, -leftOverscan, 0, width, height)
+    return
+  }
+  camera.clearViewOffset()
+  camera.aspect = width / Math.max(height, 1)
+  camera.updateProjectionMatrix()
+}
+
 function applyResize() {
   const host = mount.value
   if (!host || !renderer || !camera) return
   const w = Math.max(host.clientWidth, 1)
   const h = Math.max(host.clientHeight, 1)
-  camera.aspect = w / h
-  camera.updateProjectionMatrix()
+  frameCamera(w, h)
   renderer.setSize(w, h)
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, DPR_CAP))
   if (scene) renderer.render(scene, camera)

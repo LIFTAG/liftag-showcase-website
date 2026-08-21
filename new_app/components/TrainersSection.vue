@@ -565,12 +565,15 @@ onBeforeUnmount(() => {
 <style scoped>
 .trainers-pass-stage {
   position: absolute;
+  /* Wider than the rest-pose slot so the Verlet swing stays in the WebGL
+     viewport. Camera view-offset keeps the hang optically left-aligned. */
   top: -160px;
   left: 0;
-  width: 250px;
+  width: 390px;
   height: 430px;
   z-index: 3;
   pointer-events: none;
+  overflow: visible;
 }
 
 .trainers-pass-stage :deep(.coach-pass.is-live) {
@@ -585,7 +588,8 @@ onBeforeUnmount(() => {
 
 @media (min-width: 769px) and (max-width: 1100px) {
   .trainers-pass-stage {
-    width: 196px;
+    left: 8px;
+    width: 308px;
     height: 380px;
   }
 

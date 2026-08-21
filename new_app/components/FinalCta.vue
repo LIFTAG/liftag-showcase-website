@@ -1,27 +1,16 @@
 <script setup lang="ts">
-// Async so FinalCta hydrating on a phone never pulls three.js. ChargeBeam
-// still no-ops on mobile / reduced-motion if it is mounted by mistake.
-const ChargeBeam = defineAsyncComponent(() => import('./ChargeBeam.vue'))
-
 const sectionRef = ref<HTMLElement | null>(null)
 const chargeAnchor = ref<HTMLElement | null>(null)
 const chargeP = ref(0)
 const charged = ref(false)
-const showChargeBeam = ref(false)
 
 let observer: IntersectionObserver | null = null
 let motionMql: MediaQueryList | null = null
-let mobileMql: MediaQueryList | null = null
 let rafId = 0
 let inView = false
 let documentVisible = true
 let reduceMotion = false
 let latched = false
-
-function syncChargeBeamGate() {
-  const mobile = Boolean(mobileMql?.matches)
-  showChargeBeam.value = !mobile && !reduceMotion
-}
 
 const chargeLabel = computed(() => {
   const n = Math.round(chargeP.value * 100)
@@ -77,7 +66,6 @@ function onDocumentVisibilityChange() {
 
 function onMotionChange() {
   reduceMotion = Boolean(motionMql?.matches)
-  syncChargeBeamGate()
   if (reduceMotion) {
     stopLoop()
     latched = true
@@ -88,10 +76,6 @@ function onMotionChange() {
   }
 }
 
-function onMobileChange() {
-  syncChargeBeamGate()
-}
-
 onMounted(() => {
   documentVisible = !document.hidden
   document.addEventListener('visibilitychange', onDocumentVisibilityChange)
@@ -99,10 +83,6 @@ onMounted(() => {
   motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
   reduceMotion = motionMql.matches
   motionMql.addEventListener('change', onMotionChange)
-
-  mobileMql = window.matchMedia('(max-width: 768px)')
-  mobileMql.addEventListener('change', onMobileChange)
-  syncChargeBeamGate()
 
   if (reduceMotion) {
     latched = true
@@ -128,8 +108,6 @@ onBeforeUnmount(() => {
   observer = null
   motionMql?.removeEventListener('change', onMotionChange)
   motionMql = null
-  mobileMql?.removeEventListener('change', onMobileChange)
-  mobileMql = null
   document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
 })
 </script>
@@ -138,7 +116,7 @@ onBeforeUnmount(() => {
   <section
     ref="sectionRef"
     class="final-cta-section"
-    :class="{ 'is-charged': charged, 'has-charge-beam': showChargeBeam }"
+    :class="{ 'is-charged': charged }"
     :style="{
       background: '#000',
       padding: '160px 0 120px',
@@ -148,11 +126,7 @@ onBeforeUnmount(() => {
       overflow: 'hidden',
     }"
   >
-    <!-- Radial glow. Dims as the volumetric beam takes over so type stays readable. -->
-    <div
-      class="final-cta-wash"
-      :style="showChargeBeam ? { opacity: 1 - chargeP * 0.6 } : undefined"
-    />
+    <div class="final-cta-wash" />
 
     <!-- Grid mask: the mask stays fixed on the wrapper while the oversized
          grid child drifts one 80px pattern period via transform, looping
@@ -160,10 +134,6 @@ onBeforeUnmount(() => {
     <div class="final-cta-grid-mask">
       <div class="final-cta-grid" />
     </div>
-
-    <ClientOnly>
-      <ChargeBeam v-if="showChargeBeam" :charge="chargeP" />
-    </ClientOnly>
 
     <div class="container final-cta-copy">
       <!-- Logo -->
@@ -282,11 +252,6 @@ onBeforeUnmount(() => {
 .final-cta-copy {
   position: relative;
   z-index: 1;
-}
-
-.final-cta-section.has-charge-beam::after {
-  animation: none;
-  opacity: 0;
 }
 
 .final-logo-wrap {
