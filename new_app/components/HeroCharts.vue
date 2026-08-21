@@ -81,6 +81,13 @@ onMounted(async () => {
   await nextTick()
   if (unmounted) return
   const scheduleChartReveal = () => {
+    const revealLine = (el: SVGGeometryElement | null, delay: number) => {
+      if (!el) return
+      revealTimers.push(setTimeout(() => {
+        el.style.transition = 'stroke-dashoffset 1600ms cubic-bezier(0.4, 0, 0.2, 1)'
+        el.style.strokeDashoffset = '0'
+      }, delay))
+    }
     const order = [
       { el: refL4.value, delay: 200 },
       { el: refL3.value, delay: 700 },
@@ -89,10 +96,13 @@ onMounted(async () => {
     ]
     order.forEach(({ el, delay }) => {
       if (!el) return
-      revealTimers.push(setTimeout(() => {
-        el.style.transition = 'stroke-dashoffset 1600ms cubic-bezier(0.4, 0, 0.2, 1)'
-        el.style.strokeDashoffset = '0'
-      }, delay))
+      // Outline (and l1's glow) used to paint fully on first frame while only
+      // the brighter stroke dash-drew. Reveal them together so the faint layer
+      // does not snap in ahead of the animated one.
+      const svg = el.closest('svg')
+      revealLine(el, delay)
+      svg?.querySelectorAll<SVGGeometryElement>('.hero-chart-outline, .hero-chart-glow')
+        .forEach((line) => revealLine(line, delay))
     })
   }
   const ric = (window as unknown as { requestIdleCallback?: IdleCb }).requestIdleCallback
@@ -149,6 +159,9 @@ onBeforeUnmount(() => {
         stroke="#CCFF00"
         stroke-width="1"
         opacity="0.026"
+        pathLength="1"
+        stroke-dasharray="1"
+        stroke-dashoffset="1"
         stroke-linejoin="round"
       />
       <polyline
@@ -178,6 +191,9 @@ onBeforeUnmount(() => {
         stroke="#ffffff"
         stroke-width="1"
         opacity="0.032"
+        pathLength="1"
+        stroke-dasharray="1"
+        stroke-dashoffset="1"
         stroke-linejoin="round"
       />
       <polyline
@@ -207,6 +223,9 @@ onBeforeUnmount(() => {
         stroke="#CCFF00"
         stroke-width="1"
         opacity="0.042"
+        pathLength="1"
+        stroke-dasharray="1"
+        stroke-dashoffset="1"
         stroke-linejoin="round"
       />
       <polyline
@@ -250,11 +269,15 @@ onBeforeUnmount(() => {
       />
 
       <polyline
+        class="hero-chart-glow"
         :points="poly(l1)"
         fill="none"
         stroke="#CCFF00"
         stroke-width="5"
         opacity="0.04"
+        pathLength="1"
+        stroke-dasharray="1"
+        stroke-dashoffset="1"
         stroke-linejoin="round"
         filter="url(#hero-chart-glow)"
       />
@@ -266,6 +289,9 @@ onBeforeUnmount(() => {
         stroke="#CCFF00"
         stroke-width="1.5"
         opacity="0.08"
+        pathLength="1"
+        stroke-dasharray="1"
+        stroke-dashoffset="1"
         stroke-linejoin="round"
       />
 
@@ -414,7 +440,9 @@ onBeforeUnmount(() => {
   --depth-y: 11;
 }
 
-.hero-chart-draw {
+.hero-chart-draw,
+.hero-chart-outline,
+.hero-chart-glow {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
 }
@@ -437,6 +465,12 @@ onBeforeUnmount(() => {
   .hero-chart-layer {
     transform: none;
     will-change: auto;
+  }
+
+  .hero-chart-draw,
+  .hero-chart-outline,
+  .hero-chart-glow {
+    stroke-dashoffset: 0;
   }
 }
 

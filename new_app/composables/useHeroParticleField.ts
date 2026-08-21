@@ -88,6 +88,21 @@ export function revealedWordBox(
   }
 }
 
+// Sweep speed from progress on one rect. Screen-space leadingX includes
+// scroll and --hero-lift, which would kick the field if used as vx.
+export function sweepWallVelocity(
+  rect: ClientRect,
+  fromRight: boolean,
+  previousProgress: number,
+  progress: number,
+  dtSec: number,
+) {
+  if (dtSec <= 0) return 0
+  const previous = revealedWordBox(rect, fromRight, previousProgress)
+  const next = revealedWordBox(rect, fromRight, progress)
+  return (next.leadingX - previous.leadingX) / dtSec
+}
+
 export function publishHeroLaserWall(
   box: HeroFieldBox,
   vx: number,
@@ -117,6 +132,19 @@ export function releaseHeroLaserWall() {
   // overwritten and the particle field does not teleport onto this word.
   liveReleased = true
   field.walls[0].vx = 0
+}
+
+export function reposeHeroLaserSlot(
+  slot: 0 | 1,
+  box: Pick<HeroFieldBox, 'cx' | 'cy' | 'hw' | 'hh'>,
+) {
+  const wall = field.walls[slot]
+  if (wall.strength <= 0.001) return false
+  wall.cx = box.cx
+  wall.cy = box.cy
+  wall.hw = box.hw
+  wall.hh = box.hh
+  return true
 }
 
 export function decayHeroParticleWake(dtMs: number, decayMs = 500) {
@@ -209,11 +237,13 @@ export function stepDisplayedWall(
     }
   }
 
+  // Snap pose so a scroll/lift jump does not trail behind the word. Ease
+  // only strength and sweep speed; those are not viewport-coupled.
   return {
-    cx: mix(displayed.cx, target.cx),
-    cy: mix(displayed.cy, target.cy),
-    hw: mix(displayed.hw, target.hw),
-    hh: mix(displayed.hh, target.hh),
+    cx: target.cx,
+    cy: target.cy,
+    hw: target.hw,
+    hh: target.hh,
     vx: mix(displayed.vx, target.vx),
     facing: target.facing,
     k: mix(displayed.k, target.k),

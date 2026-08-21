@@ -448,6 +448,16 @@ function initPhone() {
   phone.rotation.y = -0.12
   scene.add(phone)
 
+  let textureReady = false
+  let announcedReady = false
+  const announceReady = () => {
+    if (announcedReady) return
+    if (!textureReady) return
+    if (container.clientWidth < 8 || container.clientHeight < 8) return
+    announcedReady = true
+    emit('ready')
+  }
+
   const initialSrc = currentSrc
   loadScreenImage(initialSrc)
     .then((image) => {
@@ -455,9 +465,13 @@ function initPhone() {
       currentScreenImage = image
       drawStaticScreen(image)
       renderer.render(scene, camera)
-      emit('ready')
+      textureReady = true
+      announceReady()
     })
-    .catch(() => {})
+    .catch(() => {
+      textureReady = true
+      announceReady()
+    })
 
   updateTexture = (src: string) => {
     if (src === currentSrc) return
@@ -893,6 +907,7 @@ function initPhone() {
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
     renderer.render(scene, camera)
+    announceReady()
   }
   let resizeRaf = 0
   const onResize = () => {

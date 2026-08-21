@@ -756,22 +756,37 @@ section {
   justify-self: stretch;
   min-width: 0;
   position: relative;
+  overflow: visible;
   white-space: nowrap;
 }
 .hero-laser-reveal {
   display: block;
   position: relative;
   z-index: 2;
-  /* Visible in the first HTML paint. Clipping until JS finishes the 4-word
-     sweep made LCP the delayed lime glow (1.3s desktop / 6.4s mobile). The
-     beam and sparks still run as an overlay. */
-  clip-path: none;
+  /* Hidden until the laser wall sweeps the word open. `from-right` starts
+     from the opposite edge. Layout box stays put (clip-path is paint-only). */
+  clip-path: inset(-20% 100% -20% 0);
   contain: layout;
 }
-.hero-laser-reveal.hero-laser-green {
+.hero-laser-reveal.from-right {
+  clip-path: inset(-20% 0 -20% 100%);
+}
+/* Bloom lives on a sibling, not on the clipped word: clip-path would
+   otherwise cut the glow into the same rectangle as the sliding wall. */
+.hero-title-glow {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  color: var(--liftag-primary);
+  opacity: 0;
+  pointer-events: none;
   text-shadow:
     0 0 60px rgba(204, 255, 0, 0.55),
     0 0 120px rgba(204, 255, 0, 0.2);
+  transition: opacity 700ms 80ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hero-laser-reveal.reveal-done + .hero-title-glow {
+  opacity: 1;
 }
 .hero-laser-reveal::after {
   content: '';
@@ -833,6 +848,12 @@ section {
 }
 .hero-laser-reveal.reveal-done {
   clip-path: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-laser-reveal,
+  .hero-laser-reveal.from-right {
+    clip-path: none;
+  }
 }
 .hero-laser-reveal.reveal-done::after,
 .hero-laser-reveal.reveal-done::before {

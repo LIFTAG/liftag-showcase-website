@@ -7,10 +7,12 @@ import {
   finishHeroLaserWall,
   publishHeroLaserWall,
   releaseHeroLaserWall,
+  reposeHeroLaserSlot,
   resetHeroParticleField,
   revealedWordBox,
   shouldTransferLiveWall,
   stepDisplayedWall,
+  sweepWallVelocity,
   transferDisplayedWall,
   useHeroParticleField,
   wallToParticleWorld,
@@ -129,7 +131,20 @@ test('wallToParticleWorld scales the box and leading-edge velocity into world un
   assert.equal(world.facing, 1)
 })
 
-test('stepDisplayedWall eases strength in and snaps pose only while appearing', () => {
+test('sweepWallVelocity is progress on one rect, not screen translation', () => {
+  const rect = { left: 100, top: 40, width: 200, height: 80 }
+  const scrolled = { left: 100, top: -80, width: 200, height: 80 }
+  const dt = 0.1
+
+  const ltr = sweepWallVelocity(rect, false, 0.2, 0.4, dt)
+  assert.equal(ltr, sweepWallVelocity(scrolled, false, 0.2, 0.4, dt))
+  assert.ok(ltr > 0)
+  assert.equal(sweepWallVelocity(rect, true, 0.2, 0.4, dt), -ltr)
+  assert.equal(sweepWallVelocity(rect, false, 0, 0, dt), 0)
+  assert.equal(sweepWallVelocity(rect, false, 0.2, 0.4, 0), 0)
+})
+
+test('stepDisplayedWall eases strength in and snaps pose while appearing', () => {
   const appeared = stepDisplayedWall(
     emptyDisplayedWall(),
     { cx: 8, cy: 4, hw: 2, hh: 3, vx: 10, facing: 1, k: 1 },
@@ -138,6 +153,20 @@ test('stepDisplayedWall eases strength in and snaps pose only while appearing', 
   assert.equal(appeared.cx, 8)
   assert.equal(appeared.cy, 4)
   assert.ok(appeared.k > 0 && appeared.k < 0.2)
+})
+
+test('stepDisplayedWall snaps pose while live so a scroll shift does not trail', () => {
+  const next = stepDisplayedWall(
+    { cx: 8, cy: 4, hw: 2, hh: 3, vx: 10, facing: 1, k: 0.8 },
+    { cx: 20, cy: 30, hw: 5, hh: 6, vx: 12, facing: 1, k: 1 },
+    0.1,
+  )
+  assert.equal(next.cx, 20)
+  assert.equal(next.cy, 30)
+  assert.equal(next.hw, 5)
+  assert.equal(next.hh, 6)
+  assert.equal(next.vx, 10.2)
+  assert.ok(next.k > 0.8 && next.k < 1)
 })
 
 test('stepDisplayedWall keeps the last pose while strength eases out', () => {
@@ -172,6 +201,20 @@ test('shouldTransferLiveWall is false when the last word fades in place over an 
   const lastWord = { cx: 220, cy: 480, strength: 1 }
   const previousWake = { cx: 80, cy: 360, strength: 0.16 }
   assert.equal(shouldTransferLiveWall(lastWord, 0, previousWake), false)
+})
+
+test('reposeHeroLaserSlot updates pose without touching strength or vx', () => {
+  const field = useHeroParticleField()
+  publishHeroLaserWall({ cx: 80, cy: 360, hw: 40, hh: 24, leadingX: 120 }, 20, 1, 1)
+  finishHeroLaserWall()
+  publishHeroLaserWall({ cx: 220, cy: 480, hw: 90, hh: 28, leadingX: 130 }, -30, 1, -1)
+
+  assert.equal(reposeHeroLaserSlot(1, { cx: 10, cy: 20, hw: 30, hh: 40 }), true)
+  assert.deepEqual(field.walls[1], { cx: 10, cy: 20, hw: 30, hh: 40, vx: 20, strength: 1, facing: 1 })
+  assert.equal(field.walls[0].cx, 220)
+
+  resetHeroParticleField()
+  assert.equal(reposeHeroLaserSlot(0, { cx: 1, cy: 2, hw: 3, hh: 4 }), false)
 })
 
 test('releaseHeroLaserWall keeps the last word in place and leaves the previous wake alone', () => {

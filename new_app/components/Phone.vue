@@ -51,6 +51,10 @@ function screenSrcset(src: string | undefined) {
   return `${w360} 360w, ${w560} 560w, ${w640} 640w`
 }
 
+const emit = defineEmits<{
+  ready: []
+}>()
+
 const props = withDefaults(defineProps<{
   src?: string
   // Screen footage that replaces the still `src` on the display. `src` stays
@@ -111,7 +115,14 @@ const render3dPhone = computed(() => (
   && render3dEnabled.value
   && !renderStaticMockup.value
 ))
-const renderStaticPhone = computed(() => Boolean(props.src) && !render3dPhone.value)
+// Desktop 3D phones must not paint a 2D mockup while the chunk/texture load.
+// That flash is what made the hero's middle phone look flat for a few frames.
+const renderStaticPhone = computed(() => {
+  if (!props.src) return false
+  if (render3dPhone.value) return false
+  if (hasMounted.value && !renderStaticMockup.value) return false
+  return true
+})
 // Gated on `renderStaticMockup` rather than `renderStaticPhone`: the latter is
 // also briefly true on desktop while Phone3D's chunk loads, and mounting the
 // footage there would start a fetch that the 3D path immediately abandons.
@@ -123,8 +134,11 @@ const renderStaticVideo = computed(() => (
   && isNearViewport.value
   && !reduceMotion.value
 ))
+const waitingFor3d = computed(() => (
+  hasMounted.value && !renderStaticMockup.value && Boolean(props.src)
+))
 const phoneClasses = computed(() => ({
-  'phone--3d': render3dPhone.value,
+  'phone--3d': render3dPhone.value || waitingFor3d.value,
   'phone--static-mockup': renderStaticPhone.value,
   'phone--static-frameless': renderStaticPhone.value && !props.staticBezel,
 }))
@@ -213,6 +227,11 @@ function prefetchPhone3d() {
   import('./Phone3D.vue').catch(() => {})
 }
 
+function onPhone3dReady() {
+  phone3dReady.value = true
+  emit('ready')
+}
+
 function activatePhone() {
   if (isNearViewport.value) return
   if (!isPhoneDisplayed()) return
@@ -222,6 +241,9 @@ function activatePhone() {
   // Skip the import on static mockups: Phone3D is not rendered there, and
   // pulling it in anyway downloaded three.js on every mobile hero phone.
   prefetchPhone3d()
+  // Desktop: start the 3D path immediately so the first painted frame is the
+  // model, not a 2D screenshot that later pops into 3D.
+  if (!renderStaticMockup.value) render3dEnabled.value = true
   primeScreen(props.src)
 }
 
@@ -358,7 +380,7 @@ onBeforeUnmount(() => {
           :interactive="props.interactive3d"
           :crisp-screen="props.crisp3d"
           :idle-motion="props.idle3d"
-          @ready="phone3dReady = true"
+          @ready="onPhone3dReady"
         />
       </div>
       <template #fallback>

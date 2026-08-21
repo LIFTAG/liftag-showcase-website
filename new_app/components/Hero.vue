@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import {
+  type ClientRect,
   finishHeroLaserWall,
   publishHeroLaserWall,
   releaseHeroLaserWall,
+  reposeHeroLaserSlot,
   resetHeroParticleField,
   revealedWordBox,
+  sweepWallVelocity,
 } from '../composables/useHeroParticleField'
 
 // ─── reactive mouse / scroll state ───────────────────────────────────────────
@@ -39,6 +42,7 @@ const hasMounted = ref(false)
 const keepDesktopHeroPhones = computed(() => (
   hasMounted.value && !isMobile.value
 ))
+const frontPhoneReady = ref(false)
 
 function syncHeroMotionGates(mobile: boolean, prefersReducedMotion: boolean) {
   isMobile.value = mobile
@@ -201,10 +205,15 @@ function queueHeroLaserRaf(fn: (now: number) => void) {
   heroLaserRafs.push(raf)
 }
 
-type HeroLaserWallTrack = { leadX: number; now: number }
+type HeroLaserWallTrack = { progress: number; now: number }
+
+function liveClientRect(el: HTMLElement): ClientRect {
+  const r = el.getBoundingClientRect()
+  return { left: r.left, top: r.top, width: r.width, height: r.height }
+}
 
 function publishHeroLaserWallFromBox(
-  rect: { left: number; top: number; width: number; height: number },
+  rect: ClientRect,
   fromRight: boolean,
   progress: number,
   strength: number,
@@ -212,11 +221,36 @@ function publishHeroLaserWallFromBox(
   track: HeroLaserWallTrack | null,
 ): HeroLaserWallTrack {
   const box = revealedWordBox(rect, fromRight, progress)
-  const vx = track && now > track.now
-    ? (box.leadingX - track.leadX) / ((now - track.now) / 1000)
+  const dt = track && now > track.now ? (now - track.now) / 1000 : 0
+  const vx = track
+    ? sweepWallVelocity(rect, fromRight, track.progress, progress, dt)
     : 0
   publishHeroLaserWall(box, vx, strength, fromRight ? -1 : 1)
-  return { leadX: box.leadingX, now }
+  return { progress, now }
+}
+
+function reposeWallFromEl(
+  slot: 0 | 1,
+  el: HTMLElement | undefined,
+  fromRight: boolean,
+) {
+  if (!el) return false
+  return reposeHeroLaserSlot(slot, revealedWordBox(liveClientRect(el), fromRight, 1))
+}
+
+function followFinishedWalls(
+  liveEl: HTMLElement,
+  liveFromRight: boolean,
+  wakeEl: HTMLElement | undefined,
+  wakeFromRight: boolean,
+) {
+  const tick = () => {
+    if (heroLaserCancelled) return
+    const liveAlive = reposeWallFromEl(0, liveEl, liveFromRight)
+    const wakeAlive = reposeWallFromEl(1, wakeEl, wakeFromRight)
+    if (liveAlive || wakeAlive) queueHeroLaserRaf(tick)
+  }
+  queueHeroLaserRaf(tick)
 }
 
 function emitHeroLaserSparks(x: number, y: number, isGreen: boolean) {
@@ -251,6 +285,8 @@ function runHeroLaserReveal(
   duration: number,
   onDone?: () => void,
   persistWake = true,
+  wakeEl?: HTMLElement,
+  wakeFromRight = false,
 ) {
   if (!el || el.classList.contains('reveal-done')) {
     onDone?.()
@@ -258,19 +294,22 @@ function runHeroLaserReveal(
   }
 
   const isGreen = el.classList.contains('hero-laser-green')
-  const rect = el.getBoundingClientRect()
-  const fontSize = Number.parseFloat(window.getComputedStyle(el).fontSize) || rect.height
+  const initialRect = liveClientRect(el)
+  const fontSize = Number.parseFloat(window.getComputedStyle(el).fontSize) || initialRect.height
   // Italic Space Grotesk hangs past the layout box (R, Y). On desktop each
   // word is `display: block` so the line width hides it; on phones the words
   // are shrink-wrapped, so a 0% right inset clips FOR / BY. Keep a hang pad
   // on every word, and a slightly larger one on the lime from-right sweeps.
   const italicHang = fontSize * 0.18
   const rightClipPad = isGreen && fromRight ? Math.max(fontSize * 0.14, italicHang) : italicHang
-  const wordRect = { left: rect.left, top: rect.top, width: rect.width, height: rect.height }
-  const beamTravelWidth = wordRect.width + (fromRight ? rightClipPad : 0)
+  const rightClipInset = `-${rightClipPad}px`
   const beam = document.createElement('div')
 
-  const syncBeam = (beamPercent: number) => {
+  // Read the live box before any style writes in the same frame so this is
+  // not a forced reflow. Clip-path is paint-only; getBoundingClientRect
+  // still picks up scroll and --hero-lift on the copy.
+  const syncBeam = (beamPercent: number, wordRect: ClientRect) => {
+    const beamTravelWidth = wordRect.width + (fromRight ? rightClipPad : 0)
     const x = wordRect.left + (beamPercent / 100) * beamTravelWidth
     el.style.setProperty('--laser-x', `${(beamPercent / 100) * wordRect.width}px`)
     beam.style.setProperty('--beam-x', `${x}px`)
@@ -279,8 +318,8 @@ function runHeroLaserReveal(
   }
 
   beam.className = `hero-laser-charge-beam ${isGreen ? 'green' : 'red'}`
-  beam.style.setProperty('--beam-h', `${wordRect.height * 1.4}px`)
-  syncBeam(fromRight ? 100 : 0)
+  beam.style.setProperty('--beam-h', `${initialRect.height * 1.4}px`)
+  syncBeam(fromRight ? 100 : 0, initialRect)
   document.body.appendChild(beam)
   heroLaserNodes.add(beam)
 
@@ -290,7 +329,10 @@ function runHeroLaserReveal(
 
   const charge = (now: number) => {
     if (!charging) return
+    const wordRect = liveClientRect(el)
+    reposeWallFromEl(1, wakeEl, wakeFromRight)
     const t = Math.min((now - chargeStart) / heroLaserChargeMs, 1)
+    syncBeam(fromRight ? 100 : 0, wordRect)
     wallTrack = publishHeroLaserWallFromBox(wordRect, fromRight, 0, t, now, wallTrack)
     if (t < 1) queueHeroLaserRaf(charge)
   }
@@ -303,11 +345,18 @@ function runHeroLaserReveal(
     let lastSparkTime = 0
 
     const animate = (now: number) => {
+      const wordRect = liveClientRect(el)
+      reposeWallFromEl(1, wakeEl, wakeFromRight)
       const t = Math.min((now - start) / duration, 1)
       const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
       const pos = eased * 100
       const beamPercent = fromRight ? 100 - pos : pos
-      const beamX = syncBeam(beamPercent)
+      if (fromRight) {
+        el.style.clipPath = `inset(-20% ${rightClipInset} -20% ${100 - Math.min(pos, 100)}%)`
+      } else {
+        el.style.clipPath = `inset(-20% calc(${100 - Math.min(pos, 100)}% - ${rightClipPad}px) -20% 0)`
+      }
+      const beamX = syncBeam(beamPercent, wordRect)
       wallTrack = publishHeroLaserWallFromBox(wordRect, fromRight, eased, 1, now, wallTrack)
 
       if (now - lastSparkTime > 70 && t > 0.04 && t < 0.92) {
@@ -328,7 +377,15 @@ function runHeroLaserReveal(
       else releaseHeroLaserWall()
       el.classList.remove('sweeping')
       el.classList.add('reveal-done')
+      el.style.removeProperty('clip-path')
       beam.style.animation = 'heroLaserChargeShrink 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards'
+      const endPercent = fromRight ? 0 : 100
+      const followBeam = () => {
+        if (heroLaserCancelled || !beam.isConnected) return
+        syncBeam(endPercent, liveClientRect(el))
+        queueHeroLaserRaf(followBeam)
+      }
+      queueHeroLaserRaf(followBeam)
       queueHeroLaserTimer(() => {
         beam.remove()
         heroLaserNodes.delete(beam)
@@ -364,16 +421,26 @@ function runAllHeroLaserReveals() {
       return
     }
 
+    const prevIndex = sequenceIndex > 0 ? heroLaserSequence[sequenceIndex - 1] : undefined
+    const prevEl = prevIndex !== undefined ? targets[prevIndex] : undefined
+    const prevFromRight = prevIndex !== undefined ? prevIndex % 2 === 1 : false
+    const persistWake = sequenceIndex < heroLaserSequence.length - 1
+
     runHeroLaserReveal(
       targets[index],
       index % 2 === 1,
       heroLaserSweepMs,
       () => {
+        if (!persistWake && showHeroParticles.value && targets[index]) {
+          followFinishedWalls(targets[index], index % 2 === 1, prevEl, prevFromRight)
+        }
         queueHeroLaserTimer(() => revealNext(sequenceIndex + 1), heroLaserGapMs)
       },
       // The last word fades in place. Finishing it into the wake would
       // teleport the still-active previous wall onto this line.
-      sequenceIndex < heroLaserSequence.length - 1,
+      persistWake,
+      prevEl,
+      prevFromRight,
     )
   }
 
@@ -603,23 +670,13 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
     />
 
     <!-- ── Subtle grid ── -->
-    <!-- Static fallback for phones (lite particles skip the GPU grid warp),
-         prefers-reduced-motion, and pre-hydration. Desktop swaps to the
-         cursor-warped GPU version inside HeroParticles once that field is on,
-         so the two never show at once on that layout. -->
+    <!-- Phones and reduced-motion keep this CSS grid. Desktop hides it from
+         the first paint (see .hero-static-grid) so it cannot flash on, vanish
+         when HeroParticles mounts, then fade back in with uReveal. -->
     <div
       v-if="isMobile || !showHeroParticles"
-      :style="{
-        position: 'absolute',
-        inset: 0,
-        pointerEvents: 'none',
-        backgroundImage:
-          'linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),' +
-          'linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)',
-        backgroundSize: '80px 80px',
-        maskImage: 'radial-gradient(ellipse 90% 80% at 60% 40%, black 20%, transparent 80%)',
-      }"
-      class="hero-fades"
+      class="hero-static-grid hero-fades"
+      aria-hidden="true"
     />
 
     <!-- ── Lime atmosphere glow ── -->
@@ -686,6 +743,13 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
               :style="{
                 color: isLime(word) ? '#CCFF00' : '#fff',
               }"
+            >
+              {{ word }}
+            </span>
+            <span
+              v-if="isLime(word)"
+              class="hero-title-glow"
+              aria-hidden="true"
             >
               {{ word }}
             </span>
@@ -828,7 +892,8 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
             position: 'absolute', top: 0, left: '50%',
             transform: frontPhoneTransform,
             willChange: 'transform',
-            opacity: 1,
+            opacity: entered && frontPhoneReady ? 1 : 0,
+            transition: entered && frontPhoneReady ? 'opacity 1000ms 100ms ease' : 'none',
           }"
         >
           <!-- Glow behind phone -->
@@ -842,17 +907,15 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
               filter: 'blur(24px)',
             }"
           />
-          <img
-            v-show="!keepDesktopHeroPhones"
-            class="hero-desktop-lcp"
-            src="/assets/screens/hero-dashboard-560.webp"
-            alt="LIFTAG screen"
-            width="393"
-            height="852"
-            loading="lazy"
-            decoding="async"
-          >
-          <Phone v-if="keepDesktopHeroPhones" src="/assets/screens/hero-dashboard.webp" :scale="0.92" :tilt-delay-ms="0" :static-bezel="false" lite priority />
+          <Phone
+            v-if="keepDesktopHeroPhones"
+            src="/assets/screens/hero-dashboard.webp"
+            :scale="0.92"
+            :tilt-delay-ms="0"
+            :static-bezel="false"
+            priority
+            @ready="frontPhoneReady = true"
+          />
           <!-- Reflection streak -->
           <div
             :style="{
@@ -1107,6 +1170,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
                   :class="heroLaserClass(word, lineIndex * 2 + wordIndex)"
                   :style="{ color: '#CCFF00' }"
                 >{{ word }}</span>
+                <span class="hero-title-glow" aria-hidden="true">{{ word }}</span>
               </span>
               <span
                 v-else
@@ -1236,6 +1300,32 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
   opacity: var(--hero-fade);
 }
 
+.hero-static-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse 90% 80% at 60% 40%, black 20%, transparent 80%);
+}
+
+/* Desktop first paint would otherwise show this grid, then swap it for the
+   GPU field at reveal 0 (a visible pop). Keep it for phones and for
+   reduced-motion, which never mount HeroParticles. */
+@media (min-width: 769px) {
+  .hero-static-grid {
+    visibility: hidden;
+  }
+}
+
+@media (min-width: 769px) and (prefers-reduced-motion: reduce) {
+  .hero-static-grid {
+    visibility: visible;
+  }
+}
+
 /* Hidden until the entrance finishes, then fades out with the rest of the hero. */
 .hero-scroll-cue {
   opacity: 0;
@@ -1326,20 +1416,6 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
   animation: heroNfcFloat 5.8s ease-in-out infinite;
 }
 
-.hero-desktop-lcp {
-  display: none;
-  width: 280px;
-  aspect-ratio: 393 / 852;
-  object-fit: cover;
-  border-radius: 52px;
-}
-
-@media (min-width: 769px) {
-  .hero-desktop-lcp {
-    display: block;
-  }
-}
-
 .hero-mobile-layout {
   display: none;
 }
@@ -1375,13 +1451,11 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 .hero-mobile-title .hero-laser-reveal {
   padding-right: 0.22em;
   margin-right: -0.22em;
-  /* Visible on first paint so LCP/FCP are not the 6s laser glow. The sweep
-     still runs as an overlay. */
-  clip-path: none;
 }
 
 .hero-mobile-lime-word {
   position: relative;
+  overflow: visible;
 }
 
 .hero-mobile-kicker {
