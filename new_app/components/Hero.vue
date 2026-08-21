@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import {
+  type ClientRect,
   finishHeroLaserWall,
   publishHeroLaserWall,
   releaseHeroLaserWall,
+  reposeHeroLaserSlot,
   resetHeroParticleField,
   revealedWordBox,
+  sweepWallVelocity,
 } from '../composables/useHeroParticleField'
 
 // ─── reactive mouse / scroll state ───────────────────────────────────────────
@@ -202,10 +205,15 @@ function queueHeroLaserRaf(fn: (now: number) => void) {
   heroLaserRafs.push(raf)
 }
 
-type HeroLaserWallTrack = { leadX: number; now: number }
+type HeroLaserWallTrack = { progress: number; now: number }
+
+function liveClientRect(el: HTMLElement): ClientRect {
+  const r = el.getBoundingClientRect()
+  return { left: r.left, top: r.top, width: r.width, height: r.height }
+}
 
 function publishHeroLaserWallFromBox(
-  rect: { left: number; top: number; width: number; height: number },
+  rect: ClientRect,
   fromRight: boolean,
   progress: number,
   strength: number,
@@ -213,11 +221,36 @@ function publishHeroLaserWallFromBox(
   track: HeroLaserWallTrack | null,
 ): HeroLaserWallTrack {
   const box = revealedWordBox(rect, fromRight, progress)
-  const vx = track && now > track.now
-    ? (box.leadingX - track.leadX) / ((now - track.now) / 1000)
+  const dt = track && now > track.now ? (now - track.now) / 1000 : 0
+  const vx = track
+    ? sweepWallVelocity(rect, fromRight, track.progress, progress, dt)
     : 0
   publishHeroLaserWall(box, vx, strength, fromRight ? -1 : 1)
-  return { leadX: box.leadingX, now }
+  return { progress, now }
+}
+
+function reposeWallFromEl(
+  slot: 0 | 1,
+  el: HTMLElement | undefined,
+  fromRight: boolean,
+) {
+  if (!el) return false
+  return reposeHeroLaserSlot(slot, revealedWordBox(liveClientRect(el), fromRight, 1))
+}
+
+function followFinishedWalls(
+  liveEl: HTMLElement,
+  liveFromRight: boolean,
+  wakeEl: HTMLElement | undefined,
+  wakeFromRight: boolean,
+) {
+  const tick = () => {
+    if (heroLaserCancelled) return
+    const liveAlive = reposeWallFromEl(0, liveEl, liveFromRight)
+    const wakeAlive = reposeWallFromEl(1, wakeEl, wakeFromRight)
+    if (liveAlive || wakeAlive) queueHeroLaserRaf(tick)
+  }
+  queueHeroLaserRaf(tick)
 }
 
 function emitHeroLaserSparks(x: number, y: number, isGreen: boolean) {
@@ -252,6 +285,8 @@ function runHeroLaserReveal(
   duration: number,
   onDone?: () => void,
   persistWake = true,
+  wakeEl?: HTMLElement,
+  wakeFromRight = false,
 ) {
   if (!el || el.classList.contains('reveal-done')) {
     onDone?.()
@@ -259,8 +294,8 @@ function runHeroLaserReveal(
   }
 
   const isGreen = el.classList.contains('hero-laser-green')
-  const rect = el.getBoundingClientRect()
-  const fontSize = Number.parseFloat(window.getComputedStyle(el).fontSize) || rect.height
+  const initialRect = liveClientRect(el)
+  const fontSize = Number.parseFloat(window.getComputedStyle(el).fontSize) || initialRect.height
   // Italic Space Grotesk hangs past the layout box (R, Y). On desktop each
   // word is `display: block` so the line width hides it; on phones the words
   // are shrink-wrapped, so a 0% right inset clips FOR / BY. Keep a hang pad
@@ -268,11 +303,13 @@ function runHeroLaserReveal(
   const italicHang = fontSize * 0.18
   const rightClipPad = isGreen && fromRight ? Math.max(fontSize * 0.14, italicHang) : italicHang
   const rightClipInset = `-${rightClipPad}px`
-  const wordRect = { left: rect.left, top: rect.top, width: rect.width, height: rect.height }
-  const beamTravelWidth = wordRect.width + (fromRight ? rightClipPad : 0)
   const beam = document.createElement('div')
 
-  const syncBeam = (beamPercent: number) => {
+  // Read the live box before any style writes in the same frame so this is
+  // not a forced reflow. Clip-path is paint-only; getBoundingClientRect
+  // still picks up scroll and --hero-lift on the copy.
+  const syncBeam = (beamPercent: number, wordRect: ClientRect) => {
+    const beamTravelWidth = wordRect.width + (fromRight ? rightClipPad : 0)
     const x = wordRect.left + (beamPercent / 100) * beamTravelWidth
     el.style.setProperty('--laser-x', `${(beamPercent / 100) * wordRect.width}px`)
     beam.style.setProperty('--beam-x', `${x}px`)
@@ -281,8 +318,8 @@ function runHeroLaserReveal(
   }
 
   beam.className = `hero-laser-charge-beam ${isGreen ? 'green' : 'red'}`
-  beam.style.setProperty('--beam-h', `${wordRect.height * 1.4}px`)
-  syncBeam(fromRight ? 100 : 0)
+  beam.style.setProperty('--beam-h', `${initialRect.height * 1.4}px`)
+  syncBeam(fromRight ? 100 : 0, initialRect)
   document.body.appendChild(beam)
   heroLaserNodes.add(beam)
 
@@ -292,7 +329,10 @@ function runHeroLaserReveal(
 
   const charge = (now: number) => {
     if (!charging) return
+    const wordRect = liveClientRect(el)
+    reposeWallFromEl(1, wakeEl, wakeFromRight)
     const t = Math.min((now - chargeStart) / heroLaserChargeMs, 1)
+    syncBeam(fromRight ? 100 : 0, wordRect)
     wallTrack = publishHeroLaserWallFromBox(wordRect, fromRight, 0, t, now, wallTrack)
     if (t < 1) queueHeroLaserRaf(charge)
   }
@@ -305,6 +345,8 @@ function runHeroLaserReveal(
     let lastSparkTime = 0
 
     const animate = (now: number) => {
+      const wordRect = liveClientRect(el)
+      reposeWallFromEl(1, wakeEl, wakeFromRight)
       const t = Math.min((now - start) / duration, 1)
       const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
       const pos = eased * 100
@@ -314,7 +356,7 @@ function runHeroLaserReveal(
       } else {
         el.style.clipPath = `inset(-20% calc(${100 - Math.min(pos, 100)}% - ${rightClipPad}px) -20% 0)`
       }
-      const beamX = syncBeam(beamPercent)
+      const beamX = syncBeam(beamPercent, wordRect)
       wallTrack = publishHeroLaserWallFromBox(wordRect, fromRight, eased, 1, now, wallTrack)
 
       if (now - lastSparkTime > 70 && t > 0.04 && t < 0.92) {
@@ -337,6 +379,13 @@ function runHeroLaserReveal(
       el.classList.add('reveal-done')
       el.style.removeProperty('clip-path')
       beam.style.animation = 'heroLaserChargeShrink 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards'
+      const endPercent = fromRight ? 0 : 100
+      const followBeam = () => {
+        if (heroLaserCancelled || !beam.isConnected) return
+        syncBeam(endPercent, liveClientRect(el))
+        queueHeroLaserRaf(followBeam)
+      }
+      queueHeroLaserRaf(followBeam)
       queueHeroLaserTimer(() => {
         beam.remove()
         heroLaserNodes.delete(beam)
@@ -372,16 +421,26 @@ function runAllHeroLaserReveals() {
       return
     }
 
+    const prevIndex = sequenceIndex > 0 ? heroLaserSequence[sequenceIndex - 1] : undefined
+    const prevEl = prevIndex !== undefined ? targets[prevIndex] : undefined
+    const prevFromRight = prevIndex !== undefined ? prevIndex % 2 === 1 : false
+    const persistWake = sequenceIndex < heroLaserSequence.length - 1
+
     runHeroLaserReveal(
       targets[index],
       index % 2 === 1,
       heroLaserSweepMs,
       () => {
+        if (!persistWake && showHeroParticles.value && targets[index]) {
+          followFinishedWalls(targets[index], index % 2 === 1, prevEl, prevFromRight)
+        }
         queueHeroLaserTimer(() => revealNext(sequenceIndex + 1), heroLaserGapMs)
       },
       // The last word fades in place. Finishing it into the wake would
       // teleport the still-active previous wall onto this line.
-      sequenceIndex < heroLaserSequence.length - 1,
+      persistWake,
+      prevEl,
+      prevFromRight,
     )
   }
 
