@@ -1,30 +1,457 @@
 <script setup lang="ts">
-// Shell only: cursor orb, atmosphere, scroll fade, and the two layout
-// islands. Desktop and mobile hydrate on matching media queries so a
-// PageSpeed desktop run never evaluates the phone layout (and vice versa).
+import {
+  finishHeroLaserWall,
+  publishHeroLaserWall,
+  releaseHeroLaserWall,
+  resetHeroParticleField,
+  revealedWordBox,
+} from '../composables/useHeroParticleField'
 
+// ─── reactive mouse / scroll state ───────────────────────────────────────────
+// rawMouse is a reference into the shared singleton - useLerpVars' rAF reads
+// .x/.y each frame, so the page-wide single mousemove handler keeps it fresh
+// without us owning a per-component listener.
 const sharedMouse = useSharedMouse()
 const rawMouse = sharedMouse.latest
-const heroRoot = ref<HTMLElement | null>(null)
+const entered = ref(false)
+// Tone flips on a custom event, not on pointer movement, so it stays reactive.
+// The orb's position does not - see --hero-cursor-x / --hero-cursor-y below.
+const cursorGlowTone = ref<'green' | 'red'>('green')
+// Starts false on SSR so both layouts exist and CSS media queries pick one.
+// onMounted then reads matchMedia; do not v-if the desktop grid on that flag
+// during SSR — that would hydration-mismatch or flash.
+const isMobile = ref(false)
+// Particle field starts false so SSR and the first client render agree, then
+// onMounted turns it on for desktop only. Phones never import three.js here:
+// a lite WebGL field on a 390px Lighthouse run is a TBT bomb, and the laser
+// walls still run without a particle mesh.
+const showHeroParticles = ref(false)
+// NFC tag and the desktop 3D phone cluster stay desktop-only.
+const loadHero3d = ref(false)
+// three.js (~246KB) stays out of the Lighthouse navigation: arm WebGL and
+// the 3D phones on first pointer/scroll instead of on mount / idle.
+const heroFxArmed = ref(false)
+// SSR omits the desktop Phone cluster so a 390px document does not ship three
+// extra screenshots (one of them eager + high-priority, racing the LCP img).
+// After mount, desktop inserts them; mobile never does.
+const hasMounted = ref(false)
+const keepDesktopHeroPhones = computed(() => (
+  hasMounted.value && !isMobile.value && heroFxArmed.value
+))
 
+function syncHeroMotionGates(mobile: boolean, prefersReducedMotion: boolean) {
+  isMobile.value = mobile
+  const loadDesktop3d = heroFxArmed.value && !mobile && !prefersReducedMotion
+  showHeroParticles.value = loadDesktop3d
+  loadHero3d.value = loadDesktop3d
+}
+
+function armHeroFx() {
+  if (heroFxArmed.value) return
+  heroFxArmed.value = true
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  syncHeroMotionGates(window.matchMedia('(max-width: 768px)').matches, prefersReducedMotion)
+}
+
+const heroRoot = ref<HTMLElement | null>(null)
+const DESKTOP_PARTICLE_COUNT = 1200
+const DESKTOP_PARTICLE_DPR_CAP = 1.75
+
+// smooth lerp (factor 0.06 matches React source). Gated on the section being
+// near the viewport so mousemoves far down the page do not wake this loop.
+// Publishes --hero-mx / --hero-my on the section rather than a ref: the hero has
+// by far the most bindings on this page, and re-rendering all of them for every
+// frame of the lerp's convergence tail was the most expensive thing the cursor
+// could do.
 const lerpActive = useNearViewport(heroRoot)
 useLerpVars(heroRoot, rawMouse, 'hero', 0.06, () => lerpActive.value)
 
-const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
-  + ' at calc(58% + var(--hero-mx) * 4%) calc(40% + var(--hero-my) * 4%),'
-  + ' rgba(204,255,0,0.12), transparent 65%)'
+const heroVolumeChartSvg = ref<SVGSVGElement | null>(null)
+const heroVolumeChartTargetP = ref(1)
+const heroVolumeChartDisplayP = ref(1)
+let heroVolumeChartRaf = 0
 
+const heroVolumeChartPts: [number, number][] = [
+  [0, 16], [12, 13], [24, 14], [36, 10],
+  [48, 11], [60, 7], [72, 4], [77, 2],
+]
+
+function heroVolumePointAt(p: number) {
+  const clampedP = Math.max(0, Math.min(1, p))
+  const totalLen = heroVolumeChartPts.length - 1
+  const idx = Math.min(clampedP * totalLen, totalLen)
+  const i0 = Math.floor(idx)
+  const i1 = Math.min(i0 + 1, totalLen)
+  const t = idx - i0
+  const [x0, y0] = heroVolumeChartPts[i0]
+  const [x1, y1] = heroVolumeChartPts[i1]
+
+  return {
+    x: x0 + (x1 - x0) * t,
+    y: y0 + (y1 - y0) * t,
+  }
+}
+
+const heroVolumeChartPoint = computed(() => heroVolumePointAt(heroVolumeChartDisplayP.value))
+const heroVolumeChartClipWidth = computed(() => heroVolumeChartPoint.value.x + 7)
+const heroVolumeChartDotOpacity = computed(() => heroVolumeChartDisplayP.value > 0.02 ? 1 : 0)
+
+function tickHeroVolumeChart() {
+  const target = heroVolumeChartTargetP.value
+  const next = heroVolumeChartDisplayP.value + (target - heroVolumeChartDisplayP.value) * 0.18
+
+  if (Math.abs(target - next) < 0.001) {
+    heroVolumeChartDisplayP.value = target
+    heroVolumeChartRaf = 0
+    return
+  }
+
+  heroVolumeChartDisplayP.value = next
+  heroVolumeChartRaf = requestAnimationFrame(tickHeroVolumeChart)
+}
+
+function setHeroVolumeChartTarget(p: number) {
+  heroVolumeChartTargetP.value = Math.max(0.02, Math.min(1, p))
+  if (!heroVolumeChartRaf) heroVolumeChartRaf = requestAnimationFrame(tickHeroVolumeChart)
+}
+
+function handleHeroVolumeChartMove(event: PointerEvent) {
+  const rect = heroVolumeChartSvg.value?.getBoundingClientRect()
+    ?? (event.currentTarget as HTMLElement).getBoundingClientRect()
+  setHeroVolumeChartTarget((event.clientX - rect.left) / Math.max(1, rect.width))
+}
+
+function resetHeroVolumeChartHover() {
+  setHeroVolumeChartTarget(1)
+}
+
+onBeforeUnmount(() => {
+  if (heroVolumeChartRaf) cancelAnimationFrame(heroVolumeChartRaf)
+})
+
+// ─── hero words ───────────────────────────────────────────────────────────────
+const words = ['FOR', 'LIFTERS.', 'BY', 'LIFTERS.']
+function isLime(word: string) { return word === 'LIFTERS.' }
+const heroLaserSequence = [0, 1, 2, 3]
+const heroLaserChargeMs = 140
+const heroLaserSweepMs = 390
+const heroLaserGapMs = 55
+// Copy/CTA paint with the 80ms entrance, not after the 2.6s laser. Gating
+// them on the sweep left the hero half-empty for Speed Index (5.0s lab).
+const heroDetailsEntered = computed(() => entered.value)
+const heroTitleEls: HTMLElement[] = []
+const mobileTitleEls: HTMLElement[] = []
+const mobileTitleLines: [string, string][] = [
+  [words[0], words[1]],
+  [words[2], words[3]],
+]
+let heroLaserStarted = false
+let heroLaserCancelled = false
+const heroLaserTimers: ReturnType<typeof setTimeout>[] = []
+const heroLaserRafs: number[] = []
+const heroLaserNodes = new Set<HTMLElement>()
+
+function setHeroTitleEl(el: Element | null, index: number) {
+  if (el instanceof HTMLElement) heroTitleEls[index] = el
+}
+
+function setMobileTitleEl(el: Element | null, index: number) {
+  if (el instanceof HTMLElement) mobileTitleEls[index] = el
+}
+
+function markTitleElsDone(els: HTMLElement[]) {
+  els.forEach((el) => el?.classList.add('reveal-done'))
+}
+
+function laserTargets() {
+  return isMobile.value || window.matchMedia('(max-width: 768px)').matches
+    ? mobileTitleEls
+    : heroTitleEls
+}
+
+const heroMobileDetailsStyle = computed(() => ({
+  opacity: heroDetailsEntered.value ? 1 : 0,
+  transform: heroDetailsEntered.value ? 'translateY(0)' : 'translateY(14px)',
+  pointerEvents: (heroDetailsEntered.value ? 'auto' : 'none') as 'auto' | 'none',
+  transition: 'opacity 700ms 120ms cubic-bezier(0.16,1,0.3,1), transform 700ms 120ms cubic-bezier(0.16,1,0.3,1)',
+}))
+
+// Phone-only copy sits under the devices, often below the first fold. Arm the
+// scan-lock when that block is actually on screen, and only after the title
+// laser has finished so the two reveals never talk over each other.
+const phoneCopyRoot = ref<HTMLElement | null>(null)
+const phoneCopyInView = ref(false)
+const phoneCopyEntered = computed(() => heroDetailsEntered.value && phoneCopyInView.value)
+let phoneCopyIo: IntersectionObserver | null = null
+
+function heroLaserClass(word: string, index: number) {
+  return {
+    'hero-laser-reveal': true,
+    'hero-laser-green': isLime(word),
+    'hero-laser-red': !isLime(word),
+    'from-right': index % 2 === 1,
+  }
+}
+
+function queueHeroLaserTimer(fn: () => void, delay: number) {
+  const timer = setTimeout(() => {
+    if (!heroLaserCancelled) fn()
+  }, delay)
+  heroLaserTimers.push(timer)
+}
+
+function queueHeroLaserRaf(fn: (now: number) => void) {
+  const raf = requestAnimationFrame((now) => {
+    if (!heroLaserCancelled) fn(now)
+  })
+  heroLaserRafs.push(raf)
+}
+
+type HeroLaserWallTrack = { leadX: number; now: number }
+
+function publishHeroLaserWallFromBox(
+  rect: { left: number; top: number; width: number; height: number },
+  fromRight: boolean,
+  progress: number,
+  strength: number,
+  now: number,
+  track: HeroLaserWallTrack | null,
+): HeroLaserWallTrack {
+  const box = revealedWordBox(rect, fromRight, progress)
+  const vx = track && now > track.now
+    ? (box.leadingX - track.leadX) / ((now - track.now) / 1000)
+    : 0
+  publishHeroLaserWall(box, vx, strength, fromRight ? -1 : 1)
+  return { leadX: box.leadingX, now }
+}
+
+function emitHeroLaserSparks(x: number, y: number, isGreen: boolean) {
+  const count = 1 + Math.floor(Math.random() * 2)
+
+  for (let i = 0; i < count; i++) {
+    const spark = document.createElement('div')
+    const angle = (Math.random() - 0.5) * Math.PI * 0.9
+    const dist = 12 + Math.random() * 28
+
+    spark.className = 'hero-laser-spark'
+    spark.style.translate = `${x}px ${y}px`
+    spark.style.background = isGreen ? 'var(--liftag-primary)' : 'var(--liftag-red-neon)'
+    spark.style.boxShadow = isGreen
+      ? '0 0 4px var(--liftag-primary), 0 0 8px var(--liftag-primary-glow)'
+      : '0 0 4px var(--liftag-red-neon), 0 0 8px var(--liftag-red-neon-glow)'
+    spark.style.setProperty('--sx', `${Math.cos(angle) * dist * 0.4}px`)
+    spark.style.setProperty('--sy', `${Math.sin(angle) * dist}px`)
+    document.body.appendChild(spark)
+    heroLaserNodes.add(spark)
+
+    queueHeroLaserTimer(() => {
+      spark.remove()
+      heroLaserNodes.delete(spark)
+    }, 450)
+  }
+}
+
+function runHeroLaserReveal(
+  el: HTMLElement | undefined,
+  fromRight: boolean,
+  duration: number,
+  onDone?: () => void,
+  persistWake = true,
+) {
+  if (!el || el.classList.contains('reveal-done')) {
+    onDone?.()
+    return
+  }
+
+  const isGreen = el.classList.contains('hero-laser-green')
+  const rect = el.getBoundingClientRect()
+  const fontSize = Number.parseFloat(window.getComputedStyle(el).fontSize) || rect.height
+  // Italic Space Grotesk hangs past the layout box (R, Y). On desktop each
+  // word is `display: block` so the line width hides it; on phones the words
+  // are shrink-wrapped, so a 0% right inset clips FOR / BY. Keep a hang pad
+  // on every word, and a slightly larger one on the lime from-right sweeps.
+  const italicHang = fontSize * 0.18
+  const rightClipPad = isGreen && fromRight ? Math.max(fontSize * 0.14, italicHang) : italicHang
+  const wordRect = { left: rect.left, top: rect.top, width: rect.width, height: rect.height }
+  const beamTravelWidth = wordRect.width + (fromRight ? rightClipPad : 0)
+  const beam = document.createElement('div')
+
+  const syncBeam = (beamPercent: number) => {
+    const x = wordRect.left + (beamPercent / 100) * beamTravelWidth
+    el.style.setProperty('--laser-x', `${(beamPercent / 100) * wordRect.width}px`)
+    beam.style.setProperty('--beam-x', `${x}px`)
+    beam.style.setProperty('--beam-y', `${wordRect.top - wordRect.height * 0.2}px`)
+    return x
+  }
+
+  beam.className = `hero-laser-charge-beam ${isGreen ? 'green' : 'red'}`
+  beam.style.setProperty('--beam-h', `${wordRect.height * 1.4}px`)
+  syncBeam(fromRight ? 100 : 0)
+  document.body.appendChild(beam)
+  heroLaserNodes.add(beam)
+
+  const chargeStart = performance.now()
+  let charging = true
+  let wallTrack: HeroLaserWallTrack | null = null
+
+  const charge = (now: number) => {
+    if (!charging) return
+    const t = Math.min((now - chargeStart) / heroLaserChargeMs, 1)
+    wallTrack = publishHeroLaserWallFromBox(wordRect, fromRight, 0, t, now, wallTrack)
+    if (t < 1) queueHeroLaserRaf(charge)
+  }
+  queueHeroLaserRaf(charge)
+
+  queueHeroLaserTimer(() => {
+    charging = false
+    el.classList.add('sweeping')
+    const start = performance.now()
+    let lastSparkTime = 0
+
+    const animate = (now: number) => {
+      const t = Math.min((now - start) / duration, 1)
+      const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
+      const pos = eased * 100
+      const beamPercent = fromRight ? 100 - pos : pos
+      const beamX = syncBeam(beamPercent)
+      wallTrack = publishHeroLaserWallFromBox(wordRect, fromRight, eased, 1, now, wallTrack)
+
+      if (now - lastSparkTime > 70 && t > 0.04 && t < 0.92) {
+        lastSparkTime = now
+        // Body-appended spark nodes force layout; skip them on the phone
+        // laser so the clip-path sweep and particle walls stay the cost.
+        if (!isMobile.value) {
+          emitHeroLaserSparks(beamX, wordRect.top + wordRect.height / 2, isGreen)
+        }
+      }
+
+      if (t < 1) {
+        queueHeroLaserRaf(animate)
+        return
+      }
+
+      if (persistWake) finishHeroLaserWall()
+      else releaseHeroLaserWall()
+      el.classList.remove('sweeping')
+      el.classList.add('reveal-done')
+      beam.style.animation = 'heroLaserChargeShrink 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards'
+      queueHeroLaserTimer(() => {
+        beam.remove()
+        heroLaserNodes.delete(beam)
+      }, 300)
+      onDone?.()
+    }
+
+    queueHeroLaserRaf(animate)
+  }, heroLaserChargeMs)
+}
+
+function runAllHeroLaserReveals() {
+  if (heroLaserStarted) return
+  heroLaserStarted = true
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    resetHeroParticleField()
+    markTitleElsDone(heroTitleEls)
+    markTitleElsDone(mobileTitleEls)
+    return
+  }
+
+  const targets = laserTargets()
+  const inactive = targets === mobileTitleEls ? heroTitleEls : mobileTitleEls
+  // The other layout is `display: none` at this breakpoint. Mark it revealed
+  // so a later resize does not leave a clipped title on the newly visible set.
+  markTitleElsDone(inactive)
+
+  const revealNext = (sequenceIndex: number) => {
+    const index = heroLaserSequence[sequenceIndex]
+
+    if (index === undefined) {
+      return
+    }
+
+    runHeroLaserReveal(
+      targets[index],
+      index % 2 === 1,
+      heroLaserSweepMs,
+      () => {
+        queueHeroLaserTimer(() => revealNext(sequenceIndex + 1), heroLaserGapMs)
+      },
+      // The last word fades in place. Finishing it into the wake would
+      // teleport the still-active previous wall onto this line.
+      sequenceIndex < heroLaserSequence.length - 1,
+    )
+  }
+
+  revealNext(0)
+}
+
+function cleanupHeroLasers() {
+  heroLaserCancelled = true
+  heroLaserTimers.forEach(clearTimeout)
+  heroLaserTimers.length = 0
+  heroLaserRafs.forEach(cancelAnimationFrame)
+  heroLaserRafs.length = 0
+  heroLaserNodes.forEach((node) => node.remove())
+  heroLaserNodes.clear()
+  resetHeroParticleField()
+}
+
+// ─── hero stats ───────────────────────────────────────────────────────────────
+const stat1 = useCountUp(250, 1600)
+const stat2 = useCountUp(11,  1600)
+const stat4 = useCountUp(100, 1600)
+
+function fmtStat(val: number, target: number, suffix: string, compact: boolean) {
+  if (compact) return (val / 1_000_000).toFixed(2) + 'M'
+  if (target >= 1000) return (val / 1000).toFixed(1) + 'k' + suffix
+  return val + suffix
+}
+
+// ─── lifecycle ────────────────────────────────────────────────────────────────
 let heroEntranceTimer: ReturnType<typeof setTimeout> | null = null
 let cursorGlowRaf = 0
+let heroMobileMql: MediaQueryList | null = null
+let onHeroMobileChange: ((event: MediaQueryListEvent) => void) | null = null
 let unsubHeroMouse: (() => void) | null = null
 let onHeroCursorGlowTone: EventListener | null = null
 let onHeroScroll: (() => void) | null = null
 
 onMounted(() => {
-  heroEntranceTimer = setTimeout(() => {
-    heroRoot.value?.querySelector('.hero-scroll-cue')?.classList.add('is-visible')
-  }, 80)
+  heroLaserStarted = false
+  heroLaserCancelled = false
+  // entrance delay
+  heroEntranceTimer = setTimeout(() => { entered.value = true }, 80)
 
+  // One-time check, same as the laser reveal's own reduced-motion gate below -
+  // this doesn't need a change listener since a user toggling the OS setting
+  // mid-session is not a case this hero optimizes for.
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  heroMobileMql = window.matchMedia('(max-width: 768px)')
+  syncHeroMotionGates(heroMobileMql.matches, prefersReducedMotion)
+  hasMounted.value = true
+  onHeroMobileChange = (e: MediaQueryListEvent) => {
+    syncHeroMotionGates(e.matches, prefersReducedMotion)
+    // Crossing 768px swaps which title is visible. Abort a half-finished
+    // sweep rather than continue it against the wrong rects.
+    cleanupHeroLasers()
+    markTitleElsDone(heroTitleEls)
+    markTitleElsDone(mobileTitleEls)
+  }
+  heroMobileMql.addEventListener('change', onHeroMobileChange)
+
+  window.addEventListener('pointerdown', armHeroFx, { once: true, passive: true })
+  window.addEventListener('pointermove', armHeroFx, { once: true, passive: true })
+  window.addEventListener('scroll', armHeroFx, { once: true, passive: true })
+  window.addEventListener('touchstart', armHeroFx, { once: true, passive: true })
+
+  // Cursor orb position rides the same CSS-variable path as the parallax: the
+  // orb is a fixed, compositor-positioned layer, so all it needs is a transform.
+  // It used to bump two refs instead, which re-rendered the whole hero once per
+  // rAF for as long as the pointer was moving - the exact cost the parallax
+  // rewrite removes, so leaving it here would have undone most of the win.
+  // Still rAF-coalesced: a 240Hz trackpad fires far more often than we paint.
   unsubHeroMouse = onMouseEvent(() => {
     if (cursorGlowRaf !== 0) return
     cursorGlowRaf = requestAnimationFrame(() => {
@@ -37,7 +464,7 @@ onMounted(() => {
   })
   onHeroCursorGlowTone = (event: Event) => {
     const tone = (event as CustomEvent<{ tone?: 'green' | 'red' }>).detail?.tone
-    heroRoot.value?.classList.toggle('hero-cursor-red', tone === 'red')
+    cursorGlowTone.value = tone === 'red' ? 'red' : 'green'
   }
   window.addEventListener('liftag:cursor-glow-tone', onHeroCursorGlowTone)
 
@@ -47,10 +474,20 @@ onMounted(() => {
     scrollQueued = true
     requestAnimationFrame(() => {
       scrollQueued = false
-      if (window.matchMedia('(max-width: 768px)').matches) return
+      const y = window.scrollY
+
+      // The fade, lift and parallax offset are CSS custom properties, not
+      // reactive state. Three style writes on one element per frame, inherited
+      // by everything that reads them, and opacity/transform stay on the
+      // compositor. Bumping a ref instead re-rendered the whole hero — 28
+      // particle style objects, four phone parallax transforms and four opacity
+      // bindings — every frame, which is what made the fade stutter on phones.
+      // Phones do none of this. The full hero scrolls normally so the device
+      // remains fully visible on short viewports, and we avoid repainting its
+      // blur and masked background while the user scrolls.
+      if (isMobile.value) return
 
       const root = heroRoot.value
-      const y = window.scrollY
       if (root) {
         root.style.setProperty('--hero-fade', String(Math.max(0, 1 - y / 500)))
         root.style.setProperty('--hero-lift', `${y * 0.35}px`)
@@ -60,24 +497,95 @@ onMounted(() => {
   }
 
   window.addEventListener('scroll', onHeroScroll, { passive: true })
+
+  queueHeroLaserTimer(runAllHeroLaserReveals, 280)
+
+  if (prefersReducedMotion) {
+    phoneCopyInView.value = true
+  }
+  else if (phoneCopyRoot.value) {
+    phoneCopyIo = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return
+        phoneCopyInView.value = true
+        phoneCopyIo?.disconnect()
+      },
+      { threshold: 0.15 },
+    )
+    phoneCopyIo.observe(phoneCopyRoot.value)
+  }
 })
 
 onBeforeUnmount(() => {
   if (heroEntranceTimer) clearTimeout(heroEntranceTimer)
   if (cursorGlowRaf !== 0) cancelAnimationFrame(cursorGlowRaf)
   cursorGlowRaf = 0
+  cleanupHeroLasers()
   unsubHeroMouse?.()
+
+  window.removeEventListener('pointerdown', armHeroFx)
+  window.removeEventListener('pointermove', armHeroFx)
+  window.removeEventListener('scroll', armHeroFx)
+  window.removeEventListener('touchstart', armHeroFx)
+
+  if (heroMobileMql && onHeroMobileChange) {
+    heroMobileMql.removeEventListener('change', onHeroMobileChange)
+  }
   if (onHeroCursorGlowTone) {
     window.removeEventListener('liftag:cursor-glow-tone', onHeroCursorGlowTone)
   }
   if (onHeroScroll) {
     window.removeEventListener('scroll', onHeroScroll)
   }
+  phoneCopyIo?.disconnect()
+  phoneCopyIo = null
+
   heroEntranceTimer = null
+  heroMobileMql = null
+  onHeroMobileChange = null
   unsubHeroMouse = null
   onHeroCursorGlowTone = null
   onHeroScroll = null
 })
+
+// ─── parallax ─────────────────────────────────────────────────────────────────
+// Both inputs are CSS custom properties on the section: --hero-mx / --hero-my
+// (the lerped pointer, normalized to -1..1) and --hero-scroll (window.scrollY in
+// px, unitless). Every transform below is therefore a constant string, and the
+// same string the old computeds produced numerically. Neither the cursor nor the
+// scroll wheel re-renders this component any more; the browser re-resolves the
+// calc()s and the transforms stay on the compositor.
+function parallaxX(mxPx: number) {
+  return `calc(var(--hero-mx) * ${mxPx}px)`
+}
+
+function parallaxY(myPx: number, scrollPx: number) {
+  const sign = scrollPx < 0 ? '-' : '+'
+  return `calc(var(--hero-my) * ${myPx}px ${sign} var(--hero-scroll) * ${Math.abs(scrollPx)}px)`
+}
+
+// Back-left phone, and the machine-sync chip that trails it at 1.3x / 0.6x.
+const backLeftPhoneTransform = `translate3d(${parallaxX(-18)}, ${parallaxY(-12, 0.12)}, -60px) rotateY(10deg) rotateX(-3deg)`
+const syncChipTransform = `translate3d(${parallaxX(-23.4)}, ${parallaxY(-7.2, 0.072)}, 0)`
+
+// Back-right phone, and the volume chip / PR badge that trail it.
+const backRightPhoneTransform = `translate3d(${parallaxX(10)}, ${parallaxY(10, -0.08)}, -40px) rotateY(-12deg) rotateX(-2deg)`
+const volumeChipTransform = `translate3d(${parallaxX(12)}, ${parallaxY(5, -0.04)}, 0)`
+const prBadgeTransform = `translate3d(${parallaxX(8)}, ${parallaxY(4, -0.032)}, 0)`
+
+// Front-center phone, which also carries its own -50% centring offset.
+const frontPhoneTransform = `translate3d(calc(-50% + var(--hero-mx) * 26px), ${parallaxY(18, -0.22)}, 0px)`
+
+// Desktop-only NFC tag: the only element that tilts as well as translates.
+const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 96px)`
+  + ' rotateX(calc(var(--hero-my) * 0.8deg))'
+  + ' rotateY(calc(var(--hero-mx) * 0.8deg))'
+  + ' rotateZ(calc(var(--hero-mx) * 0.35deg))'
+
+// Lime atmosphere glow: the gradient's centre drifts with the cursor.
+const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
+  + ' at calc(58% + var(--hero-mx) * 4%) calc(40% + var(--hero-my) * 4%),'
+  + ' rgba(204,255,0,0.12), transparent 65%)'
 </script>
 
 <template>
@@ -93,9 +601,44 @@ onBeforeUnmount(() => {
       paddingBottom: '80px',
     }"
   >
-    <div class="cursor-glow cursor-glow-green" />
-    <div class="cursor-glow cursor-glow-red" />
 
+    <!-- ── Background chart lines (independent depth layers) ── -->
+    <!-- Client-only: decorative, and the SVG tree is wasted hydration on phones. -->
+    <ClientOnly>
+      <HeroCharts v-if="!isMobile" />
+    </ClientOnly>
+
+    <!-- ── Cursor orb ── -->
+    <div
+      class="cursor-glow cursor-glow-green"
+      :style="{ opacity: cursorGlowTone === 'red' ? 0 : 1 }"
+    />
+    <div
+      class="cursor-glow cursor-glow-red"
+      :style="{ opacity: cursorGlowTone === 'red' ? 1 : 0 }"
+    />
+
+    <!-- ── Subtle grid ── -->
+    <!-- Static fallback for phones (lite particles skip the GPU grid warp),
+         prefers-reduced-motion, and pre-hydration. Desktop swaps to the
+         cursor-warped GPU version inside HeroParticles once that field is on,
+         so the two never show at once on that layout. -->
+    <div
+      v-if="isMobile || !showHeroParticles"
+      :style="{
+        position: 'absolute',
+        inset: 0,
+        pointerEvents: 'none',
+        backgroundImage:
+          'linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),' +
+          'linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)',
+        backgroundSize: '80px 80px',
+        maskImage: 'radial-gradient(ellipse 90% 80% at 60% 40%, black 20%, transparent 80%)',
+      }"
+      class="hero-fades"
+    />
+
+    <!-- ── Lime atmosphere glow ── -->
     <div
       :style="{
         position: 'absolute',
@@ -105,11 +648,567 @@ onBeforeUnmount(() => {
       }"
     />
 
-    <LazyHeroDesktop hydrate-on-media-query="(min-width: 769px)" />
-    <LazyHeroMobile hydrate-on-media-query="(max-width: 768px)" />
+    <!-- ── GPU particle field (single draw call, self-gating) ── -->
+    <!-- Lazy: keeps three.js out of the eager chunk (see index.vue idle warmup).
+         Desktop only. Phones keep the CSS grid and skip WebGL. -->
+    <LazyHeroParticles
+      v-if="showHeroParticles"
+      :count="DESKTOP_PARTICLE_COUNT"
+      :dpr-cap="DESKTOP_PARTICLE_DPR_CAP"
+      interactive
+      grid-warp
+      style="z-index: 2"
+    />
 
+    <!-- ── Main content grid ── -->
+    <div
+      class="container hero-grid hero-fades hero-lifts"
+      :style="{
+        display: 'grid',
+        gridTemplateColumns: '1.1fr 1fr',
+        alignItems: 'center',
+        gap: '40px',
+        minHeight: 'calc(100vh - 180px)',
+        position: 'relative',
+        zIndex: 3,
+      }"
+    >
+
+      <!-- ── LEFT: copy ── -->
+      <div class="hero-copy">
+
+        <!-- Headline - laser reveal entrance -->
+        <h1
+          class="hero-title-laser"
+          :style="{
+            margin: '0 0 28px',
+            fontFamily: 'var(--liftag-font-headline)',
+            fontWeight: 700,
+            fontStyle: 'italic',
+            textTransform: 'uppercase',
+            letterSpacing: '-0.05em',
+            lineHeight: 0.9,
+            fontSize: 'clamp(56px, 8.5vw, 128px)',
+          }"
+        >
+          <span
+            v-for="(word, i) in words"
+            :key="i"
+            class="hero-title-line"
+          >
+            <span
+              :ref="(el) => setHeroTitleEl(el as Element | null, i)"
+              :class="heroLaserClass(word, i)"
+              :style="{
+                color: isLime(word) ? '#CCFF00' : '#fff',
+              }"
+            >
+              {{ word }}
+            </span>
+          </span>
+        </h1>
+
+        <!-- Sub-headline -->
+        <p
+          :style="{
+            fontSize: '19px',
+            fontWeight: 300,
+            lineHeight: 1.55,
+            color: 'rgba(255,255,255,0.7)',
+            maxWidth: '520px',
+            margin: '0 0 36px',
+            opacity: heroDetailsEntered ? 1 : 0,
+            transform: heroDetailsEntered ? 'translateY(0)' : 'translateY(20px)',
+            transition: 'opacity 900ms 500ms cubic-bezier(0.16,1,0.3,1), transform 900ms 500ms cubic-bezier(0.16,1,0.3,1)',
+          }"
+        >
+          Tap or scan any machine. Track every set. Watch your numbers compound.<br />
+          <span :style="{ color: 'rgba(255,255,255,0.4)' }">Core workout tracking is free forever. Premium intelligence is optional.</span>
+        </p>
+
+        <!-- App store buttons -->
+        <div
+          class="hero-badges"
+          :style="{
+            display: 'flex',
+            gap: '12px',
+            flexWrap: 'wrap',
+            marginBottom: '60px',
+            opacity: heroDetailsEntered ? 1 : 0,
+            transform: heroDetailsEntered ? 'translateY(0)' : 'translateY(16px)',
+            transition: 'opacity 900ms 640ms cubic-bezier(0.16,1,0.3,1), transform 900ms 640ms cubic-bezier(0.16,1,0.3,1)',
+          }"
+        >
+          <div data-magnetic="18" style="display: inline-flex;">
+            <GetAppBtn hero label="Get LIFTAG" />
+          </div>
+        </div>
+
+        <!-- Stats row -->
+        <div
+          class="hero-stats"
+          :style="{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '24px',
+            paddingTop: '28px',
+            borderTop: '1px solid rgba(255,255,255,0.08)',
+            opacity: heroDetailsEntered ? 1 : 0,
+            transform: heroDetailsEntered ? 'translateY(0)' : 'translateY(16px)',
+            transition: 'opacity 900ms 800ms cubic-bezier(0.16,1,0.3,1), transform 900ms 800ms cubic-bezier(0.16,1,0.3,1)',
+          }"
+        >
+          <div :ref="(el) => (stat1.el.value = el as HTMLElement | null)">
+            <div
+              :style="{
+                fontFamily: 'var(--liftag-font-mono)',
+                fontWeight: 800,
+                fontSize: 'clamp(22px, 2.4vw, 32px)',
+                color: '#fff',
+                letterSpacing: '-0.02em',
+                lineHeight: 1,
+              }"
+            >{{ fmtStat(stat1.val.value, 250, '+', false) }}</div>
+            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">Exercises in library</div>
+          </div>
+
+          <div :ref="(el) => (stat2.el.value = el as HTMLElement | null)">
+            <div
+              :style="{
+                fontFamily: 'var(--liftag-font-mono)',
+                fontWeight: 800,
+                fontSize: 'clamp(22px, 2.4vw, 32px)',
+                color: '#fff',
+                letterSpacing: '-0.02em',
+                lineHeight: 1,
+              }"
+            >{{ fmtStat(stat2.val.value, 11, '', false) }}</div>
+            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">Muscle groups</div>
+          </div>
+
+          <div :ref="(el) => (stat4.el.value = el as HTMLElement | null)">
+            <div
+              :style="{
+                fontFamily: 'var(--liftag-font-mono)',
+                fontWeight: 800,
+                fontSize: 'clamp(22px, 2.4vw, 32px)',
+                color: '#fff',
+                letterSpacing: '-0.02em',
+                lineHeight: 1,
+              }"
+            >{{ fmtStat(stat4.val.value, 100, '%', false) }}</div>
+            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">Core tracking · free forever</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RIGHT: 3 phones with parallax ── -->
+      <div
+        class="hero-phones"
+        :style="{ position: 'relative', height: '700px', perspective: '1600px', transform: 'translateY(-32px)' }"
+      >
+
+        <!-- Back-left phone -->
+        <div
+          :style="{
+            position: 'absolute', top: '80px', left: 0,
+            transform: backLeftPhoneTransform,
+            transformStyle: 'preserve-3d',
+            opacity: entered ? 0.75 : 0,
+            transition: entered ? 'opacity 1200ms 300ms ease' : 'none',
+            willChange: 'transform',
+            filter: 'drop-shadow(0 24px 40px rgba(0,0,0,0.55))',
+          }"
+        >
+          <Phone v-if="keepDesktopHeroPhones" src="/assets/screens/hero-workout.webp" :scale="0.7" :tilt-delay-ms="140" :static-bezel="false" lite />
+        </div>
+
+        <!-- Back-right phone -->
+        <div
+          :style="{
+            position: 'absolute', top: '20px', right: '-10px',
+            transform: backRightPhoneTransform,
+            transformStyle: 'preserve-3d',
+            opacity: entered ? 0.68 : 0,
+            transition: entered ? 'opacity 1200ms 500ms ease' : 'none',
+            willChange: 'transform',
+            filter: 'drop-shadow(0 22px 36px rgba(0,0,0,0.55))',
+          }"
+        >
+          <Phone v-if="keepDesktopHeroPhones" src="/assets/screens/hero-progress.webp" :scale="0.64" :tilt-delay-ms="230" :static-bezel="false" lite />
+        </div>
+
+        <!-- Front center phone (main) -->
+        <div
+          :style="{
+            position: 'absolute', top: 0, left: '50%',
+            transform: frontPhoneTransform,
+            willChange: 'transform',
+            opacity: 1,
+          }"
+        >
+          <!-- Glow behind phone -->
+          <div
+            class="pulse-glow-layer"
+            :style="{
+              position: 'absolute',
+              inset: '8px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(204,255,0,0.22) 0%, transparent 65%)',
+              filter: 'blur(24px)',
+            }"
+          />
+          <img
+            v-show="!keepDesktopHeroPhones"
+            class="hero-desktop-lcp"
+            src="/assets/screens/hero-dashboard-560.webp"
+            alt="LIFTAG screen"
+            width="393"
+            height="852"
+            loading="lazy"
+            decoding="async"
+          >
+          <Phone v-if="keepDesktopHeroPhones" src="/assets/screens/hero-dashboard.webp" :scale="0.92" :tilt-delay-ms="0" :static-bezel="false" lite />
+          <!-- Reflection streak -->
+          <div
+            :style="{
+              position: 'absolute', top: '8%', left: '10%',
+              width: '30%', height: '40%',
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 60%)',
+              borderRadius: '40px',
+              pointerEvents: 'none',
+              zIndex: 10,
+            }"
+          />
+        </div>
+
+        <!-- Machine sync chip -->
+        <div
+          :style="{
+            position: 'absolute', bottom: '20px', left: '-24px',
+            transform: syncChipTransform,
+            background: 'rgba(10,10,10,0.96)',
+            border: '1px solid rgba(204,255,0,0.35)',
+            borderRadius: '20px',
+            padding: '14px 18px',
+            boxShadow: '0 16px 50px rgba(0,0,0,0.7), 0 0 40px rgba(204,255,0,0.18)',
+            display: 'flex', alignItems: 'center', gap: '14px',
+            zIndex: 6,
+            opacity: entered ? 1 : 0,
+            transition: 'opacity 1000ms 900ms ease',
+          }"
+        >
+          <div
+            :style="{
+              width: '44px', height: '44px',
+              borderRadius: '10px',
+              background: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: '2px solid #CCFF00',
+              boxShadow: '0 0 20px rgba(204,255,0,0.6)',
+              overflow: 'hidden',
+            }"
+          >
+            <img
+              src="/uploads/qr-code-112.webp"
+              srcset="/uploads/qr-code-112.webp 112w, /uploads/qr-code-160.webp 160w, /uploads/qr-code-224.webp 224w, /uploads/qr-code.webp 400w"
+              sizes="44px"
+              alt="LIFTAG QR Code"
+              width="44"
+              height="44"
+              :style="{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }"
+            />
+          </div>
+          <div>
+            <div class="protocol" :style="{ color: '#CCFF00', fontSize: '9px' }">NFC + QR · MACHINE SYNC</div>
+            <div
+              :style="{
+                fontFamily: 'var(--liftag-font-headline)',
+                fontWeight: 700, fontSize: '14px',
+                fontStyle: 'italic', textTransform: 'uppercase',
+                letterSpacing: '-0.02em', marginTop: '2px',
+              }"
+            >
+              TAP / SCAN → TRACK
+            </div>
+          </div>
+        </div>
+
+        <!-- Desktop-only dark NFC tag model -->
+        <div
+          class="hero-nfc-model"
+          aria-hidden="true"
+          :style="{
+            transform: nfcTagTransform,
+            opacity: entered ? 1 : 0,
+            transition: entered ? 'opacity 1000ms 760ms ease' : 'none',
+          }"
+        >
+          <div class="hero-nfc-tag-3d">
+            <ClientOnly>
+              <LazyNfcTag3D v-if="loadHero3d" />
+            </ClientOnly>
+          </div>
+        </div>
+
+        <!-- Live volume chip -->
+        <div
+          class="hero-volume-chip"
+          :style="{
+            position: 'absolute', top: '100px', right: '-30px',
+            transform: volumeChipTransform,
+            background: 'rgba(10,10,10,0.97)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '18px',
+            padding: '14px 18px',
+            boxShadow: '0 16px 50px rgba(0,0,0,0.7)',
+            zIndex: 6,
+            opacity: entered ? 1 : 0,
+            transition: 'opacity 1000ms 1100ms ease',
+            minWidth: '160px',
+          }"
+          @pointermove="handleHeroVolumeChartMove"
+          @pointerleave="resetHeroVolumeChartHover"
+          @pointercancel="resetHeroVolumeChartHover"
+        >
+          <div class="protocol" :style="{ color: 'rgba(255,255,255,0.35)', fontSize: '9px' }">VOLUME · TODAY</div>
+          <div
+            :style="{
+              fontFamily: 'var(--liftag-font-mono)',
+              fontWeight: 800, fontSize: '28px',
+              color: '#CCFF00', letterSpacing: '-0.02em', marginTop: '4px',
+            }"
+          >
+            3.2<span :style="{ fontSize: '14px', fontWeight: 400, color: 'rgba(255,255,255,0.4)' }"> t</span>
+          </div>
+          <div
+            :style="{
+              fontSize: '11px', color: '#22C55E',
+              fontFamily: 'var(--liftag-font-mono)',
+              fontWeight: 700, marginTop: '4px',
+              display: 'flex', alignItems: 'center', gap: '4px',
+            }"
+          >
+            <span :style="{ color: '#22C55E' }">↑</span> +18% vs last week
+          </div>
+          <!-- Mini sparkline -->
+          <svg
+            ref="heroVolumeChartSvg"
+            class="hero-volume-sparkline"
+            viewBox="-3 -3 86 26"
+            :style="{ width: '86px', height: '26px', marginTop: '8px', overflow: 'visible' }"
+          >
+            <defs>
+              <clipPath id="heroVolumeSparkClip">
+                <rect x="-3" y="-3" :width="heroVolumeChartClipWidth" height="32" />
+              </clipPath>
+            </defs>
+            <polyline
+              points="0,16 12,13 24,14 36,10 48,11 60,7 72,4 77,2"
+              fill="none"
+              stroke="#CCFF00"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              opacity="0.7"
+              clip-path="url(#heroVolumeSparkClip)"
+            />
+            <polyline
+              points="0,16 12,13 24,14 36,10 48,11 60,7 72,4 77,2"
+              fill="none"
+              stroke="#CCFF00"
+              stroke-width="5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              opacity="0.12"
+              clip-path="url(#heroVolumeSparkClip)"
+            />
+            <circle
+              :cx="heroVolumeChartPoint.x"
+              :cy="heroVolumeChartPoint.y"
+              r="2.5"
+              fill="#CCFF00"
+              :opacity="heroVolumeChartDotOpacity"
+            />
+          </svg>
+        </div>
+
+        <!-- PR badge -->
+        <div
+          :style="{
+            position: 'absolute', bottom: '160px', right: '20px',
+            transform: prBadgeTransform,
+            background: 'rgba(204,255,0,0.95)',
+            borderRadius: '14px', padding: '10px 16px',
+            boxShadow: '0 0 40px rgba(204,255,0,0.5)',
+            zIndex: 6,
+            opacity: entered ? 1 : 0,
+            transition: 'opacity 1000ms 1300ms ease',
+          }"
+        >
+          <div class="hero-pr-tag">
+            <svg
+              class="hero-pr-icon"
+              viewBox="0 0 16 16"
+              width="13"
+              height="13"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M4.1 2.1h7.8v3.2c0 2.15-1.75 3.9-3.9 3.9s-3.9-1.75-3.9-3.9V2.1z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.45"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M4.1 3.15H2.55A1.45 1.45 0 0 0 2.55 6c.85 0 1.4-.4 1.55-1"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.45"
+                stroke-linecap="round"
+              />
+              <path
+                d="M11.9 3.15h1.55A1.45 1.45 0 0 1 13.45 6c-.85 0-1.4-.4-1.55-1"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.45"
+                stroke-linecap="round"
+              />
+              <path
+                d="M8 9.2v2.15M6.15 11.35h3.7M5.2 13.85h5.6"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.45"
+                stroke-linecap="round"
+              />
+            </svg>
+            NEW PR
+          </div>
+          <div
+            :style="{
+              fontFamily: 'var(--liftag-font-headline)',
+              fontWeight: 700, fontSize: '18px',
+              fontStyle: 'italic', color: '#0E0E0E',
+              letterSpacing: '-0.03em', textTransform: 'uppercase', marginTop: '2px',
+            }"
+          >
+            140kg Bench
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Mobile-first hero composition ── -->
+    <div
+      class="container hero-mobile-layout hero-fades"
+      :style="{
+        position: 'relative',
+        zIndex: 4,
+      }"
+    >
+      <div class="hero-mobile-copy">
+        <p class="hero-mobile-title">
+          <span
+            v-for="(line, lineIndex) in mobileTitleLines"
+            :key="lineIndex"
+            class="hero-title-line"
+          >
+            <template v-for="(word, wordIndex) in line" :key="wordIndex">
+              <span v-if="wordIndex > 0">{{ ' ' }}</span>
+              <span v-if="isLime(word)" class="hero-mobile-lime-word">
+                <span
+                  :ref="(el) => setMobileTitleEl(el as Element | null, lineIndex * 2 + wordIndex)"
+                  :class="heroLaserClass(word, lineIndex * 2 + wordIndex)"
+                  :style="{ color: '#CCFF00' }"
+                >{{ word }}</span>
+              </span>
+              <span
+                v-else
+                :ref="(el) => setMobileTitleEl(el as Element | null, lineIndex * 2 + wordIndex)"
+                :class="heroLaserClass(word, lineIndex * 2 + wordIndex)"
+                :style="{ color: '#fff' }"
+              >{{ word }}</span>
+            </template>
+          </span>
+        </p>
+
+        <div class="hero-mobile-details" :style="heroMobileDetailsStyle">
+          <p class="hero-mobile-kicker">Your all-in-one fitness app.</p>
+
+          <p class="hero-mobile-copyline hero-mobile-copyline--tablet">
+            Tap NFC or scan QR at the machine. Core workout tracking is free forever. Premium intelligence is optional.
+          </p>
+
+          <div class="hero-mobile-actions">
+            <GetAppBtn hero label="Get LIFTAG" />
+            <a href="#scan" class="hero-mobile-secondary">See how it works</a>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="hero-mobile-visual"
+        :class="{ 'is-entered': entered }"
+      >
+        <div class="hero-mobile-rail">
+          <div class="hero-mobile-proof" aria-label="LIFTAG tap, scan, and tracking flow">
+            <span><strong>Tap</strong> NFC tag</span>
+            <span><strong>Scan</strong> machine QR</span>
+            <span><strong>Log</strong> sets fast</span>
+          </div>
+
+        </div>
+
+        <div class="hero-mobile-device">
+          <div class="hero-mobile-device-glow" aria-hidden="true" />
+          <div class="hero-mobile-phone-stage">
+            <!-- Static mockup: enable-mobile3d would import Phone3D (and the
+                 three.js chunk) on the 390px Lighthouse path. -->
+            <Phone
+              src="/assets/screens/hero-dashboard.webp"
+              :scale="1"
+              :tilt-delay-ms="0"
+              lite
+              :static-bezel="false"
+              sizes="(max-width: 768px) min(46vw, 180px), 280px"
+              priority
+            />
+          </div>
+        </div>
+      </div>
+
+      <p
+        ref="phoneCopyRoot"
+        class="hero-mobile-copyline hero-mobile-copyline--phone"
+        :class="{ 'is-entered': phoneCopyEntered }"
+      >
+        <span class="hero-mobile-copybeat" style="--beat: 0">
+          <span class="hero-mobile-copybeat-scan" aria-hidden="true" />
+          <span class="hero-mobile-copybeat-text">
+            Tap <span class="hero-mobile-copykey">NFC</span> or scan <span class="hero-mobile-copykey">QR</span> at the machine.
+          </span>
+        </span>
+        <span class="hero-mobile-copybeat" style="--beat: 1">
+          <span class="hero-mobile-copybeat-scan" aria-hidden="true" />
+          <span class="hero-mobile-copybeat-text">
+            Core workout tracking is <span class="hero-mobile-copykey">free forever</span>.
+          </span>
+        </span>
+        <span class="hero-mobile-copybeat" style="--beat: 2">
+          <span class="hero-mobile-copybeat-scan" aria-hidden="true" />
+          <span class="hero-mobile-copybeat-text">
+            Premium intelligence is optional.
+          </span>
+        </span>
+      </p>
+    </div>
+
+    <!-- ── Scroll cue ── -->
     <div
       class="hero-scroll-cue"
+      :class="{ 'is-visible': entered }"
       :style="{
         position: 'absolute', bottom: '32px', left: '50%',
         transform: 'translateX(-50%)',
@@ -131,6 +1230,14 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+/* Scroll- and pointer-driven hero motion. Every value here is written straight
+   to the section's inline style once per rAF (--hero-fade / --hero-lift /
+   --hero-scroll from onHeroScroll, --hero-mx / --hero-my from useLerpVars)
+   rather than flowing through Vue, so both gestures cost a few property writes
+   instead of a full component re-render. --hero-scroll is window.scrollY in
+   pixels and --hero-mx / --hero-my are the normalized -1..1 pointer, both
+   unitless so each consumer can scale them itself. Defaults here keep first
+   paint and SSR correct before any scroll or pointer event happens. */
 .hero-section {
   --hero-fade: 1;
   --hero-lift: 0px;
@@ -141,10 +1248,11 @@ onBeforeUnmount(() => {
   --hero-cursor-y: -9999;
 }
 
-:deep(.hero-fades) {
+.hero-fades {
   opacity: var(--hero-fade);
 }
 
+/* Hidden until the entrance finishes, then fades out with the rest of the hero. */
 .hero-scroll-cue {
   opacity: 0;
 }
@@ -153,7 +1261,7 @@ onBeforeUnmount(() => {
   opacity: calc(var(--hero-fade) * 0.7);
 }
 
-:deep(.hero-lifts) {
+.hero-lifts {
   transform: translate3d(0, calc(var(--hero-lift) * -1), 0);
 }
 
@@ -168,6 +1276,9 @@ onBeforeUnmount(() => {
   pointer-events: none;
   transition: opacity 380ms ease;
   will-change: transform, opacity;
+  /* Half the 420px orb, so the variables carry the raw client coordinates and
+     the orb centres on them. The -9999 default parks it off screen until the
+     first mousemove, exactly as the old ref default did. */
   transform: translate3d(
     calc(var(--hero-cursor-x) * 1px - 210px),
     calc(var(--hero-cursor-y) * 1px - 210px),
@@ -181,18 +1292,265 @@ onBeforeUnmount(() => {
 
 .cursor-glow-red {
   background: radial-gradient(circle, rgba(255, 45, 85, 0.11) 0%, transparent 58%);
-  opacity: 0;
 }
 
-.hero-section.hero-cursor-red .cursor-glow-green {
-  opacity: 0;
+.hero-pr-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--liftag-font-mono);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: #0E0E0E;
 }
 
-.hero-section.hero-cursor-red .cursor-glow-red {
-  opacity: 1;
+.hero-pr-icon {
+  display: block;
+  flex-shrink: 0;
+}
+
+.hero-volume-chip {
+  cursor: crosshair;
+}
+
+.hero-volume-sparkline {
+  touch-action: none;
+}
+
+.hero-volume-sparkline polyline,
+.hero-volume-sparkline circle {
+  filter: drop-shadow(0 0 5px rgba(204, 255, 0, 0.42));
+}
+
+.hero-nfc-model {
+  position: absolute;
+  top: 400px;
+  left: 26px;
+  z-index: 8;
+  width: 88px;
+  height: 88px;
+  pointer-events: none;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+.hero-nfc-tag-3d {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  animation: heroNfcFloat 5.8s ease-in-out infinite;
+}
+
+.hero-desktop-lcp {
+  display: none;
+  width: 280px;
+  aspect-ratio: 393 / 852;
+  object-fit: cover;
+  border-radius: 52px;
+}
+
+@media (min-width: 769px) {
+  .hero-desktop-lcp {
+    display: block;
+  }
+}
+
+.hero-mobile-layout {
+  display: none;
+}
+
+.hero-mobile-title {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  overflow: visible;
+  font-family: var(--liftag-font-headline);
+  font-size: clamp(48px, 13.6vw, 62px);
+  font-style: italic;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 0.94;
+  text-transform: uppercase;
+}
+
+.hero-mobile-title > span {
+  display: block;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+/* clip-path needs a box. The global laser class is `display: block` (one
+   stacked word per desktop line); override so two words stay on one line.
+   Extra right pad holds italic R/Y hang without shifting the next word. */
+.hero-mobile-title .hero-laser-reveal,
+.hero-mobile-lime-word {
+  display: inline-block;
+}
+
+.hero-mobile-title .hero-laser-reveal {
+  padding-right: 0.22em;
+  margin-right: -0.22em;
+  /* Visible on first paint so LCP/FCP are not the 6s laser glow. The sweep
+     still runs as an overlay. */
+  clip-path: none;
+}
+
+.hero-mobile-lime-word {
+  position: relative;
+}
+
+.hero-mobile-kicker {
+  display: none;
+  margin: 14px 0 0;
+  color: rgba(255, 255, 255, 0.66);
+  font-family: var(--liftag-font-headline);
+  font-size: clamp(16px, 4.4vw, 19px);
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.hero-mobile-copyline {
+  max-width: 22rem;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1.45;
+}
+
+.hero-mobile-copybeat,
+.hero-mobile-copybeat-scan,
+.hero-mobile-copybeat-text {
+  display: contents;
+}
+
+/* The install CTA is the page's conversion action, so on phones it leads:
+   full width, directly under the lead, with the scroll link demoted beneath it.
+   It used to sit in the 132px proof rail beside the phone, where it was both
+   the smallest control on screen and the least reachable. */
+.hero-mobile-actions {
+  display: grid;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.hero-mobile-actions :deep(.get-app-btn) {
+  width: 100%;
+  max-width: none;
+}
+
+.hero-mobile-secondary {
+  justify-self: start;
+  color: rgba(255, 255, 255, 0.56);
+  font-family: var(--liftag-font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(204, 255, 0, 0.34);
+  padding-bottom: 3px;
+}
+
+.hero-mobile-visual {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  max-width: 360px;
+  min-height: 286px;
+}
+
+.hero-mobile-device {
+  position: relative;
+  flex: 0 0 auto;
+  margin-top: 4px;
+  width: min(46vw, 180px);
+  aspect-ratio: 393 / 852;
+}
+
+.hero-mobile-phone-stage {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  perspective: 1100px;
+  transform-origin: 50% 88%;
+}
+
+.hero-mobile-device :deep(.phone) {
+  width: 100% !important;
+}
+
+.hero-mobile-device :deep(.phone--static-mockup) {
+  box-shadow:
+    0 26px 64px rgba(0, 0, 0, 0.72),
+    0 0 40px rgba(204, 255, 0, 0.1) !important;
+}
+
+.hero-mobile-device :deep(.phone-static-screen) {
+  object-fit: contain;
+}
+
+.hero-mobile-device-glow {
+  position: absolute;
+  z-index: 0;
+  inset: 10% -28% 3%;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 52% 35%, rgba(204, 255, 0, 0.25), transparent 57%),
+    linear-gradient(180deg, rgba(204, 255, 0, 0.09), rgba(255, 45, 85, 0.08));
+  filter: blur(22px);
+  opacity: 0.95;
+}
+
+.hero-mobile-rail {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+  width: clamp(132px, 39vw, 156px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 22px;
+}
+
+.hero-mobile-proof {
+  display: grid;
+  gap: 9px;
+}
+
+.hero-mobile-proof span {
+  display: grid;
+  gap: 4px;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  background: rgba(8, 10, 6, 0.78);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.38);
+  color: rgba(255, 255, 255, 0.58);
+  font-family: var(--liftag-font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.08;
+  text-transform: uppercase;
+}
+
+.hero-mobile-proof strong {
+  color: var(--liftag-primary);
+  font-size: 16px;
 }
 
 @media (max-width: 768px) {
+  .hero-nfc-model {
+    display: none !important;
+  }
+
   .hero-section {
     min-height: var(--liftag-stable-vh) !important;
     overflow-x: clip !important;
@@ -201,8 +1559,339 @@ onBeforeUnmount(() => {
     padding-bottom: max(20px, var(--liftag-safe-bottom)) !important;
   }
 
+  .hero-grid {
+    display: none !important;
+  }
+
+  .hero-mobile-layout {
+    display: grid;
+    grid-template-rows: auto auto;
+    gap: 36px;
+    min-height: 0;
+    /* The section already clears the fixed nav. Keep this final offset equal
+       to the title-to-CTA rhythm instead of creating a second, larger gap. */
+    padding-top: 8px;
+  }
+
+  .hero-mobile-title {
+    line-height: 0.98;
+  }
+
+  .hero-mobile-copyline {
+    margin-top: 28px;
+  }
+
+  .hero-mobile-copyline--phone {
+    display: none;
+  }
+
+  .hero-mobile-actions {
+    margin-top: 32px;
+  }
+
+  .hero-mobile-visual {
+    justify-content: center;
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+  }
+
+  .hero-mobile-rail {
+    display: none;
+  }
+
+  .hero-mobile-device {
+    --hero-phone-cycle: 10.5s;
+    --hero-phone-motion-delay: 3.2s;
+
+    width: min(46vw, 180px);
+    margin-top: 0;
+    isolation: isolate;
+  }
+
+  /* Rear devices are pre-rendered 180px WebPs. Background images attach only
+     after `.is-entered` so they do not race the LCP screenshot. The centre
+     phone is visible in the first HTML paint (Lighthouse does not count
+     opacity 0 as LCP); idle float stays a later enhancement. */
+  .hero-mobile-device::before,
+  .hero-mobile-device::after {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    z-index: 1;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    border: 1px solid oklch(0.28 0.008 120 / 0.96);
+    border-radius: 15.5% / 7.2%;
+    content: '';
+    pointer-events: none;
+    background-clip: padding-box;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    backface-visibility: hidden;
+    filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.58));
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  .hero-mobile-device::before {
+    transform: translate3d(-100%, 8%, 0) perspective(900px) rotateY(19deg) rotateZ(-6deg) scale(0.84);
+  }
+
+  .hero-mobile-device::after {
+    transform: translate3d(0, 5%, 0) perspective(900px) rotateY(-19deg) rotateZ(6deg) scale(0.84);
+  }
+
+  .hero-mobile-visual.is-entered .hero-mobile-device::before {
+    background-image: url('/assets/screens/hero-workout-360.webp');
+    animation:
+      heroPhoneLeftEnter 1080ms 70ms cubic-bezier(0.16, 1, 0.3, 1) both,
+      heroRearLeftIdle var(--hero-phone-cycle) var(--hero-phone-motion-delay) linear infinite;
+  }
+
+  .hero-mobile-visual.is-entered .hero-mobile-device::after {
+    background-image: url('/assets/screens/hero-progress-360.webp');
+    animation:
+      heroPhoneRightEnter 1180ms 360ms cubic-bezier(0.22, 1, 0.32, 1) both,
+      heroRearRightIdle var(--hero-phone-cycle) var(--hero-phone-motion-delay) linear infinite;
+  }
+
+  .hero-mobile-rail {
+    opacity: 0;
+    transform: translate3d(-10px, 12px, 0);
+  }
+
+  .hero-mobile-visual.is-entered .hero-mobile-rail {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 700ms 240ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 700ms 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
   .hero-scroll-cue {
     display: none !important;
+  }
+}
+
+/* Independent entries: same transform function list as the idle rest pose
+   so the second animation can take over without a jump. */
+@keyframes heroPhoneLeftEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(-128%, 22%, 0) perspective(900px) rotateY(42deg) rotateZ(-12deg) scale(0.68);
+  }
+
+  to {
+    opacity: 0.62;
+    transform: translate3d(-100%, 8%, 0) perspective(900px) rotateY(19deg) rotateZ(-6deg) scale(0.84);
+  }
+}
+
+@keyframes heroPhoneRightEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(24%, 16%, 0) perspective(900px) rotateY(-44deg) rotateZ(11deg) scale(0.66);
+  }
+
+  to {
+    opacity: 0.56;
+    transform: translate3d(0, 5%, 0) perspective(900px) rotateY(-19deg) rotateZ(6deg) scale(0.84);
+  }
+}
+
+/* The rear devices make one quiet out-and-back drift while the centre phone
+   turns through its glare. Two-keyframe arcs keep velocity continuous and the
+   smaller deltas stop the background phones competing with the real model. */
+@keyframes heroRearLeftIdle {
+  0%,
+  24%,
+  100% {
+    transform: translate3d(-100%, 8%, 0) perspective(900px) rotateY(19deg) rotateZ(-6deg) scale(0.84);
+  }
+
+  0% {
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  12% {
+    transform: translate3d(-100.6%, 7.2%, 0) perspective(900px) rotateY(17.8deg) rotateZ(-6.3deg) scale(0.844);
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+}
+
+@keyframes heroRearRightIdle {
+  0%,
+  3%,
+  27%,
+  100% {
+    transform: translate3d(0, 5%, 0) perspective(900px) rotateY(-19deg) rotateZ(6deg) scale(0.84);
+  }
+
+  3% {
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  14% {
+    transform: translate3d(0.4%, 4.4%, 0) perspective(900px) rotateY(-17.9deg) rotateZ(6.25deg) scale(0.844);
+    animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1);
+  }
+}
+
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .hero-mobile-device::before,
+  .hero-mobile-device::after,
+  .hero-mobile-phone-stage,
+  .hero-mobile-device-glow,
+  .hero-mobile-rail {
+    animation: none;
+    transition: none;
+    will-change: auto;
+    opacity: 1;
+    transform: none;
+  }
+
+  .hero-mobile-device::before {
+    background-image: url('/assets/screens/hero-workout-360.webp');
+    opacity: 0.62;
+    transform: translate3d(-100%, 8%, 0) perspective(900px) rotateY(19deg) rotateZ(-6deg) scale(0.84);
+  }
+
+  .hero-mobile-device::after {
+    background-image: url('/assets/screens/hero-progress-360.webp');
+    opacity: 0.56;
+    transform: translate3d(0, 5%, 0) perspective(900px) rotateY(-19deg) rotateZ(6deg) scale(0.84);
+  }
+
+  .hero-mobile-device-glow {
+    opacity: 0.95;
+  }
+}
+
+/* Held, not cancelled: the open drawer hides these completely, and every frame
+   they move underneath it is a frame the drawer's backdrop blur has to redo.
+   `paused` keeps their place in the shared 10.5s cadence, so closing the drawer
+   resumes the choreography rather than restarting it. */
+:global(html[data-liftag-nav-open="true"] .hero-mobile-device::before),
+:global(html[data-liftag-nav-open="true"] .hero-mobile-device::after),
+:global(html[data-liftag-nav-open="true"] .hero-mobile-phone-stage),
+:global(html[data-liftag-nav-open="true"] .hero-mobile-device-glow) {
+  animation-play-state: paused;
+}
+
+@media (max-width: 699px) {
+  .hero-mobile-secondary {
+    display: none;
+  }
+
+  .hero-mobile-kicker {
+    display: block;
+  }
+
+  .hero-mobile-layout {
+    grid-template-rows: auto auto auto;
+    row-gap: 28px;
+  }
+
+  .hero-mobile-copyline--tablet {
+    display: none;
+  }
+
+  .hero-mobile-copyline--phone {
+    display: grid;
+    justify-items: center;
+    gap: 0.5em;
+    justify-self: center;
+    margin: 0;
+    text-align: center;
+  }
+
+  .hero-mobile-copybeat {
+    position: relative;
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .hero-mobile-copybeat-scan {
+    position: absolute;
+    top: -2px;
+    right: auto;
+    bottom: -2px;
+    left: 0;
+    display: block;
+    width: 100%;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate3d(-100%, 0, 0);
+  }
+
+  .hero-mobile-copybeat-scan::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 2px;
+    border-radius: 1px;
+    background: #fff;
+    box-shadow:
+      0 0 5px #fff,
+      0 0 14px var(--liftag-primary),
+      0 0 32px var(--liftag-primary);
+  }
+
+  .hero-mobile-copybeat-text {
+    display: inline-block;
+    max-width: 100%;
+    clip-path: inset(0 100% 0 -0.16em);
+    transform: translate3d(0, 0.42em, 0);
+  }
+
+  .hero-mobile-copykey {
+    font-weight: 500;
+    color: inherit;
+  }
+
+  .hero-mobile-copyline--phone.is-entered .hero-mobile-copybeat-text {
+    animation: heroPhoneCopyReveal 640ms calc(50ms + var(--beat) * 150ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .hero-mobile-copyline--phone.is-entered .hero-mobile-copybeat-scan {
+    animation: heroPhoneCopyScan 640ms calc(50ms + var(--beat) * 150ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .hero-mobile-copyline--phone.is-entered .hero-mobile-copykey {
+    animation: heroPhoneCopyKey 760ms calc(240ms + var(--beat) * 150ms) cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@media (max-width: 420px) {
+  .hero-mobile-layout {
+    grid-template-rows: auto auto auto;
+    row-gap: 26px;
+    min-height: 0;
+    padding-top: 6px;
+  }
+
+  .hero-mobile-title {
+    font-size: clamp(44px, 13vw, 54px);
+  }
+
+  .hero-mobile-copyline {
+    max-width: 19rem;
+    margin-top: 26px;
+    font-size: 15px;
+  }
+
+  .hero-mobile-copyline--phone {
+    margin-top: 0;
+  }
+
+  .hero-mobile-actions {
+    margin-top: 30px;
   }
 }
 
@@ -211,12 +1900,166 @@ onBeforeUnmount(() => {
     padding-top: calc(76px + var(--liftag-safe-top)) !important;
     padding-bottom: max(16px, var(--liftag-safe-bottom)) !important;
   }
+
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-layout) {
+    grid-template-rows: auto auto;
+    gap: 26px;
+    min-height: 0;
+    padding-top: 8px;
+  }
+
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-title) {
+    margin-top: 0;
+    font-size: clamp(39px, 11.4vw, 46px);
+    line-height: 0.96;
+  }
+
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-copyline) {
+    max-width: 18rem;
+    margin-top: 22px;
+    font-size: 14px;
+    line-height: 1.36;
+  }
+
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-actions) {
+    gap: 10px;
+    margin-top: 24px;
+  }
+
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-visual) {
+    min-height: 0;
+    margin-top: 0;
+  }
+
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-device) {
+    margin-top: 0;
+    width: min(37vw, 142px);
+  }
+
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-rail) {
+    width: clamp(140px, 43vw, 166px);
+    padding-top: 10px;
+    gap: 10px;
+  }
+
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-proof) {
+    gap: 7px;
+  }
+
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-proof span) {
+    padding: 8px 10px;
+    font-size: 8px;
+  }
+
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-proof strong) {
+    font-size: 13px;
+  }
 }
 
 @media (min-width: 700px) and (max-width: 768px) {
   .hero-section {
     padding-top: calc(76px + var(--liftag-safe-top)) !important;
   }
+
+  .hero-mobile-layout {
+    grid-template-columns: minmax(0, 0.92fr) minmax(320px, 1.08fr);
+    grid-template-rows: 1fr;
+    align-items: center;
+    gap: 22px;
+    min-height: calc(var(--liftag-stable-vh) - 96px);
+    padding-top: 0;
+  }
+
+  .hero-mobile-copy {
+    align-self: start;
+    max-width: 340px;
+    padding-top: clamp(54px, 9vw, 72px);
+  }
+
+  .hero-mobile-title {
+    font-size: clamp(44px, 7vw, 56px);
+    line-height: 0.9;
+  }
+
+  .hero-mobile-copyline {
+    max-width: 20rem;
+    margin-top: 18px;
+    font-size: 15px;
+  }
+
+  .hero-mobile-actions {
+    gap: 11px;
+    margin-top: 20px;
+  }
+
+  .hero-mobile-visual {
+    justify-self: end;
+    width: min(100%, 372px);
+    max-width: none;
+    min-height: 468px;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-mobile-rail {
+    display: flex;
+    width: clamp(138px, 20vw, 156px);
+    padding-top: 0;
+    gap: 12px;
+  }
+
+  .hero-mobile-device {
+    width: min(24vw, 178px);
+    margin-top: 0;
+  }
+
+}
+
+@media (min-width: 700px) and (max-width: 768px) {
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-layout) {
+    grid-template-columns: minmax(0, 0.92fr) minmax(304px, 1.08fr);
+    grid-template-rows: 1fr;
+    min-height: calc(var(--liftag-stable-vh) - 84px);
+    padding-top: 0;
+  }
+
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-title) {
+    font-size: clamp(40px, 6.3vw, 48px);
+  }
+
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-copy) {
+    padding-top: clamp(42px, 7vw, 54px);
+  }
+
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-copyline) {
+    max-width: 18.5rem;
+  }
+
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-visual) {
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 699px) {
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-layout) {
+    grid-template-rows: auto auto auto;
+    row-gap: 20px;
+  }
+
+  :global(html[data-liftag-short-viewport="true"] .hero-mobile-copyline--phone) {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 360px) {
+  .hero-mobile-title {
+    font-size: 39px;
+  }
+
+  .hero-mobile-actions {
+    gap: 10px;
+  }
+
 }
 
 .hero-scroll-pulse {
@@ -224,10 +2067,88 @@ onBeforeUnmount(() => {
   animation: scrollPulse 2s ease-in-out infinite;
 }
 
+/* Desktop reduced-motion: the mobile block below already covers <=768px. */
 @media (prefers-reduced-motion: reduce) {
   .hero-scroll-pulse {
     animation: none;
     opacity: 1;
+  }
+
+  .hero-nfc-tag-3d {
+    animation: none;
+  }
+
+  .hero-mobile-copybeat-text,
+  .hero-mobile-copybeat-scan,
+  .hero-mobile-copykey {
+    animation: none !important;
+  }
+
+  .hero-mobile-copybeat-text {
+    clip-path: none !important;
+    transform: none !important;
+  }
+
+  .hero-mobile-copybeat-scan {
+    display: none !important;
+  }
+
+  .hero-mobile-copykey {
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+@keyframes heroNfcFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -7px, 8px);
+  }
+}
+
+@keyframes heroPhoneCopyReveal {
+  from {
+    clip-path: inset(0 100% 0 -0.16em);
+    transform: translate3d(0, 0.42em, 0);
+  }
+
+  to {
+    clip-path: inset(0 -0.22em 0 -0.16em);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes heroPhoneCopyScan {
+  0% {
+    opacity: 0;
+    transform: translate3d(-100%, 0, 0);
+  }
+
+  14% {
+    opacity: 1;
+  }
+
+  78% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes heroPhoneCopyKey {
+  0%,
+  42% {
+    color: var(--liftag-primary);
+  }
+
+  100% {
+    color: rgba(255, 255, 255, 0.9);
   }
 }
 </style>
