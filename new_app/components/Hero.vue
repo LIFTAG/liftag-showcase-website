@@ -687,6 +687,13 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
             >
               {{ word }}
             </span>
+            <span
+              v-if="isLime(word)"
+              class="hero-title-glow"
+              aria-hidden="true"
+            >
+              {{ word }}
+            </span>
           </span>
         </h1>
 
@@ -1104,6 +1111,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
                   :class="heroLaserClass(word, lineIndex * 2 + wordIndex)"
                   :style="{ color: '#CCFF00' }"
                 >{{ word }}</span>
+                <span class="hero-title-glow" aria-hidden="true">{{ word }}</span>
               </span>
               <span
                 v-else
@@ -1388,6 +1396,7 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 
 .hero-mobile-lime-word {
   position: relative;
+  overflow: visible;
 }
 
 .hero-mobile-kicker {
