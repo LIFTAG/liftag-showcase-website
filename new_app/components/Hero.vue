@@ -611,23 +611,13 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
     />
 
     <!-- ── Subtle grid ── -->
-    <!-- Static fallback for phones (lite particles skip the GPU grid warp),
-         prefers-reduced-motion, and pre-hydration. Desktop swaps to the
-         cursor-warped GPU version inside HeroParticles once that field is on,
-         so the two never show at once on that layout. -->
+    <!-- Phones and reduced-motion keep this CSS grid. Desktop hides it from
+         the first paint (see .hero-static-grid) so it cannot flash on, vanish
+         when HeroParticles mounts, then fade back in with uReveal. -->
     <div
       v-if="isMobile || !showHeroParticles"
-      :style="{
-        position: 'absolute',
-        inset: 0,
-        pointerEvents: 'none',
-        backgroundImage:
-          'linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),' +
-          'linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px)',
-        backgroundSize: '80px 80px',
-        maskImage: 'radial-gradient(ellipse 90% 80% at 60% 40%, black 20%, transparent 80%)',
-      }"
-      class="hero-fades"
+      class="hero-static-grid hero-fades"
+      aria-hidden="true"
     />
 
     <!-- ── Lime atmosphere glow ── -->
@@ -1241,6 +1231,32 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 
 .hero-fades {
   opacity: var(--hero-fade);
+}
+
+.hero-static-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse 90% 80% at 60% 40%, black 20%, transparent 80%);
+}
+
+/* Desktop first paint would otherwise show this grid, then swap it for the
+   GPU field at reveal 0 (a visible pop). Keep it for phones and for
+   reduced-motion, which never mount HeroParticles. */
+@media (min-width: 769px) {
+  .hero-static-grid {
+    visibility: hidden;
+  }
+}
+
+@media (min-width: 769px) and (prefers-reduced-motion: reduce) {
+  .hero-static-grid {
+    visibility: visible;
+  }
 }
 
 /* Hidden until the entrance finishes, then fades out with the rest of the hero. */
