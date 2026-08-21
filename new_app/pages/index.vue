@@ -50,20 +50,13 @@ useHead({
     },
   ],
 })
-
-onNuxtReady(() => {
-  if (!window.matchMedia('(max-width: 768px)').matches) {
-    import('~/components/HeroParticles.vue').catch(() => {})
-    import('~/components/Phone3D.vue').catch(() => {})
-  }
-})
 </script>
 
 <template>
   <div>
     <div class="film-grain" aria-hidden="true" />
     <Hero />
-    <LazyPartnerMarquee :hydrate-on-idle="2000" />
+    <LazyPartnerMarquee :hydrate-on-visible="{ rootMargin: '200px' }" />
     <!-- 200px is enough to hydrate before a section is on screen, and small
          enough that a 700px Lighthouse viewport does not pull HowItWorks /
          Dashboard JS into the TBT window. -->

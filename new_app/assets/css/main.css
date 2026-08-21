@@ -758,6 +758,12 @@ section {
   position: relative;
   white-space: nowrap;
 }
+.hero-fades {
+  opacity: var(--hero-fade, 1);
+}
+.hero-lifts {
+  transform: translate3d(0, calc(var(--hero-lift, 0px) * -1), 0);
+}
 .hero-laser-reveal {
   display: block;
   position: relative;
