@@ -133,6 +133,10 @@ export default defineNuxtConfig({
     },
   },
   routeRules: {
+    // Vercel also serves the prerendered root at its literal /index.html path,
+    // which Search Console reports as a duplicate URL. Nitro compiles this rule
+    // into the Vercel routing config ahead of static file serving.
+    '/index.html': { redirect: { to: '/', statusCode: 308 } },
     '/': { prerender: true },
     '/for-lifters': { prerender: true },
     '/for-trainers': { prerender: true },
