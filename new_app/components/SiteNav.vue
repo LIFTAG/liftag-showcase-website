@@ -22,7 +22,7 @@ const navLinks = computed<[string, string][]>(() => [
   ['Guides', '/guides'],
 ])
 
-// "Trainers" is the MacBook coach-handoff, not TrainersSection. Direct
+// "Trainers" is the MacBook coach chapter, not TrainersSection. Direct
 // `#trainers` loads are handled in plugins/trainer-hash-scroll.client.ts;
 // this intercepts same-page nav clicks (pushState would not run Vue Router).
 function onNavLinkClick(label: string, href: string, event: MouseEvent) {

@@ -1,9 +1,13 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
+  DASHBOARD_CHAPTER_COUNT,
+  DASHBOARD_CHAPTERS,
+  DASHBOARD_COACH_CHAPTER,
   DASHBOARD_JOURNEY,
-  DASHBOARD_RAIL_SWITCH_AT,
-  DASHBOARD_SWAP_MIDPOINT,
+  DASHBOARD_TRAINERS_AT,
+  dashboardChapterAt,
+  dashboardChapterStart,
   isTrainersHash,
   mapDashboardJourney,
   trainerHandoffOffset,
@@ -12,10 +16,7 @@ import {
 const {
   openEnd,
   zoomEnd,
-  cardFull,
-  swapEnd,
-  cardOutEnd,
-  dwellEnd,
+  chaptersEnd,
   unzoomEnd,
   coachStart,
   coachChromeEnd,
@@ -27,9 +28,9 @@ test('p=0 is closed with the gym chrome visible and nothing from act 2', () => {
   assert.equal(state.open, 0)
   assert.equal(state.zoom, 0)
   assert.equal(state.chrome, 1)
-  assert.equal(state.card, 0)
   assert.equal(state.blend, 0)
-  assert.equal(state.rail, 0)
+  assert.equal(state.chapter, 0)
+  assert.equal(state.spine, 0)
   assert.equal(state.coach, 0)
   assert.equal(state.exit, 0)
 })
@@ -51,48 +52,43 @@ test('after the lid opens, the camera punches in and the gym copy leaves', () =>
   assert.equal(state.coach, 0)
 })
 
-test('the handoff card is fully up before the footage finishes swapping', () => {
-  const state = mapDashboardJourney(cardFull)
-
-  assert.equal(state.zoom, 1)
-  assert.equal(state.card, 1)
-  assert.ok(state.blend > 0 && state.blend < 1, `blend should be mid-swap, got ${state.blend}`)
+test('six named chapters fill the locked window', () => {
+  assert.equal(DASHBOARD_CHAPTERS.length, DASHBOARD_CHAPTER_COUNT)
+  assert.equal(DASHBOARD_CHAPTERS.filter((chapter) => chapter.act === 'gym').length, 3)
+  assert.equal(DASHBOARD_CHAPTERS.filter((chapter) => chapter.act === 'coach').length, 3)
+  assert.equal(DASHBOARD_COACH_CHAPTER, 3)
+  assert.equal(DASHBOARD_CHAPTERS[DASHBOARD_COACH_CHAPTER].act, 'coach')
 })
 
-test('the trainers hash offset is the fully-risen handoff card', () => {
+test('the trainers hash offset is the first coach chapter', () => {
   const sectionHeight = 5600
   const viewportHeight = 1000
   const offset = trainerHandoffOffset(sectionHeight, viewportHeight)
 
-  assert.equal(offset, cardFull * (sectionHeight - viewportHeight))
-  assert.equal(mapDashboardJourney(cardFull).card, 1)
+  assert.equal(offset, DASHBOARD_TRAINERS_AT * (sectionHeight - viewportHeight))
+  assert.equal(DASHBOARD_TRAINERS_AT, dashboardChapterStart(DASHBOARD_COACH_CHAPTER))
   assert.ok(isTrainersHash('#trainers'))
   assert.equal(isTrainersHash('#dashboard'), false)
 })
 
-test('the dwell holds the coach footage alone on a locked screen', () => {
-  const state = mapDashboardJourney((cardOutEnd + dwellEnd) / 2)
-
-  assert.equal(state.open, 1)
-  assert.equal(state.zoom, 1)
-  assert.equal(state.card, 0)
-  assert.equal(state.blend, 1)
-  assert.equal(state.coach, 0)
-  assert.equal(state.exit, 0)
+test('the first coach chapter starts after the gym chapters and before un-zoom', () => {
+  const start = dashboardChapterStart(DASHBOARD_COACH_CHAPTER)
+  assert.ok(start > zoomEnd)
+  assert.ok(start < chaptersEnd)
+  assert.equal(dashboardChapterAt(start).chapter, DASHBOARD_COACH_CHAPTER)
+  assert.ok(dashboardChapterAt(start).chapterProgress < 0.05)
 })
 
-test('the camera is locked at full zoom across the entire handoff', () => {
-  for (let p = zoomEnd; p <= dwellEnd; p += 0.005) {
+test('the camera is locked at full zoom across every chapter', () => {
+  for (let p = zoomEnd; p <= chaptersEnd; p += 0.005) {
     assert.equal(mapDashboardJourney(p).zoom, 1, `zoom should stay locked at p=${p}`)
   }
 })
 
 test('act 2 copy starts arriving partway through the un-zoom, not after it', () => {
-  // The reveal is meant to read as one movement: the copy materialises while
-  // the laptop is still travelling back out.
   assert.ok(
-    coachStart > dwellEnd && coachStart < unzoomEnd,
-    `coachStart ${coachStart} should fall inside the un-zoom (${dwellEnd}..${unzoomEnd})`,
+    coachStart > chaptersEnd && coachStart < unzoomEnd,
+    `coachStart ${coachStart} should fall inside the un-zoom (${chaptersEnd}..${unzoomEnd})`,
   )
 
   const atStart = mapDashboardJourney(coachStart)
@@ -106,11 +102,11 @@ test('act 2 copy starts arriving partway through the un-zoom, not after it', () 
   assert.equal(mapDashboardJourney(unzoomEnd).zoom, 0)
 })
 
-test('act 2 copy stays hidden through the punch-in and the dwell', () => {
-  for (let p = 0; p <= dwellEnd; p += 1 / 400) {
+test('act 2 copy stays hidden through the punch-in and the chapters', () => {
+  for (let p = 0; p <= chaptersEnd; p += 1 / 400) {
     assert.equal(
       mapDashboardJourney(p).coach, 0,
-      `coach copy leaked into act 1 or the dwell at p=${p}`,
+      `coach copy leaked into act 1 or the chapters at p=${p}`,
     )
   }
 })
@@ -129,11 +125,12 @@ test('p=1 finishes the exit with the coach dashboard on screen', () => {
   assert.equal(state.open, 1)
   assert.equal(state.zoom, 0)
   assert.equal(state.blend, 1)
+  assert.equal(state.chapter, DASHBOARD_CHAPTER_COUNT - 1)
   assert.equal(state.coach, 1)
   assert.equal(state.exit, 1)
 })
 
-test('open, blend, rail, coach and exit never decrease as p increases', () => {
+test('open, blend, coach and exit never decrease as p increases', () => {
   let previous = mapDashboardJourney(0)
 
   for (let i = 1; i <= 400; i += 1) {
@@ -142,7 +139,6 @@ test('open, blend, rail, coach and exit never decrease as p increases', () => {
 
     assert.ok(next.open >= previous.open - 1e-12, `open decreased at p=${p}`)
     assert.ok(next.blend >= previous.blend - 1e-12, `blend decreased at p=${p}`)
-    assert.ok(next.rail >= previous.rail - 1e-12, `rail decreased at p=${p}`)
     assert.ok(next.coach >= previous.coach - 1e-12, `coach decreased at p=${p}`)
     assert.ok(next.exit >= previous.exit - 1e-12, `exit decreased at p=${p}`)
 
@@ -150,20 +146,18 @@ test('open, blend, rail, coach and exit never decrease as p increases', () => {
   }
 })
 
-// The one channel that is deliberately non-monotonic: it has to come back down
-// for the reveal, so it is checked as two monotonic halves around the dwell.
-test('zoom rises to the dwell and falls after it, without stepping', () => {
+test('zoom rises to the chapters and falls after them, without stepping', () => {
   let previous = mapDashboardJourney(0).zoom
-  for (let p = 0; p <= dwellEnd; p += 1 / 400) {
+  for (let p = 0; p <= chaptersEnd; p += 1 / 400) {
     const next = mapDashboardJourney(p).zoom
-    assert.ok(next >= previous - 1e-12, `zoom decreased before the dwell at p=${p}`)
+    assert.ok(next >= previous - 1e-12, `zoom decreased before the chapters ended at p=${p}`)
     previous = next
   }
 
-  previous = mapDashboardJourney(dwellEnd).zoom
-  for (let p = dwellEnd; p <= 1; p += 1 / 400) {
+  previous = mapDashboardJourney(chaptersEnd).zoom
+  for (let p = chaptersEnd; p <= 1; p += 1 / 400) {
     const next = mapDashboardJourney(p).zoom
-    assert.ok(next <= previous + 1e-12, `zoom increased after the dwell at p=${p}`)
+    assert.ok(next <= previous + 1e-12, `zoom increased after the chapters at p=${p}`)
     previous = next
   }
 })
@@ -188,35 +182,40 @@ test('the two acts never show their copy at the same time', () => {
   }
 })
 
-test('the rail runs the locked window and is full when the un-zoom starts', () => {
-  assert.equal(mapDashboardJourney(zoomEnd).rail, 0)
-  assert.equal(mapDashboardJourney(dwellEnd).rail, 1)
-  assert.ok(mapDashboardJourney((zoomEnd + dwellEnd) / 2).rail > 0)
+test('the spine rides the zoom so it is only on during the locked window', () => {
+  assert.equal(mapDashboardJourney(0).spine, 0)
+  assert.equal(mapDashboardJourney(zoomEnd).spine, 1)
+  assert.equal(mapDashboardJourney((zoomEnd + chaptersEnd) / 2).spine, 1)
+  assert.equal(mapDashboardJourney(chaptersEnd).spine, 1)
+  assert.equal(mapDashboardJourney(unzoomEnd).spine, 0)
 })
 
-test('the rail tick sits where the footage visibly changes over', () => {
-  const atTick = mapDashboardJourney(DASHBOARD_SWAP_MIDPOINT)
+test('footage blend stays gym until the first coach chapter, then takes over', () => {
+  const before = mapDashboardJourney(dashboardChapterStart(DASHBOARD_COACH_CHAPTER - 1) + 0.01)
+  assert.equal(before.blend, 0)
+  assert.equal(before.chapter, DASHBOARD_COACH_CHAPTER - 1)
 
-  assert.ok(
-    Math.abs(atTick.rail - DASHBOARD_RAIL_SWITCH_AT) < 1e-12,
-    `rail was ${atTick.rail} at the swap midpoint but the tick is drawn at ${DASHBOARD_RAIL_SWITCH_AT}`,
-  )
-  assert.ok(
-    DASHBOARD_RAIL_SWITCH_AT > 0 && DASHBOARD_RAIL_SWITCH_AT < 1,
-    'the tick has to land inside the rail to be visible',
-  )
+  const atSwitch = mapDashboardJourney(dashboardChapterStart(DASHBOARD_COACH_CHAPTER))
+  assert.ok(atSwitch.blend < 0.05, `blend at the switch should be near 0, got ${atSwitch.blend}`)
 
-  // The handover reads as done when the incoming footage takes the majority,
-  // which is what the tick has to line up with - not the end of the fade.
-  assert.ok(
-    Math.abs(atTick.blend - 0.5) < 1e-9,
-    `the incoming footage should be half mixed in at the tick, got ${atTick.blend}`,
+  const midSwitch = mapDashboardJourney(
+    dashboardChapterStart(DASHBOARD_COACH_CHAPTER) + (dashboardChapterStart(DASHBOARD_COACH_CHAPTER + 1) - dashboardChapterStart(DASHBOARD_COACH_CHAPTER)) * 0.35,
   )
+  assert.ok(midSwitch.blend > 0.9, `blend should have finished the dissolve, got ${midSwitch.blend}`)
 
-  // And the fill must still be short of the tick while the old footage leads.
-  const early = mapDashboardJourney(DASHBOARD_SWAP_MIDPOINT - 0.02)
-  assert.ok(early.blend < 0.5)
-  assert.ok(early.rail < DASHBOARD_RAIL_SWITCH_AT, 'fill overtook the tick before the change')
+  assert.equal(mapDashboardJourney(chaptersEnd).blend, 1)
+})
+
+test('chapter progress is 0 at a chapter start and 1 at the last chapter end', () => {
+  for (let i = 0; i < DASHBOARD_CHAPTER_COUNT; i += 1) {
+    const at = dashboardChapterAt(dashboardChapterStart(i))
+    assert.equal(at.chapter, i)
+    assert.ok(at.chapterProgress < 1e-9, `chapter ${i} should start at 0, got ${at.chapterProgress}`)
+  }
+
+  const last = dashboardChapterAt(chaptersEnd)
+  assert.equal(last.chapter, DASHBOARD_CHAPTER_COUNT - 1)
+  assert.equal(last.chapterProgress, 1)
 })
 
 test('reduced motion stacks both acts statically with the coach footage shown', () => {
@@ -226,9 +225,10 @@ test('reduced motion stacks both acts statically with the coach footage shown', 
     open: 1,
     zoom: 0,
     chrome: 1,
-    card: 0,
     blend: 1,
-    rail: 1,
+    chapter: DASHBOARD_CHAPTER_COUNT - 1,
+    chapterProgress: 1,
+    spine: 0,
     coach: 1,
     exit: 0,
   })

@@ -3,8 +3,8 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js'
 import { onMouseEvent, useSharedMouse } from '../composables/useSharedMouse'
-import { createScreenVideoElement } from '../utils/screenVideo'
-import type { ScreenVideoSource } from '../utils/screenVideo'
+import { createScreenVideoElement, createSegmentPlayback } from '../utils/screenVideo'
+import type { ScreenVideoSegment, ScreenVideoSource } from '../utils/screenVideo'
 import {
   MACBOOK_DASHBOARD_CONTENT_ASPECT,
   MACBOOK_PHONE_LAYOUT_QUERY,
@@ -32,6 +32,10 @@ const props = withDefaults(defineProps<{
    */
   screenshotSrcB?: string
   videoSourcesB?: ScreenVideoSource[]
+  /** Slice of the gym recording for the current chapter. */
+  videoSegment?: ScreenVideoSegment
+  /** Slice of the coach recording for the current chapter. */
+  videoSegmentB?: ScreenVideoSegment
   /** 0 = primary footage, 1 = secondary. */
   screenBlend?: number
   /**
@@ -41,6 +45,12 @@ const props = withDefaults(defineProps<{
    * actually approaching.
    */
   armSecondary?: boolean
+  /**
+   * Play the armed segments. DashboardSection turns this on only while the
+   * camera is locked, so the recordings pause during the open / punch-in /
+   * un-zoom and the screen going live is the invitation to watch.
+   */
+  playbackActive?: boolean
   openProgress?: number
   zoomProgress?: number
   tiltDelayMs?: number
@@ -49,8 +59,11 @@ const props = withDefaults(defineProps<{
   videoSources: undefined,
   screenshotSrcB: undefined,
   videoSourcesB: undefined,
+  videoSegment: undefined,
+  videoSegmentB: undefined,
   screenBlend: 0,
   armSecondary: false,
+  playbackActive: false,
   openProgress: 0,
   zoomProgress: 0,
   tiltDelayMs: 0,
@@ -64,8 +77,11 @@ let updateTexture: ((src: string) => void) | null = null
 let updateTextureB: ((src?: string) => void) | null = null
 let setVideoSource: ((sources?: ScreenVideoSource[]) => void) | null = null
 let setVideoSourceB: ((sources?: ScreenVideoSource[]) => void) | null = null
+let setVideoSegment: ((segment?: ScreenVideoSegment) => void) | null = null
+let setVideoSegmentB: ((segment?: ScreenVideoSegment) => void) | null = null
 let setScreenBlend: ((b: number) => void) | null = null
 let setArmSecondary: ((armed: boolean) => void) | null = null
+let setPlaybackActive: ((active: boolean) => void) | null = null
 let setOpenProgress: ((p: number) => void) | null = null
 let setZoomProgress: ((p: number) => void) | null = null
 let setAlignEl: ((el: HTMLElement | null) => void) | null = null
@@ -620,10 +636,18 @@ function initMacbook() {
     video.load()
   }
 
+  let videoPlayback: ReturnType<typeof createSegmentPlayback> | null = null
+  let videoPlaybackB: ReturnType<typeof createSegmentPlayback> | null = null
+  let pendingSegment: ScreenVideoSegment | undefined
+  let pendingSegmentB: ScreenVideoSegment | undefined
+  let playbackWanted = false
+
   function disposeVideo() {
     cancelPrimaryFrames?.()
     cancelPrimaryFrames = null
     primaryFrameGated = false
+    videoPlayback?.dispose()
+    videoPlayback = null
     tearDownVideo(screenVideo, onVideoPlaying)
     onVideoPlaying = null
     videoTexture?.dispose()
@@ -635,6 +659,8 @@ function initMacbook() {
     cancelSecondaryFrames?.()
     cancelSecondaryFrames = null
     secondaryFrameGated = false
+    videoPlaybackB?.dispose()
+    videoPlaybackB = null
     tearDownVideo(screenVideoB, onVideoPlayingB)
     onVideoPlayingB = null
     videoTextureB?.dispose()
@@ -643,7 +669,7 @@ function initMacbook() {
   }
 
   /**
-   * Builds one autoplaying, muted, looping screen recording and its texture.
+   * Builds one muted, segment-scrubbed screen recording and its texture.
    * Both footage layers go through here so the resource-selection and mobile
    * autoplay details only exist in one place.
    */
@@ -653,17 +679,16 @@ function initMacbook() {
   ): {
       video: HTMLVideoElement
       texture: THREE.VideoTexture
+      playback: ReturnType<typeof createSegmentPlayback>
       onPlaying: () => void
       cancelFrames: () => void
       frameGated: boolean
     } {
-    // The shared builder is tuned for the segment-scrubbed phone screens, which
-    // play one slice and stop. The laptop instead runs its recording end to end
-    // on a loop, and `preload` drops back to metadata because autoplay already
-    // forces the full fetch (see the gating comment below).
+    // The shared builder is tuned for the segment-scrubbed phone screens. The
+    // laptop now uses the same controller: one chapter slice at a time, parked
+    // on the last frame, `preload` metadata because attaching a source still
+    // forces a fetch (see the gating comment below).
     const video = createScreenVideoElement(sources)
-    video.loop = true
-    video.autoplay = true
     video.preload = 'metadata'
 
     const texture = new THREE.VideoTexture(video)
@@ -707,14 +732,15 @@ function initMacbook() {
       frameHandle = 0
     }
 
-    return { video, texture, onPlaying, cancelFrames, frameGated }
+    const playback = createSegmentPlayback(video)
+
+    return { video, texture, playback, onPlaying, cancelFrames, frameGated }
   }
 
   function shouldPlayPrimary() {
     // Outside the cross-fade only one layer is on screen, so only one decodes.
     // On low-power devices the primary is dropped as soon as it is the minority
-    // of the mix: its last frame is already fading out under the handoff card,
-    // and a phone should never decode two 1440x904 streams at once.
+    // of the mix: a phone should never decode two 1440x904 streams at once.
     if (currentBlend >= (isLowPower ? 0.5 : 0.999)) return false
     return true
   }
@@ -723,30 +749,10 @@ function initMacbook() {
     return currentBlend > 0.001
   }
 
-  function playVideo() {
-    if (!isVisible) return
-
-    const attempt = (video: HTMLVideoElement | null, wanted: boolean) => {
-      if (!video) return
-      if (!wanted) {
-        video.pause()
-        return
-      }
-      const playAttempt = video.play()
-      if (playAttempt) {
-        playAttempt.catch(() => {
-          // Muted autoplay is expected to work, but keep the poster if a browser blocks it.
-        })
-      }
-    }
-
-    attempt(screenVideo, shouldPlayPrimary())
-    attempt(screenVideoB, shouldPlaySecondary())
-  }
-
-  function pauseVideos() {
-    screenVideo?.pause()
-    screenVideoB?.pause()
+  function syncPlayback() {
+    const live = playbackWanted && isVisible && !document.hidden
+    videoPlayback?.setActive(Boolean(live && shouldPlayPrimary()))
+    videoPlaybackB?.setActive(Boolean(live && shouldPlaySecondary()))
   }
 
   // The video element autoplays, which makes browsers fetch the full file the
@@ -778,23 +784,25 @@ function initMacbook() {
 
     if (!videoAllowed) return
 
-    const { video, texture, onPlaying, cancelFrames, frameGated } = createScreenVideo(sources, (readyVideo, readyTexture) => {
+    const { video, texture, playback, onPlaying, cancelFrames, frameGated } = createScreenVideo(sources, (readyVideo, readyTexture) => {
       if (videoTexture !== readyTexture) return
       applyFootageTransform(readyTexture, readyVideo.videoWidth, readyVideo.videoHeight)
       screenMat.map = readyTexture
       screenMat.needsUpdate = true
       renderer.render(scene, camera)
-      playVideo()
+      syncPlayback()
     })
 
     screenVideo = video
     videoTexture = texture
+    videoPlayback = playback
     onVideoPlaying = onPlaying
     cancelPrimaryFrames = cancelFrames
     primaryFrameGated = frameGated
 
+    playback.setSegment(pendingSegment)
     video.load()
-    playVideo()
+    syncPlayback()
   }
 
   setVideoSourceB = (sources?: ScreenVideoSource[]) => {
@@ -810,23 +818,41 @@ function initMacbook() {
 
     if (!videoAllowedB) return
 
-    const { video, texture, onPlaying, cancelFrames, frameGated } = createScreenVideo(sources, (readyVideo, readyTexture) => {
+    const { video, texture, playback, onPlaying, cancelFrames, frameGated } = createScreenVideo(sources, (readyVideo, readyTexture) => {
       if (videoTextureB !== readyTexture) return
       applyFootageTransform(readyTexture, readyVideo.videoWidth, readyVideo.videoHeight)
       screenMatB.map = readyTexture
       screenMatB.needsUpdate = true
       renderer.render(scene, camera)
-      playVideo()
+      syncPlayback()
     })
 
     screenVideoB = video
     videoTextureB = texture
+    videoPlaybackB = playback
     onVideoPlayingB = onPlaying
     cancelSecondaryFrames = cancelFrames
     secondaryFrameGated = frameGated
 
+    playback.setSegment(pendingSegmentB)
     video.load()
-    playVideo()
+    syncPlayback()
+  }
+
+  setVideoSegment = (segment?: ScreenVideoSegment) => {
+    pendingSegment = segment
+    videoPlayback?.setSegment(segment)
+  }
+
+  setVideoSegmentB = (segment?: ScreenVideoSegment) => {
+    pendingSegmentB = segment
+    videoPlaybackB?.setSegment(segment)
+  }
+
+  setPlaybackActive = (active: boolean) => {
+    playbackWanted = active
+    syncPlayback()
+    if (active) wake()
   }
 
   setArmSecondary = (armed: boolean) => {
@@ -845,14 +871,17 @@ function initMacbook() {
     // exactly as cheap as it was before the second layer existed.
     screenMatB.visible = next > 0.001
 
-    playVideo()
+    syncPlayback()
     wake()
   }
 
   updateTextureB(props.screenshotSrcB)
+  setVideoSegment(props.videoSegment)
+  setVideoSegmentB(props.videoSegmentB)
   setVideoSource(props.videoSources)
   setVideoSourceB(props.videoSourcesB)
   setArmSecondary(props.armSecondary)
+  setPlaybackActive(Boolean(props.playbackActive))
   screenMatB.opacity = currentBlend
   screenMatB.visible = currentBlend > 0.001
 
@@ -1003,10 +1032,10 @@ function initMacbook() {
     (entries) => {
       isVisible = entries[0]?.isIntersecting ?? false
       if (isVisible) {
-        if (!document.hidden) playVideo()
+        syncPlayback()
         wake()
       } else {
-        pauseVideos()
+        syncPlayback()
       }
     },
     { threshold: 0 },
@@ -1014,14 +1043,8 @@ function initMacbook() {
   visObserver.observe(container)
 
   const onDocumentVisibilityChange = () => {
-    if (document.hidden) {
-      pauseVideos()
-      return
-    }
-    if (isVisible) {
-      playVideo()
-      wake()
-    }
+    syncPlayback()
+    if (!document.hidden && isVisible) wake()
   }
   document.addEventListener('visibilitychange', onDocumentVisibilityChange)
 
@@ -1085,8 +1108,11 @@ function initMacbook() {
     updateTextureB = null
     setVideoSource = null
     setVideoSourceB = null
+    setVideoSegment = null
+    setVideoSegmentB = null
     setScreenBlend = null
     setArmSecondary = null
+    setPlaybackActive = null
     setOpenProgress = null
     setZoomProgress = null
     setAlignEl = null
@@ -1163,6 +1189,31 @@ watch(
     if (setVideoSourceB) setVideoSourceB(sources)
     else initMacbook()
   },
+)
+
+watch(
+  () => props.videoSegment,
+  (segment) => {
+    if (setVideoSegment) setVideoSegment(segment)
+    else initMacbook()
+  },
+)
+
+watch(
+  () => props.videoSegmentB,
+  (segment) => {
+    if (setVideoSegmentB) setVideoSegmentB(segment)
+    else initMacbook()
+  },
+)
+
+watch(
+  () => props.playbackActive,
+  (active) => {
+    if (setPlaybackActive) setPlaybackActive(active ?? false)
+    else if (active) initMacbook()
+  },
+  { immediate: true },
 )
 
 watch(

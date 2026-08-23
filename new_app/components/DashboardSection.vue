@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import {
+  DASHBOARD_CHAPTERS,
+  DASHBOARD_COACH_CHAPTER,
   DASHBOARD_JOURNEY,
-  DASHBOARD_RAIL_SWITCH_AT,
-  DASHBOARD_SWAP_MIDPOINT,
+  DASHBOARD_TRAINERS_AT,
   clamp01,
+  dashboardChapterStart,
   mapDashboardJourney,
   smootherstep,
   smoothstep,
@@ -20,7 +22,10 @@ const zoomProgress = ref(0)
 const chromeProgress = ref(1)
 const blendProgress = ref(0)
 const coachProgress = ref(0)
-const cardActive = ref(false)
+const chapterIndex = ref(0)
+const remainLabel = ref('0:00')
+const clipPaused = ref(false)
+const playbackActive = ref(false)
 const armCoachVideo = ref(false)
 const entered = ref(false)
 const shouldUseDashboardVideo = ref(false)
@@ -64,7 +69,16 @@ const coachVideoSources = computed(() => (
   shouldUseDashboardVideo.value ? COACH_VIDEO_SOURCES : undefined
 ))
 
-const railSwitchPercent = `${(DASHBOARD_RAIL_SWITCH_AT * 100).toFixed(2)}%`
+const gymVideoSegment = computed(() => (
+  DASHBOARD_CHAPTERS[Math.min(chapterIndex.value, DASHBOARD_COACH_CHAPTER - 1)].footage
+))
+
+const coachVideoSegment = computed(() => (
+  DASHBOARD_CHAPTERS[Math.max(chapterIndex.value, DASHBOARD_COACH_CHAPTER)].footage
+))
+
+const gymChapters = DASHBOARD_CHAPTERS.filter((chapter) => chapter.act === 'gym')
+const coachChapters = DASHBOARD_CHAPTERS.filter((chapter) => chapter.act === 'coach')
 
 const dashboardMetricChartSvg = ref<SVGSVGElement | null>(null)
 const dashboardMetricChartTargetP = ref(1)
@@ -140,9 +154,9 @@ useLerpVars(sectionRef, rawMouse, 'dash', 0.06, () => sectionInView.value)
 const chipSpreadStart = 0.12
 const chipSpreadEnd = 0.92
 
-// Just ahead of the punch-in, so the ~2.5MB coach encode has a viewport of
-// scrolling to arrive before anything needs to show it.
-const ARM_COACH_AT = DASHBOARD_JOURNEY.openEnd - 0.04
+// During the second gym chapter, so the ~1MB coach encode has a whole beat
+// of scrolling to arrive before the footage actually swaps.
+const ARM_COACH_AT = dashboardChapterStart(1)
 
 let observer: IntersectionObserver | null = null
 let rafId = 0
@@ -153,6 +167,9 @@ let dashboardVideoQuery: MediaQueryList | null = null
 let lastTickKey = ''
 let idleFrames = 0
 let runwayPx = 1
+let chapterClockIndex = -1
+let chapterClockStart = 0
+let clipRaf = 0
 // Edge-triggered page-wide cursor tone: once the coach footage owns the
 // MacBook screen, the splash cursor runs red until something else flips it
 // back (TrainersSection on entry, or this section on scrolling back up).
@@ -187,6 +204,62 @@ function chipTransform(
     + `calc(${packedX}px * (1 - var(--chip-spread)) + var(--dash-mx) * ${cursorX}px), `
     + `calc(${packedY}px * (1 - var(--chip-spread)) + var(--dash-my) * ${cursorY}px), `
     + '0) rotate(0deg) scale(calc(0.9 + var(--chip-spread) * 0.1))'
+}
+
+function formatRemain(sec: number) {
+  const s = Math.max(0, Math.ceil(sec))
+  const m = Math.floor(s / 60)
+  return `${m}:${String(s % 60).padStart(2, '0')}`
+}
+
+function writeClipProgress(elapsed: number) {
+  sectionRef.value?.style.setProperty('--clip-p', String(elapsed))
+}
+
+function tickClip() {
+  clipRaf = 0
+  if (chapterClockIndex < 0) return
+
+  const footage = DASHBOARD_CHAPTERS[chapterClockIndex].footage
+  const duration = Math.max(0.001, footage.end - footage.start)
+  const elapsed = clamp01((performance.now() - chapterClockStart) / 1000 / duration)
+  writeClipProgress(elapsed)
+
+  const remain = duration * (1 - elapsed)
+  const label = formatRemain(remain)
+  if (remainLabel.value !== label) remainLabel.value = label
+
+  const paused = elapsed >= 0.999
+  if (clipPaused.value !== paused) clipPaused.value = paused
+
+  if (!paused) clipRaf = requestAnimationFrame(tickClip)
+}
+
+function startClipClock() {
+  if (clipRaf) return
+  clipRaf = requestAnimationFrame(tickClip)
+}
+
+function stopClipClock() {
+  if (clipRaf) {
+    cancelAnimationFrame(clipRaf)
+    clipRaf = 0
+  }
+  writeClipProgress(0)
+  if (clipPaused.value) clipPaused.value = false
+}
+
+function seekToChapter(index: number) {
+  const section = sectionRef.value
+  if (!section) return
+  const viewportH = useStableViewportHeight() || window.innerHeight
+  const rect = section.getBoundingClientRect()
+  const available = Math.max(1, rect.height - viewportH)
+  window.scrollTo({
+    top: window.scrollY + rect.top + dashboardChapterStart(index) * available,
+    left: 0,
+    behavior: 'auto',
+  })
 }
 
 function getScrollProgress() {
@@ -248,18 +321,35 @@ function tick() {
   chromeProgress.value = mapped.chrome
   blendProgress.value = mapped.blend
   coachProgress.value = mapped.coach
-  cardActive.value = mapped.card > 0.001
+  chapterIndex.value = mapped.chapter
 
-  // Start fetching the coach footage a little before the punch-in rather than
-  // on an observer: by the time the camera is inside the screen the file has to
-  // be decodable, and that is roughly a viewport of scrolling away from here.
+  const locked = !reduceMotion && mapped.zoom > 0.98
+  playbackActive.value = locked
+  if (locked) {
+    if (mapped.chapter !== chapterClockIndex) {
+      chapterClockIndex = mapped.chapter
+      chapterClockStart = performance.now()
+      clipPaused.value = false
+      const footage = DASHBOARD_CHAPTERS[mapped.chapter].footage
+      remainLabel.value = formatRemain(footage.end - footage.start)
+      writeClipProgress(0)
+    }
+    if (!clipPaused.value) startClipClock()
+  } else if (chapterClockIndex !== -1) {
+    chapterClockIndex = -1
+    stopClipClock()
+  }
+
+  // Start fetching the coach footage during the second gym chapter rather than
+  // on an observer: by the time the first coach beat lands the file has to be
+  // decodable, and that is a whole chapter of scrolling away from here.
   if (!armCoachVideo.value && !reduceMotion && p >= ARM_COACH_AT) {
     armCoachVideo.value = true
   }
 
   // The cursor turns red the moment the coach footage takes over, not when
   // TrainersSection arrives a full viewport later.
-  const coachOwnsScreen = p >= DASHBOARD_SWAP_MIDPOINT
+  const coachOwnsScreen = mapped.chapter >= DASHBOARD_COACH_CHAPTER
   if (coachOwnsScreen !== coachToneEmitted) {
     coachToneEmitted = coachOwnsScreen
     emitCoachTone(coachOwnsScreen)
@@ -270,7 +360,7 @@ function tick() {
   // nothing to its position, so the swap is invisible - and the un-zoom then
   // travels out to act 2's mount instead of act 1's for free. Scrolling back up
   // crosses the same boundary at the same locked zoom, so it reverses cleanly.
-  const anchor = p >= DASHBOARD_JOURNEY.cardOutEnd ? coachMountRef.value : mountRef.value
+  const anchor = mapped.chapter >= DASHBOARD_COACH_CHAPTER ? coachMountRef.value : mountRef.value
   if (anchor && alignMountRef.value !== anchor) alignMountRef.value = anchor
 
   // Act 1's copy leaves on its own channel because the two acts share one
@@ -286,10 +376,14 @@ function tick() {
   // Linear, unlike the eased `blend` it accompanies: the sweep is a physical
   // object crossing the frame, so a constant speed is what makes it read as
   // wiping the footage over rather than as a dissolve that happens to move.
+  const swapStart = dashboardChapterStart(DASHBOARD_COACH_CHAPTER)
+  const swapEnd = dashboardChapterStart(Math.min(
+    DASHBOARD_COACH_CHAPTER + 1,
+    DASHBOARD_CHAPTERS.length - 1,
+  ))
   const sweep = reduceMotion
     ? 0
-    : clamp01((p - DASHBOARD_JOURNEY.swapStart)
-      / (DASHBOARD_JOURNEY.swapEnd - DASHBOARD_JOURNEY.swapStart))
+    : clamp01((p - swapStart) / Math.max(1e-6, (swapEnd - swapStart) * 0.35))
 
   const exitT = mapped.exit
   const exitFlow = reduceMotion ? 0 : smoothstep((p - 0.928) / 0.072)
@@ -303,9 +397,9 @@ function tick() {
     section.style.setProperty('--zoom-p', String(mapped.zoom))
     section.style.setProperty('--chrome-p', String(mapped.chrome))
     section.style.setProperty('--act1-out', String(act1Out))
-    section.style.setProperty('--card-p', String(mapped.card))
+    section.style.setProperty('--chapter-p', String(mapped.chapterProgress))
+    section.style.setProperty('--spine-p', String(mapped.spine))
     section.style.setProperty('--sweep-p', String(sweep))
-    section.style.setProperty('--rail-p', String(mapped.rail))
     section.style.setProperty('--blend-p', String(mapped.blend))
     section.style.setProperty('--coach-p', String(mapped.coach))
     section.style.setProperty('--chip-spread', String(smootherstep(
@@ -407,6 +501,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   cancelAnimationFrame(rafId)
   rafId = 0
+  stopClipClock()
   if (dashboardMetricChartRaf) cancelAnimationFrame(dashboardMetricChartRaf)
   window.removeEventListener('scroll', onWake)
   window.removeEventListener('resize', onWake)
@@ -428,12 +523,15 @@ onBeforeUnmount(() => {
     class="dashboard-section"
     :class="{
       'is-chrome-hidden': chromeProgress < 0.05,
-      'is-card-active': cardActive,
+      'is-spine-active': playbackActive,
+      'is-coach-screen': chapterIndex >= DASHBOARD_COACH_CHAPTER,
+      'is-switch-chapter': chapterIndex === DASHBOARD_COACH_CHAPTER,
       'is-coach-active': coachProgress > 0.5,
     }"
+    :style="{ '--trainers-at': DASHBOARD_TRAINERS_AT }"
   >
-    <!-- `#trainers` is this MacBook handoff, not TrainersSection. Native hash
-         scroll can only land at the section's start; JS then seeks cardFull. -->
+    <!-- `#trainers` is the first coach chapter, not TrainersSection. Native hash
+         scroll can only land at the section's start; JS then seeks the chapter. -->
     <span id="trainers" class="dashboard-trainers-anchor" aria-hidden="true"></span>
     <div class="dashboard-sticky">
       <div class="dashboard-bg" aria-hidden="true">
@@ -459,8 +557,11 @@ onBeforeUnmount(() => {
             :screenshot-src-b="COACH_POSTER"
             :video-sources="dashboardVideoSources"
             :video-sources-b="coachVideoSources"
+            :video-segment="gymVideoSegment"
+            :video-segment-b="coachVideoSegment"
             :screen-blend="blendProgress"
             :arm-secondary="armCoachVideo"
+            :playback-active="playbackActive"
             :open-progress="openProgress"
             :zoom-progress="zoomProgress"
             :align-el="alignMountRef"
@@ -723,47 +824,119 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <!-- ── The handoff, played out inside the punched-in screen ────────── -->
-      <div class="coach-handoff" aria-hidden="true">
-        <div class="coach-handoff-scrim"></div>
-        <div class="coach-handoff-copy">
-          <span class="protocol coach-handoff-eyebrow">▸ COACHING</span>
-          <p class="display coach-handoff-title">
-            Even coaches get their own <span class="lime">dashboard.</span>
-          </p>
-        </div>
+      <p class="dash-switch-line">
+        Even coaches get a <span>dashboard.</span>
+      </p>
 
-        <!-- What the laser leaves behind. An exact duplicate of the copy above,
-             clipped to the part of the frame the beam has already crossed, with
-             everything transparent except the two words that get re-keyed to
-             act 2's red. Duplicating the whole block rather than just the words
-             is what guarantees the glyphs land on the same pixels; the
-             transparent remainder means no text is ever painted twice. -->
-        <div class="coach-handoff-burn">
-          <div class="coach-handoff-copy is-burn">
-            <span class="protocol coach-handoff-eyebrow">▸ COACHING</span>
-            <p class="display coach-handoff-title">
-              Even coaches get their own <span>dashboard.</span>
-            </p>
-          </div>
-        </div>
+      <div class="dash-switch-sweep" aria-hidden="true"></div>
 
-        <div class="coach-handoff-sweep"></div>
+      <div
+        class="dash-screen-pause"
+        :class="{ 'is-on': clipPaused && playbackActive }"
+        aria-hidden="true"
+      >
+        <span class="dash-screen-pause-bars"></span>
       </div>
 
-      <!-- ── Where the handoff lands, so the dwell reads as a pause and not
-             as a stuck page. The tick is the moment the footage changes. ── -->
-      <div class="coach-rail" aria-hidden="true">
-        <div class="coach-rail-labels">
-          <span class="protocol coach-rail-label is-gym">GYM DASHBOARD</span>
-          <span class="protocol coach-rail-label is-coach">COACH DASHBOARD</span>
+      <nav class="dash-spine" aria-label="Dashboard demo chapters">
+        <div
+          class="dash-spine-act is-gym"
+          :class="{ 'is-current': chapterIndex < DASHBOARD_COACH_CHAPTER }"
+        >
+          <span class="protocol dash-spine-kicker">GYM DASHBOARD</span>
+          <ol class="dash-spine-list">
+            <li v-for="ch in gymChapters" :key="ch.index">
+              <button
+                type="button"
+                class="dash-spine-row"
+                :class="{
+                  'is-active': chapterIndex === ch.index,
+                  'is-done': chapterIndex > ch.index,
+                }"
+                @click="seekToChapter(ch.index)"
+              >
+                <span class="dash-spine-idx">{{ ch.n }}</span>
+                <span class="dash-spine-copy">
+                  <span class="dash-spine-copy-head">
+                    <span class="protocol dash-spine-tag">{{ ch.tag }}</span>
+                    <span
+                      v-if="chapterIndex === ch.index"
+                      class="protocol dash-spine-time"
+                    >{{ remainLabel }}</span>
+                  </span>
+                  <span class="dash-spine-title">{{ ch.title }}</span>
+                </span>
+                <span class="dash-spine-meter" aria-hidden="true">
+                  <span class="dash-spine-clip"></span>
+                  <span class="dash-spine-fill"></span>
+                </span>
+              </button>
+            </li>
+          </ol>
         </div>
-        <div class="coach-rail-track">
-          <span class="coach-rail-fill"></span>
-          <span class="coach-rail-tick" :style="{ left: railSwitchPercent }"></span>
+
+        <div
+          class="dash-spine-act is-coach"
+          :class="{ 'is-current': chapterIndex >= DASHBOARD_COACH_CHAPTER }"
+        >
+          <span class="protocol dash-spine-kicker">COACH DASHBOARD</span>
+          <ol class="dash-spine-list">
+            <li v-for="ch in coachChapters" :key="ch.index">
+              <button
+                type="button"
+                class="dash-spine-row"
+                :class="{
+                  'is-active': chapterIndex === ch.index,
+                  'is-done': chapterIndex > ch.index,
+                }"
+                @click="seekToChapter(ch.index)"
+              >
+                <span class="dash-spine-idx">{{ ch.n }}</span>
+                <span class="dash-spine-copy">
+                  <span class="dash-spine-copy-head">
+                    <span class="protocol dash-spine-tag">{{ ch.tag }}</span>
+                    <span
+                      v-if="chapterIndex === ch.index"
+                      class="protocol dash-spine-time"
+                    >{{ remainLabel }}</span>
+                  </span>
+                  <span class="dash-spine-title">{{ ch.title }}</span>
+                </span>
+                <span class="dash-spine-meter" aria-hidden="true">
+                  <span class="dash-spine-clip"></span>
+                  <span class="dash-spine-fill"></span>
+                </span>
+              </button>
+            </li>
+          </ol>
         </div>
-        <span class="protocol coach-rail-hint">STOP SCROLLING TO WATCH</span>
-      </div>
+
+        <div class="dash-spine-compact" aria-hidden="true">
+          <span class="protocol dash-spine-compact-kicker">
+            {{ chapterIndex < DASHBOARD_COACH_CHAPTER ? 'GYM' : 'COACH' }}
+            · {{ DASHBOARD_CHAPTERS[chapterIndex].n }} / 06
+          </span>
+          <span class="dash-spine-compact-title">{{ DASHBOARD_CHAPTERS[chapterIndex].tag }}</span>
+          <span class="dash-spine-meter is-compact" aria-hidden="true">
+            <span class="dash-spine-clip"></span>
+            <span class="dash-spine-fill"></span>
+          </span>
+          <span class="protocol dash-spine-time">{{ remainLabel }}</span>
+          <ol class="dash-spine-ticks">
+            <li
+              v-for="ch in DASHBOARD_CHAPTERS"
+              :key="ch.index"
+              :class="{
+                'is-active': chapterIndex === ch.index,
+                'is-done': chapterIndex > ch.index,
+                'is-coach': ch.act === 'coach',
+              }"
+            ></li>
+          </ol>
+        </div>
+
+        <span class="protocol dash-spine-hint">HOLD TO WATCH · SCROLL TO SKIP</span>
+      </nav>
     </div>
   </section>
 </template>
@@ -771,10 +944,10 @@ onBeforeUnmount(() => {
 <style scoped>
 .dashboard-trainers-anchor {
   position: absolute;
-  /* DASHBOARD_JOURNEY.cardFull of the pinned runway (section minus one
-     viewport). Native `#trainers` scroll then lands on the risen handoff
-     card; JS seeks the same Y so a late layout pass can still correct. */
-  top: calc(0.435 * (100% - var(--liftag-stable-vh, 100vh)));
+  /* First coach chapter of the pinned runway (section minus one viewport).
+     Native `#trainers` scroll then lands on the gym → coach switch; JS seeks
+     the same Y so a late layout pass can still correct. */
+  top: calc(var(--trainers-at, 0.495) * (100% - var(--liftag-stable-vh, 100vh)));
   left: 0;
   width: 1px;
   height: 1px;
@@ -787,6 +960,7 @@ onBeforeUnmount(() => {
   --scroll-p: 0;
   --zoom-p: 0;
   --chrome-p: 1;
+  --trainers-at: 0.495;
   /* Lerped pointer, normalized to -1..1 and unitless, plus the scroll-driven
      chip spread. Both are overwritten from rAF; the defaults here keep SSR and
      first paint correct before the first pointer or scroll event. */
@@ -797,13 +971,14 @@ onBeforeUnmount(() => {
      phone layout deliberately ignores --chrome-p to keep the copy readable
      while the screen punches in. See tick(). */
   --act1-out: 0;
-  /* Act 2: the handoff card, the sweep that appears to wipe the footage over,
-     the footage cross-fade itself, the rail that tells the reader when the
-     switch lands, and the arrival of the coach copy. */
-  --card-p: 0;
+  /* Act 2: chapter progress inside the locked camera, the spine that names
+     each beat, the sweep that wipes gym footage into coach footage, the
+     footage cross-fade itself, and the arrival of the coach copy. */
+  --chapter-p: 0;
+  --clip-p: 0;
+  --spine-p: 0;
   --sweep-p: 0;
   --blend-p: 0;
-  --rail-p: 0;
   /* The live handover colour: lime while the gym footage still leads, act 2's
      red once the coach footage has taken over. Defined once because two things
      have to agree on it exactly - the leading edge of the rail's fill and the
@@ -850,6 +1025,14 @@ onBeforeUnmount(() => {
 .dashboard-section.is-chrome-hidden .dash-chip,
 .dashboard-section.is-chrome-hidden .dashboard-hint {
   pointer-events: none;
+}
+
+.dash-spine {
+  pointer-events: none;
+}
+
+.dashboard-section.is-spine-active .dash-spine {
+  pointer-events: auto;
 }
 
 /* Act 2 is stacked on top of act 1, so it has to stay untouchable until it is
@@ -1510,209 +1693,282 @@ onBeforeUnmount(() => {
   color: rgba(255, 255, 255, 0.42);
 }
 
-/* ── The handoff, staged inside the punched-in screen ───────────────────
-   At full zoom the display fills the frame, so this overlay reads as content
-   on the laptop rather than as page furniture on top of it. */
-.coach-handoff {
+/* ── Chapter spine, staged over the punched-in screen ───────────────────
+   At full zoom the display fills the frame, so this plate reads as chrome on
+   the laptop rather than as page furniture on top of it. */
+.dash-spine {
   position: absolute;
-  inset: 0;
+  left: max(16px, 1.6vw);
+  top: auto;
+  bottom: max(28px, calc(var(--liftag-safe-bottom) + 12px));
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(228px, 22vw);
+  overflow: hidden;
+  padding: 10px 12px 9px;
+  background: rgba(6, 6, 6, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--liftag-r-lg);
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.65);
+  opacity: clamp(0, (var(--spine-p) - 0.55) / 0.45, 1);
+  transform: translate3d(calc((1 - var(--spine-p)) * -14px), calc((1 - var(--spine-p)) * 10px), 0);
+  will-change: opacity, transform;
+}
+
+.dash-spine-act {
+  opacity: 0.38;
+  transition: opacity 220ms linear;
+}
+
+.dash-spine-act.is-current {
+  opacity: 1;
+}
+
+.dash-spine-kicker {
+  display: block;
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  color: rgba(204, 255, 0, 0.78);
+}
+
+.dash-spine-act.is-coach .dash-spine-kicker {
+  color: rgba(255, 105, 135, 0.9);
+}
+
+.dash-spine-list {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.dash-spine-row {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  grid-template-areas:
+    'idx copy'
+    'idx meter';
+  column-gap: 8px;
+  row-gap: 3px;
+  align-items: center;
+  width: 100%;
+  padding: 4px 2px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+}
+
+.dash-spine-idx {
+  grid-area: idx;
+  font-family: var(--liftag-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.32);
+}
+
+.dash-spine-copy {
+  grid-area: copy;
+  min-width: 0;
+}
+
+.dash-spine-copy-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dash-spine-tag {
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.dash-spine-title {
+  display: none;
+}
+
+.dash-spine-meter {
+  grid-area: meter;
+  position: relative;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.dash-spine-fill,
+.dash-spine-clip {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  border-radius: inherit;
+}
+
+.dash-spine-clip {
+  z-index: 0;
+  background: color-mix(in srgb, var(--liftag-primary) 45%, transparent);
+}
+
+.dash-spine-fill {
+  z-index: 1;
+  background: var(--liftag-primary);
+  box-shadow: 0 0 10px rgba(204, 255, 0, 0.4);
+}
+
+.dash-spine-time {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 10px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--liftag-primary);
+  flex: 0 0 auto;
+}
+
+.dash-spine-act.is-coach .dash-spine-time {
+  color: var(--liftag-red-neon);
+}
+
+.dash-screen-pause {
+  position: absolute;
+  left: 50%;
+  top: 50%;
   z-index: 4;
   display: grid;
   place-items: center;
   pointer-events: none;
-  opacity: var(--card-p);
-  overflow: hidden;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  transition: opacity 180ms linear;
 }
 
-.coach-handoff-scrim {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(72% 62% at 50% 50%, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.88) 78%);
+.dash-screen-pause.is-on {
+  opacity: clamp(0, (var(--spine-p) - 0.55) / 0.45, 1);
 }
 
-/* A full-viewport backdrop blur is far too expensive to leave mounted for the
-   whole section, so it is attached only while the card is actually on screen. */
-.dashboard-section.is-card-active .coach-handoff-scrim {
-  /* Fixed radius. Animating the blur radius makes the browser regenerate the
-     blurred backdrop from scratch every frame; the parent's opacity already
-     fades the whole scrim in, so the radius never needs to move. */
-  backdrop-filter: blur(16px) saturate(1.1);
-  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+.dash-screen-pause-bars {
+  display: flex;
+  gap: 7px;
+  width: 22px;
+  height: 32px;
 }
 
-.coach-handoff-copy {
-  position: relative;
-  z-index: 1;
-  max-width: min(860px, 84vw);
-  text-align: center;
-  transform: translate3d(0, calc((1 - var(--card-p)) * 26px), 0);
+.dash-screen-pause-bars::before,
+.dash-screen-pause-bars::after {
+  content: '';
+  flex: 1;
+  border-radius: 1px;
+  background: #fff;
 }
 
-.coach-handoff-eyebrow {
-  display: block;
-  font-size: 10px;
+.dash-spine-row.is-done .dash-spine-idx,
+.dash-spine-row.is-done .dash-spine-tag,
+.dash-spine-row.is-done .dash-spine-title {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.dash-spine-row.is-done .dash-spine-fill {
+  width: 100%;
+}
+
+.dash-spine-row.is-active .dash-spine-idx,
+.dash-spine-row.is-active .dash-spine-tag {
   color: var(--liftag-primary);
 }
 
-.coach-handoff-title {
-  margin: 18px 0 0;
-  font-size: clamp(34px, 5.4vw, 76px);
+.dash-spine-row.is-active .dash-spine-title {
   color: #fff;
 }
 
-/* Full-bleed so the clip can be expressed against the frame the beam crosses
-   rather than against the centred copy box, which would need its own offset
-   maths. The inner copy re-centres itself exactly as the original does. */
-.coach-handoff-burn {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: grid;
-  place-items: center;
-  pointer-events: none;
-  clip-path: inset(0 calc(100% - var(--sweep-p) * 100vw) 0 0);
+.dash-spine-row.is-active .dash-spine-fill {
+  width: calc(var(--chapter-p) * 100%);
 }
 
-.coach-handoff-copy.is-burn,
-.coach-handoff-copy.is-burn .coach-handoff-title {
-  color: transparent;
+.dash-spine-row.is-active .dash-spine-clip {
+  width: calc(var(--clip-p) * 100%);
 }
 
-/* Everything the beam has passed is re-keyed to act 2's accent - it arrives
-   burnt in, ahead of the section it belongs to. */
-.coach-handoff-copy.is-burn .coach-handoff-eyebrow,
-.coach-handoff-copy.is-burn .coach-handoff-title > span {
+.dash-spine-act.is-coach .dash-spine-row.is-active .dash-spine-idx,
+.dash-spine-act.is-coach .dash-spine-row.is-active .dash-spine-tag {
   color: var(--liftag-red-neon);
-  text-shadow: 0 0 22px rgba(255, 45, 85, 0.55);
 }
 
-/* The sweep is what the eye credits for the change: the footage cross-fade
-   happens behind it, so a single object crossing the frame reads as a wipe
-   rather than as a dissolve. It also covers the case where the second encode
-   is still buffering when the swap is due. */
-.coach-handoff-sweep {
+.dash-spine-act.is-coach .dash-spine-fill {
+  background: var(--liftag-red-neon);
+  box-shadow: 0 0 10px rgba(255, 45, 85, 0.45);
+}
+
+.dash-spine-act.is-coach .dash-spine-clip {
+  background: color-mix(in srgb, var(--liftag-red-neon) 45%, transparent);
+}
+
+.dash-spine-compact {
+  display: none;
+}
+
+.dash-spine-hint {
+  display: block;
+  margin-top: 0;
+  font-size: 7px;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.dash-switch-line {
+  position: absolute;
+  left: 50%;
+  bottom: max(36px, calc(var(--liftag-safe-bottom) + 18px));
+  z-index: 4;
+  margin: 0;
+  transform: translate3d(-50%, calc((1 - var(--spine-p)) * 10px), 0);
+  font-family: var(--liftag-font-headline);
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(18px, 2.2vw, 28px);
+  letter-spacing: -0.03em;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.8);
+  opacity: 0;
+}
+
+.dash-switch-line span {
+  color: var(--liftag-red-neon);
+}
+
+.dashboard-section.is-switch-chapter .dash-switch-line {
+  opacity: var(--spine-p);
+}
+
+.dash-switch-sweep {
   position: absolute;
   z-index: 3;
   top: -10%;
   bottom: -10%;
   left: 0;
   width: 3px;
-  /* Keyed to --handoff-key, so the beam is always exactly the colour the tip
-     of the rail is showing at that instant: lime on the way in, red by the
-     time it has finished crossing. The core stays white-hot regardless.
-     This is the one thing here that repaints rather than just recompositing,
-     but it is a 3px line and only for the span of the swap. */
+  pointer-events: none;
   background: linear-gradient(180deg, transparent, var(--handoff-key) 18%, #fff 50%, var(--handoff-key) 82%, transparent);
   box-shadow:
     0 0 24px 6px color-mix(in srgb, transparent, var(--handoff-key) 55%),
     0 0 90px 26px color-mix(in srgb, transparent, var(--handoff-key) 22%);
   transform: translate3d(calc(var(--sweep-p) * 100vw), 0, 0);
-  /* Only lit while it is actually travelling. */
   opacity: calc(4 * var(--sweep-p) * (1 - var(--sweep-p)));
   will-change: transform, opacity;
-}
-
-/* ── Handoff rail ──────────────────────────────────────────────────────
-   The dwell is a deliberate pause, but an unexplained pause just reads as a
-   page that stopped responding. This shows how much scroll is left before the
-   footage hands over, marks the exact handover point, and says outright that
-   standing still leaves the recording playing. */
-.coach-rail {
-  position: absolute;
-  left: 50%;
-  bottom: max(38px, calc(var(--liftag-safe-bottom) + 16px));
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  width: min(340px, 76vw);
-  padding: 12px 18px 11px;
-  pointer-events: none;
-  /* It is read against whatever the recording happens to be showing, which is
-     often a bright chart or a white panel, so it carries its own plate rather
-     than trusting the footage to stay dark behind it. */
-  background: rgba(6, 6, 6, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--liftag-r-lg);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-  /* No backdrop-filter here on purpose: unlike the handoff card this is on
-     screen for the entire locked window - the most expensive stretch of the
-     section - and at 82% opacity the blur was buying nothing. */
-  /* Rides the punch-in: appears as the camera dives into the screen and is
-     gone again by the time it has pulled back out. */
-  opacity: var(--zoom-p);
-  transform: translate3d(-50%, calc((1 - var(--zoom-p)) * 12px), 0);
-  will-change: opacity, transform;
-}
-
-.coach-rail-labels {
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  font-size: 9px;
-}
-
-.coach-rail-label {
-  font-size: 9px;
-  letter-spacing: 0.24em;
-  transition: color 200ms linear;
-}
-
-.coach-rail-label.is-gym {
-  color: rgba(204, 255, 0, calc(0.4 + (1 - var(--blend-p)) * 0.55));
-}
-
-.coach-rail-label.is-coach {
-  color: rgba(255, 105, 135, calc(0.4 + var(--blend-p) * 0.55));
-}
-
-.coach-rail-track {
-  position: relative;
-  width: 100%;
-  height: 2px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
-}
-
-.coach-rail-fill {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: calc(var(--rail-p) * 100%);
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--liftag-primary), var(--handoff-key));
-  box-shadow: 0 0 12px rgba(204, 255, 0, 0.45);
-}
-
-.coach-rail-tick {
-  position: absolute;
-  top: 50%;
-  width: 2px;
-  height: 10px;
-  margin-left: -1px;
-  border-radius: 1px;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.3);
-  /* Lights up in the act-2 accent as the footage it marks actually changes. */
-  background: color-mix(in srgb, rgba(255, 255, 255, 0.3), var(--liftag-red-neon) calc(var(--blend-p) * 100%));
-  box-shadow: 0 0 calc(var(--blend-p) * 14px) rgba(255, 45, 85, var(--blend-p));
-}
-
-/* Floated below the plate rather than sitting inside it: it fades out once the
-   handover has happened, and an invisible row inside the pill would leave the
-   plate looking bottom-heavy for the rest of the dwell. */
-.coach-rail-hint {
-  position: absolute;
-  top: 100%;
-  margin-top: 9px;
-  font-size: 8px;
-  letter-spacing: 0.26em;
-  color: rgba(255, 255, 255, 0.45);
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
-  white-space: nowrap;
-  opacity: calc(1 - var(--blend-p));
 }
 
 /* Short desktop viewports (unmaximized browser windows, 13"-14" laptops with
@@ -1843,6 +2099,114 @@ onBeforeUnmount(() => {
     bottom: 84px;
     left: 10px;
     min-width: 168px;
+  }
+
+  .dash-spine {
+    left: max(12px, 3vw);
+    top: auto;
+    bottom: max(16px, var(--liftag-safe-bottom));
+    width: min(240px, 72vw);
+    padding: 10px 12px 9px;
+    gap: 8px;
+    transform: translate3d(calc((1 - var(--spine-p)) * -12px), calc((1 - var(--spine-p)) * 8px), 0);
+  }
+
+  .dash-spine-act {
+    display: none;
+  }
+
+  .dash-spine-compact {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'kicker time'
+      'title title'
+      'meter meter'
+      'ticks ticks';
+    gap: 6px 10px;
+    align-items: center;
+  }
+
+  .dash-spine-compact-kicker {
+    grid-area: kicker;
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    color: var(--liftag-primary);
+  }
+
+  .dashboard-section.is-coach-screen .dash-spine-compact-kicker,
+  .dashboard-section.is-coach-screen .dash-spine-compact .dash-spine-time {
+    color: var(--liftag-red-neon);
+  }
+
+  .dash-spine-compact-title {
+    grid-area: title;
+    font-family: var(--liftag-font-headline);
+    font-style: italic;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.02em;
+    color: #fff;
+  }
+
+  .dash-spine-meter.is-compact {
+    grid-area: meter;
+    height: 3px;
+  }
+
+  .dash-spine-compact .dash-spine-time {
+    grid-area: time;
+  }
+
+  .dash-spine-compact .dash-spine-fill {
+    width: calc(var(--chapter-p) * 100%);
+  }
+
+  .dash-spine-compact .dash-spine-clip {
+    width: calc(var(--clip-p) * 100%);
+  }
+
+  .dashboard-section.is-coach-screen .dash-spine-compact .dash-spine-fill {
+    background: var(--liftag-red-neon);
+    box-shadow: 0 0 10px rgba(255, 45, 85, 0.45);
+  }
+
+  .dashboard-section.is-coach-screen .dash-spine-compact .dash-spine-clip {
+    background: color-mix(in srgb, var(--liftag-red-neon) 55%, transparent);
+  }
+
+  .dash-spine-ticks {
+    grid-area: ticks;
+    margin: 2px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    gap: 6px;
+  }
+
+  .dash-spine-ticks li {
+    flex: 1;
+    height: 3px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .dash-spine-ticks li.is-done,
+  .dash-spine-ticks li.is-active {
+    background: var(--liftag-primary);
+  }
+
+  .dash-spine-ticks li.is-coach.is-done,
+  .dash-spine-ticks li.is-coach.is-active {
+    background: var(--liftag-red-neon);
+  }
+
+  .dash-spine-hint {
+    text-align: center;
+  }
+
+  .dash-switch-line {
+    display: none;
   }
 }
 
@@ -2030,38 +2394,117 @@ onBeforeUnmount(() => {
     gap: 0;
   }
 
-  /* Phones show the whole rail width but it must not crowd the laptop. */
-  .coach-rail {
-    width: min(280px, 82vw);
-    bottom: max(14px, var(--liftag-safe-bottom));
+  .dash-spine {
+    left: max(10px, 3vw);
+    top: auto;
+    bottom: max(12px, var(--liftag-safe-bottom));
+    width: min(220px, 70vw);
+    padding: 10px 12px 8px;
     gap: 7px;
+    transform: translate3d(calc((1 - var(--spine-p)) * -10px), calc((1 - var(--spine-p)) * 8px), 0);
   }
 
-  .coach-rail-label {
+  .dash-spine-act {
+    display: none;
+  }
+
+  .dash-spine-compact {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'kicker time'
+      'title title'
+      'meter meter'
+      'ticks ticks';
+    gap: 6px 10px;
+    align-items: center;
+  }
+
+  .dash-spine-compact-kicker {
+    grid-area: kicker;
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    color: var(--liftag-primary);
+  }
+
+  .dashboard-section.is-coach-screen .dash-spine-compact-kicker,
+  .dashboard-section.is-coach-screen .dash-spine-compact .dash-spine-time {
+    color: var(--liftag-red-neon);
+  }
+
+  .dash-spine-compact-title {
+    grid-area: title;
+    font-family: var(--liftag-font-headline);
+    font-style: italic;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.02em;
+    color: #fff;
+  }
+
+  .dash-spine-meter.is-compact {
+    grid-area: meter;
+    height: 3px;
+  }
+
+  .dash-spine-compact .dash-spine-time {
+    grid-area: time;
+  }
+
+  .dash-spine-compact .dash-spine-fill {
+    width: calc(var(--chapter-p) * 100%);
+  }
+
+  .dash-spine-compact .dash-spine-clip {
+    width: calc(var(--clip-p) * 100%);
+  }
+
+  .dashboard-section.is-coach-screen .dash-spine-compact .dash-spine-fill {
+    background: var(--liftag-red-neon);
+    box-shadow: 0 0 10px rgba(255, 45, 85, 0.45);
+  }
+
+  .dashboard-section.is-coach-screen .dash-spine-compact .dash-spine-clip {
+    background: color-mix(in srgb, var(--liftag-red-neon) 55%, transparent);
+  }
+
+  .dash-spine-ticks {
+    grid-area: ticks;
+    margin: 2px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    gap: 6px;
+  }
+
+  .dash-spine-ticks li {
+    flex: 1;
+    height: 3px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .dash-spine-ticks li.is-done,
+  .dash-spine-ticks li.is-active {
+    background: var(--liftag-primary);
+  }
+
+  .dash-spine-ticks li.is-coach.is-done,
+  .dash-spine-ticks li.is-coach.is-active {
+    background: var(--liftag-red-neon);
+  }
+
+  .dash-spine-hint {
     font-size: 7px;
     letter-spacing: 0.18em;
+    text-align: center;
   }
 
-  .coach-rail-hint {
-    font-size: 7px;
-    letter-spacing: 0.18em;
-  }
-
-  .coach-handoff-title {
-    font-size: clamp(28px, 8.4vw, 44px);
-  }
-
-  .coach-handoff-copy {
+  .dash-switch-line {
+    bottom: max(96px, calc(var(--liftag-safe-bottom) + 92px));
+    font-size: 16px;
+    white-space: normal;
     max-width: 88vw;
-  }
-
-  /* backdrop-filter over a full phone viewport is the single most expensive
-     thing this section could do mid-scroll, and the scrim alone reads the
-     same at this size. */
-  .dashboard-section.is-card-active .coach-handoff-scrim {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    background: radial-gradient(80% 70% at 50% 50%, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.93) 76%);
   }
 }
 
@@ -2135,9 +2578,14 @@ onBeforeUnmount(() => {
     font-size: 11px;
   }
 
-  .coach-rail {
+  .dash-spine {
     bottom: max(6px, var(--liftag-safe-bottom));
-    gap: 5px;
+    padding: 10px 12px 8px;
+  }
+
+  .dash-switch-line {
+    bottom: max(84px, calc(var(--liftag-safe-bottom) + 80px));
+    font-size: 14px;
   }
 }
 
@@ -2160,8 +2608,10 @@ onBeforeUnmount(() => {
   }
 
   .dashboard-macbook-layer,
-  .coach-handoff,
-  .coach-rail,
+  .dash-spine,
+  .dash-screen-pause,
+  .dash-switch-line,
+  .dash-switch-sweep,
   .dashboard-hint {
     display: none;
   }
