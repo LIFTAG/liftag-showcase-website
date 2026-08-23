@@ -1,3 +1,23 @@
+# pnpm 10 writes this file from `pnpm approve-builds`. Keep real booleans
+# here — the placeholder string "set this to true or false" leaves native
+# install scripts ignored.
 allowBuilds:
-  '@parcel/watcher': set this to true or false
-  esbuild: set this to true or false
+  '@parcel/watcher': true
+  '@resvg/resvg-js': true
+  esbuild: true
+  sharp: true
+
+# Nitro's Vercel preset traces every sharp optional binary and realpath()s
+# them. pnpm only links the host platform by default, so
+# @img/sharp-linuxmusl-x64 is missing on Amazon Linux (glibc) and the
+# server build dies with ENOENT. Install both linux C libraries so that
+# trace can resolve.
+supportedArchitectures:
+  os:
+    - current
+  cpu:
+    - current
+  libc:
+    - current
+    - glibc
+    - musl
