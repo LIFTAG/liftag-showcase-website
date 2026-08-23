@@ -46,5 +46,11 @@ jobs:
 
       # Keep this a single `pnpm verify` call so CI cannot check less than the
       # command contributors are told to run locally.
+      #
+      # GitHub's default Nitro preset is node-server, which does not copy
+      # native optional deps the way Vercel does. Pin the Vercel preset so a
+      # missing sharp linuxmusl binary fails here instead of only on deploy.
       - name: Verify
         run: pnpm verify
+        env:
+          NITRO_PRESET: vercel
