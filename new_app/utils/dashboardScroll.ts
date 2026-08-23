@@ -70,8 +70,11 @@ export const DASHBOARD_TRAINERS_AT = dashboardChapterStart(DASHBOARD_COACH_CHAPT
 
 /**
  * Footage cuts, keyed to I-frames where the decoder has to seek (gym 0 / 6.6 /
- * 41.6, coach 0 / 8.33 / 14.6). Ends are allowed off-keyframe: the segment
- * controller parks there rather than seeking to them.
+ * 41.6, coach 0 / 8.33). Ends are allowed off-keyframe: the segment controller
+ * parks there rather than seeking to them. The one deliberate exception is the
+ * ROUTINES/PLANS cut at 11.6, which borrows its opening seconds from the
+ * body-weight chapter: its seek decodes forward from the 8.33 keyframe rather
+ * than landing on one.
  */
 export const DASHBOARD_CHAPTERS: DashboardChapter[] = [
   {
@@ -117,16 +120,16 @@ export const DASHBOARD_CHAPTERS: DashboardChapter[] = [
     tag: 'BODY WEIGHT',
     title: 'The trend, not the last session.',
     layer: 'coach',
-    footage: { start: 8.333, end: 14.2 },
+    footage: { start: 8.333, end: 11.6 },
   },
   {
     act: 'coach',
     index: 5,
     n: '06',
-    tag: 'PLANS',
+    tag: 'ROUTINES/PLANS',
     title: 'Share a plan. They run it.',
     layer: 'coach',
-    footage: { start: 14.6, end: 21 },
+    footage: { start: 11.6, end: 21 },
   },
 ]
 

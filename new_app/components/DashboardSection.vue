@@ -69,13 +69,28 @@ const coachVideoSources = computed(() => (
   shouldUseDashboardVideo.value ? COACH_VIDEO_SOURCES : undefined
 ))
 
-const gymVideoSegment = computed(() => (
-  DASHBOARD_CHAPTERS[Math.min(chapterIndex.value, DASHBOARD_COACH_CHAPTER - 1)].footage
-))
+// Every re-lock restarts the spine clock from zero (chapterClockIndex resets
+// on unlock), so the footage has to restart with it - otherwise a chapter that
+// already ran stays parked on its tail frame while the meter claims a fresh
+// take. Bumping `key` re-arms the same slice in the segment controller, which
+// seeks back to the chapter's start. Unlike videoSources, segment identity
+// churn is safe here: Macbook3D forwards it to setSegment(), which compares
+// tokens rather than identity and never tears the element down.
+const replayKey = ref(0)
 
-const coachVideoSegment = computed(() => (
-  DASHBOARD_CHAPTERS[Math.max(chapterIndex.value, DASHBOARD_COACH_CHAPTER)].footage
-))
+watch(playbackActive, (active) => {
+  if (active) replayKey.value += 1
+})
+
+const gymVideoSegment = computed(() => ({
+  ...DASHBOARD_CHAPTERS[Math.min(chapterIndex.value, DASHBOARD_COACH_CHAPTER - 1)].footage,
+  key: replayKey.value,
+}))
+
+const coachVideoSegment = computed(() => ({
+  ...DASHBOARD_CHAPTERS[Math.max(chapterIndex.value, DASHBOARD_COACH_CHAPTER)].footage,
+  key: replayKey.value,
+}))
 
 const gymChapters = DASHBOARD_CHAPTERS.filter((chapter) => chapter.act === 'gym')
 const coachChapters = DASHBOARD_CHAPTERS.filter((chapter) => chapter.act === 'coach')
