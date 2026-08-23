@@ -56,6 +56,7 @@ useHead({
 <template>
   <div>
     <div class="film-grain" aria-hidden="true" />
+    <SplashCursor />
     <Hero />
     <LazyPartnerMarquee :hydrate-on-visible="{ rootMargin: '200px' }" />
     <!-- 200px is enough to hydrate before a section is on screen, and small

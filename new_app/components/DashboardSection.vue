@@ -2,6 +2,7 @@
 import {
   DASHBOARD_JOURNEY,
   DASHBOARD_RAIL_SWITCH_AT,
+  DASHBOARD_SWAP_MIDPOINT,
   clamp01,
   mapDashboardJourney,
   smootherstep,
@@ -152,6 +153,16 @@ let dashboardVideoQuery: MediaQueryList | null = null
 let lastTickKey = ''
 let idleFrames = 0
 let runwayPx = 1
+// Edge-triggered page-wide cursor tone: once the coach footage owns the
+// MacBook screen, the splash cursor runs red until something else flips it
+// back (TrainersSection on entry, or this section on scrolling back up).
+let coachToneEmitted = false
+
+function emitCoachTone(active: boolean) {
+  window.dispatchEvent(new CustomEvent('liftag:cursor-glow-tone', {
+    detail: { tone: active ? 'red' : 'green' },
+  }))
+}
 
 function exitSlice(p: number, start: number, duration: number) {
   return smoothstep((p - start) / duration)
@@ -244,6 +255,14 @@ function tick() {
   // be decodable, and that is roughly a viewport of scrolling away from here.
   if (!armCoachVideo.value && !reduceMotion && p >= ARM_COACH_AT) {
     armCoachVideo.value = true
+  }
+
+  // The cursor turns red the moment the coach footage takes over, not when
+  // TrainersSection arrives a full viewport later.
+  const coachOwnsScreen = p >= DASHBOARD_SWAP_MIDPOINT
+  if (coachOwnsScreen !== coachToneEmitted) {
+    coachToneEmitted = coachOwnsScreen
+    emitCoachTone(coachOwnsScreen)
   }
 
   // Re-anchor the rest pose while the camera is fully inside the screen. At
@@ -394,6 +413,11 @@ onBeforeUnmount(() => {
   observer?.disconnect()
   dashboardVideoQuery?.removeEventListener('change', updateDashboardVideoPreference)
   dashboardVideoQuery = null
+  // Release the page-wide red tone if this section unmounts while owning it.
+  if (coachToneEmitted) {
+    coachToneEmitted = false
+    emitCoachTone(false)
+  }
 })
 </script>
 

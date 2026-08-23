@@ -1,10 +1,10 @@
 <script setup lang="ts">
-// Shell only: cursor orb, atmosphere, scroll fade, and the two layout
-// islands. Desktop and mobile hydrate on matching media queries so a
-// PageSpeed desktop run never evaluates the phone layout (and vice versa).
+// Shell only: atmosphere, scroll fade, and the two layout islands. Desktop and
+// mobile hydrate on matching media queries so a PageSpeed desktop run never
+// evaluates the phone layout (and vice versa). The cursor effect lives in
+// SplashCursor.vue, mounted page-wide by index.vue.
 
-const sharedMouse = useSharedMouse()
-const rawMouse = sharedMouse.latest
+const rawMouse = useSharedMouse().latest
 const heroRoot = ref<HTMLElement | null>(null)
 
 const lerpActive = useNearViewport(heroRoot)
@@ -15,31 +15,12 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
   + ' rgba(204,255,0,0.12), transparent 65%)'
 
 let heroEntranceTimer: ReturnType<typeof setTimeout> | null = null
-let cursorGlowRaf = 0
-let unsubHeroMouse: (() => void) | null = null
-let onHeroCursorGlowTone: EventListener | null = null
 let onHeroScroll: (() => void) | null = null
 
 onMounted(() => {
   heroEntranceTimer = setTimeout(() => {
     heroRoot.value?.querySelector('.hero-scroll-cue')?.classList.add('is-visible')
   }, 80)
-
-  unsubHeroMouse = onMouseEvent(() => {
-    if (cursorGlowRaf !== 0) return
-    cursorGlowRaf = requestAnimationFrame(() => {
-      cursorGlowRaf = 0
-      const root = heroRoot.value
-      if (!root) return
-      root.style.setProperty('--hero-cursor-x', String(sharedMouse.latest.clientX))
-      root.style.setProperty('--hero-cursor-y', String(sharedMouse.latest.clientY))
-    })
-  })
-  onHeroCursorGlowTone = (event: Event) => {
-    const tone = (event as CustomEvent<{ tone?: 'green' | 'red' }>).detail?.tone
-    heroRoot.value?.classList.toggle('hero-cursor-red', tone === 'red')
-  }
-  window.addEventListener('liftag:cursor-glow-tone', onHeroCursorGlowTone)
 
   let scrollQueued = false
   onHeroScroll = () => {
@@ -64,18 +45,10 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   if (heroEntranceTimer) clearTimeout(heroEntranceTimer)
-  if (cursorGlowRaf !== 0) cancelAnimationFrame(cursorGlowRaf)
-  cursorGlowRaf = 0
-  unsubHeroMouse?.()
-  if (onHeroCursorGlowTone) {
-    window.removeEventListener('liftag:cursor-glow-tone', onHeroCursorGlowTone)
-  }
   if (onHeroScroll) {
     window.removeEventListener('scroll', onHeroScroll)
   }
   heroEntranceTimer = null
-  unsubHeroMouse = null
-  onHeroCursorGlowTone = null
   onHeroScroll = null
 })
 </script>
@@ -93,9 +66,6 @@ onBeforeUnmount(() => {
       paddingBottom: '80px',
     }"
   >
-    <div class="cursor-glow cursor-glow-green" />
-    <div class="cursor-glow cursor-glow-red" />
-
     <div
       :style="{
         position: 'absolute',
@@ -137,8 +107,6 @@ onBeforeUnmount(() => {
   --hero-scroll: 0;
   --hero-mx: 0;
   --hero-my: 0;
-  --hero-cursor-x: -9999;
-  --hero-cursor-y: -9999;
 }
 
 :deep(.hero-fades) {
@@ -155,41 +123,6 @@ onBeforeUnmount(() => {
 
 :deep(.hero-lifts) {
   transform: translate3d(0, calc(var(--hero-lift) * -1), 0);
-}
-
-.cursor-glow {
-  position: fixed;
-  left: 0;
-  top: 0;
-  z-index: 1;
-  width: 420px;
-  height: 420px;
-  border-radius: 50%;
-  pointer-events: none;
-  transition: opacity 380ms ease;
-  will-change: transform, opacity;
-  transform: translate3d(
-    calc(var(--hero-cursor-x) * 1px - 210px),
-    calc(var(--hero-cursor-y) * 1px - 210px),
-    0
-  );
-}
-
-.cursor-glow-green {
-  background: radial-gradient(circle, rgba(204, 255, 0, 0.08) 0%, transparent 58%);
-}
-
-.cursor-glow-red {
-  background: radial-gradient(circle, rgba(255, 45, 85, 0.11) 0%, transparent 58%);
-  opacity: 0;
-}
-
-.hero-section.hero-cursor-red .cursor-glow-green {
-  opacity: 0;
-}
-
-.hero-section.hero-cursor-red .cursor-glow-red {
-  opacity: 1;
 }
 
 @media (max-width: 768px) {

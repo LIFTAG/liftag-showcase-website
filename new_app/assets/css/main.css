@@ -1213,15 +1213,6 @@ section {
     gap: 8px !important;
   }
 }
-
-/* Touch / no-hover devices - hide pointer-driven decoration that just burns
-   GPU on mobile. Card screenshot pans are tap-controlled in LiftersSection. */
-@media (hover: none) {
-  .cursor-glow {
-    display: none !important;
-  }
-}
-
 /* Tighter touch targets - bump small interactive bits to ≥44px on mobile.
    Targets the few obvious offenders without sweeping every button. */
 @media (max-width: 768px) {

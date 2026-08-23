@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
-const DEFERRED_CHUNK = /(?:^|\/)(?:ScanSection|HowItWorks|LiftersSection|ProgressSection|AppMergeSection|GymsSection|DashboardSection|TrainersSection|Roadmap|FinalCta|SiteFooter|HomeFaq|FaqAccordion|PartnerMarquee|Phone3D|Macbook3D|HeroParticles|HeroDesktop|HeroMobile|HeroCharts|NfcTag3D|ForgedPrPlate|HologramPlate|MergeParticles|MergePrismCore|MergeBurstHalo|RoadmapParticles|TapTokenCore)(?:\.vue)?(?:-|\.|$)/
+const DEFERRED_CHUNK = /(?:^|\/)(?:ScanSection|HowItWorks|LiftersSection|ProgressSection|AppMergeSection|GymsSection|DashboardSection|TrainersSection|Roadmap|FinalCta|SiteFooter|HomeFaq|FaqAccordion|PartnerMarquee|Phone3D|Macbook3D|HeroParticles|HeroDesktop|HeroMobile|HeroCharts|NfcTag3D|ForgedPrPlate|HologramPlate|MergeParticles|MergePrismCore|MergePrismaticBurst|MergeBurstHalo|RoadmapParticles|TapTokenCore)(?:\.vue)?(?:-|\.|$)/
 
 function isThreeManifestEntry(key: string, entry: { name?: string, file?: string }) {
   return entry.name === 'three' || key.includes('node_modules/three') || Boolean(entry.file?.includes('three'))

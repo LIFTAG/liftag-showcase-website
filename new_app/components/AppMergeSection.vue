@@ -849,6 +849,7 @@ onBeforeUnmount(() => {
       </div>
 
       <MergeBurstHalo />
+      <MergePrismaticBurst />
 
       <div class="container app-merge-layout">
         <div class="merge-copy">
