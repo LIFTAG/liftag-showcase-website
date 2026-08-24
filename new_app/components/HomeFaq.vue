@@ -7,10 +7,10 @@ import { homeFaqs } from '~/utils/homeFaqs'
     <div class="section-glow is-green" aria-hidden="true" />
     <div class="container">
       <div class="home-faq-split">
-        <header class="home-faq-intro reveal">
-          <p class="protocol home-faq-eyebrow">Common questions</p>
-          <h2 id="home-faq-title" class="display home-faq-title">
-            Answers before you <span class="lime">scan.</span>
+        <header class="home-faq-intro">
+          <p class="protocol home-faq-eyebrow reveal">Common questions</p>
+          <h2 id="home-faq-title" class="display home-faq-title reveal plate-title">
+            <span class="plate-wipe">Answers before you <span class="lime">scan.</span></span>
           </h2>
         </header>
 

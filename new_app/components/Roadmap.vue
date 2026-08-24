@@ -686,8 +686,8 @@ onBeforeUnmount(() => {
     />
     <div class="section-inner">
       <div class="section-label reveal" style="text-align: center">Roadmap</div>
-      <h2 class="display reveal" style="text-align: center; margin: 0 auto 20px; font-size: clamp(2.4rem, 6vw, 4.5rem)">
-        We're<br />just getting started.
+      <h2 class="display reveal plate-title" style="text-align: center; margin: 0 auto 20px; font-size: clamp(2.4rem, 6vw, 4.5rem)">
+        <span class="plate-wipe">We're<br />just getting started.</span>
       </h2>
       <p class="rm-subtitle reveal" style="text-align: center; margin: 0 auto 80px">
         Built in public. Shipping fast. Here's what's coming next.

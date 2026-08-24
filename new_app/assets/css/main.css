@@ -607,6 +607,160 @@ section {
   transform: translateY(0);
 }
 
+/* ── Plate wipe ──
+   Section-title entrance. The word is uncovered from the baseline upward while
+   a machined rail rides the opening edge, so the headline reads as a plate
+   seated onto a sleeve rather than a fade.
+
+   Markup contract: `.plate-title.reveal` on the heading, one `.plate-wipe`
+   span wrapping its text. It rides the shared `.reveal` -> `.in` observer.
+   Colour: any ancestor may set --plate-rule / --plate-rule-glow; lime is the
+   fallback at the point of use so the override inherits normally. */
+.plate-title {
+  position: relative;
+}
+/* The wipe is the entrance, so the generic .reveal drift is stripped: the
+   opacity gate still fires on .in, it just snaps instead of easing. */
+.plate-title.reveal {
+  transform: none;
+  transition-duration: 0ms;
+}
+
+.plate-wipe {
+  /* Shrink-to-fit so the rail spans the longest line rather than the whole
+     title column. Top alignment keeps the heading's line box height unchanged. */
+  display: inline-block;
+  vertical-align: top;
+  position: relative;
+  /* .display runs line-height 0.92 italic, so glyphs, italic overhang and any
+     glow spill outside the box. The mask bleeds past it on every side. The top
+     bleed stays tight: the rail parks there, and a deeper overshoot would put
+     it through the eyebrow sitting above the title. */
+  --plate-bleed-t: 0.14em;
+  --plate-bleed-b: 0.34em;
+  --plate-bleed-x: 0.18em;
+  --plate-rail-h: 6px;
+  --plate-collar: 18px;
+}
+
+.plate-title.reveal:not(.in) .plate-wipe {
+  clip-path: inset(
+    calc(100% + var(--plate-bleed-b))
+    calc(var(--plate-bleed-x) * -1)
+    calc(var(--plate-bleed-b) * -1)
+    calc(var(--plate-bleed-x) * -1)
+  );
+}
+
+.plate-title.reveal.in .plate-wipe {
+  animation: plate-wipe-open 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* The rail: an extruded metal section read edge-on - accent lip, specular
+   line, two steel tones, shadow - with accent collars that hang 2px below it
+   at each end. Every stop is hard, so it stays machined rather than glowing.
+   Painted as a band at the top of a full-size layer, which keeps its travel a
+   single composited transform. */
+.plate-wipe::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--plate-bleed-x) * -1);
+  right: calc(var(--plate-bleed-x) * -1);
+  opacity: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size:
+    100% calc(var(--plate-rail-h) + 2px),
+    100% var(--plate-rail-h);
+  background-image:
+    linear-gradient(
+      90deg,
+      var(--plate-rule, var(--liftag-primary)) 0 var(--plate-collar),
+      transparent var(--plate-collar) calc(100% - var(--plate-collar)),
+      var(--plate-rule, var(--liftag-primary)) calc(100% - var(--plate-collar)) 100%
+    ),
+    linear-gradient(
+      180deg,
+      var(--plate-rule, var(--liftag-primary)) 0 2px,
+      rgba(255, 255, 255, 0.95) 2px 3px,
+      #A8AF9C 3px 4.5px,
+      #4E5346 4.5px 5.5px,
+      #0A0C06 5.5px 100%
+    );
+  filter: drop-shadow(0 0 6px var(--plate-rule-glow, rgba(204, 255, 0, 0.28)));
+}
+
+.plate-title.reveal.in .plate-wipe::after {
+  animation:
+    plate-rail-drive 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards,
+    plate-rail-clear 140ms linear 460ms forwards;
+}
+
+/* Rail and mask edge share the timing function and the same start/end offsets,
+   so the rail always sits exactly on the edge it is opening. */
+@keyframes plate-wipe-open {
+  from {
+    clip-path: inset(
+      calc(100% + var(--plate-bleed-b))
+      calc(var(--plate-bleed-x) * -1)
+      calc(var(--plate-bleed-b) * -1)
+      calc(var(--plate-bleed-x) * -1)
+    );
+    transform: translate3d(0, 0.08em, 0);
+  }
+  to {
+    clip-path: inset(
+      calc(var(--plate-bleed-t) * -1)
+      calc(var(--plate-bleed-x) * -1)
+      calc(var(--plate-bleed-b) * -1)
+      calc(var(--plate-bleed-x) * -1)
+    );
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes plate-rail-drive {
+  from {
+    transform: translate3d(0, calc(100% + var(--plate-bleed-b)), 0);
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(0, calc(var(--plate-bleed-t) * -1), 0);
+    opacity: 1;
+  }
+}
+
+@keyframes plate-rail-clear {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Red-neon copy blocks drive the rail in their own accent. */
+.trainers-section,
+.coach-copy {
+  --plate-rule: var(--liftag-red-neon);
+  --plate-rule-glow: rgba(255, 45, 85, 0.32);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plate-title.reveal:not(.in) .plate-wipe,
+  .plate-title.reveal.in .plate-wipe {
+    clip-path: none;
+    transform: none;
+    animation: none;
+  }
+  .plate-wipe::after {
+    content: none;
+  }
+}
+
 /* Marquee */
 @keyframes marquee {
   from {
