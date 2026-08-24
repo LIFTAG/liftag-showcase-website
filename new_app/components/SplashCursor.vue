@@ -10,8 +10,6 @@
 // desktop fine-pointer only, skipped under prefers-reduced-motion, DPR capped,
 // loop paused while the tab is hidden.
 
-import { distributeFluidGrid, fluidProbeCount } from '../composables/useCursorFluidTap'
-
 interface ColorRGB {
   r: number
   g: number
@@ -112,18 +110,6 @@ let displayMaterial: Material | null = null
 
 let lastUpdateTime = 0
 let colorUpdateTimer = 0
-
-// Dye read tap. One small RGBA8 downsample of the dye, read back a few times a
-// second and handed to whichever product surfaces have asked what the fluid is
-// doing over them (see composables/useCursorFluidTap). readPixels stalls the
-// pipeline, so the grid is tiny and the cadence is well under frame rate - and
-// none of it runs at all while nothing is probing.
-const TAP_WIDTH = 64
-const TAP_HEIGHT = 36
-const TAP_INTERVAL_MS = 60
-let tapFbo: FBO | null = null
-let tapPixels: Uint8Array | null = null
-let lastTapTime = 0
 
 class Program {
   program: WebGLProgram | null
@@ -803,32 +789,8 @@ function updateFrame() {
   updateColors(dt)
   applyInputs()
   step(dt)
-  tapDye()
   render(null)
   rafId = requestAnimationFrame(updateFrame)
-}
-
-// Called between step() and render() so it inherits step()'s disabled blending
-// and writes a straight copy of the dye rather than a composite.
-function tapDye() {
-  if (!gl || !blit || !dye || !copyProgram) return
-  if (fluidProbeCount() === 0) return
-
-  const now = performance.now()
-  if (now - lastTapTime < TAP_INTERVAL_MS) return
-  lastTapTime = now
-
-  tapFbo ??= createFBO(TAP_WIDTH, TAP_HEIGHT, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, gl.NEAREST)
-  if (!tapFbo) return
-  tapPixels ??= new Uint8Array(TAP_WIDTH * TAP_HEIGHT * 4)
-
-  copyProgram.bind()
-  if (copyProgram.uniforms.uTexture) {
-    gl.uniform1i(copyProgram.uniforms.uTexture, dye.read.attach(0))
-  }
-  blit(tapFbo, false)
-  gl.readPixels(0, 0, TAP_WIDTH, TAP_HEIGHT, gl.RGBA, gl.UNSIGNED_BYTE, tapPixels)
-  distributeFluidGrid(tapPixels, TAP_WIDTH, TAP_HEIGHT)
 }
 
 function calcDeltaTime() {
@@ -1327,9 +1289,6 @@ onBeforeUnmount(() => {
   onWindowMouseDown = null
   onVisibilityChange = null
   onToneChange = null
-
-  tapFbo = null
-  tapPixels = null
 
   const loseContext = gl?.getExtension('WEBGL_lose_context')
   loseContext?.loseContext()

@@ -13,6 +13,11 @@ let nativeScrollTimeline = false
 
 const sectionHref = (hash: string) => route.path === '/' ? hash : `/${hash}`
 
+// Per-character spans for the desktop nav's hover index (see .nav-link__char).
+// Array.from, not split(''), so an accented or non-BMP label would still index
+// one glyph at a time rather than tearing a surrogate pair in half.
+const navChars = (label: string) => Array.from(label)
+
 const navLinks = computed<[string, string][]>(() => [
   ['Demo', sectionHref('#demo')],
   ['Lifters', sectionHref('#lifters')],
@@ -280,15 +285,25 @@ onBeforeUnmount(() => {
       <span class="nav-logo__wordmark">LIFTAG</span>
     </a>
 
-    <!-- Desktop nav links -->
+    <!-- Desktop nav links. The label is split into characters so hover can
+         index them through their own clip windows; the real text stays in the
+         DOM for crawlers, and aria-label carries the accessible name so a
+         screen reader never has to reassemble the split run. -->
     <nav class="nav-desktop nav-center-links">
       <a
         v-for="[label, href] in navLinks"
         :key="label"
         :href="href"
         class="nav-link"
+        :aria-label="label"
         @click="onNavLinkClick(label, href, $event)"
-      >{{ label }}</a>
+      ><span class="nav-link__chars" aria-hidden="true"><span
+        v-for="(char, index) in navChars(label)"
+        :key="index"
+        class="nav-link__char"
+        :data-char="char"
+        :style="{ '--i': index }"
+      ><span class="nav-link__glyph">{{ char }}</span></span></span></a>
     </nav>
 
     <!-- Right side: CTA + hamburger -->
@@ -543,10 +558,16 @@ onBeforeUnmount(() => {
   letter-spacing: 0.22em;
   text-transform: uppercase;
   position: relative;
+  /* Flex rather than inline text: a character window is an overflow: hidden
+     inline-block, whose baseline is its bottom edge, so leaving these in a
+     line box would drop the whole row against the logo and the CTA. The
+     symmetric padding is hit area only; the row is centred either way. */
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 0;
   opacity: 0;
   transform: translate3d(0, -14px, 0) skewX(-9deg);
   animation: navItemIn 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  transition: color 200ms ease;
 }
 
 .nav-link:nth-child(1) { animation-delay: 360ms; }
@@ -556,16 +577,64 @@ onBeforeUnmount(() => {
 .nav-link:nth-child(5) { animation-delay: 640ms; }
 .nav-link:nth-child(6) { animation-delay: 710ms; }
 
-.nav-link::after {
-  content: '';
+/* Hover index. Each character owns a clip window holding two copies of itself
+   stacked vertically: the white one in flow, the lime one waiting one full
+   window below. Hovering drives both up by exactly one window, so the label is
+   not re-coloured, it is indexed - the white glyph leaves through the top as
+   the lime one arrives from the bottom, one hard step with no fade and no
+   scale. The 12ms per-character offset runs the swap left to right, and both
+   copies share the travel and the curve, so the seam between them never opens.
+   Rising from below matches the plate-wipe section titles.
+   No underline: the swap is the affordance. */
+.nav-link__chars {
+  display: inline-flex;
+}
+
+.nav-link__char {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  /* Every label is uppercased, so the window only ever has to clear cap height;
+     the leading this leaves is what the glyph exits through. `pre` keeps a
+     space-bearing label from collapsing to a zero-width window. */
+  line-height: 1.15;
+  white-space: pre;
+}
+
+.nav-link__glyph,
+.nav-link__char::after {
+  display: block;
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-link__char::after {
+  content: attr(data-char);
   position: absolute;
-  left: 50%;
-  right: 50%;
-  bottom: -10px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #CCFF00, transparent);
-  opacity: 0;
-  transition: left 240ms ease, right 240ms ease, opacity 240ms ease;
+  left: 0;
+  top: 0;
+  color: var(--liftag-primary);
+  transform: translate3d(0, 100%, 0);
+}
+
+.nav-link:hover .nav-link__glyph,
+.nav-link:focus-visible .nav-link__glyph {
+  transform: translate3d(0, -100%, 0);
+}
+
+.nav-link:hover .nav-link__char::after,
+.nav-link:focus-visible .nav-link__char::after {
+  transform: translate3d(0, 0, 0);
+}
+
+/* Stagger and the slower expo travel belong to the entry only. The rest state
+   above keeps a flat 300ms with no delay, so pulling the pointer away returns
+   every character at once instead of unwinding the stagger back at the reader. */
+.nav-link:hover .nav-link__glyph,
+.nav-link:focus-visible .nav-link__glyph,
+.nav-link:hover .nav-link__char::after,
+.nav-link:focus-visible .nav-link__char::after {
+  transition-duration: 500ms;
+  transition-delay: calc(var(--i) * 12ms);
 }
 
 .nav-center-links {
@@ -576,16 +645,6 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 36px;
   transform: translate(-50%, -50%);
-}
-
-.nav-link:hover {
-  color: #CCFF00;
-}
-
-.nav-link:hover::after {
-  left: -8px;
-  right: -8px;
-  opacity: 1;
 }
 
 .nav-actions {
@@ -983,6 +1042,30 @@ onBeforeUnmount(() => {
   .nav-mobile-toggle .line,
   .nav-mobile-drawer {
     transition-duration: 0.01ms !important;
+  }
+
+  /* The hover index collapses to the colour change it was carrying. The lime
+     copy is dropped rather than hidden, so nothing is left stacked under the
+     window, and the white glyph is pinned in place - the hover rules above
+     would otherwise still drive it out through the top with no replacement. */
+  .nav-link__char::after {
+    content: none;
+  }
+
+  .nav-link__glyph,
+  .nav-link:hover .nav-link__glyph,
+  .nav-link:focus-visible .nav-link__glyph {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .nav-link {
+    transition: color 200ms ease !important;
+  }
+
+  .nav-link:hover,
+  .nav-link:focus-visible {
+    color: var(--liftag-primary);
   }
 }
 
