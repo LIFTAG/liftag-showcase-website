@@ -290,6 +290,11 @@ onBeforeUnmount(() => {
           No more guessing how a cable stack works. Tap the NFC tag or scan the QR code on any partner gym machine.
           Liftag opens the right exercise, demo video, and tracking flow in seconds.
         </p>
+
+        <!-- Landing slot for the hero's NFC tag. Empty markup: TagHandoff flies
+             the tag here and draws the seat brackets, so nothing shows on the
+             phone layout or under reduced motion. -->
+        <div class="scan-tag-dock" data-liftag-tag-dock aria-hidden="true" />
       </div>
 
       <figure
@@ -683,7 +688,17 @@ onBeforeUnmount(() => {
 }
 
 .scan-intro {
+  position: relative;
   grid-column: 1 / -1;
+}
+
+.scan-tag-dock {
+  position: absolute;
+  right: 0;
+  bottom: 6px;
+  width: 76px;
+  height: 76px;
+  pointer-events: none;
 }
 
 .scan-grid-2col {
@@ -902,7 +917,8 @@ onBeforeUnmount(() => {
     margin-bottom: 18px !important;
   }
 
-  .scan-lede {
+  .scan-lede,
+  .scan-tag-dock {
     display: none !important;
   }
 

@@ -178,14 +178,14 @@ onBeforeUnmount(() => {
 
       <!-- Main heading -->
       <h2
-        class="display reveal"
+        class="display reveal plate-title"
         :style="{
           fontSize: 'clamp(56px, 9vw, 140px)',
           color: '#fff',
         }"
       >
-        STOP <span class="lime">GUESSING</span>.<br />
-        START <span class="lime">LIFTING</span>.
+        <span class="plate-wipe">STOP <span class="lime">GUESSING</span>.<br />
+        START <span class="lime">LIFTING</span>.</span>
       </h2>
 
       <p

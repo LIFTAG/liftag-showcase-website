@@ -8,7 +8,6 @@ import {
 
 const entered = ref(false)
 const showHeroParticles = ref(false)
-const loadHero3d = ref(false)
 const hasMounted = ref(false)
 const keepDesktopHeroPhones = computed(() => hasMounted.value)
 const frontPhoneReady = ref(false)
@@ -96,10 +95,7 @@ let heroEntranceTimer: ReturnType<typeof setTimeout> | null = null
 onMounted(() => {
   heroEntranceTimer = setTimeout(() => { entered.value = true }, 80)
 
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  const loadDesktop3d = !prefersReducedMotion
-  showHeroParticles.value = loadDesktop3d
-  loadHero3d.value = loadDesktop3d
+  showHeroParticles.value = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
   hasMounted.value = true
 
   startHeroLaser()
@@ -430,11 +426,9 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
             transition: entered ? 'opacity 1000ms 760ms ease' : 'none',
           }"
         >
-          <div class="hero-nfc-tag-3d">
-            <ClientOnly>
-              <LazyNfcTag3D v-if="loadHero3d" />
-            </ClientOnly>
-          </div>
+          <!-- Empty on purpose. TagHandoff renders the only NfcTag3D on the
+               page into this box and keeps flying it after the hero fades. -->
+          <div class="hero-nfc-tag-3d" data-liftag-tag-anchor />
         </div>
 
         <div

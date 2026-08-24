@@ -11,9 +11,9 @@ withDefaults(defineProps<{
 <template>
   <component
     :is="as"
-    class="display reveal"
+    class="display reveal plate-title"
     :style="{ fontSize: 'clamp(40px, 6.4vw, 84px)', maxWidth: `${max}px`, color: '#fff' }"
   >
-    <slot />
+    <span class="plate-wipe"><slot /></span>
   </component>
 </template>

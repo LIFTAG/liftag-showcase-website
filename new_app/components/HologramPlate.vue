@@ -10,6 +10,8 @@
  * scroll through the viewport. Neither path re-renders Vue: the loop
  * writes --holo-tilt-x / --holo-tilt-y and CSS does the rest.
  */
+import type { FluidSample } from '../composables/useCursorFluidTap'
+import { registerFluidProbe } from '../composables/useCursorFluidTap'
 import { onMouseEvent, useSharedMouse } from '../composables/useSharedMouse'
 import {
   HOLO_AX_WEIGHT,
@@ -74,8 +76,32 @@ onMounted(() => {
 
   const phoneMql = window.matchMedia('(max-width: 768px)')
   const motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
+  const finePointerMql = window.matchMedia('(hover: hover) and (pointer: fine)')
   const val = { x: 0, y: 0 }
   let rafId = 0
+  let stopHeat: (() => void) | null = null
+
+  // Palm heat: whatever the cursor fluid is doing over this card is read back
+  // from SplashCursor's dye and written here as plain custom properties. The
+  // foil below reads them in calc(), so a sample never re-renders Vue.
+  const applyHeat = (sample: FluidSample) => {
+    el.style.setProperty('--holo-heat', sample.heat.toFixed(3))
+    el.style.setProperty('--holo-heat-x', `${(sample.x * 100).toFixed(1)}%`)
+    el.style.setProperty('--holo-heat-y', `${(sample.y * 100).toFixed(1)}%`)
+    el.style.setProperty('--holo-heat-rgb', `${sample.r} ${sample.g} ${sample.b}`)
+  }
+
+  const syncHeat = () => {
+    const wanted = near.value && finePointerMql.matches && !motionMql.matches
+    if (wanted && !stopHeat) {
+      stopHeat = registerFluidProbe(el, applyHeat)
+      return
+    }
+    if (!wanted && stopHeat) {
+      stopHeat()
+      stopHeat = null
+    }
+  }
 
   const publish = (x: number, y: number) => {
     el.style.setProperty('--holo-tilt-x', x.toFixed(VAR_PRECISION))
@@ -126,6 +152,7 @@ onMounted(() => {
   }
 
   const onMotionChange = (event: MediaQueryListEvent) => {
+    syncHeat()
     if (event.matches) {
       stop()
       val.x = 0
@@ -146,6 +173,7 @@ onMounted(() => {
   }
 
   const stopNear = watch(near, (isNear) => {
+    syncHeat()
     if (isNear) wake()
     else stop()
   })
@@ -154,11 +182,14 @@ onMounted(() => {
   phoneMql.addEventListener('change', onPhoneChange)
   window.addEventListener('scroll', onScroll, { passive: true })
   const unsubMouse = onMouseEvent(wake)
+  syncHeat()
   if (near.value && !motionMql.matches) wake()
 
   stopTilt = () => {
     stop()
     stopNear()
+    stopHeat?.()
+    stopHeat = null
     motionMql.removeEventListener('change', onMotionChange)
     phoneMql.removeEventListener('change', onPhoneChange)
     window.removeEventListener('scroll', onScroll)
@@ -203,6 +234,7 @@ onBeforeUnmount(() => {
 
         <div class="holo-spec" aria-hidden="true" />
         <div class="holo-fresnel" aria-hidden="true" />
+        <div class="holo-heat" aria-hidden="true" />
 
         <div class="holo-chrome">
           <span class="holo-brand">LIFTAG</span>
@@ -221,12 +253,15 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .holo {
+  /* The dye dragged across the card walks the interference band the same way a
+     change of viewing angle does: warm the foil, the colour moves. */
   --holo-phase: calc(
     var(--holo-rest) + var(--holo-ax) * var(--holo-axw)
     + var(--holo-ay) * var(--holo-ayw) + var(--holo-demo, 0)
+    + var(--holo-heat, 0) * 0.22
   );
   --holo-lobe: max(0, 1 - abs(var(--holo-phase) - var(--holo-peak)) / var(--holo-half));
-  --holo-face: max(var(--holo-reveal, 0), var(--holo-lobe));
+  --holo-face: max(var(--holo-reveal, 0), var(--holo-lobe), calc(var(--holo-heat, 0) * 0.45));
   --holo-glint: calc(abs(var(--holo-ax)) * 0.55 + abs(var(--holo-ay)) * 0.35);
   position: relative;
   width: 100%;
@@ -308,10 +343,30 @@ onBeforeUnmount(() => {
 .holo-name,
 .holo-spec,
 .holo-fresnel,
+.holo-heat,
 .holo-chrome,
 .holo-foot {
   position: absolute;
   pointer-events: none;
+}
+
+/* Where the hand passed. Sampled from the cursor fluid, so the bloom sits on
+   the dye's hot spot and carries the dye's own hue rather than a fixed lime. */
+.holo-heat {
+  inset: 0;
+  z-index: 6;
+  opacity: var(--holo-heat, 0);
+  background: radial-gradient(
+    62% 56% at var(--holo-heat-x, 50%) var(--holo-heat-y, 50%),
+    rgb(var(--holo-heat-rgb, 204 255 0) / 0.5) 0%,
+    rgb(var(--holo-heat-rgb, 204 255 0) / 0.16) 32%,
+    transparent 66%
+  );
+  mix-blend-mode: screen;
+  /* The tap samples at ~16Hz, so let opacity chase the last value instead of
+     stepping onto it. The transition never settles while the hand is moving,
+     which is exactly the low-pass wanted here. */
+  transition: opacity 120ms linear;
 }
 
 .holo-foil {
@@ -570,7 +625,12 @@ onBeforeUnmount(() => {
 @media (prefers-reduced-motion: reduce) {
   .holo {
     --holo-reveal: 1;
+    --holo-heat: 0;
     perspective: none;
+  }
+
+  .holo-heat {
+    display: none;
   }
 
   .holo-body,
