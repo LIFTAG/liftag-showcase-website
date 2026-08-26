@@ -49,6 +49,8 @@ let _mobileQuery: MediaQueryList | null = null
 // The bar's height feeds every box that parks under it - today the sticky
 // catalog search. Padding, the safe-area inset and the control row all move it,
 // so publish the measured value rather than asking each consumer to guess.
+// Observed as a border box, not the default content box: most of what moves the
+// bar's lower edge is padding, and a content-box observation misses all of it.
 let navResizeObserver: ResizeObserver | null = null
 
 function publishNavHeight() {
@@ -61,7 +63,9 @@ function publishNavHeight() {
 // layout viewport. `position: fixed` resolves against the layout viewport, so
 // without this offset the bar sits above the visible area for as long as the
 // keyboard is open - it looks like the nav vanished the moment the caret lands
-// in a field. (The catalog's search bar used to consume this var for its sticky
+// in a field. The bar spends it as top padding rather than as `top`, so the
+// glass still covers the strip it is clearing (see the .site-nav padding rule).
+// (The catalog's search bar used to consume this var for its sticky
 // top as well; it now opens a scroll-locked full-screen search mode instead,
 // so the nav is the only consumer left.)
 //
@@ -207,7 +211,7 @@ onMounted(() => {
   publishNavHeight()
   if (typeof ResizeObserver !== 'undefined') {
     navResizeObserver = new ResizeObserver(publishNavHeight)
-    navResizeObserver.observe(navRoot.value!)
+    navResizeObserver.observe(navRoot.value!, { box: 'border-box' })
   }
 
   publishVisualViewportTop(true)
@@ -248,18 +252,18 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <!-- Sticky header. `top` is not 0: --liftag-vv-top is how far a software
-       keyboard has pushed the visible area down inside the layout viewport this
-       bar is fixed to. Without it the bar rides above the visible area for as
-       long as a field is focused, which reads as the nav disappearing. It stays
-       0px whenever no keyboard is up. -->
+  <!-- Sticky header, pinned to the top edge of the layout viewport it is fixed
+       to. The offset that keeps its contents inside the visible area
+       (--liftag-vv-top) is carried by the top padding in the stylesheet rather
+       than by `top`, so the blurred surface always starts at y=0 - see the
+       padding rule for why that distinction matters. -->
   <header
     ref="navRoot"
     class="site-nav"
     :class="{ 'is-open': open, 'is-scrolled': scrolled }"
     :style="{
       position: 'fixed',
-      top: 'var(--liftag-vv-top, 0px)',
+      top: 0,
       left: 0,
       right: 0,
       zIndex: 100,
@@ -390,9 +394,20 @@ onBeforeUnmount(() => {
   /* Padding lives here rather than in the inline :style above, because inline
      styles outrank scoped CSS and would pin it flat at 14px 32px. The bar
      spans the full width so its background bleeds behind the cutout; only the
-     padding keeps the logo, links and CTA out from under it. */
+     padding keeps the logo, links and CTA out from under it.
+
+     --liftag-vv-top is a term in the top padding rather than the element's
+     `top` for a related reason. It is how far the visible area has been pushed
+     down inside the layout viewport this bar is fixed to, so offsetting the box
+     by it leaves that strip of page uncovered: the tint and the blur start
+     below it, and the raw page stays sharp above it. On any screen whose first
+     pixel is a photo - every catalog detail page - that reads as a hard seam
+     between the frosted bar and the untouched image beside the browser's own
+     URL chrome. Growing the padding keeps the box anchored at y=0, so the glass
+     runs continuously from the top of the layout viewport to the bar's lower
+     edge while the contents still land where they can be seen. */
   padding:
-    calc(14px + var(--liftag-safe-top))
+    calc(14px + var(--liftag-safe-top) + var(--liftag-vv-top))
     max(32px, var(--liftag-safe-right))
     14px
     max(32px, var(--liftag-safe-left));
@@ -739,14 +754,15 @@ onBeforeUnmount(() => {
 
 .nav-mobile-drawer {
   position: fixed;
-  top: calc(60px + var(--liftag-safe-top));
+  top: calc(60px + var(--liftag-safe-top) + var(--liftag-vv-top));
   left: 0;
   right: 0;
   z-index: 99;
   box-sizing: border-box;
   /* 60px is the nav's own height; both it and this offset grow by the top
-     inset so the drawer still hangs off the bar's bottom edge. */
-  max-height: calc(var(--liftag-stable-vh) - 60px - var(--liftag-safe-top));
+     inset and by the visible-area offset the bar's padding carries, so the
+     drawer still hangs off the bar's bottom edge. */
+  max-height: calc(var(--liftag-stable-vh) - 60px - var(--liftag-safe-top) - var(--liftag-vv-top));
   padding:
     20px
     max(24px, var(--liftag-safe-right))

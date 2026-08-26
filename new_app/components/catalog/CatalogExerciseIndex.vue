@@ -624,6 +624,22 @@ useLiftagStructuredData([
     padding-right: 0;
     padding-left: 0;
   }
+
+  /* Desktop has the room; do not shrink labels to force one row. */
+  .ex-chips {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ex-chip {
+    flex: 0 0 auto;
+    padding: 9px 16px;
+    font-size: 13px;
+  }
+
+  .ex-chip__count {
+    font-size: 12px;
+  }
 }
 
 @media (max-width: 1080px) {

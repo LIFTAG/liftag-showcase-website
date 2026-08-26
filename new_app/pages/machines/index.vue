@@ -569,6 +569,21 @@ useLiftagStructuredData([
     padding-right: 0;
     padding-left: 0;
   }
+
+  .ma-chips {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ma-chip {
+    flex: 0 0 auto;
+    padding: 9px 16px;
+    font-size: 13px;
+  }
+
+  .ma-chip__count {
+    font-size: 12px;
+  }
 }
 
 @media (max-width: 1080px) {

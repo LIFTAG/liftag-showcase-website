@@ -203,10 +203,12 @@
      been pushed down inside the layout viewport, which is what a software
      keyboard does on a phone. Fixed boxes are positioned against the layout
      viewport, so without adding this offset the nav parks above the visible
-     area while the keyboard is open - it looks like the bar vanished. Today
-     only the fixed nav consumes it; the catalog search stopped, because a
-     JS-chased offset always trails the scroll and made its sticky bar shiver
-     (it opens a scroll-locked full-screen search mode instead). On browsers
+     area while the keyboard is open - it looks like the bar vanished. The bar
+     adds it to its top padding rather than to its `top`, so its blurred surface
+     keeps covering the strip it clears instead of leaving a sharp seam above
+     itself. Today only the fixed nav consumes it; the catalog search stopped,
+     because a JS-chased offset always trails the scroll and made its sticky bar
+     shiver (it opens a scroll-locked full-screen search mode instead). On browsers
      that honor interactive-widget=resizes-content in the viewport meta
      (Android Chrome/Firefox/Samsung) the keyboard shrinks the layout viewport
      itself, so this var naturally stays 0px there. */
