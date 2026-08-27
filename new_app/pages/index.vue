@@ -2,10 +2,12 @@
 import { useReveal } from '~/composables/useReveal'
 import { homeFaqs } from '~/utils/homeFaqs'
 
-const description = 'LIFTAG is a free workout tracker for serious lifters. Tap NFC tags or scan QR codes on gym machines to open setup videos, log sets, run rest timers, and track progress.'
+// Keep these two in sync with app.head in nuxt.config.ts, which carries the
+// same pair as the pre-hydration fallback.
+const description = 'LIFTAG is a free workout tracker and logger for iOS and Android. Tap NFC or scan QR on gym machines to log sets, run rest timers, and track PRs. Works without tags.'
 
 useLiftagSeo({
-  title: 'LIFTAG | Workout Tracker with NFC and QR Gym Tags',
+  title: 'LIFTAG | Free Workout Tracker and Logger',
   description,
   path: '/',
 })

@@ -153,38 +153,31 @@ const categoryCounts = computed(() => {
   return counts
 })
 
-const exercises = computed<CatalogIndexExercise[]>(() => {
-  const rows = index.value?.exercises ?? []
-  return rows
-    .filter(exercise =>
-      exercise.primaryCategory === hub.slug || exercise.categories.includes(hub.slug))
-    .sort((a, b) => {
-      const byPopularity = (b.popularity ?? 0) - (a.popularity ?? 0)
-      if (byPopularity !== 0) return byPopularity
-      return a.name.localeCompare(b.name)
-    })
-})
+const chrome = catalogChrome('en')
 
-const primaryFirst = computed(() => {
-  const primary = exercises.value.filter(exercise => exercise.primaryCategory === hub.slug)
-  const secondary = exercises.value.filter(exercise => exercise.primaryCategory !== hub.slug)
-  return [...primary, ...secondary]
-})
+const allForMuscle = computed(() =>
+  partitionExercisesByMuscle(index.value?.exercises ?? [], hub.slug),
+)
+const exercises = computed(() => [...allForMuscle.value.primary, ...allForMuscle.value.secondary])
 
-const filtered = computed<CatalogIndexExercise[]>(() => {
-  let rows = primaryFirst.value
+const grouped = computed(() => {
   const tokens = normalizeCatalogQuery(query.value).split(/\s+/).filter(Boolean)
-  if (tokens.length > 0) {
-    rows = rows.filter((exercise) => {
-      const haystack = `${normalizeCatalogQuery(exercise.name)} ${exercise.aliases ?? ''}`
-      return tokens.every(token => haystack.includes(token))
-    })
+  if (tokens.length === 0) return allForMuscle.value
+  const matches = (exercise: CatalogIndexExercise) => {
+    const haystack = `${normalizeCatalogQuery(exercise.name)} ${exercise.aliases ?? ''}`
+    return tokens.every(token => haystack.includes(token))
   }
-  return rows
+  return {
+    primary: allForMuscle.value.primary.filter(matches),
+    secondary: allForMuscle.value.secondary.filter(matches),
+  }
 })
 
-const visible = computed(() => filtered.value.slice(0, visibleCount.value))
-const listForSchema = computed(() => primaryFirst.value.slice(0, 30))
+const filtered = computed(() => [...grouped.value.primary, ...grouped.value.secondary])
+const sliced = computed(() =>
+  sliceMuscleGroups(grouped.value.primary, grouped.value.secondary, visibleCount.value),
+)
+const listForSchema = computed(() => exercises.value.slice(0, 30))
 
 const otherHubs = MUSCLE_HUBS.filter(item => item.slug !== hub.slug)
 
@@ -339,7 +332,23 @@ useLiftagStructuredData([
         <template v-else>
           <div class="mu-grid">
             <CatalogExerciseTile
-              v-for="exercise in visible"
+              v-for="exercise in sliced.visiblePrimary"
+              :key="exercise.id"
+              :to="`/exercises/${exercise.slug}`"
+              :name="exercise.name"
+              :image-url="exercise.imageUrl"
+              :label="exercise.primaryCategory ? categoryNames.get(exercise.primaryCategory) : null"
+              :has-video="exercise.hasVideo"
+              :preview-video-url="exercise.previewVideoUrl"
+            />
+            <CatalogMuscleSplit
+              v-if="sliced.showSplit"
+              :label="chrome.alsoTrains(hub.name)"
+              :count="grouped.secondary.length"
+              :leading="sliced.visiblePrimary.length === 0"
+            />
+            <CatalogExerciseTile
+              v-for="exercise in sliced.visibleSecondary"
               :key="exercise.id"
               :to="`/exercises/${exercise.slug}`"
               :name="exercise.name"
@@ -630,19 +639,23 @@ useLiftagStructuredData([
     padding-left: 0;
   }
 
+  /* Match /exercises: one row, 12px type, steal width from padding/gap. */
   .mu-filters {
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-wrap: nowrap;
+    gap: 4px;
+    overflow-x: auto;
   }
 
   .mu-filter {
-    flex: 0 0 auto;
-    padding: 9px 16px;
-    font-size: 13px;
+    flex: 1 0 auto;
+    padding: 8px;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
   }
 
   .mu-filter__count {
-    font-size: 12px;
+    font-size: 11px;
   }
 }
 
@@ -898,6 +911,18 @@ useLiftagStructuredData([
     bottom: 6px;
     width: 24px;
     height: 24px;
+  }
+
+  .mu-hub.is-search-open .mu-grid :deep(.cat-split) {
+    margin: 0;
+    padding: 14px 2px 10px;
+    background: rgba(204, 255, 0, 0.035);
+    border-top-color: rgba(204, 255, 0, 0.16);
+    border-bottom: 1px solid var(--liftag-border-soft);
+  }
+
+  .mu-hub.is-search-open .mu-grid :deep(.cat-split.is-leading) {
+    border-top: 0;
   }
 }
 

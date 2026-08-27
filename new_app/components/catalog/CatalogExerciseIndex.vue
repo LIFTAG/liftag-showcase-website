@@ -174,14 +174,10 @@ const categoryCounts = computed(() => {
   return counts
 })
 
-const filtered = computed<CatalogIndexExercise[]>(() => {
+const nameLocale = isSk ? 'sk' : undefined
+
+const grouped = computed(() => {
   let rows = index.value?.exercises ?? []
-  if (muscleFilter.value) {
-    const muscle = muscleFilter.value
-    rows = rows.filter(exercise =>
-      exercise.primaryCategory === muscle || exercise.categories.includes(muscle),
-    )
-  }
   const tokens = normalizeCatalogQuery(query.value).split(/\s+/).filter(Boolean)
   if (tokens.length > 0) {
     rows = rows.filter((exercise) => {
@@ -191,14 +187,20 @@ const filtered = computed<CatalogIndexExercise[]>(() => {
       return tokens.every(token => haystack.includes(token))
     })
   }
-  return [...rows].sort((a, b) => {
-    const byPopularity = (b.popularity ?? 0) - (a.popularity ?? 0)
-    if (byPopularity !== 0) return byPopularity
-    return isSk ? a.name.localeCompare(b.name, 'sk') : a.name.localeCompare(b.name)
-  })
+  if (muscleFilter.value) {
+    return partitionExercisesByMuscle(rows, muscleFilter.value, nameLocale)
+  }
+  return { primary: sortCatalogByPopularity(rows, nameLocale), secondary: [] as CatalogIndexExercise[] }
 })
 
-const visible = computed(() => filtered.value.slice(0, visibleCount.value))
+const filtered = computed(() => [...grouped.value.primary, ...grouped.value.secondary])
+const sliced = computed(() =>
+  sliceMuscleGroups(grouped.value.primary, grouped.value.secondary, visibleCount.value),
+)
+const filterMuscleName = computed(() => {
+  if (!muscleFilter.value) return ''
+  return categoryNames.value.get(muscleFilter.value) ?? muscleFilter.value
+})
 
 function chipTo(slug?: string): string {
   if (!isSk) return slug ? musclePath(slug) : indexPath
@@ -354,7 +356,23 @@ useLiftagStructuredData([
         <template v-else>
           <div class="ex-grid">
             <CatalogExerciseTile
-              v-for="exercise in visible"
+              v-for="exercise in sliced.visiblePrimary"
+              :key="exercise.id"
+              :to="exercisePath(exercise.slug, locale)"
+              :name="exercise.name"
+              :image-url="exercise.imageUrl"
+              :label="exercise.primaryCategory ? categoryNames.get(exercise.primaryCategory) : null"
+              :has-video="exercise.hasVideo"
+              :preview-video-url="exercise.previewVideoUrl"
+            />
+            <CatalogMuscleSplit
+              v-if="sliced.showSplit"
+              :label="chrome.alsoTrains(filterMuscleName)"
+              :count="grouped.secondary.length"
+              :leading="sliced.visiblePrimary.length === 0"
+            />
+            <CatalogExerciseTile
+              v-for="exercise in sliced.visibleSecondary"
               :key="exercise.id"
               :to="exercisePath(exercise.slug, locale)"
               :name="exercise.name"
@@ -625,20 +643,24 @@ useLiftagStructuredData([
     padding-left: 0;
   }
 
-  /* Desktop has the room; do not shrink labels to force one row. */
+  /* One row on desktop: keep 12px type and steal the width from padding/gap,
+     not from the labels. Overflow-x is only a last resort on a squeezed window. */
   .ex-chips {
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-wrap: nowrap;
+    gap: 4px;
+    overflow-x: auto;
   }
 
   .ex-chip {
-    flex: 0 0 auto;
-    padding: 9px 16px;
-    font-size: 13px;
+    flex: 1 0 auto;
+    padding: 8px;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
   }
 
   .ex-chip__count {
-    font-size: 12px;
+    font-size: 11px;
   }
 }
 
@@ -904,6 +926,18 @@ useLiftagStructuredData([
     bottom: 6px;
     width: 24px;
     height: 24px;
+  }
+
+  .ex-index.is-search-open .ex-grid :deep(.cat-split) {
+    margin: 0;
+    padding: 14px 2px 10px;
+    background: rgba(204, 255, 0, 0.035);
+    border-top-color: rgba(204, 255, 0, 0.16);
+    border-bottom: 1px solid var(--liftag-border-soft);
+  }
+
+  .ex-index.is-search-open .ex-grid :deep(.cat-split.is-leading) {
+    border-top: 0;
   }
 
   .ex-machines-band {

@@ -80,6 +80,11 @@ useLiftagStructuredData([
             <p>
               We built LIFTAG. That is a conflict of interest. Strong still wins on raw logging speed. Hevy still wins on community. Read the rows, not the headline. FitNotes and a paper logbook sit on the <a href="/guides/workout-logger">workout logger vs tracker</a> page, which is the comparison for people who typed logger.
             </p>
+            <p>
+              Three apps in one table means every row is a summary. For the version with quoted, dated store prices and a longer feature grid, take the pair you actually care about:
+              <a href="/vs/strong">LIFTAG vs Strong</a> or
+              <a href="/alternatives/hevy">LIFTAG vs Hevy</a>.
+            </p>
           </section>
 
           <section>

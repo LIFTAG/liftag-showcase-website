@@ -49,6 +49,7 @@ export interface CatalogChrome {
   weightReps: string
   time: string
   calories: string
+  alsoTrains: (muscle: string) => string
 }
 
 const EN: CatalogChrome = {
@@ -103,6 +104,7 @@ const EN: CatalogChrome = {
   weightReps: 'Weight × reps',
   time: 'Time',
   calories: 'Calories',
+  alsoTrains: muscle => `Also trains ${muscle}`,
 }
 
 const SK: CatalogChrome = {
@@ -157,6 +159,7 @@ const SK: CatalogChrome = {
   weightReps: 'Váha × opakovania',
   time: 'Čas',
   calories: 'Kalórie',
+  alsoTrains: muscle => `Tiež trénuje ${muscle}`,
 }
 
 export function catalogChrome(locale: CatalogLocale): CatalogChrome {

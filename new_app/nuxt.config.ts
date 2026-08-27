@@ -39,7 +39,10 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
-      title: 'LIFTAG | Workout Tracker with NFC and QR Gym Tags',
+      // Homepage title and description are duplicated in pages/index.vue's
+      // useLiftagSeo call, which is what actually renders OG/Twitter/canonical.
+      // These are the pre-hydration fallback; change both together.
+      title: 'LIFTAG | Free Workout Tracker and Logger',
       htmlAttrs: { lang: 'en' },
       meta: [
         { charset: 'utf-8' },
@@ -56,7 +59,7 @@ export default defineNuxtConfig({
         // engines that don't (iOS Safari today) ignore the token and keep the
         // --liftag-vv-top fallback published by SiteNav.
         { name: 'viewport', content: 'width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content' },
-        { name: 'description', content: 'LIFTAG is a free workout tracker. Tap NFC tags or scan QR codes on gym machines to open setup videos, log sets, run rest timers, and track progress.' },
+        { name: 'description', content: 'LIFTAG is a free workout tracker and logger for iOS and Android. Tap NFC or scan QR on gym machines to log sets, run rest timers, and track PRs. Works without tags.' },
         { name: 'theme-color', content: '#000000' },
         { name: 'format-detection', content: 'telephone=no' },
         { name: 'apple-itunes-app', content: 'app-id=6761140080' },
@@ -137,6 +140,10 @@ export default defineNuxtConfig({
     // which Search Console reports as a duplicate URL. Nitro compiles this rule
     // into the Vercel routing config ahead of static file serving.
     '/index.html': { redirect: { to: '/', statusCode: 308 } },
+    // "best workout tracker" is the same query as "best workout tracking app";
+    // one article ranks for both, so the shorter slug forwards instead of
+    // becoming a second page competing with it.
+    '/best-workout-tracker': { redirect: { to: '/best-workout-tracking-app', statusCode: 308 } },
     '/': { prerender: true },
     '/for-lifters': { prerender: true },
     '/for-trainers': { prerender: true },
@@ -145,6 +152,9 @@ export default defineNuxtConfig({
     '/qr-nfc-gym-tags': { prerender: true },
     '/best-workout-tracking-app': { prerender: true },
     '/best-gym-qr-nfc-app': { prerender: true },
+    '/pricing': { prerender: true },
+    '/alternatives/**': { prerender: true },
+    '/vs/**': { prerender: true },
     '/guides': { prerender: true },
     '/guides/**': { prerender: true },
     '/about': { prerender: true },

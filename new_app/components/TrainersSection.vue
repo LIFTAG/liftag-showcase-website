@@ -44,6 +44,14 @@ const features: Feature[] = [
 ]
 
 const active = ref(0)
+// Bumped when the section comes into view and on every tab change after that,
+// so the headline plays the character index both as it arrives and as it swaps
+// (see IndexedText.vue).
+const titlePlay = ref(0)
+// The right-hand list keeps all four titles on screen at once, so they cannot
+// share the headline's single counter: a swap has to replay the row that just
+// took over without touching the three that did not move.
+const tabPlay = ref(features.map(() => 0))
 const coachPulse = ref(0)
 const sectionRef = ref<HTMLElement | null>(null)
 const sectionInView = ref(false)
@@ -105,6 +113,8 @@ function setActive(index: number) {
   }, 300)
   active.value = index
   coachPulse.value += 1
+  titlePlay.value += 1
+  tabPlay.value[index] += 1
 }
 
 function clearAutoCycle() {
@@ -201,8 +211,19 @@ onMounted(() => {
 })
 
 watch(sectionInView, (visible) => {
-  if (visible) startAutoCycle()
-  else clearAutoCycle()
+  if (!visible) {
+    clearAutoCycle()
+    return
+  }
+  // The first line has no swap to ride in on, so entering the section is its
+  // entrance. The four tab titles arrive with it - the list has no reveal of its
+  // own - and then only the row taking over replays. Held behind reduced motion
+  // for the same reason the cycle is.
+  if (!reduceMotion.value) {
+    titlePlay.value += 1
+    tabPlay.value = tabPlay.value.map((n) => n + 1)
+  }
+  startAutoCycle()
 }, { immediate: true })
 
 watch(cursorGlowActive, emitCursorGlowTone, { immediate: true })
@@ -335,7 +356,7 @@ onBeforeUnmount(() => {
                 transition: 'all 300ms ease',
               }"
             >
-              {{ f.title }}
+              <IndexedText mode="appear" :text="f.title" :play="titlePlay" />
             </h3>
             <p
               :style="{
@@ -547,7 +568,7 @@ onBeforeUnmount(() => {
                 lineHeight: 1.1,
               }"
             >
-              {{ feat.title }}
+              <IndexedText mode="appear" :text="feat.title" :play="tabPlay[i]" />
             </div>
           </div>
           <div :style="{ borderTop: '1px solid rgba(255,255,255,0.06)' }" />

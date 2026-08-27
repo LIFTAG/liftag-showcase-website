@@ -70,7 +70,7 @@ const cards: FeatureCardProps[] = [
     imgPanTo: '100%',
     visualHeight: '230px',
     tag: 'LIBRARY',
-    title: '250+ exercises. Form videos.',
+    title: '400+ exercises. Form videos.',
     body: 'Vetted by coaches, not influencers.',
     compact: true,
     href: '/exercises',

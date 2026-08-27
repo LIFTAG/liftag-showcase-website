@@ -609,6 +609,207 @@ section {
   transform: translateY(0);
 }
 
+/* ── Character index ──
+   The desktop nav's hover affordance (SiteNav.vue, .nav-link__char), generalised
+   so footer links, cycling step titles and roadmap milestones can carry the same
+   motion. SiteNav keeps its own copy of the rules: it is the origin, it ships its
+   labels split in the served HTML, and it is on every page above the fold.
+
+   Each character owns a clip window holding two copies of itself: the one in flow,
+   and a duplicate waiting exactly one window below. Driving both up by one window
+   swaps them in a single hard step, so the label is not re-coloured or faded, it is
+   indexed - one copy leaves through the top as the other arrives from the bottom.
+   The 12ms per-character offset runs the swap left to right, and both copies share
+   the travel and the curve, so the seam between them never opens.
+
+   Two variants:
+   - .ti--hover  follows the pointer on the host (.ti-host), and the arriving copy
+                 is lime, exactly as the nav's is.
+   - .ti--appear is fired by a state change - a step going active, a milestone
+                 scrolling in - and the arriving copy is the same colour as the one
+                 leaving, so only the travel reads.
+
+   Markup contract: IndexedText.vue. The hover variant only splits client side, on a
+   pointer that can hover, so every rule here has a plain text node as its resting
+   fallback.
+
+   The window is a clip-path rather than an overflow, which is the one deliberate
+   departure from SiteNav. An inline-block whose overflow is not visible takes its
+   baseline from its bottom margin edge; the nav absorbs that by making the link a
+   centred flex row, but these labels sit in body text, list items and wrapping
+   headings that would all shift. clip-path clips at paint time and leaves inline
+   layout alone. For the same reason the window never declares a line-height: it
+   inherits the host's, so no line height, list gap or grid row moves.
+
+   Which is also why the travel cannot simply be one line box. SiteNav gives its
+   window `line-height: 1.15` and exits the glyph through the leading that buys.
+   Inheriting instead means inheriting the host's leading, and a display headline
+   sets `line-height: 1` - no leading at all. Measured on the scan title (Space
+   Grotesk italic 700, 72px, line-height 1): the window is 72px tall with the
+   baseline 61px down, so 11px of it sits below the baseline, while the ink of `/`
+   descends 14.4px. Both ends of that are bugs. The visible slash loses 3.4px of
+   its tail to a flush clip, and a copy parked exactly one window away keeps 3.4px
+   of ink inside the window - the hairline that used to float above the scan
+   headline, spread sideways over the letter before it by the horizontal slack.
+
+   So the window is opened by --ti-slack at both ends, and the travel is one
+   window plus both of those. Two conditions have to hold, and each is shared
+   between the visible copy and one of the parked ones, which is why a single
+   token settles all four:
+
+     slack >= ink descent - window below the baseline   (visible tail not cut,
+                                                        copy parked above hidden)
+     slack >= ink ascent - baseline from the window top (visible head not cut,
+                                                        copy parked below hidden)
+
+   Because the travel grows with the clip, neither condition depends on the slack
+   twice over, so raising it can never pull a parked copy back into view. Measured
+   requirement across every host that uses this, worst end, both viewports:
+
+     scan step title      0.047em   (0.097em at the mobile line-height of 0.92)
+     trainers headline    0.044em
+     trainers tab titles  0.014em
+     roadmap milestone    none, its leading already clears the ink
+     footer links         none, same
+
+   0.14em covers the worst of those by about half again, which is what it takes to
+   survive a host tightening its leading or a label carrying an accented capital.
+   It costs nothing but paint: the clip is a paint-time operation and the travel is
+   a transform. */
+.ti {
+  /* Paint-only: no rule below this changes a layout box. */
+  --ti-slack: 0.14em;
+  --ti-travel: calc(100% + 2 * var(--ti-slack));
+  display: inline;
+}
+
+.ti__word {
+  display: inline-block;
+  /* Line breaks belong at the spaces between words, never between two character
+     windows inside one. */
+  white-space: nowrap;
+}
+
+.ti__char {
+  position: relative;
+  display: inline-block;
+  /* Vertical: --ti-slack past the line box at both ends, so the window clears
+     the ink instead of the box. The travel above is the same window plus the same
+     slack, so a copy that has finished leaving is entirely outside it.
+     Horizontal: lets an italic or letter-spaced glyph lean out of its own advance
+     width instead of being shaved down its side. */
+  clip-path: inset(calc(-1 * var(--ti-slack)) -0.12em);
+}
+
+.ti__glyph,
+.ti__char::after {
+  display: block;
+}
+
+.ti__char::after {
+  content: attr(data-ch);
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate3d(0, var(--ti-travel), 0);
+}
+
+/* The nav swaps a white glyph for a lime one. Hosts that rest on some other
+   colour set --ti-rest and --ti-accent; the fallbacks keep an unset host looking
+   exactly like the nav. --ti-rest is also what stops a host's own :hover colour
+   rule - the fallback for everyone who never gets the split - from dragging the
+   outgoing copy lime along with the arriving one. */
+.ti--hover .ti__glyph,
+.ti--hover .ti__char::after {
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ti--hover.is-split .ti__glyph {
+  color: var(--ti-rest, inherit);
+}
+
+.ti--hover .ti__char::after {
+  color: var(--ti-accent, var(--liftag-primary));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ti-host:hover .ti--hover .ti__glyph,
+  .ti-host:focus-visible .ti--hover .ti__glyph {
+    transform: translate3d(0, calc(-1 * var(--ti-travel)), 0);
+  }
+
+  .ti-host:hover .ti--hover .ti__char::after,
+  .ti-host:focus-visible .ti--hover .ti__char::after {
+    transform: translate3d(0, 0, 0);
+  }
+
+  /* Stagger and the slower expo travel belong to the entry only. The rest state
+     keeps a flat 300ms with no delay, so pulling the pointer away returns every
+     character at once instead of unwinding the stagger back at the reader. */
+  .ti-host:hover .ti--hover .ti__glyph,
+  .ti-host:focus-visible .ti--hover .ti__glyph,
+  .ti-host:hover .ti--hover .ti__char::after,
+  .ti-host:focus-visible .ti--hover .ti__char::after {
+    transition-duration: 500ms;
+    transition-delay: calc(var(--i) * 12ms);
+  }
+}
+
+/* Same geometry, same curve, same stagger, no colour change: the arriving copy
+   inherits the host's colour instead of taking the accent.
+
+   Both keyframes start where the resting state already sits and end on a frame
+   that is visually identical to it - the arriving duplicate lands exactly where
+   the leaving glyph started, and it is the same glyph. So the fill mode is free,
+   and the run neither snaps on the first frame nor on the last. */
+.ti--appear .ti__char::after {
+  color: inherit;
+}
+
+.ti--appear.is-playing .ti__glyph {
+  animation: tiIndexOut 500ms cubic-bezier(0.16, 1, 0.3, 1)
+    calc(var(--ti-delay, 0ms) + var(--i) * 12ms) both;
+}
+
+.ti--appear.is-playing .ti__char::after {
+  animation: tiIndexIn 500ms cubic-bezier(0.16, 1, 0.3, 1)
+    calc(var(--ti-delay, 0ms) + var(--i) * 12ms) both;
+}
+
+/* Held paused by surfaces that have no Vue-side trigger to key the run on, and
+   released by whatever state class they already set (Roadmap.vue). */
+.ti--appear.is-playing .ti__glyph,
+.ti--appear.is-playing .ti__char::after {
+  animation-play-state: var(--ti-play-state, running);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The appear variant is split by the server, which cannot read the preference,
+     so a reduced-motion reader holds split markup until the flag lands in
+     onMounted - and the hover variant can be split when the preference flips
+     mid-session. Either way the duplicate is dropped rather than hidden, so
+     nothing is left stacked under the window, and the glyph is pinned in place. */
+  .ti__char::after {
+    content: none;
+  }
+
+  .ti__glyph {
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+@keyframes tiIndexOut {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, calc(-1 * var(--ti-travel)), 0); }
+}
+
+@keyframes tiIndexIn {
+  from { transform: translate3d(0, var(--ti-travel), 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+
 /* ── Plate wipe ──
    Section-title entrance. The word is uncovered from the baseline upward while
    a machined rail rides the opening edge, so the headline reads as a plate
@@ -884,14 +1085,6 @@ section {
 @keyframes float-y {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-12px); }
-}
-@keyframes scrollPulse {
-  /* Origin stays top. Flipping it mid-cycle is not composited and was
-     showing up as layout shift on the desktop PageSpeed trace. */
-  0% { transform: scaleY(0) translateY(0); opacity: 0; }
-  40% { transform: scaleY(1) translateY(0); opacity: 1; }
-  60% { transform: scaleY(1) translateY(0); opacity: 1; }
-  100% { transform: scaleY(0) translateY(48px); opacity: 0; }
 }
 @keyframes heroAreaFadeIn {
   from { opacity: 0; }

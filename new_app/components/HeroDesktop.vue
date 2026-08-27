@@ -87,7 +87,7 @@ function formatHeroStat(target: number, suffix: string) {
   }
 }
 
-const stat1 = useCountUp(250, 1600, formatHeroStat(250, '+'))
+const stat1 = useCountUp(400, 1600, formatHeroStat(400, '+'))
 const stat2 = useCountUp(11, 1600, formatHeroStat(11, ''))
 const stat4 = useCountUp(100, 1600, formatHeroStat(100, '%'))
 

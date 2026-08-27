@@ -15,6 +15,7 @@ const productLinks: FooterLink[] = [
   { label: 'Become a Coach', href: '/become-a-coach' },
   { label: 'For Gyms', href: '/for-gyms' },
   { label: 'NFC + QR Tags', href: '/qr-nfc-gym-tags' },
+  { label: 'Pricing', href: '/pricing' },
   { label: 'About', href: '/about' },
   { label: 'Press', href: '/press' },
   { label: 'Roadmap', href: '/#roadmap' },
@@ -42,6 +43,8 @@ const guideLinks: FooterLink[] = [
   { label: 'Best Gym QR + NFC App', href: '/best-gym-qr-nfc-app' },
   { label: 'Best Workout Logger', href: '/guides/best-workout-logger' },
   { label: 'Best Free Workout Tracker', href: '/guides/best-free-workout-tracker' },
+  { label: 'LIFTAG vs Hevy', href: '/alternatives/hevy' },
+  { label: 'LIFTAG vs Strong', href: '/vs/strong' },
   { label: 'Strong vs Hevy vs LIFTAG', href: '/guides/strong-vs-hevy-vs-liftag' },
   { label: 'Workout Logger', href: '/guides/workout-logger' },
   { label: 'How to Track Workouts', href: '/guides/how-to-track-workouts' },
@@ -93,6 +96,14 @@ const socialLinks = [
 
 const markWord = 'LIFTAG'
 const outlineFilterId = 'footer-mark-union-outline'
+
+// The social buttons carry no text, so their index swaps the icon itself: one
+// copy leaves through the top of a 20px window as a lime duplicate arrives from
+// below, on the nav's travel and curve. The duplicate rides the same gate as
+// IndexedText's split - it is a second full simple-icons path, and neither a
+// crawler nor a phone has any use for it.
+const iconIndexed = useIndexedTextSplit('hover')
+
 const route = useRoute()
 const compactHandoff = computed(() => /^\/(?:exercises|machines|muscles)(?:\/|$)/.test(route.path))
 
@@ -186,20 +197,26 @@ onBeforeUnmount(() => {
         </p>
       </div>
 
+      <!-- Every hoverable label below carries the nav's character index; the two
+           column headings that are not links keep plain text. -->
       <div class="footer-col">
-        <a href="/#all-in-one" class="protocol footer-col-heading footer-heading-link">Product</a>
+        <a href="/#all-in-one" class="protocol footer-col-heading footer-heading-link ti-host">
+          <IndexedText text="Product" />
+        </a>
         <ul class="footer-link-list">
           <li v-for="item in productLinks" :key="item.label">
-            <a :href="item.href" class="footer-link">{{ item.label }}</a>
+            <a :href="item.href" class="footer-link ti-host"><IndexedText :text="item.label" /></a>
           </li>
         </ul>
       </div>
 
       <div class="footer-col">
-        <NuxtLink to="/muscles" class="protocol footer-col-heading footer-heading-link">Library</NuxtLink>
+        <NuxtLink to="/muscles" class="protocol footer-col-heading footer-heading-link ti-host">
+          <IndexedText text="Library" />
+        </NuxtLink>
         <ul class="footer-link-list">
           <li v-for="item in libraryLinks" :key="item.label">
-            <a :href="item.href" class="footer-link">{{ item.label }}</a>
+            <a :href="item.href" class="footer-link ti-host"><IndexedText :text="item.label" /></a>
           </li>
         </ul>
       </div>
@@ -208,7 +225,7 @@ onBeforeUnmount(() => {
         <span class="protocol footer-col-heading">Guides</span>
         <ul class="footer-link-list">
           <li v-for="item in guideLinks" :key="item.label">
-            <a :href="item.href" class="footer-link">{{ item.label }}</a>
+            <a :href="item.href" class="footer-link ti-host"><IndexedText :text="item.label" /></a>
           </li>
         </ul>
       </div>
@@ -217,7 +234,7 @@ onBeforeUnmount(() => {
         <span class="protocol footer-col-heading">Legal</span>
         <ul class="footer-link-list">
           <li v-for="item in legalLinks" :key="item.label">
-            <a :href="item.href" class="footer-link">{{ item.label }}</a>
+            <a :href="item.href" class="footer-link ti-host"><IndexedText :text="item.label" /></a>
           </li>
         </ul>
       </div>
@@ -250,17 +267,28 @@ onBeforeUnmount(() => {
             rel="noopener noreferrer"
             :aria-label="social.aria"
           >
-            <svg
-              class="footer-social-icon"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path :d="social.path" />
-            </svg>
+            <span class="footer-social-index" :class="{ 'is-indexed': iconIndexed }">
+              <svg
+                class="footer-social-icon footer-social-icon--out"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path :d="social.path" />
+              </svg>
+              <svg
+                v-if="iconIndexed"
+                class="footer-social-icon footer-social-icon--in"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path :d="social.path" />
+              </svg>
+            </span>
           </a>
         </div>
-        <span class="protocol footer-stores">Available on · <a href="/get" class="footer-stores-link">IOS AND ANDROID</a></span>
+        <span class="protocol footer-stores">Available on · <a href="/get" class="footer-stores-link ti-host"><IndexedText text="IOS AND ANDROID" /></a></span>
       </div>
     </div>
 
@@ -453,7 +481,14 @@ onBeforeUnmount(() => {
   margin-bottom: 16px;
 }
 
+/* --ti-rest / --ti-accent are the two ends of the character index (see the
+   .ti-* block in main.css): the colour the label rests on, and the colour the
+   arriving copy carries. They restate the values the :hover rules below already
+   use, because those rules are the fallback for anyone who never gets the split
+   and would otherwise drag the outgoing copy along with the arriving one. */
 .footer-heading-link {
+  --ti-rest: #CCFF00;
+  --ti-accent: #fff;
   text-decoration: none;
   transition: color 200ms ease;
 }
@@ -472,6 +507,7 @@ onBeforeUnmount(() => {
 }
 
 .footer-link {
+  --ti-rest: rgba(255, 255, 255, 0.7);
   color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   font-size: 13px;
@@ -517,11 +553,70 @@ onBeforeUnmount(() => {
   }
 }
 
+/* The icon's own index window. Sized to the icon so the travel is exactly one
+   icon height, and an overflow rather than a clip-path is fine here: it is a
+   flex item, so nothing downstream reads its baseline. */
+.footer-social-index {
+  position: relative;
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+
 .footer-social-icon {
   display: block;
   width: 20px;
   height: 20px;
   flex: 0 0 auto;
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Pinned to the resting tint so the link's own hover colour - the fallback when
+   there is no duplicate to swap in - does not follow the icon out of the window. */
+.footer-social-index.is-indexed .footer-social-icon--out {
+  color: rgba(255, 255, 255, 0.54);
+}
+
+.footer-social-icon--in {
+  position: absolute;
+  inset: 0;
+  color: var(--liftag-primary);
+  transform: translate3d(0, 100%, 0);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .footer-social-link:hover .footer-social-icon--out,
+  .footer-social-link:focus-visible .footer-social-icon--out {
+    transform: translate3d(0, -100%, 0);
+  }
+
+  .footer-social-link:hover .footer-social-icon--in,
+  .footer-social-link:focus-visible .footer-social-icon--in {
+    transform: translate3d(0, 0, 0);
+  }
+
+  .footer-social-link:hover .footer-social-icon,
+  .footer-social-link:focus-visible .footer-social-icon {
+    transition-duration: 500ms;
+  }
+}
+
+/* Only reachable if the preference flips mid-session, before the duplicate is
+   dropped from the render. */
+@media (prefers-reduced-motion: reduce) {
+  .footer-social-icon {
+    transition: none !important;
+  }
+
+  .footer-social-icon--out {
+    transform: none !important;
+  }
+
+  .footer-social-icon--in {
+    display: none !important;
+  }
 }
 
 .footer-copy,
@@ -529,7 +624,11 @@ onBeforeUnmount(() => {
   color: #a8a8a8;
 }
 
+/* Restates .footer-stores' own colour rather than inheriting it: --ti-rest is
+   substituted into `color`, so `inherit` there would resolve against the link,
+   which is exactly the value being overridden on hover. */
 .footer-stores-link {
+  --ti-rest: #a8a8a8;
   color: inherit;
   text-decoration: none;
   transition: color 200ms ease;

@@ -714,7 +714,12 @@ onBeforeUnmount(() => {
               LIVE
             </div>
             <div class="rm-version">{{ item.version }}</div>
-            <h3 class="rm-title">{{ item.title }}</h3>
+            <!-- `.visible` is set from the rAF loop rather than from Vue state,
+                 so the index is armed here and held paused by --ti-play-state
+                 until that class lands. -->
+            <h3 class="rm-title">
+              <IndexedText mode="appear" :text="item.title" :play="1" />
+            </h3>
             <div class="rm-roots">
               <div class="rm-trunk"></div>
               <div
@@ -829,6 +834,15 @@ onBeforeUnmount(() => {
   margin-bottom: 80px;
   opacity: 0;
   transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Milestone title index (see the .ti-* block in main.css). Armed at render and
+     held here until the item scrolls in, on the same 0.35s beat the title's own
+     fade already used. */
+  --ti-play-state: paused;
+  --ti-delay: 350ms;
+}
+
+.rm-item.visible {
+  --ti-play-state: running;
 }
 
 /* canvas(1) + ghost(2) + active(3) are siblings before items;
@@ -860,11 +874,11 @@ onBeforeUnmount(() => {
               transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
 }
 
+/* No drift of its own any more: the character index below carries the vertical
+   travel, and running both put the line and its letters on two different rides. */
 .rm-item .rm-title {
   opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.35s,
-              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.35s;
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.35s;
 }
 
 .rm-item .rm-live-badge {
@@ -879,10 +893,13 @@ onBeforeUnmount(() => {
   transition: opacity 0.6s ease 0.5s;
 }
 
-.rm-item.visible .rm-version,
-.rm-item.visible .rm-title {
+.rm-item.visible .rm-version {
   opacity: 1;
   transform: translateY(0);
+}
+
+.rm-item.visible .rm-title {
+  opacity: 1;
 }
 
 .rm-item.visible .rm-live-badge {

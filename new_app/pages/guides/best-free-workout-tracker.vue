@@ -80,6 +80,10 @@ useLiftagStructuredData([
             <p>
               This page is only the free tier. Paid Strong, Hevy Pro, and LIFTAG premium are out of scope except where they explain the wall. For the full paid-and-free matrix see the
               <a href="/best-workout-tracking-app">2026 workout tracking app comparison</a>.
+              What each paid tier actually costs, quoted from the store listings with the date they were read, sits on
+              <a href="/vs/strong">LIFTAG vs Strong</a>,
+              <a href="/alternatives/hevy">LIFTAG vs Hevy</a>, and
+              <a href="/pricing">LIFTAG pricing</a>.
             </p>
           </section>
 

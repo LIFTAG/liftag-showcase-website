@@ -25,6 +25,7 @@ const navLinks = computed<[string, string][]>(() => [
   ['Trainers', sectionHref('#trainers')],
   ['Exercises', '/exercises'],
   ['Guides', '/guides'],
+  ['Pricing', '/pricing'],
 ])
 
 // "Trainers" is the MacBook coach chapter, not TrainersSection. Direct
@@ -591,6 +592,7 @@ onBeforeUnmount(() => {
 .nav-link:nth-child(4) { animation-delay: 570ms; }
 .nav-link:nth-child(5) { animation-delay: 640ms; }
 .nav-link:nth-child(6) { animation-delay: 710ms; }
+.nav-link:nth-child(7) { animation-delay: 780ms; }
 
 /* Hover index. Each character owns a clip window holding two copies of itself
    stacked vertically: the white one in flow, the lime one waiting one full

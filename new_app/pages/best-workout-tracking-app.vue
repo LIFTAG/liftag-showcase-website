@@ -411,6 +411,12 @@ const cards: AppCard[] = [
             <a href="/guides/strong-vs-hevy-vs-liftag">Strong vs Hevy vs LIFTAG</a>,
             and <a href="/guides/workout-logger">workout logger vs tracker</a>.
           </p>
+          <p class="bwt-section-lead">
+            Two apps get their own head-to-head with store-sourced, dated pricing:
+            <a href="/alternatives/hevy">LIFTAG vs Hevy</a> and
+            <a href="/vs/strong">LIFTAG vs Strong</a>. What LIFTAG itself costs is on
+            <a href="/pricing">pricing</a>.
+          </p>
         </div>
       </section>
 

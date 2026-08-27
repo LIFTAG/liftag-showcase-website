@@ -2,6 +2,11 @@
 import type { ScreenVideoSource } from '../utils/screenVideo'
 
 const step = ref(0)
+// Bumped on every step change so the newly active row's title replays the
+// character index (see IndexedText.vue). Both rows are always in the DOM, so the
+// title of the row being left keeps its own resting text and only the arriving
+// one travels.
+const titlePlay = ref(0)
 const phoneSwipeDirection = ref<'left' | 'right'>('left')
 const screenReplayKey = ref(0)
 const videoCycleKey = ref(0)
@@ -126,6 +131,7 @@ function setStep(nextStep: number) {
   }, 320)
   phoneSwipeDirection.value = nextStep > step.value ? 'left' : 'right'
   step.value = nextStep
+  titlePlay.value += 1
   // A new step means a new slice of footage, so the clock this step is measured
   // against starts here too.
   segmentStartedAt = performance.now()
@@ -428,7 +434,11 @@ onBeforeUnmount(() => {
                     color: '#fff',
                   }"
                 >
-                  {{ s.title }}
+                  <IndexedText
+                    mode="appear"
+                    :text="s.title"
+                    :play="step === i ? titlePlay : 0"
+                  />
                 </h3>
 
                 <!-- Mobile-only inline screen preview for this step -->

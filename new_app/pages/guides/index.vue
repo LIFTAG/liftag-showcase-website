@@ -51,6 +51,24 @@ const guides = [
     body: 'What you actually get without paying on LIFTAG, Strong, Hevy, and FitNotes — and where each free tier stops.',
   },
   {
+    href: '/alternatives/hevy',
+    eyebrow: 'COMPARISON',
+    title: 'LIFTAG vs Hevy',
+    body: 'Hevy features and pricing in 2026, quoted from its own store listing, next to a tracker with no free-tier caps and no paid tier.',
+  },
+  {
+    href: '/vs/strong',
+    eyebrow: 'COMPARISON',
+    title: 'LIFTAG vs Strong',
+    body: 'Strong caps the free tier at three routines and sells PRO. Where that matters, where it does not, and where Strong still wins.',
+  },
+  {
+    href: '/pricing',
+    eyebrow: 'PRICING',
+    title: 'LIFTAG pricing',
+    body: 'A dated fact sheet: what is free forever, what has no published price, and what a partner gym pays. No invented numbers.',
+  },
+  {
     href: '/guides/strong-vs-hevy-vs-liftag',
     eyebrow: 'COMPARISON',
     title: 'Strong vs Hevy vs LIFTAG',
