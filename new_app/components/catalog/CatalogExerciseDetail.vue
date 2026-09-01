@@ -40,6 +40,20 @@ const secondaryMuscles = computed(() => {
   return (exercise.value?.categories ?? []).filter(category => category.slug !== primarySlug)
 })
 
+const anatomySecondary = computed(() =>
+  secondaryMuscles.value.map(muscle => ({
+    slug: muscle.slug,
+    name: muscleName(muscle.slug, muscle.name),
+  })),
+)
+
+const showAnatomy = computed(() =>
+  hasExerciseAnatomy(
+    exercise.value?.primaryCategory?.slug,
+    anatomySecondary.value.map(muscle => muscle.slug),
+  ),
+)
+
 function muscleName(slug: string, fallback: string): string {
   return muscleDisplayName(slug, fallback, locale)
 }
@@ -345,6 +359,34 @@ const heroPlaying = ref(false)
             :to-for="muscleTo"
           />
 
+          <section v-if="showAnatomy" class="ex-anatomy">
+            <h2 class="protocol ex-section-title">{{ chrome.anatomyHeading }}</h2>
+            <div class="ex-anatomy__stage">
+              <ClientOnly>
+                <CatalogExerciseAnatomy
+                  :primary-slug="exercise.primaryCategory?.slug ?? null"
+                  :primary-name="exercise.primaryCategory
+                    ? muscleName(exercise.primaryCategory.slug, exercise.primaryCategory.name)
+                    : null"
+                  :secondary="anatomySecondary"
+                />
+                <template #fallback>
+                  <div class="ex-anatomy__placeholder" aria-hidden="true" />
+                </template>
+              </ClientOnly>
+            </div>
+            <ul class="protocol ex-anatomy__legend">
+              <li>
+                <span class="ex-anatomy__swatch ex-anatomy__swatch--primary" aria-hidden="true" />
+                {{ chrome.anatomyPrimary }}
+              </li>
+              <li>
+                <span class="ex-anatomy__swatch ex-anatomy__swatch--secondary" aria-hidden="true" />
+                {{ chrome.anatomySecondary }}
+              </li>
+            </ul>
+          </section>
+
           <p v-if="overview" class="ex-description">{{ overview }}</p>
 
           <div class="ex-log-panel">
@@ -520,6 +562,57 @@ const heroPlaying = ref(false)
 /* Chip list resets margin to 0; :deep beats that so this gap actually shows. */
 .ex-info :deep(.ex-muscles) {
   margin-top: 22px;
+}
+
+.ex-anatomy {
+  margin-top: 22px;
+}
+
+.ex-anatomy .ex-section-title {
+  margin-bottom: 10px;
+}
+
+/* 230px matches ANATOMY_SVG_HEIGHT_PX so the ClientOnly fallback does not shift layout. */
+.ex-anatomy__stage {
+  min-height: 230px;
+  height: 230px;
+  overflow: hidden;
+}
+
+.ex-anatomy__placeholder {
+  min-height: 230px;
+  height: 230px;
+}
+
+.ex-anatomy__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  justify-content: center;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--liftag-fg-tertiary);
+}
+
+.ex-anatomy__legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ex-anatomy__swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.ex-anatomy__swatch--primary {
+  background: #ccff00;
+}
+
+.ex-anatomy__swatch--secondary {
+  background: #8fbf0c;
 }
 
 .ex-description {
@@ -857,6 +950,14 @@ const heroPlaying = ref(false)
 
   .ex-meta {
     margin-top: 0;
+  }
+
+  .ex-anatomy {
+    margin-top: 16px;
+  }
+
+  .ex-stage.is-playing .ex-anatomy {
+    margin-top: 22px;
   }
 
   .ex-description {

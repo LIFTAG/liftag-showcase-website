@@ -43,6 +43,9 @@ export interface CatalogChrome {
   howToName: (name: string) => string
   machineAlt: (machine: string, exercise: string) => string
   musclesAria: string
+  anatomyHeading: string
+  anatomyPrimary: string
+  anatomySecondary: string
   stepName: (index: number) => string
   compound: string
   isolation: string
@@ -98,6 +101,9 @@ const EN: CatalogChrome = {
   howToName: name => `How to do ${name}`,
   machineAlt: (machine, exercise) => `${machine} — gym machine for ${exercise}`,
   musclesAria: 'Muscles worked',
+  anatomyHeading: 'MUSCLES WORKED',
+  anatomyPrimary: 'PRIMARY',
+  anatomySecondary: 'SECONDARY',
   stepName: index => `Step ${index + 1}`,
   compound: 'Compound',
   isolation: 'Isolation',
@@ -153,6 +159,9 @@ const SK: CatalogChrome = {
   howToName: name => `Ako cvičiť ${name}`,
   machineAlt: (machine, exercise) => `${machine} — stroj pre ${exercise}`,
   musclesAria: 'Zapojené svaly',
+  anatomyHeading: 'ZAPOJENÉ SVALY',
+  anatomyPrimary: 'PRIMÁRNE',
+  anatomySecondary: 'SEKUNDÁRNE',
   stepName: index => `Krok ${index + 1}`,
   compound: 'Komplexný',
   isolation: 'Izolačný',
