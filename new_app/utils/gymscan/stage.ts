@@ -717,17 +717,6 @@ export function createGymScanStage(opts: StageOptions) {
     placardUniforms.uResolve.value = scalarAt(PLACARD_RESOLVE, sp)
     placardUniforms.uLock.value = scalarAt(PLACARD_LOCK, sp)
 
-    // --- hologram exoskeleton -----------------------------------------------
-    // Free-running after the entry: the sweep is the machine idling under
-    // observation, and the scroll only decides whether it is present. The
-    // first pass is warped so the floor peel lands on first impact — see
-    // firstSweepTime. Under reduced motion the sweep is a still shell.
-    holo?.update(
-      reducedMotion ? elapsed : holoT,
-      (holoLive || reducedMotion) ? scalarAt(HOLO, sp) : 0,
-      reducedMotion,
-    )
-
     // --- camera -------------------------------------------------------------
     const camU = cameraU(sp)
     vec3HermiteAt(CAM_PATH, camU, camPos)
@@ -812,6 +801,26 @@ export function createGymScanStage(opts: StageOptions) {
     uniforms.uProbeAmp.value = damp(uniforms.uProbeAmp.value, probeAmp, 0.10, dt)
     uniforms.uProbeRadius.value = 0.92
     uniforms.uProbeLive.value = damp(uniforms.uProbeLive.value, pointer.active ? 1 : 0, 0.12, dt)
+
+    // --- hologram exoskeleton -----------------------------------------------
+    // After the probe lerp so the cage reads this frame's damped field,
+    // not last frame's. Free-running after the entry: the sweep is the
+    // machine idling under observation, and the scroll only decides
+    // whether it is present. The first pass is warped so the floor peel
+    // lands on first impact — see firstSweepTime. Under reduced motion
+    // the sweep is a still shell.
+    holo?.update(
+      reducedMotion ? elapsed : holoT,
+      (holoLive || reducedMotion) ? scalarAt(HOLO, sp) : 0,
+      reducedMotion,
+      {
+        position: uniforms.uProbe.value,
+        radius: uniforms.uProbeRadius.value,
+        amp: uniforms.uProbeAmp.value,
+        live: uniforms.uProbeLive.value,
+        time: uniforms.uTime.value,
+      },
+    )
 
     // --- fold + composite ----------------------------------------------------
     const fold = scalarAt(FOLD, sp)

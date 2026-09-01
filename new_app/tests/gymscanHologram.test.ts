@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
+  CAGE_CORE_GAIN,
+  CORE_RGB,
+  cageMixColor,
+  cageShouldDraw,
+} from '../utils/gymscan/hologramColor.ts'
+import {
   hologramPassAt,
   inverseKickTravel,
   kickTravel,
@@ -130,4 +136,83 @@ test('scroll envelope silences cage and floor together', () => {
   const pass = hologramPassAt(t, 0, OPTS)
   assert.equal(pass.cageAmp, 0)
   assert.equal(pass.groundAmp, 0)
+})
+
+test('cage stays down when the envelope is off', () => {
+  assert.equal(
+    cageShouldDraw({ envelope: 0, cageAmp: 1, probeAmp: 1, steady: true }),
+    false,
+  )
+})
+
+test('cage stays up between sweeps when the cursor probe is live', () => {
+  assert.equal(
+    cageShouldDraw({ envelope: 1, cageAmp: 0, probeAmp: 0.4, steady: false }),
+    true,
+  )
+})
+
+test('cage stays up for a sweep and for reduced-motion', () => {
+  assert.equal(
+    cageShouldDraw({ envelope: 1, cageAmp: 0.5, probeAmp: 0, steady: false }),
+    true,
+  )
+  assert.equal(
+    cageShouldDraw({ envelope: 1, cageAmp: 0, probeAmp: 0, steady: true }),
+    true,
+  )
+})
+
+test('cage is hidden between cycles with no live probe and no sweep', () => {
+  // Idle surface graze (amp 0.16, live 0) arrives here as 0.
+  assert.equal(
+    cageShouldDraw({ envelope: 1, cageAmp: 0, probeAmp: 0, steady: false }),
+    false,
+  )
+})
+
+test('trail-only cage mix is cool white, not lime', () => {
+  const trail = cageMixColor({ core: 0, trail: 1, probe: 0 })
+  assert.ok(trail.b >= trail.g, `trail should be cool, got ${JSON.stringify(trail)}`)
+  assert.ok(trail.g > trail.r)
+})
+
+test('probe-only cage mix is cool white, not lime', () => {
+  const probe = cageMixColor({ core: 0, trail: 0, probe: 1 })
+  assert.ok(probe.b >= probe.g, `probe should be cool, got ${JSON.stringify(probe)}`)
+  assert.ok(probe.g > probe.r)
+})
+
+test('core-only cage mix is brand lime', () => {
+  const core = cageMixColor({ core: 1, trail: 0, probe: 0 })
+  assert.ok(core.g > core.r, `lime must have g > r, got ${JSON.stringify(core)}`)
+  assert.ok(core.g > core.b)
+  assert.ok(core.r > 0.5 && core.g > 0.5, `lime r and g must both be high, got ${JSON.stringify(core)}`)
+  assert.ok(Math.abs(core.g - CORE_RGB[1] * CAGE_CORE_GAIN) < 1e-9)
+})
+
+test('core plus probe still reads lime rather than pale sludge', () => {
+  const lime = cageMixColor({ core: 1, trail: 0, probe: 0 })
+  const mixed = cageMixColor({ core: 1, trail: 0, probe: 1 })
+  const limeGR = lime.g - lime.r
+  assert.ok(mixed.g > mixed.r)
+  assert.ok(
+    mixed.g - mixed.r > limeGR * 0.5,
+    `lime g-r must survive probe, mixed=${JSON.stringify(mixed)} limeGR=${limeGR}`,
+  )
+  assert.ok(
+    mixed.b < mixed.r,
+    `sludge would lift blue toward red; mixed=${JSON.stringify(mixed)}`,
+  )
+})
+
+test('reduced-motion forces lime off even if a core weight is supplied', () => {
+  const still = cageMixColor({ core: 1, trail: 0, probe: 0, steady: 0.20 })
+  const body = cageMixColor({ core: 0, trail: 1, probe: 0 })
+  assert.ok(still.b >= still.g, `steady must be cool, got ${JSON.stringify(still)}`)
+  assert.ok(still.g > still.r)
+  assert.ok(
+    Math.abs(still.r / still.g - body.r / body.g) < 1e-9,
+    'steady must share the gray body hue, not lime',
+  )
 })
