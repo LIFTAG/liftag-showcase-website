@@ -12,9 +12,12 @@
 // off the machine's feet as a circular shockwave of triangle outlines, the
 // floor's own wire read, expanding with the same kick the line arrived on.
 // The two share a clock so the splash reads as the sweep continuing, not as
-// a second effect. The travelling front is brand lime; the reconstructed
-// mesh behind it is the room's cool white. The cursor does not spawn a
-// floor ring - the splash is sweep-only.
+// a second effect. The travelling front, and the cursor's local patch, are
+// the scanner-bracket chrome - the same untonemapped (0.80, 1, 0) as the
+// four L-corners. The reconstructed mesh behind the line stays the room's
+// cool white. The cursor does not spawn a floor ring - the splash is
+// sweep-only. The cursor blob is screen-space around the pointer, so a
+// mouse in the corner of the frame does not light the machine.
 //
 // Why a separate shell rather than another term in the machine's own shader:
 // the analysis effects that used to live there were all removed for one
@@ -31,16 +34,18 @@
 // is its own additive mesh of a few thousand triangles, hidden between
 // passes, discarded wherever it is not a wire.
 //
-// Lime is allowed only as the travelling core - the descending line, and
-// the floor-ring front. Area of lime is the constraint: at this scale a
+// Lime is allowed only as the travelling core, the floor-ring front, and
+// the local cursor patch. Area of lime is the constraint: at this scale a
 // lime *body* is a second machine, which is what greened the whole shot
-// when it was tried. The reconstructed mesh (sweep trail, cursor blob,
-// reduced-motion shell) stays the room's cool white.
+// when it was tried. Sweep trail and the reduced-motion shell stay the
+// room's cool white.
 import * as THREE from 'three'
 import {
   CAGE_BODY_GAIN,
   CAGE_CORE_GAIN,
   CAGE_PROBE_GAIN,
+  CAGE_PROBE_SCREEN_INNER,
+  CAGE_PROBE_SCREEN_RADIUS,
   CORE_RGB,
   WIRE_RGB,
   cageShouldDraw,
@@ -74,8 +79,10 @@ export interface HologramOptions {
 }
 
 export interface HologramProbe {
-  position: THREE.Vector3
-  radius: number
+  /** CSS NDC, y down. Same space as `useSharedMouse` / `setPointer`. */
+  ndc: { x: number, y: number }
+  /** Drawing-buffer size of the gym render target, for `gl_FragCoord`. */
+  viewport: { x: number, y: number }
   amp: number
   live: number
   /** Same clock the surface probe uses for its noise drift. */
@@ -322,8 +329,9 @@ function createCageMaterial(offset: number): THREE.ShaderMaterial {
     uBodyGain: { value: CAGE_BODY_GAIN },
     uCoreGain: { value: CAGE_CORE_GAIN },
     uProbeGain: { value: CAGE_PROBE_GAIN },
-    uProbe: { value: new THREE.Vector3() },
-    uProbeRadius: { value: 0.92 },
+    uPointer: { value: new THREE.Vector2() },
+    uViewport: { value: new THREE.Vector2(1, 1) },
+    uProbeRadius: { value: CAGE_PROBE_SCREEN_RADIUS },
     uProbeAmp: { value: 0 },
     uProbeLive: { value: 0 },
     uTime: { value: 0 },
@@ -332,6 +340,9 @@ function createCageMaterial(offset: number): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
     name: 'LiftagHologramShell',
     uniforms,
+    // Same as the L-corner overlay: untonemapped so (0.80, 1, 0) is the
+    // chrome you see, not AgX's reading of it.
+    toneMapped: false,
     // Additive, depth-tested but not depth-writing: the shell has to be
     // occluded by the machine and the floor but must not occlude itself.
     transparent: true,
@@ -372,7 +383,8 @@ function createCageMaterial(offset: number): THREE.ShaderMaterial {
       uniform float uBodyGain;
       uniform float uCoreGain;
       uniform float uProbeGain;
-      uniform vec3  uProbe;
+      uniform vec2  uPointer;
+      uniform vec2  uViewport;
       uniform float uProbeRadius;
       uniform float uProbeAmp;
       uniform float uProbeLive;
@@ -421,20 +433,29 @@ function createCageMaterial(offset: number): THREE.ShaderMaterial {
         float trail = d > 0.0 ? exp(-d / uTrail) : 0.0;
 
         float probe = 0.0;
-        // uProbeLive is the damped "pointer is actually here" gate. Idle
-        // probeAmp is a 0.16 graze on the machine surface; on the cage that
-        // same value would hold a gray blob up between sweeps with no cursor.
+        // Screen-space, not a world point mapped onto the machine. The old
+        // world probe parked on the frame from any pointer, so a cursor in
+        // the corner still lit the cage. CSS NDC, y down, aspect-corrected
+        // so the blob is circular and dies off the machine.
         if (uProbeAmp * uProbeLive > 0.001) {
-          float lgDist = length(vWorldPos - uProbe);
+          vec2 fragCss = vec2(
+            gl_FragCoord.x / max(uViewport.x, 1.0) * 2.0 - 1.0,
+            (0.5 - gl_FragCoord.y / max(uViewport.y, 1.0)) * 2.0
+          );
+          vec2 delta = fragCss - uPointer;
+          delta.x *= uViewport.x / max(uViewport.y, 1.0);
+          float lgDist = length(delta);
           float lgWob = lgNoise(vWorldPos * 2.1 + vec3(0.0, uTime * 0.22, uTime * 0.13));
-          float lgR = uProbeRadius * (0.70 + 0.62 * lgWob);
-          probe = (1.0 - smoothstep(lgR * 0.18, lgR, lgDist)) * uProbeAmp * uProbeLive;
+          float lgR = uProbeRadius * (0.90 + 0.14 * lgWob);
+          probe = (1.0 - smoothstep(lgR * ${CAGE_PROBE_SCREEN_INNER.toFixed(2)}, lgR, lgDist))
+            * uProbeAmp * uProbeLive;
         }
 
         // Sweep amp scales the travelling fields only. The probe is already
-        // its own amp, so a live cursor can hold the cage between cycles.
-        float grayWeight = max(max(trail * uBodyGain * uAmp, probe * uProbeGain), uSteady * uBodyGain * uAmp);
-        float limeWeight = core * uCoreGain * uAmp;
+        // its own amp, so a live cursor can hold a local patch between cycles.
+        // Cursor blob is scanner chrome, same as the core; trail stays white.
+        float grayWeight = max(trail * uBodyGain * uAmp, uSteady * uBodyGain * uAmp);
+        float limeWeight = core * uCoreGain * uAmp + probe * uProbeGain;
         vec3 col = wire * facing * (uWireColor * grayWeight + uCoreColor * limeWeight);
 
         if (max(col.r, max(col.g, col.b)) < 0.0015) discard;
@@ -473,6 +494,7 @@ function createGroundMaterial(): THREE.ShaderMaterial {
     depthTest: true,
     side: THREE.DoubleSide,
     fog: true,
+    toneMapped: false,
     polygonOffset: true,
     polygonOffsetFactor: -8,
     polygonOffsetUnits: -16,
@@ -619,6 +641,8 @@ export function createHologramShell(
   const groundMat = createGroundMaterial()
   const cageUniforms = cageMat.uniforms
   const groundUniforms = groundMat.uniforms
+  const pointerUniform = cageUniforms.uPointer!.value as unknown as THREE.Vector2
+  const viewportUniform = cageUniforms.uViewport!.value as unknown as THREE.Vector2
 
   const object = new THREE.Group()
   object.name = 'LiftagHologram'
@@ -663,8 +687,9 @@ export function createHologramShell(
   function writeProbe(probe: HologramProbe | undefined, envelope: number): number {
     const amp = probe?.amp ?? 0
     if (probe) {
-      (cageUniforms.uProbe!.value as THREE.Vector3).copy(probe.position)
-      cageUniforms.uProbeRadius!.value = probe.radius
+      pointerUniform.set(probe.ndc.x, probe.ndc.y)
+      viewportUniform.set(probe.viewport.x, probe.viewport.y)
+      cageUniforms.uProbeRadius!.value = CAGE_PROBE_SCREEN_RADIUS
       // Envelope fades the blob with the scroll gate; amp itself is the
       // already-damped surface field, not a second pointer lerp.
       cageUniforms.uProbeAmp!.value = amp * envelope

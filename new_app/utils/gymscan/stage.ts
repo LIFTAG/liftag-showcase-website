@@ -601,6 +601,9 @@ export function createGymScanStage(opts: StageOptions) {
   const tilt = { x: 0, y: 0, active: false }
   const probeTarget = new THREE.Vector3(0, 0.9, 1.4)
   const probeCurrent = new THREE.Vector3(0, 0.9, 1.4)
+  const probeNdcTarget = new THREE.Vector2()
+  const probeNdc = new THREE.Vector2()
+  const probeViewport = new THREE.Vector2(1, 1)
   const camPos = { x: 3.98, y: 2.22, z: 4.96 }
   const camTgt = { x: 0.05, y: 0.88, z: -0.04 }
   const lookAt = new THREE.Vector3()
@@ -802,6 +805,12 @@ export function createGymScanStage(opts: StageOptions) {
     uniforms.uProbeRadius.value = 0.92
     uniforms.uProbeLive.value = damp(uniforms.uProbeLive.value, pointer.active ? 1 : 0, 0.12, dt)
 
+    // Cage probe is the pointer on screen, not the world point mapped onto
+    // the machine. Lerp so it does not teleport; radius lives in the shader.
+    probeNdcTarget.set(pointer.x, pointer.y)
+    probeNdc.lerp(probeNdcTarget, reducedMotion ? 1 : 1 - Math.pow(0.001, dt))
+    renderer.getDrawingBufferSize(probeViewport)
+
     // --- hologram exoskeleton -----------------------------------------------
     // After the probe lerp so the cage reads this frame's damped field,
     // not last frame's. Free-running after the entry: the sweep is the
@@ -814,8 +823,8 @@ export function createGymScanStage(opts: StageOptions) {
       (holoLive || reducedMotion) ? scalarAt(HOLO, sp) : 0,
       reducedMotion,
       {
-        position: uniforms.uProbe.value,
-        radius: uniforms.uProbeRadius.value,
+        ndc: probeNdc,
+        viewport: probeViewport,
         amp: uniforms.uProbeAmp.value,
         live: uniforms.uProbeLive.value,
         time: uniforms.uTime.value,

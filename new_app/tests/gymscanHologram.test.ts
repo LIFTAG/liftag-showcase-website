@@ -2,9 +2,12 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
   CAGE_CORE_GAIN,
+  CAGE_PROBE_SCREEN_RADIUS,
   CORE_RGB,
+  RETICLE_RGB,
   cageMixColor,
   cageShouldDraw,
+  screenProbeWeight,
 } from '../utils/gymscan/hologramColor.ts'
 import {
   hologramPassAt,
@@ -177,21 +180,23 @@ test('trail-only cage mix is cool white, not lime', () => {
   assert.ok(trail.g > trail.r)
 })
 
-test('probe-only cage mix is cool white, not lime', () => {
+test('probe-only cage mix is the scanner-bracket chrome', () => {
   const probe = cageMixColor({ core: 0, trail: 0, probe: 1 })
-  assert.ok(probe.b >= probe.g, `probe should be cool, got ${JSON.stringify(probe)}`)
+  assert.equal(probe.r / probe.g, RETICLE_RGB[0] / RETICLE_RGB[1])
+  assert.equal(probe.b, 0)
   assert.ok(probe.g > probe.r)
 })
 
-test('core-only cage mix is brand lime', () => {
+test('core-only cage mix is the scanner-bracket chrome', () => {
   const core = cageMixColor({ core: 1, trail: 0, probe: 0 })
   assert.ok(core.g > core.r, `lime must have g > r, got ${JSON.stringify(core)}`)
   assert.ok(core.g > core.b)
   assert.ok(core.r > 0.5 && core.g > 0.5, `lime r and g must both be high, got ${JSON.stringify(core)}`)
   assert.ok(Math.abs(core.g - CORE_RGB[1] * CAGE_CORE_GAIN) < 1e-9)
+  assert.deepEqual(CORE_RGB, RETICLE_RGB)
 })
 
-test('core plus probe still reads lime rather than pale sludge', () => {
+test('core plus probe stays scanner chrome rather than pale sludge', () => {
   const lime = cageMixColor({ core: 1, trail: 0, probe: 0 })
   const mixed = cageMixColor({ core: 1, trail: 0, probe: 1 })
   const limeGR = lime.g - lime.r
@@ -207,7 +212,7 @@ test('core plus probe still reads lime rather than pale sludge', () => {
 })
 
 test('reduced-motion forces lime off even if a core weight is supplied', () => {
-  const still = cageMixColor({ core: 1, trail: 0, probe: 0, steady: 0.20 })
+  const still = cageMixColor({ core: 1, trail: 0, probe: 1, steady: 0.20 })
   const body = cageMixColor({ core: 0, trail: 1, probe: 0 })
   assert.ok(still.b >= still.g, `steady must be cool, got ${JSON.stringify(still)}`)
   assert.ok(still.g > still.r)
@@ -215,4 +220,28 @@ test('reduced-motion forces lime off even if a core weight is supplied', () => {
     Math.abs(still.r / still.g - body.r / body.g) < 1e-9,
     'steady must share the gray body hue, not lime',
   )
+})
+
+test('screen probe is full under the pointer and dead at a screen corner', () => {
+  const aspect = 16 / 9
+  assert.equal(screenProbeWeight(0, 0, 0, 0, aspect), 1)
+  assert.equal(
+    screenProbeWeight(0, 0, 0.95, 0.95, aspect),
+    0,
+    'a corner pointer must not light a centred machine',
+  )
+  assert.ok(
+    screenProbeWeight(0.05, 0, 0, 0, aspect) > 0.5,
+    'a nearby fragment stays inside the blob',
+  )
+  assert.ok(
+    screenProbeWeight(0, 0, 0, CAGE_PROBE_SCREEN_RADIUS + 0.02, aspect) === 0,
+  )
+})
+
+test('screen probe blob is circular after aspect correction', () => {
+  const aspect = 16 / 9
+  const atY = screenProbeWeight(0, CAGE_PROBE_SCREEN_RADIUS * 0.5, 0, 0, aspect)
+  const atX = screenProbeWeight(CAGE_PROBE_SCREEN_RADIUS * 0.5 / aspect, 0, 0, 0, aspect)
+  assert.ok(Math.abs(atY - atX) < 1e-9, `circle broke: y=${atY} x=${atX}`)
 })

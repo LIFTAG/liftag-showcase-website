@@ -7,6 +7,7 @@
 import * as THREE from 'three'
 
 import type { ReticleBox } from './reticle.ts'
+import { RETICLE_RGB } from './hologramColor.ts'
 
 const VERT = /* glsl */`
   uniform vec2 uViewport;
@@ -35,6 +36,7 @@ const FRAG = /* glsl */`
   uniform float uStroke;
   uniform float uOpacity;
   uniform float uGlow;
+  uniform vec3  uColor;
   varying vec2 vPixel;
 
   float segmentDistance(vec2 p, vec2 a, vec2 b) {
@@ -75,7 +77,7 @@ const FRAG = /* glsl */`
     float halo = exp(-max(d - halfStroke, 0.0) / 5.5) * uGlow;
     float alpha = max(core * 0.94, halo) * uOpacity;
     if (alpha < 0.003) discard;
-    gl_FragColor = vec4(0.80, 1.0, 0.0, alpha);
+    gl_FragColor = vec4(uColor, alpha);
   }
 `
 
@@ -143,6 +145,7 @@ export function createReticleOverlay() {
       uStroke: { value: 1.5 },
       uOpacity: { value: 0 },
       uGlow: { value: 0.22 },
+      uColor: { value: new THREE.Color(RETICLE_RGB[0], RETICLE_RGB[1], RETICLE_RGB[2]) },
     },
     transparent: true,
     depthTest: false,
