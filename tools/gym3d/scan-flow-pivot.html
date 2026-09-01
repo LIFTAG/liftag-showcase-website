@@ -51,9 +51,11 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: 42% 48%;
-      filter: brightness(0.22) saturate(0.45) blur(10px);
-      transform: scale(1.12);
+      object-position: 50% 46%;
+      /* The 3D gym still is already dark; blur it into rack-focus, do not
+         crush it to black or the morph reads as a card on a void. */
+      filter: blur(18px) brightness(1.25) saturate(1.05);
+      transform: scale(1.18);
     }
 
     .reticle {
@@ -232,7 +234,7 @@
 <body>
   <div id="stage">
     <div class="scan-bg" id="scanBg">
-      <img src="/tools/gym3d/scan-flow-src/machine.webp" alt="">
+      <img src="/tools/gym3d/scan-flow-src/gym-scene.webp" alt="">
     </div>
 
     <div class="qr-world" id="qrWorld">
@@ -384,9 +386,9 @@
       reticle.style.margin = `${-(98 + retPad)}px 0 0 ${-(98 + retPad)}px`
       reticle.style.opacity = locked ? 0 : lerp(0.7, 1, hunt)
 
-      // Keep the blurred machine under the settled QR. Fading it to black
-      // was a hard cut against the 3D gym's rack-focus plate.
-      const logCover = remap(logT, 0.82, 1.15)
+      // Stay on the blurred gym through lock AND the QR→photo morph.
+      // Only yield once the real log-set screenshot covers the frame.
+      const logCover = remap(logT, 0.95, 1.28)
       scanBg.style.opacity = 1 - logCover
       scanBg.style.filter = "none"
       scanLabel.style.opacity = locked ? 0 : lerp(0.85, 1, remap(t, 0.0, 0.35))
