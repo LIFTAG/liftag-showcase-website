@@ -170,225 +170,14 @@
       position: absolute;
       inset: 0;
       background: #0a0a0a;
-      display: flex;
-      flex-direction: column;
     }
-
-    .hero {
-      position: relative;
-      height: 214px;
-      flex: 0 0 214px;
-      border-radius: 0 0 24px 24px;
-      overflow: hidden;
-      background: #000;
-    }
-    .hero img.hero-photo {
-      position: absolute;
-      inset: 0;
+    .log img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: 50% 18%;
+      object-position: top center;
+      display: block;
     }
-    .hero-fade {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(0,0,0,0.15) 20%, rgba(0,0,0,0.82) 100%);
-    }
-    .hero-heart, .hero-info {
-      position: absolute;
-      width: 40px;
-      height: 40px;
-      border-radius: 20px;
-      background: rgba(14, 14, 14, 0.7);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      display: grid;
-      place-items: center;
-    }
-    .hero-heart { top: 54px; left: 16px; }
-    .hero-info { top: 162px; right: 16px; }
-    .hero-meta {
-      position: absolute;
-      left: 16px;
-      right: 64px;
-      bottom: 14px;
-    }
-    .hero-name {
-      font-family: "Space Grotesk", Inter, sans-serif;
-      font-weight: 700;
-      font-size: 22px;
-      letter-spacing: -0.03em;
-      line-height: 1.1;
-    }
-    .chips {
-      display: flex;
-      gap: 6px;
-      margin-top: 8px;
-      flex-wrap: wrap;
-    }
-    .chip {
-      font-size: 11px;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.1);
-      color: rgba(255, 255, 255, 0.86);
-    }
-
-    .logger {
-      flex: 1;
-      padding: 16px 16px 0;
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-    }
-    .log-head {
-      font-family: "Space Grotesk", Inter, sans-serif;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-    .wheels {
-      display: grid;
-      grid-template-columns: 1fr 1px 1fr;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
-    .wheel { text-align: center; }
-    .wheel-label {
-      font-size: 10px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.45);
-      font-weight: 600;
-    }
-    .chev {
-      width: 44px;
-      height: 32px;
-      margin: 6px auto;
-      border-radius: 16px;
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
-      display: grid;
-      place-items: center;
-      color: rgba(255, 255, 255, 0.7);
-    }
-    .wheel-val {
-      font-family: "Space Grotesk", Inter, sans-serif;
-      font-weight: 700;
-      font-size: 44px;
-      letter-spacing: -0.04em;
-      line-height: 1;
-    }
-    .wheel-unit {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.4);
-      margin-top: 2px;
-    }
-    .wheels-split { width: 1px; height: 88px; background: #222; justify-self: center; }
-    .rpe {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: rgba(255, 255, 255, 0.45);
-      font-size: 13px;
-      font-weight: 600;
-      margin: 4px 0 12px;
-    }
-    .rpe span { color: #fff; }
-    .cta {
-      height: 52px;
-      border-radius: 26px;
-      background: #CCFF00;
-      color: #111;
-      font-family: "Space Grotesk", Inter, sans-serif;
-      font-weight: 700;
-      font-size: 16px;
-      letter-spacing: 0.08em;
-      display: grid;
-      place-items: center;
-      box-shadow: 0 0 24px rgba(204, 255, 0, 0.18);
-    }
-    .ghosts { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
-    .ghost {
-      height: 36px;
-      border-radius: 12px;
-      background: #141414;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 12px;
-      color: rgba(255, 255, 255, 0.38);
-      font-size: 13px;
-    }
-    .ghost b { font-weight: 600; color: rgba(255, 255, 255, 0.55); }
-
-    .dock {
-      margin-top: auto;
-      background: linear-gradient(180deg, transparent, #0a0a0a 18%);
-      padding: 8px 12px 0;
-    }
-    .dock-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 8px 4px 10px;
-    }
-    .dock-sets {
-      color: #CCFF00;
-      font-size: 13px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .finish {
-      background: #CCFF00;
-      color: #111;
-      font-weight: 700;
-      font-size: 13px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      white-space: nowrap;
-    }
-    .tabs {
-      height: 72px;
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      align-items: end;
-      padding: 0 6px 10px;
-      position: relative;
-    }
-    .tab {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      color: #454749;
-      font-size: 8px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-    .tab.active { color: #CCFF00; }
-    .tab svg { width: 22px; height: 22px; }
-    .home-logo {
-      position: absolute;
-      left: 50%;
-      bottom: 28px;
-      width: 54px;
-      height: 54px;
-      margin-left: -27px;
-      border-radius: 50%;
-      background: #0a0a0a;
-      display: grid;
-      place-items: center;
-    }
-    .home-logo img { width: 42px; height: 42px; }
 
     .chrome { position: absolute; inset: 0; pointer-events: none; z-index: 8; }
     .island {
@@ -457,97 +246,7 @@
     <div class="scan-hint" id="scanHint">Position QR code within the frame</div>
 
     <div class="log" id="log">
-      <div class="hero">
-        <img class="hero-photo" src="/tools/gym3d/scan-flow-src/exercise.webp" alt="">
-        <div class="hero-fade"></div>
-        <div class="hero-heart">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8">
-            <path d="M12 20s-7-4.4-9.5-8.2C.4 8.6 2.2 5 6 5c2 0 3.4 1.1 4 2.2C10.6 6.1 12 5 14 5c3.8 0 5.6 3.6 3.5 6.8C19 15.6 12 20 12 20z"/>
-          </svg>
-        </div>
-        <div class="hero-info">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8">
-            <circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r="0.8" fill="#fff"/>
-          </svg>
-        </div>
-        <div class="hero-meta">
-          <div class="hero-name">Pivot Leg Press</div>
-          <div class="chips">
-            <span class="chip">Quadriceps</span>
-            <span class="chip">Glutes</span>
-            <span class="chip">Hamstrings</span>
-          </div>
-        </div>
-      </div>
-      <div class="logger">
-        <div class="log-head">Log set</div>
-        <div class="wheels">
-          <div class="wheel">
-            <div class="wheel-label">Weight</div>
-            <div class="chev">
-              <svg width="14" height="8" viewBox="0 0 14 8"><path d="M1 7l6-6 6 6" fill="none" stroke="#bbb" stroke-width="1.6" stroke-linecap="round"/></svg>
-            </div>
-            <div class="wheel-val">100</div>
-            <div class="wheel-unit">kg</div>
-            <div class="chev">
-              <svg width="14" height="8" viewBox="0 0 14 8"><path d="M1 1l6 6 6-6" fill="none" stroke="#bbb" stroke-width="1.6" stroke-linecap="round"/></svg>
-            </div>
-          </div>
-          <div class="wheels-split"></div>
-          <div class="wheel">
-            <div class="wheel-label">Reps</div>
-            <div class="chev">
-              <svg width="14" height="8" viewBox="0 0 14 8"><path d="M1 7l6-6 6 6" fill="none" stroke="#bbb" stroke-width="1.6" stroke-linecap="round"/></svg>
-            </div>
-            <div class="wheel-val">10</div>
-            <div class="wheel-unit">reps</div>
-            <div class="chev">
-              <svg width="14" height="8" viewBox="0 0 14 8"><path d="M1 1l6 6 6-6" fill="none" stroke="#bbb" stroke-width="1.6" stroke-linecap="round"/></svg>
-            </div>
-          </div>
-        </div>
-        <div class="rpe">RPE <span>—</span>
-          <svg width="10" height="6" viewBox="0 0 10 6" style="margin-left:auto"><path d="M1 1l4 4 4-4" fill="none" stroke="#666" stroke-width="1.4"/></svg>
-        </div>
-        <div class="cta">LOG SET</div>
-        <div class="ghosts">
-          <div class="ghost"><span>#1 <b>LAST SESSION</b> 100kg × 10</span><span>○</span></div>
-          <div class="ghost"><span>#2 <b>LAST SESSION</b> 100kg × 10</span><span>○</span></div>
-        </div>
-        <div class="dock">
-          <div class="dock-row">
-            <div class="dock-sets">⚡ 0 sets</div>
-            <div class="finish">Finish exercise →</div>
-          </div>
-          <div class="tabs">
-            <div class="tab active">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
-                <path d="M4 8h3l2 8h6l2-8h3"/>
-                <path d="M9 16v3M15 16v3"/>
-                <circle cx="6.5" cy="8" r="2.2"/>
-                <circle cx="17.5" cy="8" r="2.2"/>
-              </svg>
-              Workout
-            </div>
-            <div class="tab">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/></svg>
-              Explore
-            </div>
-            <div class="tab"></div>
-            <div class="tab">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>
-              History
-            </div>
-            <div class="tab">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="3"/><path d="M5 19c1.5-3 4-5 7-5s5.5 2 7 5"/></svg>
-              Profile
-            </div>
-            <div class="home-logo">
-              <img src="/new_app/public/assets/logo.svg" alt="">
-            </div>
-          </div>
-        </div>
-      </div>
+      <img src="/tools/gym3d/scan-flow-src/log-set.jpg" alt="">
     </div>
 
     <div class="card" id="card">
@@ -570,7 +269,7 @@
       </div>
     </div>
 
-    <div class="chrome">
+    <div class="chrome" id="chrome">
       <div class="status">
         <span>9:41</span>
         <span class="status-right">
@@ -584,7 +283,7 @@
         <svg width="10" height="16" viewBox="0 0 10 16"><path d="M8 2L2 8l6 6" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
     </div>
-    <div class="home-bar"></div>
+    <div class="home-bar" id="homeBar"></div>
   </div>
 
   <script>
@@ -594,7 +293,9 @@
     const H = 846
     const QR_ANCHOR = { x: 0.5, y: 0.46 }
     const SETTLE_SIZE = 196
-    const HERO = { left: 0, top: 0, width: W, height: 214, radius: 24 }
+    // Real screenshot hero: photo is full-bleed under the status bar, compact
+    // media ~170pt + ~59pt inset on a 852pt phone ≈ 27% of the frame.
+    const HERO = { left: 0, top: 0, width: W, height: Math.round(H * 0.27), radius: 24 }
     const MORPH_BLOCKS = [
       { x: 0.06, y: 0.1, s: 0.32, t: 0.0 },
       { x: 0.56, y: 0.04, s: 0.3, t: 0.07 },
@@ -620,6 +321,8 @@
     const cardPhoto = $("cardPhoto")
     const log = $("log")
     const backBtn = $("backBtn")
+    const chrome = $("chrome")
+    const homeBar = $("homeBar")
     const blocks = [...document.querySelectorAll(".morph-block")]
 
     blocks.forEach((el, i) => {
@@ -642,8 +345,6 @@
       return 1 + c3 * q * q * q + c1 * q * q
     }
     function flightEase(t) {
-      // cubic-bezier(0.22, 1, 0.36, 1) sampled via cubic solve is overkill;
-      // this is the same strong-start long-glide the app uses.
       return 1 - (1 - clamp01(t)) ** 3.6
     }
 
@@ -662,13 +363,11 @@
       const logT = t - LOG_AT
       const morph = remap(logT, 0.0, 0.78)
       const flight = remap(logT, 0.82, 1.34)
-      const chrome = remap(logT, 1.18, 1.85)
 
-      // --- SCAN: sticker drifts into the lime reticle, then isolates ---
       const hunt = remap(t, 0.0, 2.35)
       const lock = remap(t, 2.35, 2.7)
       const flatten = remap(t, 2.7, LOG_AT)
-      const isolated = t >= LOG_AT - 0.001
+      const locked = t >= 2.7
 
       const ox = lerp(-36, 0, easeOutCubic(hunt))
       const oy = lerp(28, 0, easeOutCubic(hunt))
@@ -683,14 +382,15 @@
       reticle.style.width = 196 + retPad * 2 + "px"
       reticle.style.height = 196 + retPad * 2 + "px"
       reticle.style.margin = `${-(98 + retPad)}px 0 0 ${-(98 + retPad)}px`
-      reticle.style.opacity = isolated ? 0 : lerp(0.7, 1, hunt)
+      reticle.style.opacity = locked ? 0 : lerp(0.7, 1, hunt)
 
-      scanBg.style.opacity = isolated ? 0 : lerp(1, 0.08, flatten)
-      scanBg.style.filter = `blur(${lerp(0, 18, flatten)}px)`
-      scanLabel.style.opacity = isolated ? 0 : lerp(0.85, 1, remap(t, 0.0, 0.35)) * (1 - flatten)
-      scanHint.style.opacity = isolated ? 0 : lerp(0, 1, remap(t, 0.4, 0.8)) * (1 - lock)
-      // Keep the physical sticker up through the 3.2s LOG cut so gym-scan
-      // can QR-to-QR blend onto this frame. Morph blocks cover it after.
+      // Keep the blurred machine under the settled QR. Fading it to black
+      // was a hard cut against the 3D gym's rack-focus plate.
+      const logCover = remap(logT, 0.82, 1.15)
+      scanBg.style.opacity = 1 - logCover
+      scanBg.style.filter = "none"
+      scanLabel.style.opacity = locked ? 0 : lerp(0.85, 1, remap(t, 0.0, 0.35))
+      scanHint.style.opacity = locked ? 0 : lerp(0, 1, remap(t, 0.4, 0.8)) * (1 - lock)
       qrWorld.style.opacity = morph > 0.42 ? 0 : 1
       const worldW = lerp(168, SETTLE_SIZE, flatten)
       const worldH = lerp(178, SETTLE_SIZE, flatten)
@@ -698,12 +398,16 @@
       qrWorld.style.height = worldH + "px"
       qrWorld.style.margin = `${-worldH / 2}px 0 0 ${-worldW / 2}px`
       qrWorld.style.borderRadius = lerp(18, 22, flatten) + "px"
-      backBtn.style.opacity = t < 4.15 ? 1 : 0
+      backBtn.style.opacity = t < 4.15 && logCover < 0.5 ? 1 : 0
 
-      // --- LOG morph, matching the app's QrMorphCard + flight ---
-      log.style.opacity = logT > 0.8 ? 1 : 0
-      log.style.filter = `blur(${lerp(18, 0, remap(logT, 1.0, 1.55))}px)`
-      log.style.transform = `translateY(${lerp(18, 0, easeOutCubic(chrome))}px)`
+      // Real capture has its own status bar / island. Hide the scanner chrome
+      // as the screenshot docks so we do not draw 9:41 over 23:37.
+      const chromeOut = remap(logT, 0.88, 1.12)
+      chrome.style.opacity = 1 - chromeOut
+      homeBar.style.opacity = 0.9 * (1 - chromeOut)
+
+      log.style.opacity = logCover
+      log.style.filter = `blur(${lerp(10, 0, remap(logT, 0.95, 1.25))}px)`
 
       const settleLeft = QR_ANCHOR.x * W - SETTLE_SIZE / 2
       const settleTop = QR_ANCHOR.y * H - SETTLE_SIZE / 2
@@ -743,12 +447,6 @@
       const payoffFade = remap(morph, 0.5, 0.6)
       cardPhoto.style.opacity = payoffFade
       cardPhoto.querySelector("img").style.transform = `scale(${easeOutBack(payoffPop)})`
-
-      // Logger chrome stagger.
-      document.querySelector(".logger").style.opacity = chrome
-      document.querySelector(".hero-meta").style.opacity = lerp(0, 1, remap(logT, 1.12, 1.45))
-      document.querySelector(".hero-heart").style.opacity = lerp(0, 1, remap(logT, 1.2, 1.5))
-      document.querySelector(".hero-info").style.opacity = lerp(0, 1, remap(logT, 1.22, 1.52))
     }
 
     window.setTime = setTime

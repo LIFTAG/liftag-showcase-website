@@ -127,13 +127,16 @@ def main() -> int:
     encode(tmp, av1, "av1")
 
     still = STILL_DIR / "log-set.webp"
-    last = tmp / f"{FRAMES - 1:04d}.jpg"
+    capture = ROOT / "tools" / "gym3d" / "scan-flow-src" / "log-set.jpg"
     from PIL import Image
-    Image.open(last).save(still, "WEBP", quality=86, method=6)
+    src = capture if capture.exists() else tmp / f"{FRAMES - 1:04d}.jpg"
+    Image.open(src).convert("RGB").resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS).save(
+        still, "WEBP", quality=90, method=6,
+    )
 
     print(h264, h264.stat().st_size, "bytes")
     print(av1, av1.stat().st_size, "bytes")
-    print(still_jpg, still_jpg.stat().st_size, "bytes")
+    print(still, still.stat().st_size, "bytes")
     return 0
 
 
