@@ -62,7 +62,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     const original = router.options.scrollBehavior as RouterScrollBehavior | undefined
 
     router.options.scrollBehavior = (to, from, savedPosition) => {
-      if (isTrainersHash(to.hash) && to.path === '/') {
+      if (isTrainersHash(to.hash) && (to.path === '/' || to.path === '/gym-scan')) {
         return new Promise((resolve) => {
           const started = Date.now()
           const run = () => {

@@ -13,6 +13,13 @@ import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import { useSharedMouse, delayedSampleAt, onMouseEvent } from '../composables/useSharedMouse'
 import { coverFitScreenUVs } from '../utils/macbookScreen'
+import {
+  createPhoneModel,
+  PHONE_REST_ROT_X,
+  PHONE_REST_ROT_Y,
+  PHONE_SCR_H,
+  PHONE_SCR_W,
+} from '../utils/phoneModel'
 import type { ScreenVideoSegment, ScreenVideoSource } from '../utils/screenVideo'
 import { createScreenVideoElement, createSegmentPlayback } from '../utils/screenVideo'
 
@@ -134,63 +141,8 @@ function initPhone() {
     scene.add(shadowPlane)
   }
 
-  const W = 0.95
-  const H = 1.95
-  const D = 0.08
-  const R = 0.14
-  const BEZEL = 0.025
-
-  function roundedRect(w: number, h: number, r: number) {
-    const shape = new THREE.Shape()
-    const hw = w / 2
-    const hh = h / 2
-
-    shape.moveTo(-hw + r, -hh)
-    shape.lineTo(hw - r, -hh)
-    shape.quadraticCurveTo(hw, -hh, hw, -hh + r)
-    shape.lineTo(hw, hh - r)
-    shape.quadraticCurveTo(hw, hh, hw - r, hh)
-    shape.lineTo(-hw + r, hh)
-    shape.quadraticCurveTo(-hw, hh, -hw, hh - r)
-    shape.lineTo(-hw, -hh + r)
-    shape.quadraticCurveTo(-hw, -hh, -hw + r, -hh)
-
-    return shape
-  }
-
-  const bodyGeo = new THREE.ExtrudeGeometry(roundedRect(W, H, R), {
-    steps: 1,
-    depth: D,
-    bevelEnabled: true,
-    bevelThickness: 0.012,
-    bevelSize: 0.012,
-    bevelSegments: 5,
-  })
-  bodyGeo.center()
-
-  const bodyMat = new THREE.MeshPhysicalMaterial({
-    color: 0x1c1c1e,
-    metalness: 0.95,
-    roughness: 0.2,
-    clearcoat: 0.8,
-    clearcoatRoughness: 0.15,
-  })
-  const body = new THREE.Mesh(bodyGeo, bodyMat)
-  body.castShadow = !isLite
-
-  const scrW = W - BEZEL * 2
-  const scrH = H - BEZEL * 2
-  const scrR = R - BEZEL
-  const screenGeo = new THREE.ShapeGeometry(roundedRect(scrW, scrH, scrR))
-  const pos = screenGeo.attributes.position as THREE.BufferAttribute
-  const uvs = new Float32Array(pos.count * 2)
-
-  for (let i = 0; i < pos.count; i += 1) {
-    uvs[i * 2] = (pos.getX(i) + scrW / 2) / scrW
-    uvs[i * 2 + 1] = (pos.getY(i) + scrH / 2) / scrH
-  }
-
-  screenGeo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2))
+  const scrW = PHONE_SCR_W
+  const scrH = PHONE_SCR_H
 
   function configureScreenTexture(texture: THREE.Texture) {
     texture.colorSpace = THREE.SRGBColorSpace
@@ -346,106 +298,13 @@ function initPhone() {
   configureScreenTexture(activeTexture)
   const screenMat = new THREE.MeshBasicMaterial({ map: activeTexture, toneMapped: false })
 
-  const screen = new THREE.Mesh(
-    screenGeo,
-    screenMat,
-  )
-  screen.position.z = D / 2 + 0.013
-
-  const glass = new THREE.Mesh(
-    new THREE.ShapeGeometry(roundedRect(scrW, scrH, scrR)),
-    new THREE.MeshPhysicalMaterial({
-      color: 0xffffff,
-      transparent: true,
-      opacity: 0.03,
-      roughness: 0.05,
-      metalness: 0,
-      clearcoat: 1,
-    }),
-  )
-  glass.position.z = D / 2 + 0.014
-
-  const diW = 0.26
-  const diH = 0.065
-  const diShape = new THREE.Shape()
-  const diR = diH / 2
-  diShape.absarc(diW / 2 - diR, 0, diR, -Math.PI / 2, Math.PI / 2, false)
-  diShape.absarc(-diW / 2 + diR, 0, diR, Math.PI / 2, -Math.PI / 2, false)
-
-  const dynamicIsland = new THREE.Mesh(
-    new THREE.ShapeGeometry(diShape),
-    new THREE.MeshBasicMaterial({ color: 0x000000 }),
-  )
-  dynamicIsland.position.set(0, scrH / 2 - 0.06, D / 2 + 0.0145)
-
-  const btnMat = new THREE.MeshPhysicalMaterial({
-    color: 0x2a2a2e,
-    metalness: 0.95,
-    roughness: 0.15,
+  const phoneModel = createPhoneModel({
+    screenMaterial: screenMat,
+    castShadow: !isLite,
   })
-
-  const powerBtn = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.19, 0.05), btnMat)
-  powerBtn.position.set(W / 2 + 0.014, 0.35, 0)
-
-  const volUp = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.13, 0.05), btnMat)
-  volUp.position.set(-W / 2 - 0.014, 0.36, 0)
-
-  const volDown = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.13, 0.05), btnMat)
-  volDown.position.set(-W / 2 - 0.014, 0.16, 0)
-
-  const muteSwitch = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.08, 0.04), btnMat)
-  muteSwitch.position.set(-W / 2 - 0.014, 0.58, 0)
-
-  const camHousing = new THREE.Mesh(
-    new THREE.ExtrudeGeometry(roundedRect(0.35, 0.35, 0.06), {
-      depth: 0.015,
-      bevelEnabled: true,
-      bevelThickness: 0.005,
-      bevelSize: 0.005,
-      bevelSegments: 3,
-    }),
-    new THREE.MeshPhysicalMaterial({
-      color: 0x1c1c1e,
-      metalness: 0.9,
-      roughness: 0.2,
-    }),
-  )
-  camHousing.position.set(-0.15, 0.6, -D / 2 - 0.02)
-
-  const lensGeo = new THREE.CylinderGeometry(0.045, 0.045, 0.02, 24)
-  const lensMat = new THREE.MeshPhysicalMaterial({
-    color: 0x0a0a12,
-    metalness: 0.5,
-    roughness: 0.05,
-    clearcoat: 1,
-  })
-  const lensRingGeo = new THREE.TorusGeometry(0.048, 0.005, 8, 32)
-  const lensRingMat = new THREE.MeshPhysicalMaterial({
-    color: 0x333338,
-    metalness: 0.95,
-    roughness: 0.1,
-  })
-
-  function makeLens(x: number, y: number) {
-    const lens = new THREE.Mesh(lensGeo, lensMat)
-    lens.rotation.x = Math.PI / 2
-    lens.position.set(x, y, -D / 2 - 0.03)
-
-    const ring = new THREE.Mesh(lensRingGeo, lensRingMat)
-    ring.position.set(x, y, -D / 2 - 0.022)
-
-    return [lens, ring]
-  }
-
-  const [l1, r1] = makeLens(-0.22, 0.68)
-  const [l2, r2] = makeLens(-0.08, 0.68)
-  const [l3, r3] = makeLens(-0.15, 0.52)
-
-  const phone = new THREE.Group()
-  phone.add(body, screen, glass, dynamicIsland, powerBtn, volUp, volDown, muteSwitch)
-  phone.add(camHousing, l1, r1, l2, r2, l3, r3)
-  phone.rotation.x = 0.08
-  phone.rotation.y = -0.12
+  const phone = phoneModel.group
+  phone.rotation.x = PHONE_REST_ROT_X
+  phone.rotation.y = PHONE_REST_ROT_Y
   scene.add(phone)
 
   let textureReady = false
@@ -610,10 +469,10 @@ function initPhone() {
 
   let gyroActive = false
   let gyroCleanup: (() => void) | null = null
-  let targetRotX = 0.08
-  let targetRotY = -0.12
-  let currentRotX = 0.08
-  let currentRotY = -0.12
+  let targetRotX = PHONE_REST_ROT_X
+  let targetRotY = PHONE_REST_ROT_Y
+  let currentRotX = PHONE_REST_ROT_X
+  let currentRotY = PHONE_REST_ROT_Y
   let animId = 0
   let isVisible = false
   // Set while the mobile nav drawer covers the page (see SiteNav). The drawer's
@@ -625,8 +484,8 @@ function initPhone() {
   let idleMotionActive = false
   let idleMotionStart = 0
   let lastIdleRender = 0
-  const restRotX = 0.08
-  const restRotY = -0.12
+  const restRotX = PHONE_REST_ROT_X
+  const restRotY = PHONE_REST_ROT_Y
   // The 2.4s sweep and 8.1s rest form the same 10.5s cadence used by the
   // mobile hero's two CSS rear phones.
   const idleDuration = 2400

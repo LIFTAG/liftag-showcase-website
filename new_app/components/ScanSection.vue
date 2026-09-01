@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ScreenVideoSource } from '../utils/screenVideo'
+import { SCAN_FLOW_SEGMENTS, SCAN_FLOW_SOURCES } from '../utils/scanFlow'
 
 const step = ref(0)
 // Bumped on every step change so the newly active row's title replays the
@@ -88,29 +88,12 @@ const steps = [
   },
 ]
 
-// AV1 first, H.264 as the universal fallback - same cut, and the AV1 encode is
-// roughly 40% of the bytes.
-const SCAN_VIDEO_SOURCES: ScreenVideoSource[] = [
-  { src: '/assets/videos/scan-flow.av1.mp4', type: 'video/mp4; codecs="av01.0.08M.08"' },
-  { src: '/assets/videos/scan-flow.mp4', type: 'video/mp4; codecs="avc1.640028"' },
-]
-
-// One continuous capture of a real scan, cut so each step owns one `scanCycleMs`
-// slice: the viewfinder sweep and lock-on, then the exercise opening and the
-// log-set screen settling. The second slice holds on its final frame for the
-// last ~0.4s, so a step that stops cycling - hovered, or paused off screen -
-// rests on a still rather than on whatever frame it happened to reach.
-const SCAN_VIDEO_SEGMENTS = [
-  { start: 0, end: 3.2 },
-  { start: 3.2, end: 6.4 },
-]
-
 // videoCycleKey re-arms the current slice from its start. It advances whenever
 // the step timer is re-armed - coming back on screen, or a hover being
 // released - so the footage restarts alongside the timer instead of resuming
 // mid-slice against a step that starts counting from zero.
 const scanVideoSegment = computed(() => ({
-  ...(SCAN_VIDEO_SEGMENTS[step.value] ?? SCAN_VIDEO_SEGMENTS[0]),
+  ...(SCAN_FLOW_SEGMENTS[step.value] ?? SCAN_FLOW_SEGMENTS[0]),
   key: videoCycleKey.value,
 }))
 
@@ -343,7 +326,7 @@ onBeforeUnmount(() => {
                 <div class="scan-phone-camera">
                   <Phone
                     :src="steps[step].screen"
-                    :video-sources="SCAN_VIDEO_SOURCES"
+                    :video-sources="SCAN_FLOW_SOURCES"
                     :video-segment="scanVideoSegment"
                     :scale="1.05"
                     sizes="(max-width: 768px) 36vw, 280px"

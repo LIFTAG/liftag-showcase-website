@@ -55,3 +55,12 @@ lh-reports/
 # Isolated Remotion reel package
 remotion/node_modules/
 remotion/out/
+
+# Purchased CGTrader source pack (licensed, never commit)
+/all+fitness.blend
+/textures.rar
+/.assets-src/
+/.blend-work/
+
+__pycache__/
+*.pyc
