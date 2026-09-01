@@ -42,20 +42,15 @@
 
     .scan-bg {
       position: absolute;
-      inset: -8%;
-      background:
-        radial-gradient(ellipse at 50% 42%, rgba(40, 44, 48, 0.55), transparent 55%),
-        #050505;
+      inset: 0;
+      background: #0a0c10;
     }
     .scan-bg img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: 50% 46%;
-      /* The 3D gym still is already dark; blur it into rack-focus, do not
-         crush it to black or the morph reads as a card on a void. */
-      filter: blur(18px) brightness(1.25) saturate(1.05);
-      transform: scale(1.18);
+      object-position: 50% 50%;
+      display: block;
     }
 
     .reticle {
@@ -234,7 +229,7 @@
 <body>
   <div id="stage">
     <div class="scan-bg" id="scanBg">
-      <img src="/tools/gym3d/scan-flow-src/gym-scene.webp" alt="">
+      <img src="/tools/gym3d/scan-flow-src/gym-scene.png" alt="">
     </div>
 
     <div class="qr-world" id="qrWorld">
@@ -386,27 +381,30 @@
       reticle.style.margin = `${-(98 + retPad)}px 0 0 ${-(98 + retPad)}px`
       reticle.style.opacity = locked ? 0 : lerp(0.7, 1, hunt)
 
-      // Stay on the blurred gym through lock AND the QR→photo morph.
-      // Only yield once the real log-set screenshot covers the frame.
+      // The plate is the lock-on 3D gym. Keep it sharp for the QR-to-QR cut,
+      // then rack it a little while the sticker dissolves. Never crush it
+      // to black. Yield only when the real log-set screenshot covers the frame.
       const logCover = remap(logT, 0.95, 1.28)
+      const rack = remap(logT, 0.0, 0.28) * (1 - logCover)
       scanBg.style.opacity = 1 - logCover
-      scanBg.style.filter = "none"
+      scanBg.style.filter = rack > 0.001 ? `blur(${(rack * 7).toFixed(2)}px)` : "none"
       scanLabel.style.opacity = locked ? 0 : lerp(0.85, 1, remap(t, 0.0, 0.35))
       scanHint.style.opacity = locked ? 0 : lerp(0, 1, remap(t, 0.4, 0.8)) * (1 - lock)
-      qrWorld.style.opacity = morph > 0.42 ? 0 : 1
+      qrWorld.style.opacity = t >= LOG_AT || morph > 0.42 ? 0 : 1
       const worldW = lerp(168, SETTLE_SIZE, flatten)
       const worldH = lerp(178, SETTLE_SIZE, flatten)
       qrWorld.style.width = worldW + "px"
       qrWorld.style.height = worldH + "px"
       qrWorld.style.margin = `${-worldH / 2}px 0 0 ${-worldW / 2}px`
       qrWorld.style.borderRadius = lerp(18, 22, flatten) + "px"
-      backBtn.style.opacity = t < 4.15 && logCover < 0.5 ? 1 : 0
+      backBtn.style.opacity = 0
 
-      // Real capture has its own status bar / island. Hide the scanner chrome
-      // as the screenshot docks so we do not draw 9:41 over 23:37.
-      const chromeOut = remap(logT, 0.88, 1.12)
+      // The lock-on gym already has the 3D phone's island. Fake 9:41 chrome
+      // would print over that room and break the cut. The log-set capture
+      // brings its own status bar when it docks.
+      const chromeOut = t < LOG_AT ? 0 : 1
       chrome.style.opacity = 1 - chromeOut
-      homeBar.style.opacity = 0.9 * (1 - chromeOut)
+      homeBar.style.opacity = t < LOG_AT ? 0.9 : 0
 
       log.style.opacity = logCover
       log.style.filter = `blur(${lerp(10, 0, remap(logT, 0.95, 1.25))}px)`
@@ -430,9 +428,12 @@
         card.style.opacity = 0
       } else {
         setCardBox(left, top, width, height, radius)
+        // The lock-on still already holds the 3D sticker. The card is only
+        // the white-block dissolve and the photo, so the first LOG frame
+        // matches the gym on the phone.
         card.style.opacity = flight > 0.98 ? 0 : 1
       }
-      cardQr.style.opacity = 1 - remap(morph, 0.32, 0.5)
+      cardQr.style.opacity = t < LOG_AT ? 1 : 0
       const inset = lerp(7, 0, f)
       cardPhoto.style.inset = inset + "px"
       cardPhoto.style.borderRadius = lerp(27, HERO.radius, f) + "px"
