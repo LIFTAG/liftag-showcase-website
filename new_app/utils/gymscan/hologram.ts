@@ -1,16 +1,23 @@
 // The machine's hologram exoskeleton, and the floor shockwave it becomes.
 //
 // A second, slightly larger copy of the hero machine drawn as its own
-// triangulation - thin outlines, one per triangle, nothing filled - that a
-// bright horizontal line sweeps top-to-bottom through at a fixed cadence. It
-// is the system's *read* of the machine made visible: the line kicks down,
-// the mesh resolves behind it, and both leave together.
+// triangulation - thin outlines, one per triangle, nothing filled. Two
+// fields light that one cage: a bright horizontal line that sweeps
+// top-to-bottom at a fixed cadence, and the cursor probe that already
+// grazes the machine's surface. It is the system's *read* of the machine
+// made visible: the line kicks down, the mesh resolves behind it, and the
+// pointer can hold a patch of that mesh between passes.
 //
 // When the line reaches the ground it does not stop. The same energy peels
 // off the machine's feet as a circular shockwave of triangle outlines, the
 // floor's own wire read, expanding with the same kick the line arrived on.
-// The two share a clock and a colour so the splash reads as the sweep
-// continuing, not as a second effect.
+// The two share a clock so the splash reads as the sweep continuing, not as
+// a second effect. The travelling front, and the cursor's local patch, are
+// the scanner-bracket chrome - the same untonemapped (0.80, 1, 0) as the
+// four L-corners. The reconstructed mesh behind the line stays the room's
+// cool white. The cursor does not spawn a floor ring - the splash is
+// sweep-only. The cursor blob is screen-space around the pointer, so a
+// mouse in the corner of the frame does not light the machine.
 //
 // Why a separate shell rather than another term in the machine's own shader:
 // the analysis effects that used to live there were all removed for one
@@ -27,11 +34,22 @@
 // is its own additive mesh of a few thousand triangles, hidden between
 // passes, discarded wherever it is not a wire.
 //
-// It is deliberately colourless - the room's own cool white, not lime. Lime
-// was tried and it turned the whole shot green: at this scale the shell is not
-// an accent, it is a second machine, and a second machine's worth of brand
-// colour is far past what this palette will carry.
+// Lime is allowed only as the travelling core, the floor-ring front, and
+// the local cursor patch. Area of lime is the constraint: at this scale a
+// lime *body* is a second machine, which is what greened the whole shot
+// when it was tried. Sweep trail and the reduced-motion shell stay the
+// room's cool white.
 import * as THREE from 'three'
+import {
+  CAGE_BODY_GAIN,
+  CAGE_CORE_GAIN,
+  CAGE_PROBE_GAIN,
+  CAGE_PROBE_SCREEN_INNER,
+  CAGE_PROBE_SCREEN_RADIUS,
+  CORE_RGB,
+  WIRE_RGB,
+  cageShouldDraw,
+} from './hologramColor'
 import {
   hologramPassAt,
   PEEL,
@@ -60,14 +78,27 @@ export interface HologramOptions {
   offset?: number
 }
 
+export interface HologramProbe {
+  /** CSS NDC, y down. Same space as `useSharedMouse` / `setPointer`. */
+  ndc: { x: number, y: number }
+  /** Drawing-buffer size of the gym render target, for `gl_FragCoord`. */
+  viewport: { x: number, y: number }
+  amp: number
+  live: number
+  /** Same clock the surface probe uses for its noise drift. */
+  time: number
+}
+
 export interface HologramShell {
   object: THREE.Object3D
   /**
    * @param elapsed  seconds since the stage started
    * @param envelope 0..1 scroll gate; at 0 the shell is not drawn at all
    * @param steady   when true the sweep is replaced by a constant faint shell
+   * @param probe    damped cursor field already written on the machine;
+   *                 omitted is a dark probe
    */
-  update(elapsed: number, envelope: number, steady: boolean): void
+  update(elapsed: number, envelope: number, steady: boolean, probe?: HologramProbe): void
   /**
    * Lift the cage with the machine during the entry drop. The floor wave
    * stays on the mat - it is a read of the ground, not of the falling mesh.
@@ -79,7 +110,8 @@ export interface HologramShell {
   readonly peelTime: number
 }
 
-const WIRE_COLOR = new THREE.Color(0.62, 0.80, 1.0)
+const WIRE_COLOR = new THREE.Color(WIRE_RGB[0], WIRE_RGB[1], WIRE_RGB[2])
+const CORE_COLOR = new THREE.Color(CORE_RGB[0], CORE_RGB[1], CORE_RGB[2])
 /** How far the splash runs across the mat, metres. */
 const WAVE_MAX_R = 6.20
 /** Peak vertex lift at the shockwave front, metres. */
@@ -292,14 +324,25 @@ function createCageMaterial(offset: number): THREE.ShaderMaterial {
     uTrail: { value: TRAIL },
     uSteady: { value: 0 },
     uWireColor: { value: WIRE_COLOR },
+    uCoreColor: { value: CORE_COLOR },
     uWireWidth: { value: 0.9 },
-    uBodyGain: { value: 0.14 },
-    uCoreGain: { value: 0.95 },
+    uBodyGain: { value: CAGE_BODY_GAIN },
+    uCoreGain: { value: CAGE_CORE_GAIN },
+    uProbeGain: { value: CAGE_PROBE_GAIN },
+    uPointer: { value: new THREE.Vector2() },
+    uViewport: { value: new THREE.Vector2(1, 1) },
+    uProbeRadius: { value: CAGE_PROBE_SCREEN_RADIUS },
+    uProbeAmp: { value: 0 },
+    uProbeLive: { value: 0 },
+    uTime: { value: 0 },
   }
 
   return new THREE.ShaderMaterial({
     name: 'LiftagHologramShell',
     uniforms,
+    // Same as the L-corner overlay: untonemapped so (0.80, 1, 0) is the
+    // chrome you see, not AgX's reading of it.
+    toneMapped: false,
     // Additive, depth-tested but not depth-writing: the shell has to be
     // occluded by the machine and the floor but must not occlude itself.
     transparent: true,
@@ -335,14 +378,41 @@ function createCageMaterial(offset: number): THREE.ShaderMaterial {
       uniform float uTrail;
       uniform float uSteady;
       uniform vec3  uWireColor;
+      uniform vec3  uCoreColor;
       uniform float uWireWidth;
       uniform float uBodyGain;
       uniform float uCoreGain;
+      uniform float uProbeGain;
+      uniform vec2  uPointer;
+      uniform vec2  uViewport;
+      uniform float uProbeRadius;
+      uniform float uProbeAmp;
+      uniform float uProbeLive;
+      uniform float uTime;
       varying vec3 vBary;
       varying vec3 vWorldPos;
       varying vec3 vViewNormal;
       varying vec3 vViewPos;
       #include <fog_pars_fragment>
+
+      // Same hash/noise as machineMaterial.ts so the cage blob and the
+      // surface graze share a boundary.
+      float lgHash(vec3 p) {
+        p = fract(p * 0.3183099 + vec3(0.71, 0.113, 0.419));
+        p *= 17.0;
+        return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+      }
+      float lgNoise(vec3 x) {
+        vec3 i = floor(x);
+        vec3 f = fract(x);
+        f = f * f * (3.0 - 2.0 * f);
+        return mix(
+          mix(mix(lgHash(i + vec3(0,0,0)), lgHash(i + vec3(1,0,0)), f.x),
+              mix(lgHash(i + vec3(0,1,0)), lgHash(i + vec3(1,1,0)), f.x), f.y),
+          mix(mix(lgHash(i + vec3(0,0,1)), lgHash(i + vec3(1,0,1)), f.x),
+              mix(lgHash(i + vec3(0,1,1)), lgHash(i + vec3(1,1,1)), f.x), f.y),
+          f.z);
+      }
 
       void main() {
         vec3 bw = fwidth(vBary);
@@ -357,12 +427,36 @@ function createCageMaterial(offset: number): THREE.ShaderMaterial {
         float facing = 0.60 + 0.40 * pow(1.0 - abs(dot(n, v)), 2.0);
 
         float d = vWorldPos.y - uBandY;
-        float core  = exp(-abs(d) / uCoreWidth);
+        // Parked at yTop under reduced-motion; evaluating the exponential
+        // there would paint a lime cap on the machine.
+        float core  = uSteady > 0.0 ? 0.0 : exp(-abs(d) / uCoreWidth);
         float trail = d > 0.0 ? exp(-d / uTrail) : 0.0;
-        float body  = max(trail, uSteady);
 
-        vec3 col = uWireColor * wire * facing * (body * uBodyGain + core * uCoreGain);
-        col *= uAmp;
+        float probe = 0.0;
+        // Screen-space, not a world point mapped onto the machine. The old
+        // world probe parked on the frame from any pointer, so a cursor in
+        // the corner still lit the cage. CSS NDC, y down, aspect-corrected
+        // so the blob is circular and dies off the machine.
+        if (uProbeAmp * uProbeLive > 0.001) {
+          vec2 fragCss = vec2(
+            gl_FragCoord.x / max(uViewport.x, 1.0) * 2.0 - 1.0,
+            (0.5 - gl_FragCoord.y / max(uViewport.y, 1.0)) * 2.0
+          );
+          vec2 delta = fragCss - uPointer;
+          delta.x *= uViewport.x / max(uViewport.y, 1.0);
+          float lgDist = length(delta);
+          float lgWob = lgNoise(vWorldPos * 2.1 + vec3(0.0, uTime * 0.22, uTime * 0.13));
+          float lgR = uProbeRadius * (0.90 + 0.14 * lgWob);
+          probe = (1.0 - smoothstep(lgR * ${CAGE_PROBE_SCREEN_INNER.toFixed(2)}, lgR, lgDist))
+            * uProbeAmp * uProbeLive;
+        }
+
+        // Sweep amp scales the travelling fields only. The probe is already
+        // its own amp, so a live cursor can hold a local patch between cycles.
+        // Cursor blob is scanner chrome, same as the core; trail stays white.
+        float grayWeight = max(trail * uBodyGain * uAmp, uSteady * uBodyGain * uAmp);
+        float limeWeight = core * uCoreGain * uAmp + probe * uProbeGain;
+        vec3 col = wire * facing * (uWireColor * grayWeight + uCoreColor * limeWeight);
 
         if (max(col.r, max(col.g, col.b)) < 0.0015) discard;
 
@@ -381,6 +475,7 @@ function createGroundMaterial(): THREE.ShaderMaterial {
     uCoreWidth: { value: WAVE_CORE },
     uLift: { value: WAVE_LIFT },
     uWireColor: { value: WIRE_COLOR },
+    uCoreColor: { value: CORE_COLOR },
     uWireWidth: { value: 0.95 },
     uMaxR: { value: WAVE_MAX_R },
     uWake: { value: 0.24 },
@@ -399,6 +494,7 @@ function createGroundMaterial(): THREE.ShaderMaterial {
     depthTest: true,
     side: THREE.DoubleSide,
     fog: true,
+    toneMapped: false,
     polygonOffset: true,
     polygonOffsetFactor: -8,
     polygonOffsetUnits: -16,
@@ -446,6 +542,7 @@ function createGroundMaterial(): THREE.ShaderMaterial {
       uniform float uWaveR;
       uniform float uCoreWidth;
       uniform vec3  uWireColor;
+      uniform vec3  uCoreColor;
       uniform float uWireWidth;
       uniform float uMaxR;
       uniform float uWake;
@@ -497,13 +594,17 @@ function createGroundMaterial(): THREE.ShaderMaterial {
         float inside = d < 0.0 ? 1.0 : 0.0;
         float trail = inside * exp(d / wakeLen);
         float rim = 1.0 - smoothstep(uMaxR * 0.86, uMaxR, r);
-        float body = trail * uBodyGain + core * uCoreGain + halo * 0.16;
-        // Filaments fade along their length in front of the ring.
+        // Lime is the travelling front (core + a thin halo). Wake, and the
+        // roots growing off it, stay the room's cool white - those are a
+        // reconstructed mesh, and lime on a metre of filaments would be
+        // the second-machine flood again, just on the floor.
+        float grayWeight = trail * uBodyGain;
+        float limeWeight = core * uCoreGain + halo * 0.16;
         if (vKind > 0.5 && d > 0.0) {
-          body = max(body, uCoreGain * 0.88 * exp(-d / 0.30));
+          grayWeight = max(grayWeight, uCoreGain * 0.88 * exp(-d / 0.30));
         }
 
-        vec3 col = uWireColor * wire * facing * rim * body;
+        vec3 col = wire * facing * rim * (uWireColor * grayWeight + uCoreColor * limeWeight);
         col *= uAmp * (1.0 - 0.24 * far);
 
         if (max(col.r, max(col.g, col.b)) < 0.0015) discard;
@@ -540,6 +641,8 @@ export function createHologramShell(
   const groundMat = createGroundMaterial()
   const cageUniforms = cageMat.uniforms
   const groundUniforms = groundMat.uniforms
+  const pointerUniform = cageUniforms.uPointer!.value as unknown as THREE.Vector2
+  const viewportUniform = cageUniforms.uViewport!.value as unknown as THREE.Vector2
 
   const object = new THREE.Group()
   object.name = 'LiftagHologram'
@@ -581,24 +684,54 @@ export function createHologramShell(
   const peelTime = Math.max(0, timeAtHeight(Y_CONTACT, yTop, yBottom) - PEEL)
   let altitude = 0
 
-  function update(elapsed: number, envelope: number, steady: boolean): void {
+  function writeProbe(probe: HologramProbe | undefined, envelope: number): number {
+    const amp = probe?.amp ?? 0
+    if (probe) {
+      pointerUniform.set(probe.ndc.x, probe.ndc.y)
+      viewportUniform.set(probe.viewport.x, probe.viewport.y)
+      cageUniforms.uProbeRadius!.value = CAGE_PROBE_SCREEN_RADIUS
+      // Envelope fades the blob with the scroll gate; amp itself is the
+      // already-damped surface field, not a second pointer lerp.
+      cageUniforms.uProbeAmp!.value = amp * envelope
+      cageUniforms.uProbeLive!.value = probe.live
+      cageUniforms.uTime!.value = probe.time
+    } else {
+      cageUniforms.uProbeAmp!.value = 0
+      cageUniforms.uProbeLive!.value = 0
+    }
+    return amp
+  }
+
+  function update(
+    elapsed: number,
+    envelope: number,
+    steady: boolean,
+    probe?: HologramProbe,
+  ): void {
     if (envelope <= 0.001) {
       object.visible = false
       cage.visible = false
       return
     }
 
+    const probeAmp = writeProbe(probe, envelope)
+    // Draw uses live-gated amp so the idle 0.16 surface graze cannot keep
+    // the cage submitted for the whole hologram window.
+    const probeDraw = probeAmp * (probe?.live ?? 0)
+
     if (steady) {
       // Far below what a sweep peaks at. This is a permanent cage rather
       // than a passing one, and at sweep strength it competes with the
       // machine it is wrapped around instead of hinting at it. The splash
-      // is motion; under reduced-motion it does not run.
+      // is motion; under reduced-motion it does not run. Core is zeroed
+      // in the shader whenever uSteady > 0, so the parked band cannot
+      // paint a lime cap.
       cageUniforms.uSteady!.value = 0.20
       cageUniforms.uBandY!.value = yTop + altitude
       cageUniforms.uAmp!.value = envelope
-      cage.visible = true
+      cage.visible = cageShouldDraw({ envelope, cageAmp: 0, probeAmp: probeDraw, steady: true })
       ground.visible = false
-      object.visible = true
+      object.visible = cage.visible
       return
     }
 
@@ -609,7 +742,12 @@ export function createHologramShell(
     cageUniforms.uBandY!.value = pass.bandY + altitude
     cageUniforms.uTrail!.value = pass.cageTrail
     cageUniforms.uAmp!.value = pass.cageAmp
-    cage.visible = pass.cageAmp > 0.002
+    cage.visible = cageShouldDraw({
+      envelope,
+      cageAmp: pass.cageAmp,
+      probeAmp: probeDraw,
+      steady: false,
+    })
 
     groundUniforms.uWaveR!.value = pass.waveR
     groundUniforms.uWake!.value = pass.wakeR

@@ -221,11 +221,10 @@ const FRAGMENT_TAIL = /* glsl */`
     // probe is reduced to its fresnel term and grazes edges only.
     //
     // Weighted heavily toward fresnel, and both weights kept very low. The
-    // point of the cursor is that the machine is *noticing* it, which is a
-    // grazing lift along the near edges - as soon as the flat term is large
-    // enough to see on a face, it stops being a reaction and becomes a torch
-    // being shone at the machine, and the room's darkness goes with it.
-    gl_FragColor.rgb += vec3(0.58, 0.66, 0.80) * lgProbe * (lgFres * 0.13 + 0.0038 * uProbeLive);
+    // cage now carries the readable cursor reveal; this surface term is the
+    // machine *noticing* the pointer, a grazing lift along the near edges.
+    // The flat fill is a torch the moment it is large enough to see on a face.
+    gl_FragColor.rgb += vec3(0.58, 0.66, 0.80) * lgProbe * (lgFres * 0.13 + 0.0022 * uProbeLive);
   }
 
   // Dev-only channel inspector, driven from the debug handle in stage.ts.
