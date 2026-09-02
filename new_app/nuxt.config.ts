@@ -155,8 +155,12 @@ export default defineNuxtConfig({
     '/pricing': { prerender: true },
     '/alternatives/**': { prerender: true },
     '/vs/**': { prerender: true },
-    '/guides': { prerender: true },
-    '/guides/**': { prerender: true },
+    '/journal': { prerender: true },
+    '/journal/**': { prerender: true },
+    // Old hub name. Keep the 308s so indexed /guides URLs and in-app
+    // bookmarks land on /journal instead of competing as a second tree.
+    '/guides': { redirect: { to: '/journal', statusCode: 308 } },
+    '/guides/**': { redirect: { to: '/journal/**', statusCode: 308 } },
     '/about': { prerender: true },
     '/press': { prerender: true },
     '/contact/**': { prerender: true },

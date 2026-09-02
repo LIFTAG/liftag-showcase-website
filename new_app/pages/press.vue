@@ -147,7 +147,7 @@ useLiftagStructuredData([
             <ul>
               <li><a href="/about">About LIFTAG</a> — company facts and how to cite us.</li>
               <li><a href="/best-workout-tracking-app">Best workout tracking app</a> — tracker comparison.</li>
-              <li><a href="/guides/workout-logger">Workout logger guide</a> — what a workout logbook is and how LIFTAG logs sets.</li>
+              <li><a href="/journal/workout-logger">Workout logger guide</a> — what a workout logbook is and how LIFTAG logs sets.</li>
             </ul>
           </section>
 

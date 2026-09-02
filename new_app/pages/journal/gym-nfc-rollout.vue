@@ -2,7 +2,7 @@
 const title = 'How gyms roll out <span class="lime">NFC tags.</span>'
 const description = 'A practical LIFTAG rollout: tag one floor, confirm every machine opens the right lift, then copy the kit across locations. No invented gym quotes — the 1→12 path the product is built for.'
 
-const path = '/guides/gym-nfc-rollout'
+const path = '/journal/gym-nfc-rollout'
 const datePublished = '2026-08-20'
 
 useLiftagSeo({
@@ -40,7 +40,7 @@ useLiftagStructuredData([
   }),
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
-    { name: 'Guides', path: '/guides' },
+    { name: 'Journal', path: '/journal' },
     { name: 'Gym NFC tag rollout', path },
   ]),
   liftagArticle({
@@ -69,7 +69,7 @@ useLiftagStructuredData([
     <main>
       <article class="guide">
         <header class="guide-hero container">
-          <p class="protocol guide-eyebrow"><a href="/guides">GUIDES</a> · GYMS · UPDATED AUG 2026</p>
+          <p class="protocol guide-eyebrow"><a href="/journal">JOURNAL</a> · GYMS · UPDATED AUG 2026</p>
           <h1 class="display guide-title" v-html="title"></h1>
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
@@ -86,7 +86,7 @@ useLiftagStructuredData([
             </p>
             <p>
               If you want hardware folklore (chip types, height, glare), use
-              <a href="/guides/nfc-tags-for-gym-equipment">NFC tags for gym equipment</a>.
+              <a href="/journal/nfc-tags-for-gym-equipment">NFC tags for gym equipment</a>.
               If you want the vendor matrix, use
               <a href="/best-gym-qr-nfc-app">best gym QR and NFC app</a>.
             </p>

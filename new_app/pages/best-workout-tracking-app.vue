@@ -406,10 +406,10 @@ const cards: AppCard[] = [
             <li><a href="/muscles">All muscle groups</a></li>
           </ul>
           <p class="bwt-section-lead">
-            Also: <a href="/guides/best-workout-logger">best workout logger</a>,
-            <a href="/guides/best-free-workout-tracker">best free workout tracker</a>,
-            <a href="/guides/strong-vs-hevy-vs-liftag">Strong vs Hevy vs LIFTAG</a>,
-            and <a href="/guides/workout-logger">workout logger vs tracker</a>.
+            Also: <a href="/journal/best-workout-logger">best workout logger</a>,
+            <a href="/journal/best-free-workout-tracker">best free workout tracker</a>,
+            <a href="/journal/strong-vs-hevy-vs-liftag">Strong vs Hevy vs LIFTAG</a>,
+            and <a href="/journal/workout-logger">workout logger vs tracker</a>.
           </p>
           <p class="bwt-section-lead">
             Two apps get their own head-to-head with store-sourced, dated pricing:

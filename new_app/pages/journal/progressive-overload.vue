@@ -2,7 +2,7 @@
 const title = 'Progressive <span class="lime">overload.</span>'
 const description = 'Progressive overload is adding a small, honest demand over time: load, reps, or sets. How to do it on the big lifts without inflating the log, and how a workout tracker makes the next jump obvious.'
 
-const path = '/guides/progressive-overload'
+const path = '/journal/progressive-overload'
 const datePublished = '2026-08-20'
 
 useLiftagSeo({
@@ -40,7 +40,7 @@ useLiftagStructuredData([
   }),
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
-    { name: 'Guides', path: '/guides' },
+    { name: 'Journal', path: '/journal' },
     { name: 'Progressive overload', path },
   ]),
   liftagArticle({
@@ -69,12 +69,12 @@ useLiftagStructuredData([
     <main>
       <article class="guide">
         <header class="guide-hero container">
-          <p class="protocol guide-eyebrow"><a href="/guides">GUIDES</a> · LIFTING · UPDATED AUG 2026</p>
+          <p class="protocol guide-eyebrow"><a href="/journal">JOURNAL</a> · LIFTING · UPDATED AUG 2026</p>
           <h1 class="display guide-title" v-html="title"></h1>
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
             <a href="/" class="btn-primary">Track the next jump</a>
-            <a href="/guides/what-is-rpe-lifting" class="btn-ghost">What is RPE</a>
+            <a href="/journal/what-is-rpe-lifting" class="btn-ghost">What is RPE</a>
           </div>
         </header>
 
@@ -101,7 +101,7 @@ useLiftagStructuredData([
             </ul>
             <p>
               Rest is not a lever to shorten so the session looks denser. Shorter rest with worse reps is a different workout. Log rest if you change it. See
-              <a href="/guides/how-to-track-workouts">how to track workouts</a>.
+              <a href="/journal/how-to-track-workouts">how to track workouts</a>.
             </p>
           </section>
 

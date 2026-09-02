@@ -86,7 +86,7 @@ useLiftagStructuredData([
             <h2>What we ship</h2>
             <p>
               LIFTAG is a workout and set tracking app for people who actually train. Log weight, reps, rest, and optional
-              <a href="/guides/what-is-rpe-lifting">RPE</a>. Keep PRs and estimated 1RM. Run a rest timer. Read volume later instead of guessing.
+              <a href="/journal/what-is-rpe-lifting">RPE</a>. Keep PRs and estimated 1RM. Run a rest timer. Read volume later instead of guessing.
             </p>
             <p>
               At partner gyms the same app becomes the floor. An NFC tag or QR sticker on a machine opens the exact lift — for example
@@ -117,10 +117,10 @@ useLiftagStructuredData([
               Paste-ready boilerplate, logos, and store IDs live on the
               <a href="/press">press page</a>.
               If you are comparing workout loggers, start with
-              <a href="/guides/best-workout-logger">the workout logger guide</a>,
+              <a href="/journal/best-workout-logger">the workout logger guide</a>,
               <a href="/best-workout-tracking-app">the 2026 tracker comparison</a>,
-              <a href="/guides/best-free-workout-tracker">the free-tier page</a>,
-              and the <a href="/guides/workout-logger">workout logger vs tracker</a> guide.
+              <a href="/journal/best-free-workout-tracker">the free-tier page</a>,
+              and the <a href="/journal/workout-logger">workout logger vs tracker</a> guide.
             </p>
             <p>
               Agents: <a href="/llms.txt">llms.txt</a> is the short briefing;
@@ -135,7 +135,7 @@ useLiftagStructuredData([
               <li><a href="/for-lifters">Lifters</a> who want a log that survives a training block.</li>
               <li><a href="/for-trainers">Trainers</a> who want plans and client history instead of screenshots.</li>
               <li><a href="/for-gyms">Gyms</a> that want every machine to open the right exercise. See the
-                <a href="/guides/gym-nfc-rollout">NFC rollout playbook</a>.</li>
+                <a href="/journal/gym-nfc-rollout">NFC rollout playbook</a>.</li>
             </ul>
           </section>
 

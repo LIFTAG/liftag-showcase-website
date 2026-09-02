@@ -2,7 +2,7 @@
 const title = 'QR and NFC <span class="lime">gym tracking</span>, explained.'
 const description = 'How NFC tags and QR codes on gym machines change workout tracking: what they do, why they matter, and which workout apps in 2026 actually support the tap-and-scan flow.'
 
-const path = '/guides/qr-nfc-gym-tracking'
+const path = '/journal/qr-nfc-gym-tracking'
 const datePublished = '2026-05-25'
 
 useLiftagSeo({
@@ -43,7 +43,7 @@ useLiftagStructuredData([
   liftagMobileApplication,
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
-    { name: 'Guides', path: '/guides' },
+    { name: 'Journal', path: '/journal' },
     { name: 'QR and NFC gym tracking', path },
   ]),
   liftagArticle({
@@ -61,7 +61,7 @@ useLiftagStructuredData([
     <main>
       <article class="guide">
         <header class="guide-hero container">
-          <p class="protocol guide-eyebrow"><a href="/guides">GUIDES</a> · MACHINE SYNC · UPDATED AUG 2026</p>
+          <p class="protocol guide-eyebrow"><a href="/journal">JOURNAL</a> · MACHINE SYNC · UPDATED AUG 2026</p>
           <h1 class="display guide-title" v-html="title"></h1>
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">

@@ -329,14 +329,6 @@ const heroPlaying = ref(false)
                 <div class="ex-hero-scrim" aria-hidden="true" />
                 <div class="ex-hero-overlay">
                   <p class="ex-name ex-name--hero" aria-hidden="true">{{ name }}</p>
-                  <CatalogMuscleChips
-                    compact
-                    :primary="exercise.primaryCategory"
-                    :secondary="secondaryMuscles"
-                    :aria-label="chrome.musclesAria"
-                    :name-for="muscleName"
-                    :to-for="muscleTo"
-                  />
                 </div>
               </div>
             </template>
@@ -360,7 +352,19 @@ const heroPlaying = ref(false)
           />
 
           <section v-if="showAnatomy" class="ex-anatomy">
-            <h2 class="protocol ex-section-title">{{ chrome.anatomyHeading }}</h2>
+            <div class="ex-anatomy__head">
+              <h2 class="protocol ex-section-title">{{ chrome.anatomyHeading }}</h2>
+              <ul class="protocol ex-anatomy__legend">
+                <li>
+                  <span class="ex-anatomy__swatch ex-anatomy__swatch--primary" aria-hidden="true" />
+                  {{ chrome.anatomyPrimary }}
+                </li>
+                <li>
+                  <span class="ex-anatomy__swatch ex-anatomy__swatch--secondary" aria-hidden="true" />
+                  {{ chrome.anatomySecondary }}
+                </li>
+              </ul>
+            </div>
             <div class="ex-anatomy__stage">
               <ClientOnly>
                 <CatalogExerciseAnatomy
@@ -369,22 +373,14 @@ const heroPlaying = ref(false)
                     ? muscleName(exercise.primaryCategory.slug, exercise.primaryCategory.name)
                     : null"
                   :secondary="anatomySecondary"
+                  :to-for="muscleTo"
+                  :name-for="muscleName"
                 />
                 <template #fallback>
                   <div class="ex-anatomy__placeholder" aria-hidden="true" />
                 </template>
               </ClientOnly>
             </div>
-            <ul class="protocol ex-anatomy__legend">
-              <li>
-                <span class="ex-anatomy__swatch ex-anatomy__swatch--primary" aria-hidden="true" />
-                {{ chrome.anatomyPrimary }}
-              </li>
-              <li>
-                <span class="ex-anatomy__swatch ex-anatomy__swatch--secondary" aria-hidden="true" />
-                {{ chrome.anatomySecondary }}
-              </li>
-            </ul>
           </section>
 
           <p v-if="overview" class="ex-description">{{ overview }}</p>
@@ -565,31 +561,41 @@ const heroPlaying = ref(false)
 }
 
 .ex-anatomy {
+  --anatomy-h: 230px;
   margin-top: 22px;
+  padding: 0;
+}
+
+.ex-anatomy__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 8px;
 }
 
 .ex-anatomy .ex-section-title {
-  margin-bottom: 10px;
+  margin: 0;
 }
 
-/* 230px matches ANATOMY_SVG_HEIGHT_PX so the ClientOnly fallback does not shift layout. */
+/* Height matches --anatomy-h so the ClientOnly fallback does not shift layout. */
 .ex-anatomy__stage {
-  min-height: 230px;
-  height: 230px;
+  min-height: var(--anatomy-h);
+  height: var(--anatomy-h);
   overflow: hidden;
 }
 
 .ex-anatomy__placeholder {
-  min-height: 230px;
-  height: 230px;
+  min-height: var(--anatomy-h);
+  height: var(--anatomy-h);
 }
 
 .ex-anatomy__legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 18px;
-  justify-content: center;
-  margin: 10px 0 0;
+  gap: 10px 14px;
+  margin: 0;
   padding: 0;
   list-style: none;
   color: var(--liftag-fg-tertiary);
@@ -598,7 +604,7 @@ const heroPlaying = ref(false)
 .ex-anatomy__legend li {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .ex-anatomy__swatch {
@@ -612,7 +618,7 @@ const heroPlaying = ref(false)
 }
 
 .ex-anatomy__swatch--secondary {
-  background: #8fbf0c;
+  background: #5e7814;
 }
 
 .ex-description {
@@ -899,13 +905,7 @@ const heroPlaying = ref(false)
     right: 0;
     bottom: 0;
     left: 0;
-    display: grid;
-    gap: 8px;
     padding: 0 60px 16px 16px;
-  }
-
-  .ex-hero-overlay :deep(.muscle-chips) {
-    pointer-events: auto;
   }
 
   .ex-name--hero {
@@ -919,7 +919,7 @@ const heroPlaying = ref(false)
     position: relative;
     z-index: 2;
     margin: 0;
-    padding: 20px max(20px, var(--liftag-safe-right)) 0 max(20px, var(--liftag-safe-left));
+    padding: 16px max(20px, var(--liftag-safe-right)) 0 max(20px, var(--liftag-safe-left));
     background: #0e0e0e;
   }
 
@@ -944,20 +944,27 @@ const heroPlaying = ref(false)
     white-space: nowrap;
   }
 
-  .ex-info > .ex-muscles {
-    display: none;
-  }
-
   .ex-meta {
     margin-top: 0;
   }
 
+  .ex-info :deep(.ex-muscles) {
+    margin-top: 12px;
+  }
+
   .ex-anatomy {
-    margin-top: 16px;
+    --anatomy-h: 220px;
+    margin-top: 20px;
+    /* Global `section` on this breakpoint is 80px !important. */
+    padding: 0 !important;
+  }
+
+  .ex-anatomy__head {
+    margin-bottom: 4px;
   }
 
   .ex-stage.is-playing .ex-anatomy {
-    margin-top: 22px;
+    margin-top: 14px;
   }
 
   .ex-description {
@@ -993,8 +1000,8 @@ const heroPlaying = ref(false)
     font-size: 22px;
   }
 
-  .ex-stage.is-playing .ex-info > .ex-muscles {
-    display: flex;
+  .ex-stage.is-playing .ex-meta {
+    margin-top: 8px;
   }
 
   .ex-log-panel {

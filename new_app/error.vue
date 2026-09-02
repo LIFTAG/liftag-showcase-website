@@ -11,7 +11,7 @@ const is404 = computed(() => props.error?.statusCode === 404)
 const title = computed(() => is404.value ? 'Page not found | LIFTAG' : 'Something went wrong | LIFTAG')
 const description = computed(() =>
   is404.value
-    ? 'That LIFTAG page does not exist. Open the homepage, guides, or get the workout tracking app.'
+    ? 'That LIFTAG page does not exist. Open the homepage, the journal, or get the workout tracking app.'
     : 'LIFTAG hit an unexpected error. Go back to the homepage or contact support.',
 )
 
@@ -27,7 +27,7 @@ useLiftagSeo({
 const links = [
   { href: '/', label: 'Homepage' },
   { href: '/for-lifters', label: 'For lifters' },
-  { href: '/guides', label: 'Guides' },
+  { href: '/journal', label: 'Journal' },
   { href: '/best-workout-tracking-app', label: 'Compare trackers' },
   { href: '/best-gym-qr-nfc-app', label: 'Compare gym QR platforms' },
   { href: '/contact/support', label: 'Support' },
@@ -45,7 +45,7 @@ const links = [
       </h1>
       <p class="error-lead">
         {{ is404
-          ? 'That URL is not a LIFTAG page. The app, the guides, and the gym network are still here.'
+          ? 'That URL is not a LIFTAG page. The app, the journal, and the gym network are still here.'
           : 'An unexpected error stopped this page. Try again, or tell us what you were doing.' }}
       </p>
       <div class="error-actions">

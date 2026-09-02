@@ -5,7 +5,7 @@ export interface StaticPageEntry {
   priority: string
 }
 
-/** Marketing and guide URLs that live in git, not the catalog API. */
+/** Marketing and journal URLs that live in git, not the catalog API. */
 export const STATIC_PAGES: StaticPageEntry[] = [
   { path: '/', lastmod: '2026-08-19', changefreq: 'weekly', priority: '1.0' },
   { path: '/for-lifters', lastmod: '2026-08-19', changefreq: 'weekly', priority: '0.8' },
@@ -20,18 +20,18 @@ export const STATIC_PAGES: StaticPageEntry[] = [
   { path: '/best-gym-qr-nfc-app', lastmod: '2026-08-19', changefreq: 'monthly', priority: '0.9' },
   { path: '/alternatives/hevy', lastmod: '2026-08-27', changefreq: 'monthly', priority: '0.8' },
   { path: '/vs/strong', lastmod: '2026-08-27', changefreq: 'monthly', priority: '0.8' },
-  { path: '/guides', lastmod: '2026-08-20', changefreq: 'weekly', priority: '0.7' },
-  { path: '/guides/how-to-track-workouts', lastmod: '2026-08-19', changefreq: 'monthly', priority: '0.7' },
-  { path: '/guides/best-workout-app-for-powerlifting', lastmod: '2026-08-19', changefreq: 'monthly', priority: '0.7' },
-  { path: '/guides/qr-nfc-gym-tracking', lastmod: '2026-08-19', changefreq: 'monthly', priority: '0.7' },
-  { path: '/guides/best-workout-logger', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.8' },
-  { path: '/guides/best-free-workout-tracker', lastmod: '2026-08-19', changefreq: 'monthly', priority: '0.8' },
-  { path: '/guides/strong-vs-hevy-vs-liftag', lastmod: '2026-08-19', changefreq: 'monthly', priority: '0.8' },
-  { path: '/guides/workout-logger', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.8' },
-  { path: '/guides/nfc-tags-for-gym-equipment', lastmod: '2026-08-19', changefreq: 'monthly', priority: '0.8' },
-  { path: '/guides/what-is-rpe-lifting', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.7' },
-  { path: '/guides/progressive-overload', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.7' },
-  { path: '/guides/gym-nfc-rollout', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.7' },
+  { path: '/journal', lastmod: '2026-09-02', changefreq: 'weekly', priority: '0.7' },
+  { path: '/journal/how-to-track-workouts', lastmod: '2026-09-02', changefreq: 'monthly', priority: '0.7' },
+  { path: '/journal/best-workout-app-for-powerlifting', lastmod: '2026-09-02', changefreq: 'monthly', priority: '0.7' },
+  { path: '/journal/qr-nfc-gym-tracking', lastmod: '2026-09-02', changefreq: 'monthly', priority: '0.7' },
+  { path: '/journal/best-workout-logger', lastmod: '2026-09-02', changefreq: 'monthly', priority: '0.8' },
+  { path: '/journal/best-free-workout-tracker', lastmod: '2026-09-02', changefreq: 'monthly', priority: '0.8' },
+  { path: '/journal/strong-vs-hevy-vs-liftag', lastmod: '2026-09-02', changefreq: 'monthly', priority: '0.8' },
+  { path: '/journal/workout-logger', lastmod: '2026-09-02', changefreq: 'monthly', priority: '0.8' },
+  { path: '/journal/nfc-tags-for-gym-equipment', lastmod: '2026-09-02', changefreq: 'monthly', priority: '0.8' },
+  { path: '/journal/what-is-rpe-lifting', lastmod: '2026-09-02', changefreq: 'monthly', priority: '0.7' },
+  { path: '/journal/progressive-overload', lastmod: '2026-09-02', changefreq: 'monthly', priority: '0.7' },
+  { path: '/journal/gym-nfc-rollout', lastmod: '2026-09-02', changefreq: 'monthly', priority: '0.7' },
   { path: '/about', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.6' },
   { path: '/press', lastmod: '2026-08-20', changefreq: 'monthly', priority: '0.5' },
   { path: '/privacy-policy', lastmod: '2026-08-14', changefreq: 'yearly', priority: '0.3' },

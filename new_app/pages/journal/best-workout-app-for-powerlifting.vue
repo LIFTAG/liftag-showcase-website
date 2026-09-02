@@ -2,7 +2,7 @@
 const title = 'Best workout app for <span class="lime">powerlifting</span> in 2026.'
 const description = 'The most honest comparison of workout tracking apps for powerlifters in 2026, covering LIFTAG, Strong, Boostcamp, Hevy, and FitNotes, including programming, % of 1RM, and PR tracking.'
 
-const path = '/guides/best-workout-app-for-powerlifting'
+const path = '/journal/best-workout-app-for-powerlifting'
 const datePublished = '2026-05-25'
 
 useLiftagSeo({
@@ -43,7 +43,7 @@ useLiftagStructuredData([
   liftagMobileApplication,
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
-    { name: 'Guides', path: '/guides' },
+    { name: 'Journal', path: '/journal' },
     { name: 'Best workout app for powerlifting', path },
   ]),
   liftagArticle({
@@ -136,7 +136,7 @@ const picks: Pick[] = [
     <main>
       <article class="guide">
         <header class="guide-hero container">
-          <p class="protocol guide-eyebrow"><a href="/guides">GUIDES</a> · POWERLIFTING · UPDATED MAY 2026</p>
+          <p class="protocol guide-eyebrow"><a href="/journal">JOURNAL</a> · POWERLIFTING · UPDATED MAY 2026</p>
           <h1 class="display guide-title" v-html="title"></h1>
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">

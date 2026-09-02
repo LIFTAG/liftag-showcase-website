@@ -3,17 +3,25 @@ import { test } from 'node:test'
 import {
   BODY_COLOR,
   HEAT_COLORS,
+  HIGHLIGHTER_VIEW_POLYGONS,
+  MUSCLE_TO_SLUG,
+  PRIMARY_COLOR,
   PRIMARY_FREQUENCY,
+  SECONDARY_COLOR,
   SECONDARY_FREQUENCY,
   SLUG_TO_MUSCLES,
   buildExerciseBodyData,
   hasExerciseAnatomy,
+  highlighterMuscleToSlug,
 } from '../utils/exerciseAnatomy.ts'
 
-test('primary maps to frequency 5 lime and secondary to mid lime', () => {
-  assert.equal(HEAT_COLORS[PRIMARY_FREQUENCY - 1], '#ccff00')
-  assert.equal(HEAT_COLORS[SECONDARY_FREQUENCY - 1], '#8fbf0c')
-  assert.equal(BODY_COLOR, '#2b2b2b')
+test('primary is brand lime and secondary is a darker olive', () => {
+  assert.equal(HEAT_COLORS[PRIMARY_FREQUENCY - 1], PRIMARY_COLOR)
+  assert.equal(HEAT_COLORS[SECONDARY_FREQUENCY - 1], SECONDARY_COLOR)
+  assert.equal(PRIMARY_COLOR, '#ccff00')
+  assert.equal(SECONDARY_COLOR, '#5e7814')
+  assert.equal(BODY_COLOR, '#3f3f3f')
+  assert.notEqual(PRIMARY_COLOR, SECONDARY_COLOR)
 
   const data = buildExerciseBodyData('chest', ['triceps', 'shoulders'], {
     chest: 'Chest',
@@ -21,15 +29,15 @@ test('primary maps to frequency 5 lime and secondary to mid lime', () => {
     shoulders: 'Shoulders',
   })
   assert.deepEqual(data, [
-    { name: 'Chest', muscles: ['chest'], frequency: 5 },
-    { name: 'Triceps', muscles: ['triceps'], frequency: 3 },
-    { name: 'Shoulders', muscles: ['front-deltoids', 'back-deltoids'], frequency: 3 },
+    { name: 'Chest', muscles: ['chest'], frequency: PRIMARY_FREQUENCY },
+    { name: 'Triceps', muscles: ['triceps'], frequency: SECONDARY_FREQUENCY },
+    { name: 'Shoulders', muscles: ['front-deltoids', 'back-deltoids'], frequency: SECONDARY_FREQUENCY },
   ])
 })
 
 test('drops cardio, full-body, and unknown slugs', () => {
   assert.deepEqual(buildExerciseBodyData('cardio', ['full-body', 'unknown', 'biceps']), [
-    { name: 'biceps', muscles: ['biceps'], frequency: 3 },
+    { name: 'biceps', muscles: ['biceps'], frequency: SECONDARY_FREQUENCY },
   ])
   assert.deepEqual(buildExerciseBodyData(null, []), [])
   assert.deepEqual(buildExerciseBodyData(undefined, ['cardio']), [])
@@ -50,5 +58,28 @@ test('every mapped slug has highlighter polygons', () => {
     assert.ok(muscles.length > 0, slug)
     const [row] = buildExerciseBodyData(slug, [])
     assert.deepEqual(row?.muscles, muscles)
+  }
+})
+
+test('highlighter muscle ids reverse-map to catalog hub slugs', () => {
+  for (const [slug, muscles] of Object.entries(SLUG_TO_MUSCLES)) {
+    for (const muscle of muscles) {
+      assert.equal(highlighterMuscleToSlug(muscle), slug, muscle)
+    }
+  }
+  assert.equal(highlighterMuscleToSlug('obliques'), 'abs')
+  assert.equal(highlighterMuscleToSlug('left-soleus'), 'calves')
+  assert.equal(highlighterMuscleToSlug('head'), null)
+  assert.equal(highlighterMuscleToSlug('knees'), null)
+  assert.equal(highlighterMuscleToSlug(''), null)
+  for (const slug of Object.values(MUSCLE_TO_SLUG)) {
+    assert.ok(slug in SLUG_TO_MUSCLES, slug)
+  }
+})
+
+test('highlighter view layouts stamp 33 polygons each', () => {
+  for (const view of ['anterior', 'posterior'] as const) {
+    const total = HIGHLIGHTER_VIEW_POLYGONS[view].reduce((sum, row) => sum + row.count, 0)
+    assert.equal(total, 33, view)
   }
 })

@@ -2,7 +2,7 @@
 const title = 'NFC tags for <span class="lime">gym equipment.</span>'
 const description = 'What to put on each gym machine in 2026: NFC vs QR, tag placement, NTAG types, and how a tap opens the right exercise in a workout tracker.'
 
-const path = '/guides/nfc-tags-for-gym-equipment'
+const path = '/journal/nfc-tags-for-gym-equipment'
 const datePublished = '2026-08-19'
 
 useLiftagSeo({
@@ -40,7 +40,7 @@ useLiftagStructuredData([
   }),
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
-    { name: 'Guides', path: '/guides' },
+    { name: 'Journal', path: '/journal' },
     { name: 'NFC tags for gym equipment', path },
   ]),
   liftagArticle({
@@ -70,7 +70,7 @@ useLiftagStructuredData([
     <main>
       <article class="guide">
         <header class="guide-hero container">
-          <p class="protocol guide-eyebrow"><a href="/guides">GUIDES</a> · GYM TECH · UPDATED AUG 2026</p>
+          <p class="protocol guide-eyebrow"><a href="/journal">JOURNAL</a> · GYM TECH · UPDATED AUG 2026</p>
           <h1 class="display guide-title" v-html="title"></h1>
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
@@ -124,7 +124,7 @@ useLiftagStructuredData([
             </p>
             <p>
               If you do not want to source any of that, that is the kit LIFTAG sends partner gyms: both radios, mapped to the catalog, free at the core. The floor walk is
-              <a href="/guides/gym-nfc-rollout">how gyms roll out NFC tags</a>.
+              <a href="/journal/gym-nfc-rollout">how gyms roll out NFC tags</a>.
               <a href="/contact/partner">Ask for a rollout</a>.
             </p>
           </section>

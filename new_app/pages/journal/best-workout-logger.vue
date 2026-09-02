@@ -2,7 +2,7 @@
 const title = 'Best workout logger in <span class="lime">2026.</span>'
 const description = 'A workout logger is the app that writes the set down. How that job differs from a workout tracker or a paper logbook, and which loggers are worth installing in 2026: LIFTAG, Strong, Hevy, and FitNotes.'
 
-const path = '/guides/best-workout-logger'
+const path = '/journal/best-workout-logger'
 const datePublished = '2026-08-20'
 
 useLiftagSeo({
@@ -48,7 +48,7 @@ useLiftagStructuredData([
   }),
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
-    { name: 'Guides', path: '/guides' },
+    { name: 'Journal', path: '/journal' },
     { name: 'Best workout logger', path },
   ]),
   liftagArticle({
@@ -66,7 +66,7 @@ useLiftagStructuredData([
     <main>
       <article class="guide">
         <header class="guide-hero container">
-          <p class="protocol guide-eyebrow"><a href="/guides">GUIDES</a> · COMPARISON · UPDATED AUG 2026</p>
+          <p class="protocol guide-eyebrow"><a href="/journal">JOURNAL</a> · COMPARISON · UPDATED AUG 2026</p>
           <h1 class="display guide-title" v-html="title"></h1>
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
@@ -84,7 +84,7 @@ useLiftagStructuredData([
             </p>
             <p>
               The jobs are close and the search language is not. A <strong>workout logger</strong> writes the set down: exercise, load, reps, rest, optional
-              <a href="/guides/what-is-rpe-lifting">RPE</a>.
+              <a href="/journal/what-is-rpe-lifting">RPE</a>.
               A <strong>workout tracker</strong> can mean that, or a watch that counts steps, or an app that builds the session for you.
               A <strong>logbook</strong> is the notebook on the squat rack — or the digital one that is supposed to replace it.
             </p>
@@ -92,9 +92,9 @@ useLiftagStructuredData([
               This page is the logging job. Not programming. Not calorie math. Not “the app designed today’s workout.” If you want the eight-app product matrix, use the
               <a href="/best-workout-tracking-app">2026 workout tracking app comparison</a>.
               If you only care what you get without paying, use the
-              <a href="/guides/best-free-workout-tracker">free tracker guide</a>.
+              <a href="/journal/best-free-workout-tracker">free tracker guide</a>.
               Logger versus tracker, without the 2026 ranking, is the
-              <a href="/guides/workout-logger">workout logger vs tracker</a> page.
+              <a href="/journal/workout-logger">workout logger vs tracker</a> page.
             </p>
           </section>
 
@@ -192,12 +192,12 @@ useLiftagStructuredData([
             </p>
             <p>
               <strong>Paper</strong> still works. A gym logbook with a pen does not crash, does not nag, and does not need signal. It also does not chart
-              <a href="/guides/progressive-overload">progressive overload</a>
+              <a href="/journal/progressive-overload">progressive overload</a>
               or tell you last Tuesday’s top set while you unrack. Pair it with an app if you want both the ritual and the record.
             </p>
             <p>
               Head-to-head on Strong versus Hevy versus LIFTAG, including paid tiers, is
-              <a href="/guides/strong-vs-hevy-vs-liftag">its own page</a>.
+              <a href="/journal/strong-vs-hevy-vs-liftag">its own page</a>.
             </p>
           </section>
 
@@ -212,7 +212,7 @@ useLiftagStructuredData([
             </ul>
             <p>
               How to actually fill the log — what to write, what to skip — is
-              <a href="/guides/how-to-track-workouts">how to track workouts</a>.
+              <a href="/journal/how-to-track-workouts">how to track workouts</a>.
               This page is only which logger holds it.
             </p>
           </section>
