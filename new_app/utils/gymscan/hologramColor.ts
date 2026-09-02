@@ -1,8 +1,8 @@
 // Cage colour and draw rules, extracted from the hologram shader so they can
 // be unit-tested without WebGL.
 //
-// The travelling core and the cursor blob share the scanner-bracket chrome
-// (the four L-corners). The reconstructed mesh behind the line stays the
+// The travelling core is scanner-bracket chrome (the four L-corners). The
+// reconstructed mesh behind the line, and the cursor's local patch, stay the
 // room's cool white, so a full-body lime cage cannot green the shot.
 
 /** Cool-white reconstructed mesh. Same units as the cage shader's `uWireColor`. */
@@ -12,12 +12,12 @@ export const WIRE_RGB = [0.62, 0.80, 1.0] as const
  * (`reticleOverlay.ts`), which is drawn with `toneMapped: false`.
  */
 export const RETICLE_RGB = [0.80, 1.0, 0.0] as const
-/** Sweep core and cursor blob. Alias of the L-corner colour. */
+/** Sweep core and floor-ring front. Alias of the L-corner colour. */
 export const CORE_RGB = RETICLE_RGB
 
 export const CAGE_BODY_GAIN = 0.14
 export const CAGE_CORE_GAIN = 0.95
-/** Local cursor cage. Louder than the trail: a small patch of chrome, not a fill. */
+/** Local cursor cage. Louder than the trail: a small gray patch, not a fill. */
 export const CAGE_PROBE_GAIN = 0.26
 /** Same epsilon the shell used to hide itself between sweep cycles. */
 export const CAGE_DRAW_EPS = 0.002
@@ -42,8 +42,9 @@ export interface CageMixWeights {
   trail: number
   probe: number
   /**
-   * Reduced-motion gray floor. Any value > 0 forces lime (core and probe)
-   * to zero so a parked band cannot paint a lime cap on the machine.
+   * Reduced-motion gray floor. Any value > 0 forces lime (core) to zero
+   * so a parked band cannot paint a lime cap on the machine. The cursor
+   * probe is gray, so it still contributes.
    */
   steady?: number
 }
@@ -72,16 +73,15 @@ export function cageShouldDraw(s: CageDrawState): boolean {
 
 /**
  * Shader colour contract, minus wire/facing/amp:
- *   grayWeight = max(trail * bodyGain, steady)
- *   limeWeight = core * coreGain + probe * probeGain   (zeroed when steady > 0)
+ *   grayWeight = max(trail * bodyGain + probe * probeGain, steady)
+ *   limeWeight = core * coreGain   (zeroed when steady > 0)
  *   col        = WIRE * grayWeight + RETICLE * limeWeight
  */
 export function cageMixColor(w: CageMixWeights): Rgb {
   const steady = w.steady ?? 0
   const core = steady > 0 ? 0 : w.core
-  const probe = steady > 0 ? 0 : w.probe
-  const grayWeight = Math.max(w.trail * CAGE_BODY_GAIN, steady)
-  const limeWeight = core * CAGE_CORE_GAIN + probe * CAGE_PROBE_GAIN
+  const grayWeight = Math.max(w.trail * CAGE_BODY_GAIN + w.probe * CAGE_PROBE_GAIN, steady)
+  const limeWeight = core * CAGE_CORE_GAIN
   return {
     r: WIRE_RGB[0] * grayWeight + CORE_RGB[0] * limeWeight,
     g: WIRE_RGB[1] * grayWeight + CORE_RGB[1] * limeWeight,

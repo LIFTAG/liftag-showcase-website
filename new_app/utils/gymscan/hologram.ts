@@ -12,12 +12,12 @@
 // off the machine's feet as a circular shockwave of triangle outlines, the
 // floor's own wire read, expanding with the same kick the line arrived on.
 // The two share a clock so the splash reads as the sweep continuing, not as
-// a second effect. The travelling front, and the cursor's local patch, are
-// the scanner-bracket chrome - the same untonemapped (0.80, 1, 0) as the
-// four L-corners. The reconstructed mesh behind the line stays the room's
-// cool white. The cursor does not spawn a floor ring - the splash is
-// sweep-only. The cursor blob is screen-space around the pointer, so a
-// mouse in the corner of the frame does not light the machine.
+// a second effect. The travelling front is scanner-bracket chrome - the same
+// untonemapped (0.80, 1, 0) as the four L-corners. The reconstructed mesh
+// behind the line, and the cursor's local patch, stay the room's cool white.
+// The cursor does not spawn a floor ring - the splash is sweep-only. The
+// cursor blob is screen-space around the pointer, so a mouse in the corner
+// of the frame does not light the machine.
 //
 // Why a separate shell rather than another term in the machine's own shader:
 // the analysis effects that used to live there were all removed for one
@@ -34,11 +34,11 @@
 // is its own additive mesh of a few thousand triangles, hidden between
 // passes, discarded wherever it is not a wire.
 //
-// Lime is allowed only as the travelling core, the floor-ring front, and
-// the local cursor patch. Area of lime is the constraint: at this scale a
-// lime *body* is a second machine, which is what greened the whole shot
-// when it was tried. Sweep trail and the reduced-motion shell stay the
-// room's cool white.
+// Lime is allowed only as the travelling core and the floor-ring front.
+// Area of lime is the constraint: at this scale a lime *body* is a second
+// machine, which is what greened the whole shot when it was tried. Sweep
+// trail, the cursor patch, and the reduced-motion shell stay the room's
+// cool white.
 import * as THREE from 'three'
 import {
   CAGE_BODY_GAIN,
@@ -453,9 +453,9 @@ function createCageMaterial(offset: number): THREE.ShaderMaterial {
 
         // Sweep amp scales the travelling fields only. The probe is already
         // its own amp, so a live cursor can hold a local patch between cycles.
-        // Cursor blob is scanner chrome, same as the core; trail stays white.
-        float grayWeight = max(trail * uBodyGain * uAmp, uSteady * uBodyGain * uAmp);
-        float limeWeight = core * uCoreGain * uAmp + probe * uProbeGain;
+        // Cursor blob is the gray reconstructed mesh; only the sweep core is lime.
+        float grayWeight = max(trail * uBodyGain * uAmp + probe * uProbeGain, uSteady * uBodyGain * uAmp);
+        float limeWeight = core * uCoreGain * uAmp;
         vec3 col = wire * facing * (uWireColor * grayWeight + uCoreColor * limeWeight);
 
         if (max(col.r, max(col.g, col.b)) < 0.0015) discard;

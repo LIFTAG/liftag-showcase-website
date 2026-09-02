@@ -180,11 +180,16 @@ test('trail-only cage mix is cool white, not lime', () => {
   assert.ok(trail.g > trail.r)
 })
 
-test('probe-only cage mix is the scanner-bracket chrome', () => {
+test('probe-only cage mix is cool white, not lime', () => {
   const probe = cageMixColor({ core: 0, trail: 0, probe: 1 })
-  assert.equal(probe.r / probe.g, RETICLE_RGB[0] / RETICLE_RGB[1])
-  assert.equal(probe.b, 0)
+  const trail = cageMixColor({ core: 0, trail: 1, probe: 0 })
+  assert.ok(probe.b >= probe.g, `probe should be cool, got ${JSON.stringify(probe)}`)
   assert.ok(probe.g > probe.r)
+  assert.ok(
+    Math.abs(probe.r / probe.g - trail.r / trail.g) < 1e-9,
+    'probe must share the gray body hue, not lime',
+  )
+  assert.ok(probe.b > 0, 'gray probe carries the wire blue')
 })
 
 test('core-only cage mix is the scanner-bracket chrome', () => {
@@ -196,19 +201,16 @@ test('core-only cage mix is the scanner-bracket chrome', () => {
   assert.deepEqual(CORE_RGB, RETICLE_RGB)
 })
 
-test('core plus probe stays scanner chrome rather than pale sludge', () => {
-  const lime = cageMixColor({ core: 1, trail: 0, probe: 0 })
+test('sweep core stays lime when the gray probe is also on', () => {
+  const core = cageMixColor({ core: 1, trail: 0, probe: 0 })
   const mixed = cageMixColor({ core: 1, trail: 0, probe: 1 })
-  const limeGR = lime.g - lime.r
+  assert.equal(core.b, 0)
   assert.ok(mixed.g > mixed.r)
   assert.ok(
-    mixed.g - mixed.r > limeGR * 0.5,
-    `lime g-r must survive probe, mixed=${JSON.stringify(mixed)} limeGR=${limeGR}`,
+    mixed.g > mixed.b,
+    `sweep lime must survive a gray probe, mixed=${JSON.stringify(mixed)}`,
   )
-  assert.ok(
-    mixed.b < mixed.r,
-    `sludge would lift blue toward red; mixed=${JSON.stringify(mixed)}`,
-  )
+  assert.ok(mixed.b > 0, 'gray probe contributes wire blue under the lime core')
 })
 
 test('reduced-motion forces lime off even if a core weight is supplied', () => {
