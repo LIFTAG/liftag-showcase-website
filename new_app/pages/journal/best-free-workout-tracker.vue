@@ -2,7 +2,7 @@
 const title = 'Best free workout tracker in <span class="lime">2026.</span>'
 const description = 'An honest look at free workout trackers in 2026: LIFTAG, Strong’s free tier, Hevy’s free tier, and FitNotes. What you actually get without paying, and where each one stops.'
 
-const path = '/guides/best-free-workout-tracker'
+const path = '/journal/best-free-workout-tracker'
 const datePublished = '2026-08-19'
 
 useLiftagSeo({
@@ -44,7 +44,7 @@ useLiftagStructuredData([
   }),
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
-    { name: 'Guides', path: '/guides' },
+    { name: 'Journal', path: '/journal' },
     { name: 'Best free workout tracker', path },
   ]),
   liftagArticle({
@@ -62,7 +62,7 @@ useLiftagStructuredData([
     <main>
       <article class="guide">
         <header class="guide-hero container">
-          <p class="protocol guide-eyebrow"><a href="/guides">GUIDES</a> · COMPARISON · UPDATED AUG 2026</p>
+          <p class="protocol guide-eyebrow"><a href="/journal">JOURNAL</a> · COMPARISON · UPDATED AUG 2026</p>
           <h1 class="display guide-title" v-html="title"></h1>
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
@@ -171,10 +171,10 @@ useLiftagStructuredData([
             </ul>
             <p>
               Head-to-head on Strong versus Hevy versus LIFTAG, including paid tiers, lives on
-              <a href="/guides/strong-vs-hevy-vs-liftag">its own page</a>.
+              <a href="/journal/strong-vs-hevy-vs-liftag">its own page</a>.
               If you searched for a workout logger rather than a tracker, including a paper logbook, start with the
-              <a href="/guides/workout-logger">workout logger vs tracker</a> guide or the
-              <a href="/guides/best-workout-logger">2026 logger comparison</a>.
+              <a href="/journal/workout-logger">workout logger vs tracker</a> guide or the
+              <a href="/journal/best-workout-logger">2026 logger comparison</a>.
             </p>
           </section>
 

@@ -2,7 +2,7 @@
 const title = 'Workout logger, not another <span class="lime">tracker.</span>'
 const description = 'What a workout logger records — every set, load, reps, rest — and when a paper logbook, Strong, Hevy, FitNotes, or LIFTAG is the better pick.'
 
-const path = '/guides/workout-logger'
+const path = '/journal/workout-logger'
 const datePublished = '2026-08-20'
 
 useLiftagSeo({
@@ -44,7 +44,7 @@ useLiftagStructuredData([
   }),
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
-    { name: 'Guides', path: '/guides' },
+    { name: 'Journal', path: '/journal' },
     { name: 'Workout logger', path },
   ]),
   liftagArticle({
@@ -62,7 +62,7 @@ useLiftagStructuredData([
     <main>
       <article class="guide">
         <header class="guide-hero container">
-          <p class="protocol guide-eyebrow"><a href="/guides">GUIDES</a> · COMPARISON · UPDATED AUG 2026</p>
+          <p class="protocol guide-eyebrow"><a href="/journal">JOURNAL</a> · COMPARISON · UPDATED AUG 2026</p>
           <h1 class="display guide-title" v-html="title"></h1>
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
@@ -173,14 +173,14 @@ useLiftagStructuredData([
               <li><strong>Rest.</strong> How long you actually waited.</li>
               <li>
                 <strong>RPE (optional).</strong> How hard the set felt.
-                Full note: <a href="/guides/what-is-rpe-lifting">what is RPE in lifting</a>.
-                How to add load after: <a href="/guides/progressive-overload">progressive overload</a>.
+                Full note: <a href="/journal/what-is-rpe-lifting">what is RPE in lifting</a>.
+                How to add load after: <a href="/journal/progressive-overload">progressive overload</a>.
               </li>
             </ol>
             <p>
               Warm-ups can stay off the page. Work sets cannot. The longer version of this — mistakes, volume, when to
               ignore a bad day — is
-              <a href="/guides/how-to-track-workouts">how to track workouts</a>.
+              <a href="/journal/how-to-track-workouts">how to track workouts</a>.
             </p>
           </section>
 
@@ -215,9 +215,9 @@ useLiftagStructuredData([
               Paper still wins “no screen.” Read the rows, not the headline. Paid-and-free matrix:
               <a href="/best-workout-tracking-app">2026 workout tracking app comparison</a>.
               Three-app slice:
-              <a href="/guides/strong-vs-hevy-vs-liftag">Strong vs Hevy vs LIFTAG</a>.
+              <a href="/journal/strong-vs-hevy-vs-liftag">Strong vs Hevy vs LIFTAG</a>.
               2026 logger ranking:
-              <a href="/guides/best-workout-logger">best workout logger</a>.
+              <a href="/journal/best-workout-logger">best workout logger</a>.
             </p>
           </section>
 

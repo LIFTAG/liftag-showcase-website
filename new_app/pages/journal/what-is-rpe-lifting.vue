@@ -2,7 +2,7 @@
 const title = 'What is RPE in <span class="lime">lifting.</span>'
 const description = 'RPE is a 1–10 rating of how hard a set was. How to use it on the bench, squat, and deadlift, when to log it, and how a workout tracker should store it next to load and rest.'
 
-const path = '/guides/what-is-rpe-lifting'
+const path = '/journal/what-is-rpe-lifting'
 const datePublished = '2026-08-20'
 
 useLiftagSeo({
@@ -40,7 +40,7 @@ useLiftagStructuredData([
   }),
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
-    { name: 'Guides', path: '/guides' },
+    { name: 'Journal', path: '/journal' },
     { name: 'What is RPE in lifting', path },
   ]),
   liftagArticle({
@@ -69,12 +69,12 @@ useLiftagStructuredData([
     <main>
       <article class="guide">
         <header class="guide-hero container">
-          <p class="protocol guide-eyebrow"><a href="/guides">GUIDES</a> · LIFTING · UPDATED AUG 2026</p>
+          <p class="protocol guide-eyebrow"><a href="/journal">JOURNAL</a> · LIFTING · UPDATED AUG 2026</p>
           <h1 class="display guide-title" v-html="title"></h1>
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
             <a href="/" class="btn-primary">Log sets in LIFTAG</a>
-            <a href="/guides/how-to-track-workouts" class="btn-ghost">How to track workouts</a>
+            <a href="/journal/how-to-track-workouts" class="btn-ghost">How to track workouts</a>
           </div>
         </header>
 
@@ -112,7 +112,7 @@ useLiftagStructuredData([
             </ul>
             <p>
               You do not need RPE on every warmup. You do need it on the work sets you will compare. Pair it with rest time:
-              <a href="/guides/how-to-track-workouts">how to track workouts</a> covers that pairing.
+              <a href="/journal/how-to-track-workouts">how to track workouts</a> covers that pairing.
             </p>
           </section>
 
@@ -120,7 +120,7 @@ useLiftagStructuredData([
             <h2>Logging it in a tracker</h2>
             <p>
               LIFTAG stores optional RPE on the set, next to load, reps, and rest. Estimated 1RM still reads the kilos and reps; RPE is context, not a second formula pretending to be science. If you skip RPE, the log still works. If you log it, the
-              <a href="/guides/progressive-overload">overload</a> decision next week is cleaner.
+              <a href="/journal/progressive-overload">overload</a> decision next week is cleaner.
             </p>
           </section>
 

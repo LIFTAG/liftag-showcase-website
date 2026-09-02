@@ -1,27 +1,27 @@
 <script setup lang="ts">
-const description = 'Guides from LIFTAG on tracking workouts, powerlifting apps, and QR/NFC gym machine tags. Written for serious lifters, trainers, and gyms.'
+const description = 'The LIFTAG journal: workout tracking, powerlifting apps, and QR/NFC gym machine tags. Written for serious lifters, trainers, and gyms.'
 
 useLiftagSeo({
-  title: 'LIFTAG Guides | Workout Tracking, Powerlifting, QR + NFC',
+  title: 'LIFTAG Journal | Workout Tracking, Powerlifting, QR + NFC',
   description,
-  path: '/guides',
+  path: '/journal',
 })
 
 const guides = [
   {
-    href: '/guides/how-to-track-workouts',
+    href: '/journal/how-to-track-workouts',
     eyebrow: 'LIFTING',
     title: 'How to track workouts properly',
     body: 'What to log, what to ignore, how to read progress, and which workout tracking app actually helps.',
   },
   {
-    href: '/guides/best-workout-app-for-powerlifting',
+    href: '/journal/best-workout-app-for-powerlifting',
     eyebrow: 'POWERLIFTING',
     title: 'Best workout app for powerlifting',
     body: 'Set tracking, % of 1RM programming, and PR history compared across LIFTAG, Strong, Boostcamp, and Hevy.',
   },
   {
-    href: '/guides/qr-nfc-gym-tracking',
+    href: '/journal/qr-nfc-gym-tracking',
     eyebrow: 'GYM TECH',
     title: 'QR and NFC gym tracking',
     body: 'How tap-and-scan machine tags change logging, and which apps actually support the flow.',
@@ -39,13 +39,13 @@ const guides = [
     body: 'LIFTAG versus Liftd, ScanLiftLog, and RepTag: free tags, gym cost, NFC, and who actually wins each row.',
   },
   {
-    href: '/guides/best-workout-logger',
+    href: '/journal/best-workout-logger',
     eyebrow: 'COMPARISON',
     title: 'Best workout logger',
     body: 'Logger vs tracker vs paper logbook. Which apps actually write the set down in 2026: LIFTAG, Strong, Hevy, FitNotes.',
   },
   {
-    href: '/guides/best-free-workout-tracker',
+    href: '/journal/best-free-workout-tracker',
     eyebrow: 'COMPARISON',
     title: 'Best free workout tracker',
     body: 'What you actually get without paying on LIFTAG, Strong, Hevy, and FitNotes — and where each free tier stops.',
@@ -69,37 +69,37 @@ const guides = [
     body: 'A dated fact sheet: what is free forever, what has no published price, and what a partner gym pays. No invented numbers.',
   },
   {
-    href: '/guides/strong-vs-hevy-vs-liftag',
+    href: '/journal/strong-vs-hevy-vs-liftag',
     eyebrow: 'COMPARISON',
     title: 'Strong vs Hevy vs LIFTAG',
     body: 'The comparison people type: logging speed, free tiers, social features, and gym machine tags.',
   },
   {
-    href: '/guides/workout-logger',
+    href: '/journal/workout-logger',
     eyebrow: 'COMPARISON',
     title: 'Workout logger vs tracker',
     body: 'What a workout logger actually is, how it differs from a tracker and a paper logbook, and which app — or notebook — to pick.',
   },
   {
-    href: '/guides/nfc-tags-for-gym-equipment',
+    href: '/journal/nfc-tags-for-gym-equipment',
     eyebrow: 'GYM TECH',
     title: 'NFC tags for gym equipment',
     body: 'What to put on each machine, where to stick it, and why a dual NFC + QR plate beats QR alone.',
   },
   {
-    href: '/guides/what-is-rpe-lifting',
+    href: '/journal/what-is-rpe-lifting',
     eyebrow: 'LIFTING',
     title: 'What is RPE in lifting',
     body: 'How to rate a set, when to log RPE in a workout tracker, and how it pairs with rest time and load.',
   },
   {
-    href: '/guides/progressive-overload',
+    href: '/journal/progressive-overload',
     eyebrow: 'LIFTING',
     title: 'Progressive overload',
     body: 'How to add load, reps, or sets without lying to the log — and how a tracker makes the next jump obvious.',
   },
   {
-    href: '/guides/gym-nfc-rollout',
+    href: '/journal/gym-nfc-rollout',
     eyebrow: 'GYMS',
     title: 'Gym NFC tag rollout',
     body: 'How a club tags a floor, then 12 locations, without a fake case-study quote. The actual LIFTAG rollout.',
@@ -111,13 +111,13 @@ useLiftagStructuredData([
   liftagSoftwareApplication,
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
-    { name: 'Guides', path: '/guides' },
+    { name: 'Journal', path: '/journal' },
   ]),
   {
     '@type': 'CollectionPage',
-    '@id': 'https://liftag.fit/guides#page',
-    name: 'LIFTAG Guides',
-    url: 'https://liftag.fit/guides',
+    '@id': 'https://liftag.fit/journal#page',
+    name: 'LIFTAG Journal',
+    url: 'https://liftag.fit/journal',
     description,
     isPartOf: { '@id': 'https://liftag.fit/#website' },
     hasPart: guides.map(guide => ({
@@ -134,12 +134,12 @@ useLiftagStructuredData([
   <div class="guides-hub">
     <main>
       <header class="guides-hero container">
-        <p class="protocol guides-eyebrow">GUIDES · LIFTAG</p>
+        <p class="protocol guides-eyebrow">JOURNAL · LIFTAG</p>
         <h1 class="display guides-title">Lift with a <span class="lime">record.</span></h1>
         <p class="guides-lead">{{ description }}</p>
       </header>
 
-      <section class="container guides-grid" aria-label="LIFTAG guides">
+      <section class="container guides-grid" aria-label="LIFTAG journal">
         <article
           v-for="guide in guides"
           :key="guide.href"
@@ -148,7 +148,7 @@ useLiftagStructuredData([
           <p class="protocol guides-card-eyebrow">{{ guide.eyebrow }}</p>
           <h2>{{ guide.title }}</h2>
           <p>{{ guide.body }}</p>
-          <a :href="guide.href" class="guides-card-link">Read the guide</a>
+          <a :href="guide.href" class="guides-card-link">Read</a>
         </article>
       </section>
     </main>

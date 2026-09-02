@@ -2,7 +2,7 @@
 const title = 'Strong vs Hevy vs <span class="lime">LIFTAG.</span>'
 const description = 'The comparison people actually type in 2026: Strong, Hevy, and LIFTAG for set logging, free tiers, social features, and gym machine tags.'
 
-const path = '/guides/strong-vs-hevy-vs-liftag'
+const path = '/journal/strong-vs-hevy-vs-liftag'
 const datePublished = '2026-08-19'
 
 useLiftagSeo({
@@ -40,7 +40,7 @@ useLiftagStructuredData([
   }),
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
-    { name: 'Guides', path: '/guides' },
+    { name: 'Journal', path: '/journal' },
     { name: 'Strong vs Hevy vs LIFTAG', path },
   ]),
   liftagArticle({
@@ -58,7 +58,7 @@ useLiftagStructuredData([
     <main>
       <article class="guide">
         <header class="guide-hero container">
-          <p class="protocol guide-eyebrow"><a href="/guides">GUIDES</a> · COMPARISON · UPDATED AUG 2026</p>
+          <p class="protocol guide-eyebrow"><a href="/journal">JOURNAL</a> · COMPARISON · UPDATED AUG 2026</p>
           <h1 class="display guide-title" v-html="title"></h1>
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
@@ -78,7 +78,7 @@ useLiftagStructuredData([
               from the machine itself.
             </p>
             <p>
-              We built LIFTAG. That is a conflict of interest. Strong still wins on raw logging speed. Hevy still wins on community. Read the rows, not the headline. FitNotes and a paper logbook sit on the <a href="/guides/workout-logger">workout logger vs tracker</a> page, which is the comparison for people who typed logger.
+              We built LIFTAG. That is a conflict of interest. Strong still wins on raw logging speed. Hevy still wins on community. Read the rows, not the headline. FitNotes and a paper logbook sit on the <a href="/journal/workout-logger">workout logger vs tracker</a> page, which is the comparison for people who typed logger.
             </p>
             <p>
               Three apps in one table means every row is a summary. For the version with quoted, dated store prices and a longer feature grid, take the pair you actually care about:
@@ -152,7 +152,7 @@ useLiftagStructuredData([
             <h2>When Hevy is the right call</h2>
             <p>
               You want to follow friends, copy routines, and stay inside one app that feels like a network. Hevy’s free tier is the reason it shows up in every “best free workout tracker” roundup. If that is the job, use Hevy. We said the same thing on the
-              <a href="/guides/best-free-workout-tracker">free tracker guide</a>.
+              <a href="/journal/best-free-workout-tracker">free tracker guide</a>.
             </p>
           </section>
 
@@ -160,7 +160,7 @@ useLiftagStructuredData([
             <h2>When LIFTAG is the right call</h2>
             <p>
               You train in a gym, not only a garage, and you are tired of scrolling an exercise list between sets. Tap the
-              <a href="/guides/nfc-tags-for-gym-equipment">NFC tag</a>
+              <a href="/journal/nfc-tags-for-gym-equipment">NFC tag</a>
               or scan the QR. The lift, the last load, and the rest timer are the same screen. If your gym is not a partner yet, LIFTAG still logs like Strong — you pick the lift from the
               <a href="/exercises">library</a>.
             </p>

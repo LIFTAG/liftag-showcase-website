@@ -38,22 +38,22 @@ const libraryLinks: FooterLink[] = [
 ]
 
 const guideLinks: FooterLink[] = [
-  { label: 'All Guides', href: '/guides' },
+  { label: 'All articles', href: '/journal' },
   { label: 'Best Workout Tracking App', href: '/best-workout-tracking-app' },
   { label: 'Best Gym QR + NFC App', href: '/best-gym-qr-nfc-app' },
-  { label: 'Best Workout Logger', href: '/guides/best-workout-logger' },
-  { label: 'Best Free Workout Tracker', href: '/guides/best-free-workout-tracker' },
+  { label: 'Best Workout Logger', href: '/journal/best-workout-logger' },
+  { label: 'Best Free Workout Tracker', href: '/journal/best-free-workout-tracker' },
   { label: 'LIFTAG vs Hevy', href: '/alternatives/hevy' },
   { label: 'LIFTAG vs Strong', href: '/vs/strong' },
-  { label: 'Strong vs Hevy vs LIFTAG', href: '/guides/strong-vs-hevy-vs-liftag' },
-  { label: 'Workout Logger', href: '/guides/workout-logger' },
-  { label: 'How to Track Workouts', href: '/guides/how-to-track-workouts' },
-  { label: 'Best App for Powerlifting', href: '/guides/best-workout-app-for-powerlifting' },
-  { label: 'QR + NFC Gym Tracking', href: '/guides/qr-nfc-gym-tracking' },
-  { label: 'NFC Tags for Gym Equipment', href: '/guides/nfc-tags-for-gym-equipment' },
-  { label: 'What is RPE', href: '/guides/what-is-rpe-lifting' },
-  { label: 'Progressive Overload', href: '/guides/progressive-overload' },
-  { label: 'Gym NFC Rollout', href: '/guides/gym-nfc-rollout' },
+  { label: 'Strong vs Hevy vs LIFTAG', href: '/journal/strong-vs-hevy-vs-liftag' },
+  { label: 'Workout Logger', href: '/journal/workout-logger' },
+  { label: 'How to Track Workouts', href: '/journal/how-to-track-workouts' },
+  { label: 'Best App for Powerlifting', href: '/journal/best-workout-app-for-powerlifting' },
+  { label: 'QR + NFC Gym Tracking', href: '/journal/qr-nfc-gym-tracking' },
+  { label: 'NFC Tags for Gym Equipment', href: '/journal/nfc-tags-for-gym-equipment' },
+  { label: 'What is RPE', href: '/journal/what-is-rpe-lifting' },
+  { label: 'Progressive Overload', href: '/journal/progressive-overload' },
+  { label: 'Gym NFC Rollout', href: '/journal/gym-nfc-rollout' },
 ]
 
 const legalLinks: FooterLink[] = [
@@ -195,6 +195,23 @@ onBeforeUnmount(() => {
         <p class="footer-tagline">
           Because serious training deserves more than a notes app and a spreadsheet.
         </p>
+        <!-- LaunchBuff go-live check: crawler looks for this product href on liftag.fit. -->
+        <a
+          href="https://launchbuff.com/products/liftag-q97d57"
+          class="footer-launchbuff"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Featured on LaunchBuff"
+        >
+          <img
+            src="https://launchbuff.com/badge-featured-dark.svg"
+            alt="Featured on LaunchBuff"
+            width="256"
+            height="80"
+            loading="lazy"
+            decoding="async"
+          />
+        </a>
       </div>
 
       <!-- Every hoverable label below carries the nav's character index; the two
@@ -222,7 +239,9 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="footer-col">
-        <span class="protocol footer-col-heading">Guides</span>
+        <NuxtLink to="/journal" class="protocol footer-col-heading footer-heading-link ti-host">
+          <IndexedText text="Journal" />
+        </NuxtLink>
         <ul class="footer-link-list">
           <li v-for="item in guideLinks" :key="item.label">
             <a :href="item.href" class="footer-link ti-host"><IndexedText :text="item.label" /></a>
@@ -473,6 +492,35 @@ onBeforeUnmount(() => {
   line-height: 1.6;
   max-width: 280px;
   margin: 0;
+}
+
+.footer-launchbuff {
+  display: inline-block;
+  margin-top: 20px;
+  line-height: 0;
+  border-radius: 12px;
+  outline: none;
+  transition:
+    opacity 200ms ease,
+    transform 200ms ease;
+}
+
+.footer-launchbuff img {
+  display: block;
+  width: 200px;
+  max-width: 100%;
+  height: auto;
+}
+
+.footer-launchbuff:focus-visible {
+  outline: 2px solid var(--liftag-primary);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .footer-launchbuff:hover {
+    transform: translateY(-1px);
+  }
 }
 
 .footer-col-heading {

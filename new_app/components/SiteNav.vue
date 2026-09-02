@@ -33,7 +33,7 @@ const navLinks = computed<[string, string][]>(() => [
   ['Gyms', sectionHref('#gyms')],
   ['Trainers', sectionHref('#trainers')],
   ['Exercises', '/exercises'],
-  ['Guides', '/guides'],
+  ['Journal', '/journal'],
   ['Pricing', '/pricing'],
 ])
 

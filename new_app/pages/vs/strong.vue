@@ -241,7 +241,7 @@ useLiftagStructuredData([
               The tag half of that list is documented on
               <a href="/qr-nfc-gym-tags">NFC and QR gym tags</a>
               and in the
-              <a href="/guides/nfc-tags-for-gym-equipment">NFC tags for gym equipment</a>
+              <a href="/journal/nfc-tags-for-gym-equipment">NFC tags for gym equipment</a>
               guide.
             </p>
           </section>
@@ -255,7 +255,7 @@ useLiftagStructuredData([
               If your gym has no tags, the difference narrows to the routine cap and the trainer and gym layer, and you should know that before you decide. You can ask your gym to
               <a href="/contact/partner">become a partner</a>,
               or read what tagging a floor actually involves in
-              <a href="/guides/gym-nfc-rollout">gym NFC tag rollout</a>.
+              <a href="/journal/gym-nfc-rollout">gym NFC tag rollout</a>.
             </p>
           </section>
 
@@ -263,9 +263,9 @@ useLiftagStructuredData([
             <h2>Other comparisons</h2>
             <p>
               Hevy instead of Strong: <a href="/alternatives/hevy">LIFTAG vs Hevy</a>.
-              All three at once: <a href="/guides/strong-vs-hevy-vs-liftag">Strong vs Hevy vs LIFTAG</a>.
+              All three at once: <a href="/journal/strong-vs-hevy-vs-liftag">Strong vs Hevy vs LIFTAG</a>.
               The eight-app matrix: <a href="/best-workout-tracking-app">best workout tracking app 2026</a>.
-              Powerlifting specifically: <a href="/guides/best-workout-app-for-powerlifting">best workout app for powerlifting</a>.
+              Powerlifting specifically: <a href="/journal/best-workout-app-for-powerlifting">best workout app for powerlifting</a>.
             </p>
           </section>
 

@@ -2,7 +2,7 @@
 const title = 'How to track workouts <span class="lime">properly.</span>'
 const description = 'A definitive guide to tracking workouts as a serious lifter: what to log, what to ignore, how to read progress, and which workout tracking app actually helps. Written by lifters.'
 
-const path = '/guides/how-to-track-workouts'
+const path = '/journal/how-to-track-workouts'
 const datePublished = '2026-05-25'
 
 useLiftagSeo({
@@ -43,7 +43,7 @@ useLiftagStructuredData([
   liftagMobileApplication,
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
-    { name: 'Guides', path: '/guides' },
+    { name: 'Journal', path: '/journal' },
     { name: 'How to track workouts', path },
   ]),
   liftagArticle({
@@ -61,7 +61,7 @@ useLiftagStructuredData([
     <main>
       <article class="guide">
         <header class="guide-hero container">
-          <p class="protocol guide-eyebrow"><a href="/guides">GUIDES</a> · LIFTING · UPDATED MAY 2026</p>
+          <p class="protocol guide-eyebrow"><a href="/journal">JOURNAL</a> · LIFTING · UPDATED MAY 2026</p>
           <h1 class="display guide-title" v-html="title"></h1>
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
@@ -99,7 +99,7 @@ useLiftagStructuredData([
               <li><strong>Weight.</strong> Whatever was on the bar or the stack.</li>
               <li><strong>Reps.</strong> The actual reps performed, not the planned ones.</li>
               <li><strong>Rest time.</strong> How long you waited between sets.</li>
-              <li><strong>RPE or RIR (optional).</strong> How hard the set felt, on a one-to-ten scale. RPE 10 means a true grinder, no reps left. RPE 8 means roughly two reps in the tank. Full note: <a href="/guides/what-is-rpe-lifting">what is RPE in lifting</a>. How to add load after: <a href="/guides/progressive-overload">progressive overload</a>.</li>
+              <li><strong>RPE or RIR (optional).</strong> How hard the set felt, on a one-to-ten scale. RPE 10 means a true grinder, no reps left. RPE 8 means roughly two reps in the tank. Full note: <a href="/journal/what-is-rpe-lifting">what is RPE in lifting</a>. How to add load after: <a href="/journal/progressive-overload">progressive overload</a>.</li>
             </ol>
             <p>
               Anything beyond those four is a bonus. Notes are helpful; a single line per session like "back tight on second set" or "switched grip" will save you in six weeks when you cannot remember why a lift suddenly felt different.
@@ -132,9 +132,9 @@ useLiftagStructuredData([
               The most accurate when used. Almost no one uses it consistently. If you love the analog ritual, pair it with an app for the chart and PR side.
             </p>
             <p>
-              Paper versus a dedicated workout logger — and why people type logger instead of tracker — is on the <a href="/guides/workout-logger">workout logger guide</a>.
+              Paper versus a dedicated workout logger — and why people type logger instead of tracker — is on the <a href="/journal/workout-logger">workout logger guide</a>.
               The 2026 picks live on the
-              <a href="/guides/best-workout-logger">best workout logger</a> comparison.
+              <a href="/journal/best-workout-logger">best workout logger</a> comparison.
             </p>
             <p>
               The honest answer is that the best tracker is the one you actually use. The thresholds that matter: every set logged, every session, for at least one full training block. If a tool fails that test for you, switch.

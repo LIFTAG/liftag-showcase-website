@@ -221,7 +221,7 @@ useLiftagStructuredData([
             <h2>Gyms and trainers</h2>
             <p>
               A partner gym pays nothing for the part that touches the floor: the dual NFC and QR tag kit is shipped free, machine setup and the gym listing are free, and the core multi-location dashboard is free forever. Advanced business tools are the optional layer there, on the same terms as premium is for lifters. The rollout itself is documented in
-              <a href="/guides/gym-nfc-rollout">gym NFC tag rollout</a>,
+              <a href="/journal/gym-nfc-rollout">gym NFC tag rollout</a>,
               and what other machine-tag platforms charge a gym per month is priced out on
               <a href="/best-gym-qr-nfc-app">best gym QR and NFC app</a>.
             </p>

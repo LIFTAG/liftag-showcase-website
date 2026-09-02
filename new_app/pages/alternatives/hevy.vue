@@ -230,7 +230,7 @@ useLiftagStructuredData([
               The tag half of that list is documented on
               <a href="/qr-nfc-gym-tags">NFC and QR gym tags</a>
               and in the
-              <a href="/guides/nfc-tags-for-gym-equipment">NFC tags for gym equipment</a>
+              <a href="/journal/nfc-tags-for-gym-equipment">NFC tags for gym equipment</a>
               guide.
             </p>
           </section>
@@ -244,7 +244,7 @@ useLiftagStructuredData([
               The thing to watch during that fortnight is not features, it is taps between sets. If your gym has tags, you will notice immediately. If it does not, the honest answer is that LIFTAG's advantage over Hevy narrows to the free caps and the trainer and gym layer. You can ask your gym to
               <a href="/contact/partner">become a partner</a>,
               or read how a floor actually gets tagged in
-              <a href="/guides/gym-nfc-rollout">gym NFC tag rollout</a>.
+              <a href="/journal/gym-nfc-rollout">gym NFC tag rollout</a>.
             </p>
           </section>
 
@@ -252,9 +252,9 @@ useLiftagStructuredData([
             <h2>Other comparisons</h2>
             <p>
               Strong instead of Hevy, head to head with LIFTAG: <a href="/vs/strong">LIFTAG vs Strong</a>.
-              All three at once, including free tiers and social features: <a href="/guides/strong-vs-hevy-vs-liftag">Strong vs Hevy vs LIFTAG</a>.
+              All three at once, including free tiers and social features: <a href="/journal/strong-vs-hevy-vs-liftag">Strong vs Hevy vs LIFTAG</a>.
               The eight-app matrix with FitNotes, JEFIT, Boostcamp, MacroFactor, and Fitbod: <a href="/best-workout-tracking-app">best workout tracking app 2026</a>.
-              Only the free tiers: <a href="/guides/best-free-workout-tracker">best free workout tracker</a>.
+              Only the free tiers: <a href="/journal/best-free-workout-tracker">best free workout tracker</a>.
             </p>
           </section>
 
