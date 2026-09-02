@@ -16,10 +16,38 @@ const frontPhoneReady = ref(false)
 const DESKTOP_PARTICLE_COUNT = 1200
 const DESKTOP_PARTICLE_DPR_CAP = 1.75
 
+const props = withDefaults(defineProps<{
+  autoEnter?: boolean
+  hideFrontPhone?: boolean
+  playEnter?: boolean
+}>(), {
+  autoEnter: true,
+  hideFrontPhone: false,
+  playEnter: false,
+})
+
+const emit = defineEmits<{
+  'front-ready': []
+}>()
+
 const { setTitleEl, startHeroLaser, cleanupHeroLasers } = useHeroLaser({
   emitSparks: true,
   followFinishedWalls: true,
 })
+
+const frontPhoneEl = ref<HTMLElement | null>(null)
+let entranceStarted = false
+
+function enter() {
+  if (entranceStarted) return
+  entranceStarted = true
+  entered.value = true
+  startHeroLaser()
+}
+
+watch(() => props.playEnter, (v) => { if (v) enter() })
+
+defineExpose({ enter, frontPhoneEl })
 
 const heroVolumeChartSvg = ref<SVGSVGElement | null>(null)
 const heroVolumeChartTargetP = ref(1)
@@ -94,15 +122,15 @@ const stat4 = useCountUp(100, 1600, formatHeroStat(100, '%'))
 let heroEntranceTimer: ReturnType<typeof setTimeout> | null = null
 
 onMounted(() => {
-  heroEntranceTimer = setTimeout(() => { entered.value = true }, 80)
+  if (props.autoEnter || props.playEnter) {
+    heroEntranceTimer = setTimeout(() => { enter() }, 80)
+  }
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const loadDesktop3d = !prefersReducedMotion
   showHeroParticles.value = loadDesktop3d
   loadHero3d.value = loadDesktop3d
   hasMounted.value = true
-
-  startHeroLaser()
 })
 
 onBeforeUnmount(() => {
@@ -331,15 +359,24 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
         </div>
 
         <div
+          ref="frontPhoneEl"
           :style="{
             position: 'absolute', top: 0, left: '50%',
             transform: frontPhoneTransform,
             willChange: 'transform',
-            opacity: entered && frontPhoneReady ? 1 : 0,
-            transition: entered && frontPhoneReady ? 'opacity 1000ms 100ms ease' : 'none',
+            opacity: entered && frontPhoneReady && !props.hideFrontPhone ? 1 : 0,
+            transition: entered && frontPhoneReady && !props.hideFrontPhone
+              ? (props.autoEnter ? 'opacity 1000ms 100ms ease' : 'opacity 180ms linear')
+              : 'none',
           }"
         >
           <div
+            v-if="props.hideFrontPhone"
+            class="hero-front-sizer"
+            aria-hidden="true"
+          />
+          <div
+            v-if="!props.hideFrontPhone"
             class="pulse-glow-layer"
             :style="{
               position: 'absolute',
@@ -350,15 +387,16 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
             }"
           />
           <Phone
-            v-if="keepDesktopHeroPhones"
+            v-if="keepDesktopHeroPhones && !props.hideFrontPhone"
             src="/assets/screens/hero-dashboard.webp"
             :scale="0.92"
             :tilt-delay-ms="0"
             :static-bezel="false"
             priority
-            @ready="frontPhoneReady = true"
+            @ready="frontPhoneReady = true; emit('front-ready')"
           />
           <div
+            v-if="!props.hideFrontPhone"
             :style="{
               position: 'absolute', top: '8%', left: '10%',
               width: '30%', height: '40%',
@@ -590,6 +628,11 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
   .hero-desktop-wrap {
     display: none !important;
   }
+}
+
+.hero-front-sizer {
+  width: calc(280px * 0.92);
+  aspect-ratio: 393 / 852;
 }
 
 .hero-static-grid {
