@@ -99,8 +99,15 @@ export function stampHighlighterPolygons(
       const poly = polys[i]
       if (!poly) return
       poly.setAttribute('data-muscle', row.muscle)
-      if (slug) poly.setAttribute('data-slug', slug)
-      else poly.removeAttribute('data-slug')
+      if (slug) {
+        poly.setAttribute('data-slug', slug)
+        poly.style.cursor = 'pointer'
+      }
+      else {
+        poly.removeAttribute('data-slug')
+        poly.style.cursor = 'default'
+        poly.style.pointerEvents = 'none'
+      }
     }
   }
 }

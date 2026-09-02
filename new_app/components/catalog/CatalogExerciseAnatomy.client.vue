@@ -195,19 +195,21 @@ onBeforeUnmount(destroyInstances)
 
 .anatomy-cell :deep(.rbh polygon) {
   cursor: default;
-  transition: filter 160ms ease;
+  pointer-events: none;
 }
 
 .anatomy-cell :deep(.rbh polygon[data-slug]) {
   cursor: pointer;
+  pointer-events: auto;
+  transition: filter 160ms ease;
 }
 
 .anatomy-cell :deep(.rbh polygon[style*='#ccff00']) {
   filter: drop-shadow(0 0 2px rgba(204, 255, 0, 0.7));
 }
 
-.anatomy-cell :deep(.rbh polygon:hover),
-.anatomy-cell :deep(.rbh polygon.is-hot) {
+.anatomy-cell :deep(.rbh polygon[data-slug]:hover),
+.anatomy-cell :deep(.rbh polygon[data-slug].is-hot) {
   filter: brightness(1.55) saturate(1.12);
 }
 
