@@ -195,23 +195,42 @@ onBeforeUnmount(() => {
         <p class="footer-tagline">
           Because serious training deserves more than a notes app and a spreadsheet.
         </p>
-        <!-- LaunchBuff go-live check: crawler looks for this product href on liftag.fit. -->
-        <a
-          href="https://launchbuff.com/products/liftag-q97d57"
-          class="footer-launchbuff"
-          target="_blank"
-          rel="noopener noreferrer"
-          title="Featured on LaunchBuff"
-        >
-          <img
-            src="https://launchbuff.com/badge-featured-dark.svg"
-            alt="Featured on LaunchBuff"
-            width="256"
-            height="80"
-            loading="lazy"
-            decoding="async"
-          />
-        </a>
+        <div class="footer-badges">
+          <!-- LaunchBuff go-live check: crawler looks for this product href on liftag.fit. -->
+          <a
+            href="https://launchbuff.com/products/liftag-q97d57"
+            class="footer-badge"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Featured on LaunchBuff"
+          >
+            <img
+              src="https://launchbuff.com/badge-featured-dark.svg"
+              alt="Featured on LaunchBuff"
+              width="256"
+              height="80"
+              loading="lazy"
+              decoding="async"
+            />
+          </a>
+          <!-- Launchstag free listing: crawler looks for this product href on liftag.fit. -->
+          <a
+            href="https://launchstag.com/p/liftag"
+            class="footer-badge"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Featured on Launchstag"
+          >
+            <img
+              src="https://launchstag.com/badge-dark.svg"
+              alt="Featured on Launchstag"
+              width="198"
+              height="62"
+              loading="lazy"
+              decoding="async"
+            />
+          </a>
+        </div>
       </div>
 
       <!-- Every hoverable label below carries the nav's character index; the two
@@ -494,9 +513,16 @@ onBeforeUnmount(() => {
   margin: 0;
 }
 
-.footer-launchbuff {
-  display: inline-block;
+.footer-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
   margin-top: 20px;
+}
+
+.footer-badge {
+  display: inline-block;
   line-height: 0;
   border-radius: 12px;
   outline: none;
@@ -505,20 +531,20 @@ onBeforeUnmount(() => {
     transform 200ms ease;
 }
 
-.footer-launchbuff img {
+.footer-badge img {
   display: block;
   width: 200px;
   max-width: 100%;
   height: auto;
 }
 
-.footer-launchbuff:focus-visible {
+.footer-badge:focus-visible {
   outline: 2px solid var(--liftag-primary);
   outline-offset: 3px;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .footer-launchbuff:hover {
+  .footer-badge:hover {
     transform: translateY(-1px);
   }
 }
