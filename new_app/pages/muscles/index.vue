@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const description = 'Browse LIFTAG exercises by muscle group: chest, back, shoulders, arms, legs, glutes, abs, and cardio, with setup cues and how to log every set.'
+const description = 'Browse LIFTAG exercises by muscle group: chest, back, shoulders, arms, legs, adductors, glutes, abs, and cardio, with setup cues and how to log every set.'
 
 useLiftagSeo({
   title: 'Exercises by Muscle Group | LIFTAG Library',

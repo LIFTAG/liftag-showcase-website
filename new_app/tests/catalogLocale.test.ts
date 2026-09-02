@@ -41,9 +41,10 @@ test('exercise hreflang set is en/sk/x-default with no cs', () => {
   assert.deepEqual(index.map(item => item.path), ['/exercises', '/sk/exercises', '/exercises'])
 })
 
-test('maps the 12 muscle slugs to the SK chip labels and leaves English alone', () => {
-  assert.equal(Object.keys(SK_MUSCLE_NAMES).length, 12)
+test('maps the 13 muscle slugs to the SK chip labels and leaves English alone', () => {
+  assert.equal(Object.keys(SK_MUSCLE_NAMES).length, 13)
   assert.equal(muscleDisplayName('chest', 'Chest', 'sk'), 'Hrudník')
+  assert.equal(muscleDisplayName('adductors', 'Adductors', 'sk'), 'Adduktory')
   assert.equal(muscleDisplayName('cardio', 'Cardio', 'sk'), 'Kardio')
   assert.equal(muscleDisplayName('chest', 'Chest', 'en'), 'Chest')
   assert.equal(muscleDisplayName('unknown', 'Other', 'sk'), 'Other')
