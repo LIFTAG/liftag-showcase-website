@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>LIFTAG gym-scan flow — Pivot Leg Press</title>
+  <style>
+    @font-face {
+      font-family: Inter;
+      font-style: normal;
+      font-weight: 300 900;
+      font-display: block;
+      src: url("/new_app/public/assets/fonts/inter-latin.woff2") format("woff2");
+    }
+    @font-face {
+      font-family: "Space Grotesk";
+      font-style: normal;
+      font-weight: 300 700;
+      font-display: block;
+      src: url("/new_app/public/assets/fonts/space-grotesk-latin.woff2") format("woff2");
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 620px;
+      height: 1344px;
+      overflow: hidden;
+      background: #000;
+      color: #fff;
+      font-family: Inter, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #stage {
+      width: 390px;
+      height: 846px;
+      transform: scale(1.5897435897);
+      transform-origin: 0 0;
+      position: relative;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .scan-bg {
+      position: absolute;
+      inset: 0;
+      background: #0a0c10;
+    }
+    .scan-bg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 50% 50%;
+      display: block;
+    }
+
+    .reticle {
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      width: 196px;
+      height: 196px;
+      margin: -98px 0 0 -98px;
+      pointer-events: none;
+    }
+    .reticle i {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border: 3px solid #CCFF00;
+      filter: drop-shadow(0 0 6px rgba(204, 255, 0, 0.45));
+    }
+    .reticle i:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; border-radius: 4px 0 0 0; }
+    .reticle i:nth-child(2) { top: 0; right: 0; border-left: 0; border-bottom: 0; border-radius: 0 4px 0 0; }
+    .reticle i:nth-child(3) { bottom: 0; left: 0; border-right: 0; border-top: 0; border-radius: 0 0 0 4px; }
+    .reticle i:nth-child(4) { bottom: 0; right: 0; border-left: 0; border-top: 0; border-radius: 0 0 4px 0; }
+
+    .scan-label {
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(46% - 148px);
+      text-align: center;
+      font-family: "Space Grotesk", Inter, sans-serif;
+      font-weight: 500;
+      font-size: 11px;
+      letter-spacing: 0.38em;
+      color: #CCFF00;
+      text-shadow: 0 0 12px rgba(204, 255, 0, 0.35);
+    }
+    .scan-hint {
+      position: absolute;
+      left: 24px; right: 24px;
+      top: calc(46% + 128px);
+      text-align: center;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.62);
+    }
+
+    .qr-world {
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      width: 168px;
+      height: 178px;
+      margin: -89px 0 0 -84px;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.55),
+        0 0 0 1px rgba(255, 255, 255, 0.04);
+    }
+    .qr-world img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card {
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      width: 196px;
+      height: 196px;
+      margin: -98px 0 0 -98px;
+      border-radius: 34px;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .card-qr {
+      position: absolute;
+      inset: 0;
+    }
+    .card-qr img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .morph-block {
+      position: absolute;
+      border-radius: 14px;
+      background: #fff;
+    }
+    .card-white {
+      position: absolute;
+      inset: 0;
+      background: #fff;
+      border-radius: 34px;
+    }
+    .card-photo {
+      position: absolute;
+      inset: 7px;
+      border-radius: 27px;
+      overflow: hidden;
+      background: #0a0a0a;
+    }
+    .card-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+      display: block;
+    }
+
+    .log {
+      position: absolute;
+      inset: 0;
+      background: #0a0a0a;
+    }
+    .log img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+    }
+
+    .chrome { position: absolute; inset: 0; pointer-events: none; z-index: 8; }
+    .island {
+      position: absolute;
+      top: 11px;
+      left: 50%;
+      width: 118px;
+      height: 34px;
+      margin-left: -59px;
+      background: #000;
+      border-radius: 20px;
+    }
+    .status {
+      position: absolute;
+      top: 14px;
+      left: 28px;
+      right: 28px;
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+      font-size: 15px;
+      letter-spacing: -0.02em;
+    }
+    .status-right { display: flex; gap: 6px; align-items: center; }
+    .back {
+      position: absolute;
+      top: 58px;
+      left: 16px;
+      width: 36px;
+      height: 36px;
+      border-radius: 18px;
+      background: rgba(20, 20, 20, 0.72);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+    }
+
+    .home-bar {
+      position: absolute;
+      left: 50%;
+      bottom: 6px;
+      width: 128px;
+      height: 5px;
+      margin-left: -64px;
+      background: #fff;
+      border-radius: 4px;
+      opacity: 0.9;
+      z-index: 9;
+    }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <div class="scan-bg" id="scanBg">
+      <img src="/tools/gym3d/scan-flow-src/gym-scene.png" alt="">
+    </div>
+
+    <div class="qr-world" id="qrWorld">
+      <img src="/new_app/public/assets/gym3d/qr-sticker.webp" alt="">
+    </div>
+
+    <div class="reticle" id="reticle">
+      <i></i><i></i><i></i><i></i>
+    </div>
+    <div class="scan-label" id="scanLabel">SCANNING</div>
+    <div class="scan-hint" id="scanHint">Position QR code within the frame</div>
+
+    <div class="log" id="log">
+      <img src="/tools/gym3d/scan-flow-src/log-set.jpg" alt="">
+    </div>
+
+    <div class="card" id="card">
+      <div class="card-qr" id="cardQr">
+        <img src="/new_app/public/assets/gym3d/qr-sticker.webp" alt="">
+      </div>
+      <div class="morph-block" data-i="0"></div>
+      <div class="morph-block" data-i="1"></div>
+      <div class="morph-block" data-i="2"></div>
+      <div class="morph-block" data-i="3"></div>
+      <div class="morph-block" data-i="4"></div>
+      <div class="morph-block" data-i="5"></div>
+      <div class="morph-block" data-i="6"></div>
+      <div class="morph-block" data-i="7"></div>
+      <div class="morph-block" data-i="8"></div>
+      <div class="morph-block" data-i="9"></div>
+      <div class="card-white" id="cardWhite"></div>
+      <div class="card-photo" id="cardPhoto">
+        <img src="/tools/gym3d/scan-flow-src/exercise.webp" alt="">
+      </div>
+    </div>
+
+    <div class="chrome" id="chrome">
+      <div class="status">
+        <span>9:41</span>
+        <span class="status-right">
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="#fff"><rect x="0" y="3" width="3" height="6" rx="0.6"/><rect x="4.5" y="2" width="3" height="8" rx="0.6"/><rect x="9" y="0.5" width="3" height="11" rx="0.6"/><rect x="13.5" y="0" width="3" height="12" rx="0.6" opacity="0.35"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="#fff" stroke-width="1.4"><path d="M1 8.5c2.8-3 7.2-3 10 0"/><path d="M3.2 10.2c1.7-1.7 4.9-1.7 6.6 0"/><circle cx="8" cy="11.2" r="0.7" fill="#fff" stroke="none"/></svg>
+          <svg width="27" height="13" viewBox="0 0 27 13"><rect x="0.6" y="0.6" width="22" height="11.8" rx="2.4" stroke="#fff" stroke-opacity="0.45" fill="none"/><rect x="2.2" y="2.2" width="16.5" height="8.6" rx="1.4" fill="#fff"/><rect x="23.4" y="4.2" width="2.2" height="4.6" rx="0.8" fill="#fff" opacity="0.45"/></svg>
+        </span>
+      </div>
+      <div class="island"></div>
+      <div class="back" id="backBtn">
+        <svg width="10" height="16" viewBox="0 0 10 16"><path d="M8 2L2 8l6 6" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+    <div class="home-bar" id="homeBar"></div>
+  </div>
+
+  <script>
+    const LOG_AT = 3.2
+    const DURATION = 6.4
+    const W = 390
+    const H = 846
+    const QR_ANCHOR = { x: 0.5, y: 0.46 }
+    const SETTLE_SIZE = 196
+    // Real screenshot hero: photo is full-bleed under the status bar, compact
+    // media ~170pt + ~59pt inset on a 852pt phone ≈ 27% of the frame.
+    const HERO = { left: 0, top: 0, width: W, height: Math.round(H * 0.27), radius: 24 }
+    const MORPH_BLOCKS = [
+      { x: 0.06, y: 0.1, s: 0.32, t: 0.0 },
+      { x: 0.56, y: 0.04, s: 0.3, t: 0.07 },
+      { x: 0.62, y: 0.4, s: 0.32, t: 0.03 },
+      { x: 0.28, y: 0.26, s: 0.36, t: 0.11 },
+      { x: 0.02, y: 0.46, s: 0.32, t: 0.15 },
+      { x: 0.24, y: 0.02, s: 0.28, t: 0.17 },
+      { x: 0.36, y: 0.58, s: 0.34, t: 0.19 },
+      { x: 0.04, y: 0.7, s: 0.3, t: 0.23 },
+      { x: 0.6, y: 0.68, s: 0.32, t: 0.13 },
+      { x: 0.18, y: 0.36, s: 0.52, t: 0.27 },
+    ]
+
+    const $ = (id) => document.getElementById(id)
+    const scanBg = $("scanBg")
+    const qrWorld = $("qrWorld")
+    const reticle = $("reticle")
+    const scanLabel = $("scanLabel")
+    const scanHint = $("scanHint")
+    const card = $("card")
+    const cardQr = $("cardQr")
+    const cardWhite = $("cardWhite")
+    const cardPhoto = $("cardPhoto")
+    const log = $("log")
+    const backBtn = $("backBtn")
+    const chrome = $("chrome")
+    const homeBar = $("homeBar")
+    const blocks = [...document.querySelectorAll(".morph-block")]
+
+    blocks.forEach((el, i) => {
+      const b = MORPH_BLOCKS[i]
+      el.style.left = b.x * 100 + "%"
+      el.style.top = b.y * 100 + "%"
+      el.style.width = b.s * 100 + "%"
+      el.style.height = b.s * 100 + "%"
+    })
+
+    function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x }
+    function lerp(a, b, t) { return a + (b - a) * t }
+    function remap(t, a, b) { return clamp01((t - a) / (b - a)) }
+    function smoothstep(t) { t = clamp01(t); return t * t * (3 - 2 * t) }
+    function easeOutCubic(t) { t = clamp01(t); return 1 - (1 - t) ** 3 }
+    function easeOutBack(p) {
+      const c1 = 1.70158
+      const c3 = c1 + 1
+      const q = clamp01(p) - 1
+      return 1 + c3 * q * q * q + c1 * q * q
+    }
+    function flightEase(t) {
+      return 1 - (1 - clamp01(t)) ** 3.6
+    }
+
+    function setCardBox(left, top, width, height, radius) {
+      card.style.left = left + "px"
+      card.style.top = top + "px"
+      card.style.width = width + "px"
+      card.style.height = height + "px"
+      card.style.margin = "0"
+      card.style.borderRadius = radius + "px"
+      cardWhite.style.borderRadius = radius + "px"
+    }
+
+    function setTime(t) {
+      t = Math.max(0, Math.min(DURATION, t))
+      const logT = t - LOG_AT
+      const morph = remap(logT, 0.0, 0.78)
+      const flight = remap(logT, 0.82, 1.34)
+
+      const hunt = remap(t, 0.0, 2.35)
+      const lock = remap(t, 2.35, 2.7)
+      const flatten = remap(t, 2.7, LOG_AT)
+      const locked = t >= 2.7
+
+      const ox = lerp(-36, 0, easeOutCubic(hunt))
+      const oy = lerp(28, 0, easeOutCubic(hunt))
+      const rot = lerp(-11, 0, easeOutCubic(Math.max(hunt, flatten)))
+      const worldScale = lerp(0.86, 1, easeOutCubic(hunt))
+      qrWorld.style.transform = `translate(${ox}px, ${oy}px) rotate(${rot}deg) scale(${worldScale})`
+      qrWorld.style.filter = `brightness(${lerp(0.72, 1, hunt)})`
+
+      const retScale = lerp(1.08, 1, smoothstep(lock))
+      const retPad = lerp(0, 10, smoothstep(lock))
+      reticle.style.transform = `scale(${retScale})`
+      reticle.style.width = 196 + retPad * 2 + "px"
+      reticle.style.height = 196 + retPad * 2 + "px"
+      reticle.style.margin = `${-(98 + retPad)}px 0 0 ${-(98 + retPad)}px`
+      reticle.style.opacity = locked ? 0 : lerp(0.7, 1, hunt)
+
+      // The plate is the lock-on 3D gym. Keep it sharp for the QR-to-QR cut,
+      // then rack it a little while the sticker dissolves. Never crush it
+      // to black. Yield only when the real log-set screenshot covers the frame.
+      const logCover = remap(logT, 0.95, 1.28)
+      const rack = remap(logT, 0.0, 0.28) * (1 - logCover)
+      scanBg.style.opacity = 1 - logCover
+      scanBg.style.filter = rack > 0.001 ? `blur(${(rack * 7).toFixed(2)}px)` : "none"
+      scanLabel.style.opacity = locked ? 0 : lerp(0.85, 1, remap(t, 0.0, 0.35))
+      scanHint.style.opacity = locked ? 0 : lerp(0, 1, remap(t, 0.4, 0.8)) * (1 - lock)
+      qrWorld.style.opacity = t >= LOG_AT || morph > 0.42 ? 0 : 1
+      const worldW = lerp(168, SETTLE_SIZE, flatten)
+      const worldH = lerp(178, SETTLE_SIZE, flatten)
+      qrWorld.style.width = worldW + "px"
+      qrWorld.style.height = worldH + "px"
+      qrWorld.style.margin = `${-worldH / 2}px 0 0 ${-worldW / 2}px`
+      qrWorld.style.borderRadius = lerp(18, 22, flatten) + "px"
+      backBtn.style.opacity = 0
+
+      // The lock-on gym already has the 3D phone's island. Fake 9:41 chrome
+      // would print over that room and break the cut. The log-set capture
+      // brings its own status bar when it docks.
+      const chromeOut = t < LOG_AT ? 0 : 1
+      chrome.style.opacity = 1 - chromeOut
+      homeBar.style.opacity = t < LOG_AT ? 0.9 : 0
+
+      log.style.opacity = logCover
+      log.style.filter = `blur(${lerp(10, 0, remap(logT, 0.95, 1.25))}px)`
+
+      const settleLeft = QR_ANCHOR.x * W - SETTLE_SIZE / 2
+      const settleTop = QR_ANCHOR.y * H - SETTLE_SIZE / 2
+      const grow = 1 + 0.1 * morph
+      const morphSize = SETTLE_SIZE * grow
+      const morphLeft = QR_ANCHOR.x * W - morphSize / 2
+      const morphTop = QR_ANCHOR.y * H - morphSize / 2
+
+      const f = flightEase(flight)
+      const left = lerp(morphLeft, HERO.left, f)
+      const top = lerp(morphTop, HERO.top, f)
+      const width = lerp(morphSize, HERO.width, f)
+      const height = lerp(morphSize, HERO.height, f)
+      const radius = lerp(34, HERO.radius, f)
+
+      if (t < LOG_AT) {
+        setCardBox(settleLeft, settleTop, SETTLE_SIZE, SETTLE_SIZE, 22)
+        card.style.opacity = 0
+      } else {
+        setCardBox(left, top, width, height, radius)
+        // The lock-on still already holds the 3D sticker. The card is only
+        // the white-block dissolve and the photo, so the first LOG frame
+        // matches the gym on the phone.
+        card.style.opacity = flight > 0.98 ? 0 : 1
+      }
+      cardQr.style.opacity = t < LOG_AT ? 1 : 0
+      const inset = lerp(7, 0, f)
+      cardPhoto.style.inset = inset + "px"
+      cardPhoto.style.borderRadius = lerp(27, HERO.radius, f) + "px"
+
+      blocks.forEach((el, i) => {
+        const b = MORPH_BLOCKS[i]
+        const p = remap(morph, b.t, b.t + 0.24)
+        el.style.opacity = p > 0 ? 1 : 0
+        el.style.transform = `scale(${easeOutBack(p)})`
+      })
+
+      cardWhite.style.opacity = remap(morph, 0.38, 0.52)
+      const payoffPop = remap(morph, 0.5, 0.88)
+      const payoffFade = remap(morph, 0.5, 0.6)
+      cardPhoto.style.opacity = payoffFade
+      cardPhoto.querySelector("img").style.transform = `scale(${easeOutBack(payoffPop)})`
+    }
+
+    window.setTime = setTime
+    window.SCAN_FLOW = { duration: DURATION, logAt: LOG_AT }
+
+    const ready = Promise.all([
+      document.fonts.ready,
+      ...[...document.images].map((img) => img.decode ? img.decode().catch(() => {}) : Promise.resolve()),
+    ]).then(() => {
+      setTime(0)
+      window.__ready = true
+    })
+    window.__readyPromise = ready
+
+    const params = new URLSearchParams(location.search)
+    if (params.has("play")) {
+      const start = performance.now()
+      const loop = () => {
+        const t = ((performance.now() - start) / 1000) % DURATION
+        setTime(t)
+        requestAnimationFrame(loop)
+      }
+      ready.then(loop)
+    } else if (params.has("t")) {
+      ready.then(() => setTime(Number(params.get("t")) || 0))
+    } else {
+      ready.then(() => setTime(0))
+    }
+  </script>
+</body>
+</html>

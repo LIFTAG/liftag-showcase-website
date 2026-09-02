@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { scrollToTrainerHandoff } from '~/utils/dashboardScroll'
 
+const props = withDefaults(defineProps<{
+  deferred?: boolean
+  visible?: boolean
+}>(), {
+  deferred: false,
+  visible: true,
+})
+
 const scrolled = ref(false)
 const open = ref(false)
 const isMobileNav = ref(false)
@@ -11,7 +19,8 @@ const route = useRoute()
 // animation-timeline: scroll(); the JS fallback then never writes the var.
 let nativeScrollTimeline = false
 
-const sectionHref = (hash: string) => route.path === '/' ? hash : `/${hash}`
+const isHomeLike = computed(() => route.path === '/' || route.path === '/gym-scan')
+const sectionHref = (hash: string) => isHomeLike.value ? hash : `/${hash}`
 
 // Per-character spans for the desktop nav's hover index (see .nav-link__char).
 // Array.from, not split(''), so an accented or non-BMP label would still index
@@ -19,7 +28,7 @@ const sectionHref = (hash: string) => route.path === '/' ? hash : `/${hash}`
 const navChars = (label: string) => Array.from(label)
 
 const navLinks = computed<[string, string][]>(() => [
-  ['Demo', sectionHref('#demo')],
+  ['Demo', '/gym-scan'],
   ['Lifters', sectionHref('#lifters')],
   ['Gyms', sectionHref('#gyms')],
   ['Trainers', sectionHref('#trainers')],
@@ -32,7 +41,7 @@ const navLinks = computed<[string, string][]>(() => [
 // `#trainers` loads are handled in plugins/trainer-hash-scroll.client.ts;
 // this intercepts same-page nav clicks (pushState would not run Vue Router).
 function onNavLinkClick(label: string, href: string, event: MouseEvent) {
-  if (label !== 'Trainers' || route.path !== '/') return
+  if (label !== 'Trainers' || !isHomeLike.value) return
   if (!document.getElementById('dashboard')) return
 
   event.preventDefault()
@@ -261,7 +270,12 @@ onBeforeUnmount(() => {
   <header
     ref="navRoot"
     class="site-nav"
-    :class="{ 'is-open': open, 'is-scrolled': scrolled }"
+    :class="{
+      'is-open': open,
+      'is-scrolled': scrolled,
+      'is-deferred': props.deferred,
+      'is-deferred-in': props.deferred && props.visible,
+    }"
     :style="{
       position: 'fixed',
       top: 0,
@@ -390,6 +404,26 @@ onBeforeUnmount(() => {
    the element's resting state, but `both` kept it applied forever, permanently
    pinning `clip-path: inset(0 0 0 0 round 0)` on the header. clip-path on the
    same element as backdrop-filter breaks the blur in WebKit and Chromium. */
+.site-nav.is-deferred {
+  animation: none;
+  opacity: 0;
+  transform: translate3d(0, -16px, 0);
+  pointer-events: none;
+  transition:
+    opacity 800ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 800ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.site-nav.is-deferred.is-deferred-in {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-nav.is-deferred {
+    transition-duration: 0.01ms;
+  }
+}
+
 .site-nav {
   overflow: hidden;
   /* Padding lives here rather than in the inline :style above, because inline

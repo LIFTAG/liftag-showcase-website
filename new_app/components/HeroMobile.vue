@@ -6,11 +6,35 @@ import {
   useHeroLaser,
 } from '../composables/useHeroLaser'
 
+const props = withDefaults(defineProps<{
+  autoEnter?: boolean
+  hideFrontPhone?: boolean
+  playEnter?: boolean
+}>(), {
+  autoEnter: true,
+  hideFrontPhone: false,
+  playEnter: false,
+})
+
 const entered = ref(false)
+const frontPhoneEl = ref<HTMLElement | null>(null)
+let entranceStarted = false
+
 const { setTitleEl, startHeroLaser, cleanupHeroLasers } = useHeroLaser({
   emitSparks: false,
   followFinishedWalls: false,
 })
+
+function enter() {
+  if (entranceStarted) return
+  entranceStarted = true
+  entered.value = true
+  startHeroLaser()
+}
+
+watch(() => props.playEnter, (v) => { if (v) enter() })
+
+defineExpose({ enter, frontPhoneEl })
 
 const heroMobileDetailsStyle = computed(() => ({
   opacity: entered.value ? 1 : 0,
@@ -26,8 +50,9 @@ let phoneCopyIo: IntersectionObserver | null = null
 let heroEntranceTimer: ReturnType<typeof setTimeout> | null = null
 
 onMounted(() => {
-  heroEntranceTimer = setTimeout(() => { entered.value = true }, 80)
-  startHeroLaser()
+  if (props.autoEnter || props.playEnter) {
+    heroEntranceTimer = setTimeout(() => { enter() }, 80)
+  }
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   if (prefersReducedMotion) {
@@ -122,10 +147,15 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <div class="hero-mobile-device">
+        <div
+          ref="frontPhoneEl"
+          class="hero-mobile-device"
+          :class="{ 'is-slot-only': props.hideFrontPhone }"
+        >
           <div class="hero-mobile-device-glow" aria-hidden="true" />
           <div class="hero-mobile-phone-stage">
             <Phone
+              v-if="!props.hideFrontPhone"
               src="/assets/screens/hero-dashboard.webp"
               :scale="1"
               :tilt-delay-ms="0"
@@ -290,6 +320,12 @@ onBeforeUnmount(() => {
   margin-top: 4px;
   width: min(46vw, 180px);
   aspect-ratio: 393 / 852;
+}
+
+.hero-mobile-device.is-slot-only .hero-mobile-phone-stage,
+.hero-mobile-device.is-slot-only .hero-mobile-device-glow {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .hero-mobile-phone-stage {

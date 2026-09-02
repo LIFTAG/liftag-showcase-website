@@ -4,6 +4,49 @@
 // evaluates the phone layout (and vice versa). The cursor effect lives in
 // SplashCursor.vue, mounted page-wide by index.vue.
 
+const props = withDefaults(defineProps<{
+  handoff?: boolean
+  autoEnter?: boolean
+  hideFrontPhone?: boolean
+  playEnter?: boolean
+}>(), {
+  handoff: false,
+  autoEnter: true,
+  hideFrontPhone: false,
+  playEnter: false,
+})
+
+type HeroIsland = {
+  enter: () => void
+  frontPhoneEl: HTMLElement | null
+}
+
+const desktopRef = ref<HeroIsland | null>(null)
+const mobileRef = ref<HeroIsland | null>(null)
+
+function enter() {
+  desktopRef.value?.enter()
+  mobileRef.value?.enter()
+}
+
+function getFrontPhoneEl() {
+  const desktop = desktopRef.value?.frontPhoneEl
+  const mobile = mobileRef.value?.frontPhoneEl
+  if (desktop && desktop.getBoundingClientRect().width > 8) return desktop
+  if (mobile && mobile.getBoundingClientRect().width > 8) return mobile
+  return desktop ?? mobile ?? null
+}
+
+const emit = defineEmits<{
+  'front-ready': []
+}>()
+
+function emitFrontReady() {
+  emit('front-ready')
+}
+
+defineExpose({ enter, getFrontPhoneEl })
+
 const rawMouse = useSharedMouse().latest
 const heroRoot = ref<HTMLElement | null>(null)
 
@@ -26,12 +69,16 @@ onMounted(() => {
       if (window.matchMedia('(max-width: 768px)').matches) return
 
       const root = heroRoot.value
-      const y = window.scrollY
-      if (root) {
-        root.style.setProperty('--hero-fade', String(Math.max(0, 1 - y / 500)))
-        root.style.setProperty('--hero-lift', `${y * 0.35}px`)
-        root.style.setProperty('--hero-scroll', String(y))
-      }
+      if (!root) return
+      // Handoff lives inside the gym-scan sticky, so window.scrollY is already
+      // several viewports deep when the hero appears. Measure the section
+      // itself: pinned → y = 0, unpinning → the same fade the homepage uses.
+      const y = props.handoff
+        ? Math.max(0, -root.getBoundingClientRect().top)
+        : window.scrollY
+      root.style.setProperty('--hero-fade', String(Math.max(0, 1 - y / 500)))
+      root.style.setProperty('--hero-lift', `${y * 0.35}px`)
+      root.style.setProperty('--hero-scroll', String(y))
     })
   }
 
@@ -50,11 +97,12 @@ onBeforeUnmount(() => {
   <section
     ref="heroRoot"
     class="hero-section"
+    :class="{ 'hero-section--handoff': props.handoff }"
     :style="{
       position: 'relative',
       minHeight: '100vh',
       overflow: 'hidden',
-      background: '#000',
+      background: props.handoff ? 'transparent' : '#000',
       paddingTop: '100px',
       paddingBottom: '80px',
     }"
@@ -68,8 +116,21 @@ onBeforeUnmount(() => {
       }"
     />
 
-    <LazyHeroDesktop hydrate-on-media-query="(min-width: 769px)" />
-    <LazyHeroMobile hydrate-on-media-query="(max-width: 768px)" />
+    <LazyHeroDesktop
+      ref="desktopRef"
+      hydrate-on-media-query="(min-width: 769px)"
+      :auto-enter="props.autoEnter"
+      :hide-front-phone="props.hideFrontPhone"
+      :play-enter="props.playEnter"
+      @front-ready="emitFrontReady"
+    />
+    <LazyHeroMobile
+      ref="mobileRef"
+      hydrate-on-media-query="(max-width: 768px)"
+      :auto-enter="props.autoEnter"
+      :hide-front-phone="props.hideFrontPhone"
+      :play-enter="props.playEnter"
+    />
   </section>
 </template>
 
@@ -80,6 +141,13 @@ onBeforeUnmount(() => {
   --hero-scroll: 0;
   --hero-mx: 0;
   --hero-my: 0;
+}
+
+.hero-section--handoff {
+  position: absolute !important;
+  inset: 0;
+  min-height: 100% !important;
+  width: 100%;
 }
 
 :deep(.hero-fades) {

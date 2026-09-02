@@ -316,6 +316,10 @@ body {
   color: #fff;
   font-family: var(--liftag-font-body);
   -webkit-font-smoothing: antialiased;
+  /* Stops rubber-band / glow overscroll past the first and last pixels.
+     Do not substitute overflow:hidden here — that would break position:sticky
+     on HowItWorks and similar scrollytelling sections. */
+  overscroll-behavior: none;
 }
 
 html {
