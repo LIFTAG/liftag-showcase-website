@@ -116,7 +116,7 @@ function formatHeroStat(target: number, suffix: string) {
 }
 
 const stat1 = useCountUp(400, 1600, formatHeroStat(400, '+'))
-const stat2 = useCountUp(11, 1600, formatHeroStat(11, ''))
+const stat2 = useCountUp(12, 1600, formatHeroStat(12, ''))
 const stat4 = useCountUp(100, 1600, formatHeroStat(100, '%'))
 
 let heroEntranceTimer: ReturnType<typeof setTimeout> | null = null

@@ -64,6 +64,13 @@ export const MUSCLE_HUBS: MuscleHubCopy[] = [
     intro: 'Hinges and curls. Romanian deadlifts, lying curls, and seated curls are different enough that they get their own rows in the log.',
   },
   {
+    slug: 'adductors',
+    name: 'Adductors',
+    headline: 'Adductor exercises.',
+    description: 'Adductor exercises in the LIFTAG library: hip adduction machines, Copenhagen planks, and cable inner-thigh work, with setup cues and how to log them.',
+    intro: 'Machine adduction, cables, and Copenhagen planks. Squats already load the adductors; these lifts exist so dedicated inner-thigh volume does not hide inside a squat or lunge row.',
+  },
+  {
     slug: 'calves',
     name: 'Calves',
     headline: 'Calf exercises.',

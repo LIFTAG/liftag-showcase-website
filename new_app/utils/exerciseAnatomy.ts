@@ -14,6 +14,9 @@ export const SLUG_TO_MUSCLES: Record<string, string[]> = {
   abs: ['abs'],
   quadriceps: ['quadriceps'],
   hamstrings: ['hamstring'],
+  // Inner thigh. Web highlighter only has posterior `adductor` (2 polygons).
+  // Do not map anterior `abductors` (outer thigh); that region is not a hub.
+  adductors: ['adductor'],
   glutes: ['gluteal'],
   calves: ['calves'],
 }
@@ -33,6 +36,7 @@ export const MUSCLE_TO_SLUG: Record<string, string> = {
   forearm: 'forearms',
   quadriceps: 'quadriceps',
   hamstring: 'hamstrings',
+  adductor: 'adductors',
   gluteal: 'glutes',
   calves: 'calves',
   'left-soleus': 'calves',

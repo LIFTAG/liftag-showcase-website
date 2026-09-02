@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const features = [
   'NFC + QR · MACHINE SYNC', 'AUTO · 1RM', '400+ · EXERCISES',
-  '11 · MUSCLE GROUPS', 'COACH · DIRECTORY', 'GYM · MAP',
+  '12 · MUSCLE GROUPS', 'COACH · DIRECTORY', 'GYM · MAP',
   'ROUTINES · SUPERSETS', 'WORKOUT · HISTORY', 'PRs · AUTO-DETECTED',
   'EN · SK',
 ]

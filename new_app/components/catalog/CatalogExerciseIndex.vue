@@ -287,7 +287,7 @@ useLiftagStructuredData([
           <NuxtLink v-if="!isSk" to="/machines" class="ex-stats-link">{{ chrome.statMachines(index.machines.length) }}</NuxtLink>
           <span v-else>{{ chrome.statMachines(index.machines.length) }}</span>
           <span class="ex-stats-dot" aria-hidden="true">·</span>
-          <span>{{ chrome.statMuscles(index.categories.length) }}</span>
+          <span>{{ chrome.statMuscles(index.categories.filter(c => c.slug !== 'cardio').length) }}</span>
         </p>
 
       </header>
