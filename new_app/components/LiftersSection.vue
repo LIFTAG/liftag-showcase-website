@@ -15,6 +15,7 @@ interface FeatureCardProps {
   compact?: boolean
   href?: string
   linkLabel?: string
+  lifts?: { href: string; label: string }[]
 }
 
 const cards: FeatureCardProps[] = [
@@ -75,6 +76,11 @@ const cards: FeatureCardProps[] = [
     compact: true,
     href: '/exercises',
     linkLabel: 'Browse the library',
+    lifts: [
+      { href: '/exercises/pull-up', label: 'pull-up' },
+      { href: '/exercises/standing-barbell-overhead-press', label: 'overhead press' },
+      { href: '/exercises/barbell-romanian-deadlift-rdl', label: 'Romanian deadlift' },
+    ],
   },
 ]
 
@@ -436,6 +442,18 @@ onBeforeUnmount(() => {
               }"
             >
               {{ card.body }}
+              <template v-if="card.lifts?.length">
+                Log a
+                <template v-for="(lift, i) in card.lifts" :key="lift.href">
+                  <template v-if="i > 0">{{ i === (card.lifts?.length ?? 0) - 1 ? ', or ' : ', ' }}</template>
+                  <NuxtLink
+                    :to="lift.href"
+                    class="lifters-inline-lift"
+                    @click.stop
+                  >{{ lift.label }}</NuxtLink>
+                </template>
+                from the same library.
+              </template>
             </p>
             <NuxtLink
               v-if="card.href"
@@ -489,6 +507,17 @@ onBeforeUnmount(() => {
 }
 
 .lifters-card-link:hover {
+  color: #fff;
+}
+
+.lifters-inline-lift {
+  color: var(--liftag-primary);
+  text-decoration: underline;
+  text-decoration-color: rgba(204, 255, 0, 0.4);
+  text-underline-offset: 2px;
+}
+
+.lifters-inline-lift:hover {
   color: #fff;
 }
 

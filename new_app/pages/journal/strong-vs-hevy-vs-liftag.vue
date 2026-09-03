@@ -161,7 +161,9 @@ useLiftagStructuredData([
             <p>
               You train in a gym, not only a garage, and you are tired of scrolling an exercise list between sets. Tap the
               <a href="/journal/nfc-tags-for-gym-equipment">NFC tag</a>
-              or scan the QR. The lift, the last load, and the rest timer are the same screen. If your gym is not a partner yet, LIFTAG still logs like Strong — you pick the lift from the
+              or scan the QR. A
+              <a href="/exercises/lat-pulldown">lat pulldown</a>
+              on that stack opens as that lift, not a generic “back” folder. The last load and the rest timer are the same screen. If your gym is not a partner yet, LIFTAG still logs like Strong — you pick the lift from the
               <a href="/exercises">library</a>.
             </p>
           </section>

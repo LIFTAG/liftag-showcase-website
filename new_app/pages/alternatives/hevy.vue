@@ -168,7 +168,9 @@ useLiftagStructuredData([
               <a href="/exercises/barbell-bench-press">bench press</a>
               and the
               <a href="/exercises/barbell-back-squat">back squat</a>
-              behave the same way as the cable stack. Away from tags it logs like Hevy, without the free caps.
+              behave the same way as a
+              <a href="/exercises/lat-pulldown">lat pulldown</a>
+              on the cable stack. Away from tags it logs like Hevy, without the free caps.
             </p>
             <p>
               We build LIFTAG, so treat the tone as biased and the numbers as checkable. Every Hevy figure below is quoted from

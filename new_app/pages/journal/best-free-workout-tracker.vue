@@ -141,7 +141,9 @@ useLiftagStructuredData([
               <a href="/exercises/barbell-bench-press">barbell bench press</a>,
               <a href="/exercises/barbell-back-squat">back squat</a>, or
               <a href="/exercises/conventional-deadlift">conventional deadlift</a>
-              from the library and log weight × reps like any other app. At a partner gym you tap an NFC tag or scan a QR code and that lift is already open.
+              from the
+              <a href="/exercises">exercise library</a>
+              and log weight × reps like any other app. At a partner gym you tap an NFC tag or scan a QR code and that lift is already open.
             </p>
             <p>
               The free tier is the logger: sets, rest timer, PRs, estimated 1RM, history. That is the product. If you train at a gym that has not installed tags yet, you still have a complete iOS and Android tracker.
