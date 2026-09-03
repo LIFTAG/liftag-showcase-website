@@ -109,7 +109,11 @@ onBeforeUnmount(() => {
                   :class="heroLaserClass(word, lineIndex * 2 + wordIndex)"
                   :style="{ color: '#CCFF00' }"
                 >{{ word }}</span>
-                <span class="hero-title-glow" aria-hidden="true">{{ word }}</span>
+                <span
+                  class="hero-title-glow"
+                  aria-hidden="true"
+                  :data-word="word"
+                />
               </span>
               <span
                 v-else

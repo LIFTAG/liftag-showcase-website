@@ -226,9 +226,8 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
               v-if="isHeroLimeWord(word)"
               class="hero-title-glow"
               aria-hidden="true"
-            >
-              {{ word }}
-            </span>
+              :data-word="word"
+            />
           </span>
         </h1>
 

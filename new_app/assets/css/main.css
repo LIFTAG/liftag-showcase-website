@@ -1144,6 +1144,11 @@ section {
     0 0 120px rgba(204, 255, 0, 0.2);
   transition: opacity 700ms 80ms cubic-bezier(0.16, 1, 0.3, 1);
 }
+/* Bloom is CSS-painted from data-word so crawlers do not see a second
+   "LIFTERS." text node inside the homepage <h1>. */
+.hero-title-glow::before {
+  content: attr(data-word);
+}
 .hero-laser-reveal.reveal-done + .hero-title-glow {
   opacity: 1;
 }
