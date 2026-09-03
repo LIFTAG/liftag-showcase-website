@@ -402,6 +402,9 @@ const cards: AppCard[] = [
             <li><a href="/exercises/barbell-back-squat">Barbell back squat</a></li>
             <li><a href="/exercises/conventional-deadlift">Conventional deadlift</a></li>
             <li><a href="/exercises/pull-up">Pull-up</a></li>
+            <li><a href="/exercises/barbell-romanian-deadlift-rdl">Barbell Romanian deadlift</a></li>
+            <li><a href="/exercises/barbell-bent-over-row">Barbell bent-over row</a></li>
+            <li><a href="/exercises/barbell-front-squat">Barbell front squat</a></li>
             <li><a href="/muscles/chest">Chest exercises</a></li>
             <li><a href="/muscles">All muscle groups</a></li>
           </ul>

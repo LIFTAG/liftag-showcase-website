@@ -249,7 +249,11 @@ const picks: Pick[] = [
             </p>
             <h3>Conjugate (Westside style)</h3>
             <p>
-              Heavy day rotates max-effort exercises. You need a tracker that surfaces PR history per variation, such as front squat 3RM, low bar pause squat 3RM, and so on, separately, not lumped together. LIFTAG separates PR history by exact movement, so a switch from low bar to high bar does not muddy the data.
+              Heavy day rotates max-effort exercises. You need a tracker that surfaces PR history per variation, such as
+              <a href="/exercises/barbell-front-squat">front squat</a>
+              3RM,
+              <a href="/exercises/sumo-deadlift">sumo deadlift</a>
+              3RM, low bar pause squat 3RM, and so on, separately, not lumped together. LIFTAG separates PR history by exact movement, so a switch from low bar to high bar does not muddy the data.
             </p>
             <h3>Sheiko and high-frequency Russian templates</h3>
             <p>

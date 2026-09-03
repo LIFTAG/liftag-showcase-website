@@ -178,7 +178,9 @@ useLiftagStructuredData([
               <a href="/exercises/barbell-bench-press">bench press</a>,
               the
               <a href="/exercises/barbell-back-squat">back squat</a>,
-              and the leg press all behave the same way. Away from tags it logs like Strong, without the three-routine ceiling.
+              and the
+              <a href="/exercises/standard-leg-press">leg press</a>
+              all behave the same way. Away from tags it logs like Strong, without the three-routine ceiling.
             </p>
             <p>
               Two rows decide most of this. If you log from a watch, Strong wins outright. If your split needs more than three routines and you would rather not subscribe, LIFTAG does.

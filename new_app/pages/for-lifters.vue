@@ -70,5 +70,35 @@ const faqs = [
     :faqs="faqs"
     cta-label="See lifter flow"
     cta-href="/#lifters"
-  />
+  >
+    <div class="container lifters-library">
+      <p>
+        The same log works for a
+        <a href="/exercises/pull-up">pull-up</a>,
+        an
+        <a href="/exercises/standing-barbell-overhead-press">overhead press</a>,
+        or a
+        <a href="/exercises/barbell-hip-thrust">hip thrust</a>
+        — pick the lift, or tap the machine when the gym has tags.
+      </p>
+    </div>
+  </SeoLandingPage>
 </template>
+
+<style scoped>
+.lifters-library p {
+  max-width: 760px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 1.65;
+}
+
+.lifters-library a {
+  color: var(--liftag-primary);
+  text-decoration: underline;
+  text-decoration-color: rgba(204, 255, 0, 0.4);
+  text-underline-offset: 3px;
+}
+</style>
