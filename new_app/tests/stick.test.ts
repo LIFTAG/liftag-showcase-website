@@ -40,6 +40,12 @@ function dist(a: { x: number, y: number, z: number }, b: { x: number, y: number,
   return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z)
 }
 
+/** Card width as a fraction of the establishing frame at a given aspect. */
+function cardWidthFrac(dist: number, aspect: number) {
+  const tanHalfV = Math.tan((CAM_FOV_Y * Math.PI) / 360)
+  return PLACARD_W / (2 * dist * tanHalfV * aspect)
+}
+
 /** NDC of a world point in the establishing camera, x/y in −1..1 if on screen. */
 function ndcOf(p: { x: number, y: number, z: number }, aspect: number) {
   const dx = ESTABLISH.tx - ESTABLISH.x
@@ -434,4 +440,22 @@ test('phone showcase sits further from the lens so the card fits the portrait wi
   const desk = stickAt(flyDuration(false) * 0.5, 'fly', false)
   const phone = stickAt(flyDuration(true) * 0.5, 'fly', true)
   assert.ok(distToCam(phone) > distToCam(desk))
+
+  // 9:19.5 is a current phone. Desktop fills ~70% of the short axis (height
+  // at 16:9); the seat cut should do the same on width, with margin so the
+  // card is a page you are shown, not a crop of the code.
+  const portrait = 9 / 19.5
+  const widthFrac = cardWidthFrac(SHOWCASE_DIST_PHONE, portrait)
+  assert.ok(
+    widthFrac < 0.78,
+    `portrait close-up must leave margin, widthFrac=${widthFrac.toFixed(3)}`,
+  )
+  assert.ok(
+    widthFrac > 0.58,
+    `portrait close-up must still fill the lens, widthFrac=${widthFrac.toFixed(3)}`,
+  )
+  assert.ok(
+    cardWidthFrac(SHOWCASE_DIST, portrait) > 1,
+    'the desktop hold would overflow a phone frame',
+  )
 })

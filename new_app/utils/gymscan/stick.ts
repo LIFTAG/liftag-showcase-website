@@ -63,8 +63,12 @@ export const PLACARD_REST = {
 
 /** Metres in front of the establishing camera. Desktop ~70% of vertical FOV. */
 export const SHOWCASE_DIST = 0.32
-/** Phone: fill the narrow width without overflowing. */
-export const SHOWCASE_DIST_PHONE = 0.52
+/**
+ * Phone: same idea as desktop, on the axis that is actually scarce.
+ * 0.66 m is ~70% of width at 9:19.5 — a page with margin, not a crop.
+ * 0.52 m filled ~89% and read as a punch-in on the code.
+ */
+export const SHOWCASE_DIST_PHONE = 0.66
 
 /** Fly-window beats, as fractions of `flyDuration`. */
 export const FLY_IN_END = 0.30
