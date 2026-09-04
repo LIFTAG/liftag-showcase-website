@@ -62,12 +62,10 @@
         </div>
       </div>
 
-      <!-- The cut. Two frames of black at the moment the glass reaches the
-           hero's slot, so the seam reads as an edit rather than a dissolve. -->
-      <div v-if="cutOn" class="gs__cut" aria-hidden="true" />
-
       <!-- The landing hero, assembled around the folded phone. Its own front
-           device is hidden: this canvas is that device. -->
+           device is hidden: this canvas is that device. The glass itself is
+           the cut — a full-frame black hold here flashed the live hero out
+           the moment the phone arrived. -->
       <div
         v-if="heroMounted"
         class="gs__hero-layer"
@@ -109,15 +107,11 @@ type HeroHandoff = {
 }
 
 /**
- * Where the black frame sits on the morph tail, and how long it is held.
- *
- * It is armed by scroll position but released by a clock, because those are
- * two different questions. A cut is a duration - two frames - and a visitor
- * inching the wheel through the seam must still get a cut rather than a black
- * screen they are dragging around.
+ * Morph value at which the phone has visually arrived in the hero slot.
+ * Ease-out quart is already ~1 here, so this is "landed", not "still flying".
+ * Used to arm the splash cursor; the glass itself is the cut, not a black hold.
  */
-const CUT_AT = 0.86
-const CUT_MS = 64
+const HERO_ARRIVED = 0.86
 
 const stickyVars = {
   '--gs-floor-svh': String(GYM_SCAN_STICKY_SVH),
@@ -138,7 +132,6 @@ const reducedMotion = shallowRef(false)
 const staticMode = shallowRef(false)
 const heroMounted = shallowRef(false)
 const heroLive = shallowRef(false)
-const cutOn = shallowRef(false)
 const scrollReady = shallowRef(false)
 const heroRef = shallowRef<HeroHandoff | null>(null)
 let stage: GymScanStage | null = null
@@ -146,8 +139,6 @@ let scrollRaf = 0
 let activeDevice: GymScanDevice | null = null
 let handoffActive = false
 let cursorActive = false
-let cutArmed = true
-let cutTimer: ReturnType<typeof setTimeout> | undefined
 let visibility: IntersectionObserver | null = null
 const mouse = useSharedMouse()
 
@@ -249,12 +240,6 @@ function measureHeroSlot() {
   }
 }
 
-function fireCut() {
-  cutOn.value = true
-  if (cutTimer) clearTimeout(cutTimer)
-  cutTimer = setTimeout(() => { cutOn.value = false }, CUT_MS)
-}
-
 function handleFrame(info: FrameInfo) {
   const wantSkip = info.act0.skipVisible && info.scene < 0.02
   if (wantSkip !== skipVisible.value) skipVisible.value = wantSkip
@@ -288,22 +273,12 @@ function handleFrame(info: FrameInfo) {
     emit('handoff', wantLive)
   }
 
-  // Splash cursor matches `/` once the cut has happened — not while the
+  // Splash cursor matches `/` once the phone has landed — not while the
   // glass is still the film. Reverse-scroll puts the room back in charge.
-  const wantCursor = info.heroMorph >= CUT_AT
+  const wantCursor = info.heroMorph >= HERO_ARRIVED
   if (wantCursor !== cursorActive) {
     cursorActive = wantCursor
     emit('cursor-visible', wantCursor)
-  }
-
-  if (info.heroMorph >= CUT_AT) {
-    if (cutArmed) {
-      cutArmed = false
-      fireCut()
-    }
-  }
-  else if (info.heroMorph < CUT_AT - 0.04) {
-    cutArmed = true
   }
 
   if (heroMounted.value && (info.heroMorph > 0 || info.scene > 0.9)) measureHeroSlot()
@@ -462,7 +437,6 @@ onBeforeUnmount(() => {
   applyScrollLock(false)
   cancelAnimationFrame(scrollRaf)
   cancelAnimationFrame(pointerRaf)
-  if (cutTimer) clearTimeout(cutTimer)
   visibility?.disconnect()
   visibility = null
   gyroCleanup?.()
@@ -622,13 +596,6 @@ onBeforeUnmount(() => {
   z-index: 6;
   background: transparent;
 }
-.gs__cut {
-  position: absolute;
-  inset: 0;
-  z-index: 9;
-  background: #000;
-  pointer-events: none;
-}
 /* The landing hero, assembled behind the flying glass. It is inert until the
    morph is under way so a stray pointer cannot hit a CTA mid-film. */
 .gs__hero-layer {
@@ -637,7 +604,9 @@ onBeforeUnmount(() => {
   z-index: 3;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.28s ease;
+  /* Hard cut: fading this layer is a dissolve of the assembled page, and
+     reverse-scroll would fade the hero out to black. The phone is the seam. */
+  transition: none;
 }
 .gs__hero-layer.is-live {
   opacity: 1;
