@@ -413,7 +413,7 @@ onBeforeUnmount(() => {
               class="btn-ghost"
               style="padding: 14px 24px; font-size: 12px; display: inline-flex; align-items: center; text-decoration: none;"
             >
-              See the coach platform
+              <HoloPill />See the coach platform
             </NuxtLink>
           </div>
         </div>

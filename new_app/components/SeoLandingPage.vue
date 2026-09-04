@@ -37,7 +37,7 @@ defineProps<{
             <p class="seo-lead">{{ lead }}</p>
             <div class="seo-actions">
               <a :href="ctaHref ?? '/#scan'" class="btn-primary">{{ ctaLabel ?? 'See the flow' }}</a>
-              <a href="/" class="btn-ghost">Back to showcase</a>
+              <a href="/" class="btn-ghost"><HoloPill />Back to showcase</a>
             </div>
           </div>
 

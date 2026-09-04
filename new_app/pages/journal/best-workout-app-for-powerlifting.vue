@@ -141,7 +141,7 @@ const picks: Pick[] = [
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
             <a href="/" class="btn-primary">Open LIFTAG</a>
-            <a href="/best-workout-tracking-app" class="btn-ghost">Full comparison</a>
+            <a href="/best-workout-tracking-app" class="btn-ghost"><HoloPill />Full comparison</a>
           </div>
         </header>
 

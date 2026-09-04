@@ -316,17 +316,17 @@ useLiftagStructuredData([
       >
         <div v-if="error" class="mu-empty">
           <p>The exercise library did not load.</p>
-          <button type="button" class="btn-ghost" @click="() => refresh()">Try again</button>
+          <button type="button" class="btn-ghost" @click="() => refresh()"><HoloPill />Try again</button>
         </div>
 
         <div v-else-if="index && exercises.length === 0" class="mu-empty">
           <p>No {{ hub.name.toLowerCase() }} exercises in the catalog yet.</p>
-          <NuxtLink to="/exercises" class="btn-ghost">Browse all exercises</NuxtLink>
+          <NuxtLink to="/exercises" class="btn-ghost"><HoloPill />Browse all exercises</NuxtLink>
         </div>
 
         <div v-else-if="index && filtered.length === 0" class="mu-empty">
           <p>No exercises match <strong v-if="query">“{{ query }}”</strong><template v-else>this filter</template>.</p>
-          <button type="button" class="btn-ghost" @click="query = ''">Clear search</button>
+          <button type="button" class="btn-ghost" @click="query = ''"><HoloPill />Clear search</button>
         </div>
 
         <template v-else>
@@ -360,7 +360,7 @@ useLiftagStructuredData([
           </div>
           <div v-if="filtered.length > visibleCount" class="mu-more">
             <button type="button" class="btn-ghost" @click="visibleCount += PAGE_SIZE">
-              Show more ({{ filtered.length - visibleCount }} left)
+              <HoloPill />Show more ({{ filtered.length - visibleCount }} left)
             </button>
           </div>
         </template>

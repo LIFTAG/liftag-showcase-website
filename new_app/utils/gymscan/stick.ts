@@ -10,7 +10,7 @@
 // The shot is five beats inside one fly window, and they are fractions rather
 // than seconds so the phone cut is the same choreography at a shorter length:
 //
-//   IN    card slides in from off-frame right, hangs, then commits to the look
+//   IN    card arcs in from off-frame right onto the look, one move
 //   TURN  half a revolution onto its back, where the antenna is
 //   PEEL  the liner is grabbed at a corner and rolled off that back
 //   BACK  the second half of the revolution, print to the lens again
@@ -29,7 +29,7 @@
 
 import { ESTABLISH } from './station.ts'
 import { PEEL_AXIS, PEEL_FLAT, peelSpan, type PeelState } from './peel.ts'
-import { clamp01, ease, lerp, smoothstep } from './timeline.ts'
+import { clamp01, ease, lerp, smoothstep, vec3HermiteAt, type Vec3Stop } from './timeline.ts'
 
 /**
  * The artwork is 827 x 874, so the sticker is very slightly taller than it is
@@ -79,13 +79,6 @@ const IN_END = FLY_IN_END
 const TURN_END = FLY_TURN_END
 const PEEL_END = FLY_PEEL_END
 const BACK_END = FLY_BACK_END
-/**
- * Fraction of the IN beat spent bringing the card into frame. The rest is the
- * push from that hang in to the close-up. Split so the last metres are not a
- * 10× scale pop: world-space lerp spends most of its apparent size change in
- * the last tenth of the distance.
- */
-const IN_SLIDE = 0.48
 
 /** One complete revolution. Anything less and the back is a glimpse. */
 const TURN_TOTAL = Math.PI * 2
@@ -258,22 +251,19 @@ export function pressKeyPos(): { x: number, y: number, z: number } {
 }
 
 /**
- * Off the look, from camera-right, and outside the establishing frustum.
+ * Camera-space point: metres along the look, camera-right, and world-up lift.
  *
- * A start that is merely "to the right" still sits inside a 38° 16:9 frame —
- * atan(0.92 / 3.15) is 16°, and half the horizontal FOV is 31°. The card was
- * therefore already on screen the frame it became visible, which is a pop.
- * Side is sized so the whole 15 cm card is past the right edge at 16:9 and
- * 21:9; the IN beat then travels it in.
+ * The IN start is off the look, from camera-right, and outside the
+ * establishing frustum. A start that is merely "to the right" still sits
+ * inside a 38° 16:9 frame — atan(0.92 / 3.15) is 16°, and half the horizontal
+ * FOV is 31°. The card was therefore already on screen the frame it became
+ * visible, which is a pop. Side on the first knot is sized so the whole 15 cm
+ * card is past the right edge at 16:9 and 21:9 (~43° off the look); the IN
+ * beat then travels it in.
  */
-function enterOf(phone: boolean) {
+function camPoint(dist: number, side: number, lift: number) {
   const d = camDir()
   const r = camRight()
-  const dist = phone ? 2.40 : 3.15
-  // ~43° off the look — past a 21:9 half-FOV, and past 16:9 on the phone
-  // cut (a touch-laptop in tablet mode still has that aspect).
-  const side = phone ? 2.20 : 2.85
-  const lift = phone ? 0.28 : 0.42
   return {
     x: ESTABLISH.x + d.x * dist + r.x * side,
     y: ESTABLISH.y + d.y * dist + lift,
@@ -281,22 +271,54 @@ function enterOf(phone: boolean) {
   }
 }
 
+type CamKey = readonly [u: number, dist: number, side: number, lift: number]
+
 /**
- * Hang pose at the end of the slide: in frame, still a metre-odd from the
- * lens, so the remaining commit can grow the card without a flash.
+ * IN path in camera space. One Hermite through these, one ease over the
+ * whole beat — the same split of shape and timing the scroll dolly uses.
+ *
+ * Two eased lerps (off-screen → hang, hang → lens) were the previous
+ * version. Velocity hit zero at the hang, so a travel that was meant to be
+ * one arc arrived as a slide and then a punch-in. Interior knots stay off
+ * the enter→showcase chord so the path actually curves, and they keep a
+ * side component while distance closes so the second half is not a pure
+ * dolly. Timing is a separate job: `flyInEase` gets the card onto the look
+ * quickly, then fades the last centimetres out instead of parking them.
  */
-function presentOf(phone: boolean) {
-  const d = camDir()
-  const r = camRight()
-  const dist = phone ? 1.10 : 0.82
-  const side = phone ? 0.08 : 0.12
-  const lift = phone ? 0.04 : 0.06
-  return {
-    x: ESTABLISH.x + d.x * dist + r.x * side,
-    y: ESTABLISH.y + d.y * dist + lift,
-    z: ESTABLISH.z + d.z * dist + r.z * side,
-  }
+const IN_CAM_DESK: readonly CamKey[] = [
+  [0.00, 3.15, 2.85, 0.42],
+  [0.36, 2.00, 1.10, 0.22],
+  [0.64, 1.05, 0.38, 0.10],
+  [1.00, SHOWCASE_DIST, 0, 0],
+]
+
+const IN_CAM_PHONE: readonly CamKey[] = [
+  [0.00, 2.40, 2.20, 0.28],
+  [0.36, 1.70, 0.90, 0.16],
+  [0.64, 1.05, 0.32, 0.08],
+  [1.00, SHOWCASE_DIST_PHONE, 0, 0],
+]
+
+function pathFromCam(keys: readonly CamKey[]): Vec3Stop[] {
+  return keys.map(([u, dist, side, lift]) => {
+    const p = camPoint(dist, side, lift)
+    return [u, [p.x, p.y, p.z]]
+  })
 }
+
+const IN_PATH = pathFromCam(IN_CAM_DESK)
+const IN_PATH_PHONE = pathFromCam(IN_CAM_PHONE)
+
+/** Pitch/yaw offsets from FACE_CAM, same knots as the IN path. */
+const IN_ROT: readonly Vec3Stop[] = [
+  [0.00, [0.22, 0.95, 0]],
+  [0.36, [0.14, 0.50, 0]],
+  [0.64, [0.05, 0.16, 0]],
+  [1.00, [0.00, 0.00, 0]],
+]
+
+const _inP = { x: 0, y: 0, z: 0 }
+const _inR = { x: 0, y: 0, z: 0 }
 
 export type StickPose = {
   x: number
@@ -387,6 +409,29 @@ function easeInOut(t: number): number {
   return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2
 }
 
+/**
+ * Critically damped step, normalised to hit 1 at t=1. No overshoot, no
+ * bounce: a spring that settles on the first try. `omega` is how hard it
+ * pulls — 6 on a smoothstep time-warp is snappy without dumping the
+ * off-screen travel in the first frames.
+ */
+function critDamp01(t: number, omega: number): number {
+  const x = clamp01(t)
+  const n = 1 - Math.exp(-omega) * (1 + omega)
+  const w = omega * x
+  return (1 - Math.exp(-w) * (1 + w)) / n
+}
+
+/**
+ * IN timing. Slow out of the wings (the card must stay off the right edge
+ * for the first fifth), then a spring pull onto the look, then a short
+ * fade of the last centimetres. A symmetric in-out spent the second half
+ * of the beat creeping a card that was already large.
+ */
+function flyInEase(t: number): number {
+  return critDamp01(smoothstep(t), 6)
+}
+
 function showcaseOf(phone: boolean) {
   return phone ? SHOWCASE_PHONE : SHOWCASE
 }
@@ -402,21 +447,50 @@ function approachPose(): { x: number, y: number, z: number } {
 }
 
 /**
- * Turn phase at fly progress `u`, 0..1 of a full revolution: two eased halves
- * around a hold at 0.5, which is where the back is square to the lens.
+ * Turn phase at fly progress `u`, 0..1 of a full revolution.
  *
- * The hold is not a pause in the turn, it is what the turn is for. The whole
- * of the peel happens inside it, so the card is still - a liner cannot be
- * pulled off a face that is rotating away from the camera, and a constant-rate
- * spin would show that face for about four frames.
+ * The peel used to freeze the card at 0.5 so the liner came off a face that
+ * was square to the lens. That read as a stopped turntable. Speed is now a
+ * single envelope: high onto the back, a crawl across it while the liner
+ * comes off (still on-camera, just not locked), then high again through
+ * the second half so it is print-to-lens as it leaves for the beam.
+ * Smoothstep blends at the joints, so the downshift and the upshift are
+ * one spin, not three.
+ *
+ * The crawl is ~5% of peak rate, which is ~20° across the peel beat —
+ * enough to read as still turning, tight enough that the antenna does
+ * not walk off the lens.
  */
+const TURN_SLOW = 0.05
+const TURN_BLEND = 0.05
+const TURN_LUT_N = 256
+const TURN_LUT: number[] = (() => {
+  const span = BACK_END - IN_END
+  const dt = span / TURN_LUT_N
+  const speed = (u: number) => {
+    const amp = ease(u, TURN_END - TURN_BLEND, TURN_END) * (1 - ease(u, PEEL_END, PEEL_END + TURN_BLEND))
+    return 1 - (1 - TURN_SLOW) * amp
+  }
+  const cumul = [0]
+  let acc = 0
+  for (let i = 1; i <= TURN_LUT_N; i++) {
+    const a = IN_END + (i - 1) * dt
+    const b = IN_END + i * dt
+    acc += 0.5 * (speed(a) + speed(b)) * dt
+    cumul.push(acc)
+  }
+  const total = cumul[TURN_LUT_N]!
+  return cumul.map(c => c / total)
+})()
+
 export function turnPhase(u: number): number {
   const x = clamp01(u)
   if (x <= IN_END) return 0
-  if (x < TURN_END) return 0.5 * easeInOut((x - IN_END) / (TURN_END - IN_END))
-  if (x < PEEL_END) return 0.5
   if (x >= BACK_END) return 1
-  return 0.5 + 0.5 * easeInOut((x - PEEL_END) / (BACK_END - PEEL_END))
+  const t = (x - IN_END) / (BACK_END - IN_END) * TURN_LUT_N
+  const i = Math.min(TURN_LUT_N - 1, Math.floor(t))
+  const f = t - i
+  return TURN_LUT[i]! * (1 - f) + TURN_LUT[i + 1]! * f
 }
 
 /** 0..1 through the peel beat, or -1 outside it. */
@@ -434,8 +508,9 @@ export function flyDof(u: number, phone: boolean): number {
   const amp = phone ? DOF_PHONE_SCALE : 1
   // Open as the card commits to the lens, not while it is still a small
   // object sliding in from the gym — that would blur the machine for a
-  // sticker that has not arrived yet.
-  return amp * ease(t, IN_END * 0.72, IN_END + 0.04) * (1 - ease(t, BACK_END - 0.01, BACK_END + 0.08))
+  // sticker that has not arrived yet. The IN ease is snappy, so this
+  // window sits on the spring pull rather than on a late creep.
+  return amp * ease(t, IN_END * 0.48, IN_END * 0.88) * (1 - ease(t, BACK_END - 0.01, BACK_END + 0.08))
 }
 
 /** 0–1 showcase key. On as the card enters the frame, off as it leaves for the beam. */
@@ -491,8 +566,9 @@ export function foilAt(u: number): {
     drift: {
       x: PEEL_AXIS.x * 0.26 * away,
       y: PEEL_AXIS.y * 0.26 * away + 0.05 * away,
-      // Card-local -Z, because the liner is on the back. During the hold that
-      // is the face pointed at the lens, so the roll still leaves toward it.
+      // Card-local -Z, because the liner is on the back. During the slow
+      // spin that face is still pointed at the lens, so the roll leaves
+      // toward it.
       z: -0.10 * away,
       spin: 0.9 * away,
     },
@@ -514,8 +590,6 @@ function bendAt(u: number): PeelState {
 function flyAt(local: number, phone: boolean): StickPose {
   const dur = flyDuration(phone)
   const u = clamp01(local / dur)
-  const enter = enterOf(phone)
-  const present = presentOf(phone)
   const show = showcaseOf(phone)
   const end = approachPose()
   const face = FACE_CAM
@@ -527,27 +601,17 @@ function flyAt(local: number, phone: boolean): StickPose {
   let rotX: number
   let rotY: number
   if (u < IN_END) {
-    const t = u / IN_END
-    if (t < IN_SLIDE) {
-      // In-out, not out-cubic: an ease-out dumps most of the off-screen
-      // travel in the first two frames, which is the same pop as starting
-      // on-screen. In-out keeps the card off the right edge for the first
-      // third, then you can track it in.
-      const a = easeInOut(t / IN_SLIDE)
-      x = lerp(enter.x, present.x, a)
-      y = lerp(enter.y, present.y, a)
-      z = lerp(enter.z, present.z, a)
-      rotX = lerp(face.rotX + 0.22, face.rotX + 0.08, a)
-      rotY = lerp(face.rotY + 0.95, face.rotY + 0.28, a)
-    }
-    else {
-      const a = easeInOut((t - IN_SLIDE) / (1 - IN_SLIDE))
-      x = lerp(present.x, show.x, a)
-      y = lerp(present.y, show.y, a)
-      z = lerp(present.z, show.z, a)
-      rotX = lerp(face.rotX + 0.08, face.rotX, a)
-      rotY = lerp(face.rotY + 0.28, face.rotY, a)
-    }
+    // Slow start so the card stays off the right edge, then a spring
+    // pull onto the look. A symmetric in-out left the last metres as a
+    // long creep on a card that was already filling the frame.
+    const a = flyInEase(u / IN_END)
+    vec3HermiteAt(phone ? IN_PATH_PHONE : IN_PATH, a, _inP)
+    vec3HermiteAt(IN_ROT, a, _inR)
+    x = _inP.x
+    y = _inP.y
+    z = _inP.z
+    rotX = face.rotX + _inR.x
+    rotY = face.rotY + _inR.y
   }
   else if (u < BACK_END) {
     const phase = turnPhase(u)
@@ -555,9 +619,8 @@ function flyAt(local: number, phone: boolean): StickPose {
     y = show.y
     z = show.z
     // A little pitch through the revolution so it reads as a hand turning the
-    // card over rather than a part on a turntable. Keyed to the phase, so it
-    // is dead flat for the whole hold: the pull is the only thing moving while
-    // the liner comes off.
+    // card over rather than a part on a turntable. Keyed to the phase, so the
+    // crawl across the back stays nearly flat while the liner comes off.
     rotX = face.rotX + Math.sin(phase * Math.PI * 2) * 0.06
     rotY = face.rotY + phase * TURN_TOTAL
   }

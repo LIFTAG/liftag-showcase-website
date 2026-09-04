@@ -7,6 +7,8 @@
 // hottest probe only. The settled mesh is the room's cool white, so a hover
 // cannot green the door.
 //
+// Gains stay well below the floor cage: this is a door read, not a flood.
+//
 // Pure, and allocation-free on the hot path (`lightPartnerMesh` writes into
 // caller-owned buffers), so the choreography is unit-testable and the canvas
 // loop does not allocate.
@@ -16,21 +18,21 @@ import { splashTravel } from './hologramPass.ts'
 
 /** Lattice pitch, CSS px. Dense enough that a 48 px pill is a mesh, not a few tiles. */
 export const PARTNER_CELL = 9
-/** Lime ring thickness, CSS px. */
-export const PARTNER_CORE = 6.2
+/** Lime ring thickness, CSS px. Thin so the front is a scan line, not a slab. */
+export const PARTNER_CORE = 3.9
 /** Wake behind the splash front, CSS px. Short so the interior is not a filled disc. */
-export const PARTNER_WAKE = 16
-/** Cursor reconstruction blob, CSS px. */
-export const PARTNER_PROBE_R = 34
-export const PARTNER_PROBE_INNER = 0.22
+export const PARTNER_WAKE = 11.5
+/** Cursor reconstruction blob, CSS px. Local to the pointer, not a pill flood. */
+export const PARTNER_PROBE_R = 18
+export const PARTNER_PROBE_INNER = 0.27
 /** Seconds the splash takes to cover the pill. Same kick family as the floor. */
-export const PARTNER_SPLASH_S = 0.52
+export const PARTNER_SPLASH_S = 0.61
 /** Radial scatter on the splash, CSS px. Stops the front reading as a ring. */
-export const PARTNER_CHAOS = 7.5
+export const PARTNER_CHAOS = 4.85
 /** Heat half-life setter, 1/s. A face fill latches the wake then seats to wire. */
-export const PARTNER_HEAT_RATE = 4.2
+export const PARTNER_HEAT_RATE = 6.3
 /** Machine-style horizontal band half-width, CSS px. */
-export const PARTNER_BAND = 5.5
+export const PARTNER_BAND = 3.1
 export const PARTNER_DRAW_EPS = 0.018
 
 export type PartnerMesh = {
@@ -272,8 +274,8 @@ export function stepPartnerHeat(heat: number, incoming: number, dt: number): num
 
 export function partnerIncoming(field: PartnerTriField): number {
   const a = field.trail
-  const b = field.probe * 0.92
-  const c = field.band * 0.40
+  const b = field.probe * 0.53
+  const c = field.band * 0.21
   return a > b ? (a > c ? a : c) : (b > c ? b : c)
 }
 
@@ -297,25 +299,25 @@ export function writePartnerTriShade(
   heat: number,
   out: PartnerTriShade,
 ): PartnerTriShade {
-  const gray = field.trail * 0.52
-    + heat * 0.28
-    + field.seen * 0.13
-    + field.probe * 0.42
-    + field.band * 0.10
-  const lime = field.core * 1.0
-    + field.halo * 0.20
-    + field.probeInner * 0.72
-    + field.band * 0.48
+  const gray = field.trail * 0.30
+    + heat * 0.16
+    + field.seen * 0.08
+    + field.probe * 0.22
+    + field.band * 0.05
+  const lime = field.core * 0.53
+    + field.halo * 0.10
+    + field.probeInner * 0.32
+    + field.band * 0.14
 
-  const fillGray = field.trail * 0.22
-    + heat * 0.46
-    + field.probe * 0.36
-  const fillLime = field.core * 0.38
-    + field.probeInner * 0.40
-    + field.band * 0.18
+  const fillGray = field.trail * 0.09
+    + heat * 0.18
+    + field.probe * 0.14
+  const fillLime = field.core * 0.22
+    + field.probeInner * 0.16
+    + field.band * 0.06
 
-  out.fillA = Math.min(1, fillGray * 1.05 + fillLime * 1.15)
-  out.wireA = Math.min(1, gray * 0.92 + lime)
+  out.fillA = Math.min(1, fillGray * 0.85 + fillLime * 0.93)
+  out.wireA = Math.min(1, gray * 0.74 + lime * 0.63)
   out.fillR = WIRE_RGB[0] * fillGray + CORE_RGB[0] * fillLime
   out.fillG = WIRE_RGB[1] * fillGray + CORE_RGB[1] * fillLime
   out.fillB = WIRE_RGB[2] * fillGray + CORE_RGB[2] * fillLime
@@ -367,6 +369,6 @@ export function lightPartnerMesh(
     out.wire[o + 1] = shade.wireG
     out.wire[o + 2] = shade.wireB
     out.wire[o + 3] = shade.wireA
-    out.core[i] = field.core + field.probeInner * 0.55
+    out.core[i] = field.core * 0.62 + field.probeInner * 0.27
   }
 }

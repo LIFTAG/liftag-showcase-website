@@ -131,25 +131,79 @@ test('the card starts outside the frame and travels in — it does not pop on', 
     `a fifth of the way in it is still off the right edge, ndc.x=${ndcOf(early, 16 / 9).x.toFixed(3)}`,
   )
 
-  const hang = stickAt(dur * FLY_IN_END * 0.48, 'fly', false)
-  const hangNdc = ndcOf(hang, 16 / 9)
-  assert.ok(Math.abs(hangNdc.x) < 0.95 && Math.abs(hangNdc.y) < 0.95, 'the hang is in frame')
-  assert.ok(distToCam(hang) > 0.7, 'and still far enough that the commit has room to grow')
-
   const settled = stickAt(dur * FLY_IN_END, 'fly', false)
   assert.ok(distToCam(settled) < 0.4, 'IN ends on the close-up')
+})
 
-  const d0 = distToCam(hang)
-  const d1 = distToCam(stickAt(dur * (FLY_IN_END * 0.48 + FLY_IN_END * 0.52 * 0.5), 'fly', false))
-  const d2 = distToCam(settled)
-  assert.ok(d0 > d1 && d1 > d2, 'the commit only ever closes')
+test('IN is one curved approach, not a slide then a punch-in', () => {
+  const dur = flyDuration(false)
+  const n = 80
+  const poses = Array.from({ length: n + 1 }, (_, i) =>
+    stickAt(dur * FLY_IN_END * (i / n), 'fly', false),
+  )
+
+  for (let i = 1; i <= n; i++) {
+    assert.ok(
+      distToCam(poses[i]!) <= distToCam(poses[i - 1]!) + 1e-9,
+      `distance must fall, rose at t=${i / n}`,
+    )
+  }
+
+  const speeds: number[] = []
+  for (let i = 1; i <= n; i++) speeds.push(dist(poses[i]!, poses[i - 1]!))
+  const peak = Math.max(...speeds)
+  const peakAt = (speeds.indexOf(peak) + 1) / n
   assert.ok(
-    d1 / d2 < 2.2,
-    `the last half of the commit must not double in a flash, grew ${ (d1 / d2).toFixed(2) }`,
+    peakAt < 0.42,
+    `the pull should peak in the first half, not as a late creep, peakAt=${peakAt.toFixed(2)}`,
+  )
+  let falling = false
+  for (let i = 1; i < speeds.length; i++) {
+    const a = speeds[i - 1]!
+    const b = speeds[i]!
+    if (!falling) {
+      if (b < a - peak * 0.02) falling = true
+    }
+    else {
+      assert.ok(
+        b <= a + peak * 0.02,
+        `speed rose again at t=${((i + 1) / n).toFixed(2)} — a second phase`,
+      )
+    }
+  }
+  assert.equal(falling, true, 'IN must decelerate into the close-up')
+
+  const enter = poses[0]!
+  const midP = poses[n / 2]!
+  const show = poses[n]!
+  const cx = show.x - enter.x
+  const cy = show.y - enter.y
+  const cz = show.z - enter.z
+  const vx = midP.x - enter.x
+  const vy = midP.y - enter.y
+  const vz = midP.z - enter.z
+  const clen = Math.hypot(cx, cy, cz) || 1
+  const off = Math.hypot(vy * cz - vz * cy, vz * cx - vx * cz, vx * cy - vy * cx) / clen
+  assert.ok(off > 0.12, `IN should arc, not fly the chord, off=${off.toFixed(3)}`)
+
+  const inFrame = poses[Math.floor(n * 0.48)]!
+  const inNdc = ndcOf(inFrame, 16 / 9)
+  assert.ok(Math.abs(inNdc.x) < 0.95 && Math.abs(inNdc.y) < 0.95, 'in frame by the spring pull')
+
+  const committed = distToCam(poses[Math.floor(n * 0.70)]!)
+  const end = distToCam(show)
+  assert.ok(
+    committed / end < 2.4,
+    `by 70% it should already be on the look, not creeping in, ratio=${(committed / end).toFixed(2)}`,
+  )
+  const fade = distToCam(poses[Math.floor(n * 0.88)]!)
+  assert.ok(
+    fade / end < 1.35,
+    `the last eighth is a settle, not another metre of travel, ratio=${(fade / end).toFixed(2)}`,
   )
 })
 
-test('the card turns onto its back, holds there, and finishes the revolution', () => {
+test('the card turns onto its back, crawls while the liner comes off, then finishes', () => {
   assert.equal(turnPhase(0), 0)
   assert.equal(turnPhase(1), 1)
 
@@ -161,26 +215,44 @@ test('the card turns onto its back, holds there, and finishes the revolution', (
   }
 
   const dur = flyDuration(false)
-  // The whole of the peel plays on a card that is exactly half turned over.
-  // The liner is on the back, so a card still rotating during the pull would
-  // be peeling a face that is swinging away from the lens.
   const peelSamples = [
     FLY_TURN_END + 0.01,
     (FLY_TURN_END + FLY_PEEL_END) / 2,
     FLY_PEEL_END - 0.04,
     FLY_PEEL_END - 0.01,
   ]
+  let peelPrev = -Infinity
   for (const u of peelSamples) {
     const held = stickAt(dur * u, 'fly', false)
+    const back = FACE_CAM.rotY + Math.PI
     assert.ok(
-      Math.abs(held.rotY - (FACE_CAM.rotY + Math.PI)) < 1e-9,
-      `the antenna must stay square to the lens at u=${u}, rotY=${held.rotY}`,
+      Math.abs(held.rotY - back) < 0.55,
+      `the back must stay on-camera during the peel at u=${u}, rotY=${held.rotY}`,
     )
+    assert.ok(held.rotY > peelPrev + 1e-6, `the peel crawl must keep spinning at u=${u}`)
+    peelPrev = held.rotY
     assert.ok(foilAt(u).peel.front <= SPAN.max, `and the pull must be under way at u=${u}`)
   }
 
-  // The last frame before the outbound leg. The leg itself restates the same
-  // orientation without the winding, so it reads FACE_CAM.rotY, not + 2*PI.
+  const rate = (a: number, b: number) => (turnPhase(b) - turnPhase(a)) / (b - a)
+  const turnRate = rate(FLY_IN_END + 0.02, FLY_TURN_END - 0.02)
+  const peelRate = rate(FLY_TURN_END + 0.04, FLY_PEEL_END - 0.04)
+  const backRate = rate(FLY_PEEL_END + 0.02, FLY_BACK_END - 0.02)
+  assert.ok(peelRate > 0.05, `peel must still spin, rate=${peelRate}`)
+  assert.ok(
+    peelRate < turnRate * 0.25,
+    `peel must be a crawl, not the first flip, peel=${peelRate} turn=${turnRate}`,
+  )
+  assert.ok(
+    backRate > peelRate * 4,
+    `the second half must snap back up, back=${backRate} peel=${peelRate}`,
+  )
+  const intoCrawl = rate(FLY_TURN_END - 0.02, FLY_TURN_END + 0.02)
+  assert.ok(
+    intoCrawl > peelRate && intoCrawl < turnRate,
+    `downshift into the crawl should be in between, got ${intoCrawl}`,
+  )
+
   const round = stickAt(dur * (FLY_BACK_END - 0.0001), 'fly', false)
   assert.ok(
     Math.abs(round.rotY - (FACE_CAM.rotY + Math.PI * 2)) < 0.02,

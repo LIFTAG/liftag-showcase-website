@@ -74,7 +74,7 @@ useLiftagStructuredData([
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
             <a href="/" class="btn-primary">Track the next jump</a>
-            <a href="/journal/what-is-rpe-lifting" class="btn-ghost">What is RPE</a>
+            <a href="/journal/what-is-rpe-lifting" class="btn-ghost"><HoloPill />What is RPE</a>
           </div>
         </header>
 

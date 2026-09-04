@@ -291,12 +291,12 @@ useLiftagStructuredData([
       >
         <div v-if="error" class="ma-empty">
           <p>The machine catalog did not load.</p>
-          <button type="button" class="btn-ghost" @click="() => refresh()">Try again</button>
+          <button type="button" class="btn-ghost" @click="() => refresh()"><HoloPill />Try again</button>
         </div>
 
         <div v-else-if="index && filtered.length === 0" class="ma-empty">
           <p>No machines match <strong v-if="query">“{{ query }}”</strong><template v-else>this filter</template>.</p>
-          <button type="button" class="btn-ghost" @click="query = ''; muscle = ''">Clear search</button>
+          <button type="button" class="btn-ghost" @click="query = ''; muscle = ''"><HoloPill />Clear search</button>
         </div>
 
         <template v-else>
@@ -312,7 +312,7 @@ useLiftagStructuredData([
           </div>
           <div v-if="filtered.length > visibleCount" class="ma-more">
             <button type="button" class="btn-ghost" @click="visibleCount += PAGE_SIZE">
-              Show more ({{ filtered.length - visibleCount }} left)
+              <HoloPill />Show more ({{ filtered.length - visibleCount }} left)
             </button>
           </div>
         </template>

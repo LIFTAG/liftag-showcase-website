@@ -435,9 +435,9 @@ onBeforeUnmount(() => {
               <a
                 href="/best-gym-qr-nfc-app"
                 class="btn-ghost"
-                style="padding: 14px 24px; font-size: 12px; text-decoration: none; display: inline-block;"
+                style="padding: 14px 24px; font-size: 12px; text-decoration: none;"
               >
-                Compare gym QR platforms
+                <HoloPill />Compare gym QR platforms
               </a>
             </div>
           </div>

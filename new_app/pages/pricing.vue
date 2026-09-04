@@ -131,7 +131,7 @@ useLiftagStructuredData([
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
             <a href="/get" class="btn-primary">Get LIFTAG free</a>
-            <a href="/for-gyms" class="btn-ghost">Pricing for gyms</a>
+            <a href="/for-gyms" class="btn-ghost"><HoloPill />Pricing for gyms</a>
           </div>
         </header>
 

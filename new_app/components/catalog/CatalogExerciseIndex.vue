@@ -345,12 +345,12 @@ useLiftagStructuredData([
       >
         <div v-if="error" class="ex-empty">
           <p>{{ chrome.loadError }}</p>
-          <button type="button" class="btn-ghost" @click="() => refresh()">{{ chrome.tryAgain }}</button>
+          <button type="button" class="btn-ghost" @click="() => refresh()"><HoloPill />{{ chrome.tryAgain }}</button>
         </div>
 
         <div v-else-if="index && filtered.length === 0" class="ex-empty">
           <p>{{ chrome.noMatchLead }} <strong v-if="query">“{{ query }}”</strong><template v-else>{{ chrome.thisFilter }}</template>.</p>
-          <button type="button" class="btn-ghost" @click="query = ''">{{ chrome.clearSearch }}</button>
+          <button type="button" class="btn-ghost" @click="query = ''"><HoloPill />{{ chrome.clearSearch }}</button>
         </div>
 
         <template v-else>
@@ -384,7 +384,7 @@ useLiftagStructuredData([
           </div>
           <div v-if="filtered.length > visibleCount" class="ex-more">
             <button type="button" class="btn-ghost" @click="visibleCount += PAGE_SIZE">
-              {{ chrome.showMore(filtered.length - visibleCount) }}
+              <HoloPill />{{ chrome.showMore(filtered.length - visibleCount) }}
             </button>
           </div>
         </template>

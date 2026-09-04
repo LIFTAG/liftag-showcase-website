@@ -50,7 +50,7 @@ const links = [
       </p>
       <div class="error-actions">
         <a href="/" class="btn-primary">Back to LIFTAG</a>
-        <a href="/get" class="btn-ghost">Get the app</a>
+        <a href="/get" class="btn-ghost"><HoloPill />Get the app</a>
       </div>
       <ul class="error-links">
         <li v-for="item in links" :key="item.href">

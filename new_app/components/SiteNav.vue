@@ -333,7 +333,7 @@ onBeforeUnmount(() => {
         rel="nofollow"
         class="btn-ghost nav-desktop nav-dashboard-cta"
       >
-        Dashboard
+        <HoloPill />Dashboard
       </a>
       <span data-magnetic class="nav-desktop" style="display: inline-flex;">
         <NuxtLink

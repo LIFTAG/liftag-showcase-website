@@ -184,7 +184,7 @@ useLiftagStructuredData([
 
         <div v-else class="ma-ex-empty">
           <p>The exercise list for this machine is on its way.</p>
-          <NuxtLink to="/exercises" class="btn-ghost">Browse all exercises</NuxtLink>
+          <NuxtLink to="/exercises" class="btn-ghost"><HoloPill />Browse all exercises</NuxtLink>
         </div>
       </section>
     </main>

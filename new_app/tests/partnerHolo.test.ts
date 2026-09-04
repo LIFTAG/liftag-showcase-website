@@ -141,6 +141,18 @@ test('heat latches the wake then decays to the residual', () => {
   assert.ok(held >= 0.5)
 })
 
+test('the cursor probe stays a local read, not an opaque fill', () => {
+  const s = state({ splashR: 200, probe: 1, cursorX: 90, cursorY: 24, originX: 0 })
+  const hot = partnerTriShade(partnerTriField(90, 24, 0, s), 1)
+  const far = partnerTriShade(partnerTriField(12, 24, 0, s), 0)
+  assert.ok(hot.fillA > 0.32, `probe fill too quiet: ${hot.fillA}`)
+  assert.ok(hot.fillA < 0.55, `probe fill too loud: ${hot.fillA}`)
+  assert.ok(hot.wireA > 0.45, `probe wire too quiet: ${hot.wireA}`)
+  assert.ok(hot.wireA < 0.75, `probe wire too loud: ${hot.wireA}`)
+  assert.ok(hot.fillA > far.fillA)
+  assert.ok(far.fillA < 0.09, `settled fill leaked: ${far.fillA}`)
+})
+
 test('hover 0 kills the field; lightPartnerMesh writes caller buffers', () => {
   const dark = partnerTriField(24, 24, 0, state({ hover: 0, splashR: 0 }))
   assert.equal(dark.core, 0)

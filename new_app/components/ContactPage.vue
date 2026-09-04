@@ -254,7 +254,7 @@ function sendAnother() {
               </p>
               <div class="contact-success-actions">
                 <NuxtLink :to="successPath ?? '/'" class="btn-ghost contact-success-btn">
-                  {{ successLinkLabel ?? 'Back to home' }}
+                  <HoloPill />{{ successLinkLabel ?? 'Back to home' }}
                 </NuxtLink>
                 <button type="button" class="contact-success-link" @click="sendAnother">
                   Send another

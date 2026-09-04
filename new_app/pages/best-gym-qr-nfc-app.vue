@@ -103,7 +103,7 @@ useLiftagStructuredData([
           <p class="gqc-lead">{{ description }}</p>
           <div class="gqc-actions">
             <a href="/for-gyms" class="btn-primary">For gym owners</a>
-            <a href="#table" class="btn-ghost">Jump to comparison</a>
+            <a href="#table" class="btn-ghost"><HoloPill />Jump to comparison</a>
           </div>
 
           <div class="gqc-tldr">

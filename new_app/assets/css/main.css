@@ -448,15 +448,56 @@ html[lang="cs"] .display {
   text-transform: uppercase;
   text-decoration: none;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   transition:
     border-color 250ms cubic-bezier(0.16, 1, 0.3, 1),
     color 250ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 250ms cubic-bezier(0.16, 1, 0.3, 1),
     transform 250ms cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 250ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-.btn-ghost:hover {
-  border-color: var(--liftag-primary);
-  color: var(--liftag-primary);
+/* Same door-read as gym-scan Partner: lime is the scan front, not a fill. */
+@media (hover: hover) and (pointer: fine) {
+  .btn-ghost:hover,
+  .btn-ghost:focus-visible,
+  .btn-ghost:has(> .holo-pill-canvas.is-holo) {
+    transform: translateY(-1px);
+    color: #f1f6fa;
+    border-color: rgba(204, 255, 0, 0.32);
+    background: rgba(6, 10, 14, 0.36);
+    box-shadow:
+      0 0 12px rgba(158, 204, 255, 0.10),
+      0 0 16px rgba(204, 255, 0, 0.09);
+    text-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.72),
+      0 0 8px rgba(204, 255, 0, 0.08);
+  }
+}
+
+.btn-ghost:focus-visible {
+  outline: 1px solid rgba(204, 255, 0, 0.55);
+  outline-offset: 3px;
+}
+
+.holo-pill-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  /* Behind the label, in front of the pill fill (`isolation` on the host). */
+  z-index: -1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .holo-pill-canvas {
+    display: none;
+  }
 }
 
 /* Specular glint that sweeps across primary CTAs once per hover. */

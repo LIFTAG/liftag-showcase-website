@@ -163,7 +163,7 @@ useLiftagStructuredData([
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
             <a href="/get" class="btn-primary">Get LIFTAG free</a>
-            <a href="/alternatives/hevy" class="btn-ghost">LIFTAG vs Hevy</a>
+            <a href="/alternatives/hevy" class="btn-ghost"><HoloPill />LIFTAG vs Hevy</a>
           </div>
         </header>
 

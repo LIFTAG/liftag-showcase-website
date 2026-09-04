@@ -75,7 +75,7 @@ useLiftagStructuredData([
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
             <a href="/contact/partner" class="btn-primary">Partner with LIFTAG</a>
-            <a href="/best-gym-qr-nfc-app" class="btn-ghost">Compare gym QR apps</a>
+            <a href="/best-gym-qr-nfc-app" class="btn-ghost"><HoloPill />Compare gym QR apps</a>
           </div>
         </header>
 

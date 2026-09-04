@@ -275,8 +275,8 @@ const cards: AppCard[] = [
           <p class="bwt-lead">{{ description }}</p>
           <div class="bwt-actions">
             <a href="/" class="btn-primary">See LIFTAG</a>
-            <a href="#table" class="btn-ghost">Jump to comparison</a>
-            <a href="/best-gym-qr-nfc-app" class="btn-ghost">Gym QR + NFC platforms</a>
+            <a href="#table" class="btn-ghost"><HoloPill />Jump to comparison</a>
+            <a href="/best-gym-qr-nfc-app" class="btn-ghost"><HoloPill />Gym QR + NFC platforms</a>
           </div>
 
           <div class="bwt-tldr">

@@ -74,7 +74,7 @@ useLiftagStructuredData([
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
             <a href="/" class="btn-primary">Log sets in LIFTAG</a>
-            <a href="/journal/how-to-track-workouts" class="btn-ghost">How to track workouts</a>
+            <a href="/journal/how-to-track-workouts" class="btn-ghost"><HoloPill />How to track workouts</a>
           </div>
         </header>
 

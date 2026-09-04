@@ -874,7 +874,7 @@ onBeforeUnmount(() => {
   }
   .gs__doors.is-on .gs__btn--partner:hover,
   .gs__doors.is-on .gs__btn--partner:focus-visible,
-  .gs__doors.is-on .gs__btn--partner.is-holo {
+  .gs__doors.is-on .gs__btn--partner:has(> .holo-pill-canvas.is-holo) {
     transform: translateY(-2px);
     color: #e8f4ff;
     border-color: rgba(204, 255, 0, 0.58);
