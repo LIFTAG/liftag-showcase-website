@@ -20,10 +20,13 @@ const props = withDefaults(defineProps<{
   autoEnter?: boolean
   hideFrontPhone?: boolean
   playEnter?: boolean
+  /** Pinned inside the gym-scan film's sticky rather than owning the page. */
+  handoff?: boolean
 }>(), {
   autoEnter: true,
   hideFrontPhone: false,
   playEnter: false,
+  handoff: false,
 })
 
 const emit = defineEmits<{
@@ -177,6 +180,7 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
       v-if="showHeroParticles"
       :count="DESKTOP_PARTICLE_COUNT"
       :dpr-cap="DESKTOP_PARTICLE_DPR_CAP"
+      :handoff="props.handoff"
       interactive
       grid-warp
       style="z-index: 2"

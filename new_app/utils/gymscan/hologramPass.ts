@@ -14,6 +14,8 @@ export const TRAVEL = 1.70
  * rather than a parked stem that then takes off.
  */
 export const SPLASH = 1.36
+/** One full idle pass: line travel plus the splash that finishes it. */
+export const PASS_SPAN = TRAVEL + SPLASH
 /** Trail length on the machine cage, metres. */
 export const TRAIL = 0.22
 /** Launch hardness. Same family as the cage: fast start, no overshoot. */
@@ -27,6 +29,14 @@ export const KICK = 3.1
 export const Y_APPROACH = 0.18
 /** Height where the descending line meets the mat. */
 export const Y_CONTACT = 0.04
+/**
+ * Cage bounds the birth sweep runs between. They live here, with the pass they
+ * parameterise, rather than in `floorConstruct`: the slab field needs them to
+ * fix its own clock, and the plane needs the slab field's spread law, so any
+ * other home for them is an import cycle. `floorConstruct` re-exports them.
+ */
+export const FLOOR_Y_TOP = 1.55
+export const FLOOR_Y_BOTTOM = -0.02
 /**
  * Seconds before contact that the ring starts travelling. Short enough that
  * the front is still at the feet when the line arrives; long enough that

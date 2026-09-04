@@ -4,7 +4,10 @@ interface ContactPageProps {
   title: string
   lead: string
   lockedSubject: string
+  collectGymContext?: boolean
   successHeadline?: string
+  successPath?: string
+  successLinkLabel?: string
   seoTitle: string
   seoDescription: string
   seoPath: string
@@ -36,6 +39,9 @@ useReveal()
 
 const name = ref('')
 const email = ref('')
+const gym = ref('')
+const city = ref('')
+const floorContext = ref('')
 const message = ref('')
 const token = ref('')
 const turnstileRef = ref<{ reset: () => void } | null>(null)
@@ -50,6 +56,11 @@ const canSubmit = computed(() => {
     !isSubmitting.value
     && name.value.trim().length >= 1
     && email.value.trim().length > 0
+    && (!props.collectGymContext || (
+      gym.value.trim().length >= 1
+      && city.value.trim().length >= 1
+      && floorContext.value.trim().length >= 3
+    ))
     && message.value.trim().length >= 10
     && token.value.length > 0
   )
@@ -57,11 +68,21 @@ const canSubmit = computed(() => {
 
 async function onSubmit() {
   if (!canSubmit.value) return
+  const submittedMessage = props.collectGymContext
+    ? [
+        `Gym: ${gym.value.trim()}`,
+        `City: ${city.value.trim()}`,
+        `Floor context: ${floorContext.value.trim()}`,
+        '',
+        message.value.trim(),
+      ].join('\n')
+    : message.value.trim()
+
   await submit({
     name: name.value.trim(),
     email: email.value.trim(),
     subject: props.lockedSubject,
-    message: message.value.trim(),
+    message: submittedMessage,
     turnstileToken: token.value,
   })
   if (status.value === 'error') {
@@ -73,6 +94,9 @@ async function onSubmit() {
 function sendAnother() {
   name.value = ''
   email.value = ''
+  gym.value = ''
+  city.value = ''
+  floorContext.value = ''
   message.value = ''
   token.value = ''
   resetSubmit()
@@ -130,6 +154,50 @@ function sendAnother() {
                 />
               </div>
 
+              <template v-if="collectGymContext">
+                <div class="contact-field">
+                  <label for="contact-gym" class="protocol contact-label">Gym</label>
+                  <input
+                    id="contact-gym"
+                    v-model="gym"
+                    type="text"
+                    required
+                    minlength="1"
+                    maxlength="160"
+                    autocomplete="organization"
+                    :disabled="isSubmitting"
+                  />
+                </div>
+
+                <div class="contact-field">
+                  <label for="contact-city" class="protocol contact-label">City</label>
+                  <input
+                    id="contact-city"
+                    v-model="city"
+                    type="text"
+                    required
+                    minlength="1"
+                    maxlength="120"
+                    autocomplete="address-level2"
+                    :disabled="isSubmitting"
+                  />
+                </div>
+
+                <div class="contact-field">
+                  <label for="contact-floor-context" class="protocol contact-label">Floor context</label>
+                  <textarea
+                    id="contact-floor-context"
+                    v-model="floorContext"
+                    rows="3"
+                    required
+                    minlength="3"
+                    maxlength="1000"
+                    placeholder="Training areas, floor count, and the machines you want members to find"
+                    :disabled="isSubmitting"
+                  />
+                </div>
+              </template>
+
               <div class="contact-field">
                 <label for="contact-message" class="protocol contact-label">Message</label>
                 <textarea
@@ -185,7 +253,9 @@ function sendAnother() {
                 Thanks for reaching out. We’ll get back to you at <strong>{{ email }}</strong> as soon as we can.
               </p>
               <div class="contact-success-actions">
-                <a href="/" class="btn-ghost contact-success-btn">Back to home</a>
+                <NuxtLink :to="successPath ?? '/'" class="btn-ghost contact-success-btn">
+                  {{ successLinkLabel ?? 'Back to home' }}
+                </NuxtLink>
                 <button type="button" class="contact-success-link" @click="sendAnother">
                   Send another
                 </button>

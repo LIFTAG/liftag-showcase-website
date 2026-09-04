@@ -31,11 +31,19 @@ const props = withDefaults(defineProps<{
   interactive?: boolean
   /** Render the cursor-warped background grid in the same scene/draw batch. */
   gridWarp?: boolean
+  /**
+   * The hero is pinned inside another section's sticky (the gym-scan film).
+   * `window.scrollY` is then several viewports deep while the hero itself is
+   * not moving at all, so the scroll parallax has no input: the effect exists
+   * for a hero being scrolled away, and in here nothing is.
+   */
+  handoff?: boolean
 }>(), {
   count: 1200,
   dprCap: 1.75,
   interactive: true,
   gridWarp: true,
+  handoff: false,
 })
 
 const mount = ref<HTMLElement | null>(null)
@@ -83,6 +91,22 @@ let everInitialized = false
 // underlying frame. Pause the loop; do not dispose, so closing the drawer
 // resumes the same field instead of recompiling shaders.
 let motionHeld = false
+
+// WebGL context loss is recoverable, but this component tears the scene down
+// when it happens, so the restore event has nothing left to restore onto - it
+// re-inits from scratch instead, on a bounded timer.
+//
+// The bound matters both ways. Without a retry, `contextBroken` was a latch
+// whose only reset was the observer's out-of-view branch, and a hero pinned
+// inside another section's sticky never leaves the viewport: one lost context
+// froze the field and its warped grid on their last painted frame for as long
+// as the visitor stayed there. Without a cap, a genuinely exhausted context
+// budget would spin re-creating renderers that cannot exist.
+const CONTEXT_RETRY_MS = 1500
+const CONTEXT_RETRY_LIMIT = 2
+let contextRetries = 0
+let contextRetryTimer: ReturnType<typeof setTimeout> | null = null
+let unmounted = false
 
 let io: IntersectionObserver | null = null
 let resizeObserver: ResizeObserver | null = null
@@ -345,6 +369,7 @@ function init() {
     })
   } catch {
     contextBroken = true
+    scheduleContextRetry()
     return
   }
 
@@ -413,6 +438,7 @@ function init() {
     contextBroken = true
     stopLoop()
     disposeScene()
+    scheduleContextRetry()
   }
   renderer.domElement.addEventListener('webglcontextlost', onContextLost, false)
   renderer.domElement.style.position = 'absolute'
@@ -472,7 +498,11 @@ function disposeScene() {
 
 function frame(now: number) {
   if (!running || !renderer || !scene || !camera || !material) {
+    // Drop `running` as well as the handle. Leaving it true latched the
+    // component dead: `startLoop` returns early while it is set, so a scene
+    // that vanished under a live loop could never be restarted.
     rafId = 0
+    running = false
     return
   }
   rafId = requestAnimationFrame(frame)
@@ -487,7 +517,7 @@ function frame(now: number) {
   u.uReveal.value = 1 - Math.pow(1 - revealLinear, 3)
   if (gridMaterial) gridMaterial.uniforms.uReveal.value = u.uReveal.value
 
-  u.uScroll.value = window.scrollY * 0.02
+  u.uScroll.value = props.handoff ? 0 : window.scrollY * 0.02
 
   if (props.interactive && sharedMouse.latest.hasPointer) {
     const { halfW, halfH } = halfExtentsAt(CAM_Z, camera.aspect)
@@ -577,6 +607,25 @@ function syncWallUniforms(dt: number, u: THREE.ShaderMaterial['uniforms']) {
   writeDisplayedWall(displayed1, wallWorld1, wallVel1, u.uWall1K)
 }
 
+function scheduleContextRetry() {
+  if (contextRetryTimer || contextRetries >= CONTEXT_RETRY_LIMIT) return
+  contextRetryTimer = setTimeout(() => {
+    contextRetryTimer = null
+    if (!intersecting || unmounted || document.hidden) return
+    contextRetries += 1
+    contextBroken = false
+    init()
+    if (contextBroken) scheduleContextRetry()
+    else startLoop()
+  }, CONTEXT_RETRY_MS)
+}
+
+function cancelContextRetry() {
+  if (!contextRetryTimer) return
+  clearTimeout(contextRetryTimer)
+  contextRetryTimer = null
+}
+
 function startLoop() {
   if (running || disposed || document.hidden || motionHeld) return
   running = true
@@ -621,9 +670,14 @@ onMounted(() => {
         startLoop()
       } else {
         // Fully release the GL context once the hero is well off screen.
+        // Leaving is also the point at which a fresh set of retries is
+        // reasonable: whatever exhausted the context budget last time is a
+        // different situation by the next visit.
         stopLoop()
         disposeScene()
+        cancelContextRetry()
         contextBroken = false
+        contextRetries = 0
       }
     },
     { rootMargin: '360px 0px 360px 0px' },
@@ -654,6 +708,8 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  unmounted = true
+  cancelContextRetry()
   io?.disconnect()
   io = null
   resizeObserver?.disconnect()

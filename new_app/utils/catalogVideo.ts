@@ -21,3 +21,14 @@ export function preferredCatalogVideoUrl(videos: readonly CatalogVideo[]): strin
 export function catalogHasVideo(videos: readonly CatalogVideo[]): boolean {
   return CATALOG_VIDEOS_ENABLED && videos.some(video => Boolean(video.url))
 }
+
+/**
+ * CSS `aspect-ratio` from a decoded catalog still. Returns null until both
+ * edges are usable so the player can keep its 16:9 fallback instead of 0.
+ */
+export function catalogMediaAspectRatio(width: number, height: number): number | null {
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return null
+  }
+  return width / height
+}

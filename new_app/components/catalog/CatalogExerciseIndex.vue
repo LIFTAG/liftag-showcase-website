@@ -426,11 +426,13 @@ useLiftagStructuredData([
 .ex-eyebrow {
   margin: 0 0 18px;
   color: var(--liftag-primary);
+  animation: ex-index-rise 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .ex-title {
   margin: 0;
   font-size: clamp(48px, 7.4vw, 104px);
+  animation: ex-index-title 760ms cubic-bezier(0.16, 1, 0.3, 1) 50ms both;
 }
 
 .ex-lead {
@@ -440,6 +442,7 @@ useLiftagStructuredData([
   font-size: 17px;
   font-weight: 300;
   line-height: 1.65;
+  animation: ex-index-rise 600ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
 }
 
 .ex-search-tools {
@@ -472,6 +475,11 @@ useLiftagStructuredData([
   cursor: pointer;
 }
 
+.ex-search-anchor {
+  /* Opacity only: a transform here would break the phone sticky pin. */
+  animation: ex-index-fade 500ms cubic-bezier(0.16, 1, 0.3, 1) 220ms both;
+}
+
 .ex-stats {
   display: flex;
   flex-wrap: wrap;
@@ -484,6 +492,7 @@ useLiftagStructuredData([
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  animation: ex-index-rise 600ms cubic-bezier(0.16, 1, 0.3, 1) 170ms both;
 }
 
 .ex-stats > :not(.ex-stats-dot) {
@@ -562,6 +571,7 @@ useLiftagStructuredData([
 .ex-results {
   padding-top: 26px;
   padding-bottom: 40px;
+  animation: ex-index-fade 640ms cubic-bezier(0.16, 1, 0.3, 1) 260ms both;
 }
 
 .ex-grid {
@@ -963,8 +973,43 @@ useLiftagStructuredData([
   }
 }
 
+@keyframes ex-index-title {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 108% 0);
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0);
+    transform: none;
+  }
+}
+
+@keyframes ex-index-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ex-index-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .ex-index.is-search-open main {
+  .ex-index.is-search-open main,
+  .ex-eyebrow,
+  .ex-title,
+  .ex-lead,
+  .ex-stats,
+  .ex-search-anchor,
+  .ex-results {
     animation: none;
   }
 }

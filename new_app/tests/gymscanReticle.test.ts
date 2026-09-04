@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import {
   createReticleTracker,
   frameMachine,
+  RETICLE_IN,
   RETICLE_MORPH_END,
   RETICLE_MORPH_START,
   RETICLE_OUT_END,
@@ -75,12 +76,11 @@ test('hovering the QR plate acquires it before the scroll morph', () => {
 
 test('once the QR is acquired, leaving the pointer on it keeps the lock', () => {
   const tracker = createReticleTracker()
-  const over = {
+  tracker.update(base({
     progress: 0.08,
     reducedMotion: true,
     pointer: pointerAt(QR.x + QR.w / 2, QR.y + QR.h / 2),
-  }
-  tracker.update(base(over))
+  }))
   const held = tracker.update(base({
     progress: 0.08,
     reducedMotion: true,
@@ -93,7 +93,7 @@ test('once the QR is acquired, leaving the pointer on it keeps the lock', () => 
   assert.equal(held.h, QR.h)
 })
 
-test('a pointer far from the QR does not acquire it', () => {
+test('a pointer far from the QR stays on the cursor', () => {
   const box = run({
     progress: 0.08,
     reducedMotion: true,
@@ -205,13 +205,86 @@ test('folded sequence returns null', () => {
   assert.equal(run({ folded: true }), null)
 })
 
+test('hover before the sticker plants cannot pre-acquire the plate', () => {
+  const tracker = createReticleTracker()
+  const overQr = pointerAt(QR.x + QR.w / 2, QR.y + QR.h / 2)
+
+  assert.equal(tracker.update(base({
+    landed: false,
+    progress: 0,
+    reducedMotion: true,
+    pointer: overQr,
+  })), null)
+
+  const huntPointer = pointerAt(1080, 360)
+  const planted = tracker.update(base({
+    progress: 0,
+    reducedMotion: true,
+    pointer: huntPointer,
+  }))
+  assert.ok(planted)
+  assert.ok(Math.abs(planted.x + planted.w / 2 - 1080) < 0.5)
+  assert.ok(Math.abs(planted.y + planted.h / 2 - 360) < 0.5)
+  assert.notEqual(planted.x, QR.x, 'a hover before planting must not latch the future target')
+
+  const resolved = tracker.update(base({
+    progress: RETICLE_MORPH_END,
+    reducedMotion: true,
+    pointer: huntPointer,
+  }))
+  assert.ok(resolved)
+  assert.deepEqual(
+    { x: resolved.x, y: resolved.y, w: resolved.w, h: resolved.h },
+    QR,
+  )
+
+  assert.equal(tracker.update(base({
+    landed: false,
+    progress: 0,
+    reducedMotion: true,
+    pointer: overQr,
+  })), null)
+  const restarted = tracker.update(base({
+    progress: 0,
+    reducedMotion: true,
+    pointer: huntPointer,
+  }))
+  assert.ok(restarted)
+  assert.ok(Math.abs(restarted.x + restarted.w / 2 - 1080) < 0.5)
+  assert.notEqual(restarted.x, QR.x, 'unplanting must clear the resolved/frozen lock')
+})
+
+test('brackets stay off until landed, then hunt the live cursor', () => {
+  const tracker = createReticleTracker()
+  assert.equal(tracker.update(base({ landed: false, progress: 0 })), null)
+  const box = tracker.update(base({
+    landed: true,
+    progress: 0,
+    reducedMotion: true,
+    pointer: pointerAt(300, 700),
+  }))
+  assert.ok(box)
+  assert.ok(Math.abs(box.x + box.w / 2 - 300) < 0.5)
+  assert.ok(Math.abs(box.y + box.h / 2 - 700) < 0.5)
+})
+
+test('a planted machine hunts the cursor with no scroll, act or click first', () => {
+  // This is the whole point of the brackets: they are cursor feedback. Any
+  // gate that makes the visitor scroll, skip or click before they appear
+  // leaves the film feeling unresponsive until they do it.
+  const box = run({ landed: true, progress: 0, reducedMotion: true, pointer: pointerAt(300, 700) })
+  assert.ok(box)
+  assert.ok(Math.abs(box.x + box.w / 2 - 300) < 0.5)
+  assert.ok(Math.abs(box.y + box.h / 2 - 700) < 0.5)
+})
+
 test('locked brackets are fully opaque', () => {
   const box = run({ progress: RETICLE_MORPH_END + 0.05, reducedMotion: true })
   assert.ok(box)
   assert.equal(box.opacity, 1)
 })
 
-test('brackets fade on the plate just before the phone fold', () => {
+test('brackets fade on the plate as the glass forms', () => {
   const mid = run({
     progress: (RETICLE_OUT_START + RETICLE_OUT_END) / 2,
     reducedMotion: true,
@@ -224,21 +297,70 @@ test('brackets fade on the plate just before the phone fold', () => {
   assert.equal(mid.h, QR.h)
 })
 
-test('brackets hold into the phone shrink, then retire before the fold completes', () => {
-  assert.ok(RETICLE_OUT_START >= 0.77, 'lock should hold well beyond FOLD opening')
-  assert.ok(RETICLE_OUT_END > 0.80, 'lock should remain visible during early phone shrink')
-  assert.ok(RETICLE_OUT_END < 0.86, 'lock should retire before FOLD completes')
+test('brackets hold onto the plate, then retire as the fold completes', () => {
+  assert.ok(RETICLE_OUT_START > RETICLE_MORPH_END, 'resolved lock needs a readable hold')
+  assert.equal(RETICLE_OUT_END, 1, 'reticle ends as the glass finishes forming')
   assert.equal(run({ progress: RETICLE_OUT_END, reducedMotion: true }), null)
-  const earlyShrink = run({ progress: 0.76, reducedMotion: true })
-  assert.ok(earlyShrink)
-  assert.equal(earlyShrink.opacity, 1, 'brackets should still hold during early shrink')
+  const held = run({ progress: RETICLE_OUT_START - 0.02, reducedMotion: true })
+  assert.ok(held)
+  assert.equal(held.opacity, 1, 'brackets should remain fully visible through the hold')
 })
 
 test('brackets stay off until the machine has planted', () => {
   assert.equal(run({ landed: false }), null)
 })
 
-test('once planted, the seek box is live even at the top of the scroll', () => {
+test('brackets fade in after landing instead of popping on', () => {
+  const tracker = createReticleTracker()
+  const first = tracker.update(base({
+    landed: true,
+    reducedMotion: false,
+    progress: 0,
+    pointer: pointerAt(300, 700),
+  }))
+  assert.ok(first)
+  assert.equal(first.opacity, 0, 'first landed frame is still invisible')
+
+  let box = first
+  const frames = Math.ceil(RETICLE_IN * 60) + 2
+  for (let i = 1; i < frames; i++) {
+    box = tracker.update(base({
+      landed: true,
+      reducedMotion: false,
+      progress: 0,
+      dt: 1 / 60,
+      pointer: pointerAt(300, 700),
+    }))!
+  }
+  assert.ok(box)
+  assert.equal(box.opacity, 1)
+
+  const midTracker = createReticleTracker()
+  midTracker.update(base({
+    landed: true,
+    reducedMotion: false,
+    progress: 0,
+    dt: RETICLE_IN * 0.5,
+    pointer: pointerAt(300, 700),
+  }))
+  const mid = midTracker.update(base({
+    landed: true,
+    reducedMotion: false,
+    progress: 0,
+    dt: 0,
+    pointer: pointerAt(300, 700),
+  }))
+  assert.ok(mid)
+  assert.ok(mid.opacity > 0.2 && mid.opacity < 0.9, `mid fade ${mid.opacity}`)
+})
+
+test('reduced motion skips the reticle fade-in', () => {
+  const box = run({ landed: true, reducedMotion: true, progress: 0 })
+  assert.ok(box)
+  assert.equal(box.opacity, 1)
+})
+
+test('once planted, the seek box is live at progress zero', () => {
   const box = run({ landed: true, progress: 0, reducedMotion: true })
   assert.ok(box)
   assert.ok(box.w > 0 && box.h > 0)

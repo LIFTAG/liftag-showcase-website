@@ -2,7 +2,8 @@
 // Shell only: atmosphere, scroll fade, and the two layout islands. Desktop and
 // mobile hydrate on matching media queries so a PageSpeed desktop run never
 // evaluates the phone layout (and vice versa). The cursor effect lives in
-// SplashCursor.vue, mounted page-wide by index.vue.
+// SplashCursor.vue, mounted page-wide by index.vue and gym-scan.vue (held
+// invisible until the film hands the frame to this hero).
 
 const props = withDefaults(defineProps<{
   handoff?: boolean
@@ -122,6 +123,7 @@ onBeforeUnmount(() => {
       :auto-enter="props.autoEnter"
       :hide-front-phone="props.hideFrontPhone"
       :play-enter="props.playEnter"
+      :handoff="props.handoff"
       @front-ready="emitFrontReady"
     />
     <LazyHeroMobile

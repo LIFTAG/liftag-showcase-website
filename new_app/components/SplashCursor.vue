@@ -54,8 +54,20 @@ interface DoubleFBO {
   swap: () => void
 }
 
+const props = withDefaults(defineProps<{
+  /**
+   * When false the canvas stays hidden and WebGL is not armed. `/gym-scan`
+   * holds this off until the film hands the frame to the landing hero so the
+   * trail never paints over the room and never shares a context with it.
+   */
+  visible?: boolean
+}>(), {
+  visible: true,
+})
+
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const armed = ref(false)
+const showing = computed(() => armed.value && props.visible)
 
 // 'green' = lime family, 'red' = neon red. Flipped by the same custom event the
 // old hero orb listened to, so TrainersSection keeps working unchanged.
@@ -782,8 +794,27 @@ function scaleByPixelRatio(input: number) {
   return Math.floor(input * pixelRatio)
 }
 
+function loopAllowed() {
+  return !disposed && armed.value && props.visible && !document.hidden
+}
+
+function pauseLoop() {
+  if (!rafId) return
+  cancelAnimationFrame(rafId)
+  rafId = 0
+}
+
+function resumeLoop() {
+  if (!loopAllowed() || rafId) return
+  lastUpdateTime = Date.now()
+  rafId = requestAnimationFrame(updateFrame)
+}
+
 function updateFrame() {
-  if (disposed || !blit) return
+  if (!loopAllowed() || !blit) {
+    rafId = 0
+    return
+  }
   const dt = calcDeltaTime()
   if (resizeCanvas()) initFramebuffers()
   updateColors(dt)
@@ -825,6 +856,7 @@ function updateColors(dt: number) {
 }
 
 function applyInputs() {
+  if (!props.visible) return
   for (const p of pointers) {
     if (p.moved) {
       p.moved = false
@@ -979,6 +1011,7 @@ function splatPointer(pointer: Pointer) {
 }
 
 function clickSplat(pointer: Pointer) {
+  if (!props.visible) return
   const color = generateColor()
   // 4x instead of the original 10x so clicks read as a bright pulse, not a
   // flashbang.
@@ -1161,6 +1194,9 @@ let onWindowMouseMove: ((event: MouseEvent) => void) | null = null
 let onWindowMouseDown: ((event: MouseEvent) => void) | null = null
 let onVisibilityChange: (() => void) | null = null
 let onToneChange: EventListener | null = null
+let pendingClientX = 0
+let pendingClientY = 0
+let hasPendingPointer = false
 
 function shouldRun() {
   if (typeof window === 'undefined') return false
@@ -1170,13 +1206,27 @@ function shouldRun() {
   return true
 }
 
-function arm(event: PointerEvent) {
+function dropPointerSampler() {
+  if (!onFirstPointerMove) return
+  window.removeEventListener('pointermove', onFirstPointerMove)
+  onFirstPointerMove = null
+}
+
+function tryArm() {
+  if (!hasPendingPointer) return
+  arm({ clientX: pendingClientX, clientY: pendingClientY })
+}
+
+function arm(event: { clientX: number, clientY: number }) {
   const canvas = canvasRef.value
-  if (!canvas || disposed || armed.value) return
+  if (!canvas || disposed || armed.value || !props.visible) return
   if (!shouldRun()) return
 
   const context = getWebGLContext(canvas)
-  if (!context) return
+  if (!context) {
+    dropPointerSampler()
+    return
+  }
   gl = context.gl
   ext = context.ext
 
@@ -1222,9 +1272,10 @@ function arm(event: PointerEvent) {
   lastUpdateTime = Date.now()
   colorUpdateTimer = 0
 
+  dropPointerSampler()
   installListeners()
-  updateFrame()
   armed.value = true
+  resumeLoop()
 
   // Feed the triggering move in as the first splat so the trail starts at the
   // cursor instead of appearing one gesture later.
@@ -1248,14 +1299,8 @@ function installListeners() {
   window.addEventListener('mousedown', onWindowMouseDown)
 
   onVisibilityChange = () => {
-    if (document.hidden) {
-      if (rafId) cancelAnimationFrame(rafId)
-      rafId = 0
-    }
-    else if (!rafId && !disposed) {
-      lastUpdateTime = Date.now()
-      rafId = requestAnimationFrame(updateFrame)
-    }
+    if (loopAllowed()) resumeLoop()
+    else pauseLoop()
   }
   document.addEventListener('visibilitychange', onVisibilityChange)
 
@@ -1268,10 +1313,25 @@ function installListeners() {
 
 onMounted(() => {
   if (!shouldRun()) return
-  // One-time arm on the first pointer activity - same pattern as Hero's
-  // armHeroFx, keeping WebGL out of the load path entirely.
-  onFirstPointerMove = (event) => arm(event)
-  window.addEventListener('pointermove', onFirstPointerMove, { once: true, passive: true })
+  // Sample pointer from the first move, but do not arm WebGL until `visible`
+  // is true. `/gym-scan` keeps this false through the film so the trail is
+  // already aimed at the cursor the frame the landing hero takes over.
+  onFirstPointerMove = (event) => {
+    pendingClientX = event.clientX
+    pendingClientY = event.clientY
+    hasPendingPointer = true
+    tryArm()
+  }
+  window.addEventListener('pointermove', onFirstPointerMove, { passive: true })
+})
+
+watch(() => props.visible, (visible) => {
+  if (visible) {
+    tryArm()
+    resumeLoop()
+    return
+  }
+  pauseLoop()
 })
 
 onBeforeUnmount(() => {
@@ -1305,7 +1365,7 @@ onBeforeUnmount(() => {
   <canvas
     ref="canvasRef"
     class="splash-cursor"
-    :class="{ 'is-armed': armed }"
+    :class="{ 'is-armed': showing }"
     aria-hidden="true"
   />
 </template>

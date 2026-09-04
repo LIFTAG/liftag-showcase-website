@@ -84,11 +84,14 @@ export function useLiftagSeo(options: LiftagSeoOptions) {
     href: new URL(item.path, SITE_URL).toString(),
   }))
 
-  // Czech/Slovak diacritics live in the latin-ext subset, which the global
-  // config does not preload; without this the text repaints in a second font
-  // wave. Inter carries the body copy, so it is the only subset worth preloading.
+  // Czech/Slovak diacritics live in the latin-ext subsets, which the global
+  // config does not preload. Inter covers body copy; Space Grotesk covers
+  // display headlines (Ž in KAŽDÝ, etc). Preload both so first paint has them.
   const latinExtFontLinks = options.lang === 'cs' || options.lang === 'sk'
-    ? [{ rel: 'preload' as const, as: 'font' as const, type: 'font/woff2', crossorigin: '' as const, href: '/assets/fonts/inter-latin-ext.woff2' }]
+    ? [
+        { rel: 'preload' as const, as: 'font' as const, type: 'font/woff2', crossorigin: '' as const, href: '/assets/fonts/inter-latin-ext.woff2' },
+        { rel: 'preload' as const, as: 'font' as const, type: 'font/woff2', crossorigin: '' as const, href: '/assets/fonts/space-grotesk-latin-ext.woff2' },
+      ]
     : []
 
   useHead({

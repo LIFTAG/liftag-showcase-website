@@ -1,10 +1,10 @@
-// Scroll split between the gym-scan scene and the landing-hero morph.
+// Scroll sizing for the gym-scan film and the seam that leaves it.
 //
-// The sticky section is longer than the original 3D act on purpose: the first
-// SCENE_END of progress is the existing room → fold → park-right sequence,
-// mapped onto that window so the physical scroll of the 3D act stays the same.
-// The remaining tail is the handoff: the parked phone travels into the real
-// hero's front-phone slot while the landing hero animates in around it.
+// The film does not end in this room. Once the plate is scanned the frame folds
+// onto a phone, and that phone travels into the landing hero's own front-phone
+// slot - so the sticky range is split: the first `SCENE_END` of progress is the
+// 3D act, and the tail is the handoff. Keeping the two on one scroll is what
+// makes the seam a cut rather than a page change.
 import {
   PHONE_CAM_FOV,
   PHONE_CAM_Z,
@@ -13,11 +13,24 @@ import {
 } from '../phoneModel.ts'
 import { clamp01, lerp, smoothstep } from './timeline.ts'
 
-/** Fraction of gym-scan scroll that is the 3D act (fold + park right). */
-export const SCENE_END = 0.845
+/**
+ * Fraction of gym-scan scroll that is the 3D act. The remaining tail is the
+ * morph into the landing hero, and it is short on purpose: the phone should
+ * arrive, not be flown across the screen while the visitor waits for it.
+ */
+export const SCENE_END = 0.84
 
-/** Sticky length in svh. SCENE_END * this equals the original 7.6 svh act. */
-export const GYM_SCAN_STICKY_SVH = 9
+/** FROM THE FLOOR: one viewport for Act 0, five for the scroll-owned act. */
+export const GYM_SCAN_STICKY_SVH = 6
+/** FROM THE SEAT: one viewport for Act 0, two and a half for the scroll act. */
+export const GYM_SCAN_PHONE_STICKY_SVH = 3.5
+/** Reduced motion is a held still followed immediately by the working DOM. */
+export const GYM_SCAN_REDUCED_STICKY_SVH = 1
+
+export function gymScanStickySvh(phone: boolean, reducedMotion: boolean): number {
+  if (reducedMotion) return GYM_SCAN_REDUCED_STICKY_SVH
+  return phone ? GYM_SCAN_PHONE_STICKY_SVH : GYM_SCAN_STICKY_SVH
+}
 
 /** Per-frame scroll catch-up at 60fps. Reaches 95% in roughly 150ms. */
 export const GYM_SCROLL_DAMP_RATE = 0.28

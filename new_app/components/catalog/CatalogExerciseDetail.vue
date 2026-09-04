@@ -299,6 +299,8 @@ const structuredData = computed(() => {
 useLiftagStructuredData(structuredData.value)
 
 const heroPlaying = ref(false)
+const mediaRef = ref<HTMLElement | null>(null)
+useStickyMomentum(mediaRef)
 </script>
 
 <template>
@@ -317,22 +319,37 @@ const heroPlaying = ref(false)
       </nav>
 
       <div class="ex-stage" :class="{ 'is-playing': heroPlaying }">
-        <div class="ex-media">
-          <CatalogVideoPlayer
-            :video-url="videoUrl"
-            :poster="exercise.imageUrl"
-            :name="imageAlt"
-            @playing="heroPlaying = $event"
-          >
-            <template #overlay>
-              <div class="ex-hero-ui">
-                <div class="ex-hero-scrim" aria-hidden="true" />
-                <div class="ex-hero-overlay">
-                  <p class="ex-name ex-name--hero" aria-hidden="true">{{ name }}</p>
-                </div>
+        <div ref="mediaRef" class="ex-media">
+          <div class="ex-media__mass">
+            <div class="ex-media__enter">
+              <CatalogVideoPlayer
+                :video-url="videoUrl"
+                :poster="exercise.imageUrl"
+                :name="imageAlt"
+                @playing="heroPlaying = $event"
+              >
+                <template #overlay>
+                  <div class="ex-hero-ui">
+                    <div class="ex-hero-scrim" aria-hidden="true" />
+                    <div class="ex-hero-overlay">
+                      <p class="ex-name ex-name--hero" aria-hidden="true">{{ name }}</p>
+                    </div>
+                  </div>
+                </template>
+              </CatalogVideoPlayer>
+              <div class="ex-lock" aria-hidden="true">
+                <span class="ex-lock__scan-rail">
+                  <span class="ex-lock__scan" />
+                </span>
+                <span class="ex-lock__frame">
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                </span>
               </div>
-            </template>
-          </CatalogVideoPlayer>
+            </div>
+          </div>
         </div>
 
         <div class="ex-info">
@@ -507,6 +524,7 @@ const heroPlaying = ref(false)
   gap: 12px;
   align-items: center;
   padding: 128px 0 26px;
+  animation: ex-fade 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .ex-crumb {
@@ -536,8 +554,253 @@ const heroPlaying = ref(false)
 }
 
 .ex-media {
+  --stick-y: 0;
   position: sticky;
   top: 96px;
+}
+
+.ex-media__mass {
+  transform: translate3d(0, calc(var(--stick-y) * 1px), 0);
+  will-change: transform;
+}
+
+.ex-media__enter {
+  position: relative;
+  transform-origin: center;
+  animation: ex-media-in 820ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.ex-lock {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  border-radius: var(--liftag-r-xl);
+  pointer-events: none;
+  animation: ex-lock-retire 1.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.ex-lock__scan-rail {
+  position: absolute;
+  inset: 0;
+  animation: ex-lock-scan 980ms cubic-bezier(0.16, 1, 0.3, 1) 70ms both;
+}
+
+.ex-lock__scan {
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.85),
+    #ccff00,
+    rgba(255, 255, 255, 0.85),
+    transparent
+  );
+  box-shadow:
+    0 0 10px rgba(204, 255, 0, 0.95),
+    0 0 26px rgba(204, 255, 0, 0.45);
+}
+
+.ex-lock__frame i {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--liftag-primary);
+  filter: drop-shadow(0 0 6px rgba(204, 255, 0, 0.55));
+  animation: ex-lock-corner 720ms cubic-bezier(0.16, 1, 0.3, 1) 90ms both;
+}
+
+.ex-lock__frame i:nth-child(1) {
+  top: 14px;
+  left: 14px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.ex-lock__frame i:nth-child(2) {
+  top: 14px;
+  right: 14px;
+  border-left: 0;
+  border-bottom: 0;
+}
+
+.ex-lock__frame i:nth-child(3) {
+  bottom: 14px;
+  left: 14px;
+  border-right: 0;
+  border-top: 0;
+}
+
+.ex-lock__frame i:nth-child(4) {
+  right: 14px;
+  bottom: 14px;
+  border-left: 0;
+  border-top: 0;
+}
+
+.ex-info > .ex-name {
+  animation: ex-title-in 720ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both;
+}
+
+.ex-info > .ex-meta {
+  animation: ex-rise 600ms cubic-bezier(0.16, 1, 0.3, 1) 160ms both;
+}
+
+.ex-info :deep(.ex-muscles li) {
+  animation: ex-rise 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.ex-info :deep(.ex-muscles li:nth-child(1)) { animation-delay: 230ms; }
+.ex-info :deep(.ex-muscles li:nth-child(2)) { animation-delay: 280ms; }
+.ex-info :deep(.ex-muscles li:nth-child(3)) { animation-delay: 330ms; }
+.ex-info :deep(.ex-muscles li:nth-child(4)) { animation-delay: 370ms; }
+.ex-info :deep(.ex-muscles li:nth-child(n+5)) { animation-delay: 410ms; }
+
+.ex-info .ex-anatomy__head {
+  animation: ex-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) 320ms both;
+}
+
+.ex-info .ex-anatomy__legend li {
+  animation: ex-rise 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.ex-info .ex-anatomy__legend li:nth-child(1) { animation-delay: 380ms; }
+.ex-info .ex-anatomy__legend li:nth-child(2) { animation-delay: 430ms; }
+
+.ex-info > .ex-description {
+  animation: ex-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) 400ms both;
+}
+
+.ex-info > .ex-log-panel {
+  animation: ex-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) 470ms both;
+}
+
+.ex-info > .ex-machines {
+  animation: ex-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) 520ms both;
+}
+
+.ex-media :deep(.cat-player__cta) {
+  animation: ex-cta-in 560ms cubic-bezier(0.16, 1, 0.3, 1) 280ms both;
+}
+
+@keyframes ex-media-in {
+  from {
+    opacity: 0;
+    clip-path: inset(7% 9% 9% 9% round 24px);
+    transform: scale(1.045);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0);
+    transform: none;
+  }
+}
+
+@keyframes ex-lock-scan {
+  0% {
+    transform: translate3d(0, -8%, 0);
+    opacity: 0;
+  }
+  14% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, 108%, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes ex-lock-corner {
+  0% {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+  38% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes ex-lock-retire {
+  0%, 88% {
+    visibility: visible;
+  }
+  100% {
+    visibility: hidden;
+  }
+}
+
+@keyframes ex-title-in {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 108% 0);
+    transform: translate3d(0, 16px, 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0);
+    transform: none;
+  }
+}
+
+@keyframes ex-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ex-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ex-cta-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+@keyframes ex-cta-in-phone {
+  from {
+    opacity: 0;
+    transform: scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ex-media-in-phone {
+  from {
+    opacity: 0;
+    clip-path: inset(5% 0 0 0);
+    transform: scale(1.03);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0);
+    transform: none;
+  }
 }
 
 .ex-hero-ui {
@@ -583,7 +846,7 @@ const heroPlaying = ref(false)
 .ex-anatomy__stage {
   min-height: var(--anatomy-h);
   height: var(--anatomy-h);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .ex-anatomy__placeholder {
@@ -813,15 +1076,38 @@ const heroPlaying = ref(false)
     overflow: hidden;
   }
 
+  .ex-media__enter {
+    animation-name: ex-media-in-phone;
+  }
+
+  .ex-lock {
+    display: none;
+  }
+
+  .ex-info > .ex-name {
+    animation: none;
+  }
+
+  .ex-media :deep(.ex-name--hero) {
+    animation: ex-title-in 640ms cubic-bezier(0.16, 1, 0.3, 1) 140ms both;
+  }
+
+  .ex-media :deep(.cat-player__cta) {
+    animation-name: ex-cta-in-phone;
+  }
+
   .ex-media :deep(.cat-player:not(.is-cinema)) {
-    /* Fill from the top of the navbar, then a 4:3 photo below it. */
-    aspect-ratio: auto;
     width: 100%;
-    height: calc(var(--liftag-safe-top) + 56px + 100vw * 3 / 4);
-    max-height: 78svh;
     min-height: 0;
     border: 0;
     border-radius: 0;
+  }
+
+  .ex-media :deep(.cat-player:not(.is-cinema):not(.is-playing)) {
+    /* Full-bleed still sized to the poster, not a fixed 4:3/16:9 frame. */
+    aspect-ratio: var(--media-ar, 1.7778);
+    height: auto;
+    max-height: 78svh;
   }
 
   .ex-media :deep(.cat-player__poster),
@@ -1013,6 +1299,30 @@ const heroPlaying = ref(false)
 @media (max-width: 620px) {
   .ex-related-grid {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ex-media__mass {
+    transform: none;
+  }
+
+  .ex-breadcrumb,
+  .ex-media__enter,
+  .ex-lock,
+  .ex-lock__scan-rail,
+  .ex-lock__frame i,
+  .ex-info > .ex-name,
+  .ex-info > .ex-meta,
+  .ex-info .ex-anatomy__head,
+  .ex-info .ex-anatomy__legend li,
+  .ex-info > .ex-description,
+  .ex-info > .ex-log-panel,
+  .ex-info > .ex-machines,
+  .ex-info :deep(.ex-muscles li),
+  .ex-media :deep(.cat-player__cta),
+  .ex-media :deep(.ex-name--hero) {
+    animation: none;
   }
 }
 </style>

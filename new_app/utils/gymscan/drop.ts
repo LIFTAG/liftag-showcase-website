@@ -59,6 +59,35 @@ export function dropAt(t: number): DropPose {
   return PLANTED_DROP
 }
 
+/**
+ * Same hop algebra, scaled to a different release height. Time stretches with
+ * sqrt(height) so a short drop is snappier, not a slow-motion 3.8 m fall.
+ */
+export function dropAtHeight(t: number, height: number): DropPose {
+  if (height <= 0) return PLANTED_DROP
+  const scale = height / DROP_HEIGHT
+  const pose = dropAt(t / Math.sqrt(scale))
+  return { y: pose.y * scale, impacted: pose.impacted, done: pose.done }
+}
+
+export function dropDurationFor(height: number): number {
+  if (height <= 0) return 0
+  return DROP_DURATION * Math.sqrt(height / DROP_HEIGHT)
+}
+
+/** Seconds until `dropAt` reports planted. Binary-searched so it stays in
+ *  lockstep with DROP_* without restating the hop algebra. */
+export const DROP_DURATION = (() => {
+  let lo = 0
+  let hi = 8
+  for (let i = 0; i < 40; i++) {
+    const mid = (lo + hi) / 2
+    if (dropAt(mid).done) hi = mid
+    else lo = mid
+  }
+  return hi
+})()
+
 /** 0 at DROP_SHADOW_RANGE, 1 on the floor. Squared by the caller if a tighter
  *  falloff is wanted; this is the linear proximity. */
 export function dropPlanted(y: number): number {

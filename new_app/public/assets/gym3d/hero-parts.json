@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "groups": [
+    "footplate",
+    "frame.baseL",
+    "frame.baseR",
+    "frame.beam",
+    "frame.core",
+    "frame.railL",
+    "frame.railR",
+    "frame.seat",
+    "hardware.L",
+    "hardware.R",
+    "hardware.top",
+    "horns.L",
+    "horns.R",
+    "pads",
+    "sled.L",
+    "sled.R"
+  ],
+  "aabb": {
+    "min": [
+      -0.74579,
+      0.0,
+      0.93253
+    ],
+    "max": [
+      0.74579,
+      1.43706,
+      -0.93253
+    ]
+  },
+  "horns": {
+    "axis": [
+      1,
+      0,
+      0
+    ],
+    "left": [
+      -0.36375,
+      0.24499,
+      -0.74637
+    ],
+    "right": [
+      0.37654,
+      0.26526,
+      -0.79547
+    ]
+  },
+  "plate": {
+    "radius": 0.225,
+    "thickness": 0.05,
+    "countDesktop": 2,
+    "countPhone": 2
+  },
+  "aabbDeltaMm": 0.0,
+  "sledUnsettled": false
+}

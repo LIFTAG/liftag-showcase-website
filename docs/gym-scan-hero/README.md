@@ -20,18 +20,27 @@ The route sets `layout: false` (no marketing nav/footer) and `noindex`.
 | 15–30% | Cursor-driven reveal — a grazing lift along the near edges as the pointer passes. |
 | 30–48% | The approach closes; the HUD reports. The sweep retires as the placard takes over. |
 | 48–60% | The code plate resolves under analysis, module by module. |
-| 60–72% | The approach settles at the seated eye point, facing the placard. |
-| 72–86% | The rendered frame folds into a phone-shaped rect. |
-| 86–100% | Phone moves right, headline and CTA resolve on the left. |
+| 60–72% | The approach settles level with the plate, reading it square on. |
+| 72–86% | The rendered frame folds onto a phone's glass with the plate pinned to it. |
+| 86–100% | The glass flies into the landing hero's own front phone. |
 
 Under all of it the camera makes exactly **one move**: a single continuous
-approach from a wide three-quarter read of the whole machine to the seated eye
-point, 6.5 m down to 1.2 m. The states above are things happening *during* that
-move, not stages of it.
+approach from a wide three-quarter read of the whole machine to a seated eye
+at the plate, 6.7 m down to 1.6 m. The states above are things happening
+*during* that move, not stages of it.
 
-The closest station is deliberately the athlete's own position rather than a
-flattering angle: the whole claim is that you can scan the plate without getting
-out of the machine, so the shot that proves it is the one from the seat.
+The closest station is the athlete's own seat, and the argument for it is that
+the claim being made — you can scan the plate without getting out of the
+machine — is best proved from the seat. A standing variant was written when the
+seated hologram rep was cut, on the reasoning that the seat only ever earned
+the lens to carry that rep. Rendered, it was wrong: standing puts the eye above
+the plate and reads the tag at a downward slant, and this is the frame the
+glass folds around, so the code has to arrive centred and square. The station
+is back where the film shipped it. Nobody is drawn in the seat; it is simply
+the height and angle a phone reads this tag from. `act1Cam.ts` owns the path;
+`plateFramingAt` re-derives what the lens actually sees from it, so
+`tests/act1Cam.test.ts` can hold the shot to its description rather than to six
+vectors.
 
 The rest of the gym is empty floor running out into fog. A corridor of
 background equipment used to recede behind the hero as real meshes; a
@@ -86,11 +95,12 @@ laid a hard orange pool across the floor that announced itself as a coloured
 lamp, and as environment it does exactly the job it is wanted for, with no
 falloff to give it away and nothing to pay per fragment.
 
-**The phone lights the payoff shot.** At the seated station the camera is inside
-the frame, looking at surfaces the ceiling cannot reach - physically correct and
-photographically dead; that shot came back almost entirely black. The fill is
-the phone's own screen: someone scanning a plate holds a lit rectangle up to it
-at arm's length, so the pool of cool light on the placard and the fast falloff
+**The phone lights the payoff shot.** The plate hangs under a crossbeam, facing
+back down the machine's axis, on a face the ceiling strips cannot reach - so the
+close shot came back almost entirely black, which is physically correct and
+photographically dead. The fill is the phone's own screen: someone scanning a
+plate holds a lit rectangle up to it at arm's length, so the pool of cool light
+on the placard and the fast falloff
 around it are what that shot genuinely looks like. It ramps in over the approach
 and dies with the fold, so it only exists while there is a phone to emit it.
 
@@ -367,8 +377,11 @@ after that cut:
 |---|---|---|---|---|
 | 9.0 | 7.8 | 3.6 | 3.7 | 21.8 |
 
-Mean frame luminance across the sequence is **8.3** everywhere except the seated
+Mean frame luminance across the sequence is **8.3** everywhere except the close
 station (12.1), with **0.1–0.9%** of pixels above 40 — down from 1.5–4.5%.
+(These numbers were measured against the seated end point, which the film has
+since been restored to, along with the `KEY_SIZE` / `KEY_LEVEL` tables that
+retire with it, so they stand.)
 Whole-frame numbers are the ones worth re-checking after any grade change; the
 per-region ones move whenever the camera does.
 
@@ -440,11 +453,12 @@ gentler easing, it is separating the two jobs the table was doing:
 - `cameraU` is *when*, one smoothstep across the whole approach.
 
 The sequence therefore contains exactly two moments of zero camera velocity: the
-top of the page, and the end of the move. The path is also monotonic now; it used
-to push in to the seated station and then pull back out for the last quarter, and
-a reversal is a phase change however smoothly it is interpolated. Holding the
-close shot instead meant the placard now fills the frame behind the app card at
-the end, so it and the scene fade both retire to nothing rather than part-way.
+top of the page, and the end of the move. The path is also monotonic; it used
+to push in and then pull back out for the last quarter, and a reversal is a phase
+change however smoothly it is interpolated. Holding the close shot instead means
+the placard is still large in frame at the end, so its analysis channels retire
+to nothing rather than part-way — any residual glow would print straight through
+the app screen the fold maps over it.
 
 ## Assets
 
@@ -461,11 +475,12 @@ the entire premise.
 The leg press was chosen on ergonomics: the athlete sits facing straight down
 the machine's axis, and the frame's front crossbeam is dead in that sight line
 with clear air beneath it. The 15.5 cm QR sticker sits on a blank hanging off
-that beam on two stand-offs at `(0, 1.255, -0.372)`, 0.93 m from the seated eye
-point and 2° above the sight line, with the footplate topping out at y = 0.83 so
-nothing occludes it. Camera
-positions were verified against the geometry by rendering from the seated eye
-position in Blender before any of it was built.
+that beam on two stand-offs at `(0, 1.255, -0.372)`, with the footplate topping
+out at y = 0.83 so nothing occludes it. The mount was placed for a seated eye
+0.93 m away and 2° above the sight line, and the approach ends on that same
+station: 1.23 m out, level with the plate, landing about 6° off the plate's own
+normal with the code dead centre in frame. Camera positions were verified against the
+geometry in Blender before any of it was built.
 
 | File | Size | Triangles |
 |---|---|---|
@@ -505,6 +520,7 @@ the repo root:
 blender -b "all+fitness.blend" -P tools/gym3d/inspect.py       # inventory JSON
 blender -b "all+fitness.blend" -P tools/gym3d/preview.py       # per-mesh previews (to pick a machine)
 blender -b "all+fitness.blend" -P tools/gym3d/export_hero.py -- 1.0
+blender -b "all+fitness.blend" -P tools/gym3d/export_hero_parts.py
 blender -b "all+fitness.blend" -P tools/gym3d/export_props.py
 ```
 
@@ -517,8 +533,16 @@ python3 tools/gym3d/qr_sticker.py tools/gym3d/pivot-leg-press-qr.png
 ```
 
 The phone-screen capture after the fold is procedural (the real app's QR
-morph, then a Pivot Leg Press log-set replica). Rebuild with
-`python tools/gym3d/record-scan-flow.py`. That writes `gym-scan-flow.mp4` +
+morph, then a Pivot Leg Press log-set replica). The first LOG frame is the
+live lock, so recapture that still whenever the approach camera moves:
+
+```bash
+# Nuxt dev server already running on :3000
+python tools/gym3d/capture-gym-scene.py
+python tools/gym3d/record-scan-flow.py
+```
+
+That writes `scan-flow-src/gym-scene.png`, then `gym-scan-flow.mp4` +
 `.av1.mp4` (keyframes at 0s and 3.2s, `moov` first) and the reduced-motion
 still `assets/gym3d/log-set.webp`.
 

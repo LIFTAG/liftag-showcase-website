@@ -3,5 +3,9 @@ const route = useRoute()
 </script>
 
 <template>
-  <CatalogExerciseDetail locale="sk" :param="String(route.params.slug)" />
+  <CatalogExerciseDetail
+    :key="String(route.params.slug)"
+    locale="sk"
+    :param="String(route.params.slug)"
+  />
 </template>

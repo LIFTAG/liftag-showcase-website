@@ -20,13 +20,36 @@ import {
 import {
   applyScanShader, applySurfaceShader, createScanUniforms, createSurfaceUniforms, type SurfaceKind,
 } from './machineMaterial'
+import { WIRE_RGB } from './hologramColor'
 import { CompositeShader } from './composite'
 import { createHologramShell, type HologramShell } from './hologram'
 import { createPlacardMaterial, createPlacardUniforms } from './placard'
+import { createFoilMaterial, createFoilUniforms } from './foil'
+import { createNfcMaps, createNfcMaterial } from './nfc'
+import { createPeelUniforms, writePeel, type PeelUniforms } from './peel'
+import { act0At, act0Windows, type Act0Shot, type Act0State } from './act0'
+import { act1At, act1Windows, phoneFillAmp, PHONE_FILL_INTENSITY, type Act1Shot, type Act1State } from './act1'
+import { APPROACH_PATH, APPROACH_TARGET_PATH } from './act1Cam'
+import { act0CamAt } from './act0Cam'
+import { floorConstructAt, PBR_TAIL_R } from './floorConstruct'
+import {
+  emptyTilePose, floorTilePoseAt, FLOOR_TILES,
+  TILE_FIELD_HALF, TILE_SIZE, TILE_THICK, TILE_T0,
+} from './floorTiles'
+import {
+  PLACARD_H, PLACARD_REST, PLACARD_W, SHOWCASE_KEY_INTENSITY,
+  stickAt, stickHidden, type StickPose,
+} from './stick'
 import { createPhoneOverlay, phoneShrink, type PhoneOverlay } from './phoneOverlay'
 import { createScanAppScreen } from './scanApp.ts'
 import { PHONE_H, PHONE_W } from '../phoneModel'
-import { createReticleTracker, RETICLE_OUT_END, type ScreenRect } from './reticle'
+import {
+  createReticleTracker,
+  RETICLE_MORPH_END,
+  RETICLE_MORPH_START,
+  RETICLE_OUT_END,
+  type ScreenRect,
+} from './reticle'
 import { createReticleOverlay } from './reticleOverlay'
 import {
   fallbackHeroSlot,
@@ -37,6 +60,9 @@ import {
   type PhoneBox,
 } from './handoff'
 import { dropAt, dropPlanted, firstSweepTime, PLANTED_DROP } from './drop'
+import { assembleAt, type AssembleState } from './assemble'
+import { loadPartsRig, type PartsRig } from './parts'
+import type { GymScanDevice } from './device'
 import {
   clamp01, damp, ease, lerp, scalarAt, smoothstep, span, vec3HermiteAt,
   type ScalarStop, type Vec3Stop,
@@ -44,56 +70,18 @@ import {
 
 // --- choreography ----------------------------------------------------------
 // One table for the whole sequence. Reading down a column tells you what the
-// camera, the scan and the fold are each doing at any point in the scroll.
+// scan, the lights and the fold are each doing at any point in the scroll.
+//
 // The camera move is one shot, so it is written as one shot: a path through
-// space, and - separately - a schedule saying how fast the camera travels
-// along it.
+// space (`act1Cam.ts`), and - separately, here - a schedule saying how fast
+// the camera travels along it. It used to be a single nine-stop table read
+// with `vec3At`, which eases in *and* out of every stop; velocity therefore
+// hit zero eight times on the way down, and what was meant to be a dolly
+// arrived as eight consecutive zooms with a pause between each. Splitting
+// shape from timing fixes that at the root: `vec3HermiteAt` carries speed
+// across every control point, and `cameraU` accelerates exactly once and
+// decelerates exactly once.
 //
-// It used to be a single nine-stop table read with `vec3At`, which eases in
-// *and* out of every stop. Velocity therefore hit zero eight times on the way
-// down, so what was meant to be a dolly arrived as eight consecutive zooms
-// with a pause between each. Splitting shape from timing fixes that at the
-// root: `vec3HermiteAt` carries speed across every control point, and
-// `cameraU` accelerates exactly once and decelerates exactly once.
-//
-// The path itself is also monotonic now. The old one pushed in to the seated
-// station and then pulled back out again for the last quarter, and a reversal
-// is a phase change however smoothly it is interpolated.
-//
-// `u` runs 0..1 from a wide three-quarter read of the whole machine to the
-// seated eye point - where the athlete's head would be, so the placard is
-// found from the training position rather than from a flattering angle no user
-// will ever occupy.
-const CAM_PATH: readonly Vec3Stop[] = [
-  [0.00, [3.98, 2.22, 4.96]],
-  [0.22, [3.20, 2.04, 4.14]],
-  [0.46, [2.28, 1.82, 3.20]],
-  [0.68, [1.34, 1.56, 2.14]],
-  [0.86, [0.56, 1.34, 1.32]],
-  [1.00, [0.02, 1.255, 0.86]],
-]
-const CAM_TARGET_PATH: readonly Vec3Stop[] = [
-  [0.00, [0.05, 0.88, -0.04]],
-  [0.46, [0.02, 0.94, -0.14]],
-  [0.72, [0.00, 1.02, -0.24]],
-  // Land on the plate itself so the folded phone has the QR in the
-  // viewfinder, matching scan-flow.mp4's flattened code at 3.2s.
-  [1.00, [0.00, 1.255, -0.372]],
-]
-/**
- * Scroll position -> position along the path.
- *
- * One smoothstep across the whole approach, which means the sequence contains
- * exactly two moments of zero camera velocity: the top of the page and the end
- * of the move. The approach lands at 0.90 rather than 1.0 so the last stretch -
- * by which point the frame has already folded into the 3D phone and is fading
- * out behind the DOM hero - is a held shot rather than a drift with nowhere
- * to go.
- */
-const CAM_SPAN = 0.90
-function cameraU(p: number): number {
-  return smoothstep(p / CAM_SPAN)
-}
 // Nothing drives the machine any more. The scan plane, the contour slices, the
 // identified outline and the interference burst all used to have tables here;
 // the machine now carries no analysis layer, so the whole scan reads on the QR
@@ -101,18 +89,17 @@ function cameraU(p: number): number {
 // fold.
 // All three retire to nothing by the time the app UI is up. They used to fade
 // only part-way, which was survivable while the camera pulled back out at the
-// end and left the plate small and far away; now that the move is monotonic
-// and the shot holds at the seated station, the plate is still filling the
-// middle of the frame at p = 1 and any residual glow on it prints straight
-// through the set list.
+// end and left the plate small and far away; the move is monotonic now and the
+// shot holds on the plate, so any residual glow on it prints straight through
+// the app screen the fold maps over it.
 const PLACARD_REVEAL: readonly ScalarStop[] = [
-  [0.40, 0], [0.52, 0.35], [0.62, 1], [0.84, 1], [0.93, 0],
+  [0.00, 0], [0.16, 0], [0.48, 1], [1.00, 1],
 ]
 const PLACARD_RESOLVE: readonly ScalarStop[] = [
-  [0.44, 0], [0.60, 0.6], [0.68, 1], [0.84, 1], [0.93, 0],
+  [0.00, 0], [0.24, 0], [0.72, 1], [1.00, 1],
 ]
 const PLACARD_LOCK: readonly ScalarStop[] = [
-  [0.60, 0], [0.70, 1], [0.86, 1], [0.93, 0],
+  [0.00, 0], [0.58, 0], [0.86, 1], [1.00, 1],
 ]
 // The hologram exoskeleton's window. Live from the very top of the page: the
 // sweep is an idle, and an idle that only starts once you scroll is not one.
@@ -126,9 +113,6 @@ const PLACARD_LOCK: readonly ScalarStop[] = [
 // analysis has found what it was looking for, and the story is on the code.
 const HOLO: readonly ScalarStop[] = [
   [0.00, 1], [0.40, 1], [0.56, 0],
-]
-const FOLD: readonly ScalarStop[] = [
-  [0.72, 0], [0.86, 1], [1.00, 1],
 ]
 // Key, rims and the two ceiling strips ride the dolly. Size (cone, strip
 // length) contracts while the floor is still in frame; level stays up so
@@ -151,9 +135,14 @@ const STRIP_L_END = 2.4
 const STRIP_SPOT_I0 = 38
 const STRIP_SPOT_D0 = 18
 const STRIP_SPOT_A0 = 1.15
-// Size pulls in across the whole dolly. Level holds until the camera is
-// actually in the machine, then hands off to the phone — an early drop
-// just looks like the room going dark.
+// Size pulls in across the whole dolly so the pool tightens onto the machine
+// instead of washing the whole mat from a metre away.
+//
+// Both tables retire to nothing by the end of the dolly. The shot ends inside
+// the machine at the seated eye point, with the plate in the middle of the
+// frame: a key still burning there has nothing left to light and prints
+// straight through the code. The phone fill that replaces it is already on
+// from the last of the approach, so the close-up does not gain a lamp.
 const KEY_SIZE: readonly ScalarStop[] = [
   [0.00, 1],
   [0.28, 0.82],
@@ -169,10 +158,62 @@ const KEY_LEVEL: readonly ScalarStop[] = [
   [0.86, 0.72],
   [0.96, 0],
 ]
-// Phone slides from centre to the right half once the fold has completed.
-const PHONE_X: readonly ScalarStop[] = [
-  [0.86, 0.5], [1.00, 0.72],
-]
+/**
+ * The cover fold, on both cuts. The room curls onto the phone's glass with the
+ * scanned plate pinned in place, so the square you were just looking at *is*
+ * the screen - a match cut on a shape rather than a dissolve between two
+ * pictures.
+ *
+ * It no longer opens back onto the room. It used to, because the film stayed
+ * in the gym afterwards; now the glass is the thing that travels into the
+ * landing hero, so the fold forms and holds.
+ */
+/**
+ * Local fold progress at which the glass has fully formed.
+ *
+ * Derived so the bezel can start during the zoom without the app cut moving
+ * with it: `foldU` reaches this value at `lockEnd`, same as when the fold
+ * used to start after the lock. Ratios match on both cuts.
+ */
+const FOLD_FORM_WINDOWS = act1Windows(false)
+const FOLD_FORM_U = (FOLD_FORM_WINDOWS.lockEnd - FOLD_FORM_WINDOWS.foldStart)
+  / (1 - FOLD_FORM_WINDOWS.foldStart)
+function foldSentence(u: number): number {
+  if (u <= 0) return 0
+  if (u >= FOLD_FORM_U) return 1
+  return smoothstep(u / FOLD_FORM_U)
+}
+/**
+ * The brackets' own clock, mapped out of the three Act 1 shots.
+ *
+ * They hunt the cursor through the Act 0 hold - the tag is planted by then and
+ * the room is waiting. Hovering the plate acquires it early; otherwise they
+ * lock on in the first fifth of the dolly. They hold until the glass starts
+ * forming on the last of the zoom, then fade out exactly as it finishes,
+ * which is the frame the app screen cuts in.
+ *
+ * Two earlier versions were wrong in opposite directions. Resolving them
+ * during the lock shot meant the corners were still hunting a cursor through
+ * a two-second push onto a tag they were obviously about to find; retiring
+ * them at the end of that shot meant the code lost its brackets before the
+ * fold had anything to hand over. Fading them on `foldU` rather than on the
+ * exclusive fold shot keeps that second fix now that the glass overlaps the
+ * dolly.
+ */
+const RETICLE_ACQUIRE_U = 0.18
+function reticleProgress(act1: Act1State, live: boolean): number {
+  const formed = clamp01(act1.foldU / FOLD_FORM_U)
+  if (formed > 0) {
+    return RETICLE_MORPH_END + formed * (RETICLE_OUT_END - RETICLE_MORPH_END)
+  }
+  if (!live || act1.shot === 'approach') {
+    const dolly = live ? act1.dollyU : 0
+    return RETICLE_MORPH_START
+      + clamp01(dolly / RETICLE_ACQUIRE_U) * (RETICLE_MORPH_END - RETICLE_MORPH_START)
+  }
+  return RETICLE_MORPH_END
+}
+
 // Keep the live composite on screen until the 3D phone is actually leaving
 // full-bleed. Switching earlier replaced the frame with a 1:1-ish screen
 // that was still a few percent off, which read as a zoom snap before any
@@ -180,11 +221,17 @@ const PHONE_X: readonly ScalarStop[] = [
 
 export interface FrameInfo {
   progress: number
-  /** 0–1 over the 3D act only (room → fold → park right). */
+  /** 0–1 over the scroll-owned act. */
   scene: number
-  /** 0–1 over the tail after the phone parks: travel into the landing hero. */
+  /** True once the fold has finished and the glass is free to travel. */
+  complete: boolean
+  /** 0–1 over the tail that flies the folded phone into the hero's slot. */
   heroMorph: number
-  /** Projected 3D phone screen in CSS px, plus the rest pose for the DOM app. */
+  act1: {
+    shot: Act1Shot
+    lock: number
+  }
+  /** Projected 3D phone screen in CSS px. */
   phone: {
     x: number
     y: number
@@ -196,16 +243,21 @@ export interface FrameInfo {
     perspective: number
   }
   fold: number
-  status: StatusKey
+  act0: {
+    shot: Act0Shot
+    skipVisible: boolean
+    doorsVisible: boolean
+    done: boolean
+  }
 }
-
-export type StatusKey = 'standby' | 'scanning' | 'detected' | 'identified' | 'open'
 
 export interface StageOptions {
   canvas: HTMLCanvasElement
   onFrame: (info: FrameInfo) => void
   onReady: () => void
   reducedMotion: boolean
+  device: GymScanDevice
+  onDeviceClassChange?: (deviceClass: GymScanDevice['deviceClass']) => void
 }
 
 // Bracketed under the front crossbeam, on the machine's centre line, facing
@@ -213,13 +265,11 @@ export interface StageOptions {
 // that is 0.93 m away and 2 degrees above the sight line, with the footplate
 // topping out at y = 0.83 so nothing occludes it - a plate you can actually
 // scan while sitting in the machine, not one mounted over your own head.
-const PLACARD_POS = new THREE.Vector3(0, 1.255, -0.372)
-const PLACARD_TILT = -0.10          // radians, nosed down toward the seat
-// The artwork is 827 x 874, so the sticker is very slightly taller than it is
-// wide. 15.5 cm is a real gym tag: big enough to scan from the seat 0.9 m away,
-// small enough that it is a sticker on a machine rather than signage.
-const PLACARD_H = 0.155
-const PLACARD_W = PLACARD_H * (827 / 874)
+// Mount pose and card size both live in `stick.ts`, which is the module that
+// has to land the flying card on them. Two copies of these numbers is two
+// chances for the plant to miss by a millimetre.
+const PLACARD_POS = new THREE.Vector3(PLACARD_REST.x, PLACARD_REST.y, PLACARD_REST.z)
+const PLACARD_TILT = PLACARD_REST.tiltX     // radians, nosed down toward the seat
 /** Height of the crossbeam underside the placard brackets hang from. */
 const PLACARD_BEAM_Y = 1.352
 
@@ -253,10 +303,13 @@ const HERO_MATERIALS: Record<string, {
   // thing in frame, which is backwards for a machine meant to read as a
   // silhouette.
   LIFTAG_Plate: { kind: 'plate', rough: 0.62, env: 0.26, dim: 0.66 },
+  // Black bumper plates. Albedo zero and no env so the key light cannot
+  // lift them to gray; the silhouette is the scan-shader rim.
+  LIFTAG_Iron: { kind: 'detail', rough: 1, env: 0, dim: 1 },
 }
 
 export function createGymScanStage(opts: StageOptions) {
-  const { canvas, onFrame, onReady, reducedMotion } = opts
+  const { canvas, device, onDeviceClassChange, onFrame, onReady, reducedMotion } = opts
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
@@ -264,7 +317,9 @@ export function createGymScanStage(opts: StageOptions) {
     alpha: true,
     powerPreference: 'high-performance',
   })
-  const isCoarse = window.matchMedia('(pointer: coarse)').matches
+  // Cut selection is an input contract, not a viewport guess. A narrow laptop
+  // keeps FROM THE FLOOR; a coarse tablet gets FROM THE SEAT crop.
+  const isCoarse = device.cut === 'seat'
   // Every cost in this scene is per-fragment: the floor plane covers most of
   // the screen, and each of its fragments runs eight lights, an env sample, a
   // shadow lookup and the procedural surface block. Measured across the DPR
@@ -280,17 +335,21 @@ export function createGymScanStage(opts: StageOptions) {
   // This is the one change in the optimisation pass that is actually visible.
   // Everything else came out pixel-identical; raise it back to 2 if a target
   // machine has the headroom.
-  const dprCap = 1.5
+  const dprCap = device.dprCap
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, dprCap))
+  // Composer passes each call renderer.render(), which would otherwise reset
+  // the counter to the last fullscreen blit. 0B diagnostics need the gym
+  // submit count at explode vs planted.
+  if (import.meta.dev) renderer.info.autoReset = false
   // AgX keeps the near-black end neutral and rolls the scan line's highlight off
   // gracefully; ACES was tinting the dark powder-coat olive and clipping lime.
   renderer.toneMapping = THREE.AgXToneMapping
   // Pulled down from 1.35. The rig below puts more energy into speculars and
   // less into flat fill, so the machine can sit further into the toe of the
   // curve and still read - which is what a dark room actually looks like.
-  renderer.toneMappingExposure = 0.82
-  renderer.shadowMap.enabled = !isCoarse
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap
+  renderer.toneMappingExposure = isCoarse ? 1.10 : 0.82
+  renderer.shadowMap.enabled = device.shadows
+  renderer.shadowMap.type = THREE.PCFShadowMap
 
   const scene = new THREE.Scene()
   scene.background = new THREE.Color(0x000000)
@@ -403,7 +462,7 @@ export function createGymScanStage(opts: StageOptions) {
   // plate holds a lit rectangle up to it at arm's length, so the pool of cool
   // light on the placard and the fast falloff around it are what that shot
   // genuinely looks like.
-  const phoneFill = new THREE.SpotLight(0xd6e4ff, 0, 3.0, 0.80, 1, 2)
+  const phoneFill = new THREE.SpotLight(0xd6e4ff, 0, 2.8, 0.50, 0.85, 2)
   phoneFill.visible = false
   scene.add(phoneFill, phoneFill.target)
 
@@ -426,26 +485,244 @@ export function createGymScanStage(opts: StageOptions) {
   // maps chop it into something with a scale, so the floor reads as a surface
   // the machine is standing on rather than a plane it is floating over.
   const floorMaps = createFloorMaps(renderer.capabilities.getMaxAnisotropy())
-  const floor = new THREE.Mesh(
+  // One recipe, two meshes: the 90 m plane and the slabs that build its middle
+  // during 0A. They must be indistinguishable at rest, so nothing here may
+  // diverge between them - only the shader patches below do.
+  const floorMaterial = () => new THREE.MeshStandardMaterial({
+    color: 0x0e0f12,
+    map: floorMaps.map,
+    roughnessMap: floorMaps.roughnessMap,
+    normalMap: floorMaps.normalMap,
+    normalScale: new THREE.Vector2(0.09, 0.09),
+    roughness: 0.86,
+    metalness: 0.0,
+    envMapIntensity: 0.62,
+  })
+  const floorPbrMaterial = floorMaterial()
+  const floorLiteMaterial = isCoarse
+    ? new THREE.MeshLambertMaterial({ color: 0x0e0f12, map: floorMaps.map })
+    : null
+  const floor = new THREE.Mesh<THREE.PlaneGeometry, THREE.Material>(
     new THREE.PlaneGeometry(90, 90),
-    new THREE.MeshStandardMaterial({
-      color: 0x0e0f12,
-      map: floorMaps.map,
-      roughnessMap: floorMaps.roughnessMap,
-      normalMap: floorMaps.normalMap,
-      normalScale: new THREE.Vector2(0.09, 0.09),
-      roughness: 0.86,
-      metalness: 0.0,
-      envMapIntensity: 0.62,
-    }),
+    floorPbrMaterial,
   )
   // The tiled maps supply everything at fleck scale; this supplies everything
   // above it - traffic patches, patchy soiling - in world space, where no
   // amount of repeat can produce a grid.
-  applySurfaceShader(floor.material as THREE.Material, createSurfaceUniforms('floor'))
+  applySurfaceShader(floorPbrMaterial, createSurfaceUniforms('floor'))
+  // 0A writes the mat behind the hologram front. uBirthR clips the 90 m plane
+  // to that radius until it reaches PBR_TAIL_R, past which the whole block
+  // below drops out of the frame's cost on a uniform branch. uTileHalf
+  // punches the slab field's square back out of it, so the plane and the
+  // slabs are never both drawn over the same ground.
+  //
+  // The clip is not a circle with a hard edge. uBirthR is the mat's one front
+  // — the slab field's radial spread, carried on past the field corner — and
+  // uBirthBand is the depth of ground still coming up behind it. Inside that
+  // band the plane is diced on the same 1 m grid as the slabs, and each cell
+  // gets its own scattered arrival radius and its own fade length, so the far
+  // mat comes up as squares breaking out ahead of and lagging behind their
+  // neighbours, carrying the same write-in light. The same gesture as the
+  // slabs, on ground too far out to put geometry on.
+  const floorBirthR = { value: 0 }
+  const floorBirthBand = { value: 0 }
+  const floorTileHalf = { value: 0 }
+  {
+    const floorMat = floorPbrMaterial
+    const prior = floorMat.onBeforeCompile
+    floorMat.onBeforeCompile = (shader, renderer) => {
+      prior.call(floorMat, shader, renderer)
+      shader.uniforms.uBirthR = floorBirthR
+      shader.uniforms.uBirthBand = floorBirthBand
+      shader.uniforms.uTileHalf = floorTileHalf
+      // Same cool white the slabs are written with, and the same reason: out
+      // past the lamps a cell's own lit value barely changes as it arrives,
+      // so this is the only thing that makes the arrival legible at all.
+      shader.uniforms.uBirthGlow = { value: new THREE.Color(...WIRE_RGB).multiplyScalar(0.055) }
+      shader.fragmentShader = shader.fragmentShader
+        .replace(
+          '#include <common>',
+          `#include <common>
+          uniform float uBirthR;
+          uniform float uBirthBand;
+          uniform float uTileHalf;
+          uniform vec3  uBirthGlow;
+          // Scatter on a cell's arrival radius, metres: how far ahead of its
+          // turn a cell may break out, and how far behind it may lag. Same
+          // asymmetry the slabs carry — a short early half, a longer late one
+          // — and, like theirs, comparable to the span a cell takes to come
+          // up, which is what makes the front a scatter rather than a ring.
+          const float LG_BIRTH_EARLY = ${TILE_SIZE.toFixed(1)};
+          const float LG_BIRTH_LATE = ${(TILE_SIZE * 2).toFixed(1)};
+          const float LG_TILE_FIELD = ${TILE_FIELD_HALF.toFixed(1)};`,
+        )
+        .replace(
+          '#include <clipping_planes_fragment>',
+          `#include <clipping_planes_fragment>
+          float lgBirth = 1.0;
+          if (uBirthR < ${PBR_TAIL_R.toFixed(1)}) {
+            // Cell centres land on the same half-integer grid as the slabs, so
+            // the wash is cut along the seams already moulded into the mat.
+            vec2 lgCell = floor(vLgWorldPos.xz) + 0.5;
+            // lgHash, not a sin-based one: the plane is 90 m across, and
+            // sin(dot(cell, big)) needs the mantissa of a highp float to stay
+            // random out at the rim. This is the hash the rest of the surface
+            // already runs on.
+            float lgJr = lgHash(vec3(lgCell, 3.7));
+            float lgJb = lgHash(vec3(lgCell, 8.1));
+            float lgCellR = length(lgCell)
+              + lgJr * (LG_BIRTH_EARLY + LG_BIRTH_LATE) - LG_BIRTH_EARLY;
+            float lgBand = max(uBirthBand * (0.7 + 0.6 * lgJb), 0.001);
+            lgBirth = clamp((uBirthR - lgCellR) / lgBand, 0.0, 1.0);
+            // Ground the slab field owns is never washed in by the plane: it
+            // is punched out while the slabs are up and inherited already
+            // written the moment they go, which is what keeps that handoff
+            // invisible. Without this the plane would fade in underneath them.
+            if (max(abs(vLgWorldPos.x), abs(vLgWorldPos.z)) < LG_TILE_FIELD) lgBirth = 1.0;
+            if (lgBirth <= 0.0) discard;
+          }
+          if (uTileHalf > 0.0) {
+            if (max(abs(vLgWorldPos.x), abs(vLgWorldPos.z)) < uTileHalf) discard;
+          }`,
+        )
+        .replace(
+          '#include <opaque_fragment>',
+          `#include <opaque_fragment>
+          if (uBirthR < ${PBR_TAIL_R.toFixed(1)}) {
+            // Linear, before tonemapping — the same place the slabs' emissive
+            // lands. The cell comes up as light first and resolves into lit
+            // rubber behind it; both ends are zero, so nothing pops on and
+            // nothing is left glowing once the front has gone by.
+            gl_FragColor.rgb *= lgBirth * lgBirth * (3.0 - 2.0 * lgBirth);
+            gl_FragColor.rgb += uBirthGlow * 4.0 * lgBirth * (1.0 - lgBirth);
+          }`,
+        )
+    }
+    floorMat.customProgramCacheKey = () => 'liftag-surface-birth'
+    floorMat.needsUpdate = true
+  }
   floor.rotation.x = -Math.PI / 2
   floor.receiveShadow = renderer.shadowMap.enabled
   scene.add(floor)
+
+  // --- 0A slab field ---------------------------------------------------------
+  // The mat does not get wiped in. Inside TILE_FIELD_HALF it arrives as 1 m
+  // slabs rising out of the void and seating, rooted at the machine's feet and
+  // spreading outward with the front. One InstancedMesh, no shadows: nothing
+  // casts onto the floor until 0B, by which point this is gone.
+  const floorTiles = FLOOR_TILES
+  const tileMat = floorMaterial()
+  applySurfaceShader(tileMat, createSurfaceUniforms('floor'))
+  // A slab in flight carries the light it is being written with - the same
+  // cool white as the hologram's reconstructed mesh - and sheds it as it
+  // seats. Emissive rather than a lamp, because the lamps are over the
+  // machine and the back of the field has none: this is the only thing that
+  // makes a slab out there readable while it moves.
+  const tileGlow = { value: new THREE.Color(...WIRE_RGB).multiplyScalar(0.040) }
+  {
+    const prior = tileMat.onBeforeCompile
+    tileMat.onBeforeCompile = (shader, renderer) => {
+      prior.call(tileMat, shader, renderer)
+      shader.uniforms.uTileGlow = tileGlow
+      shader.vertexShader = shader.vertexShader
+        .replace(
+          '#include <common>',
+          `#include <common>
+        attribute float aGlow;
+        varying float vLgGlow;
+        varying float vLgSide;`,
+        )
+        // applySurfaceShader's world position predates instancing; per-instance
+        // transforms live in instanceMatrix and would otherwise be dropped,
+        // parking every slab's procedural weathering on the same patch.
+        .replace(
+          'vLgWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;',
+          'vLgWorldPos = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;',
+        )
+        .replace(
+          'vLgWorldNormal = normalize(mat3(modelMatrix) * objectNormal);',
+          'vLgWorldNormal = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * objectNormal);',
+        )
+        // The mat maps are laid out across the 90 m plane's UV, 45 repeats over
+        // 90 m. Sample them in that same world frame rather than across each
+        // slab's own 0..1 box UV, so a seated slab is texel-identical to the
+        // plane that replaces it and the handoff at the end of 0A is invisible.
+        .replace(
+          '#include <uv_vertex>',
+          `#include <uv_vertex>
+        {
+          vec3 lgTileW = (modelMatrix * instanceMatrix * vec4(position, 1.0)).xyz;
+          vec2 lgTileUv = vec2(lgTileW.x * 0.5 + 22.5, 22.5 - lgTileW.z * 0.5);
+          vMapUv = lgTileUv;
+          vNormalMapUv = lgTileUv;
+          vRoughnessMapUv = lgTileUv;
+          vLgGlow = aGlow;
+          // The rim is what says "raised" at a grazing angle, so it carries
+          // more of the write-in than the face does.
+          vLgSide = 1.0 - abs(normal.y);
+        }`,
+        )
+      shader.fragmentShader = shader.fragmentShader
+        .replace(
+          '#include <common>',
+          '#include <common>\nuniform vec3 uTileGlow;\nvarying float vLgGlow;\nvarying float vLgSide;',
+        )
+        .replace(
+          '#include <emissivemap_fragment>',
+          `#include <emissivemap_fragment>
+          totalEmissiveRadiance += uTileGlow * vLgGlow * (1.0 + 1.6 * vLgSide);`,
+        )
+    }
+    tileMat.customProgramCacheKey = () => 'liftag-surface-tile'
+    tileMat.needsUpdate = true
+  }
+  const tileGeo = new THREE.BoxGeometry(TILE_SIZE, TILE_THICK, TILE_SIZE)
+  const tileGlowAttr = new THREE.InstancedBufferAttribute(
+    new Float32Array(floorTiles.length),
+    1,
+  )
+  tileGlowAttr.setUsage(THREE.DynamicDrawUsage)
+  tileGeo.setAttribute('aGlow', tileGlowAttr)
+  const tileMesh = new THREE.InstancedMesh(tileGeo, tileMat, floorTiles.length)
+  tileMesh.name = 'LiftagFloorSlabs'
+  // Instances span the whole field; the box geometry's bounds say otherwise.
+  tileMesh.frustumCulled = false
+  tileMesh.castShadow = false
+  tileMesh.receiveShadow = false
+  tileMesh.visible = false
+  tileMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage)
+  scene.add(tileMesh)
+
+  const tilePose = emptyTilePose()
+  const tileMatrix = new THREE.Matrix4()
+  const tileQuat = new THREE.Quaternion()
+  const tileEuler = new THREE.Euler()
+  const tilePos = new THREE.Vector3()
+  const tileScale = new THREE.Vector3()
+  const TILE_UNCALLED = new THREE.Matrix4().makeScale(0, 0, 0)
+
+  function applyFloorTiles(sweepT: number, live: boolean) {
+    const on = live && sweepT >= TILE_T0
+    tileMesh.visible = on
+    if (!on) return
+    for (let i = 0; i < floorTiles.length; i++) {
+      const tile = floorTiles[i]!
+      const pose = floorTilePoseAt(tile, sweepT, tilePose)
+      tileGlowAttr.array[i] = pose.glow
+      if (!pose.live) {
+        tileMesh.setMatrixAt(i, TILE_UNCALLED)
+        continue
+      }
+      tileEuler.set(pose.tiltX, pose.yaw, pose.tiltZ)
+      tileQuat.setFromEuler(tileEuler)
+      // `lift` is the top face; the box is centred, and seated means flush.
+      tilePos.set(tile.x, pose.lift - TILE_THICK / 2, tile.z)
+      tileScale.set(pose.grow, 1, pose.grow)
+      tileMesh.setMatrixAt(i, tileMatrix.compose(tilePos, tileQuat, tileScale))
+    }
+    tileMesh.instanceMatrix.needsUpdate = true
+    tileGlowAttr.needsUpdate = true
+  }
 
   const shadowTex = createContactShadowTexture()
   const contactMat = new THREE.MeshBasicMaterial({
@@ -479,12 +756,76 @@ export function createGymScanStage(opts: StageOptions) {
   stickerTex.anisotropy = renderer.capabilities.getMaxAnisotropy()
   stickerTex.minFilter = THREE.LinearMipmapLinearFilter
   stickerTex.magFilter = THREE.LinearFilter
-  const placardMat = createPlacardMaterial(stickerTex, placardUniforms)
-  const placard = new THREE.Mesh(new THREE.PlaneGeometry(PLACARD_W, PLACARD_H), placardMat)
-  placard.position.copy(PLACARD_POS)
-  placard.rotation.x = PLACARD_TILT
+
+  // Three layers on one geometry, and that sharing is the point.
+  //
+  // The card is bent during the physical press by a vertex-shader roll around
+  // a moving fold line (see peel.ts). Print, inlay and film therefore have to
+  // agree on that line to the vertex, or the laminate comes apart on the
+  // curl. Handing all three the same subdivided plane and the same uniform
+  // objects makes that agreement structural instead of something three
+  // separate meshes have to be kept in step by hand.
+  //
+  // The pitch is set by the *fold line*, not by the roll. The line runs on the
+  // card's diagonal, so each row of vertices crosses it one step later than
+  // the last, and where it crosses is where the surface leaves the plane -
+  // which makes the boundary a staircase at exactly the vertex pitch. At 48 it
+  // was a visible sawtooth along the brightest edge in the shot. The roll
+  // itself was never the problem; it stopped faceting long before this.
+  const cardSeg = isCoarse ? 64 : 128
+  const cardGeo = new THREE.PlaneGeometry(PLACARD_W, PLACARD_H, cardSeg, cardSeg)
+  // Only the thickness and the face differ per layer - the fold line, radius
+  // and wrap limit are shared value objects, so writing the card's peel writes
+  // all of its layers at once.
+  //
+  // The liner is the exception, and deliberately: it gets its own peel because
+  // it comes off while the card stays flat, and `side: -1` because it is on
+  // the back. 1.2 mm out along the back's own normal puts it clear behind the
+  // inlay at 0.7 mm, so the stack reads print / inlay / liner from the front
+  // and the liner is the first thing the lens meets once the card is turned.
+  const cardPeel = createPeelUniforms(0)
+  const backPeel: PeelUniforms = { ...cardPeel, uPeelThickness: { value: -0.0007 } }
+  const foilPeel = createPeelUniforms(0.0012, -1)
+
+  const placardMat = createPlacardMaterial(stickerTex, placardUniforms, cardPeel)
+  const placard = new THREE.Mesh(cardGeo, placardMat)
   placard.renderOrder = 1
-  machineRig.add(placard)
+
+  // The NFC inlay, 0.7 mm behind the print. It shares the card surface so its
+  // layered edge reads during 0C's grazing quarter-turn.
+  const nfcMaps = createNfcMaps(renderer.capabilities.getMaxAnisotropy())
+  const nfc = new THREE.Mesh(cardGeo, createNfcMaterial(nfcMaps, backPeel))
+  nfc.renderOrder = 0
+
+  // The release liner, drawn last because it is transparent. It lies over the
+  // inlay on the back, which is where a sticker's protective film is and where
+  // 0C's whole middle beat takes place. 7.2% of the width, which is the
+  // artwork's own die-cut - the same number the inlay canvas rounds by.
+  const foilUniforms = createFoilUniforms(PLACARD_W / 2, PLACARD_H / 2, PLACARD_W * 0.072)
+  const foil = new THREE.Mesh(cardGeo, createFoilMaterial(foilUniforms, foilPeel))
+  foil.renderOrder = 2
+
+  const stickerRig = new THREE.Group()
+  stickerRig.name = 'LiftagSticker'
+  stickerRig.add(nfc)
+  stickerRig.add(placard)
+  stickerRig.add(foil)
+  stickerRig.visible = false
+  scene.add(stickerRig)
+
+  // The 0C key. One spot, held close, with a distance short enough that it
+  // cannot reach the machine seven metres behind the card - so the close-up
+  // gets a product light without the establishing shot quietly gaining one.
+  //
+  // It also has to be the *only* extra spot in the scene, and it is on only
+  // while `phoneFill` is off: NUM_SPOT_LIGHTS is baked into every program in
+  // the frame, so a second simultaneous light would be a third variant to
+  // warm at load. The two are mutually exclusive by construction - this one
+  // lives in Act 0, phoneFill ramps in on scroll, and Act 0 is over before
+  // scroll owns the camera.
+  const cardKey = new THREE.SpotLight(0xf2f6ff, 0, 1.45, 0.72, 0.92, 2)
+  cardKey.visible = false
+  scene.add(cardKey, cardKey.target)
 
   // The blank the sticker is applied to. It is a hair larger than the artwork
   // and sits a millimetre behind it, which is what shows through the sticker's
@@ -504,6 +845,7 @@ export function createGymScanStage(opts: StageOptions) {
 
   // Two stand-offs up to the crossbeam. Without them the plate floats in the
   // gap above the footplate and reads as an overlay rather than hardware.
+  const mountKit: THREE.Object3D[] = [placardBack]
   const strutH = PLACARD_BEAM_Y - (PLACARD_POS.y + PLACARD_H / 2) + 0.02
   for (const sx of [-1, 1]) {
     const strut = new THREE.Mesh(new THREE.BoxGeometry(0.012, strutH, 0.010), mountMat)
@@ -513,6 +855,7 @@ export function createGymScanStage(opts: StageOptions) {
       PLACARD_POS.z - 0.012,
     )
     machineRig.add(strut)
+    mountKit.push(strut)
   }
 
   // --- composer ------------------------------------------------------------
@@ -523,7 +866,7 @@ export function createGymScanStage(opts: StageOptions) {
   // where the resolve bandwidth is not worth it.
   const composerTarget = new THREE.WebGLRenderTarget(1, 1, {
     type: THREE.HalfFloatType,
-    samples: isCoarse ? 0 : 4,
+    samples: device.msaa ? 4 : 0,
   })
   const composer = new EffectComposer(renderer, composerTarget)
   // EffectComposer clones the target it is given, so both ends of its
@@ -549,7 +892,7 @@ export function createGymScanStage(opts: StageOptions) {
   // resolved code - bloom. Lower thresholds let ordinary speculars on the frame
   // tubes blow into white streaks across the machine.
   const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.34, 0.70, 1.0)
-  if (!isCoarse) composer.addPass(bloom)
+  if (device.bloom) composer.addPass(bloom)
   // No OutputPass: the composite ends with AgX and the sRGB encode itself, so
   // it is the last pass and can write either to the screen or to the overlay's
   // screen texture. toneMapped must stay off: three only injects TONE_MAPPING
@@ -557,6 +900,10 @@ export function createGymScanStage(opts: StageOptions) {
   // RT — see composite.ts.
   const composite = new ShaderPass(CompositeShader as never)
   composite.material.toneMapped = false
+  Object.assign(composite.material.extensions, { shaderTextureLOD: true })
+  // Half the disc on a phone. A GLSL loop bound has to be a constant, so this
+  // is the last moment it can be set - before the pass is ever compiled.
+  ;(composite.material.defines as Record<string, unknown>).LG_BOKEH_TAPS = isCoarse ? 8 : 16
   composer.addPass(composite)
 
   /**
@@ -594,8 +941,29 @@ export function createGymScanStage(opts: StageOptions) {
   // scrolled into the story) writes the rest pose once and stops.
   let dropT = -1
   let dropLive = false
+  let assembleT = -1
+  let assembleLive = false
+  let act0T = 0
+  let act0Armed = false
+  let act0Frozen = false
+  let lastAct0: Act0State | null = null
+  let stickerPlanted = false
+  let stickerHunting = false
+  let partsRig: PartsRig | null = null
+  let lastAssemble: AssembleState | null = null
+  let lastAct1: Act1State = act1At(0, isCoarse)
+  let heroSlot: PhoneBox | null = null
+  let runtimeDeviceClass = device.deviceClass
+  let classBLite = runtimeDeviceClass === 'B'
+  let performanceArmed = false
+  let performanceSamples: number[] = []
+  let performanceGateDone = !isCoarse
+  let loggedExplode = false
+  let loggedPlanted = false
   let holoT = 0
   let holoLive = false
+  /** Damped cage envelope, so it fades out for 0C/0D and back in after. */
+  let holoMix = 0
 
   const pointer = { x: 0, y: 0, active: false }
   const tilt = { x: 0, y: 0, active: false }
@@ -620,45 +988,140 @@ export function createGymScanStage(opts: StageOptions) {
   let machineLive = false
   const reticleTracker = createReticleTracker()
   let lastQrRect: ScreenRect | null = null
-  let heroSlot: PhoneBox | null = null
-
-  function statusFor(p: number): StatusKey {
-    // 'sweep' used to fire off the idle X-ray pulse. That pulse existed only to
-    // draw the scan plane across the resting machine, so it went with it.
-    if (p < 0.26) return 'standby'
-    if (p < 0.46) return 'scanning'
-    if (p < 0.60) return 'detected'
-    if (p < 0.84) return 'identified'
-    return 'open'
+  function dressMaterial(std: THREE.MeshStandardMaterial) {
+    const spec = HERO_MATERIALS[std.name] ?? { kind: 'frame' as SurfaceKind, rough: null, env: 0.55, dim: 1 }
+    std.color.multiplyScalar(spec.dim)
+    std.envMapIntensity = spec.env
+    if (spec.rough !== null) std.roughness = spec.rough
+    applyScanShader(std, uniforms, createSurfaceUniforms(spec.kind))
   }
 
-  function applyDrop(y: number) {
-    machineRig.position.y = y
-    holo?.setAltitude(y)
+  function applyContact(y: number) {
     const planted = dropPlanted(y)
     contactMat.opacity = lerp(0.10, 0.90, planted * planted)
     const s = lerp(0.36, 1, planted)
     contact.scale.set(s, s, 1)
   }
 
-  function parkPhoneTarget(sp: number): PhoneBox {
-    // Final body box in CSS px. Narrow viewports park a smaller phone high in
-    // the frame: the copy stacks underneath rather than beside it, and a
-    // two-thirds-height phone centred vertically would sit on the headline.
-    const narrow = width < 900
-    const h = narrow ? Math.min(heightPx * 0.38, 380) : Math.min(heightPx * 0.66, 620)
+  function applyDrop(y: number) {
+    machineRig.position.y = y
+    holo?.setAltitude(y)
+    applyContact(y)
+  }
+
+  function setMountVisible(on: boolean) {
+    for (const o of mountKit) o.visible = on
+  }
+
+  function plantSticker() {
+    if (stickerPlanted && stickerRig.parent === machineRig) return
+    machineRig.add(stickerRig)
+    stickerRig.position.copy(PLACARD_POS)
+    stickerRig.rotation.set(PLACARD_TILT, 0, 0)
+    stickerPlanted = true
+  }
+
+  function applyStick(pose: StickPose) {
+    stickerRig.visible = pose.visible
+    nfc.visible = pose.nfcVisible
+    foil.visible = pose.foilVisible
+    stickerHunting = pose.hunting
+    if (!pose.visible) {
+      stickerPlanted = false
+      stickerHunting = false
+      composite.uniforms.uDof!.value = 0
+      placardUniforms.uShow.value = 0
+      placardUniforms.uSqueegee.value = 0
+      writePeel(cardPeel, pose.bend)
+      writePeel(foilPeel, pose.foil)
+      foilUniforms.uFoilOpacity.value = 0
+      cardKey.visible = false
+      setMountVisible(false)
+      return
+    }
+    if (pose.planted) {
+      plantSticker()
+    }
+    else {
+      if (stickerRig.parent !== scene) scene.add(stickerRig)
+      stickerRig.position.set(pose.x, pose.y, pose.z)
+      stickerRig.rotation.set(pose.rotX, pose.rotY, pose.rotZ)
+      stickerPlanted = false
+    }
+    // FROM THE SEAT is optically clean by contract, even if a future pose
+    // accidentally asks for the desktop rack.
+    // The phone runs the same rack at eight taps rather than none: a background
+    // that stays sharp behind a card held 50 cm from the lens was the loudest
+    // CG tell in the shot, and it is loudest on the small screen.
+    composite.uniforms.uDof!.value = pose.dof
+    placardUniforms.uShow.value = pose.showLight
+    placardUniforms.uSqueegee.value = pose.squeegee
+    // One write per layer group: the print and the inlay share `cardPeel`, so
+    // the inlay follows the bend without being told about it.
+    writePeel(cardPeel, pose.bend)
+    writePeel(foilPeel, pose.foil)
+    foilUniforms.uFoilOpacity.value = pose.foilOpacity
+    // The rolled-up film leaves in the card's own frame, so it flies off along
+    // the diagonal it was pulled down rather than in some world direction that
+    // happens to look right from this one camera.
+    foil.position.set(pose.foilDrift.x, pose.foilDrift.y, pose.foilDrift.z)
+    foil.rotation.z = pose.foilDrift.spin
+    // Off before it can reach anything but the card. Toggling visibility
+    // rather than intensity keeps it out of the light list entirely.
+    const keyOn = pose.showLight > 0.002 && pose.keyPos !== null
+    if (cardKey.visible !== keyOn) cardKey.visible = keyOn
+    if (keyOn && pose.keyPos) {
+      const kp = pose.keyPos
+      cardKey.position.set(kp.x, kp.y, kp.z)
+      cardKey.intensity = SHOWCASE_KEY_INTENSITY * pose.showLight
+      cardKey.target.position.set(
+        pose.planted ? PLACARD_POS.x : pose.x,
+        pose.planted ? PLACARD_POS.y : pose.y,
+        pose.planted ? PLACARD_POS.z : pose.z,
+      )
+      cardKey.target.updateMatrixWorld()
+    }
+    setMountVisible(pose.mountVisible)
+  }
+
+  function phoneCut(): boolean {
+    return isCoarse
+  }
+
+  function snapAssemble(state: AssembleState) {
+    partsRig?.apply(state)
+    lastAssemble = state
+    applyContact(0)
+    holo?.setAltitude(0)
+    setMountVisible(true)
+    assembleLive = false
+    holoLive = true
+  }
+
+  function foldPhoneTarget(): PhoneBox {
+    // Where the fold parks the glass: centred, large, and the same on both
+    // cuts. It is a held frame for a beat, not a surface anything is typed on.
+    const h = Math.min(heightPx * 0.72, 680)
     const w = h * (PHONE_W / PHONE_H)
-    const cx = (narrow ? 0.5 : scalarAt(PHONE_X, sp)) * width
-    const cy = heightPx * (narrow ? 0.34 : 0.5)
+    const cx = width * 0.5
+    const cy = heightPx * 0.5
     return { x: cx - w / 2, y: cy - h / 2, w, h }
   }
 
+  /**
+   * The phone's box for this frame: the parked fold until the morph tail
+   * starts, then a travel onto the landing hero's own front-phone slot.
+   *
+   * The slot is measured from the real hero DOM once it has laid out. Until
+   * then `fallbackHeroSlot` stands in with a desktop-shaped guess, so the
+   * travel can start on the frame the tail does rather than waiting a frame
+   * for a measurement and snapping to catch up.
+   */
   function phoneTarget(p: number): PhoneBox {
-    const park = parkPhoneTarget(sceneProgress(p))
+    const park = foldPhoneTarget()
     const morph = heroMorphAt(p)
     if (morph <= 0) return park
-    const slot = heroSlot ?? (width >= 769 ? fallbackHeroSlot(width, heightPx) : null)
-    if (!slot) return park
+    const slot = heroSlot ?? fallbackHeroSlot(width, heightPx)
     return travelPhoneBox(park, slot, morph, reducedMotion)
   }
 
@@ -674,12 +1137,65 @@ export function createGymScanStage(opts: StageOptions) {
     composite.uniforms.uAspect!.value = width / heightPx
   }
 
+  function applyClassBQuality() {
+    if (!isCoarse) return
+    runtimeDeviceClass = 'B'
+    classBLite = true
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1))
+    if (lastAct0?.done && floorLiteMaterial) floor.material = floorLiteMaterial
+    resize()
+  }
+
+  function samplePerformance(rawFrameMs: number) {
+    if (!performanceArmed || performanceGateDone || runtimeDeviceClass === 'C') return
+    performanceSamples.push(rawFrameMs)
+    if (performanceSamples.length < 30) return
+
+    const sorted = [...performanceSamples].sort((a, b) => a - b)
+    const p99 = sorted[Math.ceil(sorted.length * 0.99) - 1] ?? 0
+    performanceSamples = []
+    if (p99 <= 33) {
+      performanceGateDone = true
+      return
+    }
+    if (runtimeDeviceClass === 'A') {
+      applyClassBQuality()
+      onDeviceClassChange?.('B')
+      return
+    }
+
+    runtimeDeviceClass = 'C'
+    performanceGateDone = true
+    onDeviceClassChange?.('C')
+  }
+
+  /**
+   * Act 1 is a function of scroll and nothing else.
+   *
+   * There used to be a confirm gate here: desktop could accelerate the lock
+   * with a key, and the phone cut refused to resolve the plate until a thumb
+   * tapped it. Both existed to make the scan an action rather than a picture,
+   * and both cost more than they bought - the phone one could park the film
+   * indefinitely on a status label, and neither is something a visitor is told
+   * about without a line of copy on screen, which is the thing this cut is
+   * built to do without.
+   */
+  function sampleAct1(sp: number, phone: boolean): {
+    state: Act1State
+    complete: boolean
+  } {
+    const state = act1At(sp, phone)
+    return { state, complete: sp >= 0.999 && state.foldU >= 0.999 }
+  }
+
   function frame() {
     if (disposed) return
     raf = requestAnimationFrame(frame)
     const now = performance.now()
-    const dt = Math.min((now - lastT) / 1000, 0.05)
+    const rawFrameMs = now - lastT
+    const dt = Math.min(rawFrameMs / 1000, 0.05)
     lastT = now
+    samplePerformance(rawFrameMs)
     elapsed += dt
 
     // Keep a short ease so wheel input does not shake the camera, but stay
@@ -692,58 +1208,157 @@ export function createGymScanStage(opts: StageOptions) {
     const morph = heroMorphAt(p)
 
     uniforms.uTime.value = elapsed
+    foilUniforms.uFoilTime.value = elapsed
+    if (import.meta.dev) renderer.info.reset()
 
-    // --- entry drop ---------------------------------------------------------
-    // Analytic bounce on the rig. Scroll past the establishing beat skips
-    // it: the camera is already moving in and an airborne machine under a
-    // dolly is a different shot than the one the path was written for.
-    const skipDrop = reducedMotion || sp > 0.16
-    if (skipDrop && dropLive) {
-      dropLive = false
-      holoLive = true
-      applyDrop(PLANTED_DROP.y)
-    } else if (dropLive) {
-      const pose = dropAt(dropT)
-      applyDrop(pose.y)
-      if (holo) {
-        holoT = firstSweepTime(dropT, holo.peelTime)
-        holoLive = true
+    // --- Act 0 clock -------------------------------------------------------
+    // Time-based. Scroll does not scrub it. Past the establishing beat, or
+    // reduced motion, snaps to the 0D hold so a dolly never shares the frame
+    // with a falling machine.
+    const isPhone = phoneCut()
+    const skipBirth = reducedMotion || sp > 0.16
+    const windows = act0Windows(isPhone)
+    if (act0Armed) {
+      if (skipBirth && act0T < windows.stickEnd) act0T = windows.stickEnd
+      else if (!skipBirth && !act0Frozen) act0T += dt
+    }
+    const a0 = act0At(act0T, isPhone)
+    lastAct0 = a0
+    const act1Frame = sampleAct1(sp, isPhone)
+    const act1 = act1Frame.state
+    lastAct1 = act1
+
+    // Its own clock, not the shot's: 0B starts on top of the tail of 0A, so
+    // the mat keeps writing behind a machine that is already falling.
+    const birth = floorConstructAt(
+      a0.floorT,
+      {
+        phone: isPhone,
+        stemR: holo?.stemR,
+        maxR: holo?.maxR,
+        kill: a0.shot === 'fly' || a0.shot === 'stick' || a0.shot === 'hold',
+      },
+    )
+    floorBirthR.value = birth.pbrR
+    floorBirthBand.value = birth.pbrBand
+    floorTileHalf.value = birth.tiles ? TILE_FIELD_HALF : 0
+    floor.visible = birth.pbrR > 0.04
+    if (floorLiteMaterial) {
+      const wantedFloorMaterial = classBLite && a0.done ? floorLiteMaterial : floorPbrMaterial
+      if (floor.material !== wantedFloorMaterial) floor.material = wantedFloorMaterial
+    }
+    applyFloorTiles(birth.sweepT, birth.tiles)
+    contact.visible = a0.shot !== 'floor'
+
+    if (partsRig) {
+      if (a0.shot === 'floor') {
+        partsRig.root.visible = false
+        assembleLive = false
+        applyContact(0)
       }
-      dropT += dt
-      if (pose.done) dropLive = false
-    } else if (holoLive || reducedMotion) {
-      holoT += dt
+      else {
+        partsRig.root.visible = true
+        const state = assembleAt(a0.assembleT < 0 ? 0 : a0.assembleT, { phone: isPhone })
+        partsRig.apply(state)
+        lastAssemble = state
+        assembleT = a0.assembleT
+        applyContact(state.frameY)
+        assembleLive = a0.shot === 'assemble' && !state.done
+        if (state.swap && holo && !holoLive) {
+          holoT = 0
+          holoLive = true
+        }
+      }
+    }
+    else if (a0.shot === 'floor') {
+      machineRig.visible = false
+      dropLive = false
+    }
+    else {
+      machineRig.visible = true
+      if (skipBirth) {
+        dropLive = false
+        holoLive = true
+        applyDrop(PLANTED_DROP.y)
+      }
+      else if (a0.shot === 'assemble') {
+        dropT = Math.max(0, a0.assembleT)
+        const pose = dropAt(dropT)
+        applyDrop(pose.y)
+        dropLive = !pose.done
+        if (holo) {
+          holoT = firstSweepTime(dropT, holo.peelTime)
+          holoLive = true
+        }
+      }
+      else {
+        dropLive = false
+        holoLive = true
+        applyDrop(PLANTED_DROP.y)
+      }
     }
 
+    if (a0.shot === 'fly') applyStick(stickAt(a0.flyT, 'fly', isPhone))
+    else if (a0.shot === 'stick') applyStick(stickAt(a0.stickT, 'stick', isPhone))
+    else if (a0.shot === 'hold') applyStick(stickAt(0, 'hold', isPhone))
+    else applyStick(stickHidden())
+
+    if (holoLive || reducedMotion) holoT += dt
+
+    const act1Live = a0.done || skipBirth
+
     // --- placard ------------------------------------------------------------
-    placardUniforms.uReveal.value = scalarAt(PLACARD_REVEAL, sp)
-    placardUniforms.uResolve.value = scalarAt(PLACARD_RESOLVE, sp)
-    placardUniforms.uLock.value = scalarAt(PLACARD_LOCK, sp)
+    // 0C, 0D and the approach keep every analysis channel hard-zero. Only the
+    // local lock clock may resolve the printed modules and lock the plate.
+    if (!act1Live || act1.shot === 'approach') {
+      placardUniforms.uReveal.value = 0
+      placardUniforms.uResolve.value = 0
+      placardUniforms.uLock.value = 0
+    }
+    else {
+      placardUniforms.uReveal.value = scalarAt(PLACARD_REVEAL, act1.lockU)
+      placardUniforms.uResolve.value = scalarAt(PLACARD_RESOLVE, act1.lockU)
+      placardUniforms.uLock.value = scalarAt(PLACARD_LOCK, act1.lockU)
+    }
 
     // --- camera -------------------------------------------------------------
-    const camU = cameraU(sp)
-    vec3HermiteAt(CAM_PATH, camU, camPos)
-    vec3HermiteAt(CAM_TARGET_PATH, camU, camTgt)
-    // A small pointer-led parallax, deliberately tiny: the machine should feel
-    // observed, not handled. Falls away as the camera closes on the placard.
-    const parallax = (1 - ease(sp, 0.55, 0.75)) * (reducedMotion ? 0 : 1)
-    const driftX = pointer.x * 0.16 * parallax
-    const driftY = -pointer.y * 0.10 * parallax
-    const breathe = reducedMotion ? 0 : Math.sin(elapsed * 0.32) * 0.012 * (1 - ease(sp, 0.6, 0.8))
-    // A portrait viewport keeps the vertical field and loses horizontal, which
-    // crops the machine's 1.9 m length out of the establishing shot. Back the
-    // camera off rather than widening the lens, and taper that away by the time
-    // it is meant to be sitting in the seat - extra distance there would break
-    // the point of the shot. Much smaller than it was, because the establishing
-    // station itself now sits a long way further back.
-    const pull = width < 900 ? 1 + 0.22 * (1 - ease(sp, 0.40, 0.72)) : 1
-    camera.position.set(
-      camTgt.x + (camPos.x - camTgt.x) * pull + driftX,
-      camTgt.y + (camPos.y - camTgt.y) * pull + driftY + breathe,
-      camTgt.z + (camPos.z - camTgt.z) * pull,
-    )
-    lookAt.set(camTgt.x, camTgt.y, camTgt.z)
-    camera.lookAt(lookAt)
+    // Act 0 is one locked-off shot on the establishing station: the machine
+    // assembles into it, the sticker flies into this POV, and the press plays
+    // where it lands. The lens does not chase any of it. Scroll owns the dolly
+    // from the hand-off, and it starts from this same station.
+    const camSp = act1Live ? sp : 0
+    const camU = act1Live ? act1.dollyU : 0
+    vec3HermiteAt(APPROACH_PATH, camU, camPos)
+    vec3HermiteAt(APPROACH_TARGET_PATH, camU, camTgt)
+    const birthCam = !a0.done && !skipBirth
+    if (birthCam) {
+      const a0Cam = act0CamAt(a0)
+      camera.position.set(a0Cam.x, a0Cam.y, a0Cam.z)
+      lookAt.set(a0Cam.tx, a0Cam.ty, a0Cam.tz)
+      camera.lookAt(lookAt)
+    }
+    else {
+      // A small pointer-led parallax, deliberately tiny: the machine should feel
+      // observed, not handled. Falls away as the camera closes on the placard.
+      const parallax = (1 - ease(camU, 0.55, 0.75)) * (reducedMotion ? 0 : 1)
+      const driftX = pointer.x * 0.16 * parallax
+      const driftY = -pointer.y * 0.10 * parallax
+      const breathe = reducedMotion ? 0 : Math.sin(elapsed * 0.32) * 0.012 * (1 - ease(camU, 0.6, 0.8))
+      // A portrait viewport keeps the vertical field and loses horizontal, which
+      // crops the machine's 1.9 m length out of the establishing shot. Back the
+      // camera off rather than widening the lens, and taper that away by the time
+      // it is meant to be sitting in the seat - extra distance there would break
+      // the point of the shot. Much smaller than it was, because the establishing
+      // station itself now sits a long way further back.
+      const pull = isPhone ? 1 + 0.22 * (1 - ease(camU, 0.40, 0.72)) : 1
+      camera.position.set(
+        camTgt.x + (camPos.x - camTgt.x) * pull + driftX,
+        camTgt.y + (camPos.y - camTgt.y) * pull + driftY + breathe,
+        camTgt.z + (camPos.z - camTgt.z) * pull,
+      )
+      lookAt.set(camTgt.x, camTgt.y, camTgt.z)
+      camera.lookAt(lookAt)
+    }
 
     const keySize = scalarAt(KEY_SIZE, camU)
     const keyLevel = scalarAt(KEY_LEVEL, camU)
@@ -763,11 +1378,12 @@ export function createGymScanStage(opts: StageOptions) {
       sub.distance = lerp(5.5, STRIP_SPOT_D0, keySize)
       sub.angle = lerp(0.48, STRIP_SPOT_A0, keySize)
     }
-    // Held just below the eye line, as a phone is. It ramps in over the last
-    // stretch of the approach and dies with the fold, so it only ever exists
-    // while there is a plausible phone in the scene to be emitting it.
-    const fillAmp = ease(sp, 0.50, 0.70) * (1 - ease(sp, 0.80, 0.90))
-    phoneFill.intensity = fillAmp * 2.2
+    // Held just below the eye line, as a phone is. Comes on with the
+    // viewfinder zoom so the plate is already lit as the room key's cone
+    // leaves it, then dies as the glass covers the gym — not with a ramp
+    // that waited until after `foldU` had already killed it.
+    const fillAmp = !act1Live ? 0 : phoneFillAmp(act1.dollyU, act1.foldU)
+    phoneFill.intensity = fillAmp * PHONE_FILL_INTENSITY
     // Hidden rather than merely dark for the two thirds of the scroll where it
     // contributes nothing. A spot light at zero intensity still costs a full
     // evaluation on every fragment of the floor, which is most of the screen;
@@ -778,10 +1394,13 @@ export function createGymScanStage(opts: StageOptions) {
     const fillOn = fillAmp > 0.001
     if (phoneFill.visible !== fillOn) phoneFill.visible = fillOn
     if (fillAmp > 0.001) {
+      // World −Z used to be baked into the offset, which crept the light
+      // toward the plate as the dolly squared on and changed the inverse
+      // square every frame. Stay under the lens; the target is the plate.
       phoneFill.position.set(
         camera.position.x,
-        camera.position.y - 0.16,
-        camera.position.z - 0.10,
+        camera.position.y - 0.14,
+        camera.position.z,
       )
       phoneFill.target.position.set(PLACARD_POS.x, PLACARD_POS.y - 0.02, PLACARD_POS.z)
       phoneFill.target.updateMatrixWorld()
@@ -790,7 +1409,12 @@ export function createGymScanStage(opts: StageOptions) {
     // --- cursor probe --------------------------------------------------------
     // The pointer is projected onto a vertical plane through the machine, so the
     // field tracks across the real surface instead of orbiting in screen space.
-    const reach = 1 - ease(sp, 0.6, 0.8)
+    // Live for the Act 0 hold as well as the approach. The cursor reveal is
+    // the only thing on the first screen that answers the pointer, and a first
+    // screen that does not answer the pointer is a picture of a website.
+    const reach = !act1Live
+      ? (machineLive && !dropLive && !assembleLive ? 1 : 0)
+      : act1.shot === 'approach' ? 1 - ease(camU, 0.6, 0.8) : 0
     // With no pointer yet, x and y are both zero, which on this machine parks
     // the probe dead centre *inside* the frame and floods it: measured, the
     // idle probe alone was lifting every surface three to four times above its
@@ -812,33 +1436,65 @@ export function createGymScanStage(opts: StageOptions) {
     renderer.getDrawingBufferSize(probeViewport)
 
     // --- hologram exoskeleton -----------------------------------------------
-    // After the probe lerp so the cage reads this frame's damped field,
-    // not last frame's. Free-running after the entry: the sweep is the
-    // machine idling under observation, and the scroll only decides
-    // whether it is present. The first pass is warped so the floor peel
-    // lands on first impact — see firstSweepTime. Under reduced motion
-    // the sweep is a still shell.
-    holo?.update(
-      reducedMotion ? elapsed : holoT,
-      (holoLive || reducedMotion) ? scalarAt(HOLO, sp) : 0,
-      reducedMotion,
-      {
-        ndc: probeNdc,
-        viewport: probeViewport,
-        amp: uniforms.uProbeAmp.value,
-        live: uniforms.uProbeLive.value,
-        time: uniforms.uTime.value,
-      },
-    )
+    // 0A plays one idle pass (cage line + floor shockwave) on the birth
+    // clock, then dies. After the fused swap the same `update` idles on
+    // holoT. Probe stays off during the birth pass so a parked cursor
+    // cannot hold the cage.
+    if (holo && birth.draw && !skipBirth && !(classBLite && a0.shot !== 'floor')) {
+      holo.update(birth.sweepT, birth.envelope, false)
+      // Hand the envelope over at its live value, not at zero: the branch
+      // below picks it up from here, and a discontinuity at the handover is
+      // the sweep being cancelled mid-pass.
+      holoMix = birth.envelope
+    }
+    else {
+      // One damped envelope for the whole rest of the film, rather than a
+      // branch per shot.
+      //
+      // The cage is an idle. It steps aside for 0C/0D, because the card owns
+      // those frames, and it comes back for the approach - which is where the
+      // sweeps and the cursor reveal used to live and where a hard `act1Live`
+      // gate had been killing both outright. It retires for good once the
+      // placard starts resolving: by then the analysis has found what it was
+      // looking for and the story is on the code.
+      //
+      // Damped rather than cut on either edge. The sweep that ran under 0B is
+      // mid-pass when 0C starts, and dropping its envelope to zero there reads
+      // as the hologram being switched off partway through its run; coming
+      // back the same way, it reads as a pass beginning rather than one being
+      // switched on.
+      const cardBeat = !skipBirth && (a0.shot === 'fly' || a0.shot === 'stick')
+      const want = cardBeat || !holoLive ? 0 : scalarAt(HOLO, camSp)
+      // ~0.8 s either way at 60fps, which is about the length of one pass.
+      holoMix = reducedMotion ? want : damp(holoMix, want, 0.06, dt)
+      holo?.update(
+        reducedMotion ? elapsed : holoT,
+        holoMix,
+        reducedMotion,
+        {
+          ndc: probeNdc,
+          viewport: probeViewport,
+          amp: uniforms.uProbeAmp.value,
+          live: uniforms.uProbeLive.value,
+          time: uniforms.uTime.value,
+        },
+      )
+    }
 
     // --- fold + composite ----------------------------------------------------
-    const fold = scalarAt(FOLD, sp)
+    // Both cuts fold. The folded glass is the object that travels into the
+    // landing hero, so a cut that skipped the fold would have nothing to hand
+    // over - it would have to change the page instead of cutting to it.
+    const fold = foldSentence(act1.foldU)
     const target = phoneTarget(p)
-    // The overlay phone is the hero's front device. Settle its rig toward
-    // Phone3D's lights as it parks in that slot. After the QR lock the screen
-    // plays the real scan-to-log capture instead of a DOM mock.
     phoneOverlay.setHeroMix(morph)
-    const appMix = appScreen.ready ? appScreen.sync(sp, dt) : 0
+    // The app screen is a QR-on-QR cut, and a cut needs something to cut from:
+    // it arms the frame the glass finishes forming, so the last thing on the
+    // screen is the room with the scanned plate pinned to it. Armed early it
+    // replaced the room part-way through the curl, which is a dissolve wearing
+    // a cut's clothes. `sync` blends on its own wall clock from here.
+    const appScene = fold >= 1 ? 1 : 0
+    const appMix = appScreen.ready ? appScreen.sync(appScene, dt) : 0
     phoneOverlay.setAppMix(appMix)
     phoneOverlay.bindAppTexture(
       appScreen.texture,
@@ -865,45 +1521,89 @@ export function createGymScanStage(opts: StageOptions) {
     // snap: the room went a hair lighter the frame the bezel appeared.
     const shrink = phoneShrink(fold)
     const overlayOn = shrink > 0.02
-    if (machineRig.matrixWorldNeedsUpdate || dropLive) machineRig.updateMatrixWorld(true)
+    if (machineRig.matrixWorldNeedsUpdate || dropLive || assembleLive) machineRig.updateMatrixWorld(true)
+    if (stickerRig.matrixWorldNeedsUpdate || !stickerPlanted) stickerRig.updateMatrixWorld(true)
     const qrLive = projectPoints(corners, placard.matrixWorld, true)
+    if (composite.uniforms.uDof!.value > 0.001 && qrLive) {
+      // Snug to the card, with a floor under the width.
+      //
+      // The projected width narrows at the grazing quarter-turn. Keep a small
+      // floor under it so the complete card remains sharp during the blink.
+      //
+      // Compared in units of screen height, because that is the space the
+      // shader measures its falloff in.
+      const aspect = Math.max(width, 1) / Math.max(heightPx, 1)
+      const halfY = (qrLive.h * 0.5) / Math.max(heightPx, 1)
+      const halfX = Math.max((qrLive.w * 0.5) / Math.max(width, 1) * aspect, halfY * 0.30)
+      // The liner rolls toward the lens, so it leaves this rect the moment
+      // it actually peels. Out there the 0C bokeh is luminance-weighted, and
+      // a bright fold becomes a fan of ghosts - the "many layers of shine".
+      // Pad hard while the film is on; the gym behind the card is already a
+      // void, so the extra sharp area does not bring the room back.
+      const pad = foil.visible && foilPeel.uPeelFront.value < 0.09 ? 2.4 : 1.06
+      composite.uniforms.uFocusRect!.value = [
+        (qrLive.x + qrLive.w * 0.5) / Math.max(width, 1),
+        1 - (qrLive.y + qrLive.h * 0.5) / Math.max(heightPx, 1),
+        halfX * pad / aspect,
+        halfY * pad,
+      ]
+    }
 
     // Resolve the lock before presentation. It is drawn into the gym texture,
     // so it stays attached to the projected QR as that texture folds into the
     // 3D phone instead of disappearing at the first pixel of shrink.
-    const folded = sp >= RETICLE_OUT_END
+    // The brackets are composited into the gym texture, so they stay stuck to
+    // the projected QR while that texture curls onto the glass. They are only
+    // withdrawn once they have faded out on their own clock.
+    const reticleP = reticleProgress(act1, act1Live)
+    const folded = reticleP >= RETICLE_OUT_END
     lastQrRect = folded ? null : qrLive
     const machineRect = machineLive ? projectPoints(machineSamples, null, false) : null
-    // dropLive is true only while the bounce is still writing the rig. Skip,
-    // reduced-motion, and the settle frame all clear it, so this is the same
-    // gate as "the machine is where the camera path was written for".
-    const landed = machineLive && !dropLive
+    // The brackets are a lock-on, so they need a tag. The compile prewarm
+    // plants the sticker to warm its programs, then hides it - that used to
+    // leave `stickerPlanted` true, so the L's flashed on an empty beam, died
+    // during the fly, and came back after the press. Hide must unplant, and
+    // `landed` follows the live pose's hunt gate (last stretch of the press,
+    // not the plant frame) so the corners can fade in instead of popping.
+    const landed = machineLive && !dropLive && !assembleLive && stickerHunting
+      && (a0.shot === 'hold' || a0.shot === 'stick')
     const reticle = reticleTracker.update({
       dt,
       elapsed,
-      progress: sp,
+      progress: reticleP,
       pointer,
       width,
       height: heightPx,
       qr: lastQrRect,
       machine: machineRect,
       reducedMotion,
-      lockToMachine: width < 900 || isCoarse,
+      lockToMachine: isCoarse,
       folded,
       landed,
     })
 
     composer.renderToScreen = false
-    // Once the capture covers the screen the gym RT is not seen. Keep the last
-    // frame rather than paying the room for the rest of the morph.
-    if (sp < 0.93 && appMix < 0.97) renderGymFrame()
+    // Once the cover is opaque and the app screen has taken it over there is
+    // nothing of the room left on screen, so stop paying for it - the glass
+    // keeps rendering from the last graded frame all the way into the slot.
+    if (appMix < 0.97 || fold < 0.995) renderGymFrame()
+    if (import.meta.dev && partsRig && lastAssemble) {
+      if (!loggedExplode && lastAssemble.t > 0.15 && !lastAssemble.swap) {
+        loggedExplode = true
+        console.info('[gymscan] 0B calls explode', renderer.info.render.calls)
+      }
+      if (!loggedPlanted && lastAssemble.swap) {
+        loggedPlanted = true
+        console.info('[gymscan] 0B calls planted', renderer.info.render.calls)
+      }
+    }
     const gymTex = composer.readBuffer.texture
     reticleOverlay.render(
       renderer,
       reticle,
       width,
       heightPx,
-      sp >= 0.60,
+      act1.shot === 'lock' && act1.lockU >= 0.72,
       composer.readBuffer,
     )
 
@@ -933,10 +1633,20 @@ export function createGymScanStage(opts: StageOptions) {
     onFrame({
       progress: p,
       scene: sp,
+      complete: act1Frame.complete,
       heroMorph: morph,
+      act1: {
+        shot: act1.shot,
+        lock: act1.lockU,
+      },
       phone,
       fold,
-      status: statusFor(sp),
+      act0: {
+        shot: a0.shot,
+        skipVisible: a0.skipVisible,
+        doorsVisible: a0.doorsVisible,
+        done: a0.done,
+      },
     })
   }
 
@@ -979,29 +1689,34 @@ export function createGymScanStage(opts: StageOptions) {
     // readily than as depth, and the empty floor running out into the fog says
     // "big dark room" more convincingly than a row of machines nobody is
     // meant to look at.
-    const hero = await loader.loadAsync('/assets/gym3d/hero-machine.glb')
-
-    heroRoot = hero.scene
-    machineRig.add(heroRoot)
-    heroRoot.traverse((o) => {
-      const mesh = o as THREE.Mesh
-      if (!mesh.isMesh) return
-      mesh.castShadow = renderer.shadowMap.enabled
-      mesh.receiveShadow = renderer.shadowMap.enabled
-      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
-      for (const m of mats) {
-        const std = m as THREE.MeshStandardMaterial
-        const spec = HERO_MATERIALS[std.name] ?? { kind: 'frame' as SurfaceKind, rough: null, env: 0.55, dim: 1 }
-        // Darken the exported albedo rather than re-exporting the GLB: the
-        // asset's colours are already near-black, and what is wanted here is a
-        // machine that sits below the room rather than one lit to be looked at.
-        std.color.multiplyScalar(spec.dim)
-        std.envMapIntensity = spec.env
-        if (spec.rough !== null) std.roughness = spec.rough
-        applyScanShader(std, uniforms, createSurfaceUniforms(spec.kind))
-        heroMats.push(std)
-      }
+    const shadows = renderer.shadowMap.enabled
+    partsRig = await loadPartsRig(loader, {
+      dress: dressMaterial,
+      shadows,
+      heroMats,
     })
+
+    if (partsRig) {
+      machineRig.add(partsRig.root)
+      heroRoot = partsRig.root
+    }
+    else {
+      const hero = await loader.loadAsync('/assets/gym3d/hero-machine.glb')
+      heroRoot = hero.scene
+      machineRig.add(heroRoot)
+      heroRoot.traverse((o) => {
+        const mesh = o as THREE.Mesh
+        if (!mesh.isMesh) return
+        mesh.castShadow = shadows
+        mesh.receiveShadow = shadows
+        const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+        for (const m of mats) {
+          const std = m as THREE.MeshStandardMaterial
+          dressMaterial(std)
+          heroMats.push(std)
+        }
+      })
+    }
 
     // 3x3x3 samples through the planted machine's world AABB. Eight corners
     // alone miss the near base (a face centre), which is the lowest point on
@@ -1026,19 +1741,46 @@ export function createGymScanStage(opts: StageOptions) {
 
     // Built from the finished hero so it inherits the exact geometry, and
     // added after it so it sorts into the transparent pass behind nothing.
-    holo = createHologramShell(heroRoot)
+    const holoSource = partsRig ? partsRig.silhouette() : heroRoot
+    holo = createHologramShell(holoSource, { cheap: isCoarse })
     scene.add(holo.object)
 
     machineRig.visible = true
-    contact.visible = true
-    if (reducedMotion) {
+    contact.visible = false
+    if (partsRig) {
+      machineRig.position.y = 0
+      if (reducedMotion) {
+        act0T = act0Windows(phoneCut()).stickEnd
+        snapAssemble(assembleAt(1e6, { phone: phoneCut() }))
+        applyStick(stickAt(0, 'hold', phoneCut()))
+      }
+      else {
+        act0T = 0
+        assembleT = 0
+        assembleLive = false
+        holoLive = false
+        partsRig.root.visible = false
+        const state = assembleAt(0, { phone: phoneCut() })
+        partsRig.apply(state)
+        lastAssemble = state
+        applyContact(0)
+        applyStick(stickHidden())
+        setMountVisible(false)
+      }
+    }
+    else if (reducedMotion) {
+      act0T = act0Windows(phoneCut()).stickEnd
       applyDrop(0)
       holoLive = true
-    } else {
+      applyStick(stickAt(0, 'hold', phoneCut()))
+    }
+    else {
+      act0T = 0
       dropT = 0
-      dropLive = true
-      holoLive = true
+      dropLive = false
+      holoLive = false
       applyDrop(dropAt(0).y)
+      applyStick(stickHidden())
     }
 
     draco.dispose()
@@ -1047,24 +1789,53 @@ export function createGymScanStage(opts: StageOptions) {
     // mid-scroll shader compile.
     // compile() walks traverseVisible, so anything parked invisible is skipped
     // - the shell has to be shown for the prewarm or its first sweep would
-    // compile mid-scroll.
+    // compile mid-scroll. Parts path: compile the swapped rest (the long-lived
+    // lighting identity) then restore the hang pose.
+    if (partsRig && !reducedMotion) {
+      partsRig.root.visible = true
+      partsRig.apply(assembleAt(1e6, { phone: phoneCut() }))
+      applyStick(stickAt(0, 'hold', phoneCut()))
+    }
+    // The card's three layers each have their own program, and two of them -
+    // the inlay and the film - are only ever on screen during 0C. compile()
+    // walks traverseVisible, so unless they are shown here they are compiled
+    // the frame the peel starts, which is the frame that must not drop.
+    const stickerWas = [stickerRig.visible, nfc.visible, foil.visible] as const
+    stickerRig.visible = true
+    nfc.visible = true
+    foil.visible = true
     phoneFill.visible = true
     holo.object.visible = true
     renderer.compile(scene, camera)
     phoneFill.visible = false
     holo.object.visible = false
     renderer.compile(scene, camera)
+    stickerRig.visible = stickerWas[0]
+    nfc.visible = stickerWas[1]
+    foil.visible = stickerWas[2]
+    if (partsRig && !reducedMotion) {
+      partsRig.root.visible = false
+      const state = assembleAt(0, { phone: phoneCut() })
+      partsRig.apply(state)
+      lastAssemble = state
+      applyContact(0)
+      applyStick(stickHidden())
+      setMountVisible(false)
+      holoLive = false
+      act0T = 0
+    }
     phoneOverlay.prewarm(renderer)
     reticleOverlay.prewarm(renderer)
+    act0Armed = true
+    if (!reducedMotion) act0T = 0
+    lastT = performance.now()
+    performanceArmed = isCoarse
     onReady()
   }
 
   // --- public API ------------------------------------------------------------
   function setProgress(p: number) {
     targetProgress = clamp01(p)
-  }
-  function setHeroSlot(slot: PhoneBox | null) {
-    heroSlot = slot
   }
   function setPointer(nx: number, ny: number, active: boolean) {
     pointer.x = nx
@@ -1075,6 +1846,24 @@ export function createGymScanStage(opts: StageOptions) {
     tilt.x = nx
     tilt.y = ny
     tilt.active = active
+  }
+  function skipAct0() {
+    act0T = act0Windows(phoneCut()).stickEnd
+  }
+  /**
+   * The landing hero's own front-phone box, in canvas pixels. Fed by the
+   * component once that hero has laid out; null until then.
+   */
+  function setHeroSlot(slot: PhoneBox | null) {
+    heroSlot = slot
+  }
+  function snapshot(): string | null {
+    try {
+      return canvas.toDataURL('image/jpeg', 0.9)
+    }
+    catch {
+      return null
+    }
   }
   function start() {
     if (running || disposed) return
@@ -1089,6 +1878,7 @@ export function createGymScanStage(opts: StageOptions) {
   function dispose() {
     disposed = true
     stop()
+    partsRig?.dispose()
     scene.traverse((o) => {
       const mesh = o as THREE.Mesh
       if (!mesh.isMesh) return
@@ -1097,7 +1887,10 @@ export function createGymScanStage(opts: StageOptions) {
       mats.forEach(m => m?.dispose())
     })
     stickerTex.dispose(); shadowTex.dispose()
+    nfcMaps.map.dispose(); nfcMaps.orm.dispose(); cardGeo.dispose()
     floorMaps.dispose()
+    floorPbrMaterial.dispose()
+    floorLiteMaterial?.dispose()
     env.dispose()
     appScreen.dispose()
     phoneOverlay.dispose()
@@ -1108,7 +1901,20 @@ export function createGymScanStage(opts: StageOptions) {
     heroMats = []
   }
 
-  const api = { load, resize, setProgress, setHeroSlot, setPointer, setTilt, start, stop, dispose, get progress() { return progress } }
+  const api = {
+    load,
+    resize,
+    setProgress,
+    setHeroSlot,
+    setPointer,
+    setTilt,
+    skipAct0,
+    snapshot,
+    start,
+    stop,
+    dispose,
+    get progress() { return progress },
+  }
   // Dev-only handle so the scene can be probed from a headless browser while
   // tuning the look. Stripped from production builds by the import.meta.dev guard.
   if (import.meta.dev) {
@@ -1121,8 +1927,22 @@ export function createGymScanStage(opts: StageOptions) {
       get hero() { return heroRoot },
       get holo() { return holo },
       get machineRig() { return machineRig },
+      get stickerRig() { return stickerRig },
       get dropT() { return dropT },
+      get assembleT() { return assembleT },
+      get assemble() { return lastAssemble },
+      get act0T() { return act0T },
+      get act0() { return lastAct0 },
+      get act1() { return lastAct1 },
+      skipAct0,
+      seekAct0(t: number) { act0Armed = true; act0Frozen = true; act0T = Math.max(0, t) },
+      playAct0() { act0Frozen = false },
+      capturePhoneScreen(width = 620, height = 1344) {
+        return phoneOverlay.exportScreen(renderer, width, height)
+      },
+      get parts() { return partsRig },
       get qrRect() { return lastQrRect },
+      drawCalls: () => renderer.info.render.calls,
     }
   }
   return api

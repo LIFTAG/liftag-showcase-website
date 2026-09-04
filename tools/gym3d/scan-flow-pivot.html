@@ -381,9 +381,10 @@
       reticle.style.margin = `${-(98 + retPad)}px 0 0 ${-(98 + retPad)}px`
       reticle.style.opacity = locked ? 0 : lerp(0.7, 1, hunt)
 
-      // The plate is the lock-on 3D gym. Keep it sharp for the QR-to-QR cut,
-      // then rack it a little while the sticker dissolves. Never crush it
-      // to black. Yield only when the real log-set screenshot covers the frame.
+      // The plate is the lock-on 3D gym (recapture with capture-gym-scene.py
+      // whenever the approach camera moves). Keep it sharp for the QR-to-QR
+      // cut, then rack it a little while the sticker dissolves. Never crush
+      // it to black. Yield only when the real log-set screenshot covers the frame.
       const logCover = remap(logT, 0.95, 1.28)
       const rack = remap(logT, 0.0, 0.28) * (1 - logCover)
       scanBg.style.opacity = 1 - logCover

@@ -38,7 +38,7 @@ import {
 import { clamp01, damp, lerp, smoothstep } from './timeline'
 
 /** Fold value at which the 3D phone starts leaving full-bleed. */
-export const PHONE_SHRINK_START = 0.08
+export const PHONE_SHRINK_START = 0.04
 
 export function phoneShrink(fold: number): number {
   return smoothstep((clamp01(fold) - PHONE_SHRINK_START) / (1 - PHONE_SHRINK_START))
@@ -429,6 +429,52 @@ export function createPhoneOverlay(opts: { shadows: boolean }) {
     screenMat.uniforms.uApp!.value = prevApp
   }
 
+  /**
+   * The gym as currently mapped onto the phone glass, flattened to `outW` x
+   * `outH`. Used to recapture `gym-scene.png` so the scan-flow LOG cut matches
+   * the live lock instead of an older, more zoomed-out still.
+   *
+   * Call after `pose()` so uRepeat / uOffset already hold the lock UVs.
+   */
+  function exportScreen(
+    renderer: THREE.WebGLRenderer,
+    outW: number,
+    outH: number,
+  ): string | null {
+    const target = new THREE.WebGLRenderTarget(outW, outH, {
+      type: THREE.UnsignedByteType,
+      format: THREE.RGBAFormat,
+    })
+    target.texture.colorSpace = THREE.NoColorSpace
+    const prevTarget = renderer.getRenderTarget()
+    const prevAutoClear = renderer.autoClear
+    const prevApp = screenMat.uniforms.uApp!.value as number
+    screenMat.uniforms.uApp!.value = 0
+    renderer.autoClear = true
+    renderer.setClearColor(0x000000, 1)
+    renderer.setRenderTarget(target)
+    renderer.render(blitScene, blitCamera)
+    const buf = new Uint8Array(outW * outH * 4)
+    renderer.readRenderTargetPixels(target, 0, 0, outW, outH, buf)
+    renderer.setRenderTarget(prevTarget)
+    renderer.autoClear = prevAutoClear
+    screenMat.uniforms.uApp!.value = prevApp
+    target.dispose()
+
+    const canvas = document.createElement('canvas')
+    canvas.width = outW
+    canvas.height = outH
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return null
+    const image = ctx.createImageData(outW, outH)
+    for (let y = 0; y < outH; y++) {
+      const src = (outH - 1 - y) * outW * 4
+      image.data.set(buf.subarray(src, src + outW * 4), y * outW * 4)
+    }
+    ctx.putImageData(image, 0, 0)
+    return canvas.toDataURL('image/png')
+  }
+
   function renderFromTexture(renderer: THREE.WebGLRenderer, gymTexture: THREE.Texture, shrink: number) {
     bindGymTexture(gymTexture)
     // Lift the phone body as it becomes a device. At shrink 0 the gym on the
@@ -467,6 +513,7 @@ export function createPhoneOverlay(opts: { shadows: boolean }) {
   return {
     pose,
     blitToScreen,
+    exportScreen,
     renderFromTexture,
     bindAppTexture,
     setAppMix,

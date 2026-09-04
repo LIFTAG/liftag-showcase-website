@@ -61,7 +61,12 @@
   font-family: 'Space Grotesk';
   font-style: normal;
   font-weight: 300 700;
-  font-display: optional;
+  /* swap, not optional: SK/CS carons live here. optional drops the subset
+     if it misses first paint, and the fallback synthesizes Ž as Z + a
+     full-size caron. This woff2 is patched: uni030C.case is scaled down so
+     Ž/Č/Š don't collide at display size. Replacing it from Google Fonts
+     restores the oversized mark. */
+  font-display: swap;
   src: url('/assets/fonts/space-grotesk-latin-ext.woff2') format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -381,6 +386,15 @@ button {
   line-height: 0.92;
   margin: 0;
   text-wrap: balance;
+}
+
+/* Capital carons (Ž, Č, Š, Ď…) sit above the cap height. The default 0.92
+   line-height packs two display lines so tightly that the mark collides
+   with the line above; SK/CS pages need the extra leading. */
+html[lang="sk"] .display,
+html[lang="cs"] .display {
+  line-height: 1.12;
+  letter-spacing: -0.02em;
 }
 
 .lime {
@@ -1364,6 +1378,10 @@ section {
     font-size: clamp(44px, 12vw, 72px) !important;
     line-height: 0.98 !important;
     letter-spacing: 0 !important;
+  }
+  html[lang="sk"] .display,
+  html[lang="cs"] .display {
+    line-height: 1.12 !important;
   }
   .phone {
     width: 220px !important;

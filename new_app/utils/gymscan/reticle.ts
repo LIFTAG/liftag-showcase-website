@@ -1,15 +1,16 @@
 // Screen-space lock-on brackets.
 //
-// The L-corners are the one piece of HUD chrome that is unambiguously LIFTAG
-// talking, so they wait for the machine to plant and then hunt: they must not
-// sit in the empty room, or ride the falling mesh. On a fine pointer they
-// follow the cursor with a slow in/out pulse until the approach; on a phone
-// they frame the whole machine and sit still. Hovering the QR plate acquires
-// it early, so the lock does not wait for the scroll station if the pointer
-// already found the code. Otherwise they morph onto the plate at the same
-// station the previous overlay used to appear.
+// The L-corners wait for the sticker to be pressed onto the beam. Before that
+// there is no tag to hunt, and a scanner riding the assembling mesh or the
+// flying card is hunting nothing. `landed` is that gate — it opens on the last
+// stretch of the press so they can fade in rather than popping on the plant
+// frame with the doors and the key light. Once the card is on they follow the
+// cursor (or frame the machine on a phone). Hovering the plate acquires it
+// early, so the lock does not wait for the scroll station if the pointer
+// already found the code. They hold through the lock and fade out as the
+// glass finishes forming.
 
-import { clamp01, damp, ease, lerp } from './timeline.ts'
+import { clamp01, damp, ease, lerp, smoothstep } from './timeline.ts'
 
 export interface ScreenRect {
   x: number
@@ -24,17 +25,14 @@ export interface ReticleBox extends ScreenRect {
   opacity: number
 }
 
-/** Scroll window where the seek box flies onto the QR plate. Lands at 0.42,
- *  which is where the corners used to first appear. */
-export const RETICLE_MORPH_START = 0.28
-export const RETICLE_MORPH_END = 0.44
-/**
- * Let the acquired QR hold into the phone fold, then retire it before the app
- * capture takes over. The reticle is composited into the gym texture now, so
- * it remains attached to the QR while that texture shrinks onto the 3D phone.
- */
-export const RETICLE_OUT_START = 0.770
-export const RETICLE_OUT_END = 0.820
+/** Window where the hunting box resolves module-by-module onto the QR. */
+export const RETICLE_MORPH_START = 0.22
+export const RETICLE_MORPH_END = 0.72
+/** Tail: hold the acquired plate through the fold, then retire as it forms. */
+export const RETICLE_OUT_START = 0.88
+export const RETICLE_OUT_END = 1
+/** Seconds of fade-in after `landed` so the L's do not pop on the plant frame. */
+export const RETICLE_IN = 0.48
 
 const SEEK_IN = 62
 const SEEK_OUT = 84
@@ -45,6 +43,10 @@ const LOCK_ARM = 14
 export interface ReticleUpdate {
   dt: number
   elapsed: number
+  /**
+   * The brackets' own clock. 0 while they hunt the cursor, rising through the
+   * lock as they resolve onto the plate, reaching 1 as the glass forms.
+   */
   progress: number
   pointer: { x: number, y: number, active: boolean }
   width: number
@@ -55,8 +57,7 @@ export interface ReticleUpdate {
   /** Phone / coarse layout: frame the whole machine instead of the cursor. */
   lockToMachine: boolean
   folded: boolean
-  /** False while the entry drop is still in the air (or the GLB has not
-   *  arrived). The brackets stay off until the machine is planted. */
+  /** False until the QR sticker is pressed onto the beam. */
   landed: boolean
 }
 
@@ -164,12 +165,17 @@ export function createReticleTracker() {
   let lastH = 0
   let frozen: ScreenRect | null = null
   let frozenArm = DESKTOP_ARM
+  let landAge = 0
   let hoverAmt = 0
   let hoverLatched = false
 
   function update(input: ReticleUpdate): ReticleBox | null {
     const { progress } = input
     if (!input.landed || input.folded || progress >= RETICLE_OUT_END) {
+      frozen = null
+      frozenArm = DESKTOP_ARM
+      booted = false
+      landAge = 0
       hoverAmt = 0
       hoverLatched = false
       return null
@@ -194,8 +200,8 @@ export function createReticleTracker() {
     const targetY = follow ? my : height * 0.5
 
     if (!booted) {
-      cx = targetX
-      cy = targetY
+      cx = follow ? mx : targetX
+      cy = follow ? my : targetY
       size = SEEK_REST
       booted = true
     }
@@ -204,15 +210,19 @@ export function createReticleTracker() {
 
     if (morph <= 0) {
       frozen = null
-      if (reducedMotion) {
-        cx = targetX
-        cy = targetY
-        size = SEEK_REST
-      } else if (follow) {
-        cx = damp(cx, targetX, 0.18, dt)
-        cy = damp(cy, targetY, 0.18, dt)
-        size = damp(size, lerp(SEEK_IN, SEEK_OUT, pulse01(elapsed)), 0.07, dt)
-      } else {
+      if (follow) {
+        if (reducedMotion) {
+          cx = targetX
+          cy = targetY
+          size = SEEK_REST
+        }
+        else {
+          cx = damp(cx, targetX, 0.18, dt)
+          cy = damp(cy, targetY, 0.18, dt)
+          size = damp(size, lerp(SEEK_IN, SEEK_OUT, pulse01(elapsed)), 0.07, dt)
+        }
+      }
+      else if (lockToMachine) {
         cx = targetX
         cy = targetY
         size = SEEK_REST
@@ -230,7 +240,8 @@ export function createReticleTracker() {
       const want = over || hoverLatched ? 1 : 0
       hoverAmt = reducedMotion ? want : damp(hoverAmt, want, 0.14, dt)
       if (hoverAmt > 0.9) hoverLatched = true
-    } else if (!hoverLatched) {
+    }
+    else if (!hoverLatched) {
       hoverAmt = reducedMotion ? 0 : damp(hoverAmt, 0, 0.14, dt)
     }
 
@@ -239,7 +250,8 @@ export function createReticleTracker() {
     if (morph <= 0) {
       seek = live
       fromArm = seekArm(live, lockToMachine)
-    } else {
+    }
+    else {
       if (!frozen) {
         frozen = copyRect(live)
         frozenArm = seekArm(live, lockToMachine)
@@ -251,7 +263,9 @@ export function createReticleTracker() {
     const mix = Math.max(morph, hoverAmt)
     const box = mix > 0 && qr ? mixRect(seek, qr, mix) : seek
     const arm = qr ? lerp(fromArm, lockArm(qr), mix) : fromArm
-    const opacity = 1 - ease(progress, RETICLE_OUT_START, RETICLE_OUT_END)
+    const fadeIn = input.reducedMotion ? 1 : smoothstep(clamp01(landAge / RETICLE_IN))
+    landAge += dt
+    const opacity = fadeIn * (1 - ease(progress, RETICLE_OUT_START, RETICLE_OUT_END))
 
     return { x: box.x, y: box.y, w: box.w, h: box.h, arm, opacity }
   }

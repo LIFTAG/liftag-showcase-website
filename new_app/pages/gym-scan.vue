@@ -1,9 +1,11 @@
 <template>
   <div class="gym-scan-page">
     <div class="film-grain" aria-hidden="true" />
+    <SplashCursor :visible="cursorOn" />
     <SiteNav deferred :visible="navIn" />
     <main>
-      <GymScanHero @handoff="onHandoff" />
+      <h1 class="gym-scan-page__title">LIFTAG Pivot Leg Press machine intelligence</h1>
+      <GymScanHero @handoff="onHandoff" @cursor-visible="onCursorVisible" />
       <LazyPartnerMarquee :hydrate-on-visible="{ rootMargin: '200px' }" />
       <LazyScanSection :hydrate-on-visible="{ rootMargin: '200px' }" />
       <LazyHowItWorks :hydrate-on-visible="{ rootMargin: '200px' }" />
@@ -24,14 +26,21 @@
 <script setup lang="ts">
 import { useReveal } from '~/composables/useReveal'
 
-// Full-bleed opening: nav is mounted but held off until the 3D act hands
-// the frame to the landing hero, so the room still starts as a dark gym.
+// Full-bleed opening: the nav is mounted but held off until the film has
+// handed the frame to the landing hero, so the room still starts as a dark
+// gym rather than as a page with a menu on it. The splash cursor is the same
+// one `/` uses; it stays invisible through the film and arms at the cut.
 definePageMeta({ layout: false })
 
 const navIn = ref(false)
+const cursorOn = ref(false)
 
 function onHandoff(active: boolean) {
   navIn.value = active
+}
+
+function onCursorVisible(active: boolean) {
+  cursorOn.value = active
 }
 
 useReveal()
@@ -51,6 +60,15 @@ useHead({
 .gym-scan-page {
   background: #000;
   color: #fff;
+}
+.gym-scan-page__title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 html:has(.gym-scan-page) {
   background: #000;

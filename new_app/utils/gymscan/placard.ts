@@ -16,12 +16,20 @@
 // of the lit result through `onBeforeCompile` - the same arrangement the
 // machine's own surfaces use, for the same reason.
 //
+// The exception is Act 0C, where the card is held up to the lens as a product
+// shot. A tag lit only by a gym ceiling six metres behind it is a grey
+// rectangle at that distance, so `uShow` adds a soft key of its own, keyed to
+// the surface normal so the bend and the curl still shade. `stage.ts` also
+// puts a real spot on the card for that beat; this is the fill that makes the
+// print legible, not a replacement for it.
+//
 // What the analysis adds is *emission from the print itself*: as LIFTAG
 // resolves the code, the light areas of the tag light up, module by module,
 // keyed to a grid matching the artwork's own 12-pixel module pitch. The dark
 // modules stay dark, which is what makes it read as a code being decoded
 // rather than a panel being switched on.
 import * as THREE from 'three'
+import { patchPeelVertex, type PeelUniforms } from './peel.ts'
 
 /** Source artwork: 827 x 874 with a 12 px QR module, so 69 x 73 modules across. */
 const MODULES_X = 68.9
@@ -31,6 +39,10 @@ export interface PlacardUniforms {
   uReveal: { value: number }
   uResolve: { value: number }
   uLock: { value: number }
+  /** 0–1 showcase key, on only while the card is held up to the lens in 0C. */
+  uShow: { value: number }
+  /** 0–1 squeegee line riding the 0D bend front as the vinyl is pushed flat. */
+  uSqueegee: { value: number }
 }
 
 export function createPlacardUniforms(): PlacardUniforms {
@@ -38,6 +50,8 @@ export function createPlacardUniforms(): PlacardUniforms {
     uReveal: { value: 0 },
     uResolve: { value: 0 },
     uLock: { value: 0 },
+    uShow: { value: 0 },
+    uSqueegee: { value: 0 },
   }
 }
 
@@ -48,15 +62,29 @@ export function createPlacardUniforms(): PlacardUniforms {
  * for laminated vinyl rather than paper - a gym tag is wiped down, so it holds
  * a broad soft sheen, and that sheen is most of what tells the eye it is a
  * sticker on a surface rather than a texture painted onto one.
+ *
+ * `peel` is shared with the card's other two layers, so the print, the inlay
+ * behind it and the film in front of it all roll on the same fold line.
  */
 export function createPlacardMaterial(
   map: THREE.Texture,
   uniforms: PlacardUniforms,
-): THREE.MeshStandardMaterial {
-  const material = new THREE.MeshStandardMaterial({
+  peel: PeelUniforms,
+): THREE.MeshPhysicalMaterial {
+  const material = new THREE.MeshPhysicalMaterial({
     map,
-    roughness: 0.42,
+    roughness: 0.48,
     metalness: 0.0,
+    // Laminated vinyl: a broad sheen, not a travelling spec. Sheen 0.48 at
+    // roughness 0.38 plus the default env intensity flashed the print every
+    // time a ceiling strip crossed the lobe — bright for a frame, then the
+    // close-up (square-on, no Fresnel) went grey. Keep the sticker-not-paint
+    // read; kill the lamp.
+    sheen: 0.20,
+    sheenColor: new THREE.Color(0xe6dfd0),
+    sheenRoughness: 0.70,
+    specularIntensity: 0.42,
+    envMapIntensity: 0.28,
     // The artwork's rounded corners live in its alpha. alphaTest drops the
     // fully clear region early; `transparent` is what keeps the arc itself
     // smooth, since an alpha-tested edge gets no coverage from MSAA.
@@ -66,6 +94,7 @@ export function createPlacardMaterial(
   })
 
   material.onBeforeCompile = (shader) => {
+    patchPeelVertex(shader, peel)
     Object.assign(shader.uniforms, uniforms)
 
     shader.fragmentShader = shader.fragmentShader
@@ -74,6 +103,8 @@ export function createPlacardMaterial(
         uniform float uReveal;
         uniform float uResolve;
         uniform float uLock;
+        uniform float uShow;
+        uniform float uSqueegee;
 
         float lgTagHash(vec2 p) {
           p = fract(p * vec2(127.1, 311.7));
@@ -83,7 +114,9 @@ export function createPlacardMaterial(
       `)
       // After the emissive map so this rides the normal lighting path - it is
       // added to outgoingLight with everything else, and picks up fog on the
-      // way out rather than sitting on top of the frame.
+      // way out rather than sitting on top of the frame. It is also after
+      // <normal_fragment_begin>, so `normal` is the view-space shading normal
+      // the peel wrote - which is what lets uShow shade the curl.
       .replace('#include <emissivemap_fragment>', /* glsl */`
         #include <emissivemap_fragment>
 
@@ -117,14 +150,48 @@ export function createPlacardMaterial(
           * (0.02 + 0.22 * uResolve) * (0.60 + 0.40 * uLock);
 
         // A small frontal lift as the camera closes, standing in for the phone
-        // the sequence is claiming is pointed at this thing.
-        totalEmissiveRadiance += lgTag.rgb * uReveal * 0.012;
+        // the sequence is claiming is pointed at this thing. Kept well below
+        // the resolve emission so the lock still reads as the code coming up,
+        // not as the plate turning into a lamp.
+        totalEmissiveRadiance += lgTag.rgb * uReveal * 0.028;
+
+        // 0C fill. The real spot does the form; this is only enough wrap that
+        // a face-on print is not a grey page. A 0.50 Lambert + ungated rim
+        // stacked with the spot put the white print over bloom threshold —
+        // a lamp in close-up, and a white blade the frame the card went
+        // edge-on. Rim is gated to the curl so a flat turn does not glow.
+        if (uShow > 0.001) {
+          vec3 lgKey = normalize(vec3(-0.28, 0.48, 0.82));
+          float lgLam = max(dot(normal, lgKey), 0.0);
+          float lgRim = pow(1.0 - abs(normal.z), 3.0) * smoothstep(0.02, 0.18, vLgTurn);
+          totalEmissiveRadiance += lgTag.rgb * uShow * (0.05 + 0.14 * lgLam);
+          totalEmissiveRadiance += vec3(0.58, 0.66, 0.82) * uShow * lgRim * 0.06;
+        }
+
+        // 0D squeegee: the bright line of trapped air being pushed out ahead
+        // of the fold as the vinyl is rolled flat from the corner. It rides
+        // uPeelFront, so it is the same line the geometry is bending on
+        // rather than a second effect that has to be kept in sync with it.
+        if (uSqueegee > 0.001) {
+          float lgS = dot(vLgPlane, uPeelAxis);
+          float lgSeam = exp(-abs(lgS - uPeelFront) / 0.0055);
+          totalEmissiveRadiance += vec3(0.30, 0.34, 0.40) * lgSeam * uSqueegee * 0.10;
+        }
+      `)
+      .replace('#include <lights_physical_fragment>', /* glsl */`
+        #include <lights_physical_fragment>
+        // A 0.15 mm card seen edge-on is a line of grazing fragments. Fresnel
+        // at that angle plus the close key is what bloomed into a white blade
+        // for the two frames of the revolution.
+        float lgGraze = pow(1.0 - abs(normal.z), 4.0);
+        material.specularColor *= mix(1.0, 0.10, lgGraze);
+        material.specularF90 *= mix(1.0, 0.10, lgGraze);
       `)
   }
   // The injected block changes with nothing at runtime, so one cache key for
   // the whole material is correct - but it must not collide with an
   // un-injected MeshStandardMaterial sharing the same defines.
-  material.customProgramCacheKey = () => 'liftag-qr-sticker'
+  material.customProgramCacheKey = () => 'liftag-qr-sticker-v5'
 
   return material
 }

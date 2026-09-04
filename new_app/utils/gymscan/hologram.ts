@@ -59,7 +59,6 @@ import {
   Y_CONTACT,
   type HologramPassOpts,
 } from './hologramPass'
-
 export interface HologramOptions {
   /**
    * How much larger than the machine, about its own centre. The bottom of the
@@ -76,6 +75,8 @@ export interface HologramOptions {
    * the gap it leaves is exactly this wide.
    */
   offset?: number
+  /** Phone 0A: 12×24 shockwave rings instead of 22×40. */
+  cheap?: boolean
 }
 
 export interface HologramProbe {
@@ -108,6 +109,8 @@ export interface HologramShell {
   setAltitude(y: number): void
   /** Seconds into a pass at which the floor ring starts travelling. */
   readonly peelTime: number
+  readonly stemR: number
+  readonly maxR: number
 }
 
 const WIRE_COLOR = new THREE.Color(WIRE_RGB[0], WIRE_RGB[1], WIRE_RGB[2])
@@ -167,9 +170,12 @@ function hash2(i: number, j: number): number {
  * Cost is fragments, not verts: hidden between passes, discarded off the
  * ring.
  */
-function createShockwaveGeometry(innerR: number, outerR: number): THREE.BufferGeometry {
-  const rings = 22
-  const segments = 40
+function createShockwaveGeometry(
+  innerR: number,
+  outerR: number,
+  rings = 22,
+  segments = 40,
+): THREE.BufferGeometry {
   const rx = new Float32Array(rings * segments)
   const rz = new Float32Array(rings * segments)
   const ringR = new Float32Array(rings)
@@ -622,6 +628,7 @@ export function createHologramShell(
 ): HologramShell {
   const scale = opts.scale ?? 1.05
   const offset = opts.offset ?? 0.012
+  const cheap = opts.cheap ?? false
 
   source.updateWorldMatrix(true, true)
   const box = new THREE.Box3().setFromObject(source)
@@ -666,7 +673,12 @@ export function createHologramShell(
   object.add(cage)
 
   const ground = new THREE.Mesh(
-    createShockwaveGeometry(stemR * 0.84, WAVE_MAX_R + 0.70),
+    createShockwaveGeometry(
+      stemR * 0.84,
+      WAVE_MAX_R + 0.70,
+      cheap ? 12 : 22,
+      cheap ? 24 : 40,
+    ),
     groundMat,
   )
   ground.name = 'LiftagHologramGround'
@@ -711,6 +723,7 @@ export function createHologramShell(
     if (envelope <= 0.001) {
       object.visible = false
       cage.visible = false
+      ground.visible = false
       return
     }
 
@@ -752,6 +765,7 @@ export function createHologramShell(
     groundUniforms.uWaveR!.value = pass.waveR
     groundUniforms.uWake!.value = pass.wakeR
     groundUniforms.uAmp!.value = pass.groundAmp
+    groundUniforms.uCoreGain!.value = 1.02
     ground.visible = pass.groundDraw
 
     object.visible = cage.visible || ground.visible
@@ -762,5 +776,12 @@ export function createHologramShell(
     cage.position.y = cageRestY + y
   }
 
-  return { object, update, setAltitude, peelTime }
+  return {
+    object,
+    update,
+    setAltitude,
+    peelTime,
+    stemR,
+    maxR: WAVE_MAX_R,
+  }
 }

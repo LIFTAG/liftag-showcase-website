@@ -2,12 +2,15 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
   GYM_SCAN_STICKY_SVH,
+  GYM_SCAN_PHONE_STICKY_SVH,
+  GYM_SCAN_REDUCED_STICKY_SVH,
   GYM_SCROLL_DAMP_RATE,
   HERO_FRONT_PHONE_CSS_W,
   HERO_PHONE_TILT_X,
   HERO_PHONE_TILT_Y,
   SCENE_END,
   fallbackHeroSlot,
+  gymScanStickySvh,
   heroBodyTargetFromPhoneBox,
   heroMorphAt,
   heroPointerTilt,
@@ -22,8 +25,16 @@ import {
 import { PHONE_H, PHONE_W } from '../utils/phoneModel.ts'
 import { damp } from '../utils/gymscan/timeline.ts'
 
-test('scene window keeps the original 7.6 svh 3D act', () => {
-  assert.ok(Math.abs(SCENE_END * GYM_SCAN_STICKY_SVH - 7.6) < 0.02)
+test('the sticky range splits into the 3D act and a short morph tail', () => {
+  assert.equal(SCENE_END, 0.84)
+  assert.ok(SCENE_END < 1, 'a tail has to exist for the phone to travel through')
+  assert.equal(GYM_SCAN_STICKY_SVH, 6)
+  assert.equal(GYM_SCAN_PHONE_STICKY_SVH, 3.5)
+  assert.equal(GYM_SCAN_REDUCED_STICKY_SVH, 1)
+  assert.equal(gymScanStickySvh(false, false), 6)
+  assert.equal(gymScanStickySvh(true, false), 3.5)
+  assert.equal(gymScanStickySvh(false, true), 1)
+  assert.equal(gymScanStickySvh(true, true), 1)
 })
 
 test('scanner scroll catches up within ten frames without snapping', () => {
@@ -35,13 +46,17 @@ test('scanner scroll catches up within ten frames without snapping', () => {
   assert.ok(progress < 1, 'scroll response should retain a short ease')
 })
 
-test('progress below SCENE_END is the 3D act, morph stays 0', () => {
+test('scene and morph tile the scroll range and hand over at SCENE_END', () => {
   assert.equal(sceneProgress(0), 0)
   assert.ok(Math.abs(sceneProgress(SCENE_END) - 1) < 1e-9)
-  assert.equal(heroMorphAt(0), 0)
-  assert.equal(heroMorphAt(SCENE_END), 0)
-  assert.equal(heroMorphAt(1), 1)
+  assert.equal(sceneProgress(1), 1, 'the scene stays finished through the tail')
   assert.ok(sceneProgress(SCENE_END / 2) > 0.49 && sceneProgress(SCENE_END / 2) < 0.51)
+
+  assert.equal(heroMorphAt(0), 0)
+  assert.equal(heroMorphAt(SCENE_END), 0, 'the morph starts exactly where the act ends')
+  assert.equal(heroMorphAt(1), 1)
+  const mid = heroMorphAt((SCENE_END + 1) / 2)
+  assert.ok(mid > 0.49 && mid < 0.51, `expected the tail to be linear, got ${mid}`)
 })
 
 test('hero travel eases out and is clamped', () => {
@@ -125,4 +140,3 @@ test('fallback hero slot is the smaller front-phone body', () => {
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t
 }
-
