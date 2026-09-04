@@ -3,9 +3,10 @@
 // release liner peeled off that back, turns front-on again and travels to the
 // beam to be laid down corner-first. The camera does not move.
 //
-// Pure function of local seconds. Phone holds a bit further along the same
-// look so the card fits the portrait width. After plant the pose is the live
-// mount.
+// Pure function of local seconds. A portrait frame holds further along the
+// same look so the card fits the width — including a desktop (floor) cut at a
+// phone breakpoint, where the seat-cut flag is false. After plant the pose is
+// the live mount.
 //
 // The shot is five beats inside one fly window, and they are fractions rather
 // than seconds so the phone cut is the same choreography at a shorter length:
@@ -64,11 +65,13 @@ export const PLACARD_REST = {
 /** Metres in front of the establishing camera. Desktop ~70% of vertical FOV. */
 export const SHOWCASE_DIST = 0.32
 /**
- * Phone: same idea as desktop, on the axis that is actually scarce.
- * 0.66 m is ~70% of width at 9:19.5 — a page with margin, not a crop.
- * 0.52 m filled ~89% and read as a punch-in on the code.
+ * Portrait hold, including a floor cut at a phone-width breakpoint.
+ * 0.75 m is ~61% of width at 9:19.5 — in the hand, not a crop of the code.
+ * Seat-cut vs floor-cut only changes timing.
  */
-export const SHOWCASE_DIST_PHONE = 0.66
+export const SHOWCASE_DIST_PHONE = 0.75
+/** Viewport aspect below this uses the portrait hold. Width, not pointer. */
+export const SHOWCASE_PORTRAIT_ASPECT = 1
 
 /** Fly-window beats, as fractions of `flyDuration`. */
 export const FLY_IN_END = 0.30
@@ -154,8 +157,8 @@ const BEND_R0 = 0.50
 const BEND_R1 = 0.26
 const BEND_MAX_TURN = 1.3
 
-/** Phone runs the same close-up shallower - fewer taps, lower budget. */
-export const DOF_PHONE_SCALE = 0.72
+/** Same rack on both cuts. Tap count is the budget; the iris stays wide open. */
+export const DOF_PHONE_SCALE = 1
 
 function camDir(): { x: number, y: number, z: number, len: number } {
   const dx = ESTABLISH.tx - ESTABLISH.x
@@ -286,7 +289,7 @@ const IN_CAM_DESK: readonly CamKey[] = [
 const IN_CAM_PHONE: readonly CamKey[] = [
   [0.00, 2.40, 2.20, 0.28],
   [0.36, 1.70, 0.90, 0.16],
-  [0.64, 1.05, 0.32, 0.08],
+  [0.64, 1.12, 0.32, 0.08],
   [1.00, SHOWCASE_DIST_PHONE, 0, 0],
 ]
 
@@ -423,8 +426,13 @@ function flyInEase(t: number): number {
   return critDamp01(smoothstep(t), 6)
 }
 
-function showcaseOf(phone: boolean) {
-  return phone ? SHOWCASE_PHONE : SHOWCASE
+function showcaseOf(narrow: boolean) {
+  return narrow ? SHOWCASE_PHONE : SHOWCASE
+}
+
+/** Portrait / phone-breakpoint frame: the foil-peel hold has to fit the width. */
+export function stickFrameNarrow(aspect: number): boolean {
+  return aspect < SHOWCASE_PORTRAIT_ASPECT
 }
 
 /** Approach pose: a few millimetres in front of the mount, along local +Z. */
@@ -567,10 +575,11 @@ function bendAt(u: number): PeelState {
   }
 }
 
-function flyAt(local: number, phone: boolean): StickPose {
+function flyAt(local: number, phone: boolean, aspect: number): StickPose {
   const dur = flyDuration(phone)
   const u = clamp01(local / dur)
-  const show = showcaseOf(phone)
+  const narrow = stickFrameNarrow(aspect)
+  const show = showcaseOf(narrow)
   const end = approachPose()
   const face = FACE_CAM
   const foil = foilAt(u)
@@ -585,7 +594,7 @@ function flyAt(local: number, phone: boolean): StickPose {
     // pull onto the look. A symmetric in-out left the last metres as a
     // long creep on a card that was already filling the frame.
     const a = flyInEase(u / IN_END)
-    vec3HermiteAt(phone ? IN_PATH_PHONE : IN_PATH, a, _inP)
+    vec3HermiteAt(narrow ? IN_PATH_PHONE : IN_PATH, a, _inP)
     vec3HermiteAt(IN_ROT, a, _inR)
     x = _inP.x
     y = _inP.y
@@ -628,7 +637,7 @@ function flyAt(local: number, phone: boolean): StickPose {
     // it commits to the lens. Pin at SHOWCASE once it leaves for the beam:
     // a 1.4 m cutoff following the card onto the mount would relight the
     // machine the establishing shot just built.
-    keyPos: showcaseKeyPos(phone, u < BACK_END ? { x, y, z } : undefined),
+    keyPos: showcaseKeyPos(narrow, u < BACK_END ? { x, y, z } : undefined),
     squeegee: 0,
     bend: bendAt(u),
     foil: foil.peel,
@@ -693,10 +702,16 @@ function pressAt(local: number): StickPose {
 
 export type StickShot = 'fly' | 'stick' | 'hold'
 
-export function stickAt(local: number, shot: StickShot, phone: boolean): StickPose {
+export function stickAt(
+  local: number,
+  shot: StickShot,
+  phone: boolean,
+  aspect?: number,
+): StickPose {
+  const frame = aspect ?? (phone ? 9 / 19.5 : 16 / 9)
   if (shot === 'hold') return PLANTED
-  if (shot === 'fly') return flyAt(local, phone)
-  if (local < 0) return flyAt(1e6, phone)
+  if (shot === 'fly') return flyAt(local, phone, frame)
+  if (local < 0) return flyAt(1e6, phone, frame)
   if (local < PRESS_DUR) return pressAt(local)
   return PLANTED
 }

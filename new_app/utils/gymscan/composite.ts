@@ -28,14 +28,11 @@
 // keeps its proportions all the way into the phone.
 export const CompositeShader = {
   name: 'LiftagCompositeShader',
-  // Tap count of the 0C bokeh disc. A constant, because a GLSL loop bound has
-  // to be one; `stage.ts` halves it on coarse pointers before the first
-  // compile, which is the only place it is allowed to change.
-  defines: {
-    LG_BOKEH_TAPS: 16,
-  },
   uniforms: {
     tDiffuse: { value: null as unknown },
+    tFocus: { value: null as unknown },
+    tBlur: { value: null as unknown },
+    tFoil: { value: null as unknown },
     uRect: { value: [0.5, 0.5, 0.5, 0.5] },
     uRadius: { value: 0.0 },
     uFold: { value: 0.0 },
@@ -45,10 +42,8 @@ export const CompositeShader = {
     uAberration: { value: 1.0 },
     uSceneFade: { value: 1.0 },
     uEdge: { value: [0.82, 0.89, 1.0] },
-    /** 0C close-up bokeh amount. 0 outside the fly. */
+    /** 0C close-up defocus amount. 0 outside the fly. */
     uDof: { value: 0.0 },
-    /** UV centre + half-extents of the sharp card. */
-    uFocusRect: { value: [0.5, 0.5, 0.16, 0.22] },
   },
   vertexShader: /* glsl */`
     varying vec2 vUv;
@@ -59,6 +54,9 @@ export const CompositeShader = {
   `,
   fragmentShader: /* glsl */`
     uniform sampler2D tDiffuse;
+    uniform sampler2D tFocus;
+    uniform sampler2D tBlur;
+    uniform sampler2D tFoil;
     uniform vec4  uRect;
     uniform float uRadius;
     uniform float uFold;
@@ -69,7 +67,6 @@ export const CompositeShader = {
     uniform float uSceneFade;
     uniform vec3  uEdge;
     uniform float uDof;
-    uniform vec4  uFocusRect;
     varying vec2 vUv;
 
     // Must live at global scope: the pars declare uniforms and helper
@@ -103,55 +100,21 @@ export const CompositeShader = {
       col.g = texture2D(tDiffuse, sceneUv).g;
       col.b = texture2D(tDiffuse, sceneUv - dir * amt).b;
 
-      // 0C close-up: a real lens, not a mip fade.
+      // 0C close-up: the gym falls out of focus around the sticker.
       //
-      // A mip lookup is a *smear*: it averages a square of texels, so a bright
-      // point in the background comes back as a soft square that grows dimmer
-      // as it grows. A fast lens does the opposite - it spreads that point
-      // over a disc of near-constant brightness, and it is those discs, not
-      // the softness, that read as expensive glass.
-      //
-      // So the background is gathered from a golden-angle disc instead. Two
-      // details do the work:
-      //
-      //   - the taps are weighted by their own luminance, so a highlight
-      //     dominates its disc and comes back as a bokeh ball rather than
-      //     being averaged into grey;
-      //   - the x offset is divided by the aspect ratio, so the disc is round
-      //     on screen. An unscaled UV disc is an ellipse, which is the tell
-      //     that a blur was done in texture space.
-      //
-      // The mip level still rises with the circle of confusion, but only to
-      // keep the disc from undersampling at its widest - the taps, not the
-      // mip, are the blur. Cost returns to zero as soon as uDof closes.
+      // The die-cut print is coverage. The liner is a separate over: it is
+      // drawn over black with its real material, then composited onto a gym
+      // that was rendered without the sticker and blurred. Putting the film
+      // in the coverage mask kept the room sharp wherever the liner was
+      // transparent. Cost returns to zero as soon as uDof closes.
       if (uDof > 0.001) {
-        // Measured in units of screen *height*, both axes. In raw UV a step of
-        // 0.13 across is nearly twice the distance it is up, so an isotropic
-        // falloff written in UV comes out as an ellipse - the background above
-        // the card would go soft while the background beside it stayed sharp.
-        vec2 fp = (vUv - uFocusRect.xy) * vec2(uAspect, 1.0);
-        vec2 fq = abs(fp) - uFocusRect.zw * vec2(uAspect, 1.0);
-        float fsd = length(max(fq, 0.0)) + min(max(fq.x, fq.y), 0.0);
-        // Wide open: the falloff out of focus is fast and short, so the card
-        // is the only thing in the frame that is sharp.
-        float coc = smoothstep(0.0, 0.13, fsd) * uDof;
-        if (coc > 0.002) {
-          float lod = coc * 3.0;
-          vec2 rad = vec2(0.055 * coc) * vec2(1.0 / uAspect, 1.0);
-          vec3 acc = vec3(0.0);
-          float wsum = 0.0;
-          for (int i = 0; i < LG_BOKEH_TAPS; i++) {
-            float fi = float(i) + 0.5;
-            float ang = fi * 2.39996323;
-            float r = sqrt(fi / float(LG_BOKEH_TAPS));
-            vec2 off = vec2(cos(ang), sin(ang)) * r * rad;
-            vec3 tap = texture2DLodEXT(tDiffuse, clamp(sceneUv + off, vec2(0.002), vec2(0.998)), lod).rgb;
-            float w = 1.0 + 9.0 * dot(tap, vec3(0.2126, 0.7152, 0.0722));
-            acc += tap * w;
-            wsum += w;
-          }
-          col = mix(col, acc / max(wsum, 1e-4), coc);
-        }
+        vec3 gym = texture2D(tBlur, sceneUv).rgb;
+        float card = smoothstep(0.08, 0.55, texture2D(tFocus, sceneUv).r);
+        vec4 film = texture2D(tFoil, sceneUv);
+        vec3 close = mix(gym, col, card);
+        float glass = film.a * (1.0 - card);
+        close = close * (1.0 - glass) + film.rgb * (1.0 - card);
+        col = mix(col, close, uDof);
       }
 
       // Rounded-rect SDF in aspect-corrected space.

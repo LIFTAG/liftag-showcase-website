@@ -360,9 +360,8 @@ test('the lens is wide open across the whole close-up and shut at both ends', ()
   assert.ok(flyDof(0.60, false) > 0.9, 'and through the peel')
   assert.ok(flyDof(FLY_BACK_END - 0.02, false) > 0.9, 'and through the turn back')
   assert.equal(flyDof(0.98, false), 0, 'shut again before the beam')
-  // The phone runs the same close-up shallower rather than not at all - a
-  // sharp background there was the loudest CG tell in the shot.
-  assert.ok(flyDof(0.5, true) > 0.5 && flyDof(0.5, true) < flyDof(0.5, false))
+  // Same iris on both cuts. Tap count is the budget, not a shallower rack.
+  assert.ok(Math.abs(flyDof(0.5, true) - flyDof(0.5, false)) < 1e-6)
   const mid = stickAt(flyDuration(false) * 0.5, 'fly', false)
   assert.ok(mid.dof > 0.9)
 })
@@ -441,21 +440,33 @@ test('phone showcase sits further from the lens so the card fits the portrait wi
   const phone = stickAt(flyDuration(true) * 0.5, 'fly', true)
   assert.ok(distToCam(phone) > distToCam(desk))
 
-  // 9:19.5 is a current phone. Desktop fills ~70% of the short axis (height
-  // at 16:9); the seat cut should do the same on width, with margin so the
-  // card is a page you are shown, not a crop of the code.
+  // 9:19.5 is a current phone. Match desktop's width occupancy (~37% at
+  // 16:9), not a short-axis fill: the card is a held page, not a crop.
   const portrait = 9 / 19.5
   const widthFrac = cardWidthFrac(SHOWCASE_DIST_PHONE, portrait)
   assert.ok(
-    widthFrac < 0.78,
-    `portrait close-up must leave margin, widthFrac=${widthFrac.toFixed(3)}`,
+    widthFrac < 0.70,
+    `portrait close-up must leave air around the card, widthFrac=${widthFrac.toFixed(3)}`,
   )
   assert.ok(
-    widthFrac > 0.58,
-    `portrait close-up must still fill the lens, widthFrac=${widthFrac.toFixed(3)}`,
+    widthFrac > 0.50,
+    `portrait close-up must still read as the subject, widthFrac=${widthFrac.toFixed(3)}`,
   )
   assert.ok(
     cardWidthFrac(SHOWCASE_DIST, portrait) > 1,
     'the desktop hold would overflow a phone frame',
   )
+})
+
+test('a phone-width breakpoint uses the portrait hold on the floor cut too', () => {
+  // Width selects the foil-peel framing. A resized laptop is still FROM THE
+  // FLOOR (phone=false), and that used to keep the 0.32 m hold — a crop of
+  // the code, and a no-op if you only changed the seat-cut distance.
+  const portrait = 9 / 19.5
+  const dur = flyDuration(false)
+  const wide = stickAt(dur * 0.5, 'fly', false, 16 / 9)
+  const narrow = stickAt(dur * 0.5, 'fly', false, portrait)
+  assert.ok(Math.abs(distToCam(wide) - SHOWCASE_DIST) < 0.02)
+  assert.ok(Math.abs(distToCam(narrow) - SHOWCASE_DIST_PHONE) < 0.02)
+  assert.ok(cardWidthFrac(distToCam(narrow), portrait) < 0.70)
 })

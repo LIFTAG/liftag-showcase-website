@@ -22,6 +22,7 @@ import {
 } from './machineMaterial'
 import { WIRE_RGB } from './hologramColor'
 import { CompositeShader } from './composite'
+import { createStickFocus, STICK_FOCUS_LAYER } from './stickFocus'
 import { createHologramShell, type HologramShell } from './hologram'
 import { createPlacardMaterial, createPlacardUniforms } from './placard'
 import { createFoilMaterial, createFoilUniforms } from './foil'
@@ -804,6 +805,9 @@ export function createGymScanStage(opts: StageOptions) {
   const foilUniforms = createFoilUniforms(PLACARD_W / 2, PLACARD_H / 2, PLACARD_W * 0.072)
   const foil = new THREE.Mesh(cardGeo, createFoilMaterial(foilUniforms, foilPeel))
   foil.renderOrder = 2
+  nfc.layers.enable(STICK_FOCUS_LAYER)
+  placard.layers.enable(STICK_FOCUS_LAYER)
+  foil.layers.enable(STICK_FOCUS_LAYER)
 
   const stickerRig = new THREE.Group()
   stickerRig.name = 'LiftagSticker'
@@ -898,12 +902,18 @@ export function createGymScanStage(opts: StageOptions) {
   // screen texture. toneMapped must stay off: three only injects TONE_MAPPING
   // when the current target is the drawing buffer, and the overlay samples an
   // RT — see composite.ts.
+  const stickFocus = createStickFocus({
+    cheap: isCoarse,
+    printPeel: cardPeel,
+    halfW: PLACARD_W / 2,
+    halfH: PLACARD_H / 2,
+    round: PLACARD_W * 0.072,
+  })
   const composite = new ShaderPass(CompositeShader as never)
   composite.material.toneMapped = false
-  Object.assign(composite.material.extensions, { shaderTextureLOD: true })
-  // Half the disc on a phone. A GLSL loop bound has to be a constant, so this
-  // is the last moment it can be set - before the pass is ever compiled.
-  ;(composite.material.defines as Record<string, unknown>).LG_BOKEH_TAPS = isCoarse ? 8 : 16
+  composite.uniforms.tFocus!.value = stickFocus.maskTexture
+  composite.uniforms.tBlur!.value = stickFocus.blurTexture
+  composite.uniforms.tFoil!.value = stickFocus.foilTexture
   composer.addPass(composite)
 
   /**
@@ -914,6 +924,14 @@ export function createGymScanStage(opts: StageOptions) {
    * between a valid blurred mip chain and a non-mipmapped texture.
    */
   function renderGymFrame() {
+    if (stickFocus.enabled) {
+      stickFocus.prepare(renderer, scene, camera, {
+        rig: stickerRig,
+        print: placard,
+        inlay: nfc,
+        foil,
+      })
+    }
     composer.readBuffer = composer.renderTarget2
     composer.writeBuffer = composer.renderTarget1
     composer.render()
@@ -1030,6 +1048,7 @@ export function createGymScanStage(opts: StageOptions) {
       stickerPlanted = false
       stickerHunting = false
       composite.uniforms.uDof!.value = 0
+      stickFocus.setDof(0)
       placardUniforms.uShow.value = 0
       placardUniforms.uSqueegee.value = 0
       writePeel(cardPeel, pose.bend)
@@ -1048,12 +1067,12 @@ export function createGymScanStage(opts: StageOptions) {
       stickerRig.rotation.set(pose.rotX, pose.rotY, pose.rotZ)
       stickerPlanted = false
     }
-    // FROM THE SEAT is optically clean by contract, even if a future pose
-    // accidentally asks for the desktop rack.
-    // The phone runs the same rack at eight taps rather than none: a background
-    // that stays sharp behind a card held 50 cm from the lens was the loudest
-    // CG tell in the shot, and it is loudest on the small screen.
+    // Same rack on both cuts. The seat cut runs the blur cheaper (one
+    // separable pass at quarter res) rather than skipping it: a sharp gym
+    // behind a card held 50 cm from the lens was the loudest CG tell in
+    // the shot, and it is loudest on the small screen.
     composite.uniforms.uDof!.value = pose.dof
+    stickFocus.setDof(pose.dof)
     placardUniforms.uShow.value = pose.showLight
     placardUniforms.uSqueegee.value = pose.squeegee
     // One write per layer group: the print and the inlay share `cardPeel`, so
@@ -1134,6 +1153,10 @@ export function createGymScanStage(opts: StageOptions) {
     renderer.setSize(width, heightPx, false)
     composer.setSize(width, heightPx)
     bloom.setSize(width, heightPx)
+    stickFocus.setSize(
+      Math.max(1, Math.round(width * renderer.getPixelRatio())),
+      Math.max(1, Math.round(heightPx * renderer.getPixelRatio())),
+    )
     composite.uniforms.uAspect!.value = width / heightPx
   }
 
@@ -1298,9 +1321,10 @@ export function createGymScanStage(opts: StageOptions) {
       }
     }
 
-    if (a0.shot === 'fly') applyStick(stickAt(a0.flyT, 'fly', isPhone))
-    else if (a0.shot === 'stick') applyStick(stickAt(a0.stickT, 'stick', isPhone))
-    else if (a0.shot === 'hold') applyStick(stickAt(0, 'hold', isPhone))
+    const frameAspect = width / Math.max(heightPx, 1)
+    if (a0.shot === 'fly') applyStick(stickAt(a0.flyT, 'fly', isPhone, frameAspect))
+    else if (a0.shot === 'stick') applyStick(stickAt(a0.stickT, 'stick', isPhone, frameAspect))
+    else if (a0.shot === 'hold') applyStick(stickAt(0, 'hold', isPhone, frameAspect))
     else applyStick(stickHidden())
 
     if (holoLive || reducedMotion) holoT += dt
@@ -1524,30 +1548,6 @@ export function createGymScanStage(opts: StageOptions) {
     if (machineRig.matrixWorldNeedsUpdate || dropLive || assembleLive) machineRig.updateMatrixWorld(true)
     if (stickerRig.matrixWorldNeedsUpdate || !stickerPlanted) stickerRig.updateMatrixWorld(true)
     const qrLive = projectPoints(corners, placard.matrixWorld, true)
-    if (composite.uniforms.uDof!.value > 0.001 && qrLive) {
-      // Snug to the card, with a floor under the width.
-      //
-      // The projected width narrows at the grazing quarter-turn. Keep a small
-      // floor under it so the complete card remains sharp during the blink.
-      //
-      // Compared in units of screen height, because that is the space the
-      // shader measures its falloff in.
-      const aspect = Math.max(width, 1) / Math.max(heightPx, 1)
-      const halfY = (qrLive.h * 0.5) / Math.max(heightPx, 1)
-      const halfX = Math.max((qrLive.w * 0.5) / Math.max(width, 1) * aspect, halfY * 0.30)
-      // The liner rolls toward the lens, so it leaves this rect the moment
-      // it actually peels. Out there the 0C bokeh is luminance-weighted, and
-      // a bright fold becomes a fan of ghosts - the "many layers of shine".
-      // Pad hard while the film is on; the gym behind the card is already a
-      // void, so the extra sharp area does not bring the room back.
-      const pad = foil.visible && foilPeel.uPeelFront.value < 0.09 ? 2.4 : 1.06
-      composite.uniforms.uFocusRect!.value = [
-        (qrLive.x + qrLive.w * 0.5) / Math.max(width, 1),
-        1 - (qrLive.y + qrLive.h * 0.5) / Math.max(heightPx, 1),
-        halfX * pad / aspect,
-        halfY * pad,
-      ]
-    }
 
     // Resolve the lock before presentation. It is drawn into the gym texture,
     // so it stays attached to the projected QR as that texture folds into the
@@ -1895,6 +1895,7 @@ export function createGymScanStage(opts: StageOptions) {
     appScreen.dispose()
     phoneOverlay.dispose()
     reticleOverlay.dispose()
+    stickFocus.dispose()
     composerTarget.dispose()
     composer.dispose()
     renderer.dispose()
@@ -1928,6 +1929,7 @@ export function createGymScanStage(opts: StageOptions) {
       get holo() { return holo },
       get machineRig() { return machineRig },
       get stickerRig() { return stickerRig },
+      get stickFocus() { return stickFocus },
       get dropT() { return dropT },
       get assembleT() { return assembleT },
       get assemble() { return lastAssemble },
