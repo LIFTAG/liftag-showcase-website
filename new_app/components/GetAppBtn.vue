@@ -90,6 +90,7 @@ withDefaults(defineProps<{
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     0 14px 34px rgba(0, 0, 0, 0.34);
   text-decoration: none;
+  cursor: pointer;
   transform: translate3d(0, 0, 0);
   transition:
     border-color 280ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -103,6 +104,7 @@ withDefaults(defineProps<{
   position: absolute;
   inset: 0;
   z-index: -1;
+  pointer-events: none;
   background:
     radial-gradient(circle at 22% 12%, rgba(var(--get-app-idle-light-rgb), 0.26), transparent 48%),
     radial-gradient(circle at 86% 88%, rgba(var(--get-app-idle-rgb), 0.12), transparent 44%);

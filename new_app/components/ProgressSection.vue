@@ -860,6 +860,7 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 8px;
   border-radius: 4px;
+  pointer-events: none;
   background: rgba(255, 255, 255, 0.2);
   transition:
     background 400ms cubic-bezier(0.16, 1, 0.3, 1),

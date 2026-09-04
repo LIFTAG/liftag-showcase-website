@@ -181,6 +181,7 @@ onBeforeUnmount(() => {
   border-radius: var(--liftag-r-lg);
   background: var(--liftag-secondary);
   text-decoration: none;
+  cursor: pointer;
   transition: border-color 240ms cubic-bezier(0.16, 1, 0.3, 1), transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 

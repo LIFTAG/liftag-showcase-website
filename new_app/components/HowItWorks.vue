@@ -2154,6 +2154,7 @@ circle[fill="var(--liftag-primary)"] {
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.15);
   box-shadow: none;
+  pointer-events: none;
   transition: width 0.4s ease, background-color 0.4s ease, box-shadow 0.4s ease, border-radius 0.4s ease, transform 0.4s ease;
 }
 

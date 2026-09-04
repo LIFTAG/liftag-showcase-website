@@ -91,6 +91,7 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
     0 14px 34px rgba(0, 0, 0, 0.34),
     0 0 0 rgba(204, 255, 0, 0);
   text-decoration: none;
+  cursor: pointer;
   transform: translate3d(0, 0, 0);
   transition:
     border-color 280ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -104,6 +105,7 @@ const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))
   position: absolute;
   inset: 0;
   z-index: -1;
+  pointer-events: none;
   background:
     radial-gradient(circle at 22% 12%, rgba(var(--app-store-idle-light-rgb), 0.26), transparent 48%),
     radial-gradient(circle at 86% 88%, rgba(var(--app-store-idle-rgb), 0.12), transparent 44%);

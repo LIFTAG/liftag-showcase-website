@@ -366,6 +366,31 @@ img {
 }
 button {
   font-family: inherit;
+  cursor: pointer;
+}
+button:disabled {
+  cursor: default;
+}
+
+/* Tap / pointing-hand cursor on interactive controls.
+   UA styles give it to `a[href]` but leave `<button>` on the arrow. Replaced
+   descendants (svg, img, canvas, video) also refuse to inherit `cursor` in
+   WebKit/Blink, so hovering an icon or hologram canvas inside a control snaps
+   back to the arrow. Keep those children out of hit-testing so the host cursor
+   is the only one. Magnetic wrappers are the hit target around CTAs that
+   translate on hover, so they need the same cursor. */
+a[href],
+[role="button"]:not([aria-disabled="true"]),
+summary,
+[data-magnetic] {
+  cursor: pointer;
+}
+
+a[href] :is(svg, img, canvas, video, iframe, picture),
+button :is(svg, img, canvas, video, iframe, picture),
+[role="button"] :is(svg, img, canvas, video, iframe, picture),
+[data-magnetic] :is(svg, img, canvas, video, iframe, picture) {
+  pointer-events: none;
 }
 
 /* ── Atoms ── */
@@ -491,6 +516,7 @@ html[lang="cs"] .display {
   height: 100%;
   display: block;
   pointer-events: none;
+  cursor: pointer;
   /* Behind the label, in front of the pill fill (`isolation` on the host). */
   z-index: -1;
 }
@@ -571,11 +597,13 @@ html[lang="cs"] .display {
 .phone-3d-mount {
   position: absolute;
   inset: 0 -6%;
+  pointer-events: none;
 }
 .phone-3d-mount canvas {
   display: block;
   width: 100% !important;
   height: 100% !important;
+  pointer-events: none;
 }
 
 section {
@@ -770,6 +798,7 @@ section {
   position: absolute;
   left: 0;
   top: 0;
+  pointer-events: none;
   transform: translate3d(0, var(--ti-travel), 0);
 }
 
@@ -1566,6 +1595,9 @@ section {
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
+    cursor: default !important;
+  }
+  .scan-step-row * {
     cursor: default !important;
   }
   /* Hide the animated left-bar progress indicator - it only makes sense

@@ -599,6 +599,11 @@ onBeforeUnmount(() => {
   animation: navWordReveal 680ms cubic-bezier(0.16, 1, 0.3, 1) 390ms both;
 }
 
+.nav-logo,
+.nav-link {
+  cursor: pointer;
+}
+
 .nav-link {
   color: #fff;
   text-decoration: none;
@@ -664,6 +669,7 @@ onBeforeUnmount(() => {
   left: 0;
   top: 0;
   color: var(--liftag-primary);
+  pointer-events: none;
   transform: translate3d(0, 100%, 0);
 }
 

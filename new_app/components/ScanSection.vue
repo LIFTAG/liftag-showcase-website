@@ -555,6 +555,10 @@ onBeforeUnmount(() => {
   border-left: 2px solid transparent;
   will-change: transform, opacity;
 }
+.scan-step-row,
+.scan-step-row * {
+  cursor: pointer;
+}
 
 .scan-step-indicator {
   position: relative;
@@ -614,6 +618,7 @@ onBeforeUnmount(() => {
     right: 0;
     left: 0;
     height: 28px;
+    cursor: pointer;
   }
 }
 

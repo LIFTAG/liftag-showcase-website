@@ -629,6 +629,7 @@ onBeforeUnmount(() => {
 
 .lifters-card-image {
   object-position: var(--img-x, 50%) var(--img-y, 50%);
+  pointer-events: none;
   animation: liftersScreenshotPan var(--img-pan-duration, 5.8s) cubic-bezier(0.45, 0, 0.2, 1) infinite;
   animation-play-state: paused;
 }

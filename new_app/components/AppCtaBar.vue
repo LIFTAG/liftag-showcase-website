@@ -163,6 +163,7 @@ function dismiss() {
   text-align: center;
   text-decoration: none;
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .app-cta__close {
