@@ -309,6 +309,41 @@ const HERO_MATERIALS: Record<string, {
   LIFTAG_Iron: { kind: 'detail', rough: 1, env: 0, dim: 1 },
 }
 
+/**
+ * Metal blank the QR sticker is pressed onto. Face is a rounded square
+ * (large corner radius, not a 2 mm fillet on a box). Thickness stays a
+ * 7 mm extrusion so the plate still reads as hardware on the beam.
+ * Bevel is compensated in the shape/depth so the AABB stays `w × h × d`.
+ */
+function roundedPlateGeometry(w: number, h: number, d: number, r: number) {
+  const bevel = Math.min(0.0014, d * 0.2, r * 0.12)
+  const shape = new THREE.Shape()
+  const hw = w / 2 - bevel
+  const hh = h / 2 - bevel
+  const rr = Math.min(r - bevel, hw, hh)
+  shape.moveTo(-hw + rr, -hh)
+  shape.lineTo(hw - rr, -hh)
+  shape.absarc(hw - rr, -hh + rr, rr, -Math.PI / 2, 0, false)
+  shape.lineTo(hw, hh - rr)
+  shape.absarc(hw - rr, hh - rr, rr, 0, Math.PI / 2, false)
+  shape.lineTo(-hw + rr, hh)
+  shape.absarc(-hw + rr, hh - rr, rr, Math.PI / 2, Math.PI, false)
+  shape.lineTo(-hw, -hh + rr)
+  shape.absarc(-hw + rr, -hh + rr, rr, Math.PI, Math.PI * 1.5, false)
+  shape.closePath()
+  const geo = new THREE.ExtrudeGeometry(shape, {
+    steps: 1,
+    depth: d - bevel * 2,
+    bevelEnabled: true,
+    bevelThickness: bevel,
+    bevelSize: bevel,
+    bevelSegments: 3,
+    curveSegments: 16,
+  })
+  geo.center()
+  return geo
+}
+
 export function createGymScanStage(opts: StageOptions) {
   const { canvas, device, onDeviceClassChange, onFrame, onReady, reducedMotion } = opts
 
@@ -831,16 +866,20 @@ export function createGymScanStage(opts: StageOptions) {
   cardKey.visible = false
   scene.add(cardKey, cardKey.target)
 
-  // The blank the sticker is applied to. It is a hair larger than the artwork
-  // and sits a millimetre behind it, which is what shows through the sticker's
-  // rounded corners - without something behind them the corners are cut out of
-  // the frame and the tag reads as a floating decal rather than vinyl on a
-  // surface.
-  const mountMat = new THREE.MeshStandardMaterial({ color: 0x0d0e0d, roughness: 0.5, metalness: 0.4 })
+  // The blank the sticker is applied to. Larger than the artwork so a metal
+  // rim shows around the vinyl, and rounded enough to read as a square plate
+  // from the establishing camera, not a 2 mm fillet on a box. Radius is
+  // concentric with the print's 7.2% die-cut (sticker radius + extra rim).
+  const mountMat = new THREE.MeshStandardMaterial({ color: 0x1c1e1c, roughness: 0.42, metalness: 0.62 })
+  const platePad = 0.040
+  const plateW = PLACARD_W + platePad
+  const plateH = PLACARD_H + platePad
+  const plateR = PLACARD_W * 0.072 + platePad / 2
   const placardBack = new THREE.Mesh(
-    new THREE.BoxGeometry(PLACARD_W + 0.012, PLACARD_H + 0.012, 0.007),
+    roundedPlateGeometry(plateW, plateH, 0.007, plateR),
     mountMat,
   )
+  placardBack.name = 'LiftagQrPlate'
   placardBack.position.copy(PLACARD_POS)
   placardBack.rotation.x = PLACARD_TILT
   placardBack.translateZ(-0.0045)
@@ -850,12 +889,13 @@ export function createGymScanStage(opts: StageOptions) {
   // Two stand-offs up to the crossbeam. Without them the plate floats in the
   // gap above the footplate and reads as an overlay rather than hardware.
   const mountKit: THREE.Object3D[] = [placardBack]
-  const strutH = PLACARD_BEAM_Y - (PLACARD_POS.y + PLACARD_H / 2) + 0.02
+  const plateTop = PLACARD_POS.y + plateH / 2
+  const strutH = PLACARD_BEAM_Y - plateTop + 0.02
   for (const sx of [-1, 1]) {
     const strut = new THREE.Mesh(new THREE.BoxGeometry(0.012, strutH, 0.010), mountMat)
     strut.position.set(
-      PLACARD_POS.x + sx * PLACARD_W * 0.36,
-      PLACARD_POS.y + PLACARD_H / 2 + strutH / 2 - 0.01,
+      PLACARD_POS.x + sx * plateW * 0.32,
+      plateTop + strutH / 2 - 0.01,
       PLACARD_POS.z - 0.012,
     )
     machineRig.add(strut)
