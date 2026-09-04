@@ -19,7 +19,6 @@ import {
   PRESS_DUR,
   PRESS_GAP,
   PRESS_HUNT_U,
-  pressShowLight,
   SHOWCASE,
   SHOWCASE_DIST,
   SHOWCASE_DIST_PHONE,
@@ -337,7 +336,8 @@ test('press touches down corner first, then rolls the fold line flat', () => {
   assert.ok(Math.abs(end.y - PLACARD_REST.y) < 1e-6)
   assert.ok(Math.abs(end.z - PLACARD_REST.z) < 1e-6)
   assert.equal(end.dof, 0)
-  assert.equal(end.showLight, 0, 'press key is already out so the hold does not snap it')
+  assert.equal(end.showLight, 0)
+  assert.equal(end.keyPos, null)
   assert.equal(end.hunting, true)
 
   const hold = stickAt(stickDuration(false), 'hold', false)
@@ -377,15 +377,17 @@ test('the showcase key is on for the hold and gone by the beam', () => {
   assert.equal(stickAt(0, 'hold', false).showLight, 0)
 })
 
-test('the press key fades out before the plant, not on it', () => {
-  assert.equal(pressShowLight(0), 0)
-  assert.ok(pressShowLight(0.4) > 0.3)
-  assert.ok(pressShowLight(0.72) > 0.3, 'still on while the vinyl is rolling')
-  assert.ok(pressShowLight(0.85) < pressShowLight(0.72), 'dying on the last stretch')
-  assert.equal(pressShowLight(1), 0)
-  assert.equal(stickAt(PRESS_DUR * 0.4, 'stick', false).showLight, pressShowLight(0.4))
-  assert.equal(stickAt(PRESS_DUR, 'stick', false).showLight, 0)
-  assert.equal(stickAt(PRESS_DUR, 'stick', false).showLight, stickAt(0, 'hold', false).showLight)
+test('the press does not hang a key on the machine', () => {
+  // A close spot at the mount painted a specular on the front cage tube
+  // that sat in front of the code and died when the press ended.
+  for (const u of [0, 0.4, 0.72, 0.85, 1]) {
+    const pose = stickAt(PRESS_DUR * u, 'stick', false)
+    assert.equal(pose.showLight, 0, `press u=${u} must not drive the 0C key`)
+    assert.equal(pose.keyPos, null, `press u=${u} must not place a spot on the mount`)
+  }
+  const hold = stickAt(0, 'hold', false)
+  assert.equal(hold.showLight, 0)
+  assert.equal(hold.keyPos, null)
 })
 
 test('the scanner may hunt before the plant frame, not during the fly', () => {

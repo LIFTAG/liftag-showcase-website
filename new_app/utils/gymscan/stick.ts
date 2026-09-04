@@ -48,7 +48,7 @@ export const PRESS_DUR = 1.1
 /**
  * Fraction of the press at which the tag is on the beam far enough for the
  * scanner to start hunting. Earlier and the L's ride a card still in the air;
- * at 1 they pop on the plant frame with the doors and the key going out.
+ * at 1 they pop on the plant frame with the doors.
  */
 export const PRESS_HUNT_U = 0.78
 /** Stand-off at the start of the press, metres. The bend does the rest. */
@@ -236,19 +236,6 @@ export function showcaseKeyPos(
 
 /** Candela. Tuned against toneMappingExposure 0.82 and the print's albedo. */
 export const SHOWCASE_KEY_INTENSITY = 0.40
-
-/**
- * Where the same light hangs for the 0D press: up and camera-left of the
- * mount, close in. The room's own fixtures are six metres up and behind, so
- * without this the application plays out on a plate lit to about two percent
- * of the frame - all the work of the bend and the squeegee happening in the
- * dark. Read as the phone's screen still pointed at the plate by whoever is
- * putting it on, which is where the light in the establishing shot comes from
- * too.
- */
-export function pressKeyPos(): { x: number, y: number, z: number } {
-  return { x: -0.205, y: 1.442, z: 0.096 }
-}
 
 /**
  * Camera-space point: metres along the look, camera-right, and world-up lift.
@@ -519,17 +506,6 @@ export function flyShowLight(u: number): number {
   return ease(t, IN_END * 0.12, IN_END * 0.48) * (1 - ease(t, BACK_END - 0.01, 0.97))
 }
 
-/**
- * 0–1 press key. A third of the showcase level: enough to see the vinyl bend
- * and the air line travel, not so much that the mount outshines the machine.
- * In with the contact, out before the plant so the hold does not snap the
- * extra spot out of the light list on the same frame the doors and L's arrive.
- */
-export function pressShowLight(u: number): number {
-  const t = clamp01(u)
-  return 0.34 * ease(t, 0, 0.14) * (1 - ease(t, 0.72, 0.98))
-}
-
 /** The liner's fold line and roll radius at fly progress `u`. */
 export function foilAt(u: number): {
   peel: PeelState
@@ -687,8 +663,14 @@ function pressAt(local: number): StickPose {
     rotY: 0,
     rotZ: 0,
     dof: 0,
-    showLight: pressShowLight(u),
-    keyPos: pressKeyPos(),
+    // Room light only. A close spot here was meant to read the vinyl, but
+    // inverse-square from a lamp next to the mount also paints a travelling
+    // specular on the front cage tube - the steel bar sitting in front of
+    // the code - and that highlight dies the frame the press key goes out.
+    // The 0C key stays at the lens for the same reason: a 1.4 m cutoff on
+    // the machine relights the establishing shot.
+    showLight: 0,
+    keyPos: null,
     squeegee: ease(u, 0.10, 0.24) * (1 - ease(u, 0.88, 1)),
     bend: u >= 1
       ? FLAT
