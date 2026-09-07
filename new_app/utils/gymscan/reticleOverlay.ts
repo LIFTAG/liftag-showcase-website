@@ -4,9 +4,11 @@
 // callback. Those styles were committed by a separate compositor path and
 // could visibly trail the QR during scroll. This shader is drawn into the same
 // canvas, in the same animation frame, after the gym/phone presentation.
+// Capture grows the L's into a closed frame and sweeps the plate in this pass
+// so the confirmation is stuck to the QR as that texture folds onto the glass.
 import * as THREE from 'three'
 
-import type { ReticleBox } from './reticle.ts'
+import { reticleCaptureGeometry, reticleCapturePose, type ReticleBox } from './reticle.ts'
 import { RETICLE_RGB } from './hologramColor.ts'
 
 const VERT = /* glsl */`
@@ -36,6 +38,9 @@ const FRAG = /* glsl */`
   uniform float uStroke;
   uniform float uOpacity;
   uniform float uGlow;
+  uniform float uOutset;
+  uniform float uScan;
+  uniform float uScanAmp;
   uniform vec3  uColor;
   varying vec2 vPixel;
 
@@ -55,10 +60,11 @@ const FRAG = /* glsl */`
 
   void main() {
     vec2 p = vPixel;
-    float x0 = uRect.x - uArm * 0.5;
-    float y0 = uRect.y - uArm * 0.5;
-    float x1 = uRect.x + uRect.z + uArm * 0.5;
-    float y1 = uRect.y + uRect.w + uArm * 0.5;
+    float armOut = uArm * 0.5 * uOutset;
+    float x0 = uRect.x - armOut;
+    float y0 = uRect.y - armOut;
+    float x1 = uRect.x + uRect.z + armOut;
+    float y1 = uRect.y + uRect.w + armOut;
 
     vec2 tl = vec2(x0, y0);
     vec2 tr = vec2(x1, y0);
@@ -75,7 +81,17 @@ const FRAG = /* glsl */`
     float halfStroke = uStroke * 0.5;
     float core = 1.0 - smoothstep(halfStroke - 1.0, halfStroke + 1.0, d);
     float halo = exp(-max(d - halfStroke, 0.0) / 5.5) * uGlow;
-    float alpha = max(core * 0.94, halo) * uOpacity;
+
+    // Capture sweep: a single lime bar travelling the closed frame. Kept as a
+    // stroke so the plate itself does not flood green.
+    float scanY = mix(uRect.y, uRect.y + uRect.w, uScan);
+    float scanD = abs(p.y - scanY);
+    float insideX = 1.0 - smoothstep(0.0, 2.0, max(uRect.x - p.x, p.x - (uRect.x + uRect.z)));
+    float scanCore = (1.0 - smoothstep(halfStroke - 1.0, halfStroke + 2.0, scanD)) * insideX;
+    float scanHalo = exp(-max(scanD - halfStroke, 0.0) / 7.0) * insideX * 0.55;
+    float scan = max(scanCore, scanHalo) * uScanAmp;
+
+    float alpha = max(max(core * 0.94, halo), scan) * uOpacity;
     if (alpha < 0.003) discard;
     gl_FragColor = vec4(uColor, alpha);
   }
@@ -88,6 +104,7 @@ export interface ReticlePixelState {
   h: number
   arm: number
   stroke: number
+  outset: number
 }
 
 export type ReticlePixelBounds = [minX: number, minY: number, maxX: number, maxY: number]
@@ -100,33 +117,36 @@ export function reticlePixelState(
   bufferWidth: number,
   bufferHeight: number,
 ): ReticlePixelState {
+  const pose = reticleCapturePose(box.capture)
+  const geo = reticleCaptureGeometry(box, pose)
   const sx = bufferWidth / Math.max(cssWidth, 1)
   const sy = bufferHeight / Math.max(cssHeight, 1)
   const scale = Math.min(sx, sy)
-  const strokeCss = Math.min(2.75, Math.max(1.5, box.arm * 0.08))
+  const strokeCss = Math.min(3.2, Math.max(1.5, geo.arm * 0.08)) * (1 + pose.connect * 0.28)
   return {
-    x: box.x * sx,
-    y: box.y * sy,
-    w: box.w * sx,
-    h: box.h * sy,
-    arm: box.arm * scale,
+    x: geo.x * sx,
+    y: geo.y * sy,
+    w: geo.w * sx,
+    h: geo.h * sy,
+    arm: geo.arm * scale,
     stroke: strokeCss * scale,
+    outset: geo.outset,
   }
 }
 
-/** Tight draw region around the brackets and their short glow falloff. */
+/** Tight draw region around the brackets, the closed frame, and the sweep. */
 export function reticlePixelBounds(
   state: ReticlePixelState,
   bufferWidth: number,
   bufferHeight: number,
 ): ReticlePixelBounds {
-  const halfArm = state.arm * 0.5
-  const pad = Math.max(12, state.stroke * 6)
+  const armOut = state.arm * 0.5 * state.outset
+  const pad = Math.max(14, state.stroke * 8)
   return [
-    Math.max(0, state.x - halfArm - pad),
-    Math.max(0, state.y - halfArm - pad),
-    Math.min(bufferWidth, state.x + state.w + halfArm + pad),
-    Math.min(bufferHeight, state.y + state.h + halfArm + pad),
+    Math.max(0, state.x - armOut - pad),
+    Math.max(0, state.y - armOut - pad),
+    Math.min(bufferWidth, state.x + state.w + armOut + pad),
+    Math.min(bufferHeight, state.y + state.h + armOut + pad),
   ]
 }
 
@@ -145,6 +165,9 @@ export function createReticleOverlay() {
       uStroke: { value: 1.5 },
       uOpacity: { value: 0 },
       uGlow: { value: 0.22 },
+      uOutset: { value: 1 },
+      uScan: { value: 0 },
+      uScanAmp: { value: 0 },
       uColor: { value: new THREE.Color(RETICLE_RGB[0], RETICLE_RGB[1], RETICLE_RGB[2]) },
     },
     transparent: true,
@@ -167,6 +190,7 @@ export function createReticleOverlay() {
     if (!box || box.opacity <= 0) return
     if (target) bufferSize.set(target.width, target.height)
     else renderer.getDrawingBufferSize(bufferSize)
+    const pose = reticleCapturePose(box.capture)
     const px = reticlePixelState(box, cssWidth, cssHeight, bufferSize.x, bufferSize.y)
     const bounds = reticlePixelBounds(px, bufferSize.x, bufferSize.y)
     material.uniforms.uViewport!.value.copy(bufferSize)
@@ -175,7 +199,10 @@ export function createReticleOverlay() {
     material.uniforms.uArm!.value = px.arm
     material.uniforms.uStroke!.value = px.stroke
     material.uniforms.uOpacity!.value = box.opacity
-    material.uniforms.uGlow!.value = locked ? 0.32 : 0.20
+    material.uniforms.uGlow!.value = box.capture > 0 ? pose.glow : locked ? 0.32 : 0.20
+    material.uniforms.uOutset!.value = px.outset
+    material.uniforms.uScan!.value = pose.scan
+    material.uniforms.uScanAmp!.value = pose.scanAmp
 
     const previousTarget = renderer.getRenderTarget()
     const previousAutoClear = renderer.autoClear

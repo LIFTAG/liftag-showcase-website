@@ -1,0 +1,44 @@
+<script setup lang="ts">
+import { gymFaqs } from "~/utils/gymscan/content";
+withDefaults(defineProps<{ source?: "experience" | "partner" }>(), {
+  source: "experience",
+});
+</script>
+<template>
+  <section id="kit" class="gx-kit" aria-labelledby="gx-kit-title">
+    <div class="gx-kit__intro">
+      <p class="gx-protocol"><GymEntry mode="holo" row><span class="gx-dot" /> START WITH YOUR GYM</GymEntry></p>
+      <h2 id="gx-kit-title">
+        <GymEntry>Put your gym </GymEntry><br /><GymEntry from="right" lime :delay="90"><em>in their workout.</em></GymEntry>
+      </h2>
+      <p><GymEntry mode="holo" :delay="180">Free QR + NFC tags. Your equipment, connected.</GymEntry></p>
+      <div class="gx-kit__tag">
+        <img
+          src="/assets/gym3d/qr-sticker.webp"
+          width="827"
+          height="874"
+          alt="The LIFTAG QR and NFC equipment tag"
+          loading="lazy"
+        /><span class="gx-protocol"><GymEntry mode="holo" :delay="240">QR + NFC<br />READY FOR YOUR FLOOR</GymEntry></span>
+      </div>
+      <details class="gx-included">
+        <summary>What’s free? <span>+</span></summary>
+        <p>
+          Your QR + NFC tags, gym listing, equipment setup, and core dashboard.
+          Advanced business tools are optional.
+        </p>
+        <NuxtLink to="/pricing">See what’s included ↗</NuxtLink>
+      </details>
+    </div>
+    <div class="gx-kit__form">
+      <h3><GymEntry :delay="80">Request your free kit.</GymEntry></h3>
+      <GymKitForm :source="source" theme="dark" />
+    </div>
+    <div class="gx-faqs">
+      <details v-for="faq in gymFaqs.slice(1)" :key="faq.question">
+        <summary>{{ faq.question }}<span>+</span></summary>
+        <p>{{ faq.answer }}</p>
+      </details>
+    </div>
+  </section>
+</template>

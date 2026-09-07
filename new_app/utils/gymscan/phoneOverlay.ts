@@ -90,6 +90,8 @@ const SCREEN_VERT = /* glsl */`
 const SCREEN_FRAG = /* glsl */`
   uniform sampler2D tGym;
   uniform sampler2D tApp;
+  uniform sampler2D tCoaching;
+  uniform float uCoaching;
   uniform float uApp;
   uniform vec2 uRepeat;
   uniform vec2 uOffset;
@@ -142,6 +144,7 @@ const SCREEN_FRAG = /* glsl */`
       return;
     }
     vec4 app = texture2D(tApp, vUv * uAppRepeat + uAppOffset);
+    if (uCoaching > 0.001) app = mix(app, texture2D(tCoaching, vUv), uCoaching);
     if (uApp > 0.999) {
       gl_FragColor = app;
       return;
@@ -186,6 +189,8 @@ export function createPhoneOverlay(opts: { shadows: boolean }) {
     uniforms: {
       tGym: { value: null },
       tApp: { value: null },
+      tCoaching: { value: null },
+      uCoaching: { value: 0 },
       uApp: { value: 0 },
       uRepeat: { value: new THREE.Vector2(1, 1) },
       uOffset: { value: new THREE.Vector2(0, 0) },
@@ -512,6 +517,11 @@ export function createPhoneOverlay(opts: { shadows: boolean }) {
 
   return {
     pose,
+    addContent: (content: THREE.Object3D) => model.group.add(content),
+    setCoaching: (texture: THREE.Texture | null, mix: number) => {
+      screenMat.uniforms.tCoaching!.value = texture;
+      screenMat.uniforms.uCoaching!.value = mix;
+    },
     blitToScreen,
     exportScreen,
     renderFromTexture,

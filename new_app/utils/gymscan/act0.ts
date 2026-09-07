@@ -78,6 +78,14 @@ export function act0Duration(phone: boolean): number {
   return act0Windows(phone).stickEnd
 }
 
+/**
+ * Opening copy waits for 0A's hologram sweep to finish writing the floor.
+ * Skip / reduced-motion land on `done`, which is also a release.
+ */
+export function act0SweepDone(a0: Act0State): boolean {
+  return a0.done || a0.floorT >= floorDuration(a0.phone)
+}
+
 export function act0At(t: number, phone: boolean): Act0State {
   const w = act0Windows(phone)
   // Skip is only a way out of the birth. Once the press lands and 0D holds,

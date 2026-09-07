@@ -1,0 +1,34 @@
+[
+  {
+    "asset": "plate-loaded-pulldown.glb",
+    "source": "all+fitness.glb",
+    "object": "3.004",
+    "source_triangles": 20089,
+    "triangles": 13999,
+    "bytes": 356648
+  },
+  {
+    "asset": "plate-loaded-chest-press.glb",
+    "source": "all+fitness.glb",
+    "object": "3.002",
+    "source_triangles": 22661,
+    "triangles": 13999,
+    "bytes": 339440
+  },
+  {
+    "asset": "adjustable-bench.glb",
+    "source": "all+fitness.glb",
+    "object": "1.003",
+    "source_triangles": 18164,
+    "triangles": 10000,
+    "bytes": 189628
+  },
+  {
+    "asset": "indoor-bike.glb",
+    "source": "all+cardio.glb",
+    "object": "SP3D_002+-+Bicicleta+de+Academia+Gyn+Bike+Vray+read",
+    "source_triangles": 319540,
+    "triangles": 16000,
+    "bytes": 362016
+  }
+]

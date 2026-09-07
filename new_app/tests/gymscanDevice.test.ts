@@ -10,22 +10,28 @@ const capable = {
   probeFailed: false,
 } as const
 
-test('only the coarse, no-hover media query selects FROM THE SEAT', () => {
+const FLOOR = {
+  cut: 'floor',
+  deviceClass: 'floor',
+  dprCap: 1.5,
+  bloom: true,
+  shadows: true,
+  msaa: true,
+  startStage: true,
+  blitAfterLock: false,
+} as const
+
+test('the live detector always plays FROM THE FLOOR', () => {
+  assert.deepEqual(detectGymScanDevice(), FLOOR)
+})
+
+test('coarse pointer, Save-Data, and a failed probe cannot select a different film', () => {
   const floor = detectGymScanDevice({
-    matchMedia: () => ({ matches: false }),
+    matchMedia: () => ({ matches: true }),
     saveData: () => true,
     probe: () => ({ webgl2: false, maxTextureSize: 0, probeFailed: true }),
   })
-  assert.deepEqual(floor, {
-    cut: 'floor',
-    deviceClass: 'floor',
-    dprCap: 1.5,
-    bloom: true,
-    shadows: true,
-    msaa: true,
-    startStage: true,
-    blitAfterLock: false,
-  })
+  assert.deepEqual(floor, FLOOR)
 })
 
 test('a capable seat device is Class A', () => {
@@ -62,20 +68,4 @@ test('missing WebGL2, Save-Data, and probe failures each force Class C', () => {
     assert.equal(result.blitAfterLock, false)
     assert.equal(result.dprCap, 1)
   }
-})
-
-test('the browser detector combines injected media, network, and GL probes', () => {
-  let query = ''
-  const result = detectGymScanDevice({
-    matchMedia: (value) => {
-      query = value
-      return { matches: true }
-    },
-    saveData: () => false,
-    probe: () => ({ webgl2: true, maxTextureSize: 8192, probeFailed: false }),
-  })
-
-  assert.equal(query, '(pointer: coarse) and (hover: none)')
-  assert.equal(result.cut, 'seat')
-  assert.equal(result.deviceClass, 'A')
 })

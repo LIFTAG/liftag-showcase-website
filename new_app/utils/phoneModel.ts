@@ -12,10 +12,34 @@ export const PHONE_SCR_W = PHONE_W - PHONE_BEZEL * 2
 export const PHONE_SCR_H = PHONE_H - PHONE_BEZEL * 2
 export const PHONE_SCR_R = PHONE_R - PHONE_BEZEL
 export const PHONE_SCREEN_Z = PHONE_D / 2 + 0.013
+export const PHONE_ISLAND = {
+  width: 0.26,
+  height: 0.065,
+  y: PHONE_SCR_H / 2 - 0.06,
+  z: PHONE_D / 2 + 0.0145,
+} as const
 export const PHONE_REST_ROT_X = 0.08
 export const PHONE_REST_ROT_Y = -0.12
 export const PHONE_CAM_FOV = 30
 export const PHONE_CAM_Z = 3.92
+/**
+ * Back camera bar — keep in sync with `createPhoneModel`.
+ * Newer iPhones run a plateau across almost the full width; the three
+ * lenses sit in a triangle on the left.
+ */
+export const PHONE_CAM_HOUSING = {
+  x: 0,
+  y: 0.7,
+  w: 0.91,
+  h: 0.355,
+  r: 0.11,
+} as const
+export const PHONE_LENS_R = 0.045
+export const PHONE_LENSES = [
+  { x: 0.345, y: 0.8 },
+  { x: 0.185, y: 0.8 },
+  { x: 0.265, y: 0.64 },
+] as const
 
 export function phoneRoundedRect(w: number, h: number, r: number) {
   const shape = new THREE.Shape()
@@ -92,8 +116,8 @@ export function createPhoneModel(opts: {
   )
   glass.position.z = PHONE_D / 2 + 0.014
 
-  const diW = 0.26
-  const diH = 0.065
+  const diW = PHONE_ISLAND.width
+  const diH = PHONE_ISLAND.height
   const diShape = new THREE.Shape()
   const diR = diH / 2
   diShape.absarc(diW / 2 - diR, 0, diR, -Math.PI / 2, Math.PI / 2, false)
@@ -103,7 +127,7 @@ export function createPhoneModel(opts: {
     new THREE.ShapeGeometry(diShape),
     new THREE.MeshBasicMaterial({ color: 0x000000 }),
   )
-  dynamicIsland.position.set(0, PHONE_SCR_H / 2 - 0.06, PHONE_D / 2 + 0.0145)
+  dynamicIsland.position.set(0, PHONE_ISLAND.y, PHONE_ISLAND.z)
 
   const btnMat = new THREE.MeshPhysicalMaterial({
     color: 0x2a2a2e,
@@ -124,7 +148,7 @@ export function createPhoneModel(opts: {
   muteSwitch.position.set(-PHONE_W / 2 - 0.014, 0.58, 0)
 
   const camHousing = new THREE.Mesh(
-    new THREE.ExtrudeGeometry(phoneRoundedRect(0.35, 0.35, 0.06), {
+    new THREE.ExtrudeGeometry(phoneRoundedRect(PHONE_CAM_HOUSING.w, PHONE_CAM_HOUSING.h, PHONE_CAM_HOUSING.r), {
       depth: 0.015,
       bevelEnabled: true,
       bevelThickness: 0.005,
@@ -137,9 +161,9 @@ export function createPhoneModel(opts: {
       roughness: 0.2,
     }),
   )
-  camHousing.position.set(-0.15, 0.6, -PHONE_D / 2 - 0.02)
+  camHousing.position.set(PHONE_CAM_HOUSING.x, PHONE_CAM_HOUSING.y, -PHONE_D / 2 - 0.02)
 
-  const lensGeo = new THREE.CylinderGeometry(0.045, 0.045, 0.02, 24)
+  const lensGeo = new THREE.CylinderGeometry(PHONE_LENS_R, PHONE_LENS_R, 0.02, 24)
   const lensMat = new THREE.MeshPhysicalMaterial({
     color: 0x0a0a12,
     metalness: 0.5,
@@ -164,9 +188,9 @@ export function createPhoneModel(opts: {
     return [lens, ring] as const
   }
 
-  const [l1, r1] = makeLens(-0.22, 0.68)
-  const [l2, r2] = makeLens(-0.08, 0.68)
-  const [l3, r3] = makeLens(-0.15, 0.52)
+  const [l1, r1] = makeLens(PHONE_LENSES[0].x, PHONE_LENSES[0].y)
+  const [l2, r2] = makeLens(PHONE_LENSES[1].x, PHONE_LENSES[1].y)
+  const [l3, r3] = makeLens(PHONE_LENSES[2].x, PHONE_LENSES[2].y)
 
   const group = new THREE.Group()
   group.add(body, screen, glass, dynamicIsland, powerBtn, volUp, volDown, muteSwitch)

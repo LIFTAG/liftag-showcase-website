@@ -1,9 +1,15 @@
+import { isGymDemoPath } from '~/utils/gymscan/navigation'
+
 export default defineNuxtPlugin(() => {
   if (!import.meta.client) return
 
+  // The gym demo keeps native restoration so chapter hashes survive reload.
+  const onGymDemo = isGymDemoPath(window.location.pathname)
   if ('scrollRestoration' in window.history) {
-    window.history.scrollRestoration = 'manual'
+    window.history.scrollRestoration = onGymDemo ? 'auto' : 'manual'
   }
+
+  if (onGymDemo) return
 
   const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined
   const isReload = navigation?.type === 'reload'

@@ -1,0 +1,382 @@
+- generic [ref=f11e2]:
+  - banner [ref=f11e3]:
+    - link "LIFTAG logo LIFTAG" [ref=f11e4] [cursor=pointer]:
+      - /url: /
+      - generic [ref=f11e5]:
+        - img "LIFTAG logo"
+      - generic [ref=f11e6]: LIFTAG
+    - text: D e m o L i f t e r s G y m s T r a i n e r s E x e r c i s e s J o u r n a l P r i c i n g
+    - button "Toggle menu" [ref=f11e8] [cursor=pointer]
+  - main [ref=f11e9]:
+    - main [ref=f11e11]:
+      - article [ref=f11e12]:
+        - generic [ref=f11e13]:
+          - paragraph [ref=f11e14]: PRICING · UPDATED AUG 2026
+          - 'heading "LIFTAG pricing: zero." [level=1] [ref=f11e15]'
+          - paragraph [ref=f11e16]: What LIFTAG costs in 2026. Core workout tracking is free forever on iOS and Android, NFC and QR machine tags are optional, and there is no paid tier on either store today. Sourced, dated, no invented numbers.
+          - generic [ref=f11e17]:
+            - link "Get LIFTAG free" [ref=f11e18] [cursor=pointer]:
+              - /url: /get
+            - link "Pricing for gyms" [ref=f11e19] [cursor=pointer]:
+              - /url: /for-gyms
+        - generic [ref=f11e20]:
+          - generic [ref=f11e21]:
+            - heading "Fact sheet" [level=2] [ref=f11e22]
+            - paragraph [ref=f11e23]: Every row below is quoteable on its own, and none of it is a projection or a launch plan.
+            - generic [ref=f11e24]:
+              - generic [ref=f11e25]:
+                - term [ref=f11e26]: Price to download
+                - definition [ref=f11e27]: Free
+              - generic [ref=f11e28]:
+                - term [ref=f11e29]: Platforms
+                - definition [ref=f11e30]: iOS and Android
+              - generic [ref=f11e31]:
+                - term [ref=f11e32]: Core workout tracking
+                - definition [ref=f11e33]: Free forever
+              - generic [ref=f11e34]:
+                - term [ref=f11e35]: In-app purchases today
+                - definition [ref=f11e36]: None listed on the App Store or Google Play as of 27 August 2026
+              - generic [ref=f11e37]:
+                - term [ref=f11e38]: Premium tier
+                - definition [ref=f11e39]: "Optional, and unpriced: no published figure exists yet"
+              - generic [ref=f11e40]:
+                - term [ref=f11e41]: Ads on the free log
+                - definition [ref=f11e42]: None
+              - generic [ref=f11e43]:
+                - term [ref=f11e44]: NFC and QR machine tags
+                - definition [ref=f11e45]: Optional. The app is a complete tracker without them.
+              - generic [ref=f11e46]:
+                - term [ref=f11e47]: Cost to a partner gym
+                - definition [ref=f11e48]: Tags, listing, machine setup, and the core dashboard are free forever
+              - generic [ref=f11e49]:
+                - term [ref=f11e50]: Cost to a trainer
+                - definition [ref=f11e51]: Profile, discovery, and plan sharing are part of the free product
+              - generic [ref=f11e52]:
+                - term [ref=f11e53]: Languages
+                - definition [ref=f11e54]: English and Slovak
+              - generic [ref=f11e55]:
+                - term [ref=f11e56]: Last verified
+                - definition [ref=f11e57]: 27 August 2026
+          - generic [ref=f11e58]:
+            - heading "What free actually includes" [level=2] [ref=f11e59]
+            - paragraph [ref=f11e60]: "Free tiers usually mean a trial, a routine cap, or a chart that stops three months back. LIFTAG's does not. This is the product, not a sample of it:"
+            - list [ref=f11e61]:
+              - listitem [ref=f11e62]: "Set logging: weight, reps, duration, rest target, optional RPE."
+              - listitem [ref=f11e63]: Rest timer that starts when you save a set.
+              - listitem [ref=f11e64]: Personal records, duration PRs, and estimated 1RM per exercise.
+              - listitem [ref=f11e65]: Progress charts for volume, best sets, streaks, and body-part split.
+              - listitem [ref=f11e66]: Full workout history you can read set by set, by date or by body part.
+              - listitem [ref=f11e67]: Routines, weekly plans, supersets, trisets, and circuits.
+              - listitem [ref=f11e68]: The whole exercise library, plus custom exercises with your own photos or video.
+              - listitem [ref=f11e69]: Gym and trainer discovery, including filters and gym detail pages.
+              - listitem [ref=f11e70]: NFC tap and QR scan on machines at partner gyms.
+            - paragraph [ref=f11e71]:
+              - text: Details on the tag half of that list live on
+              - link "NFC and QR gym tags" [ref=f11e72] [cursor=pointer]:
+                - /url: /qr-nfc-gym-tags
+              - text: ", and the lifts themselves are public in the"
+              - link "exercise library" [ref=f11e73] [cursor=pointer]:
+                - /url: /exercises
+              - text: .
+          - generic [ref=f11e74]:
+            - heading "What we will not tell you" [level=2] [ref=f11e75]
+            - paragraph [ref=f11e76]: "LIFTAG premium is real as an intention and unpriced as a fact. There is no live paid SKU on the App Store or on Google Play, which means any figure on this page would be a guess dressed up as a price. So here is the honest version:"
+            - list [ref=f11e77]:
+              - listitem [ref=f11e78]: Core tracking is free forever. That is a commitment, not a promotion.
+              - listitem [ref=f11e79]: Premium intelligence is planned as an optional layer on top of it.
+              - listitem [ref=f11e80]: There is no published price, no announced date, and no trial to expire.
+            - paragraph [ref=f11e81]: If you are choosing a tracker partly on what it will cost you in a year, that uncertainty is a fair thing to weigh against us. It is also why this page carries a verification date instead of a marketing one.
+          - generic [ref=f11e82]:
+            - heading "Against the two apps people compare us to" [level=2] [ref=f11e83]
+            - paragraph [ref=f11e84]: Competitor figures are read off each vendor's own US App Store listing, opened on 27 August 2026. Store pricing moves, varies by region, and varies by account, so the source column is the part that matters.
+            - region "LIFTAG, Hevy, and Strong pricing compared" [ref=f11e85]:
+              - table [ref=f11e86]:
+                - rowgroup [ref=f11e87]:
+                  - row [ref=f11e88]:
+                    - columnheader "App" [ref=f11e89]
+                    - columnheader "Free tier" [ref=f11e90]
+                    - columnheader "Paid tier" [ref=f11e91]
+                    - columnheader "Price" [ref=f11e92]
+                    - columnheader "Source" [ref=f11e93]
+                - rowgroup [ref=f11e94]:
+                  - row [ref=f11e95]:
+                    - rowheader "LIFTAG" [ref=f11e96]
+                    - 'cell "Core tracking: set logging, rest timer, PRs, estimated 1RM, history, exercise library, gym and trainer discovery." [ref=f11e97]'
+                    - cell "Premium intelligence, optional" [ref=f11e98]
+                    - cell "No paid tier published" [ref=f11e99]
+                    - cell [ref=f11e100]:
+                      - link "LIFTAG on the App Store" [ref=f11e101] [cursor=pointer]:
+                        - /url: https://apps.apple.com/app/id6761140080
+                  - row [ref=f11e102]:
+                    - rowheader "Hevy" [ref=f11e103]
+                    - cell "Free logging with a cap on saved routines, custom exercises, and graph history." [ref=f11e104]
+                    - cell "Hevy Pro" [ref=f11e105]
+                    - cell "$2.99 / month, $23.99 / year, or $74.99 lifetime" [ref=f11e106]
+                    - cell [ref=f11e107]:
+                      - link "Hevy on the US App Store" [ref=f11e108] [cursor=pointer]:
+                        - /url: https://apps.apple.com/us/app/hevy-workout-tracker-gym-log/id1458862350
+                  - row [ref=f11e109]:
+                    - rowheader "Strong" [ref=f11e110]
+                    - cell "Unlimited saved workouts, capped at 3 custom routines." [ref=f11e111]
+                    - cell "Strong PRO" [ref=f11e112]
+                    - cell "$4.99 / month or $29.99 / year" [ref=f11e113]
+                    - cell [ref=f11e114]:
+                      - link "Strong on the US App Store" [ref=f11e115] [cursor=pointer]:
+                        - /url: https://apps.apple.com/us/app/strong-workout-tracker-gym-log/id464254577
+            - paragraph [ref=f11e116]:
+              - text: "Row by row on features rather than price:"
+              - link "LIFTAG vs Hevy" [ref=f11e117] [cursor=pointer]:
+                - /url: /alternatives/hevy
+              - text: and
+              - link "LIFTAG vs Strong" [ref=f11e118] [cursor=pointer]:
+                - /url: /vs/strong
+              - text: . The eight-app matrix is the
+              - link "2026 tracker comparison" [ref=f11e119] [cursor=pointer]:
+                - /url: /best-workout-tracking-app
+              - text: .
+          - generic [ref=f11e120]:
+            - heading "Gyms and trainers" [level=2] [ref=f11e121]
+            - paragraph [ref=f11e122]:
+              - text: "A partner gym pays nothing for the part that touches the floor: the dual NFC and QR tag kit is shipped free, machine setup and the gym listing are free, and the core multi-location dashboard is free forever. Advanced business tools are the optional layer there, on the same terms as premium is for lifters. The rollout itself is documented in"
+              - link "gym NFC tag rollout" [ref=f11e123] [cursor=pointer]:
+                - /url: /journal/gym-nfc-rollout
+              - text: ", and what other machine-tag platforms charge a gym per month is priced out on"
+              - link "best gym QR and NFC app" [ref=f11e124] [cursor=pointer]:
+                - /url: /best-gym-qr-nfc-app
+              - text: .
+            - paragraph [ref=f11e125]:
+              - text: "Trainers get a profile, discovery, and plan sharing inside the free product. Verification is an application, not a purchase:"
+              - link "become a coach" [ref=f11e126] [cursor=pointer]:
+                - /url: /become-a-coach
+              - text: .
+          - generic [ref=f11e127]:
+            - heading "Frequently asked questions" [level=2] [ref=f11e128]
+            - generic [ref=f11e129]:
+              - generic [ref=f11e130]:
+                - button "How much does LIFTAG cost?" [expanded] [ref=f11e131] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f11e132]: "01"
+                  - generic [aria-hidden] [ref=f11e134]: +
+                - region "How much does LIFTAG cost?" [ref=f11e135]:
+                  - paragraph [ref=f11e137]: "Nothing. LIFTAG is free to download on iOS and Android, and core workout tracking is free forever: logging sets, rest timer, PRs, estimated 1RM, and history. As of 27 August 2026 neither the App Store nor the Google Play listing shows any in-app purchase, so there is no paid tier to buy."
+              - generic [ref=f11e138]:
+                - button "Is there a LIFTAG premium plan, and what does it cost?" [ref=f11e139] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f11e140]: "02"
+                  - generic [aria-hidden] [ref=f11e142]: +
+                - paragraph [ref=f11e143]: Premium intelligence is described across this site as optional, and it has no published price, because there is no live paid SKU on either store. We would rather say that plainly than publish a number we cannot stand behind. When a paid tier ships, this page carries the price and the date it was set.
+              - generic [ref=f11e144]:
+                - button "Is the free tier limited by number of routines or history depth?" [ref=f11e145] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f11e146]: "03"
+                  - generic [aria-hidden] [ref=f11e148]: +
+                - paragraph [ref=f11e149]: "No. The free product is the whole logger: unlimited routines and plans, full history, PRs, estimated 1RM, and progress charts. That is the difference worth knowing when you compare it against a free tier that caps routines or truncates graph history."
+              - generic [ref=f11e150]:
+                - button "Do I have to pay for the NFC or QR gym tags?" [ref=f11e151] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f11e152]: "04"
+                  - generic [aria-hidden] [ref=f11e154]: +
+                - paragraph [ref=f11e155]: No, in either direction. Lifters never pay for tags. Partner gyms get the dual NFC and QR tag kit, their listing, machine setup, and the core dashboard free forever; advanced business tools are optional.
+              - generic [ref=f11e156]:
+                - button "Does LIFTAG work if my gym has no tags?" [ref=f11e157] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f11e158]: "05"
+                  - generic [aria-hidden] [ref=f11e160]: +
+                - paragraph [ref=f11e161]: Yes. Tags are an accelerator at partner gyms, not a requirement. Without them you pick the lift from the library and log it exactly like any other tracker, at no cost.
+              - generic [ref=f11e162]:
+                - button "Is LIFTAG free because it sells my data?" [ref=f11e163] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f11e164]: "06"
+                  - generic [aria-hidden] [ref=f11e166]: +
+                - paragraph [ref=f11e167]: Core tracking is free because the paid surface is meant to be optional intelligence on top of it, and because partner gyms are the growth channel rather than a paywall on the log. What each store listing declares about data collection is public on the App Store and Google Play pages linked at the bottom of this page; read them rather than taking our word for it.
+          - generic [ref=f11e168]:
+            - paragraph [ref=f11e169]: Sources and method
+            - paragraph [ref=f11e170]:
+              - text: "LIFTAG figures are our own and describe the product as shipped. Competitor figures were read off the vendor's own store listing on 27 August 2026, not off a review site:"
+              - link "Hevy on the US App Store" [ref=f11e171] [cursor=pointer]:
+                - /url: https://apps.apple.com/us/app/hevy-workout-tracker-gym-log/id1458862350
+              - text: ","
+              - link "Strong on the US App Store" [ref=f11e172] [cursor=pointer]:
+                - /url: https://apps.apple.com/us/app/strong-workout-tracker-gym-log/id464254577
+              - text: ". Ours are checkable the same way:"
+              - link "App Store" [ref=f11e173] [cursor=pointer]:
+                - /url: https://apps.apple.com/app/id6761140080
+              - text: ","
+              - link "Google Play" [ref=f11e174] [cursor=pointer]:
+                - /url: https://play.google.com/store/apps/details?id=com.liftag.app
+              - text: .
+            - paragraph [ref=f11e175]: We ship one of the apps in that table, so read the pricing rows and the source links rather than the tone. Store prices change without warning; verify before you buy anything. Updated August 2026.
+  - contentinfo [ref=f11e176]:
+    - generic [ref=f11e177]:
+      - generic [ref=f11e178]:
+        - generic [ref=f11e179]:
+          - img "LIFTAG logo" [ref=f11e180]
+          - generic [ref=f11e181]: LIFTAG
+        - paragraph [ref=f11e182]: Because serious training deserves more than a notes app and a spreadsheet.
+        - generic [ref=f11e183]:
+          - link "Featured on LaunchBuff" [ref=f11e184] [cursor=pointer]:
+            - /url: https://launchbuff.com/products/liftag-q97d57
+            - img "Featured on LaunchBuff"
+          - link "Featured on Launchstag" [ref=f11e185] [cursor=pointer]:
+            - /url: https://launchstag.com/p/liftag
+            - img "Featured on Launchstag"
+      - generic [ref=f11e186]:
+        - link "Product" [ref=f11e187] [cursor=pointer]:
+          - /url: /#all-in-one
+        - list [ref=f11e189]:
+          - listitem [ref=f11e190]:
+            - link "Demo" [ref=f11e191] [cursor=pointer]:
+              - /url: /demo
+          - listitem [ref=f11e193]:
+            - link "Exercise Library" [ref=f11e194] [cursor=pointer]:
+              - /url: /exercises
+          - listitem [ref=f11e196]:
+            - link "Machine Catalog" [ref=f11e197] [cursor=pointer]:
+              - /url: /machines
+          - listitem [ref=f11e199]:
+            - link "For Lifters" [ref=f11e200] [cursor=pointer]:
+              - /url: /for-lifters
+          - listitem [ref=f11e202]:
+            - link "For Trainers" [ref=f11e203] [cursor=pointer]:
+              - /url: /for-trainers
+          - listitem [ref=f11e205]:
+            - link "Become a Coach" [ref=f11e206] [cursor=pointer]:
+              - /url: /become-a-coach
+          - listitem [ref=f11e208]:
+            - link "For Gyms" [ref=f11e209] [cursor=pointer]:
+              - /url: /for-gyms
+          - listitem [ref=f11e211]:
+            - link "NFC + QR Tags" [ref=f11e212] [cursor=pointer]:
+              - /url: /qr-nfc-gym-tags
+          - listitem [ref=f11e214]:
+            - link "Pricing" [ref=f11e215] [cursor=pointer]:
+              - /url: /pricing
+          - listitem [ref=f11e217]:
+            - link "About" [ref=f11e218] [cursor=pointer]:
+              - /url: /about
+          - listitem [ref=f11e220]:
+            - link "Press" [ref=f11e221] [cursor=pointer]:
+              - /url: /press
+          - listitem [ref=f11e223]:
+            - link "Roadmap" [ref=f11e224] [cursor=pointer]:
+              - /url: /#roadmap
+          - listitem [ref=f11e226]:
+            - link "Partner with us" [ref=f11e227] [cursor=pointer]:
+              - /url: /contact/partner
+          - listitem [ref=f11e229]:
+            - link "Support" [ref=f11e230] [cursor=pointer]:
+              - /url: /contact/support
+      - generic [ref=f11e232]:
+        - link "Library" [ref=f11e233] [cursor=pointer]:
+          - /url: /muscles
+        - list [ref=f11e235]:
+          - listitem [ref=f11e236]:
+            - link "All muscles" [ref=f11e237] [cursor=pointer]:
+              - /url: /muscles
+          - listitem [ref=f11e239]:
+            - link "Chest" [ref=f11e240] [cursor=pointer]:
+              - /url: /muscles/chest
+          - listitem [ref=f11e242]:
+            - link "Back" [ref=f11e243] [cursor=pointer]:
+              - /url: /muscles/back
+          - listitem [ref=f11e245]:
+            - link "Shoulders" [ref=f11e246] [cursor=pointer]:
+              - /url: /muscles/shoulders
+          - listitem [ref=f11e248]:
+            - link "Quads" [ref=f11e249] [cursor=pointer]:
+              - /url: /muscles/quadriceps
+          - listitem [ref=f11e251]:
+            - link "Hamstrings" [ref=f11e252] [cursor=pointer]:
+              - /url: /muscles/hamstrings
+          - listitem [ref=f11e254]:
+            - link "Glutes" [ref=f11e255] [cursor=pointer]:
+              - /url: /muscles/glutes
+          - listitem [ref=f11e257]:
+            - link "Abs" [ref=f11e258] [cursor=pointer]:
+              - /url: /muscles/abs
+          - listitem [ref=f11e260]:
+            - link "Bench press" [ref=f11e261] [cursor=pointer]:
+              - /url: /exercises/barbell-bench-press
+          - listitem [ref=f11e263]:
+            - link "Back squat" [ref=f11e264] [cursor=pointer]:
+              - /url: /exercises/barbell-back-squat
+          - listitem [ref=f11e266]:
+            - link "Deadlift" [ref=f11e267] [cursor=pointer]:
+              - /url: /exercises/conventional-deadlift
+      - generic [ref=f11e269]:
+        - link "Journal" [ref=f11e270] [cursor=pointer]:
+          - /url: /journal
+        - list [ref=f11e272]:
+          - listitem [ref=f11e273]:
+            - link "All articles" [ref=f11e274] [cursor=pointer]:
+              - /url: /journal
+          - listitem [ref=f11e276]:
+            - link "Best Workout Tracking App" [ref=f11e277] [cursor=pointer]:
+              - /url: /best-workout-tracking-app
+          - listitem [ref=f11e279]:
+            - link "Best Gym QR + NFC App" [ref=f11e280] [cursor=pointer]:
+              - /url: /best-gym-qr-nfc-app
+          - listitem [ref=f11e282]:
+            - link "Best Workout Logger" [ref=f11e283] [cursor=pointer]:
+              - /url: /journal/best-workout-logger
+          - listitem [ref=f11e285]:
+            - link "Best Free Workout Tracker" [ref=f11e286] [cursor=pointer]:
+              - /url: /journal/best-free-workout-tracker
+          - listitem [ref=f11e288]:
+            - link "LIFTAG vs Hevy" [ref=f11e289] [cursor=pointer]:
+              - /url: /alternatives/hevy
+          - listitem [ref=f11e291]:
+            - link "LIFTAG vs Strong" [ref=f11e292] [cursor=pointer]:
+              - /url: /vs/strong
+          - listitem [ref=f11e294]:
+            - link "Strong vs Hevy vs LIFTAG" [ref=f11e295] [cursor=pointer]:
+              - /url: /journal/strong-vs-hevy-vs-liftag
+          - listitem [ref=f11e297]:
+            - link "Workout Logger" [ref=f11e298] [cursor=pointer]:
+              - /url: /journal/workout-logger
+          - listitem [ref=f11e300]:
+            - link "How to Track Workouts" [ref=f11e301] [cursor=pointer]:
+              - /url: /journal/how-to-track-workouts
+          - listitem [ref=f11e303]:
+            - link "Best App for Powerlifting" [ref=f11e304] [cursor=pointer]:
+              - /url: /journal/best-workout-app-for-powerlifting
+          - listitem [ref=f11e306]:
+            - link "QR + NFC Gym Tracking" [ref=f11e307] [cursor=pointer]:
+              - /url: /journal/qr-nfc-gym-tracking
+          - listitem [ref=f11e309]:
+            - link "NFC Tags for Gym Equipment" [ref=f11e310] [cursor=pointer]:
+              - /url: /journal/nfc-tags-for-gym-equipment
+          - listitem [ref=f11e312]:
+            - link "What is RPE" [ref=f11e313] [cursor=pointer]:
+              - /url: /journal/what-is-rpe-lifting
+          - listitem [ref=f11e315]:
+            - link "Progressive Overload" [ref=f11e316] [cursor=pointer]:
+              - /url: /journal/progressive-overload
+          - listitem [ref=f11e318]:
+            - link "Gym NFC Rollout" [ref=f11e319] [cursor=pointer]:
+              - /url: /journal/gym-nfc-rollout
+      - generic [ref=f11e321]:
+        - generic [ref=f11e322]: Legal
+        - list [ref=f11e323]:
+          - listitem [ref=f11e324]:
+            - link "Privacy Policy" [ref=f11e325] [cursor=pointer]:
+              - /url: /privacy-policy
+          - listitem [ref=f11e327]:
+            - link "Terms & Conditions" [ref=f11e328] [cursor=pointer]:
+              - /url: /terms-and-conditions
+    - generic [ref=f11e330]:
+      - generic [ref=f11e331]: © 2026 LIFTAG · BRATISLAVA · BUILT BY LIFTERS
+      - generic [ref=f11e332]:
+        - generic [ref=f11e333]:
+          - link "Liftag on Instagram" [ref=f11e334] [cursor=pointer]:
+            - /url: https://www.instagram.com/liftag.fit/
+          - link "Liftag on TikTok" [ref=f11e336] [cursor=pointer]:
+            - /url: https://www.tiktok.com/@liftag
+          - link "Liftag on X" [ref=f11e338] [cursor=pointer]:
+            - /url: https://x.com/liftag_fit
+          - link "Liftag on YouTube" [ref=f11e340] [cursor=pointer]:
+            - /url: https://www.youtube.com/@liftag_fit
+          - link "Liftag on Reddit" [ref=f11e342] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/liftag/
+        - generic [ref=f11e344]:
+          - text: Available on ·
+          - link "IOS AND ANDROID" [ref=f11e345] [cursor=pointer]:
+            - /url: /get
+    - generic [aria-hidden]:
+      - generic: LIFTAG
+      - generic: LIFTAG
+      - generic: LIFTAG

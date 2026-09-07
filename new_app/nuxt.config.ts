@@ -139,12 +139,15 @@ export default defineNuxtConfig({
     // Vercel also serves the prerendered root at its literal /index.html path,
     // which Search Console reports as a duplicate URL. Nitro compiles this rule
     // into the Vercel routing config ahead of static file serving.
+    '/gym-scan': { redirect: { to: '/demo', statusCode: 308 } },
+    '/gym-scan/': { redirect: { to: '/demo', statusCode: 308 } },
     '/index.html': { redirect: { to: '/', statusCode: 308 } },
     // "best workout tracker" is the same query as "best workout tracking app";
     // one article ranks for both, so the shorter slug forwards instead of
     // becoming a second page competing with it.
     '/best-workout-tracker': { redirect: { to: '/best-workout-tracking-app', statusCode: 308 } },
     '/': { prerender: true },
+    '/demo': { prerender: true },
     '/for-lifters': { prerender: true },
     '/for-trainers': { prerender: true },
     '/for-gyms': { prerender: true },
@@ -207,6 +210,7 @@ export default defineNuxtConfig({
     '/og-image.jpg': { headers: { 'cache-control': LONG_CACHE } },
   },
   nitro: {
+    compressPublicAssets: true,
     prerender: {
       // Not linked from HTML, so the crawler would skip them without this list.
       routes: ['/sitemap.xml', '/sitemap-pages.xml'],

@@ -3,11 +3,13 @@ import { test } from 'node:test'
 import {
   createReticleTracker,
   frameMachine,
+  RETICLE_CAPTURE_HANDOFF,
   RETICLE_IN,
   RETICLE_MORPH_END,
   RETICLE_MORPH_START,
-  RETICLE_OUT_END,
-  RETICLE_OUT_START,
+  reticleCaptureGeometry,
+  reticleCaptureOpacity,
+  reticleCapturePose,
   type ReticleUpdate,
 } from '../utils/gymscan/reticle.ts'
 
@@ -28,6 +30,7 @@ function base(over: Partial<ReticleUpdate> = {}): ReticleUpdate {
     lockToMachine: false,
     folded: false,
     landed: true,
+    capture: 0,
     ...over,
   }
 }
@@ -284,26 +287,66 @@ test('locked brackets are fully opaque', () => {
   assert.equal(box.opacity, 1)
 })
 
-test('brackets fade on the plate as the glass forms', () => {
+test('brackets stay locked on the plate while the glass forms', () => {
+  const held = run({ progress: RETICLE_MORPH_END + 0.2, reducedMotion: true })
+  assert.ok(held)
+  assert.equal(held.opacity, 1, 'brackets should remain fully visible through the fold')
+  assert.equal(held.capture, 0)
+  assert.equal(held.x, QR.x)
+  assert.equal(held.y, QR.y)
+  assert.equal(held.w, QR.w)
+  assert.equal(held.h, QR.h)
+})
+
+test('capture morphs the L-corners instead of fading them on scroll', () => {
   const mid = run({
-    progress: (RETICLE_OUT_START + RETICLE_OUT_END) / 2,
+    progress: RETICLE_MORPH_END,
+    capture: 0.52,
     reducedMotion: true,
   })
   assert.ok(mid)
-  assert.ok(mid.opacity > 0 && mid.opacity < 1, `fade opacity ${mid.opacity}`)
+  assert.equal(mid.opacity, 1, 'capture stays solid until the handoff tail')
   assert.equal(mid.x, QR.x)
-  assert.equal(mid.y, QR.y)
   assert.equal(mid.w, QR.w)
-  assert.equal(mid.h, QR.h)
+  const pose = reticleCapturePose(0.52)
+  assert.ok(pose.connect > 0.95, `arms should have closed, connect=${pose.connect}`)
+  assert.ok(pose.scanAmp > 0.8, `sweep should be live, scanAmp=${pose.scanAmp}`)
+  assert.equal(pose.collapse, 0)
 })
 
-test('brackets hold onto the plate, then retire as the fold completes', () => {
-  assert.ok(RETICLE_OUT_START > RETICLE_MORPH_END, 'resolved lock needs a readable hold')
-  assert.equal(RETICLE_OUT_END, 1, 'reticle ends as the glass finishes forming')
-  assert.equal(run({ progress: RETICLE_OUT_END, reducedMotion: true }), null)
-  const held = run({ progress: RETICLE_OUT_START - 0.02, reducedMotion: true })
-  assert.ok(held)
-  assert.equal(held.opacity, 1, 'brackets should remain fully visible through the hold')
+test('capture collapses the closed frame, then retires the overlay', () => {
+  const collapsing = run({
+    progress: RETICLE_MORPH_END,
+    capture: 0.86,
+    reducedMotion: true,
+  })
+  assert.ok(collapsing)
+  assert.ok(collapsing.opacity > 0 && collapsing.opacity < 1, `tail opacity ${collapsing.opacity}`)
+  assert.equal(run({ progress: RETICLE_MORPH_END, capture: 1, reducedMotion: true }), null)
+})
+
+test('capture pose closes the L-arms into a frame before it sweeps', () => {
+  const rest = reticleCapturePose(0)
+  assert.equal(rest.connect, 0)
+  assert.equal(rest.scanAmp, 0)
+  assert.equal(rest.collapse, 0)
+  assert.equal(reticleCaptureOpacity(0), 1)
+
+  const closed = reticleCapturePose(0.36)
+  assert.ok(closed.connect > 0.99)
+  assert.equal(closed.scanAmp, 0, 'sweep starts after the frame has closed')
+  const geo = reticleCaptureGeometry({ x: 0, y: 0, w: 100, h: 80, arm: 14 }, closed)
+  assert.ok(geo.arm >= Math.max(geo.w, geo.h) * 0.5, `closed arm ${geo.arm} should span the box`)
+  assert.ok(geo.outset < 0.02, 'closed stroke sits on the plate edge')
+
+  const sweep = reticleCapturePose(0.52)
+  assert.ok(sweep.scan > 0.3 && sweep.scan < 0.9)
+  assert.ok(sweep.scanAmp > 0.8)
+
+  const tail = reticleCapturePose(1)
+  assert.ok(tail.collapse > 0.99)
+  assert.equal(reticleCaptureOpacity(RETICLE_CAPTURE_HANDOFF), 1)
+  assert.equal(reticleCaptureOpacity(1), 0)
 })
 
 test('brackets stay off until the machine has planted', () => {

@@ -2,7 +2,11 @@ export type GymScanCut = 'floor' | 'seat'
 export type GymScanDeviceClass = 'floor' | 'A' | 'B' | 'C'
 
 export type GymScanDeviceSignals = {
-  /** `(pointer: coarse) and (hover: none)`. Width never selects the cut. */
+  /**
+   * Historical seat-crop flag. The live detector never sets this: a 390-wide
+   * desktop window still has a fine pointer, so pointer/hover used to pick a
+   * different film on a real iPhone than on the same-width laptop window.
+   */
   seatCut: boolean
   webgl2: boolean
   maxTextureSize: number
@@ -129,21 +133,20 @@ export function probeTemporaryWebGL2(): WebGL2Probe {
   }
 }
 
-function browserSaveData(): boolean {
-  if (typeof navigator === 'undefined') return false
-  const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
-  return connection?.saveData === true
-}
-
-/** Browser entry point, with injectable seams for SSR and deterministic tests. */
-export function detectGymScanDevice(detector: BrowserDeviceDetector = {}): GymScanDevice {
-  const matchMedia = detector.matchMedia
-    ?? (typeof window !== 'undefined' && window.matchMedia
-      ? window.matchMedia.bind(window)
-      : undefined)
-  const seatCut = matchMedia?.('(pointer: coarse) and (hover: none)').matches === true
-  const saveData = (detector.saveData ?? browserSaveData)()
-  const probe = (detector.probe ?? probeTemporaryWebGL2)()
-
-  return classifyGymScanDevice({ seatCut, saveData, ...probe })
+/**
+ * Live entry. Every device plays FROM THE FLOOR.
+ *
+ * Seat used to be selected by `(pointer: coarse) and (hover: none)`. That made
+ * a narrowed desktop window and an iPhone two different films, and the phone
+ * path asked iOS for motion permission so the overlay could gyro-tilt.
+ * Capability fallbacks stay in the stage constructor's catch path.
+ */
+export function detectGymScanDevice(_detector: BrowserDeviceDetector = {}): GymScanDevice {
+  return classifyGymScanDevice({
+    seatCut: false,
+    webgl2: true,
+    maxTextureSize: 4096,
+    saveData: false,
+    probeFailed: false,
+  })
 }

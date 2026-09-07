@@ -12,7 +12,7 @@ export const STATIC_PAGES: StaticPageEntry[] = [
   { path: '/for-gyms', lastmod: '2026-08-19', changefreq: 'weekly', priority: '0.8' },
   { path: '/for-trainers', lastmod: '2026-08-19', changefreq: 'weekly', priority: '0.8' },
   { path: '/become-a-coach', lastmod: '2026-08-19', changefreq: 'weekly', priority: '0.8' },
-  { path: '/contact/partner', lastmod: '2026-08-14', changefreq: 'monthly', priority: '0.6' },
+  { path: '/contact/partner', lastmod: '2026-09-04', changefreq: 'monthly', priority: '0.6' },
   { path: '/contact/support', lastmod: '2026-08-14', changefreq: 'monthly', priority: '0.5' },
   { path: '/qr-nfc-gym-tags', lastmod: '2026-08-19', changefreq: 'weekly', priority: '0.8' },
   { path: '/pricing', lastmod: '2026-08-27', changefreq: 'monthly', priority: '0.9' },

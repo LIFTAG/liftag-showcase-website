@@ -43,6 +43,8 @@ export interface PlacardUniforms {
   uShow: { value: number }
   /** 0–1 squeegee line riding the 0D bend front as the vinyl is pushed flat. */
   uSqueegee: { value: number }
+  /** 0–1 plant bloom. The sticker itself flashes as the machine comes online. */
+  uPlant: { value: number }
 }
 
 export function createPlacardUniforms(): PlacardUniforms {
@@ -52,6 +54,7 @@ export function createPlacardUniforms(): PlacardUniforms {
     uLock: { value: 0 },
     uShow: { value: 0 },
     uSqueegee: { value: 0 },
+    uPlant: { value: 0 },
   }
 }
 
@@ -105,6 +108,7 @@ export function createPlacardMaterial(
         uniform float uLock;
         uniform float uShow;
         uniform float uSqueegee;
+        uniform float uPlant;
 
         float lgTagHash(vec2 p) {
           p = fract(p * vec2(127.1, 311.7));
@@ -177,6 +181,16 @@ export function createPlacardMaterial(
           float lgSeam = exp(-abs(lgS - uPeelFront) / 0.0055);
           totalEmissiveRadiance += vec3(0.30, 0.34, 0.40) * lgSeam * uSqueegee * 0.10;
         }
+
+        // Plant: the print itself comes on as the tag activates the machine.
+        // Establishing distance needs this brighter than the later resolve
+        // (which is a close-up). Still the artwork's own colour, plus a lime
+        // kiss on the light print so the wordmark reads as LIFTAG from across
+        // the room.
+        if (uPlant > 0.001) {
+          totalEmissiveRadiance += lgTag.rgb * lgLight * uPlant * 0.42;
+          totalEmissiveRadiance += vec3(0.80, 1.0, 0.0) * lgLight * uPlant * 0.14;
+        }
       `)
       .replace('#include <lights_physical_fragment>', /* glsl */`
         #include <lights_physical_fragment>
@@ -191,7 +205,7 @@ export function createPlacardMaterial(
   // The injected block changes with nothing at runtime, so one cache key for
   // the whole material is correct - but it must not collide with an
   // un-injected MeshStandardMaterial sharing the same defines.
-  material.customProgramCacheKey = () => 'liftag-qr-sticker-v5'
+  material.customProgramCacheKey = () => 'liftag-qr-sticker-v6'
 
   return material
 }

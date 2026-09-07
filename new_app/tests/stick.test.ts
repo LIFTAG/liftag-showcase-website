@@ -353,6 +353,18 @@ test('press touches down corner first, then rolls the fold line flat', () => {
   assert.equal(hold.showLight, 0)
 })
 
+test('page copy racks focus on the same envelope as the gym behind the card', () => {
+  // GymCinema writes --gx-dof from pose.dof. A copy that blurs on a different
+  // window than flyDof would sit sharp in a racked-out room, or smear while
+  // the sticker is still a small object sliding in from the right.
+  assert.equal(flyDof(0.05, false), 0)
+  assert.ok(flyDof(FLY_IN_END * 0.4, false) < 0.05)
+  assert.ok(flyDof(FLY_TURN_END, false) > 0.9)
+  assert.equal(flyDof(0.98, false), 0)
+  assert.ok(stickAt(flyDuration(false) * 0.5, 'fly', false).dof > 0.9)
+  assert.equal(stickAt(0, 'stick', false).dof, 0)
+})
+
 test('the lens is wide open across the whole close-up and shut at both ends', () => {
   assert.equal(flyDof(0.05, false), 0)
   assert.ok(flyDof(FLY_IN_END * 0.4, false) < 0.05, 'still shut while the card is sliding in')

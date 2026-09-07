@@ -50,7 +50,7 @@ export interface GymEnvironment {
   dispose: () => void
 }
 
-export function createGymEnvironment(renderer: THREE.WebGLRenderer): GymEnvironment {
+export function createGymEnvironment(renderer: THREE.WebGLRenderer, size = 256): GymEnvironment {
   const scene = new THREE.Scene()
   scene.background = new THREE.Color(0x000000)
 
@@ -86,7 +86,7 @@ export function createGymEnvironment(renderer: THREE.WebGLRenderer): GymEnvironm
   parts.forEach(p => scene.add(p))
 
   const pmrem = new THREE.PMREMGenerator(renderer)
-  const target = pmrem.fromScene(scene, 0.02)
+  const target = pmrem.fromScene(scene, 0.02, 0.1, 100, { size })
   pmrem.dispose()
 
   parts.forEach((p) => {
@@ -148,8 +148,8 @@ export interface FloorMaps {
  * The maps are drawn to canvas rather than downloaded, so this costs bytes in
  * neither GLB nor a texture request.
  */
-export function createFloorMaps(anisotropy: number): FloorMaps {
-  const S = 512
+export function createFloorMaps(anisotropy: number, size = 512, options: { seams?: boolean } = {}): FloorMaps {
+  const S = size
   const TILE = S / 2            // two tiles across the 2 m repeat
 
   const albedo = document.createElement('canvas')
@@ -201,7 +201,7 @@ export function createFloorMaps(anisotropy: number): FloorMaps {
 
   // Tile seams. These *are* relief - a real mat has a chamfered joint - so they
   // go into all three maps.
-  for (const c of [[ac, 'rgba(0,0,0,0.62)'], [rc, 'rgba(255,0,0,0.55)'], [hc, 'rgba(104,104,104,0.6)']] as const) {
+  for (const c of options.seams === false ? [] : [[ac, 'rgba(0,0,0,0.62)'], [rc, 'rgba(255,0,0,0.55)'], [hc, 'rgba(104,104,104,0.6)']] as const) {
     const ctx = c[0]
     ctx.strokeStyle = c[1]
     ctx.lineWidth = 1.6
@@ -254,5 +254,3 @@ export function createFloorMaps(anisotropy: number): FloorMaps {
     dispose: () => { map.dispose(); roughnessMap.dispose(); normalMap.dispose() },
   }
 }
-
-

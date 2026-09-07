@@ -1,0 +1,7 @@
+[     100ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/demo#experience color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/demo#experience, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788609163652} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    1664ms] [INFO] [gymscan] 0B calls explode 59 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788609158254:1213
+[   25885ms] [INFO] [gymscan] 0B calls explode 9 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788609182863:1231
+[   27671ms] [INFO] [gymscan] 0B calls planted 24 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788609182863:1235
+[   44096ms] [INFO] [gymscan] 0B calls explode 9 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788609202964:1217
+[   45883ms] [INFO] [gymscan] 0B calls planted 24 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788609202964:1221
+[   63539ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/get color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/get, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788609227085} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0

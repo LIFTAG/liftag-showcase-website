@@ -42,7 +42,7 @@ const props = withDefaults(defineProps<{
   // phones where the visual fidelity loss is imperceptible.
   lite?: boolean
   // Static 3D keeps the real geometry and lighting but renders only when the
-  // texture or viewport changes. It avoids pointer, gyro, and idle rAF work.
+  // texture or viewport changes. It avoids pointer and idle rAF work.
   interactive?: boolean
   // Main hero phones can retain lite lighting while using a sharper source,
   // texture canvas, and framebuffer.
@@ -467,8 +467,6 @@ function initPhone() {
     videoPlayback?.setSegment(segment)
   }
 
-  let gyroActive = false
-  let gyroCleanup: (() => void) | null = null
   let targetRotX = PHONE_REST_ROT_X
   let targetRotY = PHONE_REST_ROT_Y
   let currentRotX = PHONE_REST_ROT_X
@@ -542,48 +540,6 @@ function initPhone() {
     keyLight.position.y = 3 - my
   }
 
-  const onDeviceOrientation = (event: DeviceOrientationEvent) => {
-    if (event.gamma == null || event.beta == null) return
-
-    gyroActive = true
-
-    // Reduced motion keeps the interactive phone at its rest pose.
-    if (reducedMotionMql.matches) return
-
-    const mx = Math.max(-1, Math.min(1, event.gamma / 30))
-    const my = Math.max(-1, Math.min(1, (event.beta - 45) / 30))
-
-    applyPointerTilt(mx, my)
-    wakeTilt()
-  }
-
-  function enableGyro() {
-    window.addEventListener('deviceorientation', onDeviceOrientation)
-  }
-
-  const deviceOrientation = window.DeviceOrientationEvent as (typeof DeviceOrientationEvent & {
-    requestPermission?: () => Promise<PermissionState>
-  }) | undefined
-
-  if (props.interactive && deviceOrientation && typeof deviceOrientation.requestPermission === 'function') {
-    const requestOnTap = () => {
-      deviceOrientation.requestPermission?.()
-        .then((state) => {
-          if (state === 'granted') enableGyro()
-        })
-        .catch(() => {})
-    }
-
-    container.addEventListener('touchend', requestOnTap, { once: true })
-    gyroCleanup = () => {
-      container.removeEventListener('touchend', requestOnTap)
-      window.removeEventListener('deviceorientation', onDeviceOrientation)
-    }
-  } else if (props.interactive && deviceOrientation) {
-    enableGyro()
-    gyroCleanup = () => window.removeEventListener('deviceorientation', onDeviceOrientation)
-  }
-
   const animate = () => {
     if (!isVisible || document.hidden || motionHeld) {
       animId = 0
@@ -601,7 +557,7 @@ function initPhone() {
     // would leave the screen on whichever frame was last rendered.
     let shouldRender = props.interactive || Boolean(screenTransition) || videoRunning()
 
-    if (props.interactive && !gyroActive && !reducedMotionMql.matches && sharedMouse) {
+    if (props.interactive && !reducedMotionMql.matches && sharedMouse) {
       const delay = Math.max(0, props.tiltDelayMs)
       if (delay > 0) {
         const delayed = delayedSampleAt(sharedMouse.samples, performance.now() - delay)
@@ -622,7 +578,7 @@ function initPhone() {
       // Render-on-demand: once the tilt has converged and nothing else is
       // animating, every further frame would be identical. Snap onto the
       // target, draw it once below, then park - wakeTilt() restarts the loop
-      // on the next pointer or gyro event, and the visibility/texture paths
+      // on the next pointer event, and the visibility/texture paths
       // restart it for their own reasons.
       const tiltDelta = Math.max(
         Math.abs(targetRotX - currentRotX),
@@ -798,7 +754,6 @@ function initPhone() {
     clearIdleTimer()
     idleMotionActive = false
     unsubscribeMouse?.()
-    gyroCleanup?.()
     videoObserver.disconnect()
     visObserver.disconnect()
     isVisible = false

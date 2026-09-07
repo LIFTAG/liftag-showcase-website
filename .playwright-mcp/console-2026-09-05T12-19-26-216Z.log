@@ -1,0 +1,66 @@
+[    3174ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=4a573216:7239
+[    3674ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    3676ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    3691ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/demo#gyms color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/demo#gyms, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788610769904} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    4064ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=4a573216:51
+[    7000ms] [INFO] [gymscan] 0B calls explode 81 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1217
+[    7217ms] [INFO] [gymscan] 0B calls planted 51 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1221
+[   29534ms] [WARNING] [gymscan] parts asset missing /assets/gym3d/hero-machine-static.glb TypeError: Load failed @ http://localhost:3000/_nuxt/utils/gymscan/parts.ts:32
+[   29536ms] [WARNING] [gymscan] parts asset missing /assets/gym3d/hero-machine-parts.glb TypeError: Load failed @ http://localhost:3000/_nuxt/utils/gymscan/parts.ts:32
+[   29570ms] Fetch API cannot load http://localhost:3000/assets/gym3d/hero-machine.glb due to access control checks.
+    at load (http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=4a573216:23220:10)
+    at load (http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=4a573216:205:16)
+    at unknown (http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=4a573216:23080:17)
+    at Promise (:1:11)
+    at loadAsync (http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=4a573216:23079:23)
+    at load (http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788610794815:1317:42)
+[   32296ms] [LOG] %cssr:success%c Vite server hmr 46 files 
+      background: #2ecc71;
+      border-radius: 0.5em;
+      color: white;
+      font-weight: bold;
+      padding: 2px 0.5em;
+      in 150.205ms 
+  at vite_node_entry_default (node_modules/.pnpm/@nuxt+vite-builder@3.21.2_@types+node@26.1.1_magicast@0.5.2_nuxt@3.21.2_@emnapi+core@1._a4b3153523cf62a7d8205505e2d0041e/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs)
+  at process.processTicksAndRejections (node:internal/process/task_queues)
+  at async Object.renderToString (node_modules/.pnpm/vue-bundle-renderer@2.2.0/node_modules/vue-bundle-renderer/dist/runtime.mjs)
+ @ http://localhost:3000/_nuxt/node_modules/.pnpm/consola@3.4.2/node_modules/consola/dist/browser.mjs?v=4a573216:47
+[   32356ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=4a573216:7239
+[   32567ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   32567ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   32569ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/demo#gyms color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/demo#gyms, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788610798784} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   32669ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=4a573216:51
+[   34572ms] [INFO] [gymscan] 0B calls planted 71 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788610794815:1221
+[   44337ms] [INFO] [gymscan] 0B calls planted 71 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788610808556:1221
+[   83935ms] [INFO] [gymscan] 0B calls explode 26 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788610848739:1217
+[   84110ms] [INFO] [gymscan] 0B calls planted 51 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788610848739:1221
+[   95885ms] [INFO] [gymscan] 0B calls planted 71 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788610848739:1221
+[  146474ms] [INFO] [gymscan] 0B calls planted 82 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788610909857:1221
+[  146490ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  146490ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  146490ms] [ERROR] WebGL: INVALID_OPERATION: glDrawArrays: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  146490ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  146490ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  146490ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  146490ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  146490ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  146490ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  146490ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  146490ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  146490ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  146490ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  146490ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  185644ms] [INFO] [gymscan] 0B calls planted 24 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788610948498:1221
+[  262363ms] [ERROR] There are too many active WebGL contexts on this page, the oldest context will be lost. @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=4a573216:41339
+[  264111ms] [INFO] [gymscan] 0B calls planted 37 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788611027758:1221
+[  264629ms] ReferenceError: Cannot access 'compact' before initialization.
+    at update (http://localhost:3000/_nuxt/utils/gymscan/coachingStage.ts?t=1788611027758:255:32)
+    at updateCoaching (http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788611027758:663:43)
+    at frame (http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788611027758:944:19)
+[  264747ms] ReferenceError: Cannot access 'compact' before initialization.
+    at update (http://localhost:3000/_nuxt/utils/gymscan/coachingStage.ts?t=1788611027758:255:32)
+    at updateCoaching (http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788611027758:663:43)
+    at frame (http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788611027758:931:21)
+[  271894ms] [ERROR] There are too many active WebGL contexts on this page, the oldest context will be lost. @ http://localhost:3000/_nuxt/utils/gymscan/device.ts:36
+[  272098ms] [ERROR] There are too many active WebGL contexts on this page, the oldest context will be lost. @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=4a573216:41339
+[  273731ms] [INFO] [gymscan] 0B calls planted 57 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts?t=1788611037054:1221

@@ -1,0 +1,388 @@
+import * as THREE from "three";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { discoveryGymArcs, discoveryGyms, discoveryHub } from "./discoveryGyms.ts";
+import { globeAssemblyAt, globeNetworkAt } from "./discoveryTimeline.ts";
+
+/**
+ * GitHub-globe construction, lime-shifted for LIFTAG.
+ *
+ * Dotted continents from a land mask (GitHub's 2020 homepage globe, also
+ * jessehhydee/threejs-globe). 3D bezier tubes between gyms
+ * (janarosmonaliev/github-globe / three-globe arcs). Shockwave is ours:
+ * Bratislava blinks, then a ring of those same land dots lights up.
+ */
+export const GLOBE_RADIUS = 2;
+const DOT_RADIUS = GLOBE_RADIUS + 0.018;
+const ARC_RADIUS = GLOBE_RADIUS + 0.03;
+/** Degrees between land samples. Tight enough to read coastlines, sparse enough that dots do not fill in as a surface. */
+export const LAND_LAT_STEP = 2.55;
+export const LAND_LAT_STEP_MOBILE = 3.2;
+export const LAND_DOT_SCALE = 0.0092;
+
+export function latLngToGlobe(lat: number, lng: number, radius = GLOBE_RADIUS) {
+  const phi = THREE.MathUtils.degToRad(lat);
+  const theta = THREE.MathUtils.degToRad(lng);
+  return new THREE.Vector3(
+    Math.cos(phi) * Math.cos(theta),
+    Math.sin(phi),
+    -Math.cos(phi) * Math.sin(theta),
+  ).multiplyScalar(radius);
+}
+
+/** NASA Blue Marble: keep land and ice, drop ocean and cool cloud. */
+export function isLandPixel(r: number, g: number, b: number) {
+  const sum = r + g + b;
+  if (sum < 55) return false;
+  if (b > r && b > g && b - Math.min(r, g) > 12) return false;
+  if (b / (sum + 1) > 0.38) return false;
+  return r + g > b * 1.2;
+}
+
+export function sampleLandDots(
+  image: CanvasImageSource & { width: number; height: number },
+  latStep: number,
+) {
+  const width = 1024;
+  const height = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return [];
+  ctx.drawImage(image, 0, 0, width, height);
+  const pixels = ctx.getImageData(0, 0, width, height).data;
+  const dots: THREE.Vector3[] = [];
+  const read = (lat: number, lng: number) => {
+    const x = Math.min(
+      width - 1,
+      Math.max(0, Math.floor(((lng + 180) / 360) * width)),
+    );
+    const y = Math.min(
+      height - 1,
+      Math.max(0, Math.floor(((90 - lat) / 180) * height)),
+    );
+    const i = (y * width + x) * 4;
+    return isLandPixel(pixels[i]!, pixels[i + 1]!, pixels[i + 2]!);
+  };
+  for (let lat = -90; lat <= 90; lat += latStep) {
+    const count = Math.max(
+      1,
+      Math.round((360 / latStep) * Math.cos(THREE.MathUtils.degToRad(lat))),
+    );
+    for (let i = 0; i < count; i++) {
+      const lng = -180 + (i * 360) / count;
+      if (!read(lat, lng)) continue;
+      dots.push(latLngToGlobe(lat, lng, DOT_RADIUS));
+    }
+  }
+  return dots;
+}
+
+function dotMaterial(uniforms: {
+  uAssembly: { value: number };
+  uSweep: { value: number };
+  uHologram: { value: number };
+  uOrigin: { value: THREE.Vector3 };
+  uWave: { value: number };
+  uBlink: { value: number };
+  uFade: { value: number };
+  uTime: { value: number };
+}) {
+  return new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    side: THREE.FrontSide,
+    toneMapped: false,
+    uniforms,
+    vertexShader: `
+      attribute float aDelay;
+      attribute float aGym;
+      uniform float uAssembly;
+      varying vec3 vDir;
+      varying float vGym;
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        vGym = aGym;
+        vDir = normalize(instanceMatrix[3].xyz);
+        float u = clamp((uAssembly - aDelay) / 0.55, 0., 1.);
+        u = 1. - pow(1. - u, 3.);
+        vec4 mv = modelViewMatrix * instanceMatrix * vec4(position * u, 1.);
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: `
+      uniform vec3 uOrigin;
+      uniform float uWave;
+      uniform float uBlink;
+      uniform float uHologram;
+      uniform float uSweep;
+      uniform float uFade;
+      uniform float uTime;
+      varying vec3 vDir;
+      varying float vGym;
+      varying vec2 vUv;
+      void main() {
+        float disc = 1. - smoothstep(0.78, 1., length(vUv - 0.5) * 2.);
+        float ang = acos(clamp(dot(normalize(vDir), uOrigin), -1., 1.));
+        float ring = exp(-pow((ang - uWave) * 13., 2.));
+        float wash = (1. - smoothstep(uWave, uWave + 0.55, ang)) * 0.1 * step(0.02, uWave);
+        float scan = (1. - smoothstep(0.02, 0.09, abs(vDir.y * 2. - uSweep))) * uHologram;
+        float twinkle = 0.9 + 0.1 * sin(uTime * 1.6 + vDir.x * 42. + vDir.z * 28.);
+        float gym = vGym * (0.55 + 0.9 * uBlink);
+        float lit = 0.58 + ring * 1.55 + wash + scan * 0.7 + gym;
+        gl_FragColor = vec4(vec3(0.8, 1., 0.), disc * lit * twinkle * uFade);
+      }`,
+  });
+}
+
+function arcMaterial(uniforms: {
+  uArcs: { value: number };
+  uTime: { value: number };
+  uFade: { value: number };
+}) {
+  return new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide,
+    toneMapped: false,
+    uniforms,
+    vertexShader: `
+      attribute float aDelay;
+      varying float vAlong;
+      varying float vDelay;
+      void main() {
+        vAlong = uv.x;
+        vDelay = aDelay;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+      }`,
+    fragmentShader: `
+      uniform float uArcs;
+      uniform float uTime;
+      uniform float uFade;
+      varying float vAlong;
+      varying float vDelay;
+      void main() {
+        float local = clamp((uArcs - vDelay * 0.42) / 0.58, 0., 1.);
+        float body = 1. - smoothstep(local - 0.04, local + 0.01, vAlong);
+        float head = exp(-pow((fract(uTime * 0.18 + vDelay) - vAlong) * 16., 2.)) * body;
+        gl_FragColor = vec4(vec3(0.8, 1., 0.), (body * 0.7 + head) * uFade);
+      }`,
+  });
+}
+
+/**
+ * CircleGeometry faces +Z. Object3D.lookAt aims +Z at the target, so aim
+ * outward: lookAt(0,0,0) points the disc inward and FrontSide culls it.
+ */
+export function placeGlobeDot(
+  dummy: THREE.Object3D,
+  position: THREE.Vector3,
+  scale: number,
+) {
+  dummy.position.copy(position);
+  dummy.lookAt(position.x * 2, position.y * 2, position.z * 2);
+  dummy.scale.setScalar(scale);
+  dummy.updateMatrix();
+}
+
+export function createDiscoveryGlobe() {
+  const root = new THREE.Group();
+  root.name = "discovery-globe";
+  const hub = latLngToGlobe(
+    discoveryHub.latitude,
+    discoveryHub.longitude,
+    DOT_RADIUS,
+  );
+  const origin = hub.clone().normalize();
+  const dotsMat = dotMaterial({
+    uAssembly: { value: 0 },
+    uSweep: { value: 3 },
+    uHologram: { value: 0 },
+    uOrigin: { value: origin },
+    uWave: { value: 0 },
+    uBlink: { value: 0 },
+    uFade: { value: 1 },
+    uTime: { value: 0 },
+  });
+  const tubesMat = arcMaterial({
+    uArcs: { value: 0 },
+    uTime: { value: 0 },
+    uFade: { value: 1 },
+  });
+  const innerMat = new THREE.MeshBasicMaterial({
+    color: 0x050705,
+    toneMapped: false,
+  });
+  const inner = new THREE.Mesh(
+    new THREE.SphereGeometry(GLOBE_RADIUS, 48, 32),
+    innerMat,
+  );
+  inner.renderOrder = 0;
+  inner.visible = false;
+  root.add(inner);
+
+  const atmosphereMat = new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    side: THREE.BackSide,
+    blending: THREE.AdditiveBlending,
+    toneMapped: false,
+    uniforms: { opacity: { value: 0.28 } },
+    vertexShader:
+      "varying float rim;void main(){vec4 p=modelViewMatrix*vec4(position,1.);vec3 n=normalize(normalMatrix*normal);rim=pow(1.-max(0.,dot(n,normalize(-p.xyz))),3.2);gl_Position=projectionMatrix*p;}",
+    fragmentShader:
+      "varying float rim;uniform float opacity;void main(){gl_FragColor=vec4(0.55,0.85,0.12,rim*opacity);}",
+  });
+  const atmosphere = new THREE.Mesh(
+    new THREE.SphereGeometry(GLOBE_RADIUS * 1.12, 48, 32),
+    atmosphereMat,
+  );
+  atmosphere.renderOrder = 4;
+  root.add(atmosphere);
+
+  const dummy = new THREE.Object3D();
+  const gyms = new THREE.InstancedMesh(
+    new THREE.CircleGeometry(1, 8),
+    dotsMat,
+    discoveryGyms.length,
+  );
+  const gymDelay = new Float32Array(discoveryGyms.length);
+  const gymFlag = new Float32Array(discoveryGyms.length);
+  discoveryGyms.forEach((gym, i) => {
+    placeGlobeDot(
+      dummy,
+      latLngToGlobe(gym.latitude, gym.longitude, DOT_RADIUS),
+      gym.hub ? 0.028 : 0.016,
+    );
+    gyms.setMatrixAt(i, dummy.matrix);
+    gymDelay[i] = gym.hub ? 0 : 0.12 + i * 0.03;
+    gymFlag[i] = 1;
+  });
+  gyms.instanceMatrix.needsUpdate = true;
+  gyms.geometry.setAttribute(
+    "aDelay",
+    new THREE.InstancedBufferAttribute(gymDelay, 1),
+  );
+  gyms.geometry.setAttribute(
+    "aGym",
+    new THREE.InstancedBufferAttribute(gymFlag, 1),
+  );
+  gyms.frustumCulled = false;
+  gyms.renderOrder = 2;
+  root.add(gyms);
+
+  const pin = new THREE.Object3D();
+  pin.position.copy(hub);
+  root.add(pin);
+
+  const arcGeoms: THREE.BufferGeometry[] = [];
+  const links = discoveryGymArcs();
+  links.forEach((link, index) => {
+    const start = latLngToGlobe(
+      link.from.latitude,
+      link.from.longitude,
+      ARC_RADIUS,
+    );
+    const end = latLngToGlobe(link.to.latitude, link.to.longitude, ARC_RADIUS);
+    const angle = start.angleTo(end);
+    const lift = GLOBE_RADIUS + 0.08 + angle * 0.42 + (index % 3) * 0.025;
+    const curve = new THREE.CubicBezierCurve3(
+      start,
+      start.clone().lerp(end, 0.28).normalize().multiplyScalar(lift),
+      start.clone().lerp(end, 0.72).normalize().multiplyScalar(lift),
+      end,
+    );
+    const tube = new THREE.TubeGeometry(curve, 48, 0.018, 6, false);
+    const delay = new Float32Array(tube.attributes.position!.count).fill(
+      index / Math.max(1, links.length - 1),
+    );
+    tube.setAttribute("aDelay", new THREE.BufferAttribute(delay, 1));
+    arcGeoms.push(tube);
+  });
+  const arcsMerged = mergeGeometries(arcGeoms)!;
+  arcGeoms.forEach((geom) => geom.dispose());
+  const arcs = new THREE.Mesh(arcsMerged, tubesMat);
+  arcs.visible = false;
+  arcs.renderOrder = 3;
+  root.add(arcs);
+
+  let land: THREE.InstancedMesh | null = null;
+
+  function applyLand(
+    image: CanvasImageSource & { width: number; height: number },
+  ) {
+    if (land) return;
+    const mobile =
+      (typeof navigator !== "undefined" &&
+        navigator.hardwareConcurrency <= 4) ||
+      (typeof matchMedia === "function" &&
+        matchMedia("(max-width: 760px)").matches);
+    const points = sampleLandDots(
+      image,
+      mobile ? LAND_LAT_STEP_MOBILE : LAND_LAT_STEP,
+    );
+    if (!points.length) return;
+    land = new THREE.InstancedMesh(
+      new THREE.CircleGeometry(1, 8),
+      dotsMat,
+      points.length,
+    );
+    const delays = new Float32Array(points.length);
+    const flags = new Float32Array(points.length);
+    points.forEach((point, i) => {
+      placeGlobeDot(dummy, point, LAND_DOT_SCALE);
+      land!.setMatrixAt(i, dummy.matrix);
+      delays[i] = (((i * 17) % 23) / 23) * 0.32;
+    });
+    land.instanceMatrix.needsUpdate = true;
+    land.geometry.setAttribute(
+      "aDelay",
+      new THREE.InstancedBufferAttribute(delays, 1),
+    );
+    land.geometry.setAttribute(
+      "aGym",
+      new THREE.InstancedBufferAttribute(flags, 1),
+    );
+    land.frustumCulled = false;
+    land.renderOrder = 1;
+    land.computeBoundingSphere();
+    root.add(land);
+  }
+
+  function update(seconds: number, amount: number) {
+    const frame = globeAssemblyAt(seconds);
+    const network = globeNetworkAt(seconds);
+    dotsMat.uniforms.uAssembly!.value = frame.assembly;
+    dotsMat.uniforms.uSweep!.value = frame.sweepY;
+    dotsMat.uniforms.uHologram!.value = frame.hologram;
+    dotsMat.uniforms.uWave!.value = network.wave;
+    dotsMat.uniforms.uBlink!.value = network.blink;
+    dotsMat.uniforms.uFade!.value = amount;
+    dotsMat.uniforms.uTime!.value = seconds;
+    tubesMat.uniforms.uArcs!.value = network.arcs;
+    tubesMat.uniforms.uTime!.value = seconds;
+    tubesMat.uniforms.uFade!.value = amount;
+    inner.visible = !!land && frame.assembly > 0.18 && amount > 0.05;
+    atmosphere.visible = frame.assembly > 0.55;
+    atmosphereMat.uniforms.opacity!.value = 0.16 * amount * frame.assembly;
+    gyms.visible = amount > 0.05;
+    arcs.visible = network.arcs > 0.01 && amount > 0.05;
+    if (land) land.visible = amount > 0.04;
+    root.rotation.set(
+      0.56,
+      -Math.PI / 2 -
+        THREE.MathUtils.degToRad(discoveryHub.longitude) -
+        (1 - frame.assembly) * 0.4,
+      0,
+    );
+  }
+
+  return { root, pin, applyLand, update };
+}
+
+function smoothstepLocal(u: number) {
+  u = Math.max(0, Math.min(1, u));
+  return u * u * (3 - 2 * u);
+}

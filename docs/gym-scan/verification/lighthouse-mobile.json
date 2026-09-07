@@ -1,0 +1,46 @@
+{
+  "tool": "13.4.1",
+  "mode": "Local final production build; default simulated mobile throttling; other 3D preview unmounted.",
+  "runs": [
+    {
+      "run": 1,
+      "performance": 89,
+      "accessibility": 100,
+      "first-contentful-paint": 1506.9604,
+      "largest-contentful-paint": 3127.9406,
+      "total-blocking-time": 215,
+      "cumulative-layout-shift": 0,
+      "total-byte-weight": 1251875
+    },
+    {
+      "run": 2,
+      "performance": 82,
+      "accessibility": 100,
+      "first-contentful-paint": 1600.61,
+      "largest-contentful-paint": 3100.22,
+      "total-blocking-time": 427,
+      "cumulative-layout-shift": 0,
+      "total-byte-weight": 1251875
+    },
+    {
+      "run": 3,
+      "performance": 87,
+      "accessibility": 100,
+      "first-contentful-paint": 1740.431,
+      "largest-contentful-paint": 3132.1171999999997,
+      "total-blocking-time": 257.5,
+      "cumulative-layout-shift": 0,
+      "total-byte-weight": 1251875
+    }
+  ],
+  "median": {
+    "performance": 87,
+    "accessibility": 100,
+    "first-contentful-paint": 1600.61,
+    "largest-contentful-paint": 3127.9406,
+    "total-blocking-time": 257.5,
+    "cumulative-layout-shift": 0,
+    "total-byte-weight": 1251875
+  },
+  "notes": "Earlier pre-optimization runs are excluded because graphics startup and fallback loading changed. These are lab simulations, not field p75 or a frame-rate test."
+}

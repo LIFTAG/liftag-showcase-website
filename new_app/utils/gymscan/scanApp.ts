@@ -1,11 +1,11 @@
 // Pivot Leg Press scan-to-log footage for the gym-scan phone screen.
 //
-// After the QR lock, the 3D room on the phone yields to a procedural capture
-// of the same machine: the scanner morph of the settled Pivot Leg Press
-// sticker into the log-set cockpit. Wall-clock playback, not scroll-tied,
-// so the morph stays snappy even if the user pauses on the phone. The gym
-// composer is already off by the time this covers the screen. ScanSection
-// keeps the real-gym bench footage.
+// After the QR lock and the L-corner capture, the 3D room on the phone yields
+// to a procedural capture of the same machine: the scanner morph of the
+// settled Pivot Leg Press sticker into the log-set cockpit. Wall-clock
+// playback, not scroll-tied, so the morph stays snappy even if the user
+// pauses on the phone. The gym composer is already off by the time this
+// covers the screen. ScanSection keeps the real-gym bench footage.
 import * as THREE from 'three'
 import { coverFitScreenUVs, type ScreenTextureUVs } from '../macbookScreen.ts'
 import { PHONE_SCR_H, PHONE_SCR_W } from '../phoneModel.ts'
@@ -67,12 +67,15 @@ export type ScanAppScreen = {
   texture: THREE.Texture
   uvs: ScreenTextureUVs
   ready: boolean
+  prepare: () => void
   sync: (scene: number, dt: number) => number
+  suspend: () => void
   dispose: () => void
 }
 
 export function createScanAppScreen(opts: {
   reducedMotion: boolean
+  defer?: boolean
   onReady?: () => void
 }): ScanAppScreen {
   const placeholder = new THREE.DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1)
@@ -82,6 +85,9 @@ export function createScanAppScreen(opts: {
   let uvs: ScreenTextureUVs = IDENTITY_UV
   let ready = false
   let disposed = false
+  let prepared = false
+  let usingStill = opts.reducedMotion
+  let videoTexture: THREE.VideoTexture | null = null
   let lastActive = false
   let holdSec = 0
   let cycle = 0
@@ -111,7 +117,10 @@ export function createScanAppScreen(opts: {
     return { ...SCAN_FLOW_LOG, key: cycle }
   }
 
-  if (opts.reducedMotion) {
+  function loadStill() {
+    if (disposed || stillImage) return
+    usingStill = true
+    playback?.setActive(false)
     const image = new Image()
     stillImage = image
     image.decoding = 'async'
@@ -121,11 +130,16 @@ export function createScanAppScreen(opts: {
       bindTexture(map, coverUVs(image.naturalWidth || 393, image.naturalHeight || 852))
       announce()
     }
-    image.onerror = () => announce()
+    image.onerror = () => { stillImage = null }
     image.src = APP_STILL_SRC
-  } else {
+  }
+
+  function prepare() {
+    if (disposed || prepared) return
+    prepared = true
+    if (opts.reducedMotion) { loadStill(); return }
     video = createScreenVideoElement(GYM_SCAN_FLOW_SOURCES)
-    const videoTexture = new THREE.VideoTexture(video)
+    videoTexture = new THREE.VideoTexture(video)
     configureDisplayTexture(videoTexture)
 
     onMeta = () => {
@@ -139,11 +153,12 @@ export function createScanAppScreen(opts: {
       }
     }
     onFrame = () => {
-      if (disposed || !video) return
+      if (disposed || usingStill || !video || !videoTexture) return
       if (video.videoWidth < 2 || video.videoHeight < 2) return
       bindTexture(videoTexture, coverUVs(video.videoWidth, video.videoHeight))
       announce()
     }
+    video.addEventListener('error', loadStill)
     video.addEventListener('loadedmetadata', onMeta)
     video.addEventListener('loadeddata', onFrame)
     video.addEventListener('canplay', onFrame)
@@ -159,8 +174,10 @@ export function createScanAppScreen(opts: {
     document.addEventListener('visibilitychange', onVis)
   }
 
+  if (!opts.defer) prepare()
+
   function setPlaying(playing: boolean) {
-    if (opts.reducedMotion || disposed) return
+    if (usingStill || disposed) return
     if (playing === lastActive) return
     lastActive = playing
     if (playing) {
@@ -198,6 +215,7 @@ export function createScanAppScreen(opts: {
     if (onVis) document.removeEventListener('visibilitychange', onVis)
     onVis = null
     if (video) {
+      video.removeEventListener('error', loadStill)
       if (onMeta) video.removeEventListener('loadedmetadata', onMeta)
       if (onFrame) {
         video.removeEventListener('loadeddata', onFrame)
@@ -208,7 +226,9 @@ export function createScanAppScreen(opts: {
       video.load()
     }
     video = null
+    if (stillImage) { stillImage.onload = null; stillImage.onerror = null; stillImage.src = '' }
     stillImage = null
+    if (videoTexture && videoTexture !== texture) videoTexture.dispose()
     texture.dispose()
   }
 
@@ -216,6 +236,8 @@ export function createScanAppScreen(opts: {
     get texture() { return texture },
     get uvs() { return uvs },
     get ready() { return ready },
+    prepare,
+    suspend: () => { playback?.setActive(false); lastActive = false },
     sync,
     dispose,
   }

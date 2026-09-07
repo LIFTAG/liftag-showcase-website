@@ -1,0 +1,29 @@
+[
+  {
+    "asset": "cable-station.glb",
+    "source": "all+fitness.glb",
+    "object": "4.002",
+    "source_triangles": 98804,
+    "triangles": 24000,
+    "bytes": 597112,
+    "textures": 12
+  },
+  {
+    "asset": "flat-bench.glb",
+    "source": "all+fitness.glb",
+    "object": "1.005",
+    "source_triangles": 47185,
+    "triangles": 20000,
+    "bytes": 369700,
+    "textures": 7
+  },
+  {
+    "asset": "treadmill.glb",
+    "source": "all+cardio.glb",
+    "object": "SP3D+treadmill+esteira+academia+gyn+fitness+equipamento+equipme",
+    "source_triangles": 98974,
+    "triangles": 24000,
+    "bytes": 331396,
+    "textures": 10
+  }
+]

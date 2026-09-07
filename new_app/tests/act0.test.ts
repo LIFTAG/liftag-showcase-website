@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { act0At, act0Duration, act0Windows, ACT0_SKIP_AT } from '../utils/gymscan/act0.ts'
+import { act0At, act0Duration, act0SweepDone, act0Windows, ACT0_SKIP_AT } from '../utils/gymscan/act0.ts'
 import { assembleWindows, firstImpactAt } from '../utils/gymscan/assemble.ts'
 import { floorDuration, matDuration } from '../utils/gymscan/floorConstruct.ts'
 import { FLOOR_MACHINE_R, floorClearAt } from '../utils/gymscan/floorTiles.ts'
@@ -97,6 +97,17 @@ test('the floor birth runs on its own clock through the overlap', () => {
   assert.equal(a0.floorT, mid, 'and the mat is still being written')
   assert.equal(act0At(w.matEnd + 1, false).floorT, w.matEnd, 'clamped once the mat is open')
   assert.equal(act0At(-1, false).floorT, 0)
+})
+
+test('opening copy waits until the hologram sweep has finished writing', () => {
+  for (const phone of [false, true]) {
+    const w = act0Windows(phone)
+    assert.equal(act0SweepDone(act0At(0, phone)), false)
+    assert.equal(act0SweepDone(act0At(w.assembleAt, phone)), false, '0B starts under the still-live sweep')
+    assert.equal(act0SweepDone(act0At(w.floorEnd - 0.02, phone)), false)
+    assert.equal(act0SweepDone(act0At(w.floorEnd, phone)), true)
+    assert.equal(act0SweepDone(act0At(w.stickEnd, phone)), true, 'skip / hold also release the copy')
+  }
 })
 
 test('the plane finishes writing before the fly-in kills the birth', () => {

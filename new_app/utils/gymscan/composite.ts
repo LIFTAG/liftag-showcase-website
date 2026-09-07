@@ -44,6 +44,12 @@ export const CompositeShader = {
     uEdge: { value: [0.82, 0.89, 1.0] },
     /** 0C close-up defocus amount. 0 outside the fly. */
     uDof: { value: 0.0 },
+    /**
+     * 1 when the die-cut lives on a DOM overlay in front of the page copy.
+     * The gym is then blurred as a whole — punching the card back into this
+     * pass would draw a second, behind-the-type sticker.
+     */
+    uStickOverlay: { value: 0.0 },
   },
   vertexShader: /* glsl */`
     varying vec2 vUv;
@@ -67,6 +73,7 @@ export const CompositeShader = {
     uniform float uSceneFade;
     uniform vec3  uEdge;
     uniform float uDof;
+    uniform float uStickOverlay;
     varying vec2 vUv;
 
     // Must live at global scope: the pars declare uniforms and helper
@@ -109,12 +116,16 @@ export const CompositeShader = {
       // transparent. Cost returns to zero as soon as uDof closes.
       if (uDof > 0.001) {
         vec3 gym = texture2D(tBlur, sceneUv).rgb;
-        float card = smoothstep(0.08, 0.55, texture2D(tFocus, sceneUv).r);
-        vec4 film = texture2D(tFoil, sceneUv);
-        vec3 close = mix(gym, col, card);
-        float glass = film.a * (1.0 - card);
-        close = close * (1.0 - glass) + film.rgb * (1.0 - card);
-        col = mix(col, close, uDof);
+        if (uStickOverlay > 0.5) {
+          col = mix(col, gym, uDof);
+        } else {
+          float card = smoothstep(0.08, 0.55, texture2D(tFocus, sceneUv).r);
+          vec4 film = texture2D(tFoil, sceneUv);
+          vec3 close = mix(gym, col, card);
+          float glass = film.a * (1.0 - card);
+          close = close * (1.0 - glass) + film.rgb * (1.0 - card);
+          col = mix(col, close, uDof);
+        }
       }
 
       // Rounded-rect SDF in aspect-corrected space.

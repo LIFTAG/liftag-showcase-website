@@ -1,0 +1,107 @@
+- generic [active] [ref=f34e1]:
+  - generic [ref=f34e3]:
+    - heading "500" [level=1] [ref=f34e4]
+    - paragraph [ref=f34e5]: Package import specifier "#internal/nuxt/paths" is not defined in package /Users/adrian/liftag_repos/liftag_showcase_website/new_app/package.json imported from /Users/adrian/liftag_repos/liftag_showcase_website/new_app/.nuxt/dist/server/server.mjs
+  - status [ref=f34e6]
+  - iframe [ref=f34e7]:
+    - generic [ref=f35e2]:
+      - banner [ref=f35e3]:
+        - generic [ref=f35e5]:
+          - checkbox [ref=f35e6]
+          - generic "Light mode" [ref=f35e8] [cursor=pointer]
+      - generic [ref=f35e13]:
+        - heading "Error" [level=4] [ref=f35e14]
+        - heading "An error has occurred" [level=1] [ref=f35e15]
+      - heading "Package import specifier \"#internal/nuxt/paths\" is not defined in package /Users/adrian/liftag_repos/liftag_showcase_website/new_app/package.json imported from /Users/adrian/liftag_repos/liftag_showcase_website/new_app/.nuxt/dist/server/server.mjs Copy error with stack trace to clipboard" [level=2] [ref=f35e19]:
+        - generic [ref=f35e23]: Package import specifier "#internal/nuxt/paths" is not defined in package /Users/adrian/liftag_repos/liftag_showcase_website/new_app/package.json imported from /Users/adrian/liftag_repos/liftag_showcase_website/new_app/.nuxt/dist/server/server.mjs
+        - button "Copy error with stack trace to clipboard" [ref=f35e24] [cursor=pointer]
+      - generic [ref=f35e30]:
+        - heading "Stack Trace" [level=3] [ref=f35e33]
+        - generic [ref=f35e35]:
+          - generic [ref=f35e36]:
+            - generic [ref=f35e38]:
+              - checkbox "View All Frames" [ref=f35e39]
+              - generic [ref=f35e40]: View All Frames
+            - generic [ref=f35e42]:
+              - button "Pretty" [ref=f35e43]
+              - button "Raw" [ref=f35e44]
+          - generic:
+            - generic:
+              - list
+      - generic [ref=f35e46]:
+        - heading "Error Cause" [level=3] [ref=f35e49]
+        - code [ref=f35e54]:
+          - generic [ref=f35e55]:
+            - text: "TypeError {"
+            - button "▼" [ref=f35e56]
+            - text: "}"
+      - generic [ref=f35e59]:
+        - heading "Request" [level=3] [ref=f35e61]
+        - generic [ref=f35e62]:
+          - generic [ref=f35e63]:
+            - heading "url" [level=4] [ref=f35e64]
+            - text: http://localhost:3000/demo
+          - generic [ref=f35e65]:
+            - heading "method" [level=4] [ref=f35e66]
+            - text: GET
+          - generic [ref=f35e67]:
+            - heading "headers" [level=4] [ref=f35e68]
+            - table [ref=f35e69]:
+              - rowgroup [ref=f35e70]:
+                - row [ref=f35e71]:
+                  - cell "host" [ref=f35e72]
+                  - cell "localhost:3000" [ref=f35e73]
+                - row [ref=f35e74]:
+                  - cell "sec-fetch-dest" [ref=f35e75]
+                  - cell "document" [ref=f35e76]
+                - row [ref=f35e77]:
+                  - cell "user-agent" [ref=f35e78]
+                  - cell "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Safari/605.1.15" [ref=f35e79]
+                - row [ref=f35e80]:
+                  - cell "upgrade-insecure-requests" [ref=f35e81]
+                  - cell "1" [ref=f35e82]
+                - row [ref=f35e83]:
+                  - cell "accept" [ref=f35e84]
+                  - cell "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" [ref=f35e85]
+                - row [ref=f35e86]:
+                  - cell "sec-fetch-site" [ref=f35e87]
+                  - cell "none" [ref=f35e88]
+                - row [ref=f35e89]:
+                  - cell "sec-fetch-mode" [ref=f35e90]
+                  - cell "navigate" [ref=f35e91]
+                - row [ref=f35e92]:
+                  - cell "accept-language" [ref=f35e93]
+                  - cell "en-GB,en;q=0.9" [ref=f35e94]
+                - row [ref=f35e95]:
+                  - cell "priority" [ref=f35e96]
+                  - cell "u=0, i" [ref=f35e97]
+                - row [ref=f35e98]:
+                  - cell "accept-encoding" [ref=f35e99]
+                  - cell "gzip, deflate" [ref=f35e100]
+                - row [ref=f35e101]:
+                  - cell "cookie" [ref=f35e102]
+                  - cell [ref=f35e103]:
+                    - code [ref=f35e106]:
+                      - generic [ref=f35e107]:
+                        - text: "Object {"
+                        - button "▼" [ref=f35e108]
+                        - text: "}"
+                - row [ref=f35e110]:
+                  - cell "connection" [ref=f35e111]
+                  - cell "keep-alive" [ref=f35e112]
+                - row [ref=f35e113]:
+                  - cell "x-forwarded-for" [ref=f35e114]
+                  - cell "::1" [ref=f35e115]
+                - row [ref=f35e116]:
+                  - cell "x-forwarded-port" [ref=f35e117]
+                  - cell "3000" [ref=f35e118]
+                - row [ref=f35e119]:
+                  - cell "x-forwarded-proto" [ref=f35e120]
+                  - cell "http" [ref=f35e121]
+  - iframe [ref=f34e11]:
+    - generic [ref=f36e3]:
+      - heading "500" [level=1] [ref=f36e4]
+      - paragraph [ref=f36e5]: Package import specifier "#internal/nuxt/paths" is not defined in package /Users/adrian/liftag_repos/liftag_showcase_website/new_app/package.json imported from /Users/adrian/liftag_repos/liftag_showcase_website/new_app/.nuxt/dist/server/server.mjs
+  - button "Toggle detailed error view Hide error page preview" [expanded] [ref=f34e8]:
+    - generic [ref=f34e9]: Toggle detailed error view
+    - button "Hide error page preview" [ref=f34e10] [cursor=pointer]: ×

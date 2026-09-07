@@ -1,0 +1,1539 @@
+- generic [ref=f9e2]:
+  - banner [ref=f9e3]:
+    - link "LIFTAG logo LIFTAG" [ref=f9e4] [cursor=pointer]:
+      - /url: /
+      - generic [ref=f9e5]:
+        - img "LIFTAG logo"
+      - generic [ref=f9e6]: LIFTAG
+    - navigation [ref=f9e7]:
+      - link "Demo" [ref=f9e8] [cursor=pointer]:
+        - /url: /demo
+        - generic [aria-hidden] [ref=f9e9]:
+          - generic [ref=f9e10]:
+            - generic [ref=f9e11]: D
+            - text: D
+          - generic [ref=f9e12]:
+            - generic [ref=f9e13]: e
+            - text: e
+          - generic [ref=f9e14]:
+            - generic [ref=f9e15]: m
+            - text: m
+          - generic [ref=f9e16]:
+            - generic [ref=f9e17]: o
+            - text: o
+      - link "Lifters" [ref=f9e18] [cursor=pointer]:
+        - /url: "#lifters"
+        - generic [aria-hidden] [ref=f9e19]:
+          - generic [ref=f9e20]:
+            - generic [ref=f9e21]: L
+            - text: L
+          - generic [ref=f9e22]:
+            - generic [ref=f9e23]: i
+            - text: i
+          - generic [ref=f9e24]:
+            - generic [ref=f9e25]: f
+            - text: f
+          - generic [ref=f9e26]:
+            - generic [ref=f9e27]: t
+            - text: t
+          - generic [ref=f9e28]:
+            - generic [ref=f9e29]: e
+            - text: e
+          - generic [ref=f9e30]:
+            - generic [ref=f9e31]: r
+            - text: r
+          - generic [ref=f9e32]:
+            - generic [ref=f9e33]: s
+            - text: s
+      - link "Gyms" [ref=f9e34] [cursor=pointer]:
+        - /url: "#gyms"
+        - generic [aria-hidden] [ref=f9e35]:
+          - generic [ref=f9e36]:
+            - generic [ref=f9e37]: G
+            - text: G
+          - generic [ref=f9e38]:
+            - generic [ref=f9e39]: "y"
+            - text: "y"
+          - generic [ref=f9e40]:
+            - generic [ref=f9e41]: m
+            - text: m
+          - generic [ref=f9e42]:
+            - generic [ref=f9e43]: s
+            - text: s
+      - link "Trainers" [ref=f9e44] [cursor=pointer]:
+        - /url: "#trainers"
+        - generic [aria-hidden] [ref=f9e45]:
+          - generic [ref=f9e46]:
+            - generic [ref=f9e47]: T
+            - text: T
+          - generic [ref=f9e48]:
+            - generic [ref=f9e49]: r
+            - text: r
+          - generic [ref=f9e50]:
+            - generic [ref=f9e51]: a
+            - text: a
+          - generic [ref=f9e52]:
+            - generic [ref=f9e53]: i
+            - text: i
+          - generic [ref=f9e54]:
+            - generic [ref=f9e55]: "n"
+            - text: "n"
+          - generic [ref=f9e56]:
+            - generic [ref=f9e57]: e
+            - text: e
+          - generic [ref=f9e58]:
+            - generic [ref=f9e59]: r
+            - text: r
+          - generic [ref=f9e60]:
+            - generic [ref=f9e61]: s
+            - text: s
+      - link "Exercises" [ref=f9e62] [cursor=pointer]:
+        - /url: /exercises
+        - generic [aria-hidden] [ref=f9e63]:
+          - generic [ref=f9e64]:
+            - generic [ref=f9e65]: E
+            - text: E
+          - generic [ref=f9e66]:
+            - generic [ref=f9e67]: x
+            - text: x
+          - generic [ref=f9e68]:
+            - generic [ref=f9e69]: e
+            - text: e
+          - generic [ref=f9e70]:
+            - generic [ref=f9e71]: r
+            - text: r
+          - generic [ref=f9e72]:
+            - generic [ref=f9e73]: c
+            - text: c
+          - generic [ref=f9e74]:
+            - generic [ref=f9e75]: i
+            - text: i
+          - generic [ref=f9e76]:
+            - generic [ref=f9e77]: s
+            - text: s
+          - generic [ref=f9e78]:
+            - generic [ref=f9e79]: e
+            - text: e
+          - generic [ref=f9e80]:
+            - generic [ref=f9e81]: s
+            - text: s
+      - link "Journal" [ref=f9e82] [cursor=pointer]:
+        - /url: /journal
+        - generic [aria-hidden] [ref=f9e83]:
+          - generic [ref=f9e84]:
+            - generic [ref=f9e85]: J
+            - text: J
+          - generic [ref=f9e86]:
+            - generic [ref=f9e87]: o
+            - text: o
+          - generic [ref=f9e88]:
+            - generic [ref=f9e89]: u
+            - text: u
+          - generic [ref=f9e90]:
+            - generic [ref=f9e91]: r
+            - text: r
+          - generic [ref=f9e92]:
+            - generic [ref=f9e93]: "n"
+            - text: "n"
+          - generic [ref=f9e94]:
+            - generic [ref=f9e95]: a
+            - text: a
+          - generic [ref=f9e96]:
+            - generic [ref=f9e97]: l
+            - text: l
+      - link "Pricing" [ref=f9e98] [cursor=pointer]:
+        - /url: /pricing
+        - generic [aria-hidden] [ref=f9e99]:
+          - generic [ref=f9e100]:
+            - generic [ref=f9e101]: P
+            - text: P
+          - generic [ref=f9e102]:
+            - generic [ref=f9e103]: r
+            - text: r
+          - generic [ref=f9e104]:
+            - generic [ref=f9e105]: i
+            - text: i
+          - generic [ref=f9e106]:
+            - generic [ref=f9e107]: c
+            - text: c
+          - generic [ref=f9e108]:
+            - generic [ref=f9e109]: i
+            - text: i
+          - generic [ref=f9e110]:
+            - generic [ref=f9e111]: "n"
+            - text: "n"
+          - generic [ref=f9e112]:
+            - generic [ref=f9e113]: g
+            - text: g
+    - generic [ref=f9e114]:
+      - link "Dashboard" [ref=f9e115] [cursor=pointer]:
+        - /url: https://app.liftag.fit/login
+      - link "Get the app" [ref=f9e117] [cursor=pointer]:
+        - /url: /get
+  - main [ref=f9e118]:
+    - generic [ref=f9e119]:
+      - generic [ref=f9e120]:
+        - generic [ref=f9e122]:
+          - generic [ref=f9e123]:
+            - heading "FOR LIFTERS. BY LIFTERS." [level=1] [ref=f9e124]:
+              - generic [ref=f9e125]: FOR
+              - generic [ref=f9e127]:
+                - generic [ref=f9e128]: LIFTERS.
+                - generic [aria-hidden]: LIFTERS.
+              - generic [ref=f9e129]: BY
+              - generic [ref=f9e131]:
+                - generic [ref=f9e132]: LIFTERS.
+                - generic [aria-hidden]: LIFTERS.
+            - paragraph [ref=f9e133]: Tap or scan any machine. Track every set. Watch your numbers compound.Core workout tracking is free forever. Premium intelligence is optional.
+            - link "Free on iOS + Android Get LIFTAG" [ref=f9e136] [cursor=pointer]:
+              - /url: /get
+              - generic [ref=f9e139]:
+                - generic [ref=f9e140]: Free on iOS + Android
+                - generic [ref=f9e141]: Get LIFTAG
+            - generic [ref=f9e143]:
+              - generic [ref=f9e144]:
+                - generic [ref=f9e145]: 0+
+                - generic [ref=f9e146]: Exercises in library
+              - generic [ref=f9e147]:
+                - generic [ref=f9e148]: "0"
+                - generic [ref=f9e149]: Muscle groups
+              - generic [ref=f9e150]:
+                - generic [ref=f9e151]: 0%
+                - generic [ref=f9e152]: Core tracking · free forever
+          - generic [ref=f9e153]:
+            - generic [ref=f9e154]:
+              - img "LIFTAG QR Code" [ref=f9e156]
+              - generic [ref=f9e157]:
+                - generic [ref=f9e158]: NFC + QR · MACHINE SYNC
+                - generic [ref=f9e159]: TAP / SCAN → TRACK
+            - generic [ref=f9e160]:
+              - generic [ref=f9e161]: VOLUME · TODAY
+              - generic [ref=f9e162]: 3.2 t
+              - generic [ref=f9e163]:
+                - generic [ref=f9e164]: ↑
+                - text: +18% vs last week
+            - generic [ref=f9e169]:
+              - generic [ref=f9e170]: NEW PR
+              - generic [ref=f9e176]: 140kg Bench
+        - text: LIFTERS. LIFTERS.
+      - generic [ref=f9e178]:
+        - generic [ref=f9e179]:
+          - generic [ref=f9e180]: NFC + QR · MACHINE SYNC
+          - generic [ref=f9e183]: AUTO · 1RM
+          - generic [ref=f9e186]: 400+ · EXERCISES
+          - generic [ref=f9e189]: 11 · MUSCLE GROUPS
+          - generic [ref=f9e192]: COACH · DIRECTORY
+          - generic [ref=f9e195]: GYM · MAP
+          - generic [ref=f9e198]: ROUTINES · SUPERSETS
+          - generic [ref=f9e201]: WORKOUT · HISTORY
+          - generic [ref=f9e204]: PRs · AUTO-DETECTED
+          - generic [ref=f9e207]: EN · SK
+        - generic [aria-hidden] [ref=f9e210]:
+          - generic [ref=f9e211]: NFC + QR · MACHINE SYNC
+          - generic [ref=f9e214]: AUTO · 1RM
+          - generic [ref=f9e217]: 400+ · EXERCISES
+          - generic [ref=f9e220]: 11 · MUSCLE GROUPS
+          - generic [ref=f9e223]: COACH · DIRECTORY
+          - generic [ref=f9e226]: GYM · MAP
+          - generic [ref=f9e229]: ROUTINES · SUPERSETS
+          - generic [ref=f9e232]: WORKOUT · HISTORY
+          - generic [ref=f9e235]: PRs · AUTO-DETECTED
+          - generic [ref=f9e238]: EN · SK
+      - generic [ref=f9e243]:
+        - generic [ref=f9e244]:
+          - generic [ref=f9e245]:
+            - generic [ref=f9e247]: ▸ MACHINE SYNC
+            - generic [aria-hidden] [ref=f9e248]: ▸ MACHINE SYNC
+          - heading [level=2] [ref=f9e249]:
+            - generic [ref=f9e250]: Every machine hasa manual. Now it's in your pocket.
+          - paragraph [ref=f9e251]: No more guessing how a cable stack works. Tap the NFC tag or scan the QR code on any partner gym machine. Liftag opens the right exercise, demo video, and tracking flow in seconds.
+        - figure "Stylized LIFTAG NFC tag for illustration. The real tag looks different. Move to tilt." [ref=f9e252]:
+          - generic [ref=f9e253]:
+            - paragraph: MOVE TO TILT
+          - generic:
+            - generic: NFC machine tag
+            - generic: Optional add-on · below the QR
+            - generic: Illustration only · not the real tag
+        - generic [ref=f9e254]:
+          - img "LIFTAG screen" [ref=f9e261]
+          - generic [ref=f9e263]:
+            - generic [ref=f9e264] [cursor=pointer]:
+              - generic [ref=f9e265]: STEP 01
+              - generic [ref=f9e268]:
+                - heading "T T a a p p / / s s c c a a n n . ." [level=3] [ref=f9e269]:
+                  - generic [ref=f9e271]:
+                    - generic [ref=f9e272]:
+                      - generic [ref=f9e273]: T
+                      - text: T
+                    - generic [ref=f9e274]:
+                      - generic [ref=f9e275]: a
+                      - text: a
+                    - generic [ref=f9e276]:
+                      - generic [ref=f9e277]: p
+                      - text: p
+                    - generic [ref=f9e278]:
+                      - generic [ref=f9e279]: /
+                      - text: /
+                    - generic [ref=f9e280]:
+                      - generic [ref=f9e281]: s
+                      - text: s
+                    - generic [ref=f9e282]:
+                      - generic [ref=f9e283]: c
+                      - text: c
+                    - generic [ref=f9e284]:
+                      - generic [ref=f9e285]: a
+                      - text: a
+                    - generic [ref=f9e286]:
+                      - generic [ref=f9e287]: "n"
+                      - text: "n"
+                    - generic [ref=f9e288]:
+                      - generic [ref=f9e289]: .
+                      - text: .
+                - paragraph [ref=f9e290]: Open Liftag. Tap the NFC tag or aim at the QR sticker on the machine. The exact exercise, variations, and a setup video load instantly. No menus, no searching.
+            - generic [ref=f9e291] [cursor=pointer]:
+              - generic [ref=f9e292]: STEP 02
+              - generic [ref=f9e295]:
+                - heading "L L o o g g . ." [level=3] [ref=f9e296]:
+                  - generic [ref=f9e298]:
+                    - generic [ref=f9e299]:
+                      - generic [ref=f9e300]: L
+                      - text: L
+                    - generic [ref=f9e301]:
+                      - generic [ref=f9e302]: o
+                      - text: o
+                    - generic [ref=f9e303]:
+                      - generic [ref=f9e304]: g
+                      - text: g
+                    - generic [ref=f9e305]:
+                      - generic [ref=f9e306]: .
+                      - text: .
+                - paragraph [ref=f9e307]: Tap weight × reps. Timer auto-runs between sets. RPE optional. Every set is timestamped and saved to your history.
+                - generic [ref=f9e308]:
+                  - generic [ref=f9e309]: OPTIONAL
+                  - generic [ref=f9e310]: Watch the gym's own instruction video. Filmed by their trainers, on their machines.
+      - generic [ref=f9e313]:
+        - heading "How It Works" [level=2] [ref=f9e315]
+        - generic [ref=f9e316]:
+          - generic [ref=f9e317]:
+            - generic: "01"
+            - generic [ref=f9e318]:
+              - heading "Scan the QR Code" [level=3] [ref=f9e333]
+              - paragraph [ref=f9e334]: Open LIFTAG, point your camera at the machine's QR code. The exercise loads instantly.
+          - generic [ref=f9e336]:
+            - generic: "02"
+            - generic [ref=f9e337]:
+              - generic [ref=f9e339]:
+                - generic [ref=f9e340]: Bench Press
+                - generic [ref=f9e341]: "Last session: 80kg × 10"
+                - generic [ref=f9e342]:
+                  - generic [ref=f9e343]:
+                    - generic [ref=f9e344]: WEIGHT
+                    - generic [ref=f9e345]: 0kg
+                  - generic [ref=f9e346]: ×
+                  - generic [ref=f9e347]:
+                    - generic [ref=f9e348]: REPS
+                    - generic [ref=f9e349]: "0"
+                - button "Log set" [ref=f9e350] [cursor=pointer]: LOG SET
+              - heading "Track Your Sets" [level=3] [ref=f9e352]
+              - paragraph [ref=f9e353]: Enter weight and reps. See your previous performance, personal bests, and projected targets.
+          - generic [ref=f9e355]:
+            - generic: "03"
+            - generic [ref=f9e356]:
+              - generic [ref=f9e358]:
+                - generic [ref=f9e359]: Bench Press · 12 weeks
+                - generic [ref=f9e364]:
+                  - generic [ref=f9e365]: +0%STRENGTH
+                  - generic [ref=f9e366]: 0SESSIONS
+                  - generic [ref=f9e367]: 0NEW PRs
+              - heading "Watch Progress Compound" [level=3] [ref=f9e368]
+              - paragraph [ref=f9e369]: Over weeks and months, LIFTAG builds your complete strength story. Every rep, every PR.
+        - tablist "How it works steps" [ref=f9e371]:
+          - tab "Step 1" [selected] [ref=f9e372] [cursor=pointer]
+          - tab "Step 2" [ref=f9e373] [cursor=pointer]
+          - tab "Step 3" [ref=f9e374] [cursor=pointer]
+      - generic [ref=f9e376]:
+        - generic [ref=f9e377]:
+          - generic [ref=f9e378]:
+            - generic [ref=f9e379]:
+              - generic [ref=f9e381]: ▸ FOR LIFTERS
+              - generic [aria-hidden] [ref=f9e382]: ▸ FOR LIFTERS
+            - heading [level=2] [ref=f9e383]:
+              - generic [ref=f9e384]: Train smarter.Lift heavier. Compound everything.
+          - paragraph [ref=f9e385]: Progressive overload, made obvious. Goals, PRs, history, and clean charts that show, at a glance, whether you're getting stronger or stalling.
+        - generic [ref=f9e386]:
+          - generic [ref=f9e387] [cursor=pointer]:
+            - generic [ref=f9e388]:
+              - img "Progress, not vibes."
+            - generic [ref=f9e389]:
+              - generic [ref=f9e390]: PROGRESS INSIGHTS
+              - heading "Progress, not vibes." [level=3] [ref=f9e391]
+              - paragraph [ref=f9e392]: Per-session weight, 1RM, and total volume, auto-aggregated across every workout. Watch the line climb.
+          - generic [ref=f9e393] [cursor=pointer]:
+            - generic [ref=f9e394]:
+              - img "Two taps. Set logged."
+            - generic [ref=f9e395]:
+              - generic [ref=f9e396]: LOG SET
+              - heading "Two taps. Set logged." [level=3] [ref=f9e397]
+              - paragraph [ref=f9e398]: Weight × reps. RPE optional. The timer auto-runs between sets so you don't have to think.
+          - generic [ref=f9e399] [cursor=pointer]:
+            - generic [ref=f9e400]:
+              - img "Plans that flex with you."
+            - generic [ref=f9e401]:
+              - generic [ref=f9e402]: ROUTINES + SUPERSETS
+              - heading "Plans that flex with you." [level=3] [ref=f9e403]
+              - paragraph [ref=f9e404]: Build routines, share them, run supersets. Every session adapts to your real performance.
+          - generic [ref=f9e405] [cursor=pointer]:
+            - generic [ref=f9e406]:
+              - img "Every session, dated."
+            - generic [ref=f9e407]:
+              - generic [ref=f9e408]: HISTORY
+              - heading "Every session, dated." [level=3] [ref=f9e409]
+              - paragraph [ref=f9e410]: Calendar + by-body-part. Find any session in two taps.
+          - generic [ref=f9e411] [cursor=pointer]:
+            - generic [ref=f9e412]:
+              - img "400+ exercises. Form videos."
+            - generic [ref=f9e413]:
+              - generic [ref=f9e414]: LIBRARY
+              - heading "400+ exercises. Form videos." [level=3] [ref=f9e415]
+              - paragraph [ref=f9e416]:
+                - text: Vetted by coaches, not influencers. Log a
+                - link "pull-up" [ref=f9e417]:
+                  - /url: /exercises/pull-up
+                - text: ","
+                - link "overhead press" [ref=f9e418]:
+                  - /url: /exercises/standing-barbell-overhead-press
+                - text: ", or"
+                - link "Romanian deadlift" [ref=f9e419]:
+                  - /url: /exercises/barbell-romanian-deadlift-rdl
+                - text: from the same library.
+              - link "Browse the library →" [ref=f9e420]:
+                - /url: /exercises
+        - generic [ref=f9e421]:
+          - generic [ref=f9e422]:
+            - generic [ref=f9e423]: < 2s
+            - generic [ref=f9e424]: Avg time to log a set
+          - generic [ref=f9e425]:
+            - generic [ref=f9e426]: ∞
+            - generic [ref=f9e427]: Sessions stored
+          - generic [ref=f9e428]:
+            - generic [ref=f9e429]: EN · SK
+            - generic [ref=f9e430]: Languages, day one
+          - generic [ref=f9e431]:
+            - generic [ref=f9e432]: "0"
+            - generic [ref=f9e433]: Spreadsheets required
+      - generic [ref=f9e435]:
+        - generic [ref=f9e437]:
+          - generic [ref=f9e438]:
+            - generic [ref=f9e440]: ▸ PROGRESS & INSIGHTS
+            - generic [aria-hidden] [ref=f9e441]: ▸ PROGRESS & INSIGHTS
+          - heading "Watch the numbers compound." [level=2] [ref=f9e442]
+          - paragraph [ref=f9e444]: Volume, PRs, 1RM estimates, streaks, body-part splits, workout history, rest trends. Every dimension of your training in one place.
+        - generic [ref=f9e445]:
+          - generic [ref=f9e446]:
+            - generic [ref=f9e447]:
+              - generic [ref=f9e448]: Volume Trends
+              - generic [ref=f9e449]: 4W · 12W · 26W · 52W
+            - generic [ref=f9e450]:
+              - generic [ref=f9e451]: Streak Tracking
+              - generic [ref=f9e452]: 12 weeks unbroken
+            - generic [ref=f9e453]:
+              - generic [ref=f9e454]: Body-Part Split
+              - generic [ref=f9e455]: Push · Pull · Legs · Full
+            - generic [ref=f9e456]:
+              - generic [ref=f9e457]: Rest & Recovery
+              - generic [ref=f9e458]: Avg rest between sets
+            - generic [ref=f9e459]:
+              - generic [ref=f9e460]: WEEKLY VOLUME
+              - generic [ref=f9e461]:
+                - button "Week 1 volume 40" [ref=f9e462] [cursor=pointer]
+                - button "Week 2 volume 55" [ref=f9e464] [cursor=pointer]
+                - button "Week 3 volume 48" [ref=f9e466] [cursor=pointer]
+                - button "Week 4 volume 62" [ref=f9e468] [cursor=pointer]
+                - button "Week 5 volume 58" [ref=f9e470] [cursor=pointer]
+                - button "Week 6 volume 70" [ref=f9e472] [cursor=pointer]
+                - button "Week 7 volume 75" [ref=f9e474] [cursor=pointer]
+                - button "Week 8 volume 68" [ref=f9e476] [cursor=pointer]
+                - button "Week 9 volume 80" [ref=f9e478] [cursor=pointer]
+                - button "Week 10 volume 85" [ref=f9e480] [cursor=pointer]
+                - button "Week 11 volume 78" [ref=f9e482] [cursor=pointer]
+                - button "Week 12 volume 92" [ref=f9e484] [cursor=pointer]
+              - generic [ref=f9e486]: WEEK 12 · 92 VOL
+          - generic [ref=f9e487]:
+            - img "LIFTAG screen" [ref=f9e490]
+            - generic [ref=f9e491]:
+              - button "Screen 1" [ref=f9e492] [cursor=pointer]
+              - button "Screen 2" [ref=f9e493] [cursor=pointer]
+              - button "Screen 3" [ref=f9e494] [cursor=pointer]
+              - button "Screen 4" [ref=f9e495] [cursor=pointer]
+          - generic [ref=f9e498]:
+            - generic [ref=f9e499]:
+              - generic [ref=f9e500]: Personal Records
+              - generic [ref=f9e501]: Auto-detected · weight / reps / vol
+            - generic [ref=f9e502]:
+              - generic [ref=f9e503]: 1RM Estimates
+              - generic [ref=f9e504]: Epley formula, per set
+            - generic [ref=f9e505]:
+              - generic [ref=f9e506]: Workout History
+              - generic [ref=f9e507]: Every session, searchable
+            - generic [ref=f9e508]:
+              - generic [ref=f9e509]: Exercise Insights
+              - generic [ref=f9e510]: Top set · best 1RM · total volume
+            - generic [ref=f9e511]: 1RM PROGRESSION
+        - generic [ref=f9e516]:
+          - generic [ref=f9e517]:
+            - generic [ref=f9e518]: 4W-52W
+            - generic [ref=f9e519]: Time windows
+            - generic [ref=f9e520]: Zoom in or out
+          - generic [ref=f9e521]:
+            - generic [ref=f9e522]: PRs
+            - generic [ref=f9e523]: Auto-detected
+            - generic [ref=f9e524]: Weight, reps & volume
+          - generic [ref=f9e525]:
+            - generic [ref=f9e526]: 1RM
+            - generic [ref=f9e527]: Estimated per set
+            - generic [ref=f9e528]: Every exercise
+          - generic [ref=f9e529]:
+            - generic [ref=f9e530]: ∞
+            - generic [ref=f9e531]: History stored
+            - generic [ref=f9e532]: Every set, forever
+      - generic [ref=f9e535]:
+        - generic [ref=f9e536]:
+          - generic [ref=f9e537]:
+            - generic [ref=f9e539]: ▸ ONE APP INSTEAD OF EIGHT
+            - generic [aria-hidden] [ref=f9e540]: ▸ ONE APP INSTEAD OF EIGHT
+          - heading "All the little gym apps, folded into LIFTAG." [level=2] [ref=f9e541]
+          - paragraph [ref=f9e543]: Set logging, rest timing, PRs, body metrics, form guides, progress charts, and routines finally live in one place.
+        - generic "Mock fitness apps merging into LIFTAG" [ref=f9e544]:
+          - generic [ref=f9e545]:
+            - generic [ref=f9e546]: Notes
+            - generic [ref=f9e547]: Sets · RPE
+          - generic [ref=f9e548]:
+            - generic [ref=f9e549]: Timer
+            - generic [ref=f9e550]: Rest intervals
+          - generic [ref=f9e551]:
+            - generic [ref=f9e552]: Stopwatch
+            - generic [ref=f9e553]: Timed sets
+          - generic [ref=f9e554]:
+            - generic [ref=f9e555]: Exercise Guides
+            - generic [ref=f9e556]: Form videos
+          - generic [ref=f9e557]:
+            - generic [ref=f9e558]: Workout Planner
+            - generic [ref=f9e559]: Routines
+          - generic [ref=f9e560]:
+            - generic [ref=f9e561]: Progress Charts
+            - generic [ref=f9e562]: Analytics
+          - generic [ref=f9e563]:
+            - generic [ref=f9e564]: Calendar
+            - generic [ref=f9e565]: Reminders, notifications
+          - generic [ref=f9e566]:
+            - generic [ref=f9e567]: Body Metrics
+            - generic [ref=f9e568]: Check-ins
+          - generic "LIFTAG app icon":
+            - generic:
+              - img "LIFTAG"
+            - generic:
+              - generic: LIFTAG
+              - generic: all-in-one gym OS
+      - generic [ref=f9e570]:
+        - generic [ref=f9e571]:
+          - generic [ref=f9e572]:
+            - generic [ref=f9e573]:
+              - generic [ref=f9e575]: ▸ FOR GYMS
+              - generic [aria-hidden] [ref=f9e576]: ▸ FOR GYMS
+            - heading [level=2] [ref=f9e577]:
+              - generic [ref=f9e578]: Put your gymon the map.
+          - paragraph [ref=f9e579]: Tag your floor. Members tap NFC or scan QR, instantly open the right exercise, and watch a setup video your trainers recorded. Get discovered by thousands of nearby lifters looking for their next gym.
+        - generic [ref=f9e580]:
+          - generic [ref=f9e581]:
+            - figure "LIFTAG foil machine tag. Cable Lat Pulldown appears when the plate is tilted." [ref=f9e584]:
+              - generic:
+                - generic:
+                  - generic [aria-hidden]: LIFTAG
+                  - generic:
+                    - generic: LIFTAG
+                    - generic: "#042"
+                  - generic: TAP OR SCAN
+                - generic [aria-hidden]:
+                  - generic: CABLE LAT PULLDOWN
+                  - generic: CABLE LAT PULLDOWN
+                  - generic: CABLE LAT PULLDOWN
+            - generic [ref=f9e586]:
+              - generic [ref=f9e587]:
+                - img "Lat Pulldown machine" [ref=f9e588]
+                - generic [ref=f9e590]: ● LIVE · 3 USING
+              - generic [ref=f9e591]:
+                - generic [ref=f9e592]: "MACHINE · #042"
+                - generic [ref=f9e593]: Cable Lat Pulldown
+                - generic [ref=f9e594]:
+                  - generic [ref=f9e595]: BACK
+                  - generic [ref=f9e596]: LATS
+                  - generic [ref=f9e597]: BICEPS
+          - generic [ref=f9e598]:
+            - img "LIFTAG screen" [ref=f9e602]
+            - img "LIFTAG screen" [ref=f9e606]
+            - generic [aria-hidden]: +1 CHECK-IN
+            - generic [ref=f9e607]: FREE QR + NFC KIT · APPLY NOW
+          - generic [ref=f9e610]:
+            - generic [ref=f9e611]:
+              - generic [ref=f9e612]: QR + NFC KIT
+              - generic [ref=f9e613]: Every machine, explained.
+              - generic [ref=f9e614]: Tags and stickers ship free. Members tap, scan, watch, lift.
+            - generic [ref=f9e615]:
+              - generic [ref=f9e616]: YOUR CONTENT
+              - generic [ref=f9e617]: Your trainers in every video.
+              - generic [ref=f9e618]: Record once. Deploy across the whole floor.
+            - generic [ref=f9e619]:
+              - generic [ref=f9e620]: DISCOVERY
+              - generic [ref=f9e621]: Get found by nearby lifters.
+              - generic [ref=f9e622]: Featured on the Liftag map with a verified badge.
+            - generic [ref=f9e623]:
+              - generic [ref=f9e624]: FREE
+              - generic [ref=f9e625]: Core gym tools. Free forever.
+              - generic [ref=f9e626]: Tags, listing, machine setup, and the core dashboard stay free. Advanced business tools are optional.
+            - generic [ref=f9e628]:
+              - link "Partner with us" [ref=f9e629] [cursor=pointer]:
+                - /url: /contact/partner
+              - link "Compare gym QR platforms" [ref=f9e630] [cursor=pointer]:
+                - /url: /best-gym-qr-nfc-app
+        - generic [ref=f9e631]:
+          - generic [ref=f9e632]:
+            - generic [ref=f9e633]: 0€
+            - generic [ref=f9e634]: Core gym tools
+            - generic [ref=f9e635]: free forever
+          - generic [ref=f9e636]:
+            - generic [ref=f9e637]: FREE
+            - generic [ref=f9e638]: QR + NFC kit
+            - generic [ref=f9e639]: we ship it to you
+          - generic [ref=f9e640]:
+            - generic [ref=f9e641]: MAP
+            - generic [ref=f9e642]: Featured placement
+            - generic [ref=f9e643]: verified gym badge
+      - generic [ref=f9e645]:
+        - generic [ref=f9e646]:
+          - generic [ref=f9e647]:
+            - generic [ref=f9e648]:
+              - generic [ref=f9e649]:
+                - generic [ref=f9e651]: ▸ FOR GYM OWNERS
+                - generic [aria-hidden] [ref=f9e652]: ▸ FOR GYM OWNERS
+              - heading "Run your gyms from one dashboard." [level=2] [ref=f9e653]
+              - paragraph [ref=f9e655]: Locations, machines, and managers. The core dashboard is free forever; advanced business tools are optional.
+            - list [ref=f9e656]:
+              - listitem [ref=f9e657]:
+                - text: LOCATIONS
+                - heading "Every gym, one place." [level=3] [ref=f9e658]
+                - paragraph [ref=f9e659]: Add new locations, update hours, and edit details across every gym in your brand.
+              - listitem [ref=f9e660]:
+                - text: MACHINE CATALOG
+                - heading "Build once, deploy everywhere." [level=3] [ref=f9e661]
+                - paragraph [ref=f9e662]: Define your equipment library once. Provision machines to any gym in a few clicks.
+              - listitem [ref=f9e663]:
+                - text: YOUR TEAM
+                - heading "Invite managers by email." [level=3] [ref=f9e664]
+                - paragraph [ref=f9e665]: Send an invite. Your staff get access to the gym you assign. No setup needed.
+          - generic "Liftag web dashboard mockup" [ref=f9e666]:
+            - generic: SCROLL TO OPEN ↓
+            - generic:
+              - img "Liftag dashboard"
+            - generic [aria-hidden]:
+              - generic:
+                - generic: CATALOG · SYNC
+                - generic: 1 → 12 GYMS
+            - generic [aria-hidden]:
+              - generic: MACHINES · LIVE
+              - generic: 248 units
+              - generic:
+                - generic: ↑
+                - text: +24 this month
+            - generic [aria-hidden]:
+              - generic: ⚡ DEPLOYED
+              - generic: Bratislava · Slovakia
+        - generic:
+          - generic "Liftag coach dashboard mockup":
+            - img "Liftag coach dashboard"
+            - generic [aria-hidden]:
+              - generic: COACHING · ACTIVE
+              - generic: 4 clients
+            - generic [aria-hidden]:
+              - generic: MONTH AT A GLANCE
+              - generic:
+                - generic: 5 workouts
+                - generic: 70 sets
+                - generic: 13,060 kg
+            - generic [aria-hidden]:
+              - generic: BODY FOCUS
+              - generic: Quadriceps
+              - generic: 13.3% of volume · 30 sets
+          - generic:
+            - generic:
+              - generic:
+                - generic: ▸ COACHING · DESKTOP
+                - generic [aria-hidden]: ▸ COACHING · DESKTOP
+              - heading "Coaching, on a big screen." [level=2]
+              - paragraph: Your clients' training opened up on desktop. Every logged session, every trend, everything you shared - without leaving the browser.
+            - list:
+              - listitem:
+                - text: CLIENT ROSTER
+                - heading "Invite by email. Coach from day one." [level=3]
+                - paragraph: Send an invite, they accept in the app, and their training lands here. Whoever has not logged in a while surfaces first.
+              - listitem:
+                - text: SESSION HISTORY
+                - heading "A month of training at a glance." [level=3]
+                - paragraph: Walk the calendar, open any session, and read duration, sets and volume next to how every exercise compares to last time.
+              - listitem:
+                - text: BODY FOCUS
+                - heading "See what they are actually training." [level=3]
+                - paragraph: A front-and-back muscle map per month and per session, plus the body-weight trend, so imbalances show up early.
+        - paragraph: Even coaches get a dashboard.
+        - navigation "Dashboard demo chapters":
+          - generic:
+            - generic: GYM DASHBOARD
+            - list:
+              - listitem:
+                - button "01 LOCATIONS 0:00":
+                  - generic: "01"
+                  - generic:
+                    - generic:
+                      - generic: LOCATIONS
+                      - generic: 0:00
+              - listitem:
+                - button "02 MACHINES":
+                  - generic: "02"
+                  - generic: MACHINES
+              - listitem:
+                - button "03 CATALOG":
+                  - generic: "03"
+                  - generic: CATALOG
+          - generic:
+            - generic: COACH DASHBOARD
+            - list:
+              - listitem:
+                - button "04 SESSIONS":
+                  - generic: "04"
+                  - generic: SESSIONS
+              - listitem:
+                - button "05 BODY WEIGHT":
+                  - generic: "05"
+                  - generic: BODY WEIGHT
+              - listitem:
+                - button "06 ROUTINES/PLANS":
+                  - generic: "06"
+                  - generic: ROUTINES/PLANS
+          - generic: HOLD TO WATCH · SCROLL TO SKIP
+      - generic [ref=f9e669]:
+        - generic [ref=f9e670]:
+          - generic [ref=f9e671]:
+            - generic [ref=f9e672]:
+              - generic [ref=f9e674]: ▸ FOR TRAINERS & COACHES
+              - generic [aria-hidden] [ref=f9e675]: ▸ FOR TRAINERS & COACHES
+            - heading [level=2] [ref=f9e676]:
+              - generic [ref=f9e677]: Your clients,quantified.
+          - paragraph [ref=f9e678]: LIFTAG is a full coaching platform, not just a directory. Build your profile, get discovered, share plans, and track every client's progress in one place.
+        - generic [ref=f9e679]:
+          - generic [ref=f9e680]:
+            - generic [ref=f9e681]:
+              - generic [ref=f9e682]: YOUR PROFILE
+              - heading "M M a a n n a a g g e e y y o o u u r r p p r r o o f f i i l l e e . ." [level=3] [ref=f9e683]:
+                - generic [ref=f9e684]:
+                  - generic [ref=f9e685]:
+                    - generic [ref=f9e686]:
+                      - generic [ref=f9e687]: M
+                      - text: M
+                    - generic [ref=f9e688]:
+                      - generic [ref=f9e689]: a
+                      - text: a
+                    - generic [ref=f9e690]:
+                      - generic [ref=f9e691]: "n"
+                      - text: "n"
+                    - generic [ref=f9e692]:
+                      - generic [ref=f9e693]: a
+                      - text: a
+                    - generic [ref=f9e694]:
+                      - generic [ref=f9e695]: g
+                      - text: g
+                    - generic [ref=f9e696]:
+                      - generic [ref=f9e697]: e
+                      - text: e
+                  - generic [ref=f9e698]:
+                    - generic [ref=f9e699]:
+                      - generic [ref=f9e700]: "y"
+                      - text: "y"
+                    - generic [ref=f9e701]:
+                      - generic [ref=f9e702]: o
+                      - text: o
+                    - generic [ref=f9e703]:
+                      - generic [ref=f9e704]: u
+                      - text: u
+                    - generic [ref=f9e705]:
+                      - generic [ref=f9e706]: r
+                      - text: r
+                  - generic [ref=f9e707]:
+                    - generic [ref=f9e708]:
+                      - generic [ref=f9e709]: p
+                      - text: p
+                    - generic [ref=f9e710]:
+                      - generic [ref=f9e711]: r
+                      - text: r
+                    - generic [ref=f9e712]:
+                      - generic [ref=f9e713]: o
+                      - text: o
+                    - generic [ref=f9e714]:
+                      - generic [ref=f9e715]: f
+                      - text: f
+                    - generic [ref=f9e716]:
+                      - generic [ref=f9e717]: i
+                      - text: i
+                    - generic [ref=f9e718]:
+                      - generic [ref=f9e719]: l
+                      - text: l
+                    - generic [ref=f9e720]:
+                      - generic [ref=f9e721]: e
+                      - text: e
+                    - generic [ref=f9e722]:
+                      - generic [ref=f9e723]: .
+                      - text: .
+              - paragraph [ref=f9e724]: Specialisms, experience, location, linked gyms. Full control over how you appear to lifters looking for a coach.
+            - generic [ref=f9e725]:
+              - generic [ref=f9e726]: Verified trainer badge + priority placement
+              - generic [ref=f9e729]: Share plans with any client via email
+              - generic [ref=f9e732]: Review client history & volume trends
+              - generic [ref=f9e735]: Add custom exercises with your own videos
+              - generic [ref=f9e738]: Online & in-person coaching, one dashboard
+            - generic [ref=f9e742]:
+              - link "Join as a coach" [ref=f9e743] [cursor=pointer]:
+                - /url: /become-a-coach
+              - link "See the coach platform" [ref=f9e744] [cursor=pointer]:
+                - /url: /become-a-coach#showcase
+          - generic [ref=f9e745]:
+            - img "LIFTAG screen" [ref=f9e749]
+            - generic [ref=f9e750]:
+              - generic [ref=f9e751]:
+                - generic [ref=f9e752]: VISIBILITY
+                - generic [ref=f9e753]: PUBLIC
+                - generic [ref=f9e754]: live on the directory
+              - generic [ref=f9e755]:
+                - generic [ref=f9e756]: PROFILE FIELDS
+                - generic [ref=f9e757]: Bio · Gyms · Location
+                - generic [ref=f9e758]: fully editable
+          - generic [ref=f9e759]:
+            - generic [ref=f9e760] [cursor=pointer]:
+              - generic [ref=f9e761]: YOUR PROFILE
+              - generic [ref=f9e763]:
+                - generic [ref=f9e764]:
+                  - generic [ref=f9e765]:
+                    - generic [ref=f9e766]: M
+                    - text: M
+                  - generic [ref=f9e767]:
+                    - generic [ref=f9e768]: a
+                    - text: a
+                  - generic [ref=f9e769]:
+                    - generic [ref=f9e770]: "n"
+                    - text: "n"
+                  - generic [ref=f9e771]:
+                    - generic [ref=f9e772]: a
+                    - text: a
+                  - generic [ref=f9e773]:
+                    - generic [ref=f9e774]: g
+                    - text: g
+                  - generic [ref=f9e775]:
+                    - generic [ref=f9e776]: e
+                    - text: e
+                - generic [ref=f9e777]:
+                  - generic [ref=f9e778]:
+                    - generic [ref=f9e779]: "y"
+                    - text: "y"
+                  - generic [ref=f9e780]:
+                    - generic [ref=f9e781]: o
+                    - text: o
+                  - generic [ref=f9e782]:
+                    - generic [ref=f9e783]: u
+                    - text: u
+                  - generic [ref=f9e784]:
+                    - generic [ref=f9e785]: r
+                    - text: r
+                - generic [ref=f9e786]:
+                  - generic [ref=f9e787]:
+                    - generic [ref=f9e788]: p
+                    - text: p
+                  - generic [ref=f9e789]:
+                    - generic [ref=f9e790]: r
+                    - text: r
+                  - generic [ref=f9e791]:
+                    - generic [ref=f9e792]: o
+                    - text: o
+                  - generic [ref=f9e793]:
+                    - generic [ref=f9e794]: f
+                    - text: f
+                  - generic [ref=f9e795]:
+                    - generic [ref=f9e796]: i
+                    - text: i
+                  - generic [ref=f9e797]:
+                    - generic [ref=f9e798]: l
+                    - text: l
+                  - generic [ref=f9e799]:
+                    - generic [ref=f9e800]: e
+                    - text: e
+                  - generic [ref=f9e801]:
+                    - generic [ref=f9e802]: .
+                    - text: .
+            - generic [ref=f9e803] [cursor=pointer]:
+              - generic [ref=f9e804]: BE DISCOVERED
+              - generic [ref=f9e806]:
+                - generic [ref=f9e807]:
+                  - generic [ref=f9e808]:
+                    - generic [ref=f9e809]: C
+                    - text: C
+                  - generic [ref=f9e810]:
+                    - generic [ref=f9e811]: l
+                    - text: l
+                  - generic [ref=f9e812]:
+                    - generic [ref=f9e813]: i
+                    - text: i
+                  - generic [ref=f9e814]:
+                    - generic [ref=f9e815]: e
+                    - text: e
+                  - generic [ref=f9e816]:
+                    - generic [ref=f9e817]: "n"
+                    - text: "n"
+                  - generic [ref=f9e818]:
+                    - generic [ref=f9e819]: t
+                    - text: t
+                  - generic [ref=f9e820]:
+                    - generic [ref=f9e821]: s
+                    - text: s
+                - generic [ref=f9e822]:
+                  - generic [ref=f9e823]:
+                    - generic [ref=f9e824]: f
+                    - text: f
+                  - generic [ref=f9e825]:
+                    - generic [ref=f9e826]: i
+                    - text: i
+                  - generic [ref=f9e827]:
+                    - generic [ref=f9e828]: "n"
+                    - text: "n"
+                  - generic [ref=f9e829]:
+                    - generic [ref=f9e830]: d
+                    - text: d
+                - generic [ref=f9e831]:
+                  - generic [ref=f9e832]:
+                    - generic [ref=f9e833]: "y"
+                    - text: "y"
+                  - generic [ref=f9e834]:
+                    - generic [ref=f9e835]: o
+                    - text: o
+                  - generic [ref=f9e836]:
+                    - generic [ref=f9e837]: u
+                    - text: u
+                  - generic [ref=f9e838]:
+                    - generic [ref=f9e839]: .
+                    - text: .
+            - generic [ref=f9e840] [cursor=pointer]:
+              - generic [ref=f9e841]: CLIENT PROGRESS
+              - generic [ref=f9e843]:
+                - generic [ref=f9e844]:
+                  - generic [ref=f9e845]:
+                    - generic [ref=f9e846]: S
+                    - text: S
+                  - generic [ref=f9e847]:
+                    - generic [ref=f9e848]: e
+                    - text: e
+                  - generic [ref=f9e849]:
+                    - generic [ref=f9e850]: e
+                    - text: e
+                - generic [ref=f9e851]:
+                  - generic [ref=f9e852]:
+                    - generic [ref=f9e853]: e
+                    - text: e
+                  - generic [ref=f9e854]:
+                    - generic [ref=f9e855]: v
+                    - text: v
+                  - generic [ref=f9e856]:
+                    - generic [ref=f9e857]: e
+                    - text: e
+                  - generic [ref=f9e858]:
+                    - generic [ref=f9e859]: r
+                    - text: r
+                  - generic [ref=f9e860]:
+                    - generic [ref=f9e861]: "y"
+                    - text: "y"
+                - generic [ref=f9e862]:
+                  - generic [ref=f9e863]:
+                    - generic [ref=f9e864]: r
+                    - text: r
+                  - generic [ref=f9e865]:
+                    - generic [ref=f9e866]: e
+                    - text: e
+                  - generic [ref=f9e867]:
+                    - generic [ref=f9e868]: p
+                    - text: p
+                - generic [ref=f9e869]:
+                  - generic [ref=f9e870]:
+                    - generic [ref=f9e871]: t
+                    - text: t
+                  - generic [ref=f9e872]:
+                    - generic [ref=f9e873]: h
+                    - text: h
+                  - generic [ref=f9e874]:
+                    - generic [ref=f9e875]: e
+                    - text: e
+                  - generic [ref=f9e876]:
+                    - generic [ref=f9e877]: "y"
+                    - text: "y"
+                - generic [ref=f9e878]:
+                  - generic [ref=f9e879]:
+                    - generic [ref=f9e880]: l
+                    - text: l
+                  - generic [ref=f9e881]:
+                    - generic [ref=f9e882]: o
+                    - text: o
+                  - generic [ref=f9e883]:
+                    - generic [ref=f9e884]: g
+                    - text: g
+                  - generic [ref=f9e885]:
+                    - generic [ref=f9e886]: .
+                    - text: .
+            - generic [ref=f9e887] [cursor=pointer]:
+              - generic [ref=f9e888]: SHARE PLANS
+              - generic [ref=f9e890]:
+                - generic [ref=f9e891]:
+                  - generic [ref=f9e892]:
+                    - generic [ref=f9e893]: S
+                    - text: S
+                  - generic [ref=f9e894]:
+                    - generic [ref=f9e895]: h
+                    - text: h
+                  - generic [ref=f9e896]:
+                    - generic [ref=f9e897]: a
+                    - text: a
+                  - generic [ref=f9e898]:
+                    - generic [ref=f9e899]: r
+                    - text: r
+                  - generic [ref=f9e900]:
+                    - generic [ref=f9e901]: e
+                    - text: e
+                - generic [ref=f9e902]:
+                  - generic [ref=f9e903]:
+                    - generic [ref=f9e904]: p
+                    - text: p
+                  - generic [ref=f9e905]:
+                    - generic [ref=f9e906]: l
+                    - text: l
+                  - generic [ref=f9e907]:
+                    - generic [ref=f9e908]: a
+                    - text: a
+                  - generic [ref=f9e909]:
+                    - generic [ref=f9e910]: "n"
+                    - text: "n"
+                  - generic [ref=f9e911]:
+                    - generic [ref=f9e912]: s
+                    - text: s
+                - generic [ref=f9e913]:
+                  - generic [ref=f9e914]:
+                    - generic [ref=f9e915]: i
+                    - text: i
+                  - generic [ref=f9e916]:
+                    - generic [ref=f9e917]: "n"
+                    - text: "n"
+                  - generic [ref=f9e918]:
+                    - generic [ref=f9e919]: s
+                    - text: s
+                  - generic [ref=f9e920]:
+                    - generic [ref=f9e921]: t
+                    - text: t
+                  - generic [ref=f9e922]:
+                    - generic [ref=f9e923]: a
+                    - text: a
+                  - generic [ref=f9e924]:
+                    - generic [ref=f9e925]: "n"
+                    - text: "n"
+                  - generic [ref=f9e926]:
+                    - generic [ref=f9e927]: t
+                    - text: t
+                  - generic [ref=f9e928]:
+                    - generic [ref=f9e929]: l
+                    - text: l
+                  - generic [ref=f9e930]:
+                    - generic [ref=f9e931]: "y"
+                    - text: "y"
+                  - generic [ref=f9e932]:
+                    - generic [ref=f9e933]: .
+                    - text: .
+      - generic [ref=f9e936]:
+        - generic [ref=f9e937]: Roadmap
+        - heading [level=2] [ref=f9e938]:
+          - generic [ref=f9e939]: We'rejust getting started.
+        - paragraph [ref=f9e940]: Built in public. Shipping fast. Here's what's coming next.
+        - generic [ref=f9e941]:
+          - generic [ref=f9e944]:
+            - generic [ref=f9e945]: LIVE
+            - generic [ref=f9e947]: V1 · NOW
+            - heading "T T h h e e C C o o r r e e F F o o u u n n d d a a t t i i o o n n" [level=3] [ref=f9e948]:
+              - generic [ref=f9e949]:
+                - generic [ref=f9e950]:
+                  - generic [ref=f9e951]:
+                    - generic [ref=f9e952]: T
+                    - text: T
+                  - generic [ref=f9e953]:
+                    - generic [ref=f9e954]: h
+                    - text: h
+                  - generic [ref=f9e955]:
+                    - generic [ref=f9e956]: e
+                    - text: e
+                - generic [ref=f9e957]:
+                  - generic [ref=f9e958]:
+                    - generic [ref=f9e959]: C
+                    - text: C
+                  - generic [ref=f9e960]:
+                    - generic [ref=f9e961]: o
+                    - text: o
+                  - generic [ref=f9e962]:
+                    - generic [ref=f9e963]: r
+                    - text: r
+                  - generic [ref=f9e964]:
+                    - generic [ref=f9e965]: e
+                    - text: e
+                - generic [ref=f9e966]:
+                  - generic [ref=f9e967]:
+                    - generic [ref=f9e968]: F
+                    - text: F
+                  - generic [ref=f9e969]:
+                    - generic [ref=f9e970]: o
+                    - text: o
+                  - generic [ref=f9e971]:
+                    - generic [ref=f9e972]: u
+                    - text: u
+                  - generic [ref=f9e973]:
+                    - generic [ref=f9e974]: "n"
+                    - text: "n"
+                  - generic [ref=f9e975]:
+                    - generic [ref=f9e976]: d
+                    - text: d
+                  - generic [ref=f9e977]:
+                    - generic [ref=f9e978]: a
+                    - text: a
+                  - generic [ref=f9e979]:
+                    - generic [ref=f9e980]: t
+                    - text: t
+                  - generic [ref=f9e981]:
+                    - generic [ref=f9e982]: i
+                    - text: i
+                  - generic [ref=f9e983]:
+                    - generic [ref=f9e984]: o
+                    - text: o
+                  - generic [ref=f9e985]:
+                    - generic [ref=f9e986]: "n"
+                    - text: "n"
+            - generic [ref=f9e987]:
+              - generic [ref=f9e988]: NFC / QR Track
+              - generic [ref=f9e989]: 2-Tap Set Logger
+              - generic [ref=f9e990]: Routines + Plans
+              - generic [ref=f9e991]: Exercise Library
+              - generic [ref=f9e992]: Trainer Directory
+              - generic [ref=f9e993]: Dashboard
+          - generic [ref=f9e995]:
+            - generic [ref=f9e996]: V2 · DISCOVERY
+            - heading "G G y y m m D D i i s s c c o o v v e e r r y y & & A A n n a a l l y y t t i i c c s s" [level=3] [ref=f9e997]:
+              - generic [ref=f9e998]:
+                - generic [ref=f9e999]:
+                  - generic [ref=f9e1000]:
+                    - generic [ref=f9e1001]: G
+                    - text: G
+                  - generic [ref=f9e1002]:
+                    - generic [ref=f9e1003]: "y"
+                    - text: "y"
+                  - generic [ref=f9e1004]:
+                    - generic [ref=f9e1005]: m
+                    - text: m
+                - generic [ref=f9e1006]:
+                  - generic [ref=f9e1007]:
+                    - generic [ref=f9e1008]: D
+                    - text: D
+                  - generic [ref=f9e1009]:
+                    - generic [ref=f9e1010]: i
+                    - text: i
+                  - generic [ref=f9e1011]:
+                    - generic [ref=f9e1012]: s
+                    - text: s
+                  - generic [ref=f9e1013]:
+                    - generic [ref=f9e1014]: c
+                    - text: c
+                  - generic [ref=f9e1015]:
+                    - generic [ref=f9e1016]: o
+                    - text: o
+                  - generic [ref=f9e1017]:
+                    - generic [ref=f9e1018]: v
+                    - text: v
+                  - generic [ref=f9e1019]:
+                    - generic [ref=f9e1020]: e
+                    - text: e
+                  - generic [ref=f9e1021]:
+                    - generic [ref=f9e1022]: r
+                    - text: r
+                  - generic [ref=f9e1023]:
+                    - generic [ref=f9e1024]: "y"
+                    - text: "y"
+                - generic [ref=f9e1026]:
+                  - generic [ref=f9e1027]: "&"
+                  - text: "&"
+                - generic [ref=f9e1028]:
+                  - generic [ref=f9e1029]:
+                    - generic [ref=f9e1030]: A
+                    - text: A
+                  - generic [ref=f9e1031]:
+                    - generic [ref=f9e1032]: "n"
+                    - text: "n"
+                  - generic [ref=f9e1033]:
+                    - generic [ref=f9e1034]: a
+                    - text: a
+                  - generic [ref=f9e1035]:
+                    - generic [ref=f9e1036]: l
+                    - text: l
+                  - generic [ref=f9e1037]:
+                    - generic [ref=f9e1038]: "y"
+                    - text: "y"
+                  - generic [ref=f9e1039]:
+                    - generic [ref=f9e1040]: t
+                    - text: t
+                  - generic [ref=f9e1041]:
+                    - generic [ref=f9e1042]: i
+                    - text: i
+                  - generic [ref=f9e1043]:
+                    - generic [ref=f9e1044]: c
+                    - text: c
+                  - generic [ref=f9e1045]:
+                    - generic [ref=f9e1046]: s
+                    - text: s
+            - generic [ref=f9e1047]:
+              - generic [ref=f9e1048]: Interactive Gym Map
+              - generic [ref=f9e1049]: Usage Analytics
+              - generic [ref=f9e1050]: Equipment Trends
+          - generic [ref=f9e1052]:
+            - generic [ref=f9e1053]: V3 · AI
+            - heading "S S m m a a r r t t I I n n s s i i g g h h t t s s" [level=3] [ref=f9e1054]:
+              - generic [ref=f9e1055]:
+                - generic [ref=f9e1056]:
+                  - generic [ref=f9e1057]:
+                    - generic [ref=f9e1058]: S
+                    - text: S
+                  - generic [ref=f9e1059]:
+                    - generic [ref=f9e1060]: m
+                    - text: m
+                  - generic [ref=f9e1061]:
+                    - generic [ref=f9e1062]: a
+                    - text: a
+                  - generic [ref=f9e1063]:
+                    - generic [ref=f9e1064]: r
+                    - text: r
+                  - generic [ref=f9e1065]:
+                    - generic [ref=f9e1066]: t
+                    - text: t
+                - generic [ref=f9e1067]:
+                  - generic [ref=f9e1068]:
+                    - generic [ref=f9e1069]: I
+                    - text: I
+                  - generic [ref=f9e1070]:
+                    - generic [ref=f9e1071]: "n"
+                    - text: "n"
+                  - generic [ref=f9e1072]:
+                    - generic [ref=f9e1073]: s
+                    - text: s
+                  - generic [ref=f9e1074]:
+                    - generic [ref=f9e1075]: i
+                    - text: i
+                  - generic [ref=f9e1076]:
+                    - generic [ref=f9e1077]: g
+                    - text: g
+                  - generic [ref=f9e1078]:
+                    - generic [ref=f9e1079]: h
+                    - text: h
+                  - generic [ref=f9e1080]:
+                    - generic [ref=f9e1081]: t
+                    - text: t
+                  - generic [ref=f9e1082]:
+                    - generic [ref=f9e1083]: s
+                    - text: s
+            - generic [ref=f9e1084]:
+              - generic [ref=f9e1085]: Plateau Detection
+              - generic [ref=f9e1086]: Rest Optimization
+              - generic [ref=f9e1087]: AI Coach Chatbot
+          - generic [ref=f9e1089]:
+            - generic [ref=f9e1090]: V4 · COMMUNITY
+            - heading "S S o o c c i i a a l l E E c c o o s s y y s s t t e e m m" [level=3] [ref=f9e1091]:
+              - generic [ref=f9e1092]:
+                - generic [ref=f9e1093]:
+                  - generic [ref=f9e1094]:
+                    - generic [ref=f9e1095]: S
+                    - text: S
+                  - generic [ref=f9e1096]:
+                    - generic [ref=f9e1097]: o
+                    - text: o
+                  - generic [ref=f9e1098]:
+                    - generic [ref=f9e1099]: c
+                    - text: c
+                  - generic [ref=f9e1100]:
+                    - generic [ref=f9e1101]: i
+                    - text: i
+                  - generic [ref=f9e1102]:
+                    - generic [ref=f9e1103]: a
+                    - text: a
+                  - generic [ref=f9e1104]:
+                    - generic [ref=f9e1105]: l
+                    - text: l
+                - generic [ref=f9e1106]:
+                  - generic [ref=f9e1107]:
+                    - generic [ref=f9e1108]: E
+                    - text: E
+                  - generic [ref=f9e1109]:
+                    - generic [ref=f9e1110]: c
+                    - text: c
+                  - generic [ref=f9e1111]:
+                    - generic [ref=f9e1112]: o
+                    - text: o
+                  - generic [ref=f9e1113]:
+                    - generic [ref=f9e1114]: s
+                    - text: s
+                  - generic [ref=f9e1115]:
+                    - generic [ref=f9e1116]: "y"
+                    - text: "y"
+                  - generic [ref=f9e1117]:
+                    - generic [ref=f9e1118]: s
+                    - text: s
+                  - generic [ref=f9e1119]:
+                    - generic [ref=f9e1120]: t
+                    - text: t
+                  - generic [ref=f9e1121]:
+                    - generic [ref=f9e1122]: e
+                    - text: e
+                  - generic [ref=f9e1123]:
+                    - generic [ref=f9e1124]: m
+                    - text: m
+            - generic [ref=f9e1125]:
+              - generic [ref=f9e1126]: Gym Reviews
+              - generic [ref=f9e1127]: User Content
+              - generic [ref=f9e1128]: Trainer Marketplace
+      - region [ref=f9e1129]:
+        - generic [ref=f9e1131]:
+          - generic [ref=f9e1132]:
+            - paragraph [ref=f9e1133]: Common questions
+            - heading "Answers before you scan." [level=2] [ref=f9e1134]
+          - generic [ref=f9e1136]:
+            - generic [ref=f9e1137]:
+              - button "What is LIFTAG?" [expanded] [ref=f9e1138] [cursor=pointer]:
+                - generic [aria-hidden] [ref=f9e1139]: "01"
+                - generic [aria-hidden] [ref=f9e1141]: +
+              - region "What is LIFTAG?" [ref=f9e1142]:
+                - paragraph [ref=f9e1144]: LIFTAG is a workout and set tracking app for serious lifters. You tap an NFC tag or scan a QR code on a partner-gym machine and it opens the right exercise, lets you log every set, runs a rest timer, and tracks progress over time.
+            - generic [ref=f9e1145]:
+              - button "Is LIFTAG free?" [ref=f9e1146] [cursor=pointer]:
+                - generic [aria-hidden] [ref=f9e1147]: "02"
+                - generic [aria-hidden] [ref=f9e1149]: +
+              - paragraph [ref=f9e1150]: Yes. Core workout tracking is free forever, including logging workouts and tracking progress. Premium intelligence is optional.
+            - generic [ref=f9e1151]:
+              - button "How is LIFTAG different from Strong, Hevy, FitNotes, or JEFIT?" [ref=f9e1152] [cursor=pointer]:
+                - generic [aria-hidden] [ref=f9e1153]: "03"
+                - generic [aria-hidden] [ref=f9e1155]: +
+              - paragraph [ref=f9e1156]: LIFTAG is built around the machine itself. NFC tap and QR scan open the exact exercise with gym-specific setup videos, then logging, rest timer, and progress history live in the same flow. Strong, Hevy, FitNotes, and JEFIT are general-purpose loggers without partner-gym integration.
+            - generic [ref=f9e1157]:
+              - button "What is the best app to track sets in the gym?" [ref=f9e1158] [cursor=pointer]:
+                - generic [aria-hidden] [ref=f9e1159]: "04"
+                - generic [aria-hidden] [ref=f9e1161]: +
+              - paragraph [ref=f9e1162]: "LIFTAG is built specifically for tracking sets at the gym: weight, reps, rest, optional RPE, and personal records, all opened directly from the machine via NFC or QR. Alternatives include Strong, Hevy, and FitNotes if your gym does not yet have LIFTAG tags installed."
+            - generic [ref=f9e1163]:
+              - button "Does LIFTAG work without NFC or QR tags installed at the gym?" [ref=f9e1164] [cursor=pointer]:
+                - generic [aria-hidden] [ref=f9e1165]: "05"
+                - generic [aria-hidden] [ref=f9e1167]: +
+              - paragraph [ref=f9e1168]: Yes. LIFTAG works as a full workout tracker without tags. The tags are an accelerator for partner gyms; the app itself supports manual exercise selection, logging, programs, and progress tracking everywhere.
+            - generic [ref=f9e1169]:
+              - button "Which gyms have LIFTAG tags installed?" [ref=f9e1170] [cursor=pointer]:
+                - generic [aria-hidden] [ref=f9e1171]: "06"
+                - generic [aria-hidden] [ref=f9e1173]: +
+              - paragraph [ref=f9e1174]: Partner gyms appear inside the LIFTAG app on a discovery map. The network is expanding through gyms that opt in to install NFC tags and QR codes on their equipment.
+      - generic [ref=f9e1179]:
+        - img "LIFTAG logo" [ref=f9e1183]
+        - heading "STOP GUESSING. START LIFTING." [level=2] [ref=f9e1184]
+        - paragraph [ref=f9e1186]: Track real progress. Tap or scan real machines. Skip the spreadsheet. Free to download. Open now on iOS and Android.
+        - generic [ref=f9e1188]: CHARGE ▸ 0%
+        - link "iOS and Android Download LIFTAG" [ref=f9e1192] [cursor=pointer]:
+          - /url: /get
+          - generic [ref=f9e1195]:
+            - generic [ref=f9e1196]: iOS and Android
+            - generic [ref=f9e1197]: Download LIFTAG
+  - contentinfo [ref=f9e1198]:
+    - generic [ref=f9e1199]:
+      - generic [ref=f9e1200]:
+        - generic [ref=f9e1201]:
+          - img "LIFTAG logo" [ref=f9e1202]
+          - generic [ref=f9e1203]: LIFTAG
+        - paragraph [ref=f9e1204]: Because serious training deserves more than a notes app and a spreadsheet.
+        - generic [ref=f9e1205]:
+          - link "Featured on LaunchBuff" [ref=f9e1206] [cursor=pointer]:
+            - /url: https://launchbuff.com/products/liftag-q97d57
+            - img "Featured on LaunchBuff"
+          - link "Featured on Launchstag" [ref=f9e1207] [cursor=pointer]:
+            - /url: https://launchstag.com/p/liftag
+            - img "Featured on Launchstag"
+      - generic [ref=f9e1208]:
+        - link "Product" [ref=f9e1209] [cursor=pointer]:
+          - /url: /#all-in-one
+        - list [ref=f9e1211]:
+          - listitem [ref=f9e1212]:
+            - link "Demo" [ref=f9e1213] [cursor=pointer]:
+              - /url: /demo
+          - listitem [ref=f9e1215]:
+            - link "Exercise Library" [ref=f9e1216] [cursor=pointer]:
+              - /url: /exercises
+          - listitem [ref=f9e1218]:
+            - link "Machine Catalog" [ref=f9e1219] [cursor=pointer]:
+              - /url: /machines
+          - listitem [ref=f9e1221]:
+            - link "For Lifters" [ref=f9e1222] [cursor=pointer]:
+              - /url: /for-lifters
+          - listitem [ref=f9e1224]:
+            - link "For Trainers" [ref=f9e1225] [cursor=pointer]:
+              - /url: /for-trainers
+          - listitem [ref=f9e1227]:
+            - link "Become a Coach" [ref=f9e1228] [cursor=pointer]:
+              - /url: /become-a-coach
+          - listitem [ref=f9e1230]:
+            - link "For Gyms" [ref=f9e1231] [cursor=pointer]:
+              - /url: /for-gyms
+          - listitem [ref=f9e1233]:
+            - link "NFC + QR Tags" [ref=f9e1234] [cursor=pointer]:
+              - /url: /qr-nfc-gym-tags
+          - listitem [ref=f9e1236]:
+            - link "Pricing" [ref=f9e1237] [cursor=pointer]:
+              - /url: /pricing
+          - listitem [ref=f9e1239]:
+            - link "About" [ref=f9e1240] [cursor=pointer]:
+              - /url: /about
+          - listitem [ref=f9e1242]:
+            - link "Press" [ref=f9e1243] [cursor=pointer]:
+              - /url: /press
+          - listitem [ref=f9e1245]:
+            - link "Roadmap" [ref=f9e1246] [cursor=pointer]:
+              - /url: /#roadmap
+          - listitem [ref=f9e1248]:
+            - link "Partner with us" [ref=f9e1249] [cursor=pointer]:
+              - /url: /contact/partner
+          - listitem [ref=f9e1251]:
+            - link "Support" [ref=f9e1252] [cursor=pointer]:
+              - /url: /contact/support
+      - generic [ref=f9e1254]:
+        - link "Library" [ref=f9e1255] [cursor=pointer]:
+          - /url: /muscles
+        - list [ref=f9e1257]:
+          - listitem [ref=f9e1258]:
+            - link "All muscles" [ref=f9e1259] [cursor=pointer]:
+              - /url: /muscles
+          - listitem [ref=f9e1261]:
+            - link "Chest" [ref=f9e1262] [cursor=pointer]:
+              - /url: /muscles/chest
+          - listitem [ref=f9e1264]:
+            - link "Back" [ref=f9e1265] [cursor=pointer]:
+              - /url: /muscles/back
+          - listitem [ref=f9e1267]:
+            - link "Shoulders" [ref=f9e1268] [cursor=pointer]:
+              - /url: /muscles/shoulders
+          - listitem [ref=f9e1270]:
+            - link "Quads" [ref=f9e1271] [cursor=pointer]:
+              - /url: /muscles/quadriceps
+          - listitem [ref=f9e1273]:
+            - link "Hamstrings" [ref=f9e1274] [cursor=pointer]:
+              - /url: /muscles/hamstrings
+          - listitem [ref=f9e1276]:
+            - link "Glutes" [ref=f9e1277] [cursor=pointer]:
+              - /url: /muscles/glutes
+          - listitem [ref=f9e1279]:
+            - link "Abs" [ref=f9e1280] [cursor=pointer]:
+              - /url: /muscles/abs
+          - listitem [ref=f9e1282]:
+            - link "Bench press" [ref=f9e1283] [cursor=pointer]:
+              - /url: /exercises/barbell-bench-press
+          - listitem [ref=f9e1285]:
+            - link "Back squat" [ref=f9e1286] [cursor=pointer]:
+              - /url: /exercises/barbell-back-squat
+          - listitem [ref=f9e1288]:
+            - link "Deadlift" [ref=f9e1289] [cursor=pointer]:
+              - /url: /exercises/conventional-deadlift
+      - generic [ref=f9e1291]:
+        - link "Journal" [ref=f9e1292] [cursor=pointer]:
+          - /url: /journal
+        - list [ref=f9e1294]:
+          - listitem [ref=f9e1295]:
+            - link "All articles" [ref=f9e1296] [cursor=pointer]:
+              - /url: /journal
+          - listitem [ref=f9e1298]:
+            - link "Best Workout Tracking App" [ref=f9e1299] [cursor=pointer]:
+              - /url: /best-workout-tracking-app
+          - listitem [ref=f9e1301]:
+            - link "Best Gym QR + NFC App" [ref=f9e1302] [cursor=pointer]:
+              - /url: /best-gym-qr-nfc-app
+          - listitem [ref=f9e1304]:
+            - link "Best Workout Logger" [ref=f9e1305] [cursor=pointer]:
+              - /url: /journal/best-workout-logger
+          - listitem [ref=f9e1307]:
+            - link "Best Free Workout Tracker" [ref=f9e1308] [cursor=pointer]:
+              - /url: /journal/best-free-workout-tracker
+          - listitem [ref=f9e1310]:
+            - link "LIFTAG vs Hevy" [ref=f9e1311] [cursor=pointer]:
+              - /url: /alternatives/hevy
+          - listitem [ref=f9e1313]:
+            - link "LIFTAG vs Strong" [ref=f9e1314] [cursor=pointer]:
+              - /url: /vs/strong
+          - listitem [ref=f9e1316]:
+            - link "Strong vs Hevy vs LIFTAG" [ref=f9e1317] [cursor=pointer]:
+              - /url: /journal/strong-vs-hevy-vs-liftag
+          - listitem [ref=f9e1319]:
+            - link "Workout Logger" [ref=f9e1320] [cursor=pointer]:
+              - /url: /journal/workout-logger
+          - listitem [ref=f9e1322]:
+            - link "How to Track Workouts" [ref=f9e1323] [cursor=pointer]:
+              - /url: /journal/how-to-track-workouts
+          - listitem [ref=f9e1325]:
+            - link "Best App for Powerlifting" [ref=f9e1326] [cursor=pointer]:
+              - /url: /journal/best-workout-app-for-powerlifting
+          - listitem [ref=f9e1328]:
+            - link "QR + NFC Gym Tracking" [ref=f9e1329] [cursor=pointer]:
+              - /url: /journal/qr-nfc-gym-tracking
+          - listitem [ref=f9e1331]:
+            - link "NFC Tags for Gym Equipment" [ref=f9e1332] [cursor=pointer]:
+              - /url: /journal/nfc-tags-for-gym-equipment
+          - listitem [ref=f9e1334]:
+            - link "What is RPE" [ref=f9e1335] [cursor=pointer]:
+              - /url: /journal/what-is-rpe-lifting
+          - listitem [ref=f9e1337]:
+            - link "Progressive Overload" [ref=f9e1338] [cursor=pointer]:
+              - /url: /journal/progressive-overload
+          - listitem [ref=f9e1340]:
+            - link "Gym NFC Rollout" [ref=f9e1341] [cursor=pointer]:
+              - /url: /journal/gym-nfc-rollout
+      - generic [ref=f9e1343]:
+        - generic [ref=f9e1344]: Legal
+        - list [ref=f9e1345]:
+          - listitem [ref=f9e1346]:
+            - link "Privacy Policy" [ref=f9e1347] [cursor=pointer]:
+              - /url: /privacy-policy
+          - listitem [ref=f9e1349]:
+            - link "Terms & Conditions" [ref=f9e1350] [cursor=pointer]:
+              - /url: /terms-and-conditions
+    - generic [ref=f9e1352]:
+      - generic [ref=f9e1353]: © 2026 LIFTAG · BRATISLAVA · BUILT BY LIFTERS
+      - generic [ref=f9e1354]:
+        - generic [ref=f9e1355]:
+          - link "Liftag on Instagram" [ref=f9e1356] [cursor=pointer]:
+            - /url: https://www.instagram.com/liftag.fit/
+          - link "Liftag on TikTok" [ref=f9e1358] [cursor=pointer]:
+            - /url: https://www.tiktok.com/@liftag
+          - link "Liftag on X" [ref=f9e1360] [cursor=pointer]:
+            - /url: https://x.com/liftag_fit
+          - link "Liftag on YouTube" [ref=f9e1362] [cursor=pointer]:
+            - /url: https://www.youtube.com/@liftag_fit
+          - link "Liftag on Reddit" [ref=f9e1364] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/liftag/
+        - generic [ref=f9e1366]:
+          - text: Available on ·
+          - link "IOS AND ANDROID" [ref=f9e1367] [cursor=pointer]:
+            - /url: /get
+    - generic [aria-hidden]:
+      - generic: LIFTAG
+      - generic: LIFTAG
+      - generic: LIFTAG

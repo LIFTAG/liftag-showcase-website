@@ -1,0 +1,206 @@
+- generic [active] [ref=f9e1]:
+  - generic [ref=f9e3]:
+    - banner [ref=f9e5]:
+      - link "Skip to content" [ref=f9e6] [cursor=pointer]:
+        - /url: "#experience"
+      - link "LIFTAG home" [ref=f9e7] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f9e8]: LIFTAG
+      - navigation "Main navigation" [ref=f9e9]:
+        - link "Experience" [ref=f9e10] [cursor=pointer]:
+          - /url: "#experience"
+        - link "For gyms" [ref=f9e11] [cursor=pointer]:
+          - /url: "#gyms"
+        - link "Get the app ↗" [ref=f9e12] [cursor=pointer]:
+          - /url: /get
+      - link "Request your free kit" [ref=f9e13] [cursor=pointer]:
+        - /url: "#kit"
+        - generic [ref=f9e14]: Request your
+        - text: free kit
+      - button "Toggle menu" [ref=f9e15] [cursor=pointer]
+    - main [ref=f9e16]:
+      - generic [ref=f9e17]:
+        - region "Your machines. Connected to their workout.":
+          - generic [ref=f9e18]:
+            - paragraph [ref=f9e19]: BUILT AROUND YOUR GYM
+            - heading [level=1] [ref=f9e21]:
+              - text: Your machines.
+              - emphasis [ref=f9e22]: Connected to their workout.
+            - paragraph [ref=f9e23]: Put a tag on a machine. Members scan, watch and log.
+            - generic [ref=f9e24]:
+              - link "Request your free kit" [ref=f9e25] [cursor=pointer]:
+                - /url: "#kit"
+              - link "Get the app" [ref=f9e26] [cursor=pointer]:
+                - /url: /get
+          - link "SCROLL TO CONNECT ↓" [ref=f9e27] [cursor=pointer]:
+            - /url: "#the-tag"
+            - text: SCROLL TO CONNECT
+            - generic [ref=f9e28]: ↓
+          - generic: 01 / PIVOT LEG PRESSTAG → SCAN → LOG
+        - region "Stick it on. Scan or tap.":
+          - generic:
+            - paragraph: A STICKER FOR EACH MACHINE
+            - heading "Stick it on. Scan or tap." [level=2]
+            - generic:
+              - generic:
+                - text: QR
+                - generic: Scan
+              - generic:
+                - text: NFC
+                - generic: Tap
+        - generic [ref=f9e29]:
+          - generic:
+            - generic [aria-hidden]: INSTRUCTIONS, RIGHT IN THE LOGGER.
+          - region [ref=f9e30]:
+            - generic:
+              - generic [ref=f9e31]:
+                - paragraph [ref=f9e32]: 03 / GUIDANCE BETWEEN SETS
+                - heading [level=2] [ref=f9e33]:
+                  - text: Watch.
+                  - emphasis [ref=f9e34]: Then lift.
+                - paragraph [ref=f9e35]: Exercise instructions, right in the logger.Watch the movement. Log your next set.
+                - button "Ⅱ Pause instructions" [ref=f9e36] [cursor=pointer]
+              - link "MAKE IT YOURS ↓" [ref=f9e37] [cursor=pointer]:
+                - /url: "#gyms"
+                - text: MAKE IT YOURS
+                - generic [ref=f9e38]: ↓
+          - region [ref=f9e39]:
+            - generic:
+              - generic [ref=f9e40]:
+                - paragraph [ref=f9e41]: 04 / MADE FOR YOUR GYM
+                - heading [level=2] [ref=f9e42]:
+                  - text: Your gym.
+                  - emphasis [ref=f9e43]: Your instructions.
+                - paragraph [ref=f9e44]: Replace our video with your trainer’s.Your equipment. Your expertise. Every member.
+                - generic [ref=f9e45]:
+                  - button "Swap the video" [ref=f9e46] [cursor=pointer]
+                  - generic [ref=f9e47] [cursor=pointer]:
+                    - text: Try your own video
+                    - button "Try your own video" [ref=f9e48]
+                - button "Pause video preview" [ref=f9e49] [cursor=pointer]: Ⅱ
+                - status [ref=f9e50]: Sample clip shown. Preview your own, locally.
+              - link "CONNECT YOUR GYM ↗" [ref=f9e51] [cursor=pointer]:
+                - /url: "#kit"
+                - text: CONNECT YOUR GYM
+                - generic [ref=f9e52]: ↗
+        - region [ref=f9e53]:
+          - generic [ref=f9e54]:
+            - generic [ref=f9e55]:
+              - generic [aria-hidden]:
+                - generic: "01"
+                - generic: "02"
+                - generic: "03"
+                - generic: "04"
+            - generic [ref=f9e58]:
+              - paragraph [ref=f9e59]: 05 / 08 GYMS · ONE NETWORK
+              - heading "Every gym. One place." [level=2] [ref=f9e60]
+              - paragraph [ref=f9e61]: Eight partner gyms already on LIFTAG, connected from Bratislava.
+              - generic "Explore gym discovery" [ref=f9e62]:
+                - button "The network" [pressed] [ref=f9e63] [cursor=pointer]
+                - button "Member reviews" [ref=f9e65] [cursor=pointer]
+                - button "The gym floor" [ref=f9e67] [cursor=pointer]
+                - button "In the app" [ref=f9e69] [cursor=pointer]
+            - button "↻ Replay assembly" [ref=f9e71] [cursor=pointer]
+      - region [ref=f9e72]:
+        - generic [ref=f9e73]:
+          - paragraph [ref=f9e74]: START WITH YOUR GYM
+          - heading [level=2] [ref=f9e76]:
+            - text: Put your gym
+            - emphasis [ref=f9e77]: in their workout.
+          - paragraph [ref=f9e78]: Free QR + NFC tags. Your equipment, connected.
+          - generic [ref=f9e79]:
+            - img "The LIFTAG QR and NFC equipment tag" [ref=f9e80]
+            - generic [ref=f9e81]: QR + NFCREADY FOR YOUR FLOOR
+          - group [ref=f9e82]:
+            - generic "What’s free? +" [ref=f9e83] [cursor=pointer]:
+              - text: What’s free?
+              - generic [ref=f9e84]: +
+        - generic [ref=f9e85]:
+          - heading "Request your free kit." [level=3] [ref=f9e86]
+          - generic [ref=f9e88]:
+            - generic [ref=f9e89]:
+              - generic [ref=f9e90]:
+                - generic [ref=f9e91]: Your name *
+                - textbox "Your name" [ref=f9e92]
+              - generic [ref=f9e93]:
+                - generic [ref=f9e94]: Email *
+                - textbox "Email" [ref=f9e95]
+              - generic [ref=f9e96]:
+                - generic [ref=f9e97]: Gym name *
+                - textbox "Gym name" [ref=f9e98]
+              - generic [ref=f9e99]:
+                - generic [ref=f9e100]: City *
+                - textbox "City" [ref=f9e101]
+              - generic [ref=f9e102]:
+                - generic [ref=f9e103]: Equipment count (optional)
+                - textbox "Equipment count (optional)" [ref=f9e104]
+              - generic [ref=f9e105]:
+                - generic [ref=f9e106]: Anything else? (optional)
+                - textbox "Anything else? (optional)" [ref=f9e107]
+            - button "Request your free kit" [ref=f9e109] [cursor=pointer]
+            - paragraph [ref=f9e110]:
+              - text: We’ll contact you to arrange your kit. By submitting, you agree to our
+              - link "Privacy Policy" [ref=f9e111] [cursor=pointer]:
+                - /url: /privacy-policy
+              - text: .
+            - paragraph [ref=f9e112]:
+              - text: Prefer email?
+              - link "support@liftag.fit" [ref=f9e113] [cursor=pointer]:
+                - /url: mailto:support@liftag.fit
+        - generic [ref=f9e114]:
+          - group [ref=f9e115]:
+            - generic "Will it work with our equipment? +" [ref=f9e116] [cursor=pointer]:
+              - text: Will it work with our equipment?
+              - generic [ref=f9e117]: +
+          - group [ref=f9e118]:
+            - generic "Can we use our own trainers’ videos? +" [ref=f9e119] [cursor=pointer]:
+              - text: Can we use our own trainers’ videos?
+              - generic [ref=f9e120]: +
+          - group [ref=f9e121]:
+            - generic "Do members need the app? +" [ref=f9e122] [cursor=pointer]:
+              - text: Do members need the app?
+              - generic [ref=f9e123]: +
+          - group [ref=f9e124]:
+            - generic "Can we manage more than one location? +" [ref=f9e125] [cursor=pointer]:
+              - text: Can we manage more than one location?
+              - generic [ref=f9e126]: +
+    - contentinfo [ref=f9e127]:
+      - link "LIFTAG" [ref=f9e128] [cursor=pointer]:
+        - /url: /
+      - navigation "Footer" [ref=f9e130]:
+        - link "For gyms" [ref=f9e131] [cursor=pointer]:
+          - /url: /for-gyms
+        - link "For lifters" [ref=f9e132] [cursor=pointer]:
+          - /url: /for-lifters
+        - link "For coaches" [ref=f9e133] [cursor=pointer]:
+          - /url: /for-trainers
+        - link "Get the app" [ref=f9e134] [cursor=pointer]:
+          - /url: /get
+        - link "Privacy" [ref=f9e135] [cursor=pointer]:
+          - /url: /privacy-policy
+        - link "Support" [ref=f9e136] [cursor=pointer]:
+          - /url: /contact/support
+      - generic [ref=f9e137]: BUILT FOR REAL TRAINING.
+    - navigation "Experience chapters" [ref=f9e138]:
+      - link "The machine" [ref=f9e139] [cursor=pointer]:
+        - /url: "#experience"
+        - generic [ref=f9e140]: "01"
+      - link "The tag" [ref=f9e142] [cursor=pointer]:
+        - /url: "#the-tag"
+        - generic [ref=f9e143]: "02"
+      - link "Watch & lift" [ref=f9e145] [cursor=pointer]:
+        - /url: "#lifters"
+        - generic [ref=f9e146]: "03"
+      - link "Your instructions" [ref=f9e148] [cursor=pointer]:
+        - /url: "#gyms"
+        - generic [ref=f9e149]: "04"
+      - link "On the map" [ref=f9e151] [cursor=pointer]:
+        - /url: "#discover"
+        - generic [ref=f9e152]: "05"
+      - link "Request your free kit" [ref=f9e154] [cursor=pointer]:
+        - /url: "#kit"
+        - text: ↗
+  - generic [ref=f9e155]:
+    - button "Toggle Nuxt DevTools" [ref=f9e156] [cursor=pointer]
+    - generic "Page load time" [ref=f9e160]: "-"
+    - button "Toggle Component Inspector" [ref=f9e163] [cursor=pointer]

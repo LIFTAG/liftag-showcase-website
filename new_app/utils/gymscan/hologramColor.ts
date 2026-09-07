@@ -14,9 +14,18 @@ export const WIRE_RGB = [0.62, 0.80, 1.0] as const
 export const RETICLE_RGB = [0.80, 1.0, 0.0] as const
 /** Sweep core and floor-ring front. Alias of the L-corner colour. */
 export const CORE_RGB = RETICLE_RGB
+/**
+ * Activation front. Paler and warmer than scanner lime so the plant is an
+ * ignition, not another read of the same chrome. Idle sweep never uses this.
+ */
+export const HOT_RGB = [1.0, 1.0, 0.88] as const
 
 export const CAGE_BODY_GAIN = 0.14
 export const CAGE_CORE_GAIN = 0.95
+/** Cool-white interior of the activation sphere, added to grayWeight. */
+export const CAGE_FILL_GAIN = 0.30
+/** Cool-white lock pulse on top of the fill. Louder than the idle trail. */
+export const CAGE_LOCK_GAIN = 0.36
 /** Local cursor cage. Louder than the trail: a small gray patch, not a fill. */
 export const CAGE_PROBE_GAIN = 0.26
 /** Same epsilon the shell used to hide itself between sweep cycles. */
@@ -47,6 +56,12 @@ export interface CageMixWeights {
    * probe is gray, so it still contributes.
    */
   steady?: number
+  /** Cool-white interior of the activation sphere. Already gained. */
+  fill?: number
+  /** Cool-white lock pulse. Already gained. */
+  lock?: number
+  /** 0 = scanner lime, 1 = HOT_RGB. Activation front only. */
+  hot?: number
 }
 
 export interface Rgb {
@@ -73,19 +88,27 @@ export function cageShouldDraw(s: CageDrawState): boolean {
 
 /**
  * Shader colour contract, minus wire/facing/amp:
- *   grayWeight = max(trail * bodyGain + probe * probeGain, steady)
+ *   grayWeight = max(trail * bodyGain + probe * probeGain + fill + lock, steady)
  *   limeWeight = core * coreGain   (zeroed when steady > 0)
- *   col        = WIRE * grayWeight + RETICLE * limeWeight
+ *   coreCol    = mix(RETICLE, HOT, hot)
+ *   col        = WIRE * grayWeight + coreCol * limeWeight
  */
 export function cageMixColor(w: CageMixWeights): Rgb {
   const steady = w.steady ?? 0
   const core = steady > 0 ? 0 : w.core
-  const grayWeight = Math.max(w.trail * CAGE_BODY_GAIN + w.probe * CAGE_PROBE_GAIN, steady)
+  const hot = w.hot ?? 0
+  const grayWeight = Math.max(
+    w.trail * CAGE_BODY_GAIN + w.probe * CAGE_PROBE_GAIN + (w.fill ?? 0) + (w.lock ?? 0),
+    steady,
+  )
   const limeWeight = core * CAGE_CORE_GAIN
+  const cr = CORE_RGB[0] * (1 - hot) + HOT_RGB[0] * hot
+  const cg = CORE_RGB[1] * (1 - hot) + HOT_RGB[1] * hot
+  const cb = CORE_RGB[2] * (1 - hot) + HOT_RGB[2] * hot
   return {
-    r: WIRE_RGB[0] * grayWeight + CORE_RGB[0] * limeWeight,
-    g: WIRE_RGB[1] * grayWeight + CORE_RGB[1] * limeWeight,
-    b: WIRE_RGB[2] * grayWeight + CORE_RGB[2] * limeWeight,
+    r: WIRE_RGB[0] * grayWeight + cr * limeWeight,
+    g: WIRE_RGB[1] * grayWeight + cg * limeWeight,
+    b: WIRE_RGB[2] * grayWeight + cb * limeWeight,
   }
 }
 

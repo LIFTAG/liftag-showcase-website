@@ -21,14 +21,16 @@ import {
   applyScanShader, applySurfaceShader, createScanUniforms, createSurfaceUniforms, type SurfaceKind,
 } from './machineMaterial'
 import { WIRE_RGB } from './hologramColor'
+import { PASS_SPAN } from './hologramPass'
 import { CompositeShader } from './composite'
 import { createStickFocus, STICK_FOCUS_LAYER } from './stickFocus'
 import { createHologramShell, type HologramShell } from './hologram'
+import { hologramActivateTag } from './hologramActivate'
 import { createPlacardMaterial, createPlacardUniforms } from './placard'
 import { createFoilMaterial, createFoilUniforms } from './foil'
 import { createNfcMaps, createNfcMaterial } from './nfc'
 import { createPeelUniforms, writePeel, type PeelUniforms } from './peel'
-import { act0At, act0Windows, type Act0Shot, type Act0State } from './act0'
+import { act0At, act0SweepDone, act0Windows, type Act0Shot, type Act0State } from './act0'
 import { act1At, act1Windows, phoneFillAmp, PHONE_FILL_INTENSITY, type Act1Shot, type Act1State } from './act1'
 import { APPROACH_PATH, APPROACH_TARGET_PATH } from './act1Cam'
 import { act0CamAt } from './act0Cam'
@@ -43,12 +45,14 @@ import {
 } from './stick'
 import { createPhoneOverlay, phoneShrink, type PhoneOverlay } from './phoneOverlay'
 import { createScanAppScreen } from './scanApp.ts'
+import { createCoachingContent, type CoachingFrame } from './coachingStage'
 import { PHONE_H, PHONE_W } from '../phoneModel'
 import {
   createReticleTracker,
+  RETICLE_CAPTURE_HANDOFF,
+  RETICLE_CAPTURE_SEC,
   RETICLE_MORPH_END,
   RETICLE_MORPH_START,
-  RETICLE_OUT_END,
   type ScreenRect,
 } from './reticle'
 import { createReticleOverlay } from './reticleOverlay'
@@ -189,24 +193,22 @@ function foldSentence(u: number): number {
  *
  * They hunt the cursor through the Act 0 hold - the tag is planted by then and
  * the room is waiting. Hovering the plate acquires it early; otherwise they
- * lock on in the first fifth of the dolly. They hold until the glass starts
- * forming on the last of the zoom, then fade out exactly as it finishes,
- * which is the frame the app screen cuts in.
+ * lock on in the first fifth of the dolly. They hold through the lock and the
+ * glass forming so the folded phone is still a viewfinder. Capture is a
+ * wall-clock morph after that fold, not a scroll fade: fading them on `foldU`
+ * retired the L's while the phone was still arriving, which read as the
+ * scanner giving up rather than reading the code.
  *
  * Two earlier versions were wrong in opposite directions. Resolving them
  * during the lock shot meant the corners were still hunting a cursor through
  * a two-second push onto a tag they were obviously about to find; retiring
  * them at the end of that shot meant the code lost its brackets before the
- * fold had anything to hand over. Fading them on `foldU` rather than on the
- * exclusive fold shot keeps that second fix now that the glass overlaps the
- * dolly.
+ * fold had anything to hand over.
  */
 const RETICLE_ACQUIRE_U = 0.18
 function reticleProgress(act1: Act1State, live: boolean): number {
   const formed = clamp01(act1.foldU / FOLD_FORM_U)
-  if (formed > 0) {
-    return RETICLE_MORPH_END + formed * (RETICLE_OUT_END - RETICLE_MORPH_END)
-  }
+  if (formed > 0) return RETICLE_MORPH_END
   if (!live || act1.shot === 'approach') {
     const dolly = live ? act1.dollyU : 0
     return RETICLE_MORPH_START
@@ -249,16 +251,32 @@ export interface FrameInfo {
     skipVisible: boolean
     doorsVisible: boolean
     done: boolean
+    /** True once the birth hologram sweep has finished, or the birth was skipped. */
+    swept: boolean
   }
+  /** 0–1 0C rack-focus. Page copy uses the same amount as the gym bokeh. */
+  dof: number
 }
 
 export interface StageOptions {
   canvas: HTMLCanvasElement
+  /**
+   * Optional second canvas, stacked in front of the page copy. During 0C the
+   * die-cut is drawn here so it flies over the headline; the gym stays on
+   * `canvas` and goes out of focus behind the type.
+   */
+  overlayCanvas?: HTMLCanvasElement
   onFrame: (info: FrameInfo) => void
   onReady: () => void
   reducedMotion: boolean
   device: GymScanDevice
   onDeviceClassChange?: (deviceClass: GymScanDevice['deviceClass']) => void
+  /** The new journey reuses this film, with native scroll owning its opening. */
+  adaptiveQuality?: boolean
+  readPointer?: () => { mx: number; my: number; hasPointer: boolean }
+  readCoaching?: () => { frame: CoachingFrame; video: HTMLVideoElement | null; customVideo: HTMLVideoElement | null; replay: number }
+  overlayCoversFrame?: () => boolean
+  renderOverlay?: (renderer: THREE.WebGLRenderer, dt: number, width: number, height: number) => void
 }
 
 // Bracketed under the front crossbeam, on the machine's centre line, facing
@@ -345,7 +363,7 @@ function roundedPlateGeometry(w: number, h: number, d: number, r: number) {
 }
 
 export function createGymScanStage(opts: StageOptions) {
-  const { canvas, device, onDeviceClassChange, onFrame, onReady, reducedMotion } = opts
+  const { canvas, overlayCanvas, device, onDeviceClassChange, onFrame, onReady, reducedMotion } = opts
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
@@ -353,8 +371,8 @@ export function createGymScanStage(opts: StageOptions) {
     alpha: true,
     powerPreference: 'high-performance',
   })
-  // Cut selection is an input contract, not a viewport guess. A narrow laptop
-  // keeps FROM THE FLOOR; a coarse tablet gets FROM THE SEAT crop.
+  // The live detector always hands FROM THE FLOOR, so a 390-wide laptop window
+  // and an iPhone play the same film. Seat remains a stage option for tests.
   const isCoarse = device.cut === 'seat'
   // Every cost in this scene is per-fragment: the floor plane covers most of
   // the screen, and each of its fragments runs eight lights, an env sample, a
@@ -383,7 +401,7 @@ export function createGymScanStage(opts: StageOptions) {
   // Pulled down from 1.35. The rig below puts more energy into speculars and
   // less into flat fill, so the machine can sit further into the toe of the
   // curve and still read - which is what a dark room actually looks like.
-  renderer.toneMappingExposure = isCoarse ? 1.10 : 0.82
+  renderer.toneMappingExposure = isCoarse ? 1.10 : opts.adaptiveQuality ? 1.0 : 0.82
   renderer.shadowMap.enabled = device.shadows
   renderer.shadowMap.type = THREE.PCFShadowMap
 
@@ -397,7 +415,7 @@ export function createGymScanStage(opts: StageOptions) {
   const camera = new THREE.PerspectiveCamera(38, 1, 0.05, 90)
   camera.position.set(3.98, 2.22, 4.96)
 
-  const env = createGymEnvironment(renderer)
+  const env = createGymEnvironment(renderer, opts.adaptiveQuality ? 128 : 256)
   scene.environment = env.texture
 
   const uniforms = createScanUniforms()
@@ -415,6 +433,9 @@ export function createGymScanStage(opts: StageOptions) {
   // are kept, because only these two are ones whose *shape* is doing work -
   // everything else in the rig is a soft pool where a spot is indistinguishable
   // and an order of magnitude cheaper.
+  function lightStickLayer(light: THREE.Light) {
+    light.layers.enable(STICK_FOCUS_LAYER)
+  }
   const strips: THREE.RectAreaLight[] = []
   const stripSpots: THREE.SpotLight[] = []
   if (!isCoarse) {
@@ -424,6 +445,7 @@ export function createGymScanStage(opts: StageOptions) {
       strip.position.set(s.x, s.y, s.z)
       strip.rotation.x = -Math.PI / 2
       scene.add(strip)
+      lightStickLayer(strip)
       strips.push(strip)
     }
   } else {
@@ -439,6 +461,7 @@ export function createGymScanStage(opts: StageOptions) {
       sub.position.set(s.x, s.y, s.z)
       sub.target.position.set(s.x * 0.3, 0.9, s.z * 0.3)
       scene.add(sub, sub.target)
+      lightStickLayer(sub)
       stripSpots.push(sub)
     }
   }
@@ -449,6 +472,7 @@ export function createGymScanStage(opts: StageOptions) {
   // the very shading the area lights are there to produce.
   const ambient = new THREE.AmbientLight(0x0a1018, 0.055)
   scene.add(ambient)
+  lightStickLayer(ambient)
 
   // Area lights cannot cast shadows in three, so one spot stays on for the
   // shadow and a little directional punch. It is much dimmer than it was - it
@@ -467,16 +491,19 @@ export function createGymScanStage(opts: StageOptions) {
   key.shadow.camera.far = 10
   key.shadow.radius = 3
   scene.add(key, key.target)
+  lightStickLayer(key)
 
   const rimL = new THREE.SpotLight(0x7d94c6, RIM_L0, 9.5, 0.50, 1, 2)
   rimL.position.set(-2.9, 2.9, -2.4)
   rimL.target.position.set(0, 1.00, -0.10)
   scene.add(rimL, rimL.target)
+  lightStickLayer(rimL)
 
   const rimR = new THREE.SpotLight(0x6f86bb, RIM_R0, 9.5, 0.50, 1, 2)
   rimR.position.set(3.1, 2.7, -2.6)
   rimR.target.position.set(0, 1.00, -0.10)
   scene.add(rimR, rimR.target)
+  lightStickLayer(rimR)
 
   // Two dim overheads deep in the room. They are the floor's only far
   // structure - two pools receding into the fog.
@@ -484,10 +511,12 @@ export function createGymScanStage(opts: StageOptions) {
   far1.position.set(-2.0, 5.4, -5.5)
   far1.target.position.set(-2.0, 0, -5.5)
   scene.add(far1, far1.target)
+  lightStickLayer(far1)
   const far2 = new THREE.SpotLight(0x8296b8, 12, 17, 0.92, 1, 2)
   far2.position.set(3.4, 5.4, -8.0)
   far2.target.position.set(3.4, 0, -8.0)
   scene.add(far2, far2.target)
+  lightStickLayer(far2)
 
   // The light the athlete is holding.
   //
@@ -501,6 +530,7 @@ export function createGymScanStage(opts: StageOptions) {
   const phoneFill = new THREE.SpotLight(0xd6e4ff, 0, 2.8, 0.50, 0.85, 2)
   phoneFill.visible = false
   scene.add(phoneFill, phoneFill.target)
+  lightStickLayer(phoneFill)
 
   // There used to be a real point light following the cursor here, so that
   // speculars would react as well as the shader probe. It was set to layer 1
@@ -520,7 +550,7 @@ export function createGymScanStage(opts: StageOptions) {
   // reflection at grazing angles through Fresnel alone, but the fleck and seam
   // maps chop it into something with a scale, so the floor reads as a surface
   // the machine is standing on rather than a plane it is floating over.
-  const floorMaps = createFloorMaps(renderer.capabilities.getMaxAnisotropy())
+  const floorMaps = createFloorMaps(renderer.capabilities.getMaxAnisotropy(), opts.adaptiveQuality ? 128 : 512)
   // One recipe, two meshes: the 90 m plane and the slabs that build its middle
   // during 0A. They must be indistinguishable at rest, so nothing here may
   // diverge between them - only the shader patches below do.
@@ -865,6 +895,7 @@ export function createGymScanStage(opts: StageOptions) {
   const cardKey = new THREE.SpotLight(0xf2f6ff, 0, 1.45, 0.72, 0.92, 2)
   cardKey.visible = false
   scene.add(cardKey, cardKey.target)
+  lightStickLayer(cardKey)
 
   // The blank the sticker is applied to. Larger than the artwork so a metal
   // rim shows around the vinyl, and rounded enough to read as a square plate
@@ -956,6 +987,29 @@ export function createGymScanStage(opts: StageOptions) {
   composite.uniforms.tFoil!.value = stickFocus.foilTexture
   composer.addPass(composite)
 
+  let overlayRenderer: THREE.WebGLRenderer | null = null
+  let overlayLive = false
+  if (overlayCanvas) {
+    try {
+      overlayRenderer = new THREE.WebGLRenderer({
+        canvas: overlayCanvas,
+        alpha: true,
+        antialias: !isCoarse,
+        premultipliedAlpha: true,
+        powerPreference: 'high-performance',
+      })
+      overlayRenderer.setPixelRatio(renderer.getPixelRatio())
+      overlayRenderer.setClearColor(0x000000, 0)
+      overlayRenderer.toneMapping = THREE.AgXToneMapping
+      overlayRenderer.toneMappingExposure = renderer.toneMappingExposure
+      overlayRenderer.outputColorSpace = THREE.SRGBColorSpace
+      overlayRenderer.shadowMap.enabled = false
+      overlayRenderer.autoClear = true
+    } catch {
+      overlayRenderer = null
+    }
+  }
+
   /**
    * EffectComposer leaves its buffers swapped after a pass with needsSwap.
    * This scene gives those buffers different jobs: renderTarget2 is the MSAA
@@ -970,6 +1024,7 @@ export function createGymScanStage(opts: StageOptions) {
         print: placard,
         inlay: nfc,
         foil,
+        skipCard: splitSticker,
       })
     }
     composer.readBuffer = composer.renderTarget2
@@ -977,8 +1032,43 @@ export function createGymScanStage(opts: StageOptions) {
     composer.render()
   }
 
+  function renderStickerOverlay(show: boolean) {
+    if (!overlayRenderer || !overlayCanvas) return
+    overlayCanvas.classList.toggle('is-on', show)
+    if (!show) {
+      if (overlayLive) {
+        overlayRenderer.setClearColor(0x000000, 0)
+        overlayRenderer.clear()
+        overlayLive = false
+      }
+      return
+    }
+    overlayLive = true
+    const prevBg = scene.background
+    const prevFog = scene.fog
+    const layers = camera.layers.mask
+    scene.background = null
+    scene.fog = null
+    camera.layers.set(STICK_FOCUS_LAYER)
+    overlayRenderer.render(scene, camera)
+    scene.background = prevBg
+    scene.fog = prevFog
+    camera.layers.mask = layers
+  }
+
   const phoneOverlay: PhoneOverlay = createPhoneOverlay({ shadows: renderer.shadowMap.enabled })
-  const appScreen = createScanAppScreen({ reducedMotion })
+  let coaching: ReturnType<typeof createCoachingContent> | null = null
+  function updateCoaching(morph: number, dt: number) {
+    const input = opts.readCoaching?.()
+    const mix = input ? smoothstep((morph - .82) / .18) : 0
+    if (mix > 0 && !coaching) {
+      coaching = createCoachingContent()
+      phoneOverlay.addContent(coaching.group)
+    }
+    phoneOverlay.setCoaching(coaching?.texture ?? null, mix)
+    if (coaching && input) coaching.update(input.frame, width, phoneTarget(1).h, dt, mix, input.video, input.customVideo, input.replay)
+  }
+  const appScreen = createScanAppScreen({ reducedMotion, defer: opts.adaptiveQuality })
   const reticleOverlay = createReticleOverlay()
 
   // --- state ---------------------------------------------------------------
@@ -1007,6 +1097,8 @@ export function createGymScanStage(opts: StageOptions) {
   let lastAct0: Act0State | null = null
   let stickerPlanted = false
   let stickerHunting = false
+  let lastDof = 0
+  let splitSticker = false
   let partsRig: PartsRig | null = null
   let lastAssemble: AssembleState | null = null
   let lastAct1: Act1State = act1At(0, isCoarse)
@@ -1022,6 +1114,12 @@ export function createGymScanStage(opts: StageOptions) {
   let holoLive = false
   /** Damped cage envelope, so it fades out for 0C/0D and back in after. */
   let holoMix = 0
+  /** Seconds since the folded phone armed the QR capture morph. */
+  let captureAge = 0
+  /** Wall-clock since the sticker planted. -1 until the press lands. */
+  let activateT = -1
+  let wasActivating = false
+  const activateOrigin = new THREE.Vector3()
 
   const pointer = { x: 0, y: 0, active: false }
   const tilt = { x: 0, y: 0, active: false }
@@ -1087,10 +1185,12 @@ export function createGymScanStage(opts: StageOptions) {
     if (!pose.visible) {
       stickerPlanted = false
       stickerHunting = false
+      lastDof = 0
       composite.uniforms.uDof!.value = 0
       stickFocus.setDof(0)
       placardUniforms.uShow.value = 0
       placardUniforms.uSqueegee.value = 0
+      placardUniforms.uPlant.value = 0
       writePeel(cardPeel, pose.bend)
       writePeel(foilPeel, pose.foil)
       foilUniforms.uFoilOpacity.value = 0
@@ -1111,6 +1211,7 @@ export function createGymScanStage(opts: StageOptions) {
     // separable pass at quarter res) rather than skipping it: a sharp gym
     // behind a card held 50 cm from the lens was the loudest CG tell in
     // the shot, and it is loudest on the small screen.
+    lastDof = pose.dof
     composite.uniforms.uDof!.value = pose.dof
     stickFocus.setDof(pose.dof)
     placardUniforms.uShow.value = pose.showLight
@@ -1191,6 +1292,11 @@ export function createGymScanStage(opts: StageOptions) {
     camera.aspect = width / heightPx
     camera.updateProjectionMatrix()
     renderer.setSize(width, heightPx, false)
+    if (overlayRenderer) {
+      overlayRenderer.setPixelRatio(renderer.getPixelRatio())
+      overlayRenderer.setSize(width, heightPx, false)
+    }
+    composer.setPixelRatio(renderer.getPixelRatio())
     composer.setSize(width, heightPx)
     bloom.setSize(width, heightPx)
     stickFocus.setSize(
@@ -1210,6 +1316,22 @@ export function createGymScanStage(opts: StageOptions) {
   }
 
   function samplePerformance(rawFrameMs: number) {
+    if (opts.adaptiveQuality) {
+      if (!act0Armed || rawFrameMs > 100) return
+      performanceSamples.push(rawFrameMs)
+      if (performanceSamples.length < 90) return
+      const sorted = performanceSamples.sort((a, b) => a - b)
+      const median = sorted[Math.floor(sorted.length / 2)] ?? 0
+      performanceSamples = []
+      // Below one sample per CSS pixel, the fine hologram is visibly enlarged
+      // into blocks. Keep adaptation, but preserve native CSS resolution.
+      const minPixelRatio = Math.min(window.devicePixelRatio, 1)
+      if (median > 23 && renderer.getPixelRatio() > minPixelRatio) {
+        renderer.setPixelRatio(Math.max(minPixelRatio, renderer.getPixelRatio() - 0.25))
+        resize()
+      }
+      return
+    }
     if (!performanceArmed || performanceGateDone || runtimeDeviceClass === 'C') return
     performanceSamples.push(rawFrameMs)
     if (performanceSamples.length < 30) return
@@ -1252,7 +1374,7 @@ export function createGymScanStage(opts: StageOptions) {
   }
 
   function frame() {
-    if (disposed) return
+    if (disposed || !running) return
     raf = requestAnimationFrame(frame)
     const now = performance.now()
     const rawFrameMs = now - lastT
@@ -1260,6 +1382,19 @@ export function createGymScanStage(opts: StageOptions) {
     lastT = now
     samplePerformance(rawFrameMs)
     elapsed += dt
+    const input = opts.readPointer?.()
+    if (input) {
+      setPointer(input.mx, input.my, input.hasPointer)
+      setTilt(input.mx, input.my, input.hasPointer && targetProgress < 0.995)
+    }
+    if (opts.overlayCoversFrame?.()) {
+      splitSticker = false
+      composite.uniforms.uStickOverlay!.value = 0
+      renderStickerOverlay(false)
+      appScreen.sync(0, 0)
+      opts.renderOverlay?.(renderer, dt, width, heightPx)
+      return
+    }
 
     // Keep a short ease so wheel input does not shake the camera, but stay
     // close enough to the scroll position that the QR lock feels attached.
@@ -1269,6 +1404,21 @@ export function createGymScanStage(opts: StageOptions) {
     const p = progress
     const sp = sceneProgress(p)
     const morph = heroMorphAt(p)
+
+    // After the scan, draw only the existing phone and its screen content.
+    // The gym, bloom, reticle and scanner playback have finished their work.
+    if (opts.readCoaching && p > .999 && targetProgress === 1) {
+      appScreen.suspend()
+      updateCoaching(1, dt)
+      phoneOverlay.setHeroMix(1)
+      phoneOverlay.setAppMix(1)
+      phoneOverlay.pose(1, phoneTarget(1), width, heightPx, {
+        mx: 0, my: 0, hasPointer: false, dt, reducedMotion,
+      })
+      phoneOverlay.renderFromTexture(renderer, composer.readBuffer.texture, 1)
+      return
+    }
+    updateCoaching(morph, dt)
 
     uniforms.uTime.value = elapsed
     foilUniforms.uFoilTime.value = elapsed
@@ -1281,7 +1431,15 @@ export function createGymScanStage(opts: StageOptions) {
     const isPhone = phoneCut()
     const skipBirth = reducedMotion || sp > 0.16
     const windows = act0Windows(isPhone)
-    if (act0Armed) {
+    if (assemblyTarget !== null && act0Armed) {
+      // The original floor/assembly plays once on arrival. Native scrolling
+      // then owns the flight, adhesive press, and every camera transition.
+      const openingHold = windows.assembleEnd - 0.001
+      openingElapsed = Math.min(openingHold, openingElapsed + dt)
+      const base = assemblyTarget > 0.001 ? openingHold : openingElapsed
+      const target = lerp(base, windows.stickEnd, assemblyTarget)
+      act0T = damp(act0T, target, GYM_SCROLL_DAMP_RATE, dt)
+    } else if (act0Armed) {
       if (skipBirth && act0T < windows.stickEnd) act0T = windows.stickEnd
       else if (!skipBirth && !act0Frozen) act0T += dt
     }
@@ -1368,6 +1526,17 @@ export function createGymScanStage(opts: StageOptions) {
     else applyStick(stickHidden())
 
     if (holoLive || reducedMotion) holoT += dt
+
+    // Activation is a played-out beat, not a scrub: the frame the vinyl is
+    // down, the cage ignites from the tag. Skip-birth and reduced-motion
+    // never start it. Scrubbing back off the mount rewinds it.
+    if (skipBirth || reducedMotion || !stickerPlanted) {
+      activateT = -1
+      placardUniforms.uPlant.value = 0
+    }
+    else {
+      activateT = activateT < 0 ? dt : activateT + dt
+    }
 
     const act1Live = a0.done || skipBirth
 
@@ -1504,7 +1673,30 @@ export function createGymScanStage(opts: StageOptions) {
     // clock, then dies. After the fused swap the same `update` idles on
     // holoT. Probe stays off during the birth pass so a parked cursor
     // cannot hold the cage.
-    if (holo && birth.draw && !skipBirth && !(classBLite && a0.shot !== 'floor')) {
+    //
+    // The sticker landing plays a different pass: the print flashes, then a
+    // cool-white skeleton grows out of the tag. Idle waits until that finishes.
+    let activating = false
+    if (holo && activateT >= 0 && !skipBirth && !reducedMotion) {
+      const holoEnv = scalarAt(HOLO, camSp)
+      activateOrigin.set(
+        PLACARD_POS.x,
+        PLACARD_POS.y + machineRig.position.y,
+        PLACARD_POS.z,
+      )
+      activating = holo.updateActivation(
+        activateT,
+        holoEnv,
+        activateOrigin,
+        elapsed,
+      )
+      placardUniforms.uPlant.value = hologramActivateTag(activateT, holoEnv)
+    }
+    if (activating) {
+      holoMix = 0
+      wasActivating = true
+    }
+    else if (holo && birth.draw && !skipBirth && !(classBLite && a0.shot !== 'floor')) {
       holo.update(birth.sweepT, birth.envelope, false)
       // Hand the envelope over at its live value, not at zero: the branch
       // below picks it up from here, and a discontinuity at the handover is
@@ -1527,6 +1719,12 @@ export function createGymScanStage(opts: StageOptions) {
       // as the hologram being switched off partway through its run; coming
       // back the same way, it reads as a pass beginning rather than one being
       // switched on.
+      if (wasActivating) {
+        // Rest in the idle gap so the next sweep is a new read, not a second
+        // ignition stacked on the lock.
+        holoT = PASS_SPAN + 0.45
+        wasActivating = false
+      }
       const cardBeat = !skipBirth && (a0.shot === 'fly' || a0.shot === 'stick')
       const want = cardBeat || !holoLive ? 0 : scalarAt(HOLO, camSp)
       // ~0.8 s either way at 60fps, which is about the length of one pass.
@@ -1557,15 +1755,20 @@ export function createGymScanStage(opts: StageOptions) {
     // screen is the room with the scanned plate pinned to it. Armed early it
     // replaced the room part-way through the curl, which is a dissolve wearing
     // a cut's clothes. `sync` blends on its own wall clock from here.
-    const appScene = fold >= 1 ? 1 : 0
-    const appMix = appScreen.ready ? appScreen.sync(appScene, dt) : 0
+    if (p > 0.3) appScreen.prepare()
+    const captureArmed = fold >= 1
+    if (captureArmed && !reducedMotion) captureAge += dt
+    else if (!captureArmed) captureAge = 0
+    const capture = reducedMotion || !captureArmed ? 0 : clamp01(captureAge / RETICLE_CAPTURE_SEC)
+    const appScene = fold >= 1 && (reducedMotion || capture >= RETICLE_CAPTURE_HANDOFF) ? 1 : 0
+    const productActive = productTexture && morph > 0.95
+    if (productActive) appScreen.sync(0, 0)
+    const appMix = productActive ? 1 : appScreen.ready ? appScreen.sync(appScene, dt) : 0
     phoneOverlay.setAppMix(appMix)
-    phoneOverlay.bindAppTexture(
-      appScreen.texture,
-      appScreen.uvs.repeatX,
-      appScreen.uvs.repeatY,
-      appScreen.uvs.offsetX,
-      appScreen.uvs.offsetY,
+    if (productActive) phoneOverlay.bindAppTexture(productTexture)
+    else phoneOverlay.bindAppTexture(
+      appScreen.texture, appScreen.uvs.repeatX, appScreen.uvs.repeatY,
+      appScreen.uvs.offsetX, appScreen.uvs.offsetY,
     )
     // The 2D rounded-rect crop is retired: the 3D phone is the window. Keep
     // the composite as a full-frame grade so the capture mapped onto the
@@ -1593,10 +1796,10 @@ export function createGymScanStage(opts: StageOptions) {
     // so it stays attached to the projected QR as that texture folds into the
     // 3D phone instead of disappearing at the first pixel of shrink.
     // The brackets are composited into the gym texture, so they stay stuck to
-    // the projected QR while that texture curls onto the glass. They are only
-    // withdrawn once they have faded out on their own clock.
+    // the projected QR while that texture curls onto the glass. They hold
+    // through the fold, then the capture morph retires them on a wall clock.
     const reticleP = reticleProgress(act1, act1Live)
-    const folded = reticleP >= RETICLE_OUT_END
+    const folded = captureArmed && (reducedMotion || capture >= 1)
     lastQrRect = folded ? null : qrLive
     const machineRect = machineLive ? projectPoints(machineSamples, null, false) : null
     // The brackets are a lock-on, so they need a tag. The compile prewarm
@@ -1620,13 +1823,19 @@ export function createGymScanStage(opts: StageOptions) {
       lockToMachine: isCoarse,
       folded,
       landed,
+      capture,
     })
 
     composer.renderToScreen = false
+    splitSticker = Boolean(overlayRenderer) && a0.shot === 'fly'
+    composite.uniforms.uStickOverlay!.value = splitSticker ? 1 : 0
+    if (splitSticker) stickerRig.visible = false
     // Once the cover is opaque and the app screen has taken it over there is
     // nothing of the room left on screen, so stop paying for it - the glass
     // keeps rendering from the last graded frame all the way into the slot.
     if (appMix < 0.97 || fold < 0.995) renderGymFrame()
+    if (splitSticker) stickerRig.visible = true
+    renderStickerOverlay(splitSticker)
     if (import.meta.dev && partsRig && lastAssemble) {
       if (!loggedExplode && lastAssemble.t > 0.15 && !lastAssemble.swap) {
         loggedExplode = true
@@ -1643,7 +1852,7 @@ export function createGymScanStage(opts: StageOptions) {
       reticle,
       width,
       heightPx,
-      act1.shot === 'lock' && act1.lockU >= 0.72,
+      reticleP >= RETICLE_MORPH_END,
       composer.readBuffer,
     )
 
@@ -1686,8 +1895,11 @@ export function createGymScanStage(opts: StageOptions) {
         skipVisible: a0.skipVisible,
         doorsVisible: a0.doorsVisible,
         done: a0.done,
+        swept: act0SweepDone(a0),
       },
+      dof: lastDof,
     })
+    opts.renderOverlay?.(renderer, dt, width, heightPx)
   }
 
   /** Project a list of points to a CSS-pixel AABB. `matrix` is applied first
@@ -1735,6 +1947,7 @@ export function createGymScanStage(opts: StageOptions) {
       shadows,
       heroMats,
     })
+    if (disposed) { partsRig?.dispose(); draco.dispose(); return }
 
     if (partsRig) {
       machineRig.add(partsRig.root)
@@ -1742,6 +1955,10 @@ export function createGymScanStage(opts: StageOptions) {
     }
     else {
       const hero = await loader.loadAsync('/assets/gym3d/hero-machine.glb')
+      if (disposed) {
+        hero.scene.traverse(node => { if (node instanceof THREE.Mesh) node.geometry.dispose() })
+        draco.dispose(); return
+      }
       heroRoot = hero.scene
       machineRig.add(heroRoot)
       heroRoot.traverse((o) => {
@@ -1846,10 +2063,27 @@ export function createGymScanStage(opts: StageOptions) {
     foil.visible = true
     phoneFill.visible = true
     holo.object.visible = true
-    renderer.compile(scene, camera)
+    await renderer.compileAsync(scene, camera)
+    if (disposed) return
+    if (overlayRenderer) {
+      const prevBg = scene.background
+      const prevFog = scene.fog
+      const layers = camera.layers.mask
+      scene.background = null
+      scene.fog = null
+      camera.layers.set(STICK_FOCUS_LAYER)
+      await overlayRenderer.compileAsync(scene, camera)
+      scene.background = prevBg
+      scene.fog = prevFog
+      camera.layers.mask = layers
+      overlayRenderer.setClearColor(0x000000, 0)
+      overlayRenderer.clear()
+    }
+    if (disposed) return
     phoneFill.visible = false
     holo.object.visible = false
-    renderer.compile(scene, camera)
+    await renderer.compileAsync(scene, camera)
+    if (disposed) return
     stickerRig.visible = stickerWas[0]
     nfc.visible = stickerWas[1]
     foil.visible = stickerWas[2]
@@ -1874,6 +2108,29 @@ export function createGymScanStage(opts: StageOptions) {
   }
 
   // --- public API ------------------------------------------------------------
+  let productTexture: THREE.Texture | null = null
+  let productRequest = 0
+  const productTextures = new Map<string, THREE.Texture>()
+  async function setProductView(view: 'exercise' | 'history' | 'coach') {
+    const request = ++productRequest
+    if (view === 'exercise') { productTexture = null; return }
+    if (productTextures.has(view)) { productTexture = productTextures.get(view)!; return }
+    const path = view === 'history' ? '/assets/screens/progression-560.webp' : '/assets/screens/coach-profile-560.webp'
+    try {
+      const texture = await new THREE.TextureLoader().loadAsync(path)
+      if (disposed) { texture.dispose(); return }
+      texture.colorSpace = THREE.NoColorSpace
+      texture.generateMipmaps = false
+      texture.minFilter = THREE.LinearFilter
+      productTextures.set(view, texture)
+      if (request === productRequest) productTexture = texture
+    } catch { /* Keep the existing product screen if additional media fails. */ }
+  }
+  let assemblyTarget: number | null = null
+  let openingElapsed = 0
+  function setAssemblyProgress(value: number | null) {
+    assemblyTarget = value === null ? null : clamp01(value)
+  }
   function setProgress(p: number) {
     targetProgress = clamp01(p)
   }
@@ -1914,6 +2171,7 @@ export function createGymScanStage(opts: StageOptions) {
   function stop() {
     running = false
     cancelAnimationFrame(raf)
+    appScreen.suspend()
   }
   function dispose() {
     disposed = true
@@ -1933,11 +2191,15 @@ export function createGymScanStage(opts: StageOptions) {
     floorLiteMaterial?.dispose()
     env.dispose()
     appScreen.dispose()
+    productTextures.forEach(texture => texture.dispose())
+    coaching?.dispose()
     phoneOverlay.dispose()
     reticleOverlay.dispose()
     stickFocus.dispose()
     composerTarget.dispose()
     composer.dispose()
+    overlayRenderer?.dispose()
+    overlayRenderer = null
     renderer.dispose()
     heroMats = []
   }
@@ -1946,6 +2208,8 @@ export function createGymScanStage(opts: StageOptions) {
     load,
     resize,
     setProgress,
+    setAssemblyProgress,
+    setProductView,
     setHeroSlot,
     setPointer,
     setTilt,

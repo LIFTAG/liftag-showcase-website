@@ -2,8 +2,11 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
   CAGE_CORE_GAIN,
+  CAGE_FILL_GAIN,
+  CAGE_LOCK_GAIN,
   CAGE_PROBE_SCREEN_RADIUS,
   CORE_RGB,
+  HOT_RGB,
   RETICLE_RGB,
   cageMixColor,
   cageShouldDraw,
@@ -222,6 +225,33 @@ test('reduced-motion forces lime off even if a core weight is supplied', () => {
     Math.abs(still.r / still.g - body.r / body.g) < 1e-9,
     'steady must share the gray body hue, not lime',
   )
+})
+
+test('activation fill and lock are cool white, not a lime body', () => {
+  const fill = cageMixColor({ core: 0, trail: 0, probe: 0, fill: CAGE_FILL_GAIN })
+  const lock = cageMixColor({ core: 0, trail: 0, probe: 0, lock: CAGE_LOCK_GAIN })
+  const trail = cageMixColor({ core: 0, trail: 1, probe: 0 })
+  assert.ok(fill.b >= fill.g, `fill should be cool, got ${JSON.stringify(fill)}`)
+  assert.ok(lock.b >= lock.g, `lock should be cool, got ${JSON.stringify(lock)}`)
+  assert.ok(
+    Math.abs(fill.r / fill.g - trail.r / trail.g) < 1e-9,
+    'fill must share the gray body hue',
+  )
+  assert.ok(
+    Math.abs(lock.r / lock.g - trail.r / trail.g) < 1e-9,
+    'lock must share the gray body hue',
+  )
+  assert.ok(lock.g > fill.g, 'lock is the louder online beat')
+})
+
+test('activation core is white-hot, not scanner lime', () => {
+  const scan = cageMixColor({ core: 1, trail: 0, probe: 0 })
+  const hot = cageMixColor({ core: 1, trail: 0, probe: 0, hot: 1 })
+  assert.ok(hot.b > scan.b, `hot core must carry white, scan=${JSON.stringify(scan)} hot=${JSON.stringify(hot)}`)
+  assert.ok(hot.r > scan.r, 'hot core is paler than scanner lime')
+  assert.ok(hot.g >= hot.r)
+  assert.ok(Math.abs(hot.r - HOT_RGB[0] * CAGE_CORE_GAIN) < 1e-9)
+  assert.ok(HOT_RGB[2] > CORE_RGB[2])
 })
 
 test('screen probe is full under the pointer and dead at a screen corner', () => {

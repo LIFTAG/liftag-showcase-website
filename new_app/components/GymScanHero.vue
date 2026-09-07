@@ -88,7 +88,6 @@ import { onBeforeUnmount, onMounted, shallowRef, useTemplateRef } from 'vue'
 import { useSharedMouse } from '../composables/useSharedMouse'
 import { detectGymScanDevice, type GymScanDevice } from '../utils/gymscan/device'
 import {
-  GYM_SCAN_PHONE_STICKY_SVH,
   GYM_SCAN_REDUCED_STICKY_SVH,
   GYM_SCAN_STICKY_SVH,
   heroBodyTargetFromPhoneBox,
@@ -115,7 +114,6 @@ const HERO_ARRIVED = 0.86
 
 const stickyVars = {
   '--gs-floor-svh': String(GYM_SCAN_STICKY_SVH),
-  '--gs-seat-svh': String(GYM_SCAN_PHONE_STICKY_SVH),
   '--gs-reduced-svh': String(GYM_SCAN_REDUCED_STICKY_SVH),
 }
 
@@ -305,57 +303,13 @@ function onDeviceClassChange(deviceClass: GymScanDevice['deviceClass']) {
 }
 
 let pointerRaf = 0
-let gyroActive = false
-let gyroCleanup: (() => void) | null = null
-let tiltMx = 0
-let tiltMy = 0
-let tiltActive = false
 
 function pumpPointer() {
   pointerRaf = requestAnimationFrame(pumpPointer)
   if (!stage) return
-  stage.setPointer(mouse.latest.mx, mouse.latest.my, mouse.latest.hasPointer)
-  if (!gyroActive) {
-    tiltMx = mouse.latest.mx
-    tiltMy = mouse.latest.my
-    tiltActive = mouse.latest.hasPointer
-  }
-  stage.setTilt(tiltMx, tiltMy, tiltActive)
-}
-
-function enablePhoneTiltGyro(host: HTMLElement, reduced: boolean) {
-  if (reduced) return
-  const onDeviceOrientation = (event: DeviceOrientationEvent) => {
-    if (event.gamma == null || event.beta == null) return
-    gyroActive = true
-    tiltMx = Math.max(-1, Math.min(1, event.gamma / 30))
-    tiltMy = Math.max(-1, Math.min(1, (event.beta - 45) / 30))
-    tiltActive = true
-  }
-
-  const deviceOrientation = window.DeviceOrientationEvent as (typeof DeviceOrientationEvent & {
-    requestPermission?: () => Promise<PermissionState>
-  }) | undefined
-
-  if (deviceOrientation && typeof deviceOrientation.requestPermission === 'function') {
-    const requestOnTap = () => {
-      deviceOrientation.requestPermission?.()
-        .then((state) => {
-          if (state === 'granted') {
-            window.addEventListener('deviceorientation', onDeviceOrientation)
-          }
-        })
-        .catch(() => {})
-    }
-    host.addEventListener('touchend', requestOnTap, { once: true })
-    gyroCleanup = () => {
-      host.removeEventListener('touchend', requestOnTap)
-      window.removeEventListener('deviceorientation', onDeviceOrientation)
-    }
-  } else if (deviceOrientation) {
-    window.addEventListener('deviceorientation', onDeviceOrientation)
-    gyroCleanup = () => window.removeEventListener('deviceorientation', onDeviceOrientation)
-  }
+  const { mx, my, hasPointer } = mouse.latest
+  stage.setPointer(mx, my, hasPointer)
+  stage.setTilt(mx, my, hasPointer)
 }
 
 onMounted(async () => {
@@ -407,7 +361,6 @@ onMounted(async () => {
   }
 
   window.addEventListener('resize', onResize, { passive: true })
-  if (stickyEl.value) enablePhoneTiltGyro(stickyEl.value, reduced)
   pointerRaf = requestAnimationFrame(pumpPointer)
 
   // The canvas survives the seam as the hero's front phone, so it can no
@@ -439,8 +392,6 @@ onBeforeUnmount(() => {
   cancelAnimationFrame(pointerRaf)
   visibility?.disconnect()
   visibility = null
-  gyroCleanup?.()
-  gyroCleanup = null
   stage?.dispose()
   stage = null
 })
@@ -894,9 +845,6 @@ onBeforeUnmount(() => {
 }
 
 @media (pointer: coarse) and (hover: none) {
-  .gs {
-    height: calc(100svh * var(--gs-seat-svh, 3.5));
-  }
   .gs__birth {
     align-items: stretch;
     padding-inline: max(16px, var(--liftag-safe-left), var(--liftag-safe-right));

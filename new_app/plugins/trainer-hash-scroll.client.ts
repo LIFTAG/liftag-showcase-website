@@ -11,6 +11,7 @@ const RETRY_DELAYS_MS = [0, 80, 200, 480, 1000, 2000]
 let stopActiveSeek: (() => void) | null = null
 
 function seekTrainerHandoff() {
+  if (window.location.pathname !== '/') return
   if (!isTrainersHash(window.location.hash)) return
 
   stopActiveSeek?.()
@@ -62,7 +63,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     const original = router.options.scrollBehavior as RouterScrollBehavior | undefined
 
     router.options.scrollBehavior = (to, from, savedPosition) => {
-      if (isTrainersHash(to.hash) && (to.path === '/' || to.path === '/gym-scan')) {
+      if (isTrainersHash(to.hash) && to.path === '/') {
         return new Promise((resolve) => {
           const started = Date.now()
           const run = () => {

@@ -1,0 +1,3285 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - banner [ref=f1e175]:
+      - link "LIFTAG logo LIFTAG" [ref=f1e176] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f1e177]:
+          - img "LIFTAG logo"
+        - generic [ref=f1e178]: LIFTAG
+      - navigation [ref=f1e179]:
+        - link "Demo" [ref=f1e180] [cursor=pointer]:
+          - /url: /demo
+          - generic [aria-hidden] [ref=f1e181]:
+            - generic [ref=f1e182]:
+              - generic [ref=f1e183]: D
+              - text: D
+            - generic [ref=f1e184]:
+              - generic [ref=f1e185]: e
+              - text: e
+            - generic [ref=f1e186]:
+              - generic [ref=f1e187]: m
+              - text: m
+            - generic [ref=f1e188]:
+              - generic [ref=f1e189]: o
+              - text: o
+        - link "Lifters" [ref=f1e190] [cursor=pointer]:
+          - /url: "#lifters"
+          - generic [aria-hidden] [ref=f1e191]:
+            - generic [ref=f1e192]:
+              - generic [ref=f1e193]: L
+              - text: L
+            - generic [ref=f1e194]:
+              - generic [ref=f1e195]: i
+              - text: i
+            - generic [ref=f1e196]:
+              - generic [ref=f1e197]: f
+              - text: f
+            - generic [ref=f1e198]:
+              - generic [ref=f1e199]: t
+              - text: t
+            - generic [ref=f1e200]:
+              - generic [ref=f1e201]: e
+              - text: e
+            - generic [ref=f1e202]:
+              - generic [ref=f1e203]: r
+              - text: r
+            - generic [ref=f1e204]:
+              - generic [ref=f1e205]: s
+              - text: s
+        - link "Gyms" [ref=f1e206] [cursor=pointer]:
+          - /url: "#gyms"
+          - generic [aria-hidden] [ref=f1e207]:
+            - generic [ref=f1e208]:
+              - generic [ref=f1e209]: G
+              - text: G
+            - generic [ref=f1e210]:
+              - generic [ref=f1e211]: "y"
+              - text: "y"
+            - generic [ref=f1e212]:
+              - generic [ref=f1e213]: m
+              - text: m
+            - generic [ref=f1e214]:
+              - generic [ref=f1e215]: s
+              - text: s
+        - link "Trainers" [ref=f1e216] [cursor=pointer]:
+          - /url: "#trainers"
+          - generic [aria-hidden] [ref=f1e217]:
+            - generic [ref=f1e218]:
+              - generic [ref=f1e219]: T
+              - text: T
+            - generic [ref=f1e220]:
+              - generic [ref=f1e221]: r
+              - text: r
+            - generic [ref=f1e222]:
+              - generic [ref=f1e223]: a
+              - text: a
+            - generic [ref=f1e224]:
+              - generic [ref=f1e225]: i
+              - text: i
+            - generic [ref=f1e226]:
+              - generic [ref=f1e227]: "n"
+              - text: "n"
+            - generic [ref=f1e228]:
+              - generic [ref=f1e229]: e
+              - text: e
+            - generic [ref=f1e230]:
+              - generic [ref=f1e231]: r
+              - text: r
+            - generic [ref=f1e232]:
+              - generic [ref=f1e233]: s
+              - text: s
+        - link "Exercises" [ref=f1e234] [cursor=pointer]:
+          - /url: /exercises
+          - generic [aria-hidden] [ref=f1e235]:
+            - generic [ref=f1e236]:
+              - generic [ref=f1e237]: E
+              - text: E
+            - generic [ref=f1e238]:
+              - generic [ref=f1e239]: x
+              - text: x
+            - generic [ref=f1e240]:
+              - generic [ref=f1e241]: e
+              - text: e
+            - generic [ref=f1e242]:
+              - generic [ref=f1e243]: r
+              - text: r
+            - generic [ref=f1e244]:
+              - generic [ref=f1e245]: c
+              - text: c
+            - generic [ref=f1e246]:
+              - generic [ref=f1e247]: i
+              - text: i
+            - generic [ref=f1e248]:
+              - generic [ref=f1e249]: s
+              - text: s
+            - generic [ref=f1e250]:
+              - generic [ref=f1e251]: e
+              - text: e
+            - generic [ref=f1e252]:
+              - generic [ref=f1e253]: s
+              - text: s
+        - link "Journal" [ref=f1e254] [cursor=pointer]:
+          - /url: /journal
+          - generic [aria-hidden] [ref=f1e255]:
+            - generic [ref=f1e256]:
+              - generic [ref=f1e257]: J
+              - text: J
+            - generic [ref=f1e258]:
+              - generic [ref=f1e259]: o
+              - text: o
+            - generic [ref=f1e260]:
+              - generic [ref=f1e261]: u
+              - text: u
+            - generic [ref=f1e262]:
+              - generic [ref=f1e263]: r
+              - text: r
+            - generic [ref=f1e264]:
+              - generic [ref=f1e265]: "n"
+              - text: "n"
+            - generic [ref=f1e266]:
+              - generic [ref=f1e267]: a
+              - text: a
+            - generic [ref=f1e268]:
+              - generic [ref=f1e269]: l
+              - text: l
+        - link "Pricing" [ref=f1e270] [cursor=pointer]:
+          - /url: /pricing
+          - generic [aria-hidden] [ref=f1e271]:
+            - generic [ref=f1e272]:
+              - generic [ref=f1e273]: P
+              - text: P
+            - generic [ref=f1e274]:
+              - generic [ref=f1e275]: r
+              - text: r
+            - generic [ref=f1e276]:
+              - generic [ref=f1e277]: i
+              - text: i
+            - generic [ref=f1e278]:
+              - generic [ref=f1e279]: c
+              - text: c
+            - generic [ref=f1e280]:
+              - generic [ref=f1e281]: i
+              - text: i
+            - generic [ref=f1e282]:
+              - generic [ref=f1e283]: "n"
+              - text: "n"
+            - generic [ref=f1e284]:
+              - generic [ref=f1e285]: g
+              - text: g
+      - generic [ref=f1e286]:
+        - link "Dashboard" [ref=f1e287] [cursor=pointer]:
+          - /url: https://app.liftag.fit/login
+        - link "Get the app" [ref=f1e289] [cursor=pointer]:
+          - /url: /get
+    - main [ref=f1e290]:
+      - generic [ref=f1e291]:
+        - generic [ref=f1e292]:
+          - generic [ref=f1e294]:
+            - generic [ref=f1e295]:
+              - heading "FOR LIFTERS. BY LIFTERS." [level=1] [ref=f1e296]:
+                - generic [ref=f1e297]: FOR
+                - generic [ref=f1e299]:
+                  - generic [ref=f1e300]: LIFTERS.
+                  - generic [aria-hidden]: LIFTERS.
+                - generic [ref=f1e301]: BY
+                - generic [ref=f1e303]:
+                  - generic [ref=f1e304]: LIFTERS.
+                  - generic [aria-hidden]: LIFTERS.
+              - paragraph [ref=f1e305]: Tap or scan any machine. Track every set. Watch your numbers compound.Core workout tracking is free forever. Premium intelligence is optional.
+              - link "Free on iOS + Android Get LIFTAG" [ref=f1e308] [cursor=pointer]:
+                - /url: /get
+                - generic [ref=f1e311]:
+                  - generic [ref=f1e312]: Free on iOS + Android
+                  - generic [ref=f1e313]: Get LIFTAG
+              - generic [ref=f1e315]:
+                - generic [ref=f1e316]:
+                  - generic [ref=f1e317]: 0+
+                  - generic [ref=f1e318]: Exercises in library
+                - generic [ref=f1e319]:
+                  - generic [ref=f1e320]: "0"
+                  - generic [ref=f1e321]: Muscle groups
+                - generic [ref=f1e322]:
+                  - generic [ref=f1e323]: 0%
+                  - generic [ref=f1e324]: Core tracking · free forever
+            - generic [ref=f1e325]:
+              - generic [ref=f1e339]:
+                - img "LIFTAG QR Code" [ref=f1e341]
+                - generic [ref=f1e342]:
+                  - generic [ref=f1e343]: NFC + QR · MACHINE SYNC
+                  - generic [ref=f1e344]: TAP / SCAN → TRACK
+              - generic [ref=f1e345]:
+                - generic [ref=f1e346]: VOLUME · TODAY
+                - generic [ref=f1e347]: 3.2 t
+                - generic [ref=f1e348]:
+                  - generic [ref=f1e349]: ↑
+                  - text: +18% vs last week
+              - generic [ref=f1e354]:
+                - generic [ref=f1e355]: NEW PR
+                - generic [ref=f1e361]: 140kg Bench
+          - text: LIFTERS. LIFTERS.
+        - generic [ref=f1e363]:
+          - generic [ref=f1e364]:
+            - generic [ref=f1e365]: NFC + QR · MACHINE SYNC
+            - generic [ref=f1e368]: AUTO · 1RM
+            - generic [ref=f1e371]: 400+ · EXERCISES
+            - generic [ref=f1e374]: 11 · MUSCLE GROUPS
+            - generic [ref=f1e377]: COACH · DIRECTORY
+            - generic [ref=f1e380]: GYM · MAP
+            - generic [ref=f1e383]: ROUTINES · SUPERSETS
+            - generic [ref=f1e386]: WORKOUT · HISTORY
+            - generic [ref=f1e389]: PRs · AUTO-DETECTED
+            - generic [ref=f1e392]: EN · SK
+          - generic [aria-hidden] [ref=f1e395]:
+            - generic [ref=f1e396]: NFC + QR · MACHINE SYNC
+            - generic [ref=f1e399]: AUTO · 1RM
+            - generic [ref=f1e402]: 400+ · EXERCISES
+            - generic [ref=f1e405]: 11 · MUSCLE GROUPS
+            - generic [ref=f1e408]: COACH · DIRECTORY
+            - generic [ref=f1e411]: GYM · MAP
+            - generic [ref=f1e414]: ROUTINES · SUPERSETS
+            - generic [ref=f1e417]: WORKOUT · HISTORY
+            - generic [ref=f1e420]: PRs · AUTO-DETECTED
+            - generic [ref=f1e423]: EN · SK
+        - generic [ref=f1e428]:
+          - generic [ref=f1e429]:
+            - generic [ref=f1e430]:
+              - generic [ref=f1e432]: ▸ MACHINE SYNC
+              - generic [aria-hidden] [ref=f1e433]: ▸ MACHINE SYNC
+            - heading [level=2] [ref=f1e434]:
+              - generic [ref=f1e435]: Every machine hasa manual. Now it's in your pocket.
+            - paragraph [ref=f1e436]: No more guessing how a cable stack works. Tap the NFC tag or scan the QR code on any partner gym machine. Liftag opens the right exercise, demo video, and tracking flow in seconds.
+          - figure "Stylized LIFTAG NFC tag for illustration. The real tag looks different. Move to tilt." [ref=f1e437]:
+            - generic [ref=f1e438]:
+              - paragraph: MOVE TO TILT
+            - generic:
+              - generic: NFC machine tag
+              - generic: Optional add-on · below the QR
+              - generic: Illustration only · not the real tag
+          - generic [ref=f1e439]:
+            - img "LIFTAG screen" [ref=f1e446]
+            - generic [ref=f1e448]:
+              - generic [ref=f1e449] [cursor=pointer]:
+                - generic [ref=f1e450]: STEP 01
+                - generic [ref=f1e453]:
+                  - heading "T T a a p p / / s s c c a a n n . ." [level=3] [ref=f1e454]:
+                    - generic [ref=f1e456]:
+                      - generic [ref=f1e457]:
+                        - generic [ref=f1e458]: T
+                        - text: T
+                      - generic [ref=f1e459]:
+                        - generic [ref=f1e460]: a
+                        - text: a
+                      - generic [ref=f1e461]:
+                        - generic [ref=f1e462]: p
+                        - text: p
+                      - generic [ref=f1e463]:
+                        - generic [ref=f1e464]: /
+                        - text: /
+                      - generic [ref=f1e465]:
+                        - generic [ref=f1e466]: s
+                        - text: s
+                      - generic [ref=f1e467]:
+                        - generic [ref=f1e468]: c
+                        - text: c
+                      - generic [ref=f1e469]:
+                        - generic [ref=f1e470]: a
+                        - text: a
+                      - generic [ref=f1e471]:
+                        - generic [ref=f1e472]: "n"
+                        - text: "n"
+                      - generic [ref=f1e473]:
+                        - generic [ref=f1e474]: .
+                        - text: .
+                  - paragraph [ref=f1e475]: Open Liftag. Tap the NFC tag or aim at the QR sticker on the machine. The exact exercise, variations, and a setup video load instantly. No menus, no searching.
+              - generic [ref=f1e476] [cursor=pointer]:
+                - generic [ref=f1e477]: STEP 02
+                - generic [ref=f1e480]:
+                  - heading "L L o o g g . ." [level=3] [ref=f1e481]:
+                    - generic [ref=f1e483]:
+                      - generic [ref=f1e484]:
+                        - generic [ref=f1e485]: L
+                        - text: L
+                      - generic [ref=f1e486]:
+                        - generic [ref=f1e487]: o
+                        - text: o
+                      - generic [ref=f1e488]:
+                        - generic [ref=f1e489]: g
+                        - text: g
+                      - generic [ref=f1e490]:
+                        - generic [ref=f1e491]: .
+                        - text: .
+                  - paragraph [ref=f1e492]: Tap weight × reps. Timer auto-runs between sets. RPE optional. Every set is timestamped and saved to your history.
+                  - generic [ref=f1e493]:
+                    - generic [ref=f1e494]: OPTIONAL
+                    - generic [ref=f1e495]: Watch the gym's own instruction video. Filmed by their trainers, on their machines.
+        - generic [ref=f1e498]:
+          - heading "How It Works" [level=2] [ref=f1e500]
+          - generic [ref=f1e501]:
+            - generic [ref=f1e502]:
+              - generic: "01"
+              - generic [ref=f1e503]:
+                - heading "Scan the QR Code" [level=3] [ref=f1e518]
+                - paragraph [ref=f1e519]: Open LIFTAG, point your camera at the machine's QR code. The exercise loads instantly.
+            - generic [ref=f1e521]:
+              - generic: "02"
+              - generic [ref=f1e522]:
+                - generic [ref=f1e524]:
+                  - generic [ref=f1e525]: Bench Press
+                  - generic [ref=f1e526]: "Last session: 80kg × 10"
+                  - generic [ref=f1e527]:
+                    - generic [ref=f1e528]:
+                      - generic [ref=f1e529]: WEIGHT
+                      - generic [ref=f1e530]: 0kg
+                    - generic [ref=f1e531]: ×
+                    - generic [ref=f1e532]:
+                      - generic [ref=f1e533]: REPS
+                      - generic [ref=f1e534]: "0"
+                  - button "Log set" [ref=f1e535] [cursor=pointer]: LOG SET
+                - heading "Track Your Sets" [level=3] [ref=f1e537]
+                - paragraph [ref=f1e538]: Enter weight and reps. See your previous performance, personal bests, and projected targets.
+            - generic [ref=f1e540]:
+              - generic: "03"
+              - generic [ref=f1e541]:
+                - generic [ref=f1e543]:
+                  - generic [ref=f1e544]: Bench Press · 12 weeks
+                  - generic [ref=f1e549]:
+                    - generic [ref=f1e550]: +0%STRENGTH
+                    - generic [ref=f1e551]: 0SESSIONS
+                    - generic [ref=f1e552]: 0NEW PRs
+                - heading "Watch Progress Compound" [level=3] [ref=f1e553]
+                - paragraph [ref=f1e554]: Over weeks and months, LIFTAG builds your complete strength story. Every rep, every PR.
+          - tablist "How it works steps" [ref=f1e556]:
+            - tab "Step 1" [selected] [ref=f1e557] [cursor=pointer]
+            - tab "Step 2" [ref=f1e558] [cursor=pointer]
+            - tab "Step 3" [ref=f1e559] [cursor=pointer]
+        - generic [ref=f1e561]:
+          - generic [ref=f1e562]:
+            - generic [ref=f1e563]:
+              - generic [ref=f1e564]:
+                - generic [ref=f1e566]: ▸ FOR LIFTERS
+                - generic [aria-hidden] [ref=f1e567]: ▸ FOR LIFTERS
+              - heading [level=2] [ref=f1e568]:
+                - generic [ref=f1e569]: Train smarter.Lift heavier. Compound everything.
+            - paragraph [ref=f1e570]: Progressive overload, made obvious. Goals, PRs, history, and clean charts that show, at a glance, whether you're getting stronger or stalling.
+          - generic [ref=f1e571]:
+            - generic [ref=f1e572] [cursor=pointer]:
+              - generic [ref=f1e573]:
+                - img "Progress, not vibes."
+              - generic [ref=f1e574]:
+                - generic [ref=f1e575]: PROGRESS INSIGHTS
+                - heading "Progress, not vibes." [level=3] [ref=f1e576]
+                - paragraph [ref=f1e577]: Per-session weight, 1RM, and total volume, auto-aggregated across every workout. Watch the line climb.
+            - generic [ref=f1e578] [cursor=pointer]:
+              - generic [ref=f1e579]:
+                - img "Two taps. Set logged."
+              - generic [ref=f1e580]:
+                - generic [ref=f1e581]: LOG SET
+                - heading "Two taps. Set logged." [level=3] [ref=f1e582]
+                - paragraph [ref=f1e583]: Weight × reps. RPE optional. The timer auto-runs between sets so you don't have to think.
+            - generic [ref=f1e584] [cursor=pointer]:
+              - generic [ref=f1e585]:
+                - img "Plans that flex with you."
+              - generic [ref=f1e586]:
+                - generic [ref=f1e587]: ROUTINES + SUPERSETS
+                - heading "Plans that flex with you." [level=3] [ref=f1e588]
+                - paragraph [ref=f1e589]: Build routines, share them, run supersets. Every session adapts to your real performance.
+            - generic [ref=f1e590] [cursor=pointer]:
+              - generic [ref=f1e591]:
+                - img "Every session, dated."
+              - generic [ref=f1e592]:
+                - generic [ref=f1e593]: HISTORY
+                - heading "Every session, dated." [level=3] [ref=f1e594]
+                - paragraph [ref=f1e595]: Calendar + by-body-part. Find any session in two taps.
+            - generic [ref=f1e596] [cursor=pointer]:
+              - generic [ref=f1e597]:
+                - img "400+ exercises. Form videos."
+              - generic [ref=f1e598]:
+                - generic [ref=f1e599]: LIBRARY
+                - heading "400+ exercises. Form videos." [level=3] [ref=f1e600]
+                - paragraph [ref=f1e601]:
+                  - text: Vetted by coaches, not influencers. Log a
+                  - link "pull-up" [ref=f1e602]:
+                    - /url: /exercises/pull-up
+                  - text: ","
+                  - link "overhead press" [ref=f1e603]:
+                    - /url: /exercises/standing-barbell-overhead-press
+                  - text: ", or"
+                  - link "Romanian deadlift" [ref=f1e604]:
+                    - /url: /exercises/barbell-romanian-deadlift-rdl
+                  - text: from the same library.
+                - link "Browse the library →" [ref=f1e605]:
+                  - /url: /exercises
+          - generic [ref=f1e606]:
+            - generic [ref=f1e607]:
+              - generic [ref=f1e608]: < 2s
+              - generic [ref=f1e609]: Avg time to log a set
+            - generic [ref=f1e610]:
+              - generic [ref=f1e611]: ∞
+              - generic [ref=f1e612]: Sessions stored
+            - generic [ref=f1e613]:
+              - generic [ref=f1e614]: EN · SK
+              - generic [ref=f1e615]: Languages, day one
+            - generic [ref=f1e616]:
+              - generic [ref=f1e617]: "0"
+              - generic [ref=f1e618]: Spreadsheets required
+        - generic [ref=f1e620]:
+          - generic [ref=f1e622]:
+            - generic [ref=f1e623]:
+              - generic [ref=f1e625]: ▸ PROGRESS & INSIGHTS
+              - generic [aria-hidden] [ref=f1e626]: ▸ PROGRESS & INSIGHTS
+            - heading "Watch the numbers compound." [level=2] [ref=f1e627]
+            - paragraph [ref=f1e629]: Volume, PRs, 1RM estimates, streaks, body-part splits, workout history, rest trends. Every dimension of your training in one place.
+          - generic [ref=f1e630]:
+            - generic [ref=f1e631]:
+              - generic [ref=f1e632]:
+                - generic [ref=f1e633]: Volume Trends
+                - generic [ref=f1e634]: 4W · 12W · 26W · 52W
+              - generic [ref=f1e635]:
+                - generic [ref=f1e636]: Streak Tracking
+                - generic [ref=f1e637]: 12 weeks unbroken
+              - generic [ref=f1e638]:
+                - generic [ref=f1e639]: Body-Part Split
+                - generic [ref=f1e640]: Push · Pull · Legs · Full
+              - generic [ref=f1e641]:
+                - generic [ref=f1e642]: Rest & Recovery
+                - generic [ref=f1e643]: Avg rest between sets
+              - generic [ref=f1e644]:
+                - generic [ref=f1e645]: WEEKLY VOLUME
+                - generic [ref=f1e646]:
+                  - button "Week 1 volume 40" [ref=f1e647] [cursor=pointer]
+                  - button "Week 2 volume 55" [ref=f1e649] [cursor=pointer]
+                  - button "Week 3 volume 48" [ref=f1e651] [cursor=pointer]
+                  - button "Week 4 volume 62" [ref=f1e653] [cursor=pointer]
+                  - button "Week 5 volume 58" [ref=f1e655] [cursor=pointer]
+                  - button "Week 6 volume 70" [ref=f1e657] [cursor=pointer]
+                  - button "Week 7 volume 75" [ref=f1e659] [cursor=pointer]
+                  - button "Week 8 volume 68" [ref=f1e661] [cursor=pointer]
+                  - button "Week 9 volume 80" [ref=f1e663] [cursor=pointer]
+                  - button "Week 10 volume 85" [ref=f1e665] [cursor=pointer]
+                  - button "Week 11 volume 78" [ref=f1e667] [cursor=pointer]
+                  - button "Week 12 volume 92" [ref=f1e669] [cursor=pointer]
+                - generic [ref=f1e671]: WEEK 12 · 92 VOL
+            - generic [ref=f1e672]:
+              - img "LIFTAG screen" [ref=f1e675]
+              - generic [ref=f1e676]:
+                - button "Screen 1" [ref=f1e677] [cursor=pointer]
+                - button "Screen 2" [ref=f1e678] [cursor=pointer]
+                - button "Screen 3" [ref=f1e679] [cursor=pointer]
+                - button "Screen 4" [ref=f1e680] [cursor=pointer]
+            - generic [ref=f1e683]:
+              - generic [ref=f1e684]:
+                - generic [ref=f1e685]: Personal Records
+                - generic [ref=f1e686]: Auto-detected · weight / reps / vol
+              - generic [ref=f1e687]:
+                - generic [ref=f1e688]: 1RM Estimates
+                - generic [ref=f1e689]: Epley formula, per set
+              - generic [ref=f1e690]:
+                - generic [ref=f1e691]: Workout History
+                - generic [ref=f1e692]: Every session, searchable
+              - generic [ref=f1e693]:
+                - generic [ref=f1e694]: Exercise Insights
+                - generic [ref=f1e695]: Top set · best 1RM · total volume
+              - generic [ref=f1e696]: 1RM PROGRESSION
+          - generic [ref=f1e701]:
+            - generic [ref=f1e702]:
+              - generic [ref=f1e703]: 4W-52W
+              - generic [ref=f1e704]: Time windows
+              - generic [ref=f1e705]: Zoom in or out
+            - generic [ref=f1e706]:
+              - generic [ref=f1e707]: PRs
+              - generic [ref=f1e708]: Auto-detected
+              - generic [ref=f1e709]: Weight, reps & volume
+            - generic [ref=f1e710]:
+              - generic [ref=f1e711]: 1RM
+              - generic [ref=f1e712]: Estimated per set
+              - generic [ref=f1e713]: Every exercise
+            - generic [ref=f1e714]:
+              - generic [ref=f1e715]: ∞
+              - generic [ref=f1e716]: History stored
+              - generic [ref=f1e717]: Every set, forever
+        - generic [ref=f1e720]:
+          - generic [ref=f1e721]:
+            - generic [ref=f1e722]:
+              - generic [ref=f1e724]: ▸ ONE APP INSTEAD OF EIGHT
+              - generic [aria-hidden] [ref=f1e725]: ▸ ONE APP INSTEAD OF EIGHT
+            - heading "All the little gym apps, folded into LIFTAG." [level=2] [ref=f1e726]
+            - paragraph [ref=f1e728]: Set logging, rest timing, PRs, body metrics, form guides, progress charts, and routines finally live in one place.
+          - generic "Mock fitness apps merging into LIFTAG" [ref=f1e729]:
+            - generic [ref=f1e730]:
+              - generic [ref=f1e731]: Notes
+              - generic [ref=f1e732]: Sets · RPE
+            - generic [ref=f1e733]:
+              - generic [ref=f1e734]: Timer
+              - generic [ref=f1e735]: Rest intervals
+            - generic [ref=f1e736]:
+              - generic [ref=f1e737]: Stopwatch
+              - generic [ref=f1e738]: Timed sets
+            - generic [ref=f1e739]:
+              - generic [ref=f1e740]: Exercise Guides
+              - generic [ref=f1e741]: Form videos
+            - generic [ref=f1e742]:
+              - generic [ref=f1e743]: Workout Planner
+              - generic [ref=f1e744]: Routines
+            - generic [ref=f1e745]:
+              - generic [ref=f1e746]: Progress Charts
+              - generic [ref=f1e747]: Analytics
+            - generic [ref=f1e748]:
+              - generic [ref=f1e749]: Calendar
+              - generic [ref=f1e750]: Reminders, notifications
+            - generic [ref=f1e751]:
+              - generic [ref=f1e752]: Body Metrics
+              - generic [ref=f1e753]: Check-ins
+            - generic "LIFTAG app icon":
+              - generic:
+                - img "LIFTAG"
+              - generic:
+                - generic: LIFTAG
+                - generic: all-in-one gym OS
+        - generic [ref=f1e755]:
+          - generic [ref=f1e756]:
+            - generic [ref=f1e757]:
+              - generic [ref=f1e758]:
+                - generic [ref=f1e760]: ▸ FOR GYMS
+                - generic [aria-hidden] [ref=f1e761]: ▸ FOR GYMS
+              - heading [level=2] [ref=f1e762]:
+                - generic [ref=f1e763]: Put your gymon the map.
+            - paragraph [ref=f1e764]: Tag your floor. Members tap NFC or scan QR, instantly open the right exercise, and watch a setup video your trainers recorded. Get discovered by thousands of nearby lifters looking for their next gym.
+          - generic [ref=f1e765]:
+            - generic [ref=f1e766]:
+              - figure "LIFTAG foil machine tag. Cable Lat Pulldown appears when the plate is tilted." [ref=f1e769]:
+                - generic:
+                  - generic:
+                    - generic [aria-hidden]: LIFTAG
+                    - generic:
+                      - generic: LIFTAG
+                      - generic: "#042"
+                    - generic: TAP OR SCAN
+                  - generic [aria-hidden]:
+                    - generic: CABLE LAT PULLDOWN
+                    - generic: CABLE LAT PULLDOWN
+                    - generic: CABLE LAT PULLDOWN
+              - generic [ref=f1e771]:
+                - generic [ref=f1e772]:
+                  - img "Lat Pulldown machine" [ref=f1e773]
+                  - generic [ref=f1e775]: ● LIVE · 3 USING
+                - generic [ref=f1e776]:
+                  - generic [ref=f1e777]: "MACHINE · #042"
+                  - generic [ref=f1e778]: Cable Lat Pulldown
+                  - generic [ref=f1e779]:
+                    - generic [ref=f1e780]: BACK
+                    - generic [ref=f1e781]: LATS
+                    - generic [ref=f1e782]: BICEPS
+            - generic [ref=f1e783]:
+              - img "LIFTAG screen" [ref=f1e787]
+              - img "LIFTAG screen" [ref=f1e791]
+              - generic [aria-hidden]: +1 CHECK-IN
+              - generic [ref=f1e792]: FREE QR + NFC KIT · APPLY NOW
+            - generic [ref=f1e795]:
+              - generic [ref=f1e796]:
+                - generic [ref=f1e797]: QR + NFC KIT
+                - generic [ref=f1e798]: Every machine, explained.
+                - generic [ref=f1e799]: Tags and stickers ship free. Members tap, scan, watch, lift.
+              - generic [ref=f1e800]:
+                - generic [ref=f1e801]: YOUR CONTENT
+                - generic [ref=f1e802]: Your trainers in every video.
+                - generic [ref=f1e803]: Record once. Deploy across the whole floor.
+              - generic [ref=f1e804]:
+                - generic [ref=f1e805]: DISCOVERY
+                - generic [ref=f1e806]: Get found by nearby lifters.
+                - generic [ref=f1e807]: Featured on the Liftag map with a verified badge.
+              - generic [ref=f1e808]:
+                - generic [ref=f1e809]: FREE
+                - generic [ref=f1e810]: Core gym tools. Free forever.
+                - generic [ref=f1e811]: Tags, listing, machine setup, and the core dashboard stay free. Advanced business tools are optional.
+              - generic [ref=f1e813]:
+                - link "Partner with us" [ref=f1e814] [cursor=pointer]:
+                  - /url: /contact/partner
+                - link "Compare gym QR platforms" [ref=f1e815] [cursor=pointer]:
+                  - /url: /best-gym-qr-nfc-app
+          - generic [ref=f1e816]:
+            - generic [ref=f1e817]:
+              - generic [ref=f1e818]: 0€
+              - generic [ref=f1e819]: Core gym tools
+              - generic [ref=f1e820]: free forever
+            - generic [ref=f1e821]:
+              - generic [ref=f1e822]: FREE
+              - generic [ref=f1e823]: QR + NFC kit
+              - generic [ref=f1e824]: we ship it to you
+            - generic [ref=f1e825]:
+              - generic [ref=f1e826]: MAP
+              - generic [ref=f1e827]: Featured placement
+              - generic [ref=f1e828]: verified gym badge
+        - generic [ref=f1e830]:
+          - generic [ref=f1e831]:
+            - generic [ref=f1e832]:
+              - generic [ref=f1e833]:
+                - generic [ref=f1e834]:
+                  - generic [ref=f1e836]: ▸ FOR GYM OWNERS
+                  - generic [aria-hidden] [ref=f1e837]: ▸ FOR GYM OWNERS
+                - heading "Run your gyms from one dashboard." [level=2] [ref=f1e838]
+                - paragraph [ref=f1e840]: Locations, machines, and managers. The core dashboard is free forever; advanced business tools are optional.
+              - list [ref=f1e841]:
+                - listitem [ref=f1e842]:
+                  - text: LOCATIONS
+                  - heading "Every gym, one place." [level=3] [ref=f1e843]
+                  - paragraph [ref=f1e844]: Add new locations, update hours, and edit details across every gym in your brand.
+                - listitem [ref=f1e845]:
+                  - text: MACHINE CATALOG
+                  - heading "Build once, deploy everywhere." [level=3] [ref=f1e846]
+                  - paragraph [ref=f1e847]: Define your equipment library once. Provision machines to any gym in a few clicks.
+                - listitem [ref=f1e848]:
+                  - text: YOUR TEAM
+                  - heading "Invite managers by email." [level=3] [ref=f1e849]
+                  - paragraph [ref=f1e850]: Send an invite. Your staff get access to the gym you assign. No setup needed.
+            - generic "Liftag web dashboard mockup" [ref=f1e851]:
+              - generic: SCROLL TO OPEN ↓
+              - generic [aria-hidden]:
+                - generic:
+                  - generic: CATALOG · SYNC
+                  - generic: 1 → 12 GYMS
+              - generic [aria-hidden]:
+                - generic: MACHINES · LIVE
+                - generic: 248 units
+                - generic:
+                  - generic: ↑
+                  - text: +24 this month
+              - generic [aria-hidden]:
+                - generic: ⚡ DEPLOYED
+                - generic: Bratislava · Slovakia
+          - generic:
+            - generic "Liftag coach dashboard mockup":
+              - generic [aria-hidden]:
+                - generic: COACHING · ACTIVE
+                - generic: 4 clients
+              - generic [aria-hidden]:
+                - generic: MONTH AT A GLANCE
+                - generic:
+                  - generic: 5 workouts
+                  - generic: 70 sets
+                  - generic: 13,060 kg
+              - generic [aria-hidden]:
+                - generic: BODY FOCUS
+                - generic: Quadriceps
+                - generic: 13.3% of volume · 30 sets
+            - generic:
+              - generic:
+                - generic:
+                  - generic: ▸ COACHING · DESKTOP
+                  - generic [aria-hidden]: ▸ COACHING · DESKTOP
+                - heading "Coaching, on a big screen." [level=2]
+                - paragraph: Your clients' training opened up on desktop. Every logged session, every trend, everything you shared - without leaving the browser.
+              - list:
+                - listitem:
+                  - text: CLIENT ROSTER
+                  - heading "Invite by email. Coach from day one." [level=3]
+                  - paragraph: Send an invite, they accept in the app, and their training lands here. Whoever has not logged in a while surfaces first.
+                - listitem:
+                  - text: SESSION HISTORY
+                  - heading "A month of training at a glance." [level=3]
+                  - paragraph: Walk the calendar, open any session, and read duration, sets and volume next to how every exercise compares to last time.
+                - listitem:
+                  - text: BODY FOCUS
+                  - heading "See what they are actually training." [level=3]
+                  - paragraph: A front-and-back muscle map per month and per session, plus the body-weight trend, so imbalances show up early.
+          - paragraph: Even coaches get a dashboard.
+          - navigation "Dashboard demo chapters":
+            - generic:
+              - generic: GYM DASHBOARD
+              - list:
+                - listitem:
+                  - button "01 LOCATIONS 0:00":
+                    - generic: "01"
+                    - generic:
+                      - generic:
+                        - generic: LOCATIONS
+                        - generic: 0:00
+                - listitem:
+                  - button "02 MACHINES":
+                    - generic: "02"
+                    - generic: MACHINES
+                - listitem:
+                  - button "03 CATALOG":
+                    - generic: "03"
+                    - generic: CATALOG
+            - generic:
+              - generic: COACH DASHBOARD
+              - list:
+                - listitem:
+                  - button "04 SESSIONS":
+                    - generic: "04"
+                    - generic: SESSIONS
+                - listitem:
+                  - button "05 BODY WEIGHT":
+                    - generic: "05"
+                    - generic: BODY WEIGHT
+                - listitem:
+                  - button "06 ROUTINES/PLANS":
+                    - generic: "06"
+                    - generic: ROUTINES/PLANS
+            - generic: HOLD TO WATCH · SCROLL TO SKIP
+        - generic [ref=f1e854]:
+          - generic [ref=f1e855]:
+            - generic [ref=f1e856]:
+              - generic [ref=f1e857]:
+                - generic [ref=f1e859]: ▸ FOR TRAINERS & COACHES
+                - generic [aria-hidden] [ref=f1e860]: ▸ FOR TRAINERS & COACHES
+              - heading [level=2] [ref=f1e861]:
+                - generic [ref=f1e862]: Your clients,quantified.
+            - paragraph [ref=f1e863]: LIFTAG is a full coaching platform, not just a directory. Build your profile, get discovered, share plans, and track every client's progress in one place.
+          - generic [ref=f1e864]:
+            - generic [ref=f1e865]:
+              - generic [ref=f1e866]:
+                - generic [ref=f1e867]: YOUR PROFILE
+                - heading "M M a a n n a a g g e e y y o o u u r r p p r r o o f f i i l l e e . ." [level=3] [ref=f1e868]:
+                  - generic [ref=f1e869]:
+                    - generic [ref=f1e870]:
+                      - generic [ref=f1e871]:
+                        - generic [ref=f1e872]: M
+                        - text: M
+                      - generic [ref=f1e873]:
+                        - generic [ref=f1e874]: a
+                        - text: a
+                      - generic [ref=f1e875]:
+                        - generic [ref=f1e876]: "n"
+                        - text: "n"
+                      - generic [ref=f1e877]:
+                        - generic [ref=f1e878]: a
+                        - text: a
+                      - generic [ref=f1e879]:
+                        - generic [ref=f1e880]: g
+                        - text: g
+                      - generic [ref=f1e881]:
+                        - generic [ref=f1e882]: e
+                        - text: e
+                    - generic [ref=f1e883]:
+                      - generic [ref=f1e884]:
+                        - generic [ref=f1e885]: "y"
+                        - text: "y"
+                      - generic [ref=f1e886]:
+                        - generic [ref=f1e887]: o
+                        - text: o
+                      - generic [ref=f1e888]:
+                        - generic [ref=f1e889]: u
+                        - text: u
+                      - generic [ref=f1e890]:
+                        - generic [ref=f1e891]: r
+                        - text: r
+                    - generic [ref=f1e892]:
+                      - generic [ref=f1e893]:
+                        - generic [ref=f1e894]: p
+                        - text: p
+                      - generic [ref=f1e895]:
+                        - generic [ref=f1e896]: r
+                        - text: r
+                      - generic [ref=f1e897]:
+                        - generic [ref=f1e898]: o
+                        - text: o
+                      - generic [ref=f1e899]:
+                        - generic [ref=f1e900]: f
+                        - text: f
+                      - generic [ref=f1e901]:
+                        - generic [ref=f1e902]: i
+                        - text: i
+                      - generic [ref=f1e903]:
+                        - generic [ref=f1e904]: l
+                        - text: l
+                      - generic [ref=f1e905]:
+                        - generic [ref=f1e906]: e
+                        - text: e
+                      - generic [ref=f1e907]:
+                        - generic [ref=f1e908]: .
+                        - text: .
+                - paragraph [ref=f1e909]: Specialisms, experience, location, linked gyms. Full control over how you appear to lifters looking for a coach.
+              - generic [ref=f1e910]:
+                - generic [ref=f1e911]: Verified trainer badge + priority placement
+                - generic [ref=f1e914]: Share plans with any client via email
+                - generic [ref=f1e917]: Review client history & volume trends
+                - generic [ref=f1e920]: Add custom exercises with your own videos
+                - generic [ref=f1e923]: Online & in-person coaching, one dashboard
+              - generic [ref=f1e927]:
+                - link "Join as a coach" [ref=f1e928] [cursor=pointer]:
+                  - /url: /become-a-coach
+                - link "See the coach platform" [ref=f1e929] [cursor=pointer]:
+                  - /url: /become-a-coach#showcase
+            - generic [ref=f1e930]:
+              - img "LIFTAG screen" [ref=f1e934]
+              - generic [ref=f1e935]:
+                - generic [ref=f1e936]:
+                  - generic [ref=f1e937]: VISIBILITY
+                  - generic [ref=f1e938]: PUBLIC
+                  - generic [ref=f1e939]: live on the directory
+                - generic [ref=f1e940]:
+                  - generic [ref=f1e941]: PROFILE FIELDS
+                  - generic [ref=f1e942]: Bio · Gyms · Location
+                  - generic [ref=f1e943]: fully editable
+            - generic [ref=f1e944]:
+              - generic [ref=f1e945] [cursor=pointer]:
+                - generic [ref=f1e946]: YOUR PROFILE
+                - generic [ref=f1e948]:
+                  - generic [ref=f1e949]:
+                    - generic [ref=f1e950]:
+                      - generic [ref=f1e951]: M
+                      - text: M
+                    - generic [ref=f1e952]:
+                      - generic [ref=f1e953]: a
+                      - text: a
+                    - generic [ref=f1e954]:
+                      - generic [ref=f1e955]: "n"
+                      - text: "n"
+                    - generic [ref=f1e956]:
+                      - generic [ref=f1e957]: a
+                      - text: a
+                    - generic [ref=f1e958]:
+                      - generic [ref=f1e959]: g
+                      - text: g
+                    - generic [ref=f1e960]:
+                      - generic [ref=f1e961]: e
+                      - text: e
+                  - generic [ref=f1e962]:
+                    - generic [ref=f1e963]:
+                      - generic [ref=f1e964]: "y"
+                      - text: "y"
+                    - generic [ref=f1e965]:
+                      - generic [ref=f1e966]: o
+                      - text: o
+                    - generic [ref=f1e967]:
+                      - generic [ref=f1e968]: u
+                      - text: u
+                    - generic [ref=f1e969]:
+                      - generic [ref=f1e970]: r
+                      - text: r
+                  - generic [ref=f1e971]:
+                    - generic [ref=f1e972]:
+                      - generic [ref=f1e973]: p
+                      - text: p
+                    - generic [ref=f1e974]:
+                      - generic [ref=f1e975]: r
+                      - text: r
+                    - generic [ref=f1e976]:
+                      - generic [ref=f1e977]: o
+                      - text: o
+                    - generic [ref=f1e978]:
+                      - generic [ref=f1e979]: f
+                      - text: f
+                    - generic [ref=f1e980]:
+                      - generic [ref=f1e981]: i
+                      - text: i
+                    - generic [ref=f1e982]:
+                      - generic [ref=f1e983]: l
+                      - text: l
+                    - generic [ref=f1e984]:
+                      - generic [ref=f1e985]: e
+                      - text: e
+                    - generic [ref=f1e986]:
+                      - generic [ref=f1e987]: .
+                      - text: .
+              - generic [ref=f1e988] [cursor=pointer]:
+                - generic [ref=f1e989]: BE DISCOVERED
+                - generic [ref=f1e991]:
+                  - generic [ref=f1e992]:
+                    - generic [ref=f1e993]:
+                      - generic [ref=f1e994]: C
+                      - text: C
+                    - generic [ref=f1e995]:
+                      - generic [ref=f1e996]: l
+                      - text: l
+                    - generic [ref=f1e997]:
+                      - generic [ref=f1e998]: i
+                      - text: i
+                    - generic [ref=f1e999]:
+                      - generic [ref=f1e1000]: e
+                      - text: e
+                    - generic [ref=f1e1001]:
+                      - generic [ref=f1e1002]: "n"
+                      - text: "n"
+                    - generic [ref=f1e1003]:
+                      - generic [ref=f1e1004]: t
+                      - text: t
+                    - generic [ref=f1e1005]:
+                      - generic [ref=f1e1006]: s
+                      - text: s
+                  - generic [ref=f1e1007]:
+                    - generic [ref=f1e1008]:
+                      - generic [ref=f1e1009]: f
+                      - text: f
+                    - generic [ref=f1e1010]:
+                      - generic [ref=f1e1011]: i
+                      - text: i
+                    - generic [ref=f1e1012]:
+                      - generic [ref=f1e1013]: "n"
+                      - text: "n"
+                    - generic [ref=f1e1014]:
+                      - generic [ref=f1e1015]: d
+                      - text: d
+                  - generic [ref=f1e1016]:
+                    - generic [ref=f1e1017]:
+                      - generic [ref=f1e1018]: "y"
+                      - text: "y"
+                    - generic [ref=f1e1019]:
+                      - generic [ref=f1e1020]: o
+                      - text: o
+                    - generic [ref=f1e1021]:
+                      - generic [ref=f1e1022]: u
+                      - text: u
+                    - generic [ref=f1e1023]:
+                      - generic [ref=f1e1024]: .
+                      - text: .
+              - generic [ref=f1e1025] [cursor=pointer]:
+                - generic [ref=f1e1026]: CLIENT PROGRESS
+                - generic [ref=f1e1028]:
+                  - generic [ref=f1e1029]:
+                    - generic [ref=f1e1030]:
+                      - generic [ref=f1e1031]: S
+                      - text: S
+                    - generic [ref=f1e1032]:
+                      - generic [ref=f1e1033]: e
+                      - text: e
+                    - generic [ref=f1e1034]:
+                      - generic [ref=f1e1035]: e
+                      - text: e
+                  - generic [ref=f1e1036]:
+                    - generic [ref=f1e1037]:
+                      - generic [ref=f1e1038]: e
+                      - text: e
+                    - generic [ref=f1e1039]:
+                      - generic [ref=f1e1040]: v
+                      - text: v
+                    - generic [ref=f1e1041]:
+                      - generic [ref=f1e1042]: e
+                      - text: e
+                    - generic [ref=f1e1043]:
+                      - generic [ref=f1e1044]: r
+                      - text: r
+                    - generic [ref=f1e1045]:
+                      - generic [ref=f1e1046]: "y"
+                      - text: "y"
+                  - generic [ref=f1e1047]:
+                    - generic [ref=f1e1048]:
+                      - generic [ref=f1e1049]: r
+                      - text: r
+                    - generic [ref=f1e1050]:
+                      - generic [ref=f1e1051]: e
+                      - text: e
+                    - generic [ref=f1e1052]:
+                      - generic [ref=f1e1053]: p
+                      - text: p
+                  - generic [ref=f1e1054]:
+                    - generic [ref=f1e1055]:
+                      - generic [ref=f1e1056]: t
+                      - text: t
+                    - generic [ref=f1e1057]:
+                      - generic [ref=f1e1058]: h
+                      - text: h
+                    - generic [ref=f1e1059]:
+                      - generic [ref=f1e1060]: e
+                      - text: e
+                    - generic [ref=f1e1061]:
+                      - generic [ref=f1e1062]: "y"
+                      - text: "y"
+                  - generic [ref=f1e1063]:
+                    - generic [ref=f1e1064]:
+                      - generic [ref=f1e1065]: l
+                      - text: l
+                    - generic [ref=f1e1066]:
+                      - generic [ref=f1e1067]: o
+                      - text: o
+                    - generic [ref=f1e1068]:
+                      - generic [ref=f1e1069]: g
+                      - text: g
+                    - generic [ref=f1e1070]:
+                      - generic [ref=f1e1071]: .
+                      - text: .
+              - generic [ref=f1e1072] [cursor=pointer]:
+                - generic [ref=f1e1073]: SHARE PLANS
+                - generic [ref=f1e1075]:
+                  - generic [ref=f1e1076]:
+                    - generic [ref=f1e1077]:
+                      - generic [ref=f1e1078]: S
+                      - text: S
+                    - generic [ref=f1e1079]:
+                      - generic [ref=f1e1080]: h
+                      - text: h
+                    - generic [ref=f1e1081]:
+                      - generic [ref=f1e1082]: a
+                      - text: a
+                    - generic [ref=f1e1083]:
+                      - generic [ref=f1e1084]: r
+                      - text: r
+                    - generic [ref=f1e1085]:
+                      - generic [ref=f1e1086]: e
+                      - text: e
+                  - generic [ref=f1e1087]:
+                    - generic [ref=f1e1088]:
+                      - generic [ref=f1e1089]: p
+                      - text: p
+                    - generic [ref=f1e1090]:
+                      - generic [ref=f1e1091]: l
+                      - text: l
+                    - generic [ref=f1e1092]:
+                      - generic [ref=f1e1093]: a
+                      - text: a
+                    - generic [ref=f1e1094]:
+                      - generic [ref=f1e1095]: "n"
+                      - text: "n"
+                    - generic [ref=f1e1096]:
+                      - generic [ref=f1e1097]: s
+                      - text: s
+                  - generic [ref=f1e1098]:
+                    - generic [ref=f1e1099]:
+                      - generic [ref=f1e1100]: i
+                      - text: i
+                    - generic [ref=f1e1101]:
+                      - generic [ref=f1e1102]: "n"
+                      - text: "n"
+                    - generic [ref=f1e1103]:
+                      - generic [ref=f1e1104]: s
+                      - text: s
+                    - generic [ref=f1e1105]:
+                      - generic [ref=f1e1106]: t
+                      - text: t
+                    - generic [ref=f1e1107]:
+                      - generic [ref=f1e1108]: a
+                      - text: a
+                    - generic [ref=f1e1109]:
+                      - generic [ref=f1e1110]: "n"
+                      - text: "n"
+                    - generic [ref=f1e1111]:
+                      - generic [ref=f1e1112]: t
+                      - text: t
+                    - generic [ref=f1e1113]:
+                      - generic [ref=f1e1114]: l
+                      - text: l
+                    - generic [ref=f1e1115]:
+                      - generic [ref=f1e1116]: "y"
+                      - text: "y"
+                    - generic [ref=f1e1117]:
+                      - generic [ref=f1e1118]: .
+                      - text: .
+        - generic [ref=f1e1121]:
+          - generic [ref=f1e1122]: Roadmap
+          - heading [level=2] [ref=f1e1123]:
+            - generic [ref=f1e1124]: We'rejust getting started.
+          - paragraph [ref=f1e1125]: Built in public. Shipping fast. Here's what's coming next.
+          - generic [ref=f1e1126]:
+            - generic [ref=f1e1129]:
+              - generic [ref=f1e1130]: LIVE
+              - generic [ref=f1e1132]: V1 · NOW
+              - heading "T T h h e e C C o o r r e e F F o o u u n n d d a a t t i i o o n n" [level=3] [ref=f1e1133]:
+                - generic [ref=f1e1134]:
+                  - generic [ref=f1e1135]:
+                    - generic [ref=f1e1136]:
+                      - generic [ref=f1e1137]: T
+                      - text: T
+                    - generic [ref=f1e1138]:
+                      - generic [ref=f1e1139]: h
+                      - text: h
+                    - generic [ref=f1e1140]:
+                      - generic [ref=f1e1141]: e
+                      - text: e
+                  - generic [ref=f1e1142]:
+                    - generic [ref=f1e1143]:
+                      - generic [ref=f1e1144]: C
+                      - text: C
+                    - generic [ref=f1e1145]:
+                      - generic [ref=f1e1146]: o
+                      - text: o
+                    - generic [ref=f1e1147]:
+                      - generic [ref=f1e1148]: r
+                      - text: r
+                    - generic [ref=f1e1149]:
+                      - generic [ref=f1e1150]: e
+                      - text: e
+                  - generic [ref=f1e1151]:
+                    - generic [ref=f1e1152]:
+                      - generic [ref=f1e1153]: F
+                      - text: F
+                    - generic [ref=f1e1154]:
+                      - generic [ref=f1e1155]: o
+                      - text: o
+                    - generic [ref=f1e1156]:
+                      - generic [ref=f1e1157]: u
+                      - text: u
+                    - generic [ref=f1e1158]:
+                      - generic [ref=f1e1159]: "n"
+                      - text: "n"
+                    - generic [ref=f1e1160]:
+                      - generic [ref=f1e1161]: d
+                      - text: d
+                    - generic [ref=f1e1162]:
+                      - generic [ref=f1e1163]: a
+                      - text: a
+                    - generic [ref=f1e1164]:
+                      - generic [ref=f1e1165]: t
+                      - text: t
+                    - generic [ref=f1e1166]:
+                      - generic [ref=f1e1167]: i
+                      - text: i
+                    - generic [ref=f1e1168]:
+                      - generic [ref=f1e1169]: o
+                      - text: o
+                    - generic [ref=f1e1170]:
+                      - generic [ref=f1e1171]: "n"
+                      - text: "n"
+              - generic [ref=f1e1172]:
+                - generic [ref=f1e1173]: NFC / QR Track
+                - generic [ref=f1e1174]: 2-Tap Set Logger
+                - generic [ref=f1e1175]: Routines + Plans
+                - generic [ref=f1e1176]: Exercise Library
+                - generic [ref=f1e1177]: Trainer Directory
+                - generic [ref=f1e1178]: Dashboard
+            - generic [ref=f1e1180]:
+              - generic [ref=f1e1181]: V2 · DISCOVERY
+              - heading "G G y y m m D D i i s s c c o o v v e e r r y y & & A A n n a a l l y y t t i i c c s s" [level=3] [ref=f1e1182]:
+                - generic [ref=f1e1183]:
+                  - generic [ref=f1e1184]:
+                    - generic [ref=f1e1185]:
+                      - generic [ref=f1e1186]: G
+                      - text: G
+                    - generic [ref=f1e1187]:
+                      - generic [ref=f1e1188]: "y"
+                      - text: "y"
+                    - generic [ref=f1e1189]:
+                      - generic [ref=f1e1190]: m
+                      - text: m
+                  - generic [ref=f1e1191]:
+                    - generic [ref=f1e1192]:
+                      - generic [ref=f1e1193]: D
+                      - text: D
+                    - generic [ref=f1e1194]:
+                      - generic [ref=f1e1195]: i
+                      - text: i
+                    - generic [ref=f1e1196]:
+                      - generic [ref=f1e1197]: s
+                      - text: s
+                    - generic [ref=f1e1198]:
+                      - generic [ref=f1e1199]: c
+                      - text: c
+                    - generic [ref=f1e1200]:
+                      - generic [ref=f1e1201]: o
+                      - text: o
+                    - generic [ref=f1e1202]:
+                      - generic [ref=f1e1203]: v
+                      - text: v
+                    - generic [ref=f1e1204]:
+                      - generic [ref=f1e1205]: e
+                      - text: e
+                    - generic [ref=f1e1206]:
+                      - generic [ref=f1e1207]: r
+                      - text: r
+                    - generic [ref=f1e1208]:
+                      - generic [ref=f1e1209]: "y"
+                      - text: "y"
+                  - generic [ref=f1e1211]:
+                    - generic [ref=f1e1212]: "&"
+                    - text: "&"
+                  - generic [ref=f1e1213]:
+                    - generic [ref=f1e1214]:
+                      - generic [ref=f1e1215]: A
+                      - text: A
+                    - generic [ref=f1e1216]:
+                      - generic [ref=f1e1217]: "n"
+                      - text: "n"
+                    - generic [ref=f1e1218]:
+                      - generic [ref=f1e1219]: a
+                      - text: a
+                    - generic [ref=f1e1220]:
+                      - generic [ref=f1e1221]: l
+                      - text: l
+                    - generic [ref=f1e1222]:
+                      - generic [ref=f1e1223]: "y"
+                      - text: "y"
+                    - generic [ref=f1e1224]:
+                      - generic [ref=f1e1225]: t
+                      - text: t
+                    - generic [ref=f1e1226]:
+                      - generic [ref=f1e1227]: i
+                      - text: i
+                    - generic [ref=f1e1228]:
+                      - generic [ref=f1e1229]: c
+                      - text: c
+                    - generic [ref=f1e1230]:
+                      - generic [ref=f1e1231]: s
+                      - text: s
+              - generic [ref=f1e1232]:
+                - generic [ref=f1e1233]: Interactive Gym Map
+                - generic [ref=f1e1234]: Usage Analytics
+                - generic [ref=f1e1235]: Equipment Trends
+            - generic [ref=f1e1237]:
+              - generic [ref=f1e1238]: V3 · AI
+              - heading "S S m m a a r r t t I I n n s s i i g g h h t t s s" [level=3] [ref=f1e1239]:
+                - generic [ref=f1e1240]:
+                  - generic [ref=f1e1241]:
+                    - generic [ref=f1e1242]:
+                      - generic [ref=f1e1243]: S
+                      - text: S
+                    - generic [ref=f1e1244]:
+                      - generic [ref=f1e1245]: m
+                      - text: m
+                    - generic [ref=f1e1246]:
+                      - generic [ref=f1e1247]: a
+                      - text: a
+                    - generic [ref=f1e1248]:
+                      - generic [ref=f1e1249]: r
+                      - text: r
+                    - generic [ref=f1e1250]:
+                      - generic [ref=f1e1251]: t
+                      - text: t
+                  - generic [ref=f1e1252]:
+                    - generic [ref=f1e1253]:
+                      - generic [ref=f1e1254]: I
+                      - text: I
+                    - generic [ref=f1e1255]:
+                      - generic [ref=f1e1256]: "n"
+                      - text: "n"
+                    - generic [ref=f1e1257]:
+                      - generic [ref=f1e1258]: s
+                      - text: s
+                    - generic [ref=f1e1259]:
+                      - generic [ref=f1e1260]: i
+                      - text: i
+                    - generic [ref=f1e1261]:
+                      - generic [ref=f1e1262]: g
+                      - text: g
+                    - generic [ref=f1e1263]:
+                      - generic [ref=f1e1264]: h
+                      - text: h
+                    - generic [ref=f1e1265]:
+                      - generic [ref=f1e1266]: t
+                      - text: t
+                    - generic [ref=f1e1267]:
+                      - generic [ref=f1e1268]: s
+                      - text: s
+              - generic [ref=f1e1269]:
+                - generic [ref=f1e1270]: Plateau Detection
+                - generic [ref=f1e1271]: Rest Optimization
+                - generic [ref=f1e1272]: AI Coach Chatbot
+            - generic [ref=f1e1274]:
+              - generic [ref=f1e1275]: V4 · COMMUNITY
+              - heading "S S o o c c i i a a l l E E c c o o s s y y s s t t e e m m" [level=3] [ref=f1e1276]:
+                - generic [ref=f1e1277]:
+                  - generic [ref=f1e1278]:
+                    - generic [ref=f1e1279]:
+                      - generic [ref=f1e1280]: S
+                      - text: S
+                    - generic [ref=f1e1281]:
+                      - generic [ref=f1e1282]: o
+                      - text: o
+                    - generic [ref=f1e1283]:
+                      - generic [ref=f1e1284]: c
+                      - text: c
+                    - generic [ref=f1e1285]:
+                      - generic [ref=f1e1286]: i
+                      - text: i
+                    - generic [ref=f1e1287]:
+                      - generic [ref=f1e1288]: a
+                      - text: a
+                    - generic [ref=f1e1289]:
+                      - generic [ref=f1e1290]: l
+                      - text: l
+                  - generic [ref=f1e1291]:
+                    - generic [ref=f1e1292]:
+                      - generic [ref=f1e1293]: E
+                      - text: E
+                    - generic [ref=f1e1294]:
+                      - generic [ref=f1e1295]: c
+                      - text: c
+                    - generic [ref=f1e1296]:
+                      - generic [ref=f1e1297]: o
+                      - text: o
+                    - generic [ref=f1e1298]:
+                      - generic [ref=f1e1299]: s
+                      - text: s
+                    - generic [ref=f1e1300]:
+                      - generic [ref=f1e1301]: "y"
+                      - text: "y"
+                    - generic [ref=f1e1302]:
+                      - generic [ref=f1e1303]: s
+                      - text: s
+                    - generic [ref=f1e1304]:
+                      - generic [ref=f1e1305]: t
+                      - text: t
+                    - generic [ref=f1e1306]:
+                      - generic [ref=f1e1307]: e
+                      - text: e
+                    - generic [ref=f1e1308]:
+                      - generic [ref=f1e1309]: m
+                      - text: m
+              - generic [ref=f1e1310]:
+                - generic [ref=f1e1311]: Gym Reviews
+                - generic [ref=f1e1312]: User Content
+                - generic [ref=f1e1313]: Trainer Marketplace
+        - region [ref=f1e1314]:
+          - generic [ref=f1e1316]:
+            - generic [ref=f1e1317]:
+              - paragraph [ref=f1e1318]: Common questions
+              - heading "Answers before you scan." [level=2] [ref=f1e1319]
+            - generic [ref=f1e1321]:
+              - generic [ref=f1e1322]:
+                - button "What is LIFTAG?" [expanded] [ref=f1e1323] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f1e1324]: "01"
+                  - generic [aria-hidden] [ref=f1e1326]: +
+                - region "What is LIFTAG?" [ref=f1e1327]:
+                  - paragraph [ref=f1e1329]: LIFTAG is a workout and set tracking app for serious lifters. You tap an NFC tag or scan a QR code on a partner-gym machine and it opens the right exercise, lets you log every set, runs a rest timer, and tracks progress over time.
+              - generic [ref=f1e1330]:
+                - button "Is LIFTAG free?" [ref=f1e1331] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f1e1332]: "02"
+                  - generic [aria-hidden] [ref=f1e1334]: +
+                - paragraph [ref=f1e1335]: Yes. Core workout tracking is free forever, including logging workouts and tracking progress. Premium intelligence is optional.
+              - generic [ref=f1e1336]:
+                - button "How is LIFTAG different from Strong, Hevy, FitNotes, or JEFIT?" [ref=f1e1337] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f1e1338]: "03"
+                  - generic [aria-hidden] [ref=f1e1340]: +
+                - paragraph [ref=f1e1341]: LIFTAG is built around the machine itself. NFC tap and QR scan open the exact exercise with gym-specific setup videos, then logging, rest timer, and progress history live in the same flow. Strong, Hevy, FitNotes, and JEFIT are general-purpose loggers without partner-gym integration.
+              - generic [ref=f1e1342]:
+                - button "What is the best app to track sets in the gym?" [ref=f1e1343] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f1e1344]: "04"
+                  - generic [aria-hidden] [ref=f1e1346]: +
+                - paragraph [ref=f1e1347]: "LIFTAG is built specifically for tracking sets at the gym: weight, reps, rest, optional RPE, and personal records, all opened directly from the machine via NFC or QR. Alternatives include Strong, Hevy, and FitNotes if your gym does not yet have LIFTAG tags installed."
+              - generic [ref=f1e1348]:
+                - button "Does LIFTAG work without NFC or QR tags installed at the gym?" [ref=f1e1349] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f1e1350]: "05"
+                  - generic [aria-hidden] [ref=f1e1352]: +
+                - paragraph [ref=f1e1353]: Yes. LIFTAG works as a full workout tracker without tags. The tags are an accelerator for partner gyms; the app itself supports manual exercise selection, logging, programs, and progress tracking everywhere.
+              - generic [ref=f1e1354]:
+                - button "Which gyms have LIFTAG tags installed?" [ref=f1e1355] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f1e1356]: "06"
+                  - generic [aria-hidden] [ref=f1e1358]: +
+                - paragraph [ref=f1e1359]: Partner gyms appear inside the LIFTAG app on a discovery map. The network is expanding through gyms that opt in to install NFC tags and QR codes on their equipment.
+        - generic [ref=f1e1364]:
+          - img "LIFTAG logo" [ref=f1e1368]
+          - heading "STOP GUESSING. START LIFTING." [level=2] [ref=f1e1369]
+          - paragraph [ref=f1e1371]: Track real progress. Tap or scan real machines. Skip the spreadsheet. Free to download. Open now on iOS and Android.
+          - generic [ref=f1e1373]: CHARGE ▸ 0%
+          - link "iOS and Android Download LIFTAG" [ref=f1e1377] [cursor=pointer]:
+            - /url: /get
+            - generic [ref=f1e1380]:
+              - generic [ref=f1e1381]: iOS and Android
+              - generic [ref=f1e1382]: Download LIFTAG
+    - contentinfo [ref=f1e1383]:
+      - generic [ref=f1e1384]:
+        - generic [ref=f1e1385]:
+          - generic [ref=f1e1386]:
+            - img "LIFTAG logo" [ref=f1e1387]
+            - generic [ref=f1e1388]: LIFTAG
+          - paragraph [ref=f1e1389]: Because serious training deserves more than a notes app and a spreadsheet.
+          - generic [ref=f1e1390]:
+            - link "Featured on LaunchBuff" [ref=f1e1391] [cursor=pointer]:
+              - /url: https://launchbuff.com/products/liftag-q97d57
+              - img "Featured on LaunchBuff"
+            - link "Featured on Launchstag" [ref=f1e1392] [cursor=pointer]:
+              - /url: https://launchstag.com/p/liftag
+              - img "Featured on Launchstag"
+        - generic [ref=f1e1393]:
+          - link "P P r r o o d d u u c c t t" [ref=f1e1394] [cursor=pointer]:
+            - /url: /#all-in-one
+            - generic [ref=f1e1396]:
+              - generic [ref=f1e1397]:
+                - generic [ref=f1e1398]: P
+                - text: P
+              - generic [ref=f1e1399]:
+                - generic [ref=f1e1400]: r
+                - text: r
+              - generic [ref=f1e1401]:
+                - generic [ref=f1e1402]: o
+                - text: o
+              - generic [ref=f1e1403]:
+                - generic [ref=f1e1404]: d
+                - text: d
+              - generic [ref=f1e1405]:
+                - generic [ref=f1e1406]: u
+                - text: u
+              - generic [ref=f1e1407]:
+                - generic [ref=f1e1408]: c
+                - text: c
+              - generic [ref=f1e1409]:
+                - generic [ref=f1e1410]: t
+                - text: t
+          - list [ref=f1e1411]:
+            - listitem [ref=f1e1412]:
+              - link "D D e e m m o o" [ref=f1e1413] [cursor=pointer]:
+                - /url: /demo
+                - generic [ref=f1e1415]:
+                  - generic [ref=f1e1416]:
+                    - generic [ref=f1e1417]: D
+                    - text: D
+                  - generic [ref=f1e1418]:
+                    - generic [ref=f1e1419]: e
+                    - text: e
+                  - generic [ref=f1e1420]:
+                    - generic [ref=f1e1421]: m
+                    - text: m
+                  - generic [ref=f1e1422]:
+                    - generic [ref=f1e1423]: o
+                    - text: o
+            - listitem [ref=f1e1424]:
+              - link "E E x x e e r r c c i i s s e e L L i i b b r r a a r r y y" [ref=f1e1425] [cursor=pointer]:
+                - /url: /exercises
+                - generic [ref=f1e1426]:
+                  - generic [ref=f1e1427]:
+                    - generic [ref=f1e1428]:
+                      - generic [ref=f1e1429]: E
+                      - text: E
+                    - generic [ref=f1e1430]:
+                      - generic [ref=f1e1431]: x
+                      - text: x
+                    - generic [ref=f1e1432]:
+                      - generic [ref=f1e1433]: e
+                      - text: e
+                    - generic [ref=f1e1434]:
+                      - generic [ref=f1e1435]: r
+                      - text: r
+                    - generic [ref=f1e1436]:
+                      - generic [ref=f1e1437]: c
+                      - text: c
+                    - generic [ref=f1e1438]:
+                      - generic [ref=f1e1439]: i
+                      - text: i
+                    - generic [ref=f1e1440]:
+                      - generic [ref=f1e1441]: s
+                      - text: s
+                    - generic [ref=f1e1442]:
+                      - generic [ref=f1e1443]: e
+                      - text: e
+                  - generic [ref=f1e1444]:
+                    - generic [ref=f1e1445]:
+                      - generic [ref=f1e1446]: L
+                      - text: L
+                    - generic [ref=f1e1447]:
+                      - generic [ref=f1e1448]: i
+                      - text: i
+                    - generic [ref=f1e1449]:
+                      - generic [ref=f1e1450]: b
+                      - text: b
+                    - generic [ref=f1e1451]:
+                      - generic [ref=f1e1452]: r
+                      - text: r
+                    - generic [ref=f1e1453]:
+                      - generic [ref=f1e1454]: a
+                      - text: a
+                    - generic [ref=f1e1455]:
+                      - generic [ref=f1e1456]: r
+                      - text: r
+                    - generic [ref=f1e1457]:
+                      - generic [ref=f1e1458]: "y"
+                      - text: "y"
+            - listitem [ref=f1e1459]:
+              - link "M M a a c c h h i i n n e e C C a a t t a a l l o o g g" [ref=f1e1460] [cursor=pointer]:
+                - /url: /machines
+                - generic [ref=f1e1461]:
+                  - generic [ref=f1e1462]:
+                    - generic [ref=f1e1463]:
+                      - generic [ref=f1e1464]: M
+                      - text: M
+                    - generic [ref=f1e1465]:
+                      - generic [ref=f1e1466]: a
+                      - text: a
+                    - generic [ref=f1e1467]:
+                      - generic [ref=f1e1468]: c
+                      - text: c
+                    - generic [ref=f1e1469]:
+                      - generic [ref=f1e1470]: h
+                      - text: h
+                    - generic [ref=f1e1471]:
+                      - generic [ref=f1e1472]: i
+                      - text: i
+                    - generic [ref=f1e1473]:
+                      - generic [ref=f1e1474]: "n"
+                      - text: "n"
+                    - generic [ref=f1e1475]:
+                      - generic [ref=f1e1476]: e
+                      - text: e
+                  - generic [ref=f1e1477]:
+                    - generic [ref=f1e1478]:
+                      - generic [ref=f1e1479]: C
+                      - text: C
+                    - generic [ref=f1e1480]:
+                      - generic [ref=f1e1481]: a
+                      - text: a
+                    - generic [ref=f1e1482]:
+                      - generic [ref=f1e1483]: t
+                      - text: t
+                    - generic [ref=f1e1484]:
+                      - generic [ref=f1e1485]: a
+                      - text: a
+                    - generic [ref=f1e1486]:
+                      - generic [ref=f1e1487]: l
+                      - text: l
+                    - generic [ref=f1e1488]:
+                      - generic [ref=f1e1489]: o
+                      - text: o
+                    - generic [ref=f1e1490]:
+                      - generic [ref=f1e1491]: g
+                      - text: g
+            - listitem [ref=f1e1492]:
+              - link "F F o o r r L L i i f f t t e e r r s s" [ref=f1e1493] [cursor=pointer]:
+                - /url: /for-lifters
+                - generic [ref=f1e1494]:
+                  - generic [ref=f1e1495]:
+                    - generic [ref=f1e1496]:
+                      - generic [ref=f1e1497]: F
+                      - text: F
+                    - generic [ref=f1e1498]:
+                      - generic [ref=f1e1499]: o
+                      - text: o
+                    - generic [ref=f1e1500]:
+                      - generic [ref=f1e1501]: r
+                      - text: r
+                  - generic [ref=f1e1502]:
+                    - generic [ref=f1e1503]:
+                      - generic [ref=f1e1504]: L
+                      - text: L
+                    - generic [ref=f1e1505]:
+                      - generic [ref=f1e1506]: i
+                      - text: i
+                    - generic [ref=f1e1507]:
+                      - generic [ref=f1e1508]: f
+                      - text: f
+                    - generic [ref=f1e1509]:
+                      - generic [ref=f1e1510]: t
+                      - text: t
+                    - generic [ref=f1e1511]:
+                      - generic [ref=f1e1512]: e
+                      - text: e
+                    - generic [ref=f1e1513]:
+                      - generic [ref=f1e1514]: r
+                      - text: r
+                    - generic [ref=f1e1515]:
+                      - generic [ref=f1e1516]: s
+                      - text: s
+            - listitem [ref=f1e1517]:
+              - link "F F o o r r T T r r a a i i n n e e r r s s" [ref=f1e1518] [cursor=pointer]:
+                - /url: /for-trainers
+                - generic [ref=f1e1519]:
+                  - generic [ref=f1e1520]:
+                    - generic [ref=f1e1521]:
+                      - generic [ref=f1e1522]: F
+                      - text: F
+                    - generic [ref=f1e1523]:
+                      - generic [ref=f1e1524]: o
+                      - text: o
+                    - generic [ref=f1e1525]:
+                      - generic [ref=f1e1526]: r
+                      - text: r
+                  - generic [ref=f1e1527]:
+                    - generic [ref=f1e1528]:
+                      - generic [ref=f1e1529]: T
+                      - text: T
+                    - generic [ref=f1e1530]:
+                      - generic [ref=f1e1531]: r
+                      - text: r
+                    - generic [ref=f1e1532]:
+                      - generic [ref=f1e1533]: a
+                      - text: a
+                    - generic [ref=f1e1534]:
+                      - generic [ref=f1e1535]: i
+                      - text: i
+                    - generic [ref=f1e1536]:
+                      - generic [ref=f1e1537]: "n"
+                      - text: "n"
+                    - generic [ref=f1e1538]:
+                      - generic [ref=f1e1539]: e
+                      - text: e
+                    - generic [ref=f1e1540]:
+                      - generic [ref=f1e1541]: r
+                      - text: r
+                    - generic [ref=f1e1542]:
+                      - generic [ref=f1e1543]: s
+                      - text: s
+            - listitem [ref=f1e1544]:
+              - link "B B e e c c o o m m e e a a C C o o a a c c h h" [ref=f1e1545] [cursor=pointer]:
+                - /url: /become-a-coach
+                - generic [ref=f1e1546]:
+                  - generic [ref=f1e1547]:
+                    - generic [ref=f1e1548]:
+                      - generic [ref=f1e1549]: B
+                      - text: B
+                    - generic [ref=f1e1550]:
+                      - generic [ref=f1e1551]: e
+                      - text: e
+                    - generic [ref=f1e1552]:
+                      - generic [ref=f1e1553]: c
+                      - text: c
+                    - generic [ref=f1e1554]:
+                      - generic [ref=f1e1555]: o
+                      - text: o
+                    - generic [ref=f1e1556]:
+                      - generic [ref=f1e1557]: m
+                      - text: m
+                    - generic [ref=f1e1558]:
+                      - generic [ref=f1e1559]: e
+                      - text: e
+                  - generic [ref=f1e1561]:
+                    - generic [ref=f1e1562]: a
+                    - text: a
+                  - generic [ref=f1e1563]:
+                    - generic [ref=f1e1564]:
+                      - generic [ref=f1e1565]: C
+                      - text: C
+                    - generic [ref=f1e1566]:
+                      - generic [ref=f1e1567]: o
+                      - text: o
+                    - generic [ref=f1e1568]:
+                      - generic [ref=f1e1569]: a
+                      - text: a
+                    - generic [ref=f1e1570]:
+                      - generic [ref=f1e1571]: c
+                      - text: c
+                    - generic [ref=f1e1572]:
+                      - generic [ref=f1e1573]: h
+                      - text: h
+            - listitem [ref=f1e1574]:
+              - link "F F o o r r G G y y m m s s" [ref=f1e1575] [cursor=pointer]:
+                - /url: /for-gyms
+                - generic [ref=f1e1576]:
+                  - generic [ref=f1e1577]:
+                    - generic [ref=f1e1578]:
+                      - generic [ref=f1e1579]: F
+                      - text: F
+                    - generic [ref=f1e1580]:
+                      - generic [ref=f1e1581]: o
+                      - text: o
+                    - generic [ref=f1e1582]:
+                      - generic [ref=f1e1583]: r
+                      - text: r
+                  - generic [ref=f1e1584]:
+                    - generic [ref=f1e1585]:
+                      - generic [ref=f1e1586]: G
+                      - text: G
+                    - generic [ref=f1e1587]:
+                      - generic [ref=f1e1588]: "y"
+                      - text: "y"
+                    - generic [ref=f1e1589]:
+                      - generic [ref=f1e1590]: m
+                      - text: m
+                    - generic [ref=f1e1591]:
+                      - generic [ref=f1e1592]: s
+                      - text: s
+            - listitem [ref=f1e1593]:
+              - link "N N F F C C + + Q Q R R T T a a g g s s" [ref=f1e1594] [cursor=pointer]:
+                - /url: /qr-nfc-gym-tags
+                - generic [ref=f1e1595]:
+                  - generic [ref=f1e1596]:
+                    - generic [ref=f1e1597]:
+                      - generic [ref=f1e1598]: "N"
+                      - text: "N"
+                    - generic [ref=f1e1599]:
+                      - generic [ref=f1e1600]: F
+                      - text: F
+                    - generic [ref=f1e1601]:
+                      - generic [ref=f1e1602]: C
+                      - text: C
+                  - generic [ref=f1e1604]:
+                    - generic [ref=f1e1605]: +
+                    - text: +
+                  - generic [ref=f1e1606]:
+                    - generic [ref=f1e1607]:
+                      - generic [ref=f1e1608]: Q
+                      - text: Q
+                    - generic [ref=f1e1609]:
+                      - generic [ref=f1e1610]: R
+                      - text: R
+                  - generic [ref=f1e1611]:
+                    - generic [ref=f1e1612]:
+                      - generic [ref=f1e1613]: T
+                      - text: T
+                    - generic [ref=f1e1614]:
+                      - generic [ref=f1e1615]: a
+                      - text: a
+                    - generic [ref=f1e1616]:
+                      - generic [ref=f1e1617]: g
+                      - text: g
+                    - generic [ref=f1e1618]:
+                      - generic [ref=f1e1619]: s
+                      - text: s
+            - listitem [ref=f1e1620]:
+              - link "P P r r i i c c i i n n g g" [ref=f1e1621] [cursor=pointer]:
+                - /url: /pricing
+                - generic [ref=f1e1623]:
+                  - generic [ref=f1e1624]:
+                    - generic [ref=f1e1625]: P
+                    - text: P
+                  - generic [ref=f1e1626]:
+                    - generic [ref=f1e1627]: r
+                    - text: r
+                  - generic [ref=f1e1628]:
+                    - generic [ref=f1e1629]: i
+                    - text: i
+                  - generic [ref=f1e1630]:
+                    - generic [ref=f1e1631]: c
+                    - text: c
+                  - generic [ref=f1e1632]:
+                    - generic [ref=f1e1633]: i
+                    - text: i
+                  - generic [ref=f1e1634]:
+                    - generic [ref=f1e1635]: "n"
+                    - text: "n"
+                  - generic [ref=f1e1636]:
+                    - generic [ref=f1e1637]: g
+                    - text: g
+            - listitem [ref=f1e1638]:
+              - link "A A b b o o u u t t" [ref=f1e1639] [cursor=pointer]:
+                - /url: /about
+                - generic [ref=f1e1641]:
+                  - generic [ref=f1e1642]:
+                    - generic [ref=f1e1643]: A
+                    - text: A
+                  - generic [ref=f1e1644]:
+                    - generic [ref=f1e1645]: b
+                    - text: b
+                  - generic [ref=f1e1646]:
+                    - generic [ref=f1e1647]: o
+                    - text: o
+                  - generic [ref=f1e1648]:
+                    - generic [ref=f1e1649]: u
+                    - text: u
+                  - generic [ref=f1e1650]:
+                    - generic [ref=f1e1651]: t
+                    - text: t
+            - listitem [ref=f1e1652]:
+              - link "P P r r e e s s s s" [ref=f1e1653] [cursor=pointer]:
+                - /url: /press
+                - generic [ref=f1e1655]:
+                  - generic [ref=f1e1656]:
+                    - generic [ref=f1e1657]: P
+                    - text: P
+                  - generic [ref=f1e1658]:
+                    - generic [ref=f1e1659]: r
+                    - text: r
+                  - generic [ref=f1e1660]:
+                    - generic [ref=f1e1661]: e
+                    - text: e
+                  - generic [ref=f1e1662]:
+                    - generic [ref=f1e1663]: s
+                    - text: s
+                  - generic [ref=f1e1664]:
+                    - generic [ref=f1e1665]: s
+                    - text: s
+            - listitem [ref=f1e1666]:
+              - link "R R o o a a d d m m a a p p" [ref=f1e1667] [cursor=pointer]:
+                - /url: /#roadmap
+                - generic [ref=f1e1669]:
+                  - generic [ref=f1e1670]:
+                    - generic [ref=f1e1671]: R
+                    - text: R
+                  - generic [ref=f1e1672]:
+                    - generic [ref=f1e1673]: o
+                    - text: o
+                  - generic [ref=f1e1674]:
+                    - generic [ref=f1e1675]: a
+                    - text: a
+                  - generic [ref=f1e1676]:
+                    - generic [ref=f1e1677]: d
+                    - text: d
+                  - generic [ref=f1e1678]:
+                    - generic [ref=f1e1679]: m
+                    - text: m
+                  - generic [ref=f1e1680]:
+                    - generic [ref=f1e1681]: a
+                    - text: a
+                  - generic [ref=f1e1682]:
+                    - generic [ref=f1e1683]: p
+                    - text: p
+            - listitem [ref=f1e1684]:
+              - link "P P a a r r t t n n e e r r w w i i t t h h u u s s" [ref=f1e1685] [cursor=pointer]:
+                - /url: /contact/partner
+                - generic [ref=f1e1686]:
+                  - generic [ref=f1e1687]:
+                    - generic [ref=f1e1688]:
+                      - generic [ref=f1e1689]: P
+                      - text: P
+                    - generic [ref=f1e1690]:
+                      - generic [ref=f1e1691]: a
+                      - text: a
+                    - generic [ref=f1e1692]:
+                      - generic [ref=f1e1693]: r
+                      - text: r
+                    - generic [ref=f1e1694]:
+                      - generic [ref=f1e1695]: t
+                      - text: t
+                    - generic [ref=f1e1696]:
+                      - generic [ref=f1e1697]: "n"
+                      - text: "n"
+                    - generic [ref=f1e1698]:
+                      - generic [ref=f1e1699]: e
+                      - text: e
+                    - generic [ref=f1e1700]:
+                      - generic [ref=f1e1701]: r
+                      - text: r
+                  - generic [ref=f1e1702]:
+                    - generic [ref=f1e1703]:
+                      - generic [ref=f1e1704]: w
+                      - text: w
+                    - generic [ref=f1e1705]:
+                      - generic [ref=f1e1706]: i
+                      - text: i
+                    - generic [ref=f1e1707]:
+                      - generic [ref=f1e1708]: t
+                      - text: t
+                    - generic [ref=f1e1709]:
+                      - generic [ref=f1e1710]: h
+                      - text: h
+                  - generic [ref=f1e1711]:
+                    - generic [ref=f1e1712]:
+                      - generic [ref=f1e1713]: u
+                      - text: u
+                    - generic [ref=f1e1714]:
+                      - generic [ref=f1e1715]: s
+                      - text: s
+            - listitem [ref=f1e1716]:
+              - link "S S u u p p p p o o r r t t" [ref=f1e1717] [cursor=pointer]:
+                - /url: /contact/support
+                - generic [ref=f1e1719]:
+                  - generic [ref=f1e1720]:
+                    - generic [ref=f1e1721]: S
+                    - text: S
+                  - generic [ref=f1e1722]:
+                    - generic [ref=f1e1723]: u
+                    - text: u
+                  - generic [ref=f1e1724]:
+                    - generic [ref=f1e1725]: p
+                    - text: p
+                  - generic [ref=f1e1726]:
+                    - generic [ref=f1e1727]: p
+                    - text: p
+                  - generic [ref=f1e1728]:
+                    - generic [ref=f1e1729]: o
+                    - text: o
+                  - generic [ref=f1e1730]:
+                    - generic [ref=f1e1731]: r
+                    - text: r
+                  - generic [ref=f1e1732]:
+                    - generic [ref=f1e1733]: t
+                    - text: t
+        - generic [ref=f1e1734]:
+          - link "L L i i b b r r a a r r y y" [ref=f1e1735] [cursor=pointer]:
+            - /url: /muscles
+            - generic [ref=f1e1737]:
+              - generic [ref=f1e1738]:
+                - generic [ref=f1e1739]: L
+                - text: L
+              - generic [ref=f1e1740]:
+                - generic [ref=f1e1741]: i
+                - text: i
+              - generic [ref=f1e1742]:
+                - generic [ref=f1e1743]: b
+                - text: b
+              - generic [ref=f1e1744]:
+                - generic [ref=f1e1745]: r
+                - text: r
+              - generic [ref=f1e1746]:
+                - generic [ref=f1e1747]: a
+                - text: a
+              - generic [ref=f1e1748]:
+                - generic [ref=f1e1749]: r
+                - text: r
+              - generic [ref=f1e1750]:
+                - generic [ref=f1e1751]: "y"
+                - text: "y"
+          - list [ref=f1e1752]:
+            - listitem [ref=f1e1753]:
+              - link "A A l l l l m m u u s s c c l l e e s s" [ref=f1e1754] [cursor=pointer]:
+                - /url: /muscles
+                - generic [ref=f1e1755]:
+                  - generic [ref=f1e1756]:
+                    - generic [ref=f1e1757]:
+                      - generic [ref=f1e1758]: A
+                      - text: A
+                    - generic [ref=f1e1759]:
+                      - generic [ref=f1e1760]: l
+                      - text: l
+                    - generic [ref=f1e1761]:
+                      - generic [ref=f1e1762]: l
+                      - text: l
+                  - generic [ref=f1e1763]:
+                    - generic [ref=f1e1764]:
+                      - generic [ref=f1e1765]: m
+                      - text: m
+                    - generic [ref=f1e1766]:
+                      - generic [ref=f1e1767]: u
+                      - text: u
+                    - generic [ref=f1e1768]:
+                      - generic [ref=f1e1769]: s
+                      - text: s
+                    - generic [ref=f1e1770]:
+                      - generic [ref=f1e1771]: c
+                      - text: c
+                    - generic [ref=f1e1772]:
+                      - generic [ref=f1e1773]: l
+                      - text: l
+                    - generic [ref=f1e1774]:
+                      - generic [ref=f1e1775]: e
+                      - text: e
+                    - generic [ref=f1e1776]:
+                      - generic [ref=f1e1777]: s
+                      - text: s
+            - listitem [ref=f1e1778]:
+              - link "C C h h e e s s t t" [ref=f1e1779] [cursor=pointer]:
+                - /url: /muscles/chest
+                - generic [ref=f1e1781]:
+                  - generic [ref=f1e1782]:
+                    - generic [ref=f1e1783]: C
+                    - text: C
+                  - generic [ref=f1e1784]:
+                    - generic [ref=f1e1785]: h
+                    - text: h
+                  - generic [ref=f1e1786]:
+                    - generic [ref=f1e1787]: e
+                    - text: e
+                  - generic [ref=f1e1788]:
+                    - generic [ref=f1e1789]: s
+                    - text: s
+                  - generic [ref=f1e1790]:
+                    - generic [ref=f1e1791]: t
+                    - text: t
+            - listitem [ref=f1e1792]:
+              - link "B B a a c c k k" [ref=f1e1793] [cursor=pointer]:
+                - /url: /muscles/back
+                - generic [ref=f1e1795]:
+                  - generic [ref=f1e1796]:
+                    - generic [ref=f1e1797]: B
+                    - text: B
+                  - generic [ref=f1e1798]:
+                    - generic [ref=f1e1799]: a
+                    - text: a
+                  - generic [ref=f1e1800]:
+                    - generic [ref=f1e1801]: c
+                    - text: c
+                  - generic [ref=f1e1802]:
+                    - generic [ref=f1e1803]: k
+                    - text: k
+            - listitem [ref=f1e1804]:
+              - link "S S h h o o u u l l d d e e r r s s" [ref=f1e1805] [cursor=pointer]:
+                - /url: /muscles/shoulders
+                - generic [ref=f1e1807]:
+                  - generic [ref=f1e1808]:
+                    - generic [ref=f1e1809]: S
+                    - text: S
+                  - generic [ref=f1e1810]:
+                    - generic [ref=f1e1811]: h
+                    - text: h
+                  - generic [ref=f1e1812]:
+                    - generic [ref=f1e1813]: o
+                    - text: o
+                  - generic [ref=f1e1814]:
+                    - generic [ref=f1e1815]: u
+                    - text: u
+                  - generic [ref=f1e1816]:
+                    - generic [ref=f1e1817]: l
+                    - text: l
+                  - generic [ref=f1e1818]:
+                    - generic [ref=f1e1819]: d
+                    - text: d
+                  - generic [ref=f1e1820]:
+                    - generic [ref=f1e1821]: e
+                    - text: e
+                  - generic [ref=f1e1822]:
+                    - generic [ref=f1e1823]: r
+                    - text: r
+                  - generic [ref=f1e1824]:
+                    - generic [ref=f1e1825]: s
+                    - text: s
+            - listitem [ref=f1e1826]:
+              - link "Q Q u u a a d d s s" [ref=f1e1827] [cursor=pointer]:
+                - /url: /muscles/quadriceps
+                - generic [ref=f1e1829]:
+                  - generic [ref=f1e1830]:
+                    - generic [ref=f1e1831]: Q
+                    - text: Q
+                  - generic [ref=f1e1832]:
+                    - generic [ref=f1e1833]: u
+                    - text: u
+                  - generic [ref=f1e1834]:
+                    - generic [ref=f1e1835]: a
+                    - text: a
+                  - generic [ref=f1e1836]:
+                    - generic [ref=f1e1837]: d
+                    - text: d
+                  - generic [ref=f1e1838]:
+                    - generic [ref=f1e1839]: s
+                    - text: s
+            - listitem [ref=f1e1840]:
+              - link "H H a a m m s s t t r r i i n n g g s s" [ref=f1e1841] [cursor=pointer]:
+                - /url: /muscles/hamstrings
+                - generic [ref=f1e1843]:
+                  - generic [ref=f1e1844]:
+                    - generic [ref=f1e1845]: H
+                    - text: H
+                  - generic [ref=f1e1846]:
+                    - generic [ref=f1e1847]: a
+                    - text: a
+                  - generic [ref=f1e1848]:
+                    - generic [ref=f1e1849]: m
+                    - text: m
+                  - generic [ref=f1e1850]:
+                    - generic [ref=f1e1851]: s
+                    - text: s
+                  - generic [ref=f1e1852]:
+                    - generic [ref=f1e1853]: t
+                    - text: t
+                  - generic [ref=f1e1854]:
+                    - generic [ref=f1e1855]: r
+                    - text: r
+                  - generic [ref=f1e1856]:
+                    - generic [ref=f1e1857]: i
+                    - text: i
+                  - generic [ref=f1e1858]:
+                    - generic [ref=f1e1859]: "n"
+                    - text: "n"
+                  - generic [ref=f1e1860]:
+                    - generic [ref=f1e1861]: g
+                    - text: g
+                  - generic [ref=f1e1862]:
+                    - generic [ref=f1e1863]: s
+                    - text: s
+            - listitem [ref=f1e1864]:
+              - link "G G l l u u t t e e s s" [ref=f1e1865] [cursor=pointer]:
+                - /url: /muscles/glutes
+                - generic [ref=f1e1867]:
+                  - generic [ref=f1e1868]:
+                    - generic [ref=f1e1869]: G
+                    - text: G
+                  - generic [ref=f1e1870]:
+                    - generic [ref=f1e1871]: l
+                    - text: l
+                  - generic [ref=f1e1872]:
+                    - generic [ref=f1e1873]: u
+                    - text: u
+                  - generic [ref=f1e1874]:
+                    - generic [ref=f1e1875]: t
+                    - text: t
+                  - generic [ref=f1e1876]:
+                    - generic [ref=f1e1877]: e
+                    - text: e
+                  - generic [ref=f1e1878]:
+                    - generic [ref=f1e1879]: s
+                    - text: s
+            - listitem [ref=f1e1880]:
+              - link "A A b b s s" [ref=f1e1881] [cursor=pointer]:
+                - /url: /muscles/abs
+                - generic [ref=f1e1883]:
+                  - generic [ref=f1e1884]:
+                    - generic [ref=f1e1885]: A
+                    - text: A
+                  - generic [ref=f1e1886]:
+                    - generic [ref=f1e1887]: b
+                    - text: b
+                  - generic [ref=f1e1888]:
+                    - generic [ref=f1e1889]: s
+                    - text: s
+            - listitem [ref=f1e1890]:
+              - link "B B e e n n c c h h p p r r e e s s s s" [ref=f1e1891] [cursor=pointer]:
+                - /url: /exercises/barbell-bench-press
+                - generic [ref=f1e1892]:
+                  - generic [ref=f1e1893]:
+                    - generic [ref=f1e1894]:
+                      - generic [ref=f1e1895]: B
+                      - text: B
+                    - generic [ref=f1e1896]:
+                      - generic [ref=f1e1897]: e
+                      - text: e
+                    - generic [ref=f1e1898]:
+                      - generic [ref=f1e1899]: "n"
+                      - text: "n"
+                    - generic [ref=f1e1900]:
+                      - generic [ref=f1e1901]: c
+                      - text: c
+                    - generic [ref=f1e1902]:
+                      - generic [ref=f1e1903]: h
+                      - text: h
+                  - generic [ref=f1e1904]:
+                    - generic [ref=f1e1905]:
+                      - generic [ref=f1e1906]: p
+                      - text: p
+                    - generic [ref=f1e1907]:
+                      - generic [ref=f1e1908]: r
+                      - text: r
+                    - generic [ref=f1e1909]:
+                      - generic [ref=f1e1910]: e
+                      - text: e
+                    - generic [ref=f1e1911]:
+                      - generic [ref=f1e1912]: s
+                      - text: s
+                    - generic [ref=f1e1913]:
+                      - generic [ref=f1e1914]: s
+                      - text: s
+            - listitem [ref=f1e1915]:
+              - link "B B a a c c k k s s q q u u a a t t" [ref=f1e1916] [cursor=pointer]:
+                - /url: /exercises/barbell-back-squat
+                - generic [ref=f1e1917]:
+                  - generic [ref=f1e1918]:
+                    - generic [ref=f1e1919]:
+                      - generic [ref=f1e1920]: B
+                      - text: B
+                    - generic [ref=f1e1921]:
+                      - generic [ref=f1e1922]: a
+                      - text: a
+                    - generic [ref=f1e1923]:
+                      - generic [ref=f1e1924]: c
+                      - text: c
+                    - generic [ref=f1e1925]:
+                      - generic [ref=f1e1926]: k
+                      - text: k
+                  - generic [ref=f1e1927]:
+                    - generic [ref=f1e1928]:
+                      - generic [ref=f1e1929]: s
+                      - text: s
+                    - generic [ref=f1e1930]:
+                      - generic [ref=f1e1931]: q
+                      - text: q
+                    - generic [ref=f1e1932]:
+                      - generic [ref=f1e1933]: u
+                      - text: u
+                    - generic [ref=f1e1934]:
+                      - generic [ref=f1e1935]: a
+                      - text: a
+                    - generic [ref=f1e1936]:
+                      - generic [ref=f1e1937]: t
+                      - text: t
+            - listitem [ref=f1e1938]:
+              - link "D D e e a a d d l l i i f f t t" [ref=f1e1939] [cursor=pointer]:
+                - /url: /exercises/conventional-deadlift
+                - generic [ref=f1e1941]:
+                  - generic [ref=f1e1942]:
+                    - generic [ref=f1e1943]: D
+                    - text: D
+                  - generic [ref=f1e1944]:
+                    - generic [ref=f1e1945]: e
+                    - text: e
+                  - generic [ref=f1e1946]:
+                    - generic [ref=f1e1947]: a
+                    - text: a
+                  - generic [ref=f1e1948]:
+                    - generic [ref=f1e1949]: d
+                    - text: d
+                  - generic [ref=f1e1950]:
+                    - generic [ref=f1e1951]: l
+                    - text: l
+                  - generic [ref=f1e1952]:
+                    - generic [ref=f1e1953]: i
+                    - text: i
+                  - generic [ref=f1e1954]:
+                    - generic [ref=f1e1955]: f
+                    - text: f
+                  - generic [ref=f1e1956]:
+                    - generic [ref=f1e1957]: t
+                    - text: t
+        - generic [ref=f1e1958]:
+          - link "J J o o u u r r n n a a l l" [ref=f1e1959] [cursor=pointer]:
+            - /url: /journal
+            - generic [ref=f1e1961]:
+              - generic [ref=f1e1962]:
+                - generic [ref=f1e1963]: J
+                - text: J
+              - generic [ref=f1e1964]:
+                - generic [ref=f1e1965]: o
+                - text: o
+              - generic [ref=f1e1966]:
+                - generic [ref=f1e1967]: u
+                - text: u
+              - generic [ref=f1e1968]:
+                - generic [ref=f1e1969]: r
+                - text: r
+              - generic [ref=f1e1970]:
+                - generic [ref=f1e1971]: "n"
+                - text: "n"
+              - generic [ref=f1e1972]:
+                - generic [ref=f1e1973]: a
+                - text: a
+              - generic [ref=f1e1974]:
+                - generic [ref=f1e1975]: l
+                - text: l
+          - list [ref=f1e1976]:
+            - listitem [ref=f1e1977]:
+              - link "A A l l l l a a r r t t i i c c l l e e s s" [ref=f1e1978] [cursor=pointer]:
+                - /url: /journal
+                - generic [ref=f1e1979]:
+                  - generic [ref=f1e1980]:
+                    - generic [ref=f1e1981]:
+                      - generic [ref=f1e1982]: A
+                      - text: A
+                    - generic [ref=f1e1983]:
+                      - generic [ref=f1e1984]: l
+                      - text: l
+                    - generic [ref=f1e1985]:
+                      - generic [ref=f1e1986]: l
+                      - text: l
+                  - generic [ref=f1e1987]:
+                    - generic [ref=f1e1988]:
+                      - generic [ref=f1e1989]: a
+                      - text: a
+                    - generic [ref=f1e1990]:
+                      - generic [ref=f1e1991]: r
+                      - text: r
+                    - generic [ref=f1e1992]:
+                      - generic [ref=f1e1993]: t
+                      - text: t
+                    - generic [ref=f1e1994]:
+                      - generic [ref=f1e1995]: i
+                      - text: i
+                    - generic [ref=f1e1996]:
+                      - generic [ref=f1e1997]: c
+                      - text: c
+                    - generic [ref=f1e1998]:
+                      - generic [ref=f1e1999]: l
+                      - text: l
+                    - generic [ref=f1e2000]:
+                      - generic [ref=f1e2001]: e
+                      - text: e
+                    - generic [ref=f1e2002]:
+                      - generic [ref=f1e2003]: s
+                      - text: s
+            - listitem [ref=f1e2004]:
+              - link "B B e e s s t t W W o o r r k k o o u u t t T T r r a a c c k k i i n n g g A A p p p p" [ref=f1e2005] [cursor=pointer]:
+                - /url: /best-workout-tracking-app
+                - generic [ref=f1e2006]:
+                  - generic [ref=f1e2007]:
+                    - generic [ref=f1e2008]:
+                      - generic [ref=f1e2009]: B
+                      - text: B
+                    - generic [ref=f1e2010]:
+                      - generic [ref=f1e2011]: e
+                      - text: e
+                    - generic [ref=f1e2012]:
+                      - generic [ref=f1e2013]: s
+                      - text: s
+                    - generic [ref=f1e2014]:
+                      - generic [ref=f1e2015]: t
+                      - text: t
+                  - generic [ref=f1e2016]:
+                    - generic [ref=f1e2017]:
+                      - generic [ref=f1e2018]: W
+                      - text: W
+                    - generic [ref=f1e2019]:
+                      - generic [ref=f1e2020]: o
+                      - text: o
+                    - generic [ref=f1e2021]:
+                      - generic [ref=f1e2022]: r
+                      - text: r
+                    - generic [ref=f1e2023]:
+                      - generic [ref=f1e2024]: k
+                      - text: k
+                    - generic [ref=f1e2025]:
+                      - generic [ref=f1e2026]: o
+                      - text: o
+                    - generic [ref=f1e2027]:
+                      - generic [ref=f1e2028]: u
+                      - text: u
+                    - generic [ref=f1e2029]:
+                      - generic [ref=f1e2030]: t
+                      - text: t
+                  - generic [ref=f1e2031]:
+                    - generic [ref=f1e2032]:
+                      - generic [ref=f1e2033]: T
+                      - text: T
+                    - generic [ref=f1e2034]:
+                      - generic [ref=f1e2035]: r
+                      - text: r
+                    - generic [ref=f1e2036]:
+                      - generic [ref=f1e2037]: a
+                      - text: a
+                    - generic [ref=f1e2038]:
+                      - generic [ref=f1e2039]: c
+                      - text: c
+                    - generic [ref=f1e2040]:
+                      - generic [ref=f1e2041]: k
+                      - text: k
+                    - generic [ref=f1e2042]:
+                      - generic [ref=f1e2043]: i
+                      - text: i
+                    - generic [ref=f1e2044]:
+                      - generic [ref=f1e2045]: "n"
+                      - text: "n"
+                    - generic [ref=f1e2046]:
+                      - generic [ref=f1e2047]: g
+                      - text: g
+                  - generic [ref=f1e2048]:
+                    - generic [ref=f1e2049]:
+                      - generic [ref=f1e2050]: A
+                      - text: A
+                    - generic [ref=f1e2051]:
+                      - generic [ref=f1e2052]: p
+                      - text: p
+                    - generic [ref=f1e2053]:
+                      - generic [ref=f1e2054]: p
+                      - text: p
+            - listitem [ref=f1e2055]:
+              - link "B B e e s s t t G G y y m m Q Q R R + + N N F F C C A A p p p p" [ref=f1e2056] [cursor=pointer]:
+                - /url: /best-gym-qr-nfc-app
+                - generic [ref=f1e2057]:
+                  - generic [ref=f1e2058]:
+                    - generic [ref=f1e2059]:
+                      - generic [ref=f1e2060]: B
+                      - text: B
+                    - generic [ref=f1e2061]:
+                      - generic [ref=f1e2062]: e
+                      - text: e
+                    - generic [ref=f1e2063]:
+                      - generic [ref=f1e2064]: s
+                      - text: s
+                    - generic [ref=f1e2065]:
+                      - generic [ref=f1e2066]: t
+                      - text: t
+                  - generic [ref=f1e2067]:
+                    - generic [ref=f1e2068]:
+                      - generic [ref=f1e2069]: G
+                      - text: G
+                    - generic [ref=f1e2070]:
+                      - generic [ref=f1e2071]: "y"
+                      - text: "y"
+                    - generic [ref=f1e2072]:
+                      - generic [ref=f1e2073]: m
+                      - text: m
+                  - generic [ref=f1e2074]:
+                    - generic [ref=f1e2075]:
+                      - generic [ref=f1e2076]: Q
+                      - text: Q
+                    - generic [ref=f1e2077]:
+                      - generic [ref=f1e2078]: R
+                      - text: R
+                  - generic [ref=f1e2080]:
+                    - generic [ref=f1e2081]: +
+                    - text: +
+                  - generic [ref=f1e2082]:
+                    - generic [ref=f1e2083]:
+                      - generic [ref=f1e2084]: "N"
+                      - text: "N"
+                    - generic [ref=f1e2085]:
+                      - generic [ref=f1e2086]: F
+                      - text: F
+                    - generic [ref=f1e2087]:
+                      - generic [ref=f1e2088]: C
+                      - text: C
+                  - generic [ref=f1e2089]:
+                    - generic [ref=f1e2090]:
+                      - generic [ref=f1e2091]: A
+                      - text: A
+                    - generic [ref=f1e2092]:
+                      - generic [ref=f1e2093]: p
+                      - text: p
+                    - generic [ref=f1e2094]:
+                      - generic [ref=f1e2095]: p
+                      - text: p
+            - listitem [ref=f1e2096]:
+              - link "B B e e s s t t W W o o r r k k o o u u t t L L o o g g g g e e r r" [ref=f1e2097] [cursor=pointer]:
+                - /url: /journal/best-workout-logger
+                - generic [ref=f1e2098]:
+                  - generic [ref=f1e2099]:
+                    - generic [ref=f1e2100]:
+                      - generic [ref=f1e2101]: B
+                      - text: B
+                    - generic [ref=f1e2102]:
+                      - generic [ref=f1e2103]: e
+                      - text: e
+                    - generic [ref=f1e2104]:
+                      - generic [ref=f1e2105]: s
+                      - text: s
+                    - generic [ref=f1e2106]:
+                      - generic [ref=f1e2107]: t
+                      - text: t
+                  - generic [ref=f1e2108]:
+                    - generic [ref=f1e2109]:
+                      - generic [ref=f1e2110]: W
+                      - text: W
+                    - generic [ref=f1e2111]:
+                      - generic [ref=f1e2112]: o
+                      - text: o
+                    - generic [ref=f1e2113]:
+                      - generic [ref=f1e2114]: r
+                      - text: r
+                    - generic [ref=f1e2115]:
+                      - generic [ref=f1e2116]: k
+                      - text: k
+                    - generic [ref=f1e2117]:
+                      - generic [ref=f1e2118]: o
+                      - text: o
+                    - generic [ref=f1e2119]:
+                      - generic [ref=f1e2120]: u
+                      - text: u
+                    - generic [ref=f1e2121]:
+                      - generic [ref=f1e2122]: t
+                      - text: t
+                  - generic [ref=f1e2123]:
+                    - generic [ref=f1e2124]:
+                      - generic [ref=f1e2125]: L
+                      - text: L
+                    - generic [ref=f1e2126]:
+                      - generic [ref=f1e2127]: o
+                      - text: o
+                    - generic [ref=f1e2128]:
+                      - generic [ref=f1e2129]: g
+                      - text: g
+                    - generic [ref=f1e2130]:
+                      - generic [ref=f1e2131]: g
+                      - text: g
+                    - generic [ref=f1e2132]:
+                      - generic [ref=f1e2133]: e
+                      - text: e
+                    - generic [ref=f1e2134]:
+                      - generic [ref=f1e2135]: r
+                      - text: r
+            - listitem [ref=f1e2136]:
+              - link "B B e e s s t t F F r r e e e e W W o o r r k k o o u u t t T T r r a a c c k k e e r r" [ref=f1e2137] [cursor=pointer]:
+                - /url: /journal/best-free-workout-tracker
+                - generic [ref=f1e2138]:
+                  - generic [ref=f1e2139]:
+                    - generic [ref=f1e2140]:
+                      - generic [ref=f1e2141]: B
+                      - text: B
+                    - generic [ref=f1e2142]:
+                      - generic [ref=f1e2143]: e
+                      - text: e
+                    - generic [ref=f1e2144]:
+                      - generic [ref=f1e2145]: s
+                      - text: s
+                    - generic [ref=f1e2146]:
+                      - generic [ref=f1e2147]: t
+                      - text: t
+                  - generic [ref=f1e2148]:
+                    - generic [ref=f1e2149]:
+                      - generic [ref=f1e2150]: F
+                      - text: F
+                    - generic [ref=f1e2151]:
+                      - generic [ref=f1e2152]: r
+                      - text: r
+                    - generic [ref=f1e2153]:
+                      - generic [ref=f1e2154]: e
+                      - text: e
+                    - generic [ref=f1e2155]:
+                      - generic [ref=f1e2156]: e
+                      - text: e
+                  - generic [ref=f1e2157]:
+                    - generic [ref=f1e2158]:
+                      - generic [ref=f1e2159]: W
+                      - text: W
+                    - generic [ref=f1e2160]:
+                      - generic [ref=f1e2161]: o
+                      - text: o
+                    - generic [ref=f1e2162]:
+                      - generic [ref=f1e2163]: r
+                      - text: r
+                    - generic [ref=f1e2164]:
+                      - generic [ref=f1e2165]: k
+                      - text: k
+                    - generic [ref=f1e2166]:
+                      - generic [ref=f1e2167]: o
+                      - text: o
+                    - generic [ref=f1e2168]:
+                      - generic [ref=f1e2169]: u
+                      - text: u
+                    - generic [ref=f1e2170]:
+                      - generic [ref=f1e2171]: t
+                      - text: t
+                  - generic [ref=f1e2172]:
+                    - generic [ref=f1e2173]:
+                      - generic [ref=f1e2174]: T
+                      - text: T
+                    - generic [ref=f1e2175]:
+                      - generic [ref=f1e2176]: r
+                      - text: r
+                    - generic [ref=f1e2177]:
+                      - generic [ref=f1e2178]: a
+                      - text: a
+                    - generic [ref=f1e2179]:
+                      - generic [ref=f1e2180]: c
+                      - text: c
+                    - generic [ref=f1e2181]:
+                      - generic [ref=f1e2182]: k
+                      - text: k
+                    - generic [ref=f1e2183]:
+                      - generic [ref=f1e2184]: e
+                      - text: e
+                    - generic [ref=f1e2185]:
+                      - generic [ref=f1e2186]: r
+                      - text: r
+            - listitem [ref=f1e2187]:
+              - link "L L I I F F T T A A G G v v s s H H e e v v y y" [ref=f1e2188] [cursor=pointer]:
+                - /url: /alternatives/hevy
+                - generic [ref=f1e2189]:
+                  - generic [ref=f1e2190]:
+                    - generic [ref=f1e2191]:
+                      - generic [ref=f1e2192]: L
+                      - text: L
+                    - generic [ref=f1e2193]:
+                      - generic [ref=f1e2194]: I
+                      - text: I
+                    - generic [ref=f1e2195]:
+                      - generic [ref=f1e2196]: F
+                      - text: F
+                    - generic [ref=f1e2197]:
+                      - generic [ref=f1e2198]: T
+                      - text: T
+                    - generic [ref=f1e2199]:
+                      - generic [ref=f1e2200]: A
+                      - text: A
+                    - generic [ref=f1e2201]:
+                      - generic [ref=f1e2202]: G
+                      - text: G
+                  - generic [ref=f1e2203]:
+                    - generic [ref=f1e2204]:
+                      - generic [ref=f1e2205]: v
+                      - text: v
+                    - generic [ref=f1e2206]:
+                      - generic [ref=f1e2207]: s
+                      - text: s
+                  - generic [ref=f1e2208]:
+                    - generic [ref=f1e2209]:
+                      - generic [ref=f1e2210]: H
+                      - text: H
+                    - generic [ref=f1e2211]:
+                      - generic [ref=f1e2212]: e
+                      - text: e
+                    - generic [ref=f1e2213]:
+                      - generic [ref=f1e2214]: v
+                      - text: v
+                    - generic [ref=f1e2215]:
+                      - generic [ref=f1e2216]: "y"
+                      - text: "y"
+            - listitem [ref=f1e2217]:
+              - link "L L I I F F T T A A G G v v s s S S t t r r o o n n g g" [ref=f1e2218] [cursor=pointer]:
+                - /url: /vs/strong
+                - generic [ref=f1e2219]:
+                  - generic [ref=f1e2220]:
+                    - generic [ref=f1e2221]:
+                      - generic [ref=f1e2222]: L
+                      - text: L
+                    - generic [ref=f1e2223]:
+                      - generic [ref=f1e2224]: I
+                      - text: I
+                    - generic [ref=f1e2225]:
+                      - generic [ref=f1e2226]: F
+                      - text: F
+                    - generic [ref=f1e2227]:
+                      - generic [ref=f1e2228]: T
+                      - text: T
+                    - generic [ref=f1e2229]:
+                      - generic [ref=f1e2230]: A
+                      - text: A
+                    - generic [ref=f1e2231]:
+                      - generic [ref=f1e2232]: G
+                      - text: G
+                  - generic [ref=f1e2233]:
+                    - generic [ref=f1e2234]:
+                      - generic [ref=f1e2235]: v
+                      - text: v
+                    - generic [ref=f1e2236]:
+                      - generic [ref=f1e2237]: s
+                      - text: s
+                  - generic [ref=f1e2238]:
+                    - generic [ref=f1e2239]:
+                      - generic [ref=f1e2240]: S
+                      - text: S
+                    - generic [ref=f1e2241]:
+                      - generic [ref=f1e2242]: t
+                      - text: t
+                    - generic [ref=f1e2243]:
+                      - generic [ref=f1e2244]: r
+                      - text: r
+                    - generic [ref=f1e2245]:
+                      - generic [ref=f1e2246]: o
+                      - text: o
+                    - generic [ref=f1e2247]:
+                      - generic [ref=f1e2248]: "n"
+                      - text: "n"
+                    - generic [ref=f1e2249]:
+                      - generic [ref=f1e2250]: g
+                      - text: g
+            - listitem [ref=f1e2251]:
+              - link "S S t t r r o o n n g g v v s s H H e e v v y y v v s s L L I I F F T T A A G G" [ref=f1e2252] [cursor=pointer]:
+                - /url: /journal/strong-vs-hevy-vs-liftag
+                - generic [ref=f1e2253]:
+                  - generic [ref=f1e2254]:
+                    - generic [ref=f1e2255]:
+                      - generic [ref=f1e2256]: S
+                      - text: S
+                    - generic [ref=f1e2257]:
+                      - generic [ref=f1e2258]: t
+                      - text: t
+                    - generic [ref=f1e2259]:
+                      - generic [ref=f1e2260]: r
+                      - text: r
+                    - generic [ref=f1e2261]:
+                      - generic [ref=f1e2262]: o
+                      - text: o
+                    - generic [ref=f1e2263]:
+                      - generic [ref=f1e2264]: "n"
+                      - text: "n"
+                    - generic [ref=f1e2265]:
+                      - generic [ref=f1e2266]: g
+                      - text: g
+                  - generic [ref=f1e2267]:
+                    - generic [ref=f1e2268]:
+                      - generic [ref=f1e2269]: v
+                      - text: v
+                    - generic [ref=f1e2270]:
+                      - generic [ref=f1e2271]: s
+                      - text: s
+                  - generic [ref=f1e2272]:
+                    - generic [ref=f1e2273]:
+                      - generic [ref=f1e2274]: H
+                      - text: H
+                    - generic [ref=f1e2275]:
+                      - generic [ref=f1e2276]: e
+                      - text: e
+                    - generic [ref=f1e2277]:
+                      - generic [ref=f1e2278]: v
+                      - text: v
+                    - generic [ref=f1e2279]:
+                      - generic [ref=f1e2280]: "y"
+                      - text: "y"
+                  - generic [ref=f1e2281]:
+                    - generic [ref=f1e2282]:
+                      - generic [ref=f1e2283]: v
+                      - text: v
+                    - generic [ref=f1e2284]:
+                      - generic [ref=f1e2285]: s
+                      - text: s
+                  - generic [ref=f1e2286]:
+                    - generic [ref=f1e2287]:
+                      - generic [ref=f1e2288]: L
+                      - text: L
+                    - generic [ref=f1e2289]:
+                      - generic [ref=f1e2290]: I
+                      - text: I
+                    - generic [ref=f1e2291]:
+                      - generic [ref=f1e2292]: F
+                      - text: F
+                    - generic [ref=f1e2293]:
+                      - generic [ref=f1e2294]: T
+                      - text: T
+                    - generic [ref=f1e2295]:
+                      - generic [ref=f1e2296]: A
+                      - text: A
+                    - generic [ref=f1e2297]:
+                      - generic [ref=f1e2298]: G
+                      - text: G
+            - listitem [ref=f1e2299]:
+              - link "W W o o r r k k o o u u t t L L o o g g g g e e r r" [ref=f1e2300] [cursor=pointer]:
+                - /url: /journal/workout-logger
+                - generic [ref=f1e2301]:
+                  - generic [ref=f1e2302]:
+                    - generic [ref=f1e2303]:
+                      - generic [ref=f1e2304]: W
+                      - text: W
+                    - generic [ref=f1e2305]:
+                      - generic [ref=f1e2306]: o
+                      - text: o
+                    - generic [ref=f1e2307]:
+                      - generic [ref=f1e2308]: r
+                      - text: r
+                    - generic [ref=f1e2309]:
+                      - generic [ref=f1e2310]: k
+                      - text: k
+                    - generic [ref=f1e2311]:
+                      - generic [ref=f1e2312]: o
+                      - text: o
+                    - generic [ref=f1e2313]:
+                      - generic [ref=f1e2314]: u
+                      - text: u
+                    - generic [ref=f1e2315]:
+                      - generic [ref=f1e2316]: t
+                      - text: t
+                  - generic [ref=f1e2317]:
+                    - generic [ref=f1e2318]:
+                      - generic [ref=f1e2319]: L
+                      - text: L
+                    - generic [ref=f1e2320]:
+                      - generic [ref=f1e2321]: o
+                      - text: o
+                    - generic [ref=f1e2322]:
+                      - generic [ref=f1e2323]: g
+                      - text: g
+                    - generic [ref=f1e2324]:
+                      - generic [ref=f1e2325]: g
+                      - text: g
+                    - generic [ref=f1e2326]:
+                      - generic [ref=f1e2327]: e
+                      - text: e
+                    - generic [ref=f1e2328]:
+                      - generic [ref=f1e2329]: r
+                      - text: r
+            - listitem [ref=f1e2330]:
+              - link "H H o o w w t t o o T T r r a a c c k k W W o o r r k k o o u u t t s s" [ref=f1e2331] [cursor=pointer]:
+                - /url: /journal/how-to-track-workouts
+                - generic [ref=f1e2332]:
+                  - generic [ref=f1e2333]:
+                    - generic [ref=f1e2334]:
+                      - generic [ref=f1e2335]: H
+                      - text: H
+                    - generic [ref=f1e2336]:
+                      - generic [ref=f1e2337]: o
+                      - text: o
+                    - generic [ref=f1e2338]:
+                      - generic [ref=f1e2339]: w
+                      - text: w
+                  - generic [ref=f1e2340]:
+                    - generic [ref=f1e2341]:
+                      - generic [ref=f1e2342]: t
+                      - text: t
+                    - generic [ref=f1e2343]:
+                      - generic [ref=f1e2344]: o
+                      - text: o
+                  - generic [ref=f1e2345]:
+                    - generic [ref=f1e2346]:
+                      - generic [ref=f1e2347]: T
+                      - text: T
+                    - generic [ref=f1e2348]:
+                      - generic [ref=f1e2349]: r
+                      - text: r
+                    - generic [ref=f1e2350]:
+                      - generic [ref=f1e2351]: a
+                      - text: a
+                    - generic [ref=f1e2352]:
+                      - generic [ref=f1e2353]: c
+                      - text: c
+                    - generic [ref=f1e2354]:
+                      - generic [ref=f1e2355]: k
+                      - text: k
+                  - generic [ref=f1e2356]:
+                    - generic [ref=f1e2357]:
+                      - generic [ref=f1e2358]: W
+                      - text: W
+                    - generic [ref=f1e2359]:
+                      - generic [ref=f1e2360]: o
+                      - text: o
+                    - generic [ref=f1e2361]:
+                      - generic [ref=f1e2362]: r
+                      - text: r
+                    - generic [ref=f1e2363]:
+                      - generic [ref=f1e2364]: k
+                      - text: k
+                    - generic [ref=f1e2365]:
+                      - generic [ref=f1e2366]: o
+                      - text: o
+                    - generic [ref=f1e2367]:
+                      - generic [ref=f1e2368]: u
+                      - text: u
+                    - generic [ref=f1e2369]:
+                      - generic [ref=f1e2370]: t
+                      - text: t
+                    - generic [ref=f1e2371]:
+                      - generic [ref=f1e2372]: s
+                      - text: s
+            - listitem [ref=f1e2373]:
+              - link "B B e e s s t t A A p p p p f f o o r r P P o o w w e e r r l l i i f f t t i i n n g g" [ref=f1e2374] [cursor=pointer]:
+                - /url: /journal/best-workout-app-for-powerlifting
+                - generic [ref=f1e2375]:
+                  - generic [ref=f1e2376]:
+                    - generic [ref=f1e2377]:
+                      - generic [ref=f1e2378]: B
+                      - text: B
+                    - generic [ref=f1e2379]:
+                      - generic [ref=f1e2380]: e
+                      - text: e
+                    - generic [ref=f1e2381]:
+                      - generic [ref=f1e2382]: s
+                      - text: s
+                    - generic [ref=f1e2383]:
+                      - generic [ref=f1e2384]: t
+                      - text: t
+                  - generic [ref=f1e2385]:
+                    - generic [ref=f1e2386]:
+                      - generic [ref=f1e2387]: A
+                      - text: A
+                    - generic [ref=f1e2388]:
+                      - generic [ref=f1e2389]: p
+                      - text: p
+                    - generic [ref=f1e2390]:
+                      - generic [ref=f1e2391]: p
+                      - text: p
+                  - generic [ref=f1e2392]:
+                    - generic [ref=f1e2393]:
+                      - generic [ref=f1e2394]: f
+                      - text: f
+                    - generic [ref=f1e2395]:
+                      - generic [ref=f1e2396]: o
+                      - text: o
+                    - generic [ref=f1e2397]:
+                      - generic [ref=f1e2398]: r
+                      - text: r
+                  - generic [ref=f1e2399]:
+                    - generic [ref=f1e2400]:
+                      - generic [ref=f1e2401]: P
+                      - text: P
+                    - generic [ref=f1e2402]:
+                      - generic [ref=f1e2403]: o
+                      - text: o
+                    - generic [ref=f1e2404]:
+                      - generic [ref=f1e2405]: w
+                      - text: w
+                    - generic [ref=f1e2406]:
+                      - generic [ref=f1e2407]: e
+                      - text: e
+                    - generic [ref=f1e2408]:
+                      - generic [ref=f1e2409]: r
+                      - text: r
+                    - generic [ref=f1e2410]:
+                      - generic [ref=f1e2411]: l
+                      - text: l
+                    - generic [ref=f1e2412]:
+                      - generic [ref=f1e2413]: i
+                      - text: i
+                    - generic [ref=f1e2414]:
+                      - generic [ref=f1e2415]: f
+                      - text: f
+                    - generic [ref=f1e2416]:
+                      - generic [ref=f1e2417]: t
+                      - text: t
+                    - generic [ref=f1e2418]:
+                      - generic [ref=f1e2419]: i
+                      - text: i
+                    - generic [ref=f1e2420]:
+                      - generic [ref=f1e2421]: "n"
+                      - text: "n"
+                    - generic [ref=f1e2422]:
+                      - generic [ref=f1e2423]: g
+                      - text: g
+            - listitem [ref=f1e2424]:
+              - link "Q Q R R + + N N F F C C G G y y m m T T r r a a c c k k i i n n g g" [ref=f1e2425] [cursor=pointer]:
+                - /url: /journal/qr-nfc-gym-tracking
+                - generic [ref=f1e2426]:
+                  - generic [ref=f1e2427]:
+                    - generic [ref=f1e2428]:
+                      - generic [ref=f1e2429]: Q
+                      - text: Q
+                    - generic [ref=f1e2430]:
+                      - generic [ref=f1e2431]: R
+                      - text: R
+                  - generic [ref=f1e2433]:
+                    - generic [ref=f1e2434]: +
+                    - text: +
+                  - generic [ref=f1e2435]:
+                    - generic [ref=f1e2436]:
+                      - generic [ref=f1e2437]: "N"
+                      - text: "N"
+                    - generic [ref=f1e2438]:
+                      - generic [ref=f1e2439]: F
+                      - text: F
+                    - generic [ref=f1e2440]:
+                      - generic [ref=f1e2441]: C
+                      - text: C
+                  - generic [ref=f1e2442]:
+                    - generic [ref=f1e2443]:
+                      - generic [ref=f1e2444]: G
+                      - text: G
+                    - generic [ref=f1e2445]:
+                      - generic [ref=f1e2446]: "y"
+                      - text: "y"
+                    - generic [ref=f1e2447]:
+                      - generic [ref=f1e2448]: m
+                      - text: m
+                  - generic [ref=f1e2449]:
+                    - generic [ref=f1e2450]:
+                      - generic [ref=f1e2451]: T
+                      - text: T
+                    - generic [ref=f1e2452]:
+                      - generic [ref=f1e2453]: r
+                      - text: r
+                    - generic [ref=f1e2454]:
+                      - generic [ref=f1e2455]: a
+                      - text: a
+                    - generic [ref=f1e2456]:
+                      - generic [ref=f1e2457]: c
+                      - text: c
+                    - generic [ref=f1e2458]:
+                      - generic [ref=f1e2459]: k
+                      - text: k
+                    - generic [ref=f1e2460]:
+                      - generic [ref=f1e2461]: i
+                      - text: i
+                    - generic [ref=f1e2462]:
+                      - generic [ref=f1e2463]: "n"
+                      - text: "n"
+                    - generic [ref=f1e2464]:
+                      - generic [ref=f1e2465]: g
+                      - text: g
+            - listitem [ref=f1e2466]:
+              - link "N N F F C C T T a a g g s s f f o o r r G G y y m m E E q q u u i i p p m m e e n n t t" [ref=f1e2467] [cursor=pointer]:
+                - /url: /journal/nfc-tags-for-gym-equipment
+                - generic [ref=f1e2468]:
+                  - generic [ref=f1e2469]:
+                    - generic [ref=f1e2470]:
+                      - generic [ref=f1e2471]: "N"
+                      - text: "N"
+                    - generic [ref=f1e2472]:
+                      - generic [ref=f1e2473]: F
+                      - text: F
+                    - generic [ref=f1e2474]:
+                      - generic [ref=f1e2475]: C
+                      - text: C
+                  - generic [ref=f1e2476]:
+                    - generic [ref=f1e2477]:
+                      - generic [ref=f1e2478]: T
+                      - text: T
+                    - generic [ref=f1e2479]:
+                      - generic [ref=f1e2480]: a
+                      - text: a
+                    - generic [ref=f1e2481]:
+                      - generic [ref=f1e2482]: g
+                      - text: g
+                    - generic [ref=f1e2483]:
+                      - generic [ref=f1e2484]: s
+                      - text: s
+                  - generic [ref=f1e2485]:
+                    - generic [ref=f1e2486]:
+                      - generic [ref=f1e2487]: f
+                      - text: f
+                    - generic [ref=f1e2488]:
+                      - generic [ref=f1e2489]: o
+                      - text: o
+                    - generic [ref=f1e2490]:
+                      - generic [ref=f1e2491]: r
+                      - text: r
+                  - generic [ref=f1e2492]:
+                    - generic [ref=f1e2493]:
+                      - generic [ref=f1e2494]: G
+                      - text: G
+                    - generic [ref=f1e2495]:
+                      - generic [ref=f1e2496]: "y"
+                      - text: "y"
+                    - generic [ref=f1e2497]:
+                      - generic [ref=f1e2498]: m
+                      - text: m
+                  - generic [ref=f1e2499]:
+                    - generic [ref=f1e2500]:
+                      - generic [ref=f1e2501]: E
+                      - text: E
+                    - generic [ref=f1e2502]:
+                      - generic [ref=f1e2503]: q
+                      - text: q
+                    - generic [ref=f1e2504]:
+                      - generic [ref=f1e2505]: u
+                      - text: u
+                    - generic [ref=f1e2506]:
+                      - generic [ref=f1e2507]: i
+                      - text: i
+                    - generic [ref=f1e2508]:
+                      - generic [ref=f1e2509]: p
+                      - text: p
+                    - generic [ref=f1e2510]:
+                      - generic [ref=f1e2511]: m
+                      - text: m
+                    - generic [ref=f1e2512]:
+                      - generic [ref=f1e2513]: e
+                      - text: e
+                    - generic [ref=f1e2514]:
+                      - generic [ref=f1e2515]: "n"
+                      - text: "n"
+                    - generic [ref=f1e2516]:
+                      - generic [ref=f1e2517]: t
+                      - text: t
+            - listitem [ref=f1e2518]:
+              - link "W W h h a a t t i i s s R R P P E E" [ref=f1e2519] [cursor=pointer]:
+                - /url: /journal/what-is-rpe-lifting
+                - generic [ref=f1e2520]:
+                  - generic [ref=f1e2521]:
+                    - generic [ref=f1e2522]:
+                      - generic [ref=f1e2523]: W
+                      - text: W
+                    - generic [ref=f1e2524]:
+                      - generic [ref=f1e2525]: h
+                      - text: h
+                    - generic [ref=f1e2526]:
+                      - generic [ref=f1e2527]: a
+                      - text: a
+                    - generic [ref=f1e2528]:
+                      - generic [ref=f1e2529]: t
+                      - text: t
+                  - generic [ref=f1e2530]:
+                    - generic [ref=f1e2531]:
+                      - generic [ref=f1e2532]: i
+                      - text: i
+                    - generic [ref=f1e2533]:
+                      - generic [ref=f1e2534]: s
+                      - text: s
+                  - generic [ref=f1e2535]:
+                    - generic [ref=f1e2536]:
+                      - generic [ref=f1e2537]: R
+                      - text: R
+                    - generic [ref=f1e2538]:
+                      - generic [ref=f1e2539]: P
+                      - text: P
+                    - generic [ref=f1e2540]:
+                      - generic [ref=f1e2541]: E
+                      - text: E
+            - listitem [ref=f1e2542]:
+              - link "P P r r o o g g r r e e s s s s i i v v e e O O v v e e r r l l o o a a d d" [ref=f1e2543] [cursor=pointer]:
+                - /url: /journal/progressive-overload
+                - generic [ref=f1e2544]:
+                  - generic [ref=f1e2545]:
+                    - generic [ref=f1e2546]:
+                      - generic [ref=f1e2547]: P
+                      - text: P
+                    - generic [ref=f1e2548]:
+                      - generic [ref=f1e2549]: r
+                      - text: r
+                    - generic [ref=f1e2550]:
+                      - generic [ref=f1e2551]: o
+                      - text: o
+                    - generic [ref=f1e2552]:
+                      - generic [ref=f1e2553]: g
+                      - text: g
+                    - generic [ref=f1e2554]:
+                      - generic [ref=f1e2555]: r
+                      - text: r
+                    - generic [ref=f1e2556]:
+                      - generic [ref=f1e2557]: e
+                      - text: e
+                    - generic [ref=f1e2558]:
+                      - generic [ref=f1e2559]: s
+                      - text: s
+                    - generic [ref=f1e2560]:
+                      - generic [ref=f1e2561]: s
+                      - text: s
+                    - generic [ref=f1e2562]:
+                      - generic [ref=f1e2563]: i
+                      - text: i
+                    - generic [ref=f1e2564]:
+                      - generic [ref=f1e2565]: v
+                      - text: v
+                    - generic [ref=f1e2566]:
+                      - generic [ref=f1e2567]: e
+                      - text: e
+                  - generic [ref=f1e2568]:
+                    - generic [ref=f1e2569]:
+                      - generic [ref=f1e2570]: O
+                      - text: O
+                    - generic [ref=f1e2571]:
+                      - generic [ref=f1e2572]: v
+                      - text: v
+                    - generic [ref=f1e2573]:
+                      - generic [ref=f1e2574]: e
+                      - text: e
+                    - generic [ref=f1e2575]:
+                      - generic [ref=f1e2576]: r
+                      - text: r
+                    - generic [ref=f1e2577]:
+                      - generic [ref=f1e2578]: l
+                      - text: l
+                    - generic [ref=f1e2579]:
+                      - generic [ref=f1e2580]: o
+                      - text: o
+                    - generic [ref=f1e2581]:
+                      - generic [ref=f1e2582]: a
+                      - text: a
+                    - generic [ref=f1e2583]:
+                      - generic [ref=f1e2584]: d
+                      - text: d
+            - listitem [ref=f1e2585]:
+              - link "G G y y m m N N F F C C R R o o l l l l o o u u t t" [ref=f1e2586] [cursor=pointer]:
+                - /url: /journal/gym-nfc-rollout
+                - generic [ref=f1e2587]:
+                  - generic [ref=f1e2588]:
+                    - generic [ref=f1e2589]:
+                      - generic [ref=f1e2590]: G
+                      - text: G
+                    - generic [ref=f1e2591]:
+                      - generic [ref=f1e2592]: "y"
+                      - text: "y"
+                    - generic [ref=f1e2593]:
+                      - generic [ref=f1e2594]: m
+                      - text: m
+                  - generic [ref=f1e2595]:
+                    - generic [ref=f1e2596]:
+                      - generic [ref=f1e2597]: "N"
+                      - text: "N"
+                    - generic [ref=f1e2598]:
+                      - generic [ref=f1e2599]: F
+                      - text: F
+                    - generic [ref=f1e2600]:
+                      - generic [ref=f1e2601]: C
+                      - text: C
+                  - generic [ref=f1e2602]:
+                    - generic [ref=f1e2603]:
+                      - generic [ref=f1e2604]: R
+                      - text: R
+                    - generic [ref=f1e2605]:
+                      - generic [ref=f1e2606]: o
+                      - text: o
+                    - generic [ref=f1e2607]:
+                      - generic [ref=f1e2608]: l
+                      - text: l
+                    - generic [ref=f1e2609]:
+                      - generic [ref=f1e2610]: l
+                      - text: l
+                    - generic [ref=f1e2611]:
+                      - generic [ref=f1e2612]: o
+                      - text: o
+                    - generic [ref=f1e2613]:
+                      - generic [ref=f1e2614]: u
+                      - text: u
+                    - generic [ref=f1e2615]:
+                      - generic [ref=f1e2616]: t
+                      - text: t
+        - generic [ref=f1e2617]:
+          - generic [ref=f1e2618]: Legal
+          - list [ref=f1e2619]:
+            - listitem [ref=f1e2620]:
+              - link "P P r r i i v v a a c c y y P P o o l l i i c c y y" [ref=f1e2621] [cursor=pointer]:
+                - /url: /privacy-policy
+                - generic [ref=f1e2622]:
+                  - generic [ref=f1e2623]:
+                    - generic [ref=f1e2624]:
+                      - generic [ref=f1e2625]: P
+                      - text: P
+                    - generic [ref=f1e2626]:
+                      - generic [ref=f1e2627]: r
+                      - text: r
+                    - generic [ref=f1e2628]:
+                      - generic [ref=f1e2629]: i
+                      - text: i
+                    - generic [ref=f1e2630]:
+                      - generic [ref=f1e2631]: v
+                      - text: v
+                    - generic [ref=f1e2632]:
+                      - generic [ref=f1e2633]: a
+                      - text: a
+                    - generic [ref=f1e2634]:
+                      - generic [ref=f1e2635]: c
+                      - text: c
+                    - generic [ref=f1e2636]:
+                      - generic [ref=f1e2637]: "y"
+                      - text: "y"
+                  - generic [ref=f1e2638]:
+                    - generic [ref=f1e2639]:
+                      - generic [ref=f1e2640]: P
+                      - text: P
+                    - generic [ref=f1e2641]:
+                      - generic [ref=f1e2642]: o
+                      - text: o
+                    - generic [ref=f1e2643]:
+                      - generic [ref=f1e2644]: l
+                      - text: l
+                    - generic [ref=f1e2645]:
+                      - generic [ref=f1e2646]: i
+                      - text: i
+                    - generic [ref=f1e2647]:
+                      - generic [ref=f1e2648]: c
+                      - text: c
+                    - generic [ref=f1e2649]:
+                      - generic [ref=f1e2650]: "y"
+                      - text: "y"
+            - listitem [ref=f1e2651]:
+              - link "T T e e r r m m s s & & C C o o n n d d i i t t i i o o n n s s" [ref=f1e2652] [cursor=pointer]:
+                - /url: /terms-and-conditions
+                - generic [ref=f1e2653]:
+                  - generic [ref=f1e2654]:
+                    - generic [ref=f1e2655]:
+                      - generic [ref=f1e2656]: T
+                      - text: T
+                    - generic [ref=f1e2657]:
+                      - generic [ref=f1e2658]: e
+                      - text: e
+                    - generic [ref=f1e2659]:
+                      - generic [ref=f1e2660]: r
+                      - text: r
+                    - generic [ref=f1e2661]:
+                      - generic [ref=f1e2662]: m
+                      - text: m
+                    - generic [ref=f1e2663]:
+                      - generic [ref=f1e2664]: s
+                      - text: s
+                  - generic [ref=f1e2666]:
+                    - generic [ref=f1e2667]: "&"
+                    - text: "&"
+                  - generic [ref=f1e2668]:
+                    - generic [ref=f1e2669]:
+                      - generic [ref=f1e2670]: C
+                      - text: C
+                    - generic [ref=f1e2671]:
+                      - generic [ref=f1e2672]: o
+                      - text: o
+                    - generic [ref=f1e2673]:
+                      - generic [ref=f1e2674]: "n"
+                      - text: "n"
+                    - generic [ref=f1e2675]:
+                      - generic [ref=f1e2676]: d
+                      - text: d
+                    - generic [ref=f1e2677]:
+                      - generic [ref=f1e2678]: i
+                      - text: i
+                    - generic [ref=f1e2679]:
+                      - generic [ref=f1e2680]: t
+                      - text: t
+                    - generic [ref=f1e2681]:
+                      - generic [ref=f1e2682]: i
+                      - text: i
+                    - generic [ref=f1e2683]:
+                      - generic [ref=f1e2684]: o
+                      - text: o
+                    - generic [ref=f1e2685]:
+                      - generic [ref=f1e2686]: "n"
+                      - text: "n"
+                    - generic [ref=f1e2687]:
+                      - generic [ref=f1e2688]: s
+                      - text: s
+      - generic [ref=f1e2689]:
+        - generic [ref=f1e2690]: © 2026 LIFTAG · BRATISLAVA · BUILT BY LIFTERS
+        - generic [ref=f1e2691]:
+          - generic [ref=f1e2692]:
+            - link "Liftag on Instagram" [ref=f1e2693] [cursor=pointer]:
+              - /url: https://www.instagram.com/liftag.fit/
+            - link "Liftag on TikTok" [ref=f1e2695] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@liftag
+            - link "Liftag on X" [ref=f1e2697] [cursor=pointer]:
+              - /url: https://x.com/liftag_fit
+            - link "Liftag on YouTube" [ref=f1e2699] [cursor=pointer]:
+              - /url: https://www.youtube.com/@liftag_fit
+            - link "Liftag on Reddit" [ref=f1e2701] [cursor=pointer]:
+              - /url: https://www.reddit.com/r/liftag/
+          - generic [ref=f1e2703]:
+            - text: Available on ·
+            - link "I I O O S S A A N N D D A A N N D D R R O O I I D D" [ref=f1e2704] [cursor=pointer]:
+              - /url: /get
+              - generic [ref=f1e2705]:
+                - generic [ref=f1e2706]:
+                  - generic [ref=f1e2707]:
+                    - generic [ref=f1e2708]: I
+                    - text: I
+                  - generic [ref=f1e2709]:
+                    - generic [ref=f1e2710]: O
+                    - text: O
+                  - generic [ref=f1e2711]:
+                    - generic [ref=f1e2712]: S
+                    - text: S
+                - generic [ref=f1e2713]:
+                  - generic [ref=f1e2714]:
+                    - generic [ref=f1e2715]: A
+                    - text: A
+                  - generic [ref=f1e2716]:
+                    - generic [ref=f1e2717]: "N"
+                    - text: "N"
+                  - generic [ref=f1e2718]:
+                    - generic [ref=f1e2719]: D
+                    - text: D
+                - generic [ref=f1e2720]:
+                  - generic [ref=f1e2721]:
+                    - generic [ref=f1e2722]: A
+                    - text: A
+                  - generic [ref=f1e2723]:
+                    - generic [ref=f1e2724]: "N"
+                    - text: "N"
+                  - generic [ref=f1e2725]:
+                    - generic [ref=f1e2726]: D
+                    - text: D
+                  - generic [ref=f1e2727]:
+                    - generic [ref=f1e2728]: R
+                    - text: R
+                  - generic [ref=f1e2729]:
+                    - generic [ref=f1e2730]: O
+                    - text: O
+                  - generic [ref=f1e2731]:
+                    - generic [ref=f1e2732]: I
+                    - text: I
+                  - generic [ref=f1e2733]:
+                    - generic [ref=f1e2734]: D
+                    - text: D
+      - generic [aria-hidden]:
+        - generic: LIFTAG
+        - generic: LIFTAG
+        - generic: LIFTAG
+  - generic [ref=f1e161]:
+    - button "Toggle Nuxt DevTools" [ref=f1e162] [cursor=pointer]
+    - generic "Page load time" [ref=f1e166]:
+      - generic [ref=f1e167]: "3.1"
+      - generic [ref=f1e168]: s
+    - button "Toggle Component Inspector" [ref=f1e170] [cursor=pointer]

@@ -1,0 +1,86 @@
+- generic [active] [ref=f29e1]:
+  - generic [ref=f29e3]:
+    - banner [ref=f29e4]:
+      - link "LIFTAG home" [ref=f29e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f29e6]: LIFTAG
+      - link "Explore the experience" [ref=f29e7] [cursor=pointer]:
+        - /url: /demo
+    - main [ref=f29e8]:
+      - region [ref=f29e9]:
+        - generic [ref=f29e10]:
+          - paragraph [ref=f29e11]:
+            - generic [ref=f29e12]: START WITH YOUR GYM
+          - heading "Put your gym in their workout." [level=2] [ref=f29e14]:
+            - generic [ref=f29e15]: Put your gym
+            - emphasis [ref=f29e17]: in their workout.
+          - paragraph [ref=f29e18]:
+            - generic [ref=f29e19]: Free QR + NFC tags. Your equipment, connected.
+          - generic [ref=f29e20]:
+            - img "The LIFTAG QR and NFC equipment tag" [ref=f29e21]
+            - generic [ref=f29e22]: QR + NFCREADY FOR YOUR FLOOR
+          - group [ref=f29e24]:
+            - generic "What’s free? +" [ref=f29e25] [cursor=pointer]:
+              - text: What’s free?
+              - generic [ref=f29e26]: +
+        - generic [ref=f29e27]:
+          - heading "Request your free kit." [level=3] [ref=f29e28]
+          - generic [ref=f29e31]:
+            - generic [ref=f29e32]:
+              - generic [ref=f29e33]:
+                - generic [ref=f29e34]: Your name *
+                - textbox "Your name" [ref=f29e35]
+              - generic [ref=f29e36]:
+                - generic [ref=f29e37]: Email *
+                - textbox "Email" [ref=f29e38]
+              - generic [ref=f29e39]:
+                - generic [ref=f29e40]: Gym name *
+                - textbox "Gym name" [ref=f29e41]
+              - generic [ref=f29e42]:
+                - generic [ref=f29e43]: City *
+                - textbox "City" [ref=f29e44]
+              - generic [ref=f29e45]:
+                - generic [ref=f29e46]: Equipment count (optional)
+                - textbox "Equipment count (optional)" [ref=f29e47]
+              - generic [ref=f29e48]:
+                - generic [ref=f29e49]: Anything else? (optional)
+                - textbox "Anything else? (optional)" [ref=f29e50]
+            - alert [ref=f29e76]: Verification is unavailable right now. Please try again, or email support@liftag.fit to request your kit.
+            - button "Request your free kit" [ref=f29e52] [cursor=pointer]
+            - paragraph [ref=f29e53]:
+              - text: We’ll contact you to arrange your kit. By submitting, you agree to our
+              - link "Privacy Policy" [ref=f29e54] [cursor=pointer]:
+                - /url: /privacy-policy
+              - text: .
+            - paragraph [ref=f29e55]:
+              - text: Prefer email?
+              - link "support@liftag.fit" [ref=f29e56] [cursor=pointer]:
+                - /url: mailto:support@liftag.fit
+        - generic [ref=f29e57]:
+          - group [ref=f29e58]:
+            - generic "Will it work with our equipment? +" [ref=f29e59] [cursor=pointer]:
+              - text: Will it work with our equipment?
+              - generic [ref=f29e60]: +
+          - group [ref=f29e61]:
+            - generic "Can we use our own trainers’ videos? +" [ref=f29e62] [cursor=pointer]:
+              - text: Can we use our own trainers’ videos?
+              - generic [ref=f29e63]: +
+          - group [ref=f29e64]:
+            - generic "Do members need the app? +" [ref=f29e65] [cursor=pointer]:
+              - text: Do members need the app?
+              - generic [ref=f29e66]: +
+          - group [ref=f29e67]:
+            - generic "Can we manage more than one location? +" [ref=f29e68] [cursor=pointer]:
+              - text: Can we manage more than one location?
+              - generic [ref=f29e69]: +
+    - contentinfo [ref=f29e70]:
+      - link "Privacy" [ref=f29e71] [cursor=pointer]:
+        - /url: /privacy-policy
+      - link "Support" [ref=f29e72] [cursor=pointer]:
+        - /url: /contact/support
+  - generic [ref=f29e77]:
+    - button "Toggle Nuxt DevTools" [ref=f29e78] [cursor=pointer]
+    - generic "Page load time" [ref=f29e82]:
+      - generic [ref=f29e83]: "22"
+      - generic [ref=f29e84]: ms
+    - button "Toggle Component Inspector" [ref=f29e86] [cursor=pointer]

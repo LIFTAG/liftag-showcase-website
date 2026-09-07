@@ -1,0 +1,4 @@
+- generic [active] [ref=f30e1]:
+  - link "Nuxt" [ref=f30e3]:
+    - /url: https://nuxt.com
+  - button "Animation Disabled" [ref=f30e7] [cursor=pointer]

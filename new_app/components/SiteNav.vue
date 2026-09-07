@@ -19,7 +19,7 @@ const route = useRoute()
 // animation-timeline: scroll(); the JS fallback then never writes the var.
 let nativeScrollTimeline = false
 
-const isHomeLike = computed(() => route.path === '/' || route.path === '/gym-scan')
+const isHomeLike = computed(() => route.path === '/')
 const sectionHref = (hash: string) => isHomeLike.value ? hash : `/${hash}`
 
 // Per-character spans for the desktop nav's hover index (see .nav-link__char).
@@ -28,7 +28,7 @@ const sectionHref = (hash: string) => isHomeLike.value ? hash : `/${hash}`
 const navChars = (label: string) => Array.from(label)
 
 const navLinks = computed<[string, string][]>(() => [
-  ['Demo', '/gym-scan'],
+  ['Demo', '/demo'],
   ['Lifters', sectionHref('#lifters')],
   ['Gyms', sectionHref('#gyms')],
   ['Trainers', sectionHref('#trainers')],

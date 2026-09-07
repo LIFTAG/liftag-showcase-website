@@ -2,11 +2,15 @@
 //
 // A second, slightly larger copy of the hero machine drawn as its own
 // triangulation - thin outlines, one per triangle, nothing filled. Two
-// fields light that one cage: a bright horizontal line that sweeps
+// idle fields light that one cage: a bright horizontal line that sweeps
 // top-to-bottom at a fixed cadence, and the cursor probe that already
 // grazes the machine's surface. It is the system's *read* of the machine
 // made visible: the line kicks down, the mesh resolves behind it, and the
 // pointer can hold a patch of that mesh between passes.
+//
+// The same cage plays a third pass when the QR sticker lands: the tag
+// flashes, then a cool-white skeleton grows out of that point. No travelling
+// lime front and no floor shockwave — those belong to the idle sweep.
 //
 // When the line reaches the ground it does not stop. The same energy peels
 // off the machine's feet as a circular shockwave of triangle outlines, the
@@ -43,10 +47,13 @@ import * as THREE from 'three'
 import {
   CAGE_BODY_GAIN,
   CAGE_CORE_GAIN,
+  CAGE_FILL_GAIN,
+  CAGE_LOCK_GAIN,
   CAGE_PROBE_GAIN,
   CAGE_PROBE_SCREEN_INNER,
   CAGE_PROBE_SCREEN_RADIUS,
   CORE_RGB,
+  HOT_RGB,
   WIRE_RGB,
   cageShouldDraw,
 } from './hologramColor'
@@ -59,6 +66,11 @@ import {
   Y_CONTACT,
   type HologramPassOpts,
 } from './hologramPass'
+import {
+  ACTIVATE_FLOOR_MAX_R,
+  hologramActivateAt,
+} from './hologramActivate'
+import { PLACARD_REST } from './stick'
 export interface HologramOptions {
   /**
    * How much larger than the machine, about its own centre. The bottom of the
@@ -101,6 +113,17 @@ export interface HologramShell {
    */
   update(elapsed: number, envelope: number, steady: boolean, probe?: HologramProbe): void
   /**
+   * One-shot power-on from the sticker. Cool-white fill growing out of
+   * `origin`, local bloom on the beam, no floor ring. Returns true while
+   * the pass is still drawing so the idle clock can wait.
+   */
+  updateActivation(
+    t: number,
+    envelope: number,
+    origin: THREE.Vector3,
+    time?: number,
+  ): boolean
+  /**
    * Lift the cage with the machine during the entry drop. The floor wave
    * stays on the mat - it is a read of the ground, not of the falling mesh.
    * The sweep band rides with the cage so the line stays on the falling
@@ -115,6 +138,7 @@ export interface HologramShell {
 
 const WIRE_COLOR = new THREE.Color(WIRE_RGB[0], WIRE_RGB[1], WIRE_RGB[2])
 const CORE_COLOR = new THREE.Color(CORE_RGB[0], CORE_RGB[1], CORE_RGB[2])
+const HOT_COLOR = new THREE.Color(HOT_RGB[0], HOT_RGB[1], HOT_RGB[2])
 /** How far the splash runs across the mat, metres. */
 const WAVE_MAX_R = 6.20
 /** Peak vertex lift at the shockwave front, metres. */
@@ -341,6 +365,15 @@ function createCageMaterial(offset: number): THREE.ShaderMaterial {
     uProbeAmp: { value: 0 },
     uProbeLive: { value: 0 },
     uTime: { value: 0 },
+    uMode: { value: 0 },
+    uOrigin: { value: new THREE.Vector3() },
+    uFrontR: { value: 0 },
+    uLock: { value: 0 },
+    uIgnite: { value: 0 },
+    uSpark: { value: 0 },
+    uFill: { value: 0 },
+    uHot: { value: 0 },
+    uHotColor: { value: HOT_COLOR },
   }
 
   return new THREE.ShaderMaterial({
@@ -395,6 +428,15 @@ function createCageMaterial(offset: number): THREE.ShaderMaterial {
       uniform float uProbeAmp;
       uniform float uProbeLive;
       uniform float uTime;
+      uniform float uMode;
+      uniform vec3  uOrigin;
+      uniform float uFrontR;
+      uniform float uLock;
+      uniform float uIgnite;
+      uniform float uSpark;
+      uniform float uFill;
+      uniform float uHot;
+      uniform vec3  uHotColor;
       varying vec3 vBary;
       varying vec3 vWorldPos;
       varying vec3 vViewNormal;
@@ -421,22 +463,38 @@ function createCageMaterial(offset: number): THREE.ShaderMaterial {
       }
 
       void main() {
-        vec3 bw = fwidth(vBary);
+        // Pixel coverage, never a fraction of the triangle's world size.
+        vec3 bw = max(fwidth(vBary), vec3(0.00001));
         vec3 edges = smoothstep(vec3(0.0), bw * uWireWidth, vBary);
         float wire = 1.0 - min(min(edges.x, edges.y), edges.z);
 
         float grain = max(bw.x, max(bw.y, bw.z));
-        wire *= 1.0 - smoothstep(0.16, 0.42, grain);
+        float detail = 1.0 - smoothstep(0.24, 0.65, grain);
+        wire *= detail;
+        vec3 softEdges = smoothstep(vec3(0.0), bw * (uWireWidth + 1.8), vBary);
+        float wireGlow = (1.0 - min(min(softEdges.x, softEdges.y), softEdges.z)) * detail;
 
         vec3 n = normalize(vViewNormal);
         vec3 v = normalize(-vViewPos);
         float facing = 0.60 + 0.40 * pow(1.0 - abs(dot(n, v)), 2.0);
 
-        float d = vWorldPos.y - uBandY;
+        float heightD = vWorldPos.y - uBandY;
+        float radialD = length(vWorldPos - uOrigin) - uFrontR;
+        float d = mix(heightD, radialD, uMode);
         // Parked at yTop under reduced-motion; evaluating the exponential
         // there would paint a lime cap on the machine.
-        float core  = uSteady > 0.0 ? 0.0 : exp(-abs(d) / uCoreWidth);
-        float trail = d > 0.0 ? exp(-d / uTrail) : 0.0;
+        float coreWidth = max(uCoreWidth, fwidth(d) * 0.7);
+        float core  = uSteady > 0.0 ? 0.0 : exp(-abs(d) / coreWidth) * uCoreWidth / coreWidth;
+        // Height sweep trails above the descending line. Radial activation
+        // trails inside the sphere — the mesh the front has already passed.
+        float heightTrail = d > 0.0 ? exp(-d / uTrail) : 0.0;
+        float radialTrail = d < 0.0 ? exp(d / uTrail) : 0.0;
+        float trail = mix(heightTrail, radialTrail, uMode);
+        if (uSpark > 0.001) {
+          float spark = lgNoise(vWorldPos * 7.4 + vec3(uTime * 1.6, 0.0, uTime * 1.1));
+          core *= 1.0 + uSpark * (spark * 0.85 - 0.12);
+        }
+        float ignite = uIgnite * exp(-length(vWorldPos - uOrigin) / 0.14);
 
         float probe = 0.0;
         // Screen-space, not a world point mapped onto the machine. The old
@@ -459,10 +517,20 @@ function createCageMaterial(offset: number): THREE.ShaderMaterial {
 
         // Sweep amp scales the travelling fields only. The probe is already
         // its own amp, so a live cursor can hold a local patch between cycles.
-        // Cursor blob is the gray reconstructed mesh; only the sweep core is lime.
-        float grayWeight = max(trail * uBodyGain * uAmp + probe * uProbeGain, uSteady * uBodyGain * uAmp);
-        float limeWeight = core * uCoreGain * uAmp;
-        vec3 col = wire * facing * (uWireColor * grayWeight + uCoreColor * limeWeight);
+        // Cursor blob and the activation fill/lock are the gray reconstructed
+        // mesh. Idle lime is the travelling core. Activation lime is only the
+        // local bloom on the beam at the sticker — no second scan line.
+        float interior = uMode * step(0.0, -d);
+        float grayWeight = max(
+          trail * uBodyGain * uAmp + probe * uProbeGain + uLock + interior * uFill,
+          uSteady * uBodyGain * uAmp
+        );
+        float limeWeight = (mix(core, 0.0, uMode) + ignite) * uCoreGain * uAmp;
+        vec3 coreCol = mix(uCoreColor, uHotColor, uHot);
+        // A faint optical skirt around each filament, in this same draw.
+        // Grazing edges catch more light without filling the shell's faces.
+        float filament = wire + wireGlow * 0.12;
+        vec3 col = filament * facing * (uWireColor * grayWeight + coreCol * limeWeight);
 
         if (max(col.r, max(col.g, col.b)) < 0.0015) discard;
 
@@ -489,6 +557,7 @@ function createGroundMaterial(): THREE.ShaderMaterial {
     // a floor-sized disc was a white sheet; one face at cage gain is a read.
     uBodyGain: { value: 0.22 },
     uCoreGain: { value: 1.02 },
+    uStem: { value: new THREE.Vector2() },
   }
 
   return new THREE.ShaderMaterial({
@@ -510,10 +579,11 @@ function createGroundMaterial(): THREE.ShaderMaterial {
       uniform float uWake;
       uniform float uLift;
       uniform float uAmp;
+      uniform vec2  uStem;
       attribute vec3 aBary;
       attribute float aKind;
       varying vec3 vBary;
-      varying float vRadius;
+      varying vec2 vWavePos;
       varying float vKind;
       varying vec3 vViewNormal;
       varying vec3 vViewPos;
@@ -521,9 +591,11 @@ function createGroundMaterial(): THREE.ShaderMaterial {
 
       void main() {
         // Local XZ is wave space: the mesh is planted on the machine's
-        // centre, so length(position.xz) is metres from the stem.
+        // centre, so length(position.xz - uStem) is metres from the ring
+        // origin. Idle keeps uStem at zero; activation offsets it under
+        // the sticker.
         vec3 pos = position;
-        float r = length(pos.xz);
+        float r = length(pos.xz - uStem);
         float d = r - uWaveR;
         float core = exp(-abs(d) / uCoreWidth);
         // Raised only on the ring and its wake, so the dark interior
@@ -533,7 +605,7 @@ function createGroundMaterial(): THREE.ShaderMaterial {
 
         vec4 worldPos = modelMatrix * vec4(pos, 1.0);
         vBary = aBary;
-        vRadius = r;
+        vWavePos = pos.xz - uStem;
         vKind = aKind;
         vec4 mvPosition = viewMatrix * worldPos;
         vViewPos = mvPosition.xyz;
@@ -555,15 +627,20 @@ function createGroundMaterial(): THREE.ShaderMaterial {
       uniform float uBodyGain;
       uniform float uCoreGain;
       varying vec3 vBary;
-      varying float vRadius;
+      varying vec2 vWavePos;
       varying float vKind;
       varying vec3 vViewNormal;
       varying vec3 vViewPos;
       #include <fog_pars_fragment>
 
       void main() {
-        float r = vRadius;
+        // Interpolating vertex radii makes the front polygonal. Interpolate
+        // position instead so even the cheap mesh has a circular scan front.
+        float r = length(vWavePos);
         float d = r - uWaveR;
+        float coreWidth = max(uCoreWidth, fwidth(r) * 0.7);
+        // Derivatives must be evaluated before neighbouring fragments discard.
+        vec3 bw = max(fwidth(vBary), vec3(0.00001));
         float wakeLen = max(uWake, 0.08);
         // Roots only exist as growth off the current front. Lighting them
         // a metre ahead planted a second circle with a gap in between.
@@ -572,7 +649,6 @@ function createGroundMaterial(): THREE.ShaderMaterial {
         if (d > ahead) discard;
         if (d < -behind) discard;
 
-        vec3 bw = fwidth(vBary);
         float wire;
         if (vKind > 0.5) {
           // Filled tapering stroke. The ribbon is already a line; outlining
@@ -585,7 +661,7 @@ function createGroundMaterial(): THREE.ShaderMaterial {
           vec3 edges = smoothstep(vec3(0.0), bw * uWireWidth * widthMul, vBary);
           wire = 1.0 - min(min(edges.x, edges.y), edges.z);
           float grain = max(bw.x, max(bw.y, bw.z));
-          wire *= 1.0 - smoothstep(0.14, 0.36, grain);
+          wire *= 1.0 - smoothstep(0.24, 0.65, grain);
         }
 
         float far = smoothstep(uMaxR * 0.64, uMaxR, r);
@@ -595,7 +671,7 @@ function createGroundMaterial(): THREE.ShaderMaterial {
         vec3 v = normalize(-vViewPos);
         float facing = 0.62 + 0.38 * pow(1.0 - abs(dot(n, v)), 1.35);
 
-        float core = exp(-abs(d) / uCoreWidth);
+        float core = exp(-abs(d) / coreWidth) * uCoreWidth / coreWidth;
         float halo = exp(-abs(d) / (uCoreWidth * 2.4));
         float inside = d < 0.0 ? 1.0 : 0.0;
         float trail = inside * exp(d / wakeLen);
@@ -644,12 +720,26 @@ export function createHologramShell(
   // descending line actually lands on.
   const stemR = Math.max(0.32, Math.max(hx, hz) * 0.98)
 
+  const tag = new THREE.Vector3(PLACARD_REST.x, PLACARD_REST.y, PLACARD_REST.z)
+  const corner = new THREE.Vector3()
+  let activateMaxR = 0.9
+  for (const x of [box.min.x, box.max.x]) {
+    for (const y of [box.min.y, box.max.y]) {
+      for (const z of [box.min.z, box.max.z]) {
+        activateMaxR = Math.max(activateMaxR, tag.distanceTo(corner.set(x, y, z)))
+      }
+    }
+  }
+  activateMaxR += 0.18
+
   const cageMat = createCageMaterial(offset)
   const groundMat = createGroundMaterial()
   const cageUniforms = cageMat.uniforms
   const groundUniforms = groundMat.uniforms
   const pointerUniform = cageUniforms.uPointer!.value as unknown as THREE.Vector2
   const viewportUniform = cageUniforms.uViewport!.value as unknown as THREE.Vector2
+  const originUniform = cageUniforms.uOrigin!.value as unknown as THREE.Vector3
+  const stemUniform = groundUniforms.uStem!.value as unknown as THREE.Vector2
 
   const object = new THREE.Group()
   object.name = 'LiftagHologram'
@@ -696,6 +786,24 @@ export function createHologramShell(
   const peelTime = Math.max(0, timeAtHeight(Y_CONTACT, yTop, yBottom) - PEEL)
   let altitude = 0
 
+  function clearActivation(): void {
+    cageUniforms.uMode!.value = 0
+    cageUniforms.uFrontR!.value = 0
+    cageUniforms.uLock!.value = 0
+    cageUniforms.uIgnite!.value = 0
+    cageUniforms.uSpark!.value = 0
+    cageUniforms.uFill!.value = 0
+    cageUniforms.uHot!.value = 0
+    cageUniforms.uCoreWidth!.value = 0.022
+    cageUniforms.uCoreGain!.value = CAGE_CORE_GAIN
+    cageUniforms.uWireWidth!.value = 0.9
+    stemUniform.set(0, 0)
+    groundUniforms.uMaxR!.value = WAVE_MAX_R
+    groundUniforms.uLift!.value = WAVE_LIFT
+    groundUniforms.uCoreWidth!.value = WAVE_CORE
+    groundUniforms.uCoreGain!.value = 1.02
+  }
+
   function writeProbe(probe: HologramProbe | undefined, envelope: number): number {
     const amp = probe?.amp ?? 0
     if (probe) {
@@ -727,6 +835,7 @@ export function createHologramShell(
       return
     }
 
+    clearActivation()
     const probeAmp = writeProbe(probe, envelope)
     // Draw uses live-gated amp so the idle 0.16 surface graze cannot keep
     // the cage submitted for the whole hologram window.
@@ -771,6 +880,61 @@ export function createHologramShell(
     object.visible = cage.visible || ground.visible
   }
 
+  function updateActivation(
+    t: number,
+    envelope: number,
+    origin: THREE.Vector3,
+    time = 0,
+  ): boolean {
+    writeProbe(undefined, 0)
+    const pass = hologramActivateAt(t, envelope, {
+      maxR: activateMaxR,
+      originY: origin.y,
+      stemR,
+      floorMaxR: ACTIVATE_FLOOR_MAX_R,
+    })
+    const live = pass.cageAmp > 0.002 || pass.groundAmp > 0.002
+      || pass.lock > 0.002 || pass.ignite > 0.002 || pass.fill > 0.002
+      || pass.tag > 0.002
+    if (!live) {
+      object.visible = false
+      cage.visible = false
+      ground.visible = false
+      clearActivation()
+      return false
+    }
+
+    cageUniforms.uSteady!.value = 0
+    cageUniforms.uMode!.value = 1
+    originUniform.copy(origin)
+    cageUniforms.uFrontR!.value = pass.frontR
+    cageUniforms.uTrail!.value = pass.cageTrail
+    cageUniforms.uAmp!.value = pass.cageAmp
+    cageUniforms.uCoreWidth!.value = pass.coreWidth
+    cageUniforms.uLock!.value = pass.lock * CAGE_LOCK_GAIN
+    cageUniforms.uIgnite!.value = pass.ignite
+    cageUniforms.uSpark!.value = pass.spark
+    cageUniforms.uFill!.value = pass.fill * CAGE_FILL_GAIN
+    cageUniforms.uHot!.value = pass.hot
+    cageUniforms.uCoreGain!.value = 1.02
+    cageUniforms.uWireWidth!.value = 1.08
+    cageUniforms.uTime!.value = time
+    cageUniforms.uBandY!.value = yTop + altitude
+    cage.visible = cageShouldDraw({
+      envelope,
+      cageAmp: pass.cageAmp + pass.lock + pass.ignite + pass.fill,
+      probeAmp: 0,
+      steady: false,
+    })
+
+    stemUniform.set(origin.x - centre.x, origin.z - centre.z)
+    groundUniforms.uAmp!.value = 0
+    ground.visible = false
+
+    object.visible = cage.visible || ground.visible
+    return object.visible
+  }
+
   function setAltitude(y: number): void {
     altitude = y
     cage.position.y = cageRestY + y
@@ -779,6 +943,7 @@ export function createHologramShell(
   return {
     object,
     update,
+    updateActivation,
     setAltitude,
     peelTime,
     stemR,

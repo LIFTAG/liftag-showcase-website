@@ -7,8 +7,9 @@
 // frame with the doors and the key light. Once the card is on they follow the
 // cursor (or frame the machine on a phone). Hovering the plate acquires it
 // early, so the lock does not wait for the scroll station if the pointer
-// already found the code. They hold through the lock and fade out as the
-// glass finishes forming.
+// already found the code. They hold through the lock and the phone fold, then
+// a wall-clock capture morphs the L's into a closed frame, sweeps the plate,
+// and collapses them into the code before the exercise UI takes the glass.
 
 import { clamp01, damp, ease, lerp, smoothstep } from './timeline.ts'
 
@@ -21,18 +22,27 @@ export interface ScreenRect {
 
 export interface ReticleBox extends ScreenRect {
   arm: number
-  /** 1 while hunting / locked. Scroll-driven fade just before the phone fold. */
+  /** 1 while hunting / locked / capturing. Falls only on the capture tail. */
   opacity: number
+  /**
+   * 0 while hunting or holding the lock. 0–1 is the post-fold capture morph
+   * (close the L's, sweep, collapse). 1 is retired.
+   */
+  capture: number
 }
 
 /** Window where the hunting box resolves module-by-module onto the QR. */
 export const RETICLE_MORPH_START = 0.22
 export const RETICLE_MORPH_END = 0.72
-/** Tail: hold the acquired plate through the fold, then retire as it forms. */
-export const RETICLE_OUT_START = 0.88
-export const RETICLE_OUT_END = 1
 /** Seconds of fade-in after `landed` so the L's do not pop on the plant frame. */
 export const RETICLE_IN = 0.48
+/**
+ * Wall-clock length of the scan confirmation after the phone has formed.
+ * Long enough to read as a capture, short enough that the log UI is not waiting.
+ */
+export const RETICLE_CAPTURE_SEC = 0.52
+/** Capture progress where the gym QR may start blending into the exercise UI. */
+export const RETICLE_CAPTURE_HANDOFF = 0.78
 
 const SEEK_IN = 62
 const SEEK_OUT = 84
@@ -45,7 +55,8 @@ export interface ReticleUpdate {
   elapsed: number
   /**
    * The brackets' own clock. 0 while they hunt the cursor, rising through the
-   * lock as they resolve onto the plate, reaching 1 as the glass forms.
+   * lock as they resolve onto the plate. Stays at the resolved lock through
+   * the fold; capture is a separate wall-clock field.
    */
   progress: number
   pointer: { x: number, y: number, active: boolean }
@@ -59,6 +70,85 @@ export interface ReticleUpdate {
   folded: boolean
   /** False until the QR sticker is pressed onto the beam. */
   landed: boolean
+  /**
+   * 0–1 wall-clock capture after the fold. The brackets stay on the plate
+   * until this finishes; they no longer fade on scroll.
+   */
+  capture: number
+}
+
+export interface ReticleCapturePose {
+  /** Pull the box inward onto the plate. */
+  inset: number
+  /** 0 = L-bracket arm, 1 = arms meet as a closed frame. */
+  connect: number
+  /** Scan-line position along the box, 0 at the top. */
+  scan: number
+  scanAmp: number
+  /** 0 full size, 1 collapsed into the plate centre. */
+  collapse: number
+  glow: number
+}
+
+/**
+ * How the settled L-corners become a scan confirmation.
+ *
+ * Clamp, close the frame, sweep the plate, then shrink the closed frame into
+ * the code. Opacity is applied by the tracker so reduced-motion can skip the
+ * morph and simply drop the overlay.
+ */
+export function reticleCapturePose(capture: number): ReticleCapturePose {
+  const u = clamp01(capture)
+  const inset = ease(u, 0.00, 0.18) * (1 - ease(u, 0.68, 1.00))
+  const connect = ease(u, 0.06, 0.34)
+  const scan = ease(u, 0.40, 0.64)
+  const scanAmp = ease(u, 0.40, 0.48) * (1 - ease(u, 0.56, 0.68))
+  const collapse = ease(u, 0.60, 1.00)
+  const glow = 0.20
+    + ease(u, 0.00, 0.16) * 0.42
+    + scanAmp * 0.22
+    - collapse * 0.30
+  return { inset, connect, scan, scanAmp, collapse, glow }
+}
+
+/** Overlay opacity across the capture. Stays solid until the handoff tail. */
+export function reticleCaptureOpacity(capture: number): number {
+  return 1 - ease(capture, RETICLE_CAPTURE_HANDOFF, 1)
+}
+
+export interface ReticleCaptureGeometry extends ScreenRect {
+  arm: number
+  /** 1 keeps the old half-arm outset; 0 sits the stroke on the box edge. */
+  outset: number
+}
+
+/** Apply the capture pose to a locked QR box. Identity at capture 0. */
+export function reticleCaptureGeometry(
+  box: ScreenRect & { arm: number },
+  pose: ReticleCapturePose,
+): ReticleCaptureGeometry {
+  const side = Math.min(box.w, box.h)
+  const inset = pose.inset * side * 0.10
+  let x = box.x + inset
+  let y = box.y + inset
+  let w = Math.max(1, box.w - inset * 2)
+  let h = Math.max(1, box.h - inset * 2)
+  const cx = x + w * 0.5
+  const cy = y + h * 0.5
+  const scale = 1 - pose.collapse * 0.88
+  w = Math.max(1, w * scale)
+  h = Math.max(1, h * scale)
+  x = cx - w * 0.5
+  y = cy - h * 0.5
+  const closedArm = Math.max(w, h) * 0.5 + 1
+  return {
+    x,
+    y,
+    w,
+    h,
+    arm: lerp(box.arm, closedArm, pose.connect),
+    outset: 1 - pose.connect,
+  }
 }
 
 function clamp(v: number, lo: number, hi: number) {
@@ -171,7 +261,7 @@ export function createReticleTracker() {
 
   function update(input: ReticleUpdate): ReticleBox | null {
     const { progress } = input
-    if (!input.landed || input.folded || progress >= RETICLE_OUT_END) {
+    if (!input.landed || input.folded || input.capture >= 1) {
       frozen = null
       frozenArm = DESKTOP_ARM
       booted = false
@@ -260,14 +350,14 @@ export function createReticleTracker() {
       fromArm = frozenArm
     }
 
-    const mix = Math.max(morph, hoverAmt)
+    const mix = Math.max(morph, hoverAmt, input.capture > 0 ? 1 : 0)
     const box = mix > 0 && qr ? mixRect(seek, qr, mix) : seek
     const arm = qr ? lerp(fromArm, lockArm(qr), mix) : fromArm
     const fadeIn = input.reducedMotion ? 1 : smoothstep(clamp01(landAge / RETICLE_IN))
     landAge += dt
-    const opacity = fadeIn * (1 - ease(progress, RETICLE_OUT_START, RETICLE_OUT_END))
+    const opacity = fadeIn * reticleCaptureOpacity(input.capture)
 
-    return { x: box.x, y: box.y, w: box.w, h: box.h, arm, opacity }
+    return { x: box.x, y: box.y, w: box.w, h: box.h, arm, opacity, capture: input.capture }
   }
 
   return { update }

@@ -108,6 +108,8 @@ export type StickFocusSubject = {
   print: THREE.Mesh
   inlay: THREE.Mesh
   foil: THREE.Mesh
+  /** Skip coverage / foil targets when the card is composited on a DOM overlay. */
+  skipCard?: boolean
 }
 
 export type StickFocus = {
@@ -286,8 +288,10 @@ export function createStickFocus(opts: {
     if (!enabled) return
     const prev = beginOffscreen(renderer)
     try {
-      renderMask(renderer, scene, camera, subject)
-      renderFoil(renderer, scene, camera, subject)
+      if (!subject.skipCard) {
+        renderMask(renderer, scene, camera, subject)
+        renderFoil(renderer, scene, camera, subject)
+      }
       renderGymBlur(renderer, scene, camera, subject)
     }
     finally {
