@@ -28,6 +28,8 @@ Capture metadata is preserved in [before-capture.json](before-capture.json) and 
 
 The authoritative `pnpm verify` gate passed with 481 tests, TypeScript checking, and the production build. The final release build also scored 1.00 in Lighthouse accessibility with zero failing accessibility audits.
 
+The first hosted build exposed duplicate Nitro function names for the two legacy redirect rules. The redundant trailing-slash rule was removed; the slashless redirect and Nuxt fallback page remain. Deployment verification uses the full `NITRO_PRESET=vercel pnpm verify` gate to match CI.
+
 The journey was checked at desktop 1440×900, short laptop 1366×650, tablet 768×1024, and mobile 360×640 and 390×844. Manual coverage included forward and reverse scrolling, chapter jumps, regional selection persistence, pause and replay, valid and invalid local-video selection, Restore demo, reduced motion, keyboard navigation, and startup with WebGL disabled.
 
 ## Limits
