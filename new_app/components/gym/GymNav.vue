@@ -4,6 +4,7 @@ const emit = defineEmits<{ motion: []; kit: [] }>();
 
 const open = shallowRef(false);
 const root = useTemplateRef<HTMLElement>("root");
+const menuToggle = useTemplateRef<HTMLButtonElement>("menuToggle");
 let navResizeObserver: ResizeObserver | null = null;
 
 function close() {
@@ -23,7 +24,10 @@ function publishNavHeight() {
 watch(open, (isOpen, _wasOpen, onCleanup) => {
   if (!import.meta.client || !isOpen) return;
   const onKeydown = (event: KeyboardEvent) => {
-    if (event.key === "Escape") close();
+    if (event.key === "Escape") {
+      close();
+      menuToggle.value?.focus();
+    }
   };
   window.addEventListener("keydown", onKeydown);
   onCleanup(() => window.removeEventListener("keydown", onKeydown));
@@ -57,9 +61,10 @@ onBeforeUnmount(() => {
         ><NuxtLink to="/get">Get the app ↗</NuxtLink>
       </nav>
       <a class="btn-primary gx-nav__kit" href="#kit" @click="emit('kit')"
-        ><span>Request your </span>free kit</a
+        ><span>Request your</span> free kit <span aria-hidden="true">↗</span></a
       >
       <button
+        ref="menuToggle"
         type="button"
         class="gx-nav-toggle"
         aria-label="Toggle menu"
@@ -79,6 +84,7 @@ onBeforeUnmount(() => {
       class="gx-nav-drawer"
       :class="{ 'is-open': open }"
       :aria-hidden="!open"
+      :inert="!open"
     >
       <nav aria-label="More navigation" @click="close">
         <a href="#lifters" class="gx-nav-drawer__link">Try LIFTAG</a>

@@ -23,15 +23,7 @@ export const CEILING_STRIPS = [
 ] as const
 
 export const STRIP_COLOR = 0xdfe8ff
-/**
- * cd/m^2 for the RectAreaLights.
- *
- * Deliberately far below a real gym's. Area lights have no distance cutoff, so
- * at a plausible fixture brightness these two rectangles light the entire room
- * and the "extremely dark gym" brief is gone in one step. What is wanted from
- * them is the *shape* of the highlight, not the exposure - the spots still do
- * the local work.
- */
+/** Broad studio highlights keep graphite readable without lifting the whole room. */
 export const STRIP_NITS = 3.1
 
 function emissiveQuad(
@@ -50,7 +42,7 @@ export interface GymEnvironment {
   dispose: () => void
 }
 
-export function createGymEnvironment(renderer: THREE.WebGLRenderer, size = 256): GymEnvironment {
+export function createGymEnvironment(renderer: THREE.WebGLRenderer, size = 256, demo = false): GymEnvironment {
   const scene = new THREE.Scene()
   scene.background = new THREE.Color(0x000000)
 
@@ -58,19 +50,19 @@ export function createGymEnvironment(renderer: THREE.WebGLRenderer, size = 256):
   const parts: THREE.Mesh[] = []
 
   for (const s of CEILING_STRIPS) {
-    parts.push(emissiveQuad(s.w, s.l, STRIP_COLOR, 2.4, [s.x, s.y, s.z], [HALF_PI, 0, 0]))
+    parts.push(emissiveQuad(s.w, s.l, demo ? 0xeee9de : STRIP_COLOR, demo ? 5.2 : 2.4, [s.x, s.y, s.z], [HALF_PI, 0, 0]))
     // A dim halo around each fixture. Bare quads give the metal a hard-edged
     // reflection with nothing around it; real diffusers spill onto the ceiling
     // and that spill is what a wide roughness lobe actually picks up.
-    parts.push(emissiveQuad(s.w * 5.5, s.l * 1.06, 0x9fb0d4, 0.13, [s.x, s.y + 0.05, s.z], [HALF_PI, 0, 0]))
+    parts.push(emissiveQuad(s.w * 5.5, s.l * 1.06, demo ? 0xc5cccb : 0x9fb0d4, demo ? 0.24 : 0.13, [s.x, s.y + 0.05, s.z], [HALF_PI, 0, 0]))
   }
 
   parts.push(
     // A cold, very dim far wall so grazing angles do not read as pure void.
-    emissiveQuad(30, 9, 0x2b3442, 0.12, [0, 3.4, -13], [0, 0, 0]),
-    emissiveQuad(30, 9, 0x1d232c, 0.07, [0, 3.4, 13], [0, Math.PI, 0]),
+    emissiveQuad(30, 9, demo ? 0x555c58 : 0x2b3442, demo ? 0.25 : 0.12, [0, 3.4, -13], [0, 0, 0]),
+    emissiveQuad(30, 9, demo ? 0x323a38 : 0x1d232c, demo ? 0.14 : 0.07, [0, 3.4, 13], [0, Math.PI, 0]),
     // Floor bounce - keeps the underside of the frame from going fully flat.
-    emissiveQuad(34, 34, 0x0e1116, 0.06, [0, -0.02, 0], [-HALF_PI, 0, 0]),
+    emissiveQuad(34, 34, demo ? 0x252b26 : 0x0e1116, demo ? 0.12 : 0.06, [0, -0.02, 0], [-HALF_PI, 0, 0]),
     // One warm practical low on the side wall. Everything else in this room is
     // the same blue-white, and a scene lit by a single colour temperature reads
     // as a render; a second, warmer source gives the frame tubes a cool side
@@ -81,7 +73,7 @@ export function createGymEnvironment(renderer: THREE.WebGLRenderer, size = 256):
     // announced itself as a coloured lamp; as environment it does exactly the
     // job it is wanted for - a warm bias on everything facing that way - with
     // no falloff to give it away and nothing to pay for it per fragment.
-    emissiveQuad(3.4, 1.8, 0xff9a52, 0.42, [-9.5, 2.2, -4.0], [0, HALF_PI, 0]),
+    emissiveQuad(3.4, 1.8, demo ? 0xffd3a7 : 0xff9a52, demo ? 0.65 : 0.42, [-9.5, 2.2, -4.0], [0, HALF_PI, 0]),
   )
   parts.forEach(p => scene.add(p))
 

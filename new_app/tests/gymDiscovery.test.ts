@@ -49,6 +49,66 @@ import {
   isLandPixel,
   placeGlobeDot,
 } from "../utils/gymscan/discoveryGlobe.ts";
+import {
+  projectRegional,
+  regionalBoundaries,
+  regionalLabelPoint,
+  regionalPath,
+} from "../utils/gymscan/discoveryRegionalMap.ts";
+
+test("regional map preserves geography and expands the Prague cluster without moving anchors", () => {
+  const bratislava = discoveryGyms.find((gym) => gym.id === "bratislava")!;
+  const kosice = discoveryGyms.find((gym) => gym.id === "kosice")!;
+  const karlin = discoveryGyms.find((gym) => gym.id === "praha-karlin")!;
+  const bratislavaPoint = projectRegional(bratislava.longitude, bratislava.latitude);
+  const kosicePoint = projectRegional(kosice.longitude, kosice.latitude);
+  assert.ok(kosicePoint.x > bratislavaPoint.x, "Košice remains east of Bratislava");
+  assert.ok(regionalPath(regionalBoundaries.find((item) => item.id === "SK")!).endsWith(" Z"));
+  assert.notDeepEqual(regionalLabelPoint(karlin, false), projectRegional(karlin.longitude, karlin.latitude));
+  assert.notDeepEqual(regionalLabelPoint(karlin, true), projectRegional(karlin.longitude, karlin.latitude));
+  const vienna = discoveryGyms.find((gym) => gym.id === "wien")!;
+  const brno = discoveryGyms.find((gym) => gym.id === "brno")!;
+  const labels = [bratislava, vienna, brno].map((gym) => regionalLabelPoint(gym, false));
+  for (let i = 0; i < labels.length; i++) for (let j = i + 1; j < labels.length; j++) {
+    assert.ok(Math.hypot(labels[i]!.x - labels[j]!.x, labels[i]!.y - labels[j]!.y) > 72);
+  }
+  assert.ok(regionalBoundaries.find((item) => item.id === "SK")!.points.length > 15);
+  assert.ok(regionalBoundaries.find((item) => item.id === "CZ")!.points.length > 25);
+});
+
+test("Prague label rail keeps 32px touch targets separate on a 320px-wide map", () => {
+  const prague = discoveryGyms.filter((gym) => gym.cluster === "prague");
+  const labels = prague.map((gym) => regionalLabelPoint(gym, true));
+  const cssScale = 320 / 1000;
+  for (let index = 1; index < labels.length; index++) {
+    assert.ok((labels[index]!.y - labels[index - 1]!.y) * cssScale >= 34);
+  }
+  const brno = regionalLabelPoint(discoveryGyms.find((gym) => gym.id === "brno")!, false);
+  const pragueHalfWidth = 170;
+  const brnoHalfWidth = 75;
+  for (const label of labels) {
+    const overlapsX = Math.abs(label.x - brno.x) < pragueHalfWidth + brnoHalfWidth;
+    const overlapsY = Math.abs(label.y - brno.y) * cssScale < 34;
+    assert.equal(overlapsX && overlapsY, false, "Prague rail must stay clear of Brno");
+  }
+});
+
+test("discovery copy identifies illustrative locations and carries selected identity into the phone", () => {
+  const story = readFileSync(new URL("../components/gym/GymGlobeStory.vue", import.meta.url), "utf8");
+  const app = readFileSync(new URL("../utils/gymscan/discoveryAppScreen.ts", import.meta.url), "utf8");
+  const provenance = readFileSync(new URL("../public/assets/data/NATURAL_EARTH.md", import.meta.url), "utf8");
+  assert.match(story, /Illustrative gym locations/);
+  assert.match(story, /Selected gym/);
+  assert.match(story, /selectedGym\.venue/);
+  assert.match(story, /gd-mobile-endpoint/);
+  assert.match(story, /<GymEquipmentInventory :gym="selectedGym"/);
+  assert.match(story, /illustrative network of gyms, equipment and local expertise/);
+  assert.match(story, /No reviews yet/);
+  assert.doesNotMatch(story, /☆|★|Eight partner gyms|8 gyms connected/);
+  assert.match(app, /options\.venue/);
+  assert.match(app, /options\.city/);
+  assert.match(provenance, /public domain/);
+});
 
 test("blue marble land heuristic keeps continents and ice, drops ocean", () => {
   assert.equal(isLandPixel(66, 72, 38), true);
@@ -68,13 +128,12 @@ test("land discs face away from the globe center", () => {
   assert.ok(z.dot(position.clone().normalize()) > 0.99);
 });
 
-test("globe reconstruction has two finite passes and a clean resting state", () => {
+test("globe makes one brief establishing pass and then rests", () => {
   assert.equal(globeAssemblyAt(0).assembly, 0);
   assert.equal(globeAssemblyAt(0).hologram, 0);
-  assert.ok(globeAssemblyAt(0.65).hologram > 0.8);
-  assert.equal(globeAssemblyAt(1.3).hologram, 0);
-  assert.ok(globeAssemblyAt(1.95).hologram > 0.8);
-  for (const time of [2.8, 3, 10, 1000]) {
+  assert.ok(globeAssemblyAt(0.44).hologram > 0.8);
+  assert.equal(globeAssemblyAt(1).hologram, 0);
+  for (const time of [1.25, 2, 10, 1000]) {
     assert.equal(globeAssemblyAt(time).assembly, 1);
     assert.equal(globeAssemblyAt(time).hologram, 0);
     assert.equal(globeAssemblyAt(time).settled, true);
@@ -91,7 +150,7 @@ test("after the globe settles, Bratislava blinks and a shockwave then arcs run",
   assert.equal(globeNetworkAt(GLOBE_SETTLE_AT + 2).arcs, 1);
 });
 
-test("eight registered gyms hub from Bratislava with one arc each", () => {
+test("illustrative locations hub from Bratislava with one visual arc each", () => {
   assert.equal(discoveryGyms.length, 8);
   assert.equal(discoveryHub.city, "Bratislava");
   assert.equal(discoveryGyms.filter((gym) => gym.hub).length, 1);
@@ -99,6 +158,7 @@ test("eight registered gyms hub from Bratislava with one arc each", () => {
   assert.equal(arcs.length, 7);
   assert.ok(arcs.every((link) => link.from.id === "bratislava"));
   assert.equal(discoveryLocation.city, discoveryHub.city);
+  assert.ok(discoveryGyms.every((gym) => gym.venue.startsWith("LIFTAG")));
 });
 
 test("the floor is complete before overhead movement and ordering finishes in row order", () => {
@@ -327,14 +387,15 @@ test("the discovery stage morphs a phone-curved stand-in, then the shared 3D pho
   assert.match(stage, /createFloorMaps/);
   assert.doesNotMatch(stage, /TIRE|discoveryTire|discoveryBump|const bump/);
   assert.match(stage, /camera\.up\.set\(0, 1 - frame\.overhead, -frame\.overhead\)/);
+  assert.match(stage, /compact = width < 900/);
   assert.match(stage, /tilt\.add\(rig\)/);
   const story = readFileSync(
     new URL("../components/gym/GymGlobeStory.vue", import.meta.url),
     "utf8",
   );
   assert.match(story, /In the app/);
-  assert.match(story, /Every gym/);
-  assert.match(story, /One place/);
+  assert.match(story, /One gym/);
+  assert.match(story, /Illustrative/);
   assert.match(story, /v-if="simple"/);
   const globe = readFileSync(
     new URL("../utils/gymscan/discoveryGlobe.ts", import.meta.url),
@@ -342,16 +403,15 @@ test("the discovery stage morphs a phone-curved stand-in, then the shared 3D pho
   );
   assert.match(globe, /InstancedMesh/);
   assert.match(globe, /CubicBezierCurve3/);
-  assert.match(globe, /sampleLandDots/);
-  assert.match(globe, /LAND_LAT_STEP/);
+  assert.match(globe, /MeshStandardMaterial/);
+  assert.match(globe, /earthMaterial\.map = texture/);
+  assert.match(globe, /DirectionalLight/);
   assert.match(globe, /placeGlobeDot/);
   assert.match(globe, /position\.x \* 2/);
   assert.match(globe, /MeshBasicMaterial/);
-  assert.match(globe, /b \/ \(sum \+ 1\) > 0\.38/);
   assert.doesNotMatch(globe, /lookAt\(0, 0, 0\)/);
-  assert.doesNotMatch(globe, /material\.map/);
   assert.doesNotMatch(globe, /MeshPhongMaterial/);
-  assert.doesNotMatch(globe, /MeshStandardMaterial/);
+  assert.doesNotMatch(globe, /new THREE\.InstancedMesh\(\s*new THREE\.CircleGeometry\(1, 8\)/);
   const css = readFileSync(
     new URL("../assets/css/gym-discovery.css", import.meta.url),
     "utf8",
@@ -364,4 +424,8 @@ test("the discovery stage morphs a phone-curved stand-in, then the shared 3D pho
     "utf8",
   );
   assert.match(host, /useSharedMouse/);
+  assert.match(host, /bootToken/);
+  assert.match(host, /token !== bootToken/);
+  assert.match(host, /else release\(\)/);
+  assert.match(stage, /if \(disposed\) return;/);
 });

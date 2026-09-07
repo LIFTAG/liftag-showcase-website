@@ -95,7 +95,7 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(DISCOVERY_CAM_FOV, 1, 0.1, 50);
-  const environment = createGymEnvironment(renderer, 64);
+  const environment = createGymEnvironment(renderer, 64, true);
   scene.environment = environment.texture;
   const light = new THREE.DirectionalLight(0xe5efe8, 4.5);
   light.position.set(-3, 5, 6);
@@ -143,7 +143,8 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
   appImage.width = 720;
   appImage.height = 1520;
   const appCtx = appImage.getContext("2d")!;
-  drawDiscoveryAppScreen(appCtx, appImage.width, appImage.height, { dividers: false });
+  let selectedIdentity = { venue: "LIFTAG Bratislava", city: "Bratislava" };
+  drawDiscoveryAppScreen(appCtx, appImage.width, appImage.height, { dividers: false, ...selectedIdentity });
   const appTexture = new THREE.CanvasTexture(appImage);
   appTexture.colorSpace = THREE.SRGBColorSpace;
   appTexture.generateMipmaps = false;
@@ -275,7 +276,7 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
     document.fonts.load('600 32px Inter'),
   ]).then(() => {
     if (disposed) return;
-    drawDiscoveryAppScreen(appCtx, appImage.width, appImage.height, { dividers: false });
+    drawDiscoveryAppScreen(appCtx, appImage.width, appImage.height, { dividers: false, ...selectedIdentity });
     appTexture.needsUpdate = true;
   });
   const cameraTarget = new THREE.Vector3(),
@@ -308,15 +309,14 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
     },
   ) {
     const frame = discoveryAt(progress),
-      compact = width < 760,
+      compact = width < 900,
       ease = 1 - Math.exp(-dt * 10);
     const beats = discoveryMorphBeats(frame.morph);
-    globe.root.visible = frame.floor < 0.995;
-    globe.update(assemblySeconds, 1 - frame.listing * 0.6);
-    globe.root.scale.setScalar(
-      lerp(1, 0.62, frame.listing) * (1 - frame.floor * 0.99),
-    );
-    globe.root.position.set(0, -frame.listing * 0.5, 0);
+    const globeExit = smoothstep((progress - 0.055) / 0.13);
+    globe.root.visible = globeExit < 0.999;
+    globe.update(assemblySeconds, 1 - globeExit);
+    globe.root.scale.setScalar(lerp(1, 0.72, globeExit));
+    globe.root.position.set(0, -globeExit * 0.35, 0);
     room.visible = frame.floor > 0.001;
     const dest = discoveryMorphRect(frame.morph);
     const corner = discoveryCornerRadius(frame.morph);
@@ -411,14 +411,21 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
     projected.project(camera);
     result.x = (projected.x * 0.5 + 0.5) * width;
     result.y = (-projected.y * 0.5 + 0.5) * height;
-    result.visible = assemblySeconds >= 2.8 && progress < 0.27;
+    result.visible = assemblySeconds >= 1.25 && progress < 0.08;
     return result;
   }
   return {
     ready,
     resize,
     draw,
+    setIdentity(identity: { venue: string; city: string }) {
+      if (disposed) return;
+      selectedIdentity = identity;
+      drawDiscoveryAppScreen(appCtx, appImage.width, appImage.height, { dividers: false, ...selectedIdentity });
+      appTexture.needsUpdate = true;
+    },
     dispose() {
+      if (disposed) return;
       disposed = true;
       decoder.dispose();
       environment.dispose();

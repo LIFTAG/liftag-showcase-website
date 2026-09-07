@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "durationSeconds": 4.8,
+  "fps": 30,
+  "clip": "PivotLegPressCycle",
+  "root": "RecordingRig",
+  "cycle": {
+    "bentHold": [
+      0,
+      0.4
+    ],
+    "press": [
+      0.4,
+      2.4
+    ],
+    "extendedHold": [
+      2.4,
+      2.8
+    ],
+    "return": [
+      2.8,
+      4.8
+    ]
+  },
+  "carriage": {
+    "node": "LiftagPressCarriage",
+    "axis": [
+      0,
+      0.788,
+      -0.616
+    ],
+    "displacementMeters": 0.14,
+    "samples": [
+      [
+        0,
+        0
+      ],
+      [
+        0.0833,
+        0
+      ],
+      [
+        0.5,
+        1
+      ],
+      [
+        0.5833,
+        1
+      ],
+      [
+        1,
+        0
+      ]
+    ]
+  },
+  "world": {
+    "position": [
+      0,
+      0,
+      0
+    ],
+    "rotation": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  "media": {
+    "posterWidth": 720,
+    "posterHeight": 405,
+    "videoWidth": 720,
+    "videoHeight": 406,
+    "poster": "pivot-leg-press-poster.webp",
+    "videoMp4": "pivot-leg-press-demo.mp4",
+    "videoWebm": "pivot-leg-press-demo.webm"
+  }
+}

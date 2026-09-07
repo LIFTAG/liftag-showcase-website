@@ -136,11 +136,12 @@ export default defineNuxtConfig({
     },
   },
   routeRules: {
+    // One rule covers the legacy URL; Vercel normalizes trailing slashes.
+    // Separate slash variants collide when Nitro names the route functions.
+    '/gym-scan': { redirect: { to: '/demo', statusCode: 308 } },
     // Vercel also serves the prerendered root at its literal /index.html path,
     // which Search Console reports as a duplicate URL. Nitro compiles this rule
     // into the Vercel routing config ahead of static file serving.
-    '/gym-scan': { redirect: { to: '/demo', statusCode: 308 } },
-    '/gym-scan/': { redirect: { to: '/demo', statusCode: 308 } },
     '/index.html': { redirect: { to: '/', statusCode: 308 } },
     // "best workout tracker" is the same query as "best workout tracking app";
     // one article ranks for both, so the shorter slug forwards instead of
