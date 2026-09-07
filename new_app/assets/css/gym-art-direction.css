@@ -1,0 +1,128 @@
+/* The demo is a continuous room. Type and controls give that room a quiet frame. */
+.gx--demo {
+  --gx-bg: oklch(14% .008 135);
+  --gx-fg: oklch(95% .008 110);
+  --gx-muted: oklch(74% .012 120);
+  --gx-line: oklch(87% .012 120 / .17);
+  --gx-lime: oklch(92% .22 120);
+}
+.gx--demo h1, .gx--demo h2 { font-weight: 600; letter-spacing: -.055em; text-wrap: balance; }
+.gx--demo p { text-wrap: pretty; }
+.gx--demo em { color: inherit; }
+.gx--demo .gx-protocol { font-size: .65rem; letter-spacing: .12em; }
+.gx--demo .gx-dot { box-shadow: none; }
+.gx--demo .gx-nav { padding-block: 18px; background: linear-gradient(oklch(11% .007 135 / .96), oklch(11% .007 135 / .6) 65%, transparent); }
+.gx--demo .gx-logo img { filter: none; }
+.gx--demo .gx-nav__links { font-size: .8125rem; }
+.gx.gx--demo .btn-primary,
+.gx.gx--demo .btn-ghost {
+  min-height: 46px;
+  border-radius: 6px;
+  font-size: .8125rem;
+  letter-spacing: .015em;
+  font-weight: 600;
+  text-transform: none;
+  box-shadow: none;
+  animation: none;
+  transition: background-color 180ms, border-color 180ms, transform 240ms cubic-bezier(.22,1,.36,1);
+}
+.gx.gx--demo .btn-primary { background: var(--gx-lime); color: oklch(18% .025 120); }
+.gx.gx--demo .btn-primary::before, .gx.gx--demo .btn-primary::after { content: none; }
+.gx--demo .gx-nav .btn-primary { min-height: 40px; padding: 10px 16px; font-size: .75rem; box-shadow: none; gap: .3em; }
+.gx--demo .gx-nav__kit span[aria-hidden] { margin-left: 10px; }
+.gx.gx--demo .btn-ghost { background: oklch(16% .008 135 / .7); border: 1px solid var(--gx-line); color: var(--gx-fg); }
+.gx--demo .gx-cinema canvas { transition: opacity 400ms cubic-bezier(.22,1,.36,1); }
+.gx--demo .gx-cinema__poster { opacity: .95; object-position: 65% 65%; }
+.gx--demo .gx-opening { min-height: 620px; display: block; padding: 124px 4.5vw 0; }
+.gx--demo .gx-opening__copy { position: static; max-width: none; text-shadow: none; }
+.gx--demo .gx-opening h1 { font-size: clamp(3.5rem, 6.4vw, 6rem); line-height: .98; max-width: 17ch; }
+.gx--demo .gx-opening .gx-protocol { margin-bottom: 22px; }
+.gx--demo .gx-opening__copy > p:not(.gx-protocol) { position: absolute; left: 4.5vw; bottom: 182px; margin: 0; font-size: 1rem; line-height: 1.6; max-width: 36ch; }
+.gx--demo .gx-opening .gx-actions { position: absolute; left: 4.5vw; bottom: 110px; margin: 0; }
+.gx--demo .gx-scroll, .gx--demo .gx-spec { bottom: 40px; }
+.gx--demo .gx-scroll > .gx-entry { font: inherit; }
+.gx--demo .gx-install { height: 250svh; }
+.gx--demo .gx-install__copy { top: 106px; height: 72svh; justify-content: start; }
+.gx--demo .gx-install__copy h2 { max-width: 14ch; font-size: clamp(2.5rem, 4.5vw, 4.5rem); line-height: 1.04; }
+.gx--demo .gx-install__chip { border: 0; background: none; padding: 8px 0; gap: 10px; font-size: .75rem; }
+.gx--demo .gx-install__types { gap: 28px; }
+.gx--demo .gx-chapters { border-radius: 30px; padding: 4px 8px; background: oklch(16% .008 135 / .95); box-shadow: none; }
+.gx--demo .gx-chapters a { border-radius: 24px; min-height: 44px; font-size: .6875rem; padding: 10px 14px; }
+.gx--demo .gx-chapters a[aria-current] { background: oklch(25% .02 120); }
+.gx--demo .gx-chapters .gx-protocol { font-size: .55rem; }
+.gx--demo .gx-nav-drawer { background: oklch(17% .008 135); border-color: var(--gx-line); }
+.gx--demo .gx-nav-drawer__link { font-style: normal; text-transform: none; letter-spacing: -.02em; }
+.gx--demo .gx-kit__intro h2 { font-size: clamp(2.75rem, 5vw, 5rem); max-width: 13ch; }
+.gx--demo .gx-kit__form h3 { font-weight: 500; }
+@media (hover: hover) and (pointer: fine) {
+  .gx.gx--demo .btn-primary:hover { background: oklch(95% .18 120); box-shadow: none; transform: translateY(-2px); }
+  .gx.gx--demo .btn-ghost:hover { background: oklch(24% .015 135); transform: translateY(-2px); }
+}
+@media (max-width: 760px) {
+  .gx--demo .gx-nav { padding: 12px 20px; gap: 8px; }
+  .gx--demo .gx-nav__kit > span:first-child { display: none; }
+  .gx--demo .gx-nav__kit span[aria-hidden] { display: inline; margin-left: 4px; }
+  .gx--demo .gx-nav .btn-primary { min-height: 38px; padding: 8px 12px; }
+  .gx--demo .gx-opening { min-height: 640px; padding: 106px 24px 0 !important; }
+  .gx--demo .gx-opening h1 { font-size: clamp(2.6rem, 10.8vw, 4.1rem); max-width: 14ch; }
+  .gx--demo .gx-opening .gx-protocol { margin-bottom: 16px; }
+  .gx--demo .gx-opening__copy > p:not(.gx-protocol) { left: 24px; bottom: 178px; font-size: .9375rem; max-width: 31ch; }
+  .gx--demo .gx-opening .gx-actions { left: 24px; right: 24px; bottom: 108px; gap: 8px; }
+  .gx--demo .gx-actions .btn-primary, .gx--demo .gx-actions .btn-ghost { padding: 12px 16px; font-size: .75rem; }
+  .gx--demo .gx-scroll { left: 24px; bottom: 80px; font-size: .5625rem; }
+  .gx--demo .gx-install { height: 210svh; }
+  .gx--demo .gx-install__copy { top: 98px; height: 70svh; padding: 0 24px; justify-content: start; }
+  .gx--demo .gx-install__copy h2 { font-size: clamp(2rem, 8vw, 3rem); max-width: 14ch; }
+  .gx--demo .gx-chapters { padding: 4px; width: calc(100% - 32px); }
+  .gx--demo .gx-chapters a { padding: 8px; font-size: .625rem; }
+  .gx--demo .gx-chapters a > span:first-child { display: inline; }
+  .gx--demo .gx-chapters a > span:last-child { display: none; }
+  .gx--demo .gx-chapters a[aria-current] > span:last-child { display: inline; }
+  .gx--demo .gx-chapters a[aria-current] > span:first-child { display: none; }
+  .gx--demo .gx-nav-drawer.is-open { background: oklch(15% .008 135); backdrop-filter: none; }
+}
+@media (max-height: 700px) and (min-width: 761px) {
+  .gx--demo .gx-opening { padding-top: 98px; min-height: 620px; }
+  .gx--demo .gx-opening h1 { font-size: 3.5rem; }
+  .gx--demo .gx-opening__copy > p:not(.gx-protocol) { bottom: 158px; }
+  .gx--demo .gx-opening .gx-actions { bottom: 92px; }
+}
+.gx--demo.is-static .gx-install, .gx--demo.is-reduced .gx-install { height: auto; min-height: 100svh; }
+.gx--demo.is-static .gx-install__copy, .gx--demo.is-reduced .gx-install__copy { min-height: 180px; height: auto; padding-block: 90px 24px; top: 0; }
+@media (scripting: none) {
+  .gx--demo .gx-install { height: auto; min-height: 100svh; }
+  .gx--demo .gx-install__copy { position: relative; top: 0; height: auto; padding-block: 90px 24px; }
+}
+
+/* Guidance uses the same typographic frame as the opening scene. */
+.gx.gx--demo .gc-copy { left: 4.5vw; top: 124px; bottom: auto; width: min(44%, 630px); }
+.gx.gx--demo .gc-copy h2 { max-width: 18ch; font-size: clamp(2.75rem, 4.7vw, 5rem); line-height: 1.02; }
+.gx.gx--demo .gc-copy h2 em { color: var(--gx-fg); }
+.gx.gx--demo .gc-copy > p:not(.gx-protocol):not(.gc-file-note) { font-size: .9375rem; max-width: 37ch; }
+.gx.gx--demo .gc-copy .gc-file-note { font-size: .6875rem; }
+.gx.gx--demo .gc-next { left: 4.5vw; font-size: .625rem !important; }
+.gx.gx--demo .gc-owner-pause { left: auto; right: -111%; bottom: -55px; }
+@media (max-width: 760px) {
+  .gx.gx--demo .gc-copy { top: 96px; left: 24px; right: 24px; width: auto; }
+  .gx.gx--demo .gc-copy h2 { font-size: clamp(2rem, 8.8vw, 3rem); max-width: 18ch; margin-bottom: 14px; }
+  .gx.gx--demo .gc-copy > p:not(.gx-protocol):not(.gc-file-note) { font-size: .8125rem; line-height: 1.5; }
+  .gx.gx--demo .gc-actions { gap: 8px 12px; }
+  .gx.gx--demo .gc-owner-pause { right: 0; top: calc(100svh - 270px); bottom: auto; }
+  .gx.gx--demo .gc-next { left: 24px; bottom: 70px; }
+}
+@media (max-width: 760px) {
+  .gx.gx--demo .gx-opening .gx-actions { bottom: 118px; }
+  .gx.gx--demo .gx-scroll { bottom: 78px; transform: none; }
+}
+.gx.gx--demo #lifters, .gx.gx--demo #gyms, .gx.gx--demo #progress, .gx.gx--demo #trainers { scroll-margin-top: 0; }
+@media (max-width: 760px) {
+  .gx.gx--demo .gc-actions .btn-ghost { min-height: 42px; padding: 10px 12px; font-size: .6875rem; }
+  .gx.gx--demo .gc-story.is-reduced .gc-chapter { display: flex; flex-direction: column; height: auto; min-height: 0; padding: 96px 24px 72px; }
+  .gx.gx--demo .gc-story.is-reduced .gc-copy-frame { position: static; order: 1; height: auto; }
+  .gx.gx--demo .gc-story.is-reduced .gc-copy { position: static; width: auto; }
+  .gx.gx--demo .gc-story.is-reduced .gc-stage { position: relative; order: 2; height: 440px; }
+  .gx.gx--demo .gc-story.is-reduced .gc-fallback-phone { top: 24px; right: calc(50% - 100px); width: 200px; max-width: none; }
+  .gx.gx--demo .gc-story.is-reduced .gc-next { position: static; margin-top: 18px; }
+}
+.gx.gx--demo .gc-fallback-phone > video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #080b08; }
+.gx.gx--demo.is-reduced .gx-entry { animation: none; }

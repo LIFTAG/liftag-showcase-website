@@ -1,53 +1,26 @@
 <script setup lang="ts">
-/**
- * Demo copy entrance. `scan` is the home-page laser wall (clip opens behind a
- * 2px beam). `holo` is the machine hologram: a lime core kicks across the
- * copy, cool-white mesh reconstructs in the wake, phosphor settles.
- */
-const props = withDefaults(defineProps<{
+// The entrance adds settling motion; graphics readiness never gates content.
+withDefaults(defineProps<{
   mode?: 'scan' | 'holo'
   from?: 'left' | 'right'
   row?: boolean
   lime?: boolean
   delay?: number
-}>(), {
-  mode: 'scan',
-  from: 'left',
-  row: false,
-  lime: false,
-  delay: 0,
+}>(), { row: false, lime: false, delay: 0 })
+const entry = useTemplateRef<HTMLElement>('entry')
+const entered = shallowRef(false)
+let observer: IntersectionObserver | undefined
+onMounted(() => {
+  if (!entry.value || typeof IntersectionObserver === 'undefined') return
+  observer = new IntersectionObserver(([item]) => {
+    if (!item?.isIntersecting) return
+    entered.value = true
+    observer?.disconnect()
+  }, { threshold: 0.1 })
+  observer.observe(entry.value)
 })
-
-const el = useTemplateRef<HTMLElement>('entry')
-useGymEntryArm(el)
-const done = shallowRef(false)
-
-function onAnimEnd(event: AnimationEvent) {
-  if (event.target !== el.value) return
-  if (!event.animationName.startsWith('gx-holo-open')) return
-  done.value = true
-}
-
-const classes = computed(() => ({
-  'gx-entry': true,
-  [`gx-entry--${props.mode}`]: true,
-  'gx-entry--row': props.row,
-  'gx-entry--lime': props.lime,
-  'from-right': props.from === 'right',
-  'is-done': done.value,
-}))
-
-const delayStyle = computed(() => (
-  props.delay > 0 ? { '--gx-entry-delay': `${props.delay}ms` } : undefined
-))
+onBeforeUnmount(() => observer?.disconnect())
 </script>
-
 <template>
-  <span
-    ref="entry"
-    data-gx-entry
-    :class="classes"
-    :style="delayStyle"
-    @animationend="onAnimEnd"
-  ><slot /></span>
+  <span ref="entry" class="gx-entry" :class="{ 'gx-entry--row': row, 'gx-entry--lime': lime, 'is-in': entered }" :style="{ '--gx-entry-delay': `${Math.min(delay, 180)}ms` }"><slot /></span>
 </template>

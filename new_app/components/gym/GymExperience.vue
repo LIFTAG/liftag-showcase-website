@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { gymAnchor } from "~/utils/gymscan/navigation";
+import demoStyles from '~/assets/css/gym-demo.css?inline';
 import type { CoachingState } from '~/utils/gymscan/coachingStage';
 const coaching = shallowRef<CoachingState>({ frame: { member: 0, owner: 0, isOwner: false, reduced: false }, paused: false, customSrc: '', replay: 0 });
 const customError = shallowRef(0);
@@ -7,19 +8,7 @@ const mediaFailed = shallowRef(false);
 const root = useTemplateRef<HTMLElement>("journey");
 const { current, reducedMotion, track } = useGymJourney(root);
 const enhanced = shallowRef(false);
-const hydrated = shallowRef(false);
-const arriving = shallowRef(false);
 const fallback = shallowRef(false);
-const swept = shallowRef(false);
-const copyHold = computed(
-  () =>
-    arriving.value ||
-    (!reducedMotion.value &&
-      !fallback.value &&
-      current.value.chapter === "experience" &&
-      !swept.value),
-);
-provideGymCopyReveal(copyHold, reducedMotion);
 const chapters = [
   { id: "experience", label: "The machine" },
   { id: "the-tag", label: "The tag" },
@@ -55,13 +44,14 @@ function revisitChapter(event: MouseEvent) {
     behavior: reducedMotion.value ? "instant" : "smooth",
   });
 }
-onMounted(() => {
-  hydrated.value = true;
-});
 useHead(() => ({
   htmlAttrs: { "data-gym-motion": reducedMotion.value ? "reduce" : null },
 }));
 useHead({
+  // The Three.js manifest excludes this route from automatic CSS preloading.
+  // Inline its processed, page-owned styles so semantic content is stable at
+  // first paint, before hydration or scene initialization.
+  style: [{ key: 'gym-demo-styles', textContent: demoStyles }],
   link: [
     {
       rel: "preload",
@@ -82,17 +72,14 @@ useHead({
 </script>
 <template>
   <div
-    class="gx"
+    class="gx gx--demo"
     @click="revisitChapter"
     :class="{
       'is-enhanced': enhanced,
-      'is-arriving': arriving,
-      'is-copy-held': copyHold,
       'is-reduced': reducedMotion,
-      'is-static': fallback || !hydrated,
+      'is-static': fallback,
     }"
   >
-    <GymArrival :ready="enhanced" :fallback="fallback" :reduced="reducedMotion" @active="arriving = $event" />
     <GymNav
       :reduced="reducedMotion"
       @motion="reducedMotion = !reducedMotion"
@@ -105,7 +92,7 @@ useHead({
           :coaching="coaching"
           @custom-error="customError++"
           @media-failed="mediaFailed = $event"
-          :paused="arriving"
+          :paused="false"
           :reduced="reducedMotion"
           product-view="exercise"
           @ready="
@@ -113,7 +100,6 @@ useHead({
             if ($event) fallback = false;
           "
           @fallback="fallback = true"
-          @swept="swept = true"
         />
         <section id="experience" class="gx-opening" aria-labelledby="gx-title">
           <div class="gx-opening__copy">
@@ -121,9 +107,9 @@ useHead({
               <GymHeroEntry row><span class="gx-dot" /> BUILT AROUND YOUR GYM</GymHeroEntry>
             </p>
             <h1 id="gx-title">
-              <GymHeroEntry row :delay="80">Your machines.</GymHeroEntry><br /><GymHeroEntry :delay="180"><em>Connected to their workout.</em></GymHeroEntry>
+              <GymHeroEntry row>Your machines.</GymHeroEntry><br /><GymHeroEntry :delay="80"><em>Connected.</em></GymHeroEntry>
             </h1>
-            <p><GymHeroEntry :delay="300">Put a tag on a machine. Members scan, watch and log.</GymHeroEntry></p>
+            <p><GymHeroEntry :delay="120">Part of every workout.<br />Members scan, watch and log on your equipment.</GymHeroEntry></p>
             <div class="gx-actions">
               <GymHeroEntry button :delay="400"><a class="btn-primary" href="#kit" @click="kit">Request your free kit</a></GymHeroEntry>
               <GymHeroEntry button :delay="480"><NuxtLink class="btn-ghost" to="/get"><HoloPill />Get the app</NuxtLink></GymHeroEntry>
@@ -155,8 +141,8 @@ useHead({
             loading="lazy"
           />
         </section>
-        <GymCoachingStory :reduced="reducedMotion" :enhanced="enhanced" :custom-error="customError" :media-failed="mediaFailed" @change="coaching = $event" @kit="kit" />
-        <GymGlobeStory :reduced="reducedMotion" />
+        <GymCoachingStory :reduced="reducedMotion || fallback" :enhanced="enhanced" :custom-error="customError" :media-failed="mediaFailed" @change="coaching = $event" @kit="kit" />
+        <GymGlobeStory :reduced="reducedMotion" :active="current.chapter === 'discover'" />
       </div>
       <GymKit />
     </main>
@@ -181,10 +167,9 @@ useHead({
         v-for="(chapter, i) in chapters"
         :key="chapter.id"
         :href="`#${chapter.id}`"
-        :aria-label="chapter.label"
+        :aria-label="`0${i + 1} ${chapter.label}`"
         :aria-current="current.chapter === chapter.id ? 'step' : undefined"
-        ><span class="gx-protocol">0{{ i + 1 }}</span
-        ><span>{{ chapter.label }}</span></a
+        ><span class="gx-protocol">0{{ i + 1 }}</span>{{ ' ' }}<span>{{ chapter.label }}</span></a
       ><a
         href="#kit"
         @click="kit"
@@ -195,4 +180,3 @@ useHead({
     </nav>
   </div>
 </template>
-<style src="~/assets/css/gym-experience.css"></style>

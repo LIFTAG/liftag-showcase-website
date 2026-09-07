@@ -3,7 +3,7 @@ import { discoveryEquipment, discoveryLocation } from "./discoveryEquipment";
 import { discoveryAppDivider, discoveryAppRow } from "./discoveryTimeline";
 
 /** A single texture; the actual floor models become its equipment thumbnails. */
-export function drawDiscoveryAppScreen(ctx: CanvasRenderingContext2D, w: number, h: number, options: { dividers?: boolean } = {}) {
+export function drawDiscoveryAppScreen(ctx: CanvasRenderingContext2D, w: number, h: number, options: { dividers?: boolean; venue?: string; city?: string } = {}) {
   const ink = "#eff2ed", muted = "#a8b1a9", lime = "#ccff00";
   const text = (value: string, x: number, y: number, size: number, color = ink, weight = 500) => {
     ctx.fillStyle = color;
@@ -27,8 +27,8 @@ export function drawDiscoveryAppScreen(ctx: CanvasRenderingContext2D, w: number,
   rounded(w - 37, 49, 3, 9, 1, muted);
   text("‹", 38, 147, 48);
   text("GYM OVERVIEW", 76, 137, 20, muted, 600);
-  text("Your gym", 38, 216, 57, ink, 650);
-  text(discoveryLocation.city, 40, 256, 26, muted);
+  text(options.venue ?? "LIFTAG Bratislava", 38, 216, 48, ink, 650);
+  text(options.city ?? discoveryLocation.city, 40, 256, 26, muted);
   rounded(38, 288, w - 76, 64, 15, "#1c231e");
   ctx.strokeStyle = muted;
   ctx.lineWidth = 3;

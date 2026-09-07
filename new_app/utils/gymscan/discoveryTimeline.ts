@@ -76,16 +76,14 @@ export type DiscoveryAppRow = {
   thumb: number;
 };
 
-export const GLOBE_SETTLE_AT = 2.8;
-export const GLOBE_WAVE_PERIOD = 3.7;
+export const GLOBE_SETTLE_AT = 1.25;
+export const GLOBE_WAVE_PERIOD = 3.2;
 
 /** Brief construction passes; no repeating sweep or idle hologram. */
 export function globeAssemblyAt(seconds: number) {
   const assembly = smoothstep(seconds / GLOBE_SETTLE_AT);
-  const pass =
-    seconds < 1.25 ? (seconds - 0.2) / 0.95 : (seconds - 1.45) / 1.05;
-  const active =
-    (seconds >= 0.2 && seconds < 1.15) || (seconds >= 1.45 && seconds < 2.5);
+  const pass = (seconds - 0.08) / 0.72;
+  const active = seconds >= 0.08 && seconds < 0.8;
   return {
     assembly,
     sweepY: 2.3 - clamp01(pass) * 4.6,

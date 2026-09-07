@@ -46,6 +46,7 @@ import {
 import { createPhoneOverlay, phoneShrink, type PhoneOverlay } from './phoneOverlay'
 import { createScanAppScreen } from './scanApp.ts'
 import { createCoachingContent, type CoachingFrame } from './coachingStage'
+import { createRecordingScene } from './recordingScene'
 import { PHONE_H, PHONE_W } from '../phoneModel'
 import {
   createReticleTracker,
@@ -274,7 +275,7 @@ export interface StageOptions {
   /** The new journey reuses this film, with native scroll owning its opening. */
   adaptiveQuality?: boolean
   readPointer?: () => { mx: number; my: number; hasPointer: boolean }
-  readCoaching?: () => { frame: CoachingFrame; video: HTMLVideoElement | null; customVideo: HTMLVideoElement | null; replay: number }
+  readCoaching?: () => { frame: CoachingFrame; video: HTMLVideoElement | null; customVideo: HTMLVideoElement | null; replay: number; paused?: boolean }
   overlayCoversFrame?: () => boolean
   renderOverlay?: (renderer: THREE.WebGLRenderer, dt: number, width: number, height: number) => void
 }
@@ -401,7 +402,7 @@ export function createGymScanStage(opts: StageOptions) {
   // Pulled down from 1.35. The rig below puts more energy into speculars and
   // less into flat fill, so the machine can sit further into the toe of the
   // curve and still read - which is what a dark room actually looks like.
-  renderer.toneMappingExposure = isCoarse ? 1.10 : opts.adaptiveQuality ? 1.0 : 0.82
+  renderer.toneMappingExposure = opts.readCoaching ? 1.12 : isCoarse ? 1.10 : opts.adaptiveQuality ? 1.0 : 0.82
   renderer.shadowMap.enabled = device.shadows
   renderer.shadowMap.type = THREE.PCFShadowMap
 
@@ -415,7 +416,7 @@ export function createGymScanStage(opts: StageOptions) {
   const camera = new THREE.PerspectiveCamera(38, 1, 0.05, 90)
   camera.position.set(3.98, 2.22, 4.96)
 
-  const env = createGymEnvironment(renderer, opts.adaptiveQuality ? 128 : 256)
+  const env = createGymEnvironment(renderer, opts.adaptiveQuality ? 128 : 256, Boolean(opts.readCoaching))
   scene.environment = env.texture
 
   const uniforms = createScanUniforms()
@@ -441,7 +442,7 @@ export function createGymScanStage(opts: StageOptions) {
   if (!isCoarse) {
     RectAreaLightUniformsLib.init()
     for (const s of CEILING_STRIPS) {
-      const strip = new THREE.RectAreaLight(STRIP_COLOR, STRIP_NITS, s.w, s.l)
+      const strip = new THREE.RectAreaLight(opts.readCoaching ? 0xeee9de : STRIP_COLOR, STRIP_NITS * (opts.readCoaching ? 2 : 1), s.w, s.l)
       strip.position.set(s.x, s.y, s.z)
       strip.rotation.x = -Math.PI / 2
       scene.add(strip)
@@ -470,7 +471,7 @@ export function createGymScanStage(opts: StageOptions) {
   // Ambient is now a floor under the env map rather than a fill: a constant
   // added term is direction-free by definition, and any amount of it flattens
   // the very shading the area lights are there to produce.
-  const ambient = new THREE.AmbientLight(0x0a1018, 0.055)
+  const ambient = new THREE.AmbientLight(opts.readCoaching ? 0xc5cbc0 : 0x0a1018, opts.readCoaching ? .34 : .055)
   scene.add(ambient)
   lightStickLayer(ambient)
 
@@ -1058,6 +1059,9 @@ export function createGymScanStage(opts: StageOptions) {
 
   const phoneOverlay: PhoneOverlay = createPhoneOverlay({ shadows: renderer.shadowMap.enabled })
   let coaching: ReturnType<typeof createCoachingContent> | null = null
+  let recording: ReturnType<typeof createRecordingScene> | null = null
+  let recordingSeconds = 0
+  let recordingReplay = -1
   function updateCoaching(morph: number, dt: number) {
     const input = opts.readCoaching?.()
     const mix = input ? smoothstep((morph - .82) / .18) : 0
@@ -1066,7 +1070,7 @@ export function createGymScanStage(opts: StageOptions) {
       phoneOverlay.addContent(coaching.group)
     }
     phoneOverlay.setCoaching(coaching?.texture ?? null, mix)
-    if (coaching && input) coaching.update(input.frame, width, phoneTarget(1).h, dt, mix, input.video, input.customVideo, input.replay)
+    return coaching && input ? coaching.update(input.frame, mix, input.video, input.customVideo) : null
   }
   const appScreen = createScanAppScreen({ reducedMotion, defer: opts.adaptiveQuality })
   const reticleOverlay = createReticleOverlay()
@@ -1146,8 +1150,8 @@ export function createGymScanStage(opts: StageOptions) {
   let lastQrRect: ScreenRect | null = null
   function dressMaterial(std: THREE.MeshStandardMaterial) {
     const spec = HERO_MATERIALS[std.name] ?? { kind: 'frame' as SurfaceKind, rough: null, env: 0.55, dim: 1 }
-    std.color.multiplyScalar(spec.dim)
-    std.envMapIntensity = spec.env
+    std.color.multiplyScalar(spec.dim * (opts.readCoaching ? 1.4 : 1))
+    std.envMapIntensity = spec.env * (opts.readCoaching ? 1.7 : 1)
     if (spec.rough !== null) std.roughness = spec.rough
     applyScanShader(std, uniforms, createSurfaceUniforms(spec.kind))
   }
@@ -1408,8 +1412,76 @@ export function createGymScanStage(opts: StageOptions) {
     // After the scan, draw only the existing phone and its screen content.
     // The gym, bloom, reticle and scanner playback have finished their work.
     if (opts.readCoaching && p > .999 && targetProgress === 1) {
+      camera.clearViewOffset()
       appScreen.suspend()
-      updateCoaching(1, dt)
+      const input = opts.readCoaching()
+      const pose = updateCoaching(1, dt)
+      if (input.replay !== recordingReplay) {
+        recordingReplay = input.replay
+        recordingSeconds = 0
+        if (input.video) input.video.currentTime = 0
+        if (input.customVideo) input.customVideo.currentTime = 0
+      }
+      if (input.video && input.video.readyState >= 2 && !input.video.paused) recordingSeconds = input.video.currentTime
+      else if (!input.paused && pose && pose.room > .002) recordingSeconds += dt
+      const mediaSeconds = recordingSeconds
+
+      if (pose && pose.room > .002) {
+        if (!recording) {
+          recording = createRecordingScene(coaching!.texture)
+          scene.add(recording.group)
+          void recording.load()
+        }
+        const carriageOffset = recording.update({ seconds: mediaSeconds, room: pose.room, recording: pose.recording, transfer: pose.transfer, video: input.video })
+        if (partsRig) partsRig.carriage.position.copy(carriageOffset)
+        machineRig.visible = true
+        partsRig && (partsRig.root.visible = true)
+        floor.visible = true
+        contact.visible = true
+        const target = phoneTarget(1)
+        const closeDistance = 1.38 / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * target.h / heightPx)
+        const closeX = -1 - .99923 * closeDistance
+        const closeZ = 1.65 - .03919 * closeDistance
+        const compactRecording = width <= 760
+        // Portrait viewports have a very narrow horizontal field. Pull the
+        // side-on recording station back and centre its actual Z extents so
+        // the tripod, machine and logger all remain inside 360 CSS pixels.
+        const wideX = compactRecording ? -13.8 : -6.3
+        const wideY = compactRecording ? 2.05 : 1.75
+        const wideZ = compactRecording ? .25 : 1.5
+        camera.position.set(lerp(closeX, wideX, pose.room), lerp(1.18, wideY, pose.room), lerp(closeZ, wideZ, pose.room))
+        lookAt.set(lerp(-1, -.1, pose.room), lerp(1.18, compactRecording ? .92 : .88, pose.room), lerp(1.65, compactRecording ? .18 : 0, pose.room))
+        camera.lookAt(lookAt)
+        camera.setViewOffset(width, heightPx,
+          lerp(width / 2 - (target.x + target.w / 2), width > 760 ? -width * .08 : 0, pose.room),
+          lerp(heightPx / 2 - (target.y + target.h / 2), compactRecording ? -heightPx * .16 : -heightPx * .1, pose.room),
+          width, heightPx)
+        phoneFill.visible = false
+        key.position.set(compactRecording ? -3.6 : 1.7, compactRecording ? 4.3 : 4.9, compactRecording ? 1.8 : 2.5)
+        key.target.position.set(-.1, .88, 0)
+        // This camera looks across the bay, away from the ceiling emitters.
+        // Give the recording shot its own soft key so the joint motion reads.
+        key.intensity = lerp(KEY_INTENSITY0, compactRecording ? 140 : 100, pose.room)
+        key.distance = KEY_DISTANCE0
+        key.angle = lerp(KEY_ANGLE0, .72, pose.room)
+        ambient.intensity = lerp(.34, .85, pose.room)
+        rimL.intensity = RIM_L0 * (compactRecording ? 1.65 : 1)
+        rimR.intensity = RIM_R0 * (compactRecording ? 1.15 : 1)
+        for (const strip of strips) strip.intensity = STRIP_NITS * 2
+        composite.uniforms.uDof!.value = 0
+        composite.uniforms.uVignette!.value = .36
+        renderGymFrame()
+        phoneOverlay.blitToScreen(renderer, composer.readBuffer.texture)
+        return
+      }
+      if (recording) recording.group.visible = false
+      if (partsRig) partsRig.carriage.position.set(0, 0, 0)
+      key.position.set(1.7, 4.9, 2.5)
+      key.target.position.set(0, .82, -.1)
+      ambient.intensity = .34
+      rimL.intensity = RIM_L0
+      rimR.intensity = RIM_R0
+      phoneFill.visible = true
       phoneOverlay.setHeroMix(1)
       phoneOverlay.setAppMix(1)
       phoneOverlay.pose(1, phoneTarget(1), width, heightPx, {
@@ -1418,6 +1490,11 @@ export function createGymScanStage(opts: StageOptions) {
       phoneOverlay.renderFromTexture(renderer, composer.readBuffer.texture, 1)
       return
     }
+    key.position.set(1.7, 4.9, 2.5)
+    key.target.position.set(0, .82, -.1)
+    ambient.intensity = opts.readCoaching ? .34 : .055
+    if (recording) recording.group.visible = false
+    if (partsRig) partsRig.carriage.position.set(0, 0, 0)
     updateCoaching(morph, dt)
 
     uniforms.uTime.value = elapsed
@@ -1593,6 +1670,15 @@ export function createGymScanStage(opts: StageOptions) {
       camera.lookAt(lookAt)
     }
 
+    // Frame the machine beside the headline, then return to the optical
+    // center before the QR acquisition so screen and code remain aligned.
+    if (opts.readCoaching) {
+      const framing = 1 - ease(camU, .05, .65)
+      camera.setViewOffset(width, heightPx, width > 760 ? -width * .13 * framing : 0, width > 760 ? 0 : heightPx * .05 * framing, width, heightPx)
+      if (width > 760) camera.position.lerp(lookAt, .07 * framing)
+      else camera.position.sub(lookAt).multiplyScalar(1 + .18 * framing).add(lookAt)
+    }
+
     const keySize = scalarAt(KEY_SIZE, camU)
     const keyLevel = scalarAt(KEY_LEVEL, camU)
     key.intensity = KEY_INTENSITY0 * keyLevel
@@ -1602,7 +1688,7 @@ export function createGymScanStage(opts: StageOptions) {
     rimL.intensity = RIM_L0 * keyLevel
     rimR.intensity = RIM_R0 * keyLevel
     for (const strip of strips) {
-      strip.intensity = STRIP_NITS * lerp(0.18, 1, keyLevel)
+      strip.intensity = STRIP_NITS * (opts.readCoaching ? 2 : 1) * lerp(0.18, 1, keyLevel)
       strip.width = lerp(STRIP_W_END, STRIP_W0, keySize)
       strip.height = lerp(STRIP_L_END, STRIP_L0, keySize)
     }
@@ -1726,7 +1812,7 @@ export function createGymScanStage(opts: StageOptions) {
         wasActivating = false
       }
       const cardBeat = !skipBirth && (a0.shot === 'fly' || a0.shot === 'stick')
-      const want = cardBeat || !holoLive ? 0 : scalarAt(HOLO, camSp)
+      const want = cardBeat || !holoLive || opts.readCoaching ? 0 : scalarAt(HOLO, camSp)
       // ~0.8 s either way at 60fps, which is about the length of one pass.
       holoMix = reducedMotion ? want : damp(holoMix, want, 0.06, dt)
       holo?.update(
@@ -2193,6 +2279,7 @@ export function createGymScanStage(opts: StageOptions) {
     appScreen.dispose()
     productTextures.forEach(texture => texture.dispose())
     coaching?.dispose()
+    recording?.dispose()
     phoneOverlay.dispose()
     reticleOverlay.dispose()
     stickFocus.dispose()
