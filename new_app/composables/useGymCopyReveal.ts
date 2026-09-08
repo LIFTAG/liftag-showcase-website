@@ -25,9 +25,8 @@ export function useGymEntryArm(el: Ref<HTMLElement | null>) {
 
   function reveal() {
     const node = el.value
-    if (!node || node.classList.contains('is-in')) return
+    if (!node || revealed.value) return
     revealed.value = true
-    node.classList.add('is-in')
     io?.disconnect()
     io = null
   }
@@ -52,7 +51,9 @@ export function useGymEntryArm(el: Ref<HTMLElement | null>) {
       },
       { threshold: 0.16, rootMargin: '0px 0px -6% 0px' },
     )
-    io.observe(node)
+    // The scan entry starts fully clipped, so it has no observable intersection
+    // area. Its layout parent stays measurable before the reveal begins.
+    io.observe(node.parentElement ?? node)
   }
 
   watch(

@@ -56,7 +56,7 @@ onBeforeUnmount(clearVideo);
       <p v-if="mediaFailed && !customSrc" class="gc-media-unavailable" role="status">Instruction preview unavailable. Showing the exercise still.</p>
       <div class="gc-stage-note" aria-hidden="true"><span class="gc-status-dot" />{{ stageNote }}</div>
     </div>
-    <section id="lifters" class="gc-chapter" aria-labelledby="gc-member-title">
+    <section id="lifters" class="gc-chapter" aria-labelledby="gc-member-title" tabindex="-1">
       <span id="progress" class="gc-anchor" />
       <GymCoachingStage v-if="reduced" :frame="{ member: 0, owner: 0, isOwner: false, reduced: true }" />
       <div class="gc-copy-frame">
@@ -71,7 +71,7 @@ onBeforeUnmount(clearVideo);
         <a class="gc-next gx-protocol" href="#gyms"><GymEntry mode="holo" row :delay="300">MAKE IT YOURS</GymEntry> <span>↓</span></a>
       </div>
     </section>
-    <section id="gyms" class="gc-chapter gc-chapter--owner" aria-labelledby="gc-owner-title">
+    <section id="gyms" class="gc-chapter gc-chapter--owner" aria-labelledby="gc-owner-title" tabindex="-1">
       <span id="trainers" class="gc-anchor" />
       <GymCoachingStage v-if="reduced" :frame="{ member: 1, owner: 1, isOwner: true, reduced: true }" />
       <div class="gc-copy-frame">

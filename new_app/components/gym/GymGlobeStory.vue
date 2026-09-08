@@ -24,6 +24,7 @@ const captions = [
 <template>
   <section
     id="discover"
+    tabindex="-1"
     ref="root"
     class="gd-story"
     :class="{ 'is-simple': simple }"

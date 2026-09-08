@@ -21,11 +21,11 @@ const copyHold = computed(
 );
 provideGymCopyReveal(copyHold, reducedMotion);
 const chapters = [
-  { id: "experience", label: "The machine" },
-  { id: "the-tag", label: "The tag" },
-  { id: "lifters", label: "Watch & lift" },
-  { id: "gyms", label: "Your instructions" },
-  { id: "discover", label: "On the map" },
+  { id: "experience", label: "The machine", compact: "Machine" },
+  { id: "the-tag", label: "The tag", compact: "The tag" },
+  { id: "lifters", label: "Watch & lift", compact: "Watch & lift" },
+  { id: "gyms", label: "Your instructions", compact: "Your gym" },
+  { id: "discover", label: "On the map", compact: "On the map" },
 ];
 function kit() {
   track("gym_kit_cta");
@@ -50,6 +50,7 @@ function revisitChapter(event: MouseEvent) {
   const target = id ? document.getElementById(id) : null;
   if (!target) return;
   event.preventDefault();
+  target.focus({ preventScroll: true });
   target.scrollIntoView({
     block: "start",
     behavior: reducedMotion.value ? "instant" : "smooth",
@@ -115,7 +116,7 @@ useHead({
           @fallback="fallback = true"
           @swept="swept = true"
         />
-        <section id="experience" class="gx-opening" aria-labelledby="gx-title">
+        <section id="experience" class="gx-opening" aria-labelledby="gx-title" tabindex="-1">
           <div class="gx-opening__copy">
             <p class="gx-protocol">
               <GymHeroEntry row><span class="gx-dot" /> BUILT AROUND YOUR GYM</GymHeroEntry>
@@ -135,7 +136,7 @@ useHead({
             ><GymHeroEntry :delay="600">01 / PIVOT LEG PRESS<br />TAG → SCAN → LOG</GymHeroEntry></span
           >
         </section>
-        <section id="the-tag" class="gx-install" aria-labelledby="gx-tag-title">
+        <section id="the-tag" class="gx-install" aria-labelledby="gx-tag-title" tabindex="-1">
           <div class="gx-install__copy">
             <p class="gx-protocol"><GymEntry mode="holo" row>A STICKER FOR EACH MACHINE</GymEntry></p>
             <h2 id="gx-tag-title">
@@ -176,15 +177,16 @@ useHead({
       </nav>
       <span class="gx-protocol">BUILT FOR REAL TRAINING.</span>
     </footer>
-    <nav class="gx-chapters" aria-label="Experience chapters">
+    <nav v-show="current.chapter !== 'kit'" class="gx-chapters" aria-label="Experience chapters">
       <a
         v-for="(chapter, i) in chapters"
         :key="chapter.id"
         :href="`#${chapter.id}`"
         :aria-label="chapter.label"
         :aria-current="current.chapter === chapter.id ? 'step' : undefined"
-        ><span class="gx-protocol">0{{ i + 1 }}</span
-        ><span>{{ chapter.label }}</span></a
+        ><span class="gx-protocol" aria-hidden="true">0{{ i + 1 }}</span
+        ><span class="gx-chapters__label" aria-hidden="true">{{ chapter.label }}</span
+        ><span class="gx-chapters__compact" aria-hidden="true">{{ chapter.compact }}</span></a
       ><a
         href="#kit"
         @click="kit"

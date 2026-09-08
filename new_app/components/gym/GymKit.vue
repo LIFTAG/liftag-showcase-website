@@ -5,7 +5,7 @@ withDefaults(defineProps<{ source?: "experience" | "partner" }>(), {
 });
 </script>
 <template>
-  <section id="kit" class="gx-kit" aria-labelledby="gx-kit-title">
+  <section id="kit" class="gx-kit" aria-labelledby="gx-kit-title" tabindex="-1">
     <div class="gx-kit__intro">
       <p class="gx-protocol"><GymEntry mode="holo" row><span class="gx-dot" /> START WITH YOUR GYM</GymEntry></p>
       <h2 id="gx-kit-title">
@@ -22,7 +22,7 @@ withDefaults(defineProps<{ source?: "experience" | "partner" }>(), {
         /><span class="gx-protocol"><GymEntry mode="holo" :delay="240">QR + NFC<br />READY FOR YOUR FLOOR</GymEntry></span>
       </div>
       <details class="gx-included">
-        <summary>What’s free? <span>+</span></summary>
+        <summary>What’s free? <span aria-hidden="true">+</span></summary>
         <p>
           Your QR + NFC tags, gym listing, equipment setup, and core dashboard.
           Advanced business tools are optional.
@@ -36,7 +36,7 @@ withDefaults(defineProps<{ source?: "experience" | "partner" }>(), {
     </div>
     <div class="gx-faqs">
       <details v-for="faq in gymFaqs.slice(1)" :key="faq.question">
-        <summary>{{ faq.question }}<span>+</span></summary>
+        <summary>{{ faq.question }}<span aria-hidden="true">+</span></summary>
         <p>{{ faq.answer }}</p>
       </details>
     </div>

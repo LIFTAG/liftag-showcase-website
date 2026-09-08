@@ -4,14 +4,42 @@ const emit = defineEmits<{ motion: []; kit: [] }>();
 
 const open = shallowRef(false);
 const root = useTemplateRef<HTMLElement>("root");
+const toggleButton = useTemplateRef<HTMLButtonElement>("menuToggle");
+const drawer = useTemplateRef<HTMLElement>("drawer");
 let navResizeObserver: ResizeObserver | null = null;
 
-function close() {
+function focusableControls() {
+  const controls = root.value?.querySelectorAll<HTMLElement>(
+    'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+  );
+  return [...(controls ?? [])].filter((control) => {
+    const style = getComputedStyle(control);
+    const rect = control.getBoundingClientRect();
+    return (
+      style.display !== "none" &&
+      style.visibility !== "hidden" &&
+      rect.width > 0 &&
+      rect.height > 0
+    );
+  });
+}
+
+function close(restoreFocus = false) {
+  if (!open.value) return;
+  const focusWasInDrawer = drawer.value?.contains(document.activeElement) ?? false;
   open.value = false;
+  if (restoreFocus || focusWasInDrawer) {
+    nextTick(() => toggleButton.value?.focus());
+  }
 }
 
 function toggle() {
   open.value = !open.value;
+}
+
+function closeAfterNavigation(event: MouseEvent) {
+  const target = event.target as Element;
+  if (target.closest("a")) close();
 }
 
 function publishNavHeight() {
@@ -22,11 +50,42 @@ function publishNavHeight() {
 
 watch(open, (isOpen, _wasOpen, onCleanup) => {
   if (!import.meta.client || !isOpen) return;
+  nextTick(() => {
+    if (open.value) {
+      drawer.value?.querySelector<HTMLElement>(".gx-nav-drawer__link")?.focus();
+    }
+  });
   const onKeydown = (event: KeyboardEvent) => {
-    if (event.key === "Escape") close();
+    if (event.key === "Escape") {
+      event.preventDefault();
+      close(true);
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const controls = focusableControls();
+    const first = controls[0];
+    const last = controls.at(-1);
+    if (!first || !last) return;
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    } else if (!root.value?.contains(document.activeElement)) {
+      event.preventDefault();
+      (event.shiftKey ? last : first).focus();
+    }
   };
-  window.addEventListener("keydown", onKeydown);
-  onCleanup(() => window.removeEventListener("keydown", onKeydown));
+  const onPointerdown = (event: PointerEvent) => {
+    if (!root.value?.contains(event.target as Node)) close();
+  };
+  document.addEventListener("keydown", onKeydown);
+  document.addEventListener("pointerdown", onPointerdown);
+  onCleanup(() => {
+    document.removeEventListener("keydown", onKeydown);
+    document.removeEventListener("pointerdown", onPointerdown);
+  });
 });
 
 onMounted(() => {
@@ -45,7 +104,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="root" class="gx-nav-root" :class="{ 'is-open': open }">
+  <div
+    ref="root"
+    class="gx-nav-root"
+    :class="{ 'is-open': open }"
+    @click="closeAfterNavigation"
+  >
     <header class="gx-nav" :class="{ 'is-open': open }">
       <a class="gx-skip" href="#experience">Skip to content</a>
       <NuxtLink class="gx-logo" to="/" aria-label="LIFTAG home">
@@ -57,12 +121,13 @@ onBeforeUnmount(() => {
         ><NuxtLink to="/get">Get the app ↗</NuxtLink>
       </nav>
       <a class="btn-primary gx-nav__kit" href="#kit" @click="emit('kit')"
-        ><span>Request your </span>free kit</a
+        ><span>Request your </span><span class="gx-nav__kit-label">free kit</span></a
       >
       <button
+        ref="menuToggle"
         type="button"
         class="gx-nav-toggle"
-        aria-label="Toggle menu"
+        :aria-label="open ? 'Close menu' : 'Open menu'"
         :aria-expanded="open"
         aria-controls="gx-mobile-navigation"
         @click="toggle"
@@ -75,12 +140,14 @@ onBeforeUnmount(() => {
       </button>
     </header>
     <div
+      ref="drawer"
       id="gx-mobile-navigation"
       class="gx-nav-drawer"
       :class="{ 'is-open': open }"
       :aria-hidden="!open"
+      :inert="!open"
     >
-      <nav aria-label="More navigation" @click="close">
+      <nav aria-label="More navigation">
         <a href="#lifters" class="gx-nav-drawer__link">Try LIFTAG</a>
         <a href="#gyms" class="gx-nav-drawer__link">For gym owners</a>
         <NuxtLink to="/for-trainers" class="gx-nav-drawer__link">For coaches</NuxtLink>
@@ -88,7 +155,7 @@ onBeforeUnmount(() => {
         <NuxtLink to="/exercises" class="gx-nav-drawer__link">Exercise library</NuxtLink>
         <NuxtLink to="/get" class="gx-nav-drawer__link gx-nav-drawer__app">Get the app</NuxtLink>
       </nav>
-      <div class="gx-nav-drawer__store" @click="close">
+      <div class="gx-nav-drawer__store">
         <GetAppBtn label="Get the app" />
       </div>
       <button

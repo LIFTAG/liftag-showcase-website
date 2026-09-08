@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<{
 })
 
 const el = useTemplateRef<HTMLElement>('entry')
-useGymEntryArm(el)
+const armed = useGymEntryArm(el)
 const done = shallowRef(false)
 
 function onAnimEnd(event: AnimationEvent) {
@@ -34,6 +34,7 @@ const classes = computed(() => ({
   'gx-entry--row': props.row,
   'gx-entry--lime': props.lime,
   'from-right': props.from === 'right',
+  'is-in': armed.value,
   'is-done': done.value,
 }))
 

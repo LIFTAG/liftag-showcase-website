@@ -31,6 +31,7 @@ const pending = computed(() => status.value === "submitting");
 const succeeded = computed(() => status.value === "success");
 const host = useTemplateRef<HTMLElement>("host");
 const confirmation = useTemplateRef<HTMLElement>("confirmation");
+const formError = useTemplateRef<HTMLElement>("formError");
 const turnstile = useTemplateRef<{ reset: () => void }>("turnstile");
 const { gtag } = useGtag();
 const compactChallenge = ref(false);
@@ -69,6 +70,8 @@ async function send() {
   if (!token.value) {
     verificationMessage.value =
       "Please complete the verification below, then send your request.";
+    await nextTick();
+    formError.value?.focus();
     return;
   }
   verificationMessage.value = "";
@@ -181,6 +184,7 @@ onBeforeUnmount(() => {
             :aria-describedby="
               errors.equipment ? `${id}-equipment-error` : undefined
             "
+            @input="delete errors.equipment"
           />
           <p
             v-if="errors.equipment"
@@ -202,6 +206,7 @@ onBeforeUnmount(() => {
             :disabled="pending || !hydrated"
             :aria-invalid="!!errors.notes"
             :aria-describedby="errors.notes ? `${id}-notes-error` : undefined"
+            @input="delete errors.notes"
           />
           <p
             v-if="errors.notes"
@@ -212,6 +217,15 @@ onBeforeUnmount(() => {
           </p>
         </div>
       </div>
+      <p
+        v-if="verificationMessage || errorMessage"
+        ref="formError"
+        class="gx-form-form-error"
+        role="alert"
+        tabindex="-1"
+      >
+        {{ verificationMessage || errorMessage }}
+      </p>
       <div
         class="gx-form-verification"
         :class="{ 'is-compact': compactChallenge }"
@@ -225,13 +239,6 @@ onBeforeUnmount(() => {
             :options="turnstileOptions"
         /></ClientOnly>
       </div>
-      <p
-        v-if="verificationMessage || errorMessage"
-        class="gx-form-form-error"
-        role="alert"
-      >
-        {{ verificationMessage || errorMessage }}
-      </p>
       <button
         class="btn-primary"
         type="submit"
