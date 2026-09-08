@@ -69,14 +69,14 @@ function draw(time: number) {
     point.equipment.forEach((p, i) => {
       const label = labelNodes[i];
       if (label) {
-        label.style.transform = `translate(${p.x}px,${p.y}px)`;
+        label.style.transform = `translate(${Math.round(p.x)}px,${Math.round(p.y)}px)`;
         label.style.opacity = String(p.alpha);
       }
     });
     point.locations.forEach((p, i) => {
       const label = mapNodes[i];
       if (!label) return;
-      label.style.transform = `translate(${p.x}px,${p.y}px)`;
+      label.style.transform = `translate(${Math.round(p.x)}px,${Math.round(p.y)}px)`;
       label.style.opacity = String(p.alpha);
       label.style.visibility = p.alpha > 0.01 ? "visible" : "hidden";
     });

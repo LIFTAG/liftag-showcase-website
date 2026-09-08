@@ -173,7 +173,10 @@ export function useGymGlyphMesh(
       observer = new MutationObserver(start)
       observer.observe(host.value!, { attributes: true, attributeFilter: ['class'] })
       resize = new ResizeObserver(() => {
-        if (!finished && !build()) finish()
+        // Sticky pin/URL-bar motion resizes the host. Rebuilding the mesh
+        // mid-scroll is what made the tag and map copy shiver on a phone.
+        if (started || finished) return
+        if (!build()) finish()
       })
       resize.observe(host.value!)
       start()

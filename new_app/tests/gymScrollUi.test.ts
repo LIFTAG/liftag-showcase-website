@@ -32,3 +32,23 @@ test("phone sticky copy does not live-filter glyphs during the pin", () => {
   assert.ok(chapters);
   assert.doesNotMatch(chapters[0], /translateX\(-50%\)/);
 });
+
+test("tag and map sticky panes share the cinema's top:0 / 100svh box on a phone", () => {
+  const experience = read("../assets/css/gym-experience.css");
+  assert.match(
+    experience,
+    /\.gx-install__copy \{[\s\S]*top: 0;[\s\S]*height: 100svh;/,
+  );
+  const discovery = read("../assets/css/gym-discovery.css");
+  assert.match(discovery, /overflow:\s*clip;/);
+  assert.match(
+    discovery,
+    /@media \(max-width: 760px\)[\s\S]*\.gx \.gd-sticky \{[\s\S]*min-height: 0;/,
+  );
+  assert.match(
+    discovery,
+    /\.gx \.gd-steps \{[\s\S]*bottom: 155px;/,
+  );
+  const hero = read("../components/gym/GymHeroEntry.vue");
+  assert.match(hero, /is-mesh-playing \.gx-hero-entry__mesh/);
+});

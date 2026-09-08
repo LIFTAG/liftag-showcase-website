@@ -1172,9 +1172,11 @@ html[data-gym-motion="reduce"] {
     height: 260svh;
   }
   .gx-install__copy {
-    top: 80px;
-    padding: 0 24px;
-    height: 70svh;
+    /* Same sticky box as the cinema (top: 0 / 100svh). A shorter pane with
+       top: 80px used to hunt the visual viewport against the film. */
+    top: 0;
+    height: 100svh;
+    padding: 0 24px 148px;
   }
   .gx-install__copy h2 {
     font-size: 1.8rem;

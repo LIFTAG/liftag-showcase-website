@@ -11,7 +11,7 @@
   top: 0;
   height: 100svh;
   min-height: 650px;
-  overflow: hidden;
+  overflow: clip;
   overflow-anchor: none;
   background: radial-gradient(
     ellipse at 70% 50%,
@@ -415,15 +415,19 @@
     height: 480svh;
   }
   .gx .gd-sticky {
-    min-height: 680px;
+    min-height: 0;
   }
   .gx .gd-stage {
     inset: 0;
   }
   .gx .gd-copy {
-    top: 105px;
-    left: 24px;
-    width: calc(100% - 48px);
+    /* Static so abs steps/link position against .gd-sticky, not this box.
+       A 100svh top on a 160px headline was why the chips shivered. */
+    position: static;
+    top: auto;
+    left: auto;
+    width: auto;
+    padding: 105px 24px 0;
   }
   .gx .gd-copy > .gx-protocol {
     font-size: 8px;
@@ -441,7 +445,10 @@
     flex-direction: row;
     gap: 11px;
     position: absolute;
-    top: calc(100svh - 255px);
+    left: 24px;
+    right: 24px;
+    top: auto;
+    bottom: 155px;
     margin: 0;
     white-space: nowrap;
   }
@@ -488,7 +495,9 @@
 
   .gx .gd-link {
     position: absolute;
-    top: calc(100svh - 260px);
+    left: 24px;
+    top: auto;
+    bottom: 160px;
     margin: 0;
   }
   .gx .is-simple .gd-sticky {
@@ -698,8 +707,9 @@
 @media (max-width: 760px) {
   .gx .gd-sticky[data-phase="2"] .gd-copy,
   .gx .gd-sticky[data-phase="3"] .gd-copy {
-    top: 100px;
-    width: calc(100% - 48px);
+    top: auto;
+    width: auto;
+    padding-top: 100px;
   }
   .gx .gd-sticky[data-phase="2"] h2,
   .gx .gd-sticky[data-phase="3"] h2 {
@@ -820,7 +830,7 @@
 /* Reserve distinct mobile space for the title, readable phone and action. */
 @media (max-width: 760px) {
   .gx .gd-story:not(.is-simple) .gd-sticky[data-phase="3"] .gd-copy {
-    bottom: 108px;
+    bottom: auto;
     pointer-events: none;
   }
   .gx .gd-sticky[data-phase="3"] .gd-steps {
@@ -857,7 +867,7 @@
 
 @media (max-width: 760px) and (max-height: 700px) {
   .gx .gd-story:not(.is-simple) .gd-sticky[data-phase="0"] { min-height: 100svh; }
-  .gx .gd-sticky[data-phase="0"] .gd-copy { top: 85px; }
+  .gx .gd-sticky[data-phase="0"] .gd-copy { top: auto; padding-top: 85px; }
   .gx .gd-sticky[data-phase="0"] h2 { font-size: 34px; }
   .gx .gd-sticky[data-phase="0"] .gd-caption { font-size: 11px; }
   .gx .gd-sticky[data-phase="0"] .gd-steps { display: none; }

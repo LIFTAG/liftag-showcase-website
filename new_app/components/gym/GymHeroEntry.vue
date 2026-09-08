@@ -101,6 +101,12 @@ const { ready: meshReady, playing: meshPlaying, done: meshDone } = useGymGlyphMe
   width: 100%;
   height: 100%;
   pointer-events: none;
+  display: none;
+}
+/* An empty canvas over sticky type stays a compositor layer and shivers
+   against the film. Only paint while the projection is actually running. */
+.gx-hero-entry.is-mesh-playing .gx-hero-entry__mesh {
+  display: block;
 }
 .gx-hero-entry.is-in.is-mesh-ready .gx-hero-entry__content,
 .gx-hero-entry.is-in.is-mesh-ready :deep(em),
