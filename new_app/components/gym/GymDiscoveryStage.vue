@@ -6,7 +6,7 @@ import { DISCOVERY_MORPH_START } from "~/utils/gymscan/discoveryTimeline";
 import { discoveryMapLocations, discoveryCountryLabels } from "~/utils/gymscan/discoveryMapLocations";
 const mouse = useSharedMouse();
 const props = defineProps<{
-  progress: number;
+  film: { progress: number };
   reduced: boolean;
   replay: number;
 }>();
@@ -15,6 +15,7 @@ const host = useTemplateRef<HTMLElement>("host");
 const canvas = useTemplateRef<HTMLCanvasElement>("canvas");
 const map = useTemplateRef<HTMLElement>("map");
 const locationPhase = shallowRef(0);
+const mapVisible = shallowRef(false);
 const ready = shallowRef(false);
 const labels = useTemplateRef<HTMLElement>("labels");
 let labelNodes: HTMLElement[] = [];
@@ -55,7 +56,9 @@ function draw(time: number) {
   }
   const dt = Math.min(0.05, (time - last) / 1000);
   last = time;
-  progress += (props.progress - progress) * (1 - Math.exp(-dt * 10));
+  progress += (props.film.progress - progress) * (1 - Math.exp(-dt * 10));
+  const showMap = !props.reduced && progress < 0.27;
+  if (mapVisible.value !== showMap) mapVisible.value = showMap;
   try {
     assemblySeconds += dt;
     const point = stage.draw(progress, assemblySeconds, dt, {
@@ -77,7 +80,8 @@ function draw(time: number) {
       label.style.opacity = String(p.alpha);
       label.style.visibility = p.alpha > 0.01 ? "visible" : "hidden";
     });
-    locationPhase.value = point.focus < 0.05 ? 0 : point.focus < 0.97 ? 1 : 2;
+    const nextPhase = point.focus < 0.05 ? 0 : point.focus < 0.97 ? 1 : 2;
+    if (locationPhase.value !== nextPhase) locationPhase.value = nextPhase;
   } catch {
     lost();
     return;
@@ -86,7 +90,7 @@ function draw(time: number) {
     raf = requestAnimationFrame(draw);
 }
 watch(
-  () => props.progress,
+  () => props.film.progress,
   () => {
     movedAt = performance.now();
     if (!raf) activity();
@@ -118,7 +122,8 @@ async function boot() {
     await stage.ready;
     if (disposed || failed) return;
     ready.value = true;
-    progress = props.progress;
+    progress = props.film.progress;
+    mapVisible.value = progress < 0.27;
     activity();
   } catch {
     if (!disposed) lost();
@@ -129,6 +134,7 @@ async function boot() {
 watch(
   () => props.reduced,
   () => {
+    if (props.reduced) mapVisible.value = false;
     if (visible) boot();
     activity();
   },
@@ -170,7 +176,7 @@ onBeforeUnmount(() => {
 <template>
   <div ref="host" class="gd-stage" :class="{ 'is-ready': ready && !reduced }">
     <canvas ref="canvas" aria-hidden="true" @webglcontextlost="lost" />
-    <div ref="map" class="gd-map-labels" v-show="ready && !reduced && props.progress < 0.27">
+    <div ref="map" class="gd-map-labels" v-show="mapVisible">
       <div
         v-for="location in discoveryMapLocations"
         :key="location.id"
@@ -190,7 +196,7 @@ onBeforeUnmount(() => {
         aria-hidden="true"
       >{{ country.city }}</span>
     </div>
-    <div v-if="ready && !reduced && props.progress < 0.27" class="gd-map-context">
+    <div v-if="mapVisible" class="gd-map-context">
       <p class="gd-map-route" aria-label="From the world to gyms in Slovakia">
         <span :class="{ 'is-current': locationPhase === 0 }">The world</span><i aria-hidden="true">/</i>
         <span :class="{ 'is-current': locationPhase > 0 }">Slovakia</span>

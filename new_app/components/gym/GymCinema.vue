@@ -3,18 +3,22 @@ import { probeTemporaryWebGL2 } from "~/utils/gymscan/device";
 import { compactLoggerOwnsCopy } from "~/utils/gymscan/handoff";
 import {
   experienceDevice,
-  type GymJourney,
   type GymProductView,
 } from "~/utils/gymscan/journey";
 import type { GymScanStage, FrameInfo } from "~/utils/gymscan/stage";
-import type { CoachingState } from '~/utils/gymscan/coachingStage';
+import { gymJourneyKey } from "~/composables/useGymJourney";
+import { gymCoachingKey } from "~/composables/useCoachingScroll";
 const props = defineProps<{
-  journey: GymJourney;
   paused: boolean;
   reduced: boolean;
   productView: GymProductView;
-  coaching: CoachingState;
 }>();
+function requireFilm<T>(value: T | undefined): T {
+  if (!value) throw new Error("GymCinema must render inside GymExperience");
+  return value;
+}
+const journey = requireFilm(inject(gymJourneyKey));
+const coaching = requireFilm(inject(gymCoachingKey));
 const emit = defineEmits<{ ready: [value: boolean]; fallback: []; customError: []; mediaFailed: [value: boolean]; swept: [] }>();
 const host = useTemplateRef<HTMLElement>("host");
 const canvas = useTemplateRef<HTMLCanvasElement>("canvas");
@@ -29,9 +33,14 @@ const fallback = shallowRef(false);
 const key = shallowRef(0);
 const showPoster = computed(
   () =>
-    props.journey.chapter === "experience" &&
+    journey.value.chapter === "experience" &&
     (props.reduced || fallback.value),
 );
+const discoveryFilm = computed(() => {
+  const chapter = journey.value.chapter;
+  return chapter === "discover" || chapter === "kit";
+});
+const customSrc = computed(() => coaching.value.customSrc);
 const mouse = useSharedMouse();
 let stage: GymScanStage | null = null;
 let generation = 0,
@@ -46,8 +55,8 @@ let copyDof = -1;
 let swept = false;
 
 function sync() {
-  stage?.setAssemblyProgress(props.journey.assembly);
-  stage?.setProgress(props.journey.film);
+  stage?.setAssemblyProgress(journey.value.assembly);
+  stage?.setProgress(journey.value.film);
 }
 function resize() {
   if (!stage || !canvas.value) return;
@@ -116,12 +125,13 @@ function frame(info: FrameInfo) {
   }
 }
 function activity() {
-  const filmVisible = ['experience', 'the-tag', 'lifters', 'gyms'].includes(props.journey.chapter);
+  const filmVisible = ['experience', 'the-tag', 'lifters', 'gyms'].includes(journey.value.chapter);
   const active = ready.value && visible && !document.hidden && !props.paused && filmVisible;
-  mediaActive.value = active && props.journey.film > .9 && !props.coaching.paused;
+  const nextMedia = active && journey.value.film > .9 && !coaching.value.paused;
+  if (mediaActive.value !== nextMedia) mediaActive.value = nextMedia;
   if (active) stage?.start();
   else stage?.stop();
-  if (mediaActive.value && props.coaching.frame.isOwner && props.coaching.customSrc) customVideo.value?.play().catch(() => {});
+  if (nextMedia && coaching.value.frame.isOwner && coaching.value.customSrc) customVideo.value?.play().catch(() => {});
   else customVideo.value?.pause();
 }
 function teardown() {
@@ -170,7 +180,7 @@ async function start() {
       onReady: () => {},
       onFrame: frame,
       readPointer: () => mouse.latest,
-      readCoaching: () => ({ frame: props.coaching.frame, video: video.value, customVideo: customVideo.value, replay: props.coaching.replay }),
+      readCoaching: () => ({ frame: coaching.value.frame, video: video.value, customVideo: customVideo.value, replay: coaching.value.replay }),
     });
     resize();
     await stage.load();
@@ -197,9 +207,9 @@ async function scheduleStart() {
     });
   });
 }
-watch(() => props.journey, () => { sync(); activity(); });
-watch(() => [props.coaching.paused, props.coaching.customSrc, props.coaching.frame.isOwner], () => nextTick(activity));
-watch(() => [props.paused, props.journey.chapter], activity);
+watch(journey, () => { sync(); activity(); });
+watch(() => [coaching.value.paused, coaching.value.customSrc, coaching.value.frame.isOwner], () => nextTick(activity));
+watch(() => [props.paused, journey.value.chapter], activity);
 watch(
   () => props.productView,
   (value) => stage?.setProductView(value),
@@ -238,7 +248,7 @@ onBeforeUnmount(() => {
   <div
     ref="host"
     class="gx-cinema"
-    :class="{ 'is-ready': ready, 'is-discovery': journey.chapter === 'discover' || journey.chapter === 'kit' }"
+    :class="{ 'is-ready': ready, 'is-discovery': discoveryFilm }"
     aria-hidden="true"
   >
     <img
@@ -251,7 +261,7 @@ onBeforeUnmount(() => {
     />
     <canvas :key="key" ref="canvas" @webglcontextlost="failed" />
     <video ref="video" class="gc-video-source" crossorigin="anonymous" muted playsinline loop preload="none" tabindex="-1" @error="mediaFailed = true" />
-    <video v-if="coaching.customSrc" ref="customVideo" class="gc-video-source" :src="coaching.customSrc" muted playsinline loop preload="metadata" tabindex="-1" @loadeddata="activity" @error="emit('customError')" />
+    <video v-if="customSrc" ref="customVideo" class="gc-video-source" :src="customSrc" muted playsinline loop preload="metadata" tabindex="-1" @loadeddata="activity" @error="emit('customError')" />
   </div>
   <canvas
     :key="`sticker-${key}`"

@@ -374,6 +374,7 @@
   min-height: 480px;
   margin-bottom: -100svh;
   overflow: hidden;
+  overflow-anchor: none;
   pointer-events: none;
 }
 /* Die-cut overlay: same sticky slot as the gym, stacked above the copy so
@@ -469,6 +470,19 @@
 .gx-journey.is-copy-blur .gx-install__copy {
   filter: blur(calc(var(--gx-dof) * 18px));
 }
+/* Live CSS filters re-rasterize glyphs every film frame. On a phone that
+   reads as the sticky headline and CTAs shivering, so fade instead. */
+@media (max-width: 760px) {
+  .gx-journey.is-copy-blur .gx-opening__copy,
+  .gx-journey.is-copy-blur .gx-scroll,
+  .gx-journey.is-copy-blur .gx-spec {
+    filter: none;
+    opacity: calc(1 - var(--gx-dof, 0) * 0.72);
+  }
+  .gx-journey.is-copy-blur .gx-install__copy {
+    filter: none;
+  }
+}
 @media (max-width: 760px) {
   .gx-journey.is-logger-front .gx-install__copy {
     opacity: 0;
@@ -506,6 +520,7 @@
   top: 100px;
   padding: 0 4.5vw;
   height: 78svh;
+  overflow-anchor: none;
   display: flex;
   flex-direction: column;
   justify-content: end;
@@ -896,8 +911,11 @@
 .gx-chapters {
   position: fixed;
   bottom: max(20px, env(safe-area-inset-bottom));
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  margin-inline: auto;
   display: flex;
   gap: 5px;
   z-index: 25;

@@ -4,7 +4,7 @@ const props = defineProps<{ reduced: boolean }>();
 const root = useTemplateRef<HTMLElement>("root");
 const unavailable = shallowRef(false);
 const simple = computed(() => props.reduced || unavailable.value);
-const { progress, phase, replay, go } = useDiscoveryScroll(
+const { film, phase, replay, go } = useDiscoveryScroll(
   root,
   () => simple.value,
 );
@@ -32,7 +32,7 @@ const captions = [
   >
     <div class="gd-sticky" :data-phase="phase">
       <GymDiscoveryStage
-        :progress="progress"
+        :film="film"
         :reduced="simple"
         :replay="replay"
         @open="go(1)"

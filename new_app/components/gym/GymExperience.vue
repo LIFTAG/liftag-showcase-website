@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { gymAnchor } from "~/utils/gymscan/navigation";
 import type { CoachingState } from '~/utils/gymscan/coachingStage';
+import { gymJourneyKey } from '~/composables/useGymJourney';
+import { gymCoachingKey } from '~/composables/useCoachingScroll';
 const coaching = shallowRef<CoachingState>({ frame: { member: 0, owner: 0, isOwner: false, reduced: false }, paused: false, customSrc: '', replay: 0 });
 const customError = shallowRef(0);
 const mediaFailed = shallowRef(false);
 const root = useTemplateRef<HTMLElement>("journey");
-const { current, reducedMotion, track } = useGymJourney(root);
+const { current, chapter, reducedMotion, track } = useGymJourney(root);
+provide(gymJourneyKey, current);
+provide(gymCoachingKey, coaching);
 const enhanced = shallowRef(false);
 const hydrated = shallowRef(false);
 const arriving = shallowRef(false);
@@ -16,7 +20,7 @@ const copyHold = computed(
     arriving.value ||
     (!reducedMotion.value &&
       !fallback.value &&
-      current.value.chapter === "experience" &&
+      chapter.value === "experience" &&
       !swept.value),
 );
 provideGymCopyReveal(copyHold, reducedMotion);
@@ -102,8 +106,6 @@ useHead({
     <main>
       <div ref="journey" class="gx-journey">
         <GymCinema
-          :journey="current"
-          :coaching="coaching"
           @custom-error="customError++"
           @media-failed="mediaFailed = $event"
           :paused="arriving"
@@ -177,20 +179,20 @@ useHead({
       </nav>
       <span class="gx-protocol">BUILT FOR REAL TRAINING.</span>
     </footer>
-    <nav v-show="current.chapter !== 'kit'" class="gx-chapters" aria-label="Experience chapters">
+    <nav v-show="chapter !== 'kit'" class="gx-chapters" aria-label="Experience chapters">
       <a
-        v-for="(chapter, i) in chapters"
-        :key="chapter.id"
-        :href="`#${chapter.id}`"
-        :aria-label="chapter.label"
-        :aria-current="current.chapter === chapter.id ? 'step' : undefined"
+        v-for="(item, i) in chapters"
+        :key="item.id"
+        :href="`#${item.id}`"
+        :aria-label="item.label"
+        :aria-current="chapter === item.id ? 'step' : undefined"
         ><span class="gx-protocol" aria-hidden="true">0{{ i + 1 }}</span
-        ><span class="gx-chapters__label" aria-hidden="true">{{ chapter.label }}</span
-        ><span class="gx-chapters__compact" aria-hidden="true">{{ chapter.compact }}</span></a
+        ><span class="gx-chapters__label" aria-hidden="true">{{ item.label }}</span
+        ><span class="gx-chapters__compact" aria-hidden="true">{{ item.compact }}</span></a
       ><a
         href="#kit"
         @click="kit"
-        :aria-current="current.chapter === 'kit' ? 'step' : undefined"
+        :aria-current="chapter === 'kit' ? 'step' : undefined"
         aria-label="Request your free kit"
         >↗</a
       >

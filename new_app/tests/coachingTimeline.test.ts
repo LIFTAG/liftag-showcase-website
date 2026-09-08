@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { coachingPose } from '../utils/gymscan/coachingTimeline.ts';
+import { coachingPose, coachingUiAt } from '../utils/gymscan/coachingTimeline.ts';
 
 const frame = { member: 0, owner: 0, isOwner: false, reduced: false };
 test('one expanded video stays continuous across the two chapters', () => {
@@ -42,4 +42,15 @@ test('reduced motion preserves source selection while keeping the video docked',
   assert.equal(gym.reveal, 0);
   assert.equal(gym.rewrite, 1);
   assert.equal(gym.branded, true);
+});
+test('sticky coaching copy only flips at chapter and source thresholds', () => {
+  assert.deepEqual(coachingUiAt({ isOwner: false, owner: 0 }), {
+    isOwner: false,
+    docked: false,
+    isGymVideo: false,
+  });
+  assert.equal(coachingUiAt({ isOwner: true, owner: 0.3 }).isGymVideo, false);
+  assert.equal(coachingUiAt({ isOwner: true, owner: 0.42 }).isGymVideo, true);
+  assert.equal(coachingUiAt({ isOwner: true, owner: 0.88 }).docked, false);
+  assert.equal(coachingUiAt({ isOwner: true, owner: 0.881 }).docked, true);
 });

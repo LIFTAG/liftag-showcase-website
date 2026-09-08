@@ -7,6 +7,23 @@ export interface CoachingFrame {
   reduced: boolean;
 }
 
+export type CoachingUi = {
+  isOwner: boolean;
+  docked: boolean;
+  isGymVideo: boolean;
+};
+
+/** Discrete Vue state for the sticky coaching copy. Progress stays off this. */
+export function coachingUiAt(
+  frame: Pick<CoachingFrame, "isOwner" | "owner">,
+): CoachingUi {
+  return {
+    isOwner: frame.isOwner,
+    docked: frame.isOwner && frame.owner > 0.88,
+    isGymVideo: frame.isOwner && frame.owner >= 0.42,
+  };
+}
+
 /**
  * One continuous take: open the video, turn it over to the gym's guide,
  * then return it to the phone. Hold it open across the chapter boundary.

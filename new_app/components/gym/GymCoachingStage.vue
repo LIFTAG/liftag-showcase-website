@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import type { CoachingFrame } from '~/utils/gymscan/coachingTimeline';
-const props = defineProps<{ frame: CoachingFrame; customSrc?: string; paused?: boolean }>();
+const props = defineProps<{ gymVideo: boolean; customSrc?: string; paused?: boolean; reduced?: boolean }>();
 const emit = defineEmits<{ customError: [] }>();
 const video = useTemplateRef<HTMLVideoElement>('video');
-const gymVideo = computed(() => props.frame.isOwner && props.frame.owner >= .42);
 function syncVideo() {
-  if (props.paused || props.frame.reduced || !gymVideo.value || document.hidden) video.value?.pause();
+  if (props.paused || props.reduced || !props.gymVideo || document.hidden) video.value?.pause();
   else video.value?.play().catch(() => {});
 }
-watch(() => [props.paused, props.frame.reduced, gymVideo.value], syncVideo);
+watch(() => [props.paused, props.reduced, props.gymVideo], syncVideo);
 onMounted(() => document.addEventListener('visibilitychange', syncVideo));
 onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', syncVideo);

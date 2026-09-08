@@ -10,6 +10,7 @@
   margin-bottom: calc(-1 * var(--gc-height));
   pointer-events: none;
   overflow: clip;
+  overflow-anchor: none;
 }
 .gc-chapter { position: relative; height: 135svh; pointer-events: none; }
 .gc-chapter--owner { height: 215svh; }

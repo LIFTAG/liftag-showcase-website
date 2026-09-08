@@ -12,6 +12,7 @@
   height: 100svh;
   min-height: 650px;
   overflow: hidden;
+  overflow-anchor: none;
   background: radial-gradient(
     ellipse at 70% 50%,
     oklch(19% 0.026 151),
