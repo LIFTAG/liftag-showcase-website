@@ -40,6 +40,7 @@ test('press kit and about are static sitemap URLs', () => {
   const paths = STATIC_PAGES.map(page => page.path)
   assert.ok(paths.includes('/press'))
   assert.ok(paths.includes('/about'))
+  assert.ok(paths.includes('/tools/1rm-calculator'))
 })
 
 test('default index lists every child sitemap and does not wait on lastmod', () => {

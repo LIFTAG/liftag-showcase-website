@@ -77,6 +77,8 @@ export const liftagOrganization = {
     'QR codes for gym machines',
     'strength training',
     'powerlifting',
+    'one-rep max',
+    '1RM calculator',
   ],
 }
 

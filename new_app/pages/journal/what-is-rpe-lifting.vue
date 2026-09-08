@@ -119,7 +119,8 @@ useLiftagStructuredData([
           <section>
             <h2>Logging it in a tracker</h2>
             <p>
-              LIFTAG stores optional RPE on the set, next to load, reps, and rest. Estimated 1RM still reads the kilos and reps; RPE is context, not a second formula pretending to be science. If you skip RPE, the log still works. If you log it, the
+              LIFTAG stores optional RPE on the set, next to load, reps, and rest. Estimated 1RM still reads the kilos and reps with
+              <a href="/tools/1rm-calculator">Epley</a>; RPE is context, not a second formula pretending to be science. If you skip RPE, the log still works. If you log it, the
               <a href="/journal/progressive-overload">overload</a> decision next week is cleaner.
             </p>
           </section>

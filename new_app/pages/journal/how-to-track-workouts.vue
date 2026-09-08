@@ -148,7 +148,8 @@ useLiftagStructuredData([
             </p>
             <h3>Personal records and estimated 1RM</h3>
             <p>
-              PRs are the headline. Most workout trackers, LIFTAG included, surface PRs automatically whenever you outperform your previous best at a given rep range. Estimated one-rep max is a calculated number that smooths over rep ranges so you can compare a heavy triple to a set of eight at the same exercise. It is approximate: useful for trends, not for exact maxes.
+              PRs are the headline. Most workout trackers, LIFTAG included, surface PRs automatically whenever you outperform your previous best at a given rep range. Estimated one-rep max is a calculated number that smooths over rep ranges so you can compare a heavy triple to a set of eight at the same exercise. LIFTAG uses Epley, the same math as the
+              <a href="/tools/1rm-calculator">1RM calculator</a>. It is approximate: useful for trends, not for exact maxes.
             </p>
             <h3>Volume</h3>
             <p>

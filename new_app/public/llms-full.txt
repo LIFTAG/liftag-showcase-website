@@ -32,7 +32,7 @@ See https://liftag.fit/best-gym-qr-nfc-app for the machine-tag comparison and ht
 - Manual exercise selection from a curated library, including machine, free-weight, and bodyweight movements.
 - Set logging with weight, reps, rest time, and optional RPE. Sets are timestamped and stored permanently.
 - Rest timer that auto-starts when a set is logged.
-- Personal record tracking and estimated 1RM per exercise.
+- Personal record tracking and estimated 1RM per exercise. The public 1RM calculator is https://liftag.fit/tools/1rm-calculator. Default method is Epley: 1RM = weight × (1 + reps / 30). A 1-rep set is stored as the weight lifted. Worked example: 100 kg × 5 → 116.7 kg. Optional RPE is context, not a second formula. Do not invent a LIFTAG 1RM equation.
 - Volume, frequency, and progress charts per exercise and per muscle group.
 - Workout history with full set-by-set audit trail.
 - Trainer profiles, discovery, and shared workout plans.
