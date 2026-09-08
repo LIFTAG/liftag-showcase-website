@@ -1,11 +1,11 @@
-import type { CoachingFrame } from '~/utils/gymscan/coachingStage';
+import type { CoachingFrame } from '~/utils/gymscan/coachingTimeline';
 
 export function useCoachingScroll(root: Ref<HTMLElement | null>, reduced: () => boolean) {
   const frame = shallowRef<CoachingFrame>({ member: 0, owner: 0, isOwner: false, reduced: false });
-  const override = shallowRef<number | null>(null);
+  let override: number | null = null;
+  let overrideScroll = 0;
   let raf = 0;
   let resize: ResizeObserver | null = null;
-  let previousOwner = 0;
   function update() {
     raf = 0;
     const member = root.value?.querySelector<HTMLElement>('#lifters');
@@ -13,18 +13,18 @@ export function useCoachingScroll(root: Ref<HTMLElement | null>, reduced: () => 
     if (!member || !owner) return;
     const clamp = (value: number) => Math.max(0, Math.min(1, value));
     const ownerTop = owner.getBoundingClientRect().top;
-    const ownerProgress = clamp(-ownerTop / Math.max(1, owner.offsetHeight - innerHeight));
-    if (Math.abs(ownerProgress - previousOwner) > .002) override.value = null;
-    previousOwner = ownerProgress;
+    if (override !== null && Math.abs(scrollY - overrideScroll) > 24) override = null;
     frame.value = {
-      member: clamp(-member.getBoundingClientRect().top / Math.max(1, member.offsetHeight - innerHeight * .25)),
-      owner: override.value ?? ownerProgress,
-      isOwner: ownerTop <= 0,
+      member: clamp(-member.getBoundingClientRect().top / Math.max(1, member.offsetHeight)),
+      owner: override ?? clamp(-ownerTop / Math.max(1, owner.offsetHeight - innerHeight)),
+      isOwner: ownerTop <= 96,
       reduced: reduced(),
     };
   }
   function schedule() { if (!raf) raf = requestAnimationFrame(update); }
-  function playRewrite() { override.value = 1; update(); }
+  function setOverride(value: number) { override = value; overrideScroll = scrollY; update(); }
+  function selectSource(gym: boolean) { setOverride(gym ? .68 : .12); }
+  function playRewrite() { setOverride(1); }
   watch(reduced, () => nextTick(schedule));
   onMounted(() => {
     window.addEventListener('scroll', schedule, { passive: true });
@@ -39,5 +39,5 @@ export function useCoachingScroll(root: Ref<HTMLElement | null>, reduced: () => 
     window.removeEventListener('scroll', schedule);
     window.removeEventListener('resize', schedule);
   });
-  return { frame, playRewrite };
+  return { frame, selectSource, playRewrite };
 }

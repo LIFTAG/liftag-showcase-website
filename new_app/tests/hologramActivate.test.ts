@@ -5,6 +5,7 @@ import {
   ACTIVATE_SPAN,
   ACTIVATE_TRAIL,
   ACTIVATE_TRAVEL,
+  advanceActivationClock,
   hologramActivateAt,
   hologramActivateTag,
 } from '../utils/gymscan/hologramActivate.ts'
@@ -72,7 +73,7 @@ test('the sticker flashes before the cage fills, and the bloom holds on the tag'
   assert.ok(hologramActivateTag(0.08, 1) === first.tag)
 })
 
-test('lock is a cool-white pulse after the cage is covered, not a second lime sweep', () => {
+test('lock is a pulse after the cage is covered, not a second lime sweep', () => {
   const early = hologramActivateAt(0.2, 1, OPTS)
   const peak = hologramActivateAt(1.20, 1, OPTS)
   const late = hologramActivateAt(1.70, 1, OPTS)
@@ -81,6 +82,25 @@ test('lock is a cool-white pulse after the cage is covered, not a second lime sw
   assert.ok(peak.frontR > OPTS.maxR * 0.9, 'lock waits until the fill has covered the machine')
   assert.ok(late.lock < 0.2)
   assert.ok(late.cageAmp > 0, 'the silhouette is still fading, not cut')
+})
+
+test('activation dissolves instead of cutting, and is still on after a fast-scroll beat', () => {
+  const a = hologramActivateAt(1.35, 1, OPTS)
+  const b = hologramActivateAt(1.75, 1, OPTS)
+  const c = hologramActivateAt(2.05, 1, OPTS)
+  assert.ok(a.cageAmp > b.cageAmp, 'fade must already be dropping')
+  assert.ok(b.cageAmp > c.cageAmp)
+  assert.ok(b.fill > 0.15, `mid-fade must still be visible, fill=${b.fill}`)
+  assert.ok(c.cageAmp > 0, 'the last frames are a dissolve, not a pop')
+  assert.equal(hologramActivateAt(ACTIVATE_SPAN + 0.01, 1, OPTS).cageAmp, 0)
+})
+
+test('the plant clock plays out while the sticker is down and rewinds off the mount', () => {
+  assert.equal(advanceActivationClock(-1, 0.016, false, false), -1)
+  assert.equal(advanceActivationClock(-1, 0.016, true, false), 0.016)
+  assert.equal(advanceActivationClock(0.4, 0.016, true, false), 0.4 + 0.016)
+  assert.equal(advanceActivationClock(0.4, 0.016, false, false), -1)
+  assert.equal(advanceActivationClock(0.4, 0.016, true, true), -1)
 })
 
 test('activation does not spawn a floor sweep', () => {
@@ -115,7 +135,7 @@ test('activation core stays hot on the tag, not a travelling front', () => {
   const spark = hologramActivateAt(0.08, 1, OPTS)
   const mid = hologramActivateAt(ACTIVATE_TRAVEL * 0.5, 1, OPTS)
   const lock = hologramActivateAt(1.20, 1, OPTS)
-  assert.ok(spark.hot > 0.7, `tag ignition should be white-hot, hot=${spark.hot}`)
+  assert.ok(spark.hot > 0.7, `tag ignition should be hot, hot=${spark.hot}`)
   assert.ok(mid.hot > 0.2, 'tag bloom stays warmer than a scan through the fill')
   assert.ok(lock.hot < spark.hot)
 })

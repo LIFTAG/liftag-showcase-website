@@ -15,7 +15,7 @@ const titles = [
   "Your floor.\nOn their phone.",
 ];
 const captions = [
-  "Eight partner gyms already on LIFTAG, connected from Bratislava.",
+  "Find your next place to train. Starting in Slovakia, connected to gyms nearby.",
   "Your place. Your community. Their reviews.",
   "A clear view of what your gym has to offer.",
   "The same machines, listed in LIFTAG, ready for a lifter to train.",
@@ -40,7 +40,7 @@ const captions = [
       />
       <div class="gd-copy">
         <p class="gx-protocol">
-          <GymEntry :key="`p-${phase}`" mode="holo" row>
+          <GymHeroEntry :key="`p-${phase}`" row>
             05 /
             {{
               phase === 0
@@ -51,19 +51,19 @@ const captions = [
                     ? "YOUR GYM, MACHINE BY MACHINE"
                     : "YOUR GYM, IN THE APP"
             }}
-          </GymEntry>
+          </GymHeroEntry>
         </p>
         <h2 id="gd-title">
-          <GymEntry :key="`t-${phase}`" mode="holo" :delay="40">{{
+          <GymHeroEntry :key="`t-${phase}`" :delay="40">{{
             simple ? "Every gym.\nOne place." : titles[phase]
-          }}</GymEntry>
+          }}</GymHeroEntry>
         </h2>
         <p class="gd-caption">
-          <GymEntry :key="`c-${phase}`" mode="holo" :delay="120">{{
+          <GymHeroEntry :key="`c-${phase}`" :delay="120">{{
             simple
-              ? "Eight gyms connected. Member reviews. Every machine."
+              ? "Gyms in Bratislava and Košice, Slovakia. Six more nearby. Member reviews and every machine, in one place."
               : captions[phase]
-          }}</GymEntry>
+          }}</GymHeroEntry>
         </p>
         <div v-if="!simple" class="gd-steps" aria-label="Explore gym discovery">
           <button
@@ -123,9 +123,9 @@ const captions = [
       <button
         v-if="!simple && phase === 0"
         class="gd-replay gx-protocol"
-        @click="replay++"
+        @click="go(0)"
       >
-        ↻ Replay assembly
+        ↻ Replay the journey
       </button>
       <button
         v-if="!simple && phase === 2"

@@ -7,11 +7,11 @@ withDefaults(defineProps<{ source?: "experience" | "partner" }>(), {
 <template>
   <section id="kit" class="gx-kit" aria-labelledby="gx-kit-title" tabindex="-1">
     <div class="gx-kit__intro">
-      <p class="gx-protocol"><GymEntry mode="holo" row><span class="gx-dot" /> START WITH YOUR GYM</GymEntry></p>
+      <p class="gx-protocol"><GymHeroEntry row><span class="gx-dot" /> START WITH YOUR GYM</GymHeroEntry></p>
       <h2 id="gx-kit-title">
-        <GymEntry>Put your gym </GymEntry><br /><GymEntry from="right" lime :delay="90"><em>in their workout.</em></GymEntry>
+        <GymHeroEntry row>Put your gym </GymHeroEntry><br /><GymHeroEntry :delay="90"><em>in their workout.</em></GymHeroEntry>
       </h2>
-      <p><GymEntry mode="holo" :delay="180">Free QR + NFC tags. Your equipment, connected.</GymEntry></p>
+      <p><GymHeroEntry :delay="180">Free QR + NFC tags. Your equipment, connected.</GymHeroEntry></p>
       <div class="gx-kit__tag">
         <img
           src="/assets/gym3d/qr-sticker.webp"
@@ -19,7 +19,7 @@ withDefaults(defineProps<{ source?: "experience" | "partner" }>(), {
           height="874"
           alt="The LIFTAG QR and NFC equipment tag"
           loading="lazy"
-        /><span class="gx-protocol"><GymEntry mode="holo" :delay="240">QR + NFC<br />READY FOR YOUR FLOOR</GymEntry></span>
+        /><span class="gx-protocol"><GymHeroEntry :delay="240">QR + NFC<br />READY FOR YOUR FLOOR</GymHeroEntry></span>
       </div>
       <details class="gx-included">
         <summary>What’s free? <span aria-hidden="true">+</span></summary>
@@ -31,7 +31,7 @@ withDefaults(defineProps<{ source?: "experience" | "partner" }>(), {
       </details>
     </div>
     <div class="gx-kit__form">
-      <h3><GymEntry :delay="80">Request your free kit.</GymEntry></h3>
+      <h3><GymHeroEntry :delay="80">Request your free kit.</GymHeroEntry></h3>
       <GymKitForm :source="source" theme="dark" />
     </div>
     <div class="gx-faqs">

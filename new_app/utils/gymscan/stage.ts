@@ -25,7 +25,7 @@ import { PASS_SPAN } from './hologramPass'
 import { CompositeShader } from './composite'
 import { createStickFocus, STICK_FOCUS_LAYER } from './stickFocus'
 import { createHologramShell, type HologramShell } from './hologram'
-import { hologramActivateTag } from './hologramActivate'
+import { advanceActivationClock, hologramActivateTag } from './hologramActivate'
 import { createPlacardMaterial, createPlacardUniforms } from './placard'
 import { createFoilMaterial, createFoilUniforms } from './foil'
 import { createNfcMaps, createNfcMaterial } from './nfc'
@@ -1528,15 +1528,11 @@ export function createGymScanStage(opts: StageOptions) {
     if (holoLive || reducedMotion) holoT += dt
 
     // Activation is a played-out beat, not a scrub: the frame the vinyl is
-    // down, the cage ignites from the tag. Skip-birth and reduced-motion
-    // never start it. Scrubbing back off the mount rewinds it.
-    if (skipBirth || reducedMotion || !stickerPlanted) {
-      activateT = -1
-      placardUniforms.uPlant.value = 0
-    }
-    else {
-      activateT = activateT < 0 ? dt : activateT + dt
-    }
+    // down, the cage ignites from the tag and fades on wall-clock even if
+    // scroll jumps past the plant. Reduced-motion never starts it.
+    // Scrubbing back off the mount rewinds it.
+    activateT = advanceActivationClock(activateT, dt, stickerPlanted, reducedMotion)
+    if (activateT < 0) placardUniforms.uPlant.value = 0
 
     const act1Live = a0.done || skipBirth
 
@@ -1675,10 +1671,11 @@ export function createGymScanStage(opts: StageOptions) {
     // cannot hold the cage.
     //
     // The sticker landing plays a different pass: the print flashes, then a
-    // cool-white skeleton grows out of the tag. Idle waits until that finishes.
+    // green skeleton grows out of the tag and fades on its own clock. Idle
+    // waits until that finishes. Envelope stays 1 so a fast scroll cannot
+    // cut the dissolve.
     let activating = false
-    if (holo && activateT >= 0 && !skipBirth && !reducedMotion) {
-      const holoEnv = scalarAt(HOLO, camSp)
+    if (holo && activateT >= 0 && !reducedMotion) {
       activateOrigin.set(
         PLACARD_POS.x,
         PLACARD_POS.y + machineRig.position.y,
@@ -1686,11 +1683,11 @@ export function createGymScanStage(opts: StageOptions) {
       )
       activating = holo.updateActivation(
         activateT,
-        holoEnv,
+        1,
         activateOrigin,
         elapsed,
       )
-      placardUniforms.uPlant.value = hologramActivateTag(activateT, holoEnv)
+      placardUniforms.uPlant.value = hologramActivateTag(activateT, 1)
     }
     if (activating) {
       holoMix = 0

@@ -29,6 +29,7 @@
 // modules stay dark, which is what makes it read as a code being decoded
 // rather than a panel being switched on.
 import * as THREE from 'three'
+import { ACTIVATE_RGB } from './hologramColor.ts'
 import { patchPeelVertex, type PeelUniforms } from './peel.ts'
 
 /** Source artwork: 827 x 874 with a 12 px QR module, so 69 x 73 modules across. */
@@ -184,12 +185,12 @@ export function createPlacardMaterial(
 
         // Plant: the print itself comes on as the tag activates the machine.
         // Establishing distance needs this brighter than the later resolve
-        // (which is a close-up). Still the artwork's own colour, plus a lime
-        // kiss on the light print so the wordmark reads as LIFTAG from across
-        // the room.
+        // (which is a close-up). Still the artwork's own colour, plus the
+        // same plant-green as the cage so the flash and the hologram read
+        // as one ignition.
         if (uPlant > 0.001) {
           totalEmissiveRadiance += lgTag.rgb * lgLight * uPlant * 0.42;
-          totalEmissiveRadiance += vec3(0.80, 1.0, 0.0) * lgLight * uPlant * 0.14;
+          totalEmissiveRadiance += vec3(${ACTIVATE_RGB[0].toFixed(2)}, ${ACTIVATE_RGB[1].toFixed(2)}, ${ACTIVATE_RGB[2].toFixed(2)}) * lgLight * uPlant * 0.14;
         }
       `)
       .replace('#include <lights_physical_fragment>', /* glsl */`
@@ -205,7 +206,7 @@ export function createPlacardMaterial(
   // The injected block changes with nothing at runtime, so one cache key for
   // the whole material is correct - but it must not collide with an
   // un-injected MeshStandardMaterial sharing the same defines.
-  material.customProgramCacheKey = () => 'liftag-qr-sticker-v6'
+  material.customProgramCacheKey = () => 'liftag-qr-sticker-v7'
 
   return material
 }

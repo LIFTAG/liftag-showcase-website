@@ -52,11 +52,13 @@ function resize() {
   stage.resize();
   const width = canvas.value.clientWidth,
     height = canvas.value.clientHeight;
-  const h = Math.min(height * (width < 761 ? 0.51 : 0.73), 640);
+  const compact = width < 761;
+  const short = compact && height <= 740;
+  const h = Math.min(height * (compact ? (short ? .34 : .38) : .65), 600);
   const w = h * 0.475;
   stage.setHeroSlot({
-    x: width < 761 ? (width - w) / 2 : width * 0.7 - w / 2,
-    y: width < 761 ? 88 : (height - h) / 2,
+    x: width * (compact ? .68 : .81) - w / 2,
+    y: compact ? height * (short ? .35 : .33) : (height - h) / 2,
     w,
     h,
   });

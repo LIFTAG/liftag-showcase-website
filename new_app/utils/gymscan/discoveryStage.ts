@@ -11,7 +11,8 @@ import {
   createFloorMaps,
   createContactShadowTexture,
 } from "./environment";
-import { createDiscoveryGlobe } from "./discoveryGlobe";
+import { createDiscoveryGlobe, GLOBE_RADIUS, latLngToGlobe } from "./discoveryGlobe";
+import { discoveryMapLocations, discoveryCountryLabels } from "./discoveryMapLocations";
 import {
   DISCOVERY_CAM_FOV,
   DISCOVERY_MORPH_START,
@@ -24,6 +25,7 @@ import {
   discoveryMorphBeats,
   discoveryMorphRect,
   equipmentOrderAt,
+  globeJourneyAt,
 } from "./discoveryTimeline";
 import {
   HERO_PHONE_KEY_LIGHT,
@@ -288,7 +290,11 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
     y: 0,
     alpha: 0,
   }));
-  const result = { x: 0, y: 0, visible: false, equipment: points };
+  const mapAnchors = [...discoveryMapLocations, ...discoveryCountryLabels].map(location =>
+    latLngToGlobe(location.latitude, location.longitude, GLOBE_RADIUS + 0.018),
+  );
+  const mapPoints = mapAnchors.map(() => ({ x: 0, y: 0, alpha: 0 }));
+  const result = { equipment: points, locations: mapPoints, focus: 0 };
   function resize() {
     width = canvas.clientWidth;
     height = canvas.clientHeight;
@@ -311,8 +317,10 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
       compact = width < 760,
       ease = 1 - Math.exp(-dt * 10);
     const beats = discoveryMorphBeats(frame.morph);
+    const journey = globeJourneyAt(assemblySeconds, progress);
+    const focus = journey.focus * (1 - frame.listing);
     globe.root.visible = frame.floor < 0.995;
-    globe.update(assemblySeconds, 1 - frame.listing * 0.6);
+    globe.update(assemblySeconds, 1 - frame.listing * 0.6, focus);
     globe.root.scale.setScalar(
       lerp(1, 0.62, frame.listing) * (1 - frame.floor * 0.99),
     );
@@ -355,6 +363,11 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
     );
     scan.value = frame.floor * 3.4;
     const pose = discoveryCameraPose(progress, compact, width, height);
+    // Interpolate altitude logarithmically: equal time covers equal changes of scale.
+    const closeAltitude = compact ? Math.max(0.65, height / width * 0.36) : Math.max(0.37, 0.37 * 1264 / width);
+    if (focus > 0)
+      pose.z = GLOBE_RADIUS + Math.exp(lerp(Math.log(pose.z - GLOBE_RADIUS), Math.log(closeAltitude), focus));
+    pose.y = lerp(pose.y, 0, focus);
     cameraTarget.set(pose.x, pose.y, pose.z);
     lookTarget.set(pose.lookX, pose.lookY, pose.lookZ);
     if (!initialized) {
@@ -372,7 +385,7 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
       width,
       height,
       width * shift,
-      compact ? -lerp(height * 0.075, 45, frame.morph) : 0,
+      compact ? -lerp(height * (height <= 700 ? 0.045 : 0.075), 45, frame.morph) : 0,
       width,
       height,
     );
@@ -407,11 +420,14 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
     }
     renderer.toneMappingExposure = lerp(1.05, 1.65, frame.floor);
     renderer.render(scene, camera);
-    globe.pin.getWorldPosition(projected);
-    projected.project(camera);
-    result.x = (projected.x * 0.5 + 0.5) * width;
-    result.y = (-projected.y * 0.5 + 0.5) * height;
-    result.visible = assemblySeconds >= 2.8 && progress < 0.27;
+    for (let i = 0; i < mapAnchors.length; i++) {
+      projected.copy(mapAnchors[i]!).applyMatrix4(globe.root.matrixWorld).project(camera);
+      const point = mapPoints[i]!;
+      point.x = (projected.x * 0.5 + 0.5) * width;
+      point.y = (-projected.y * 0.5 + 0.5) * height;
+      point.alpha = journey.labels * smoothstep((assemblySeconds - 1.6) / 0.7);
+    }
+    result.focus = focus;
     return result;
   }
   return {

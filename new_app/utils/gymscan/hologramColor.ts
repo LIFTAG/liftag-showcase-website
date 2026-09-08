@@ -19,6 +19,15 @@ export const CORE_RGB = RETICLE_RGB
  * ignition, not another read of the same chrome. Idle sweep never uses this.
  */
 export const HOT_RGB = [1.0, 1.0, 0.88] as const
+/**
+ * Plant hologram body. True signal green — not the cool-white reconstructed
+ * mesh, not scanner lime (which is yellow-green with no blue).
+ */
+export const ACTIVATE_RGB = [0.00, 0.92, 0.34] as const
+/**
+ * Tag ignition on the plant pass. Brighter green, still not lime and not white.
+ */
+export const ACTIVATE_HOT_RGB = [0.08, 1.00, 0.42] as const
 
 export const CAGE_BODY_GAIN = 0.14
 export const CAGE_CORE_GAIN = 0.95

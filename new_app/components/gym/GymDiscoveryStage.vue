@@ -3,6 +3,7 @@ import type { createDiscoveryStage } from "~/utils/gymscan/discoveryStage";
 import { discoveryEquipment } from "~/utils/gymscan/discoveryEquipment";
 import { useSharedMouse } from "~/composables/useSharedMouse";
 import { DISCOVERY_MORPH_START } from "~/utils/gymscan/discoveryTimeline";
+import { discoveryMapLocations, discoveryCountryLabels } from "~/utils/gymscan/discoveryMapLocations";
 const mouse = useSharedMouse();
 const props = defineProps<{
   progress: number;
@@ -12,10 +13,12 @@ const props = defineProps<{
 const emit = defineEmits<{ open: []; unavailable: [] }>();
 const host = useTemplateRef<HTMLElement>("host");
 const canvas = useTemplateRef<HTMLCanvasElement>("canvas");
-const pin = useTemplateRef<HTMLElement>("pin");
+const map = useTemplateRef<HTMLElement>("map");
+const locationPhase = shallowRef(0);
 const ready = shallowRef(false);
 const labels = useTemplateRef<HTMLElement>("labels");
 let labelNodes: HTMLElement[] = [];
+let mapNodes: HTMLElement[] = [];
 let assemblySeconds = 0;
 let stage: ReturnType<typeof createDiscoveryStage> | null = null;
 let observer: IntersectionObserver | null = null,
@@ -67,10 +70,14 @@ function draw(time: number) {
         label.style.opacity = String(p.alpha);
       }
     });
-    if (pin.value) {
-      pin.value.style.transform = `translate(${point.x}px,${point.y}px)`;
-      pin.value.style.visibility = point.visible ? "visible" : "hidden";
-    }
+    point.locations.forEach((p, i) => {
+      const label = mapNodes[i];
+      if (!label) return;
+      label.style.transform = `translate(${p.x}px,${p.y}px)`;
+      label.style.opacity = String(p.alpha);
+      label.style.visibility = p.alpha > 0.01 ? "visible" : "hidden";
+    });
+    locationPhase.value = point.focus < 0.05 ? 0 : point.focus < 0.97 ? 1 : 2;
   } catch {
     lost();
     return;
@@ -130,6 +137,7 @@ onMounted(() => {
   labelNodes = Array.from(
     labels.value?.querySelectorAll<HTMLElement>("span") ?? [],
   );
+  mapNodes = Array.from(map.value?.querySelectorAll<HTMLElement>("[data-map-label]") ?? []);
   if (
     (navigator as Navigator & { connection?: { saveData?: boolean } })
       .connection?.saveData
@@ -162,16 +170,34 @@ onBeforeUnmount(() => {
 <template>
   <div ref="host" class="gd-stage" :class="{ 'is-ready': ready && !reduced }">
     <canvas ref="canvas" aria-hidden="true" @webglcontextlost="lost" />
-    <button
-      v-show="ready && !reduced && progress < 0.27"
-      ref="pin"
-      class="gd-pin"
-      aria-label="Eight gyms connected from Bratislava. Open the example gym listing"
-      @click="emit('open')"
-    >
-      <span>8 gyms connected <small>Bratislava</small></span
-      ><i aria-hidden="true">↗</i>
-    </button>
+    <div ref="map" class="gd-map-labels" v-show="ready && !reduced && props.progress < 0.27">
+      <div
+        v-for="location in discoveryMapLocations"
+        :key="location.id"
+        data-map-label
+        class="gd-map-location"
+        :class="[`gd-location-${location.id}`, { 'is-slovak': location.country === 'Slovakia' }]"
+      >
+        <span class="gd-map-dot" aria-hidden="true" />
+        <span class="gd-map-name">{{ location.city }}<small>{{ location.count }} {{ location.count === 1 ? 'gym' : 'gyms' }}</small></span>
+      </div>
+      <span
+        v-for="country in discoveryCountryLabels"
+        :key="country.city"
+        data-map-label
+        class="gd-map-country"
+        :class="{ 'is-primary': country.primary }"
+        aria-hidden="true"
+      >{{ country.city }}</span>
+    </div>
+    <div v-if="ready && !reduced && props.progress < 0.27" class="gd-map-context">
+      <p class="gd-map-route" aria-label="From the world to gyms in Slovakia">
+        <span :class="{ 'is-current': locationPhase === 0 }">The world</span><i aria-hidden="true">/</i>
+        <span :class="{ 'is-current': locationPhase > 0 }">Slovakia</span>
+      </p>
+      <p class="gd-map-status" role="status">{{ ['One connected gym network', 'A closer look at Slovakia', '2 gyms in Slovakia. 6 nearby.'][locationPhase] }}</p>
+      <button v-if="locationPhase === 2" class="gd-map-open" @click="emit('open')">Explore a gym listing <span aria-hidden="true">↗</span></button>
+    </div>
     <div ref="labels" class="gd-machine-labels" aria-hidden="true">
       <span v-for="item in discoveryEquipment" :key="item.id">{{ item.number }}</span>
     </div>

@@ -9,7 +9,7 @@
 // pointer can hold a patch of that mesh between passes.
 //
 // The same cage plays a third pass when the QR sticker lands: the tag
-// flashes, then a cool-white skeleton grows out of that point. No travelling
+// flashes, then a green skeleton grows out of that point. No travelling
 // lime front and no floor shockwave — those belong to the idle sweep.
 //
 // When the line reaches the ground it does not stop. The same energy peels
@@ -45,6 +45,8 @@
 // cool white.
 import * as THREE from 'three'
 import {
+  ACTIVATE_HOT_RGB,
+  ACTIVATE_RGB,
   CAGE_BODY_GAIN,
   CAGE_CORE_GAIN,
   CAGE_FILL_GAIN,
@@ -113,7 +115,7 @@ export interface HologramShell {
    */
   update(elapsed: number, envelope: number, steady: boolean, probe?: HologramProbe): void
   /**
-   * One-shot power-on from the sticker. Cool-white fill growing out of
+   * One-shot power-on from the sticker. Green fill growing out of
    * `origin`, local bloom on the beam, no floor ring. Returns true while
    * the pass is still drawing so the idle clock can wait.
    */
@@ -139,6 +141,12 @@ export interface HologramShell {
 const WIRE_COLOR = new THREE.Color(WIRE_RGB[0], WIRE_RGB[1], WIRE_RGB[2])
 const CORE_COLOR = new THREE.Color(CORE_RGB[0], CORE_RGB[1], CORE_RGB[2])
 const HOT_COLOR = new THREE.Color(HOT_RGB[0], HOT_RGB[1], HOT_RGB[2])
+const ACTIVATE_COLOR = new THREE.Color(ACTIVATE_RGB[0], ACTIVATE_RGB[1], ACTIVATE_RGB[2])
+const ACTIVATE_HOT_COLOR = new THREE.Color(
+  ACTIVATE_HOT_RGB[0],
+  ACTIVATE_HOT_RGB[1],
+  ACTIVATE_HOT_RGB[2],
+)
 /** How far the splash runs across the mat, metres. */
 const WAVE_MAX_R = 6.20
 /** Peak vertex lift at the shockwave front, metres. */
@@ -517,9 +525,9 @@ function createCageMaterial(offset: number): THREE.ShaderMaterial {
 
         // Sweep amp scales the travelling fields only. The probe is already
         // its own amp, so a live cursor can hold a local patch between cycles.
-        // Cursor blob and the activation fill/lock are the gray reconstructed
-        // mesh. Idle lime is the travelling core. Activation lime is only the
-        // local bloom on the beam at the sticker — no second scan line.
+        // Cursor blob is the gray reconstructed mesh. Idle lime is the
+        // travelling core. Activation paints fill/lock/ignite with the
+        // plant-green uniforms — no second scan line.
         float interior = uMode * step(0.0, -d);
         float grayWeight = max(
           trail * uBodyGain * uAmp + probe * uProbeGain + uLock + interior * uFill,
@@ -740,6 +748,9 @@ export function createHologramShell(
   const viewportUniform = cageUniforms.uViewport!.value as unknown as THREE.Vector2
   const originUniform = cageUniforms.uOrigin!.value as unknown as THREE.Vector3
   const stemUniform = groundUniforms.uStem!.value as unknown as THREE.Vector2
+  const wireColorUniform = cageUniforms.uWireColor!.value as THREE.Color
+  const coreColorUniform = cageUniforms.uCoreColor!.value as THREE.Color
+  const hotColorUniform = cageUniforms.uHotColor!.value as THREE.Color
 
   const object = new THREE.Group()
   object.name = 'LiftagHologram'
@@ -796,7 +807,11 @@ export function createHologramShell(
     cageUniforms.uHot!.value = 0
     cageUniforms.uCoreWidth!.value = 0.022
     cageUniforms.uCoreGain!.value = CAGE_CORE_GAIN
+    cageUniforms.uBodyGain!.value = CAGE_BODY_GAIN
     cageUniforms.uWireWidth!.value = 0.9
+    wireColorUniform.copy(WIRE_COLOR)
+    coreColorUniform.copy(CORE_COLOR)
+    hotColorUniform.copy(HOT_COLOR)
     stemUniform.set(0, 0)
     groundUniforms.uMaxR!.value = WAVE_MAX_R
     groundUniforms.uLift!.value = WAVE_LIFT
@@ -911,13 +926,17 @@ export function createHologramShell(
     cageUniforms.uTrail!.value = pass.cageTrail
     cageUniforms.uAmp!.value = pass.cageAmp
     cageUniforms.uCoreWidth!.value = pass.coreWidth
-    cageUniforms.uLock!.value = pass.lock * CAGE_LOCK_GAIN
+    cageUniforms.uLock!.value = pass.lock * CAGE_LOCK_GAIN * 1.15
     cageUniforms.uIgnite!.value = pass.ignite
     cageUniforms.uSpark!.value = pass.spark
-    cageUniforms.uFill!.value = pass.fill * CAGE_FILL_GAIN
+    cageUniforms.uFill!.value = pass.fill * CAGE_FILL_GAIN * 1.45
     cageUniforms.uHot!.value = pass.hot
     cageUniforms.uCoreGain!.value = 1.02
+    cageUniforms.uBodyGain!.value = CAGE_BODY_GAIN * 1.55
     cageUniforms.uWireWidth!.value = 1.08
+    wireColorUniform.copy(ACTIVATE_COLOR)
+    coreColorUniform.copy(ACTIVATE_COLOR)
+    hotColorUniform.copy(ACTIVATE_HOT_COLOR)
     cageUniforms.uTime!.value = time
     cageUniforms.uBandY!.value = yTop + altitude
     cage.visible = cageShouldDraw({

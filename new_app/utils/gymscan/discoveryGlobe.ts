@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { discoveryGymArcs, discoveryGyms, discoveryHub } from "./discoveryGyms.ts";
 import { globeAssemblyAt, globeNetworkAt } from "./discoveryTimeline.ts";
+import { createDiscoveryRegion } from "./discoveryRegion.ts";
 
 /**
  * GitHub-globe construction, lime-shifted for LIFTAG.
@@ -15,9 +16,9 @@ export const GLOBE_RADIUS = 2;
 const DOT_RADIUS = GLOBE_RADIUS + 0.018;
 const ARC_RADIUS = GLOBE_RADIUS + 0.03;
 /** Degrees between land samples. Tight enough to read coastlines, sparse enough that dots do not fill in as a surface. */
-export const LAND_LAT_STEP = 2.55;
-export const LAND_LAT_STEP_MOBILE = 3.2;
-export const LAND_DOT_SCALE = 0.0092;
+export const LAND_LAT_STEP = 1.1;
+export const LAND_LAT_STEP_MOBILE = 1.65;
+export const LAND_DOT_SCALE = 0.0058;
 
 export function latLngToGlobe(lat: number, lng: number, radius = GLOBE_RADIUS) {
   const phi = THREE.MathUtils.degToRad(lat);
@@ -87,6 +88,7 @@ function dotMaterial(uniforms: {
   uBlink: { value: number };
   uFade: { value: number };
   uTime: { value: number };
+  uFocus: { value: number };
 }) {
   return new THREE.ShaderMaterial({
     transparent: true,
@@ -99,7 +101,9 @@ function dotMaterial(uniforms: {
       attribute float aDelay;
       attribute float aGym;
       uniform float uAssembly;
+      uniform float uFocus;
       varying vec3 vDir;
+      varying float vFacing;
       varying float vGym;
       varying vec2 vUv;
       void main() {
@@ -108,7 +112,9 @@ function dotMaterial(uniforms: {
         vDir = normalize(instanceMatrix[3].xyz);
         float u = clamp((uAssembly - aDelay) / 0.55, 0., 1.);
         u = 1. - pow(1. - u, 3.);
-        vec4 mv = modelViewMatrix * instanceMatrix * vec4(position * u, 1.);
+        float scale = mix(1., mix(0.18, 0.12, aGym), uFocus);
+        vec4 mv = modelViewMatrix * instanceMatrix * vec4(position * u * scale, 1.);
+        vFacing = max(0., dot(normalize(normalMatrix * vDir), normalize(-mv.xyz)));
         gl_Position = projectionMatrix * mv;
       }`,
     fragmentShader: `
@@ -119,7 +125,9 @@ function dotMaterial(uniforms: {
       uniform float uSweep;
       uniform float uFade;
       uniform float uTime;
+      uniform float uFocus;
       varying vec3 vDir;
+      varying float vFacing;
       varying float vGym;
       varying vec2 vUv;
       void main() {
@@ -130,8 +138,11 @@ function dotMaterial(uniforms: {
         float scan = (1. - smoothstep(0.02, 0.09, abs(vDir.y * 2. - uSweep))) * uHologram;
         float twinkle = 0.9 + 0.1 * sin(uTime * 1.6 + vDir.x * 42. + vDir.z * 28.);
         float gym = vGym * (0.55 + 0.9 * uBlink);
-        float lit = 0.58 + ring * 1.55 + wash + scan * 0.7 + gym;
-        gl_FragColor = vec4(vec3(0.8, 1., 0.), disc * lit * twinkle * uFade);
+        float lit = 0.6 + (ring * 0.65 + wash + scan * 0.5) * (1. - uFocus) + gym;
+        float depth = mix(0.25, 1., smoothstep(0., 0.8, vFacing));
+        vec3 color = mix(vec3(0.52, 0.7, 0.64), vec3(0.8, 1., 0.18), clamp(ring * 0.7 + vGym + scan, 0., 1.));
+        float detailFade = mix(1. - uFocus * 0.88, 1., vGym);
+        gl_FragColor = vec4(color, disc * lit * depth * twinkle * uFade * detailFade);
       }`,
   });
 }
@@ -140,6 +151,7 @@ function arcMaterial(uniforms: {
   uArcs: { value: number };
   uTime: { value: number };
   uFade: { value: number };
+  uFocus: { value: number };
 }) {
   return new THREE.ShaderMaterial({
     transparent: true,
@@ -150,12 +162,16 @@ function arcMaterial(uniforms: {
     uniforms,
     vertexShader: `
       attribute float aDelay;
+      attribute vec3 aCenter;
+      uniform float uFocus;
       varying float vAlong;
       varying float vDelay;
       void main() {
         vAlong = uv.x;
         vDelay = aDelay;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+        vec3 p = aCenter + (position - aCenter) * mix(1., 0.075, uFocus);
+        p = normalize(p) * mix(length(p), 2.015 + max(0., length(p) - 2.03) * 0.18, uFocus);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.);
       }`,
     fragmentShader: `
       uniform float uArcs;
@@ -167,7 +183,8 @@ function arcMaterial(uniforms: {
         float local = clamp((uArcs - vDelay * 0.42) / 0.58, 0., 1.);
         float body = 1. - smoothstep(local - 0.04, local + 0.01, vAlong);
         float head = exp(-pow((fract(uTime * 0.18 + vDelay) - vAlong) * 16., 2.)) * body;
-        gl_FragColor = vec4(vec3(0.8, 1., 0.), (body * 0.7 + head) * uFade);
+        vec3 color = mix(vec3(0.65, 0.85, 0.22), vec3(0.92, 1., 0.65), head);
+        gl_FragColor = vec4(color, (body * 0.3 + head * 0.85) * uFade);
       }`,
   });
 }
@@ -205,16 +222,38 @@ export function createDiscoveryGlobe() {
     uBlink: { value: 0 },
     uFade: { value: 1 },
     uTime: { value: 0 },
+    uFocus: { value: 0 },
   });
   const tubesMat = arcMaterial({
     uArcs: { value: 0 },
     uTime: { value: 0 },
     uFade: { value: 1 },
+    uFocus: { value: 0 },
   });
   const innerMat = new THREE.MeshBasicMaterial({
     color: 0x050705,
     toneMapped: false,
   });
+  // A soft studio key and narrow limb light give the untextured ocean depth.
+  innerMat.onBeforeCompile = (shader) => {
+    shader.vertexShader = "varying vec3 vGlobeNormal; varying vec3 vGlobeView;\n" + shader.vertexShader;
+    shader.vertexShader = shader.vertexShader.replace(
+      "#include <project_vertex>",
+      "#include <project_vertex>\nvGlobeNormal = normalize(normalMatrix * normal); vGlobeView = -mvPosition.xyz;",
+    );
+    shader.fragmentShader = "varying vec3 vGlobeNormal; varying vec3 vGlobeView;\n" + shader.fragmentShader;
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <color_fragment>",
+      `#include <color_fragment>
+       vec3 n = normalize(vGlobeNormal);
+       float key = max(0., dot(n, normalize(vec3(-0.6, 0.8, 1.))));
+       float rim = pow(1. - max(0., dot(n, normalize(vGlobeView))), 3.);
+       diffuseColor.rgb = vec3(0.002, 0.004, 0.003)
+         + vec3(0.012, 0.022, 0.018) * key
+         + vec3(0.03, 0.055, 0.025) * rim;`,
+    );
+  };
+  innerMat.customProgramCacheKey = () => "discovery-globe-studio-v1";
   const inner = new THREE.Mesh(
     new THREE.SphereGeometry(GLOBE_RADIUS, 48, 32),
     innerMat,
@@ -230,17 +269,33 @@ export function createDiscoveryGlobe() {
     blending: THREE.AdditiveBlending,
     toneMapped: false,
     uniforms: { opacity: { value: 0.28 } },
-    vertexShader:
-      "varying float rim;void main(){vec4 p=modelViewMatrix*vec4(position,1.);vec3 n=normalize(normalMatrix*normal);rim=pow(1.-max(0.,dot(n,normalize(-p.xyz))),3.2);gl_Position=projectionMatrix*p;}",
-    fragmentShader:
-      "varying float rim;uniform float opacity;void main(){gl_FragColor=vec4(0.55,0.85,0.12,rim*opacity);}",
+    vertexShader: `
+      varying vec3 vNormal;
+      varying vec3 vView;
+      void main() {
+        vec4 p = modelViewMatrix * vec4(position, 1.);
+        vNormal = normalize(normalMatrix * normal);
+        vView = -p.xyz;
+        gl_Position = projectionMatrix * p;
+      }`,
+    fragmentShader: `
+      varying vec3 vNormal;
+      varying vec3 vView;
+      uniform float opacity;
+      void main() {
+        float facing = abs(dot(normalize(vNormal), normalize(vView)));
+        float halo = pow(1. - facing, 3.) * smoothstep(0., 0.18, facing);
+        gl_FragColor = vec4(0.48, 0.68, 0.3, halo * opacity);
+      }`,
   });
   const atmosphere = new THREE.Mesh(
-    new THREE.SphereGeometry(GLOBE_RADIUS * 1.12, 48, 32),
+    new THREE.SphereGeometry(GLOBE_RADIUS * 1.045, 64, 48),
     atmosphereMat,
   );
   atmosphere.renderOrder = 4;
   root.add(atmosphere);
+  const region = createDiscoveryRegion(latLngToGlobe, GLOBE_RADIUS);
+  root.add(region.root);
 
   const dummy = new THREE.Object3D();
   const gyms = new THREE.InstancedMesh(
@@ -273,12 +328,9 @@ export function createDiscoveryGlobe() {
   gyms.renderOrder = 2;
   root.add(gyms);
 
-  const pin = new THREE.Object3D();
-  pin.position.copy(hub);
-  root.add(pin);
-
   const arcGeoms: THREE.BufferGeometry[] = [];
-  const links = discoveryGymArcs();
+  // The regional Praha cluster is labelled as three gyms; one shared route stays legible.
+  const links = discoveryGymArcs().filter(link => !link.to.id.startsWith("praha-") || link.to.id === "praha-karlin");
   links.forEach((link, index) => {
     const start = latLngToGlobe(
       link.from.latitude,
@@ -294,7 +346,12 @@ export function createDiscoveryGlobe() {
       start.clone().lerp(end, 0.72).normalize().multiplyScalar(lift),
       end,
     );
-    const tube = new THREE.TubeGeometry(curve, 48, 0.018, 6, false);
+    const tube = new THREE.TubeGeometry(curve, 64, 0.006, 6, false);
+    const centers = new Float32Array(tube.attributes.position!.count * 3);
+    for (let i = 0; i < tube.attributes.position!.count; i++) {
+      curve.getPointAt(tube.attributes.uv!.getX(i)).toArray(centers, i * 3);
+    }
+    tube.setAttribute("aCenter", new THREE.BufferAttribute(centers, 3));
     const delay = new Float32Array(tube.attributes.position!.count).fill(
       index / Math.max(1, links.length - 1),
     );
@@ -351,7 +408,7 @@ export function createDiscoveryGlobe() {
     root.add(land);
   }
 
-  function update(seconds: number, amount: number) {
+  function update(seconds: number, amount: number, focus = 0) {
     const frame = globeAssemblyAt(seconds);
     const network = globeNetworkAt(seconds);
     dotsMat.uniforms.uAssembly!.value = frame.assembly;
@@ -361,28 +418,26 @@ export function createDiscoveryGlobe() {
     dotsMat.uniforms.uBlink!.value = network.blink;
     dotsMat.uniforms.uFade!.value = amount;
     dotsMat.uniforms.uTime!.value = seconds;
+    dotsMat.uniforms.uFocus!.value = focus;
     tubesMat.uniforms.uArcs!.value = network.arcs;
     tubesMat.uniforms.uTime!.value = seconds;
     tubesMat.uniforms.uFade!.value = amount;
+    tubesMat.uniforms.uFocus!.value = focus;
     inner.visible = !!land && frame.assembly > 0.18 && amount > 0.05;
     atmosphere.visible = frame.assembly > 0.55;
-    atmosphereMat.uniforms.opacity!.value = 0.16 * amount * frame.assembly;
+    atmosphereMat.uniforms.opacity!.value = 0.3 * amount * frame.assembly * (1 - focus);
     gyms.visible = amount > 0.05;
     arcs.visible = network.arcs > 0.01 && amount > 0.05;
     if (land) land.visible = amount > 0.04;
     root.rotation.set(
-      0.56,
+      THREE.MathUtils.lerp(0.48, THREE.MathUtils.degToRad(49.05), focus),
       -Math.PI / 2 -
-        THREE.MathUtils.degToRad(discoveryHub.longitude) -
-        (1 - frame.assembly) * 0.4,
+        THREE.MathUtils.degToRad(THREE.MathUtils.lerp(discoveryHub.longitude, 18.4, focus)) -
+        (1 - frame.assembly) * 0.55 * (1 - focus),
       0,
     );
+    region.update(focus, amount);
   }
 
-  return { root, pin, applyLand, update };
-}
-
-function smoothstepLocal(u: number) {
-  u = Math.max(0, Math.min(1, u));
-  return u * u * (3 - 2 * u);
+  return { root, applyLand, update };
 }

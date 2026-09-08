@@ -24,6 +24,7 @@ import {
   discoveryPhoneScreenRect,
   globeAssemblyAt,
   globeNetworkAt,
+  globeJourneyAt,
   GLOBE_SETTLE_AT,
   equipmentOrderAt,
 } from "../utils/gymscan/discoveryTimeline.ts";
@@ -49,6 +50,30 @@ import {
   isLandPixel,
   placeGlobeDot,
 } from "../utils/gymscan/discoveryGlobe.ts";
+import { discoveryMapLocations } from "../utils/gymscan/discoveryMapLocations.ts";
+
+test("the world holds before an automatic Slovakia approach, then labels settle", () => {
+  assert.deepEqual(globeJourneyAt(0), { focus: 0, labels: 0 });
+  assert.deepEqual(globeJourneyAt(3.6), { focus: 0, labels: 0 });
+  assert.ok(globeJourneyAt(5.7).focus > 0.4);
+  assert.equal(globeJourneyAt(5.7).labels, 0);
+  assert.deepEqual(globeJourneyAt(8), { focus: 1, labels: 1 });
+  assert.equal(globeJourneyAt(8, 0.27).labels, 0);
+  assert.equal(globeJourneyAt(1, 0.2).focus, 1, "scrolling can advance the approach");
+  let previous = 0;
+  for (let step = 0; step <= 1000; step++) {
+    const { focus } = globeJourneyAt(step / 100);
+    assert.ok(focus >= previous && focus <= 1);
+    assert.ok(focus - previous < 0.01, "camera movement must stay continuous");
+    previous = focus;
+  }
+});
+
+test("regional labels preserve every gym without stacking three Prague labels", () => {
+  assert.equal(discoveryMapLocations.reduce((sum, place) => sum + place.count, 0), discoveryGyms.length);
+  assert.equal(discoveryMapLocations.find(place => place.city === "Praha")?.count, 3);
+  assert.deepEqual(discoveryMapLocations.filter(place => place.country === "Slovakia").map(place => place.city), ["Bratislava", "Košice"]);
+});
 
 test("blue marble land heuristic keeps continents and ice, drops ocean", () => {
   assert.equal(isLandPixel(66, 72, 38), true);

@@ -79,6 +79,13 @@ export type DiscoveryAppRow = {
 export const GLOBE_SETTLE_AT = 2.8;
 export const GLOBE_WAVE_PERIOD = 3.7;
 
+/** A held world view, then one continuous, north-up approach to Slovakia. */
+export function globeJourneyAt(seconds: number, progress = 0) {
+  const focus = smoothstep(Math.max((seconds - 3.6) / 4.2, (progress - 0.025) / 0.16));
+  const labels = smoothstep((focus - 0.88) / 0.12) * (1 - smoothstep((progress - 0.21) / 0.055));
+  return { focus, labels };
+}
+
 /** Brief construction passes; no repeating sweep or idle hologram. */
 export function globeAssemblyAt(seconds: number) {
   const assembly = smoothstep(seconds / GLOBE_SETTLE_AT);

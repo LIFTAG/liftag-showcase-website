@@ -138,13 +138,13 @@ useHead({
         </section>
         <section id="the-tag" class="gx-install" aria-labelledby="gx-tag-title" tabindex="-1">
           <div class="gx-install__copy">
-            <p class="gx-protocol"><GymEntry mode="holo" row>A STICKER FOR EACH MACHINE</GymEntry></p>
+            <p class="gx-protocol"><GymHeroEntry row>A STICKER FOR EACH MACHINE</GymHeroEntry></p>
             <h2 id="gx-tag-title">
-              <GymEntry mode="holo" :delay="70">Stick it on. Scan or tap.</GymEntry>
+              <GymHeroEntry :delay="70">Stick it on. Scan or tap.</GymHeroEntry>
             </h2>
             <span class="gx-install__types"
-              ><GymEntry mode="holo" row class="gx-install__chip" :delay="160">QR <i>Scan</i></GymEntry
-              ><GymEntry mode="holo" row class="gx-install__chip" :delay="220">NFC <i>Tap</i></GymEntry></span
+              ><span class="gx-install__chip"><GymHeroEntry row :delay="160">QR <i>Scan</i></GymHeroEntry></span
+              ><span class="gx-install__chip"><GymHeroEntry row :delay="220">NFC <i>Tap</i></GymHeroEntry></span></span
             >
           </div>
           <img

@@ -32,6 +32,117 @@
 .gx .gd-stage.is-ready canvas {
   opacity: 1;
 }
+.gx .gd-sticky[data-phase="0"] .gd-stage canvas {
+  mask-image: linear-gradient(90deg, transparent 28%, oklch(10% 0.01 151) 48%);
+}
+.gx .gd-map-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.gx [data-map-label] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  visibility: hidden;
+}
+.gx .gd-map-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  margin: -3px;
+  border-radius: 50%;
+  background: oklch(84% 0.07 142);
+  box-shadow: 0 0 0 4px oklch(77% 0.08 142 / 0.1);
+}
+.gx .is-slovak .gd-map-dot {
+  width: 8px;
+  height: 8px;
+  margin: -4px;
+  background: var(--gx-lime);
+  box-shadow: 0 0 0 5px oklch(88% 0.2 118 / 0.1), 0 0 18px oklch(88% 0.2 118 / 0.28);
+}
+.gx .gd-map-name {
+  display: block;
+  position: absolute;
+  left: 12px;
+  top: -5px;
+  color: oklch(87% 0.025 151);
+  font: 500 12px var(--liftag-font-body);
+  white-space: nowrap;
+  text-shadow: 0 1px 6px oklch(9% 0.015 151), 0 0 12px oklch(9% 0.015 151);
+}
+.gx .gd-map-name small {
+  display: block;
+  font-size: 9px;
+  font-weight: 400;
+  color: oklch(68% 0.03 151);
+  margin-top: 4px;
+}
+.gx .is-slovak .gd-map-name {
+  color: var(--gx-fg);
+  font-size: 14px;
+}
+.gx .gd-location-bratislava .gd-map-name {
+  top: 15px;
+  left: 5px;
+}
+.gx .gd-location-wien .gd-map-name,
+.gx .gd-location-brno .gd-map-name,
+.gx .gd-location-praha-karlin .gd-map-name {
+  left: auto;
+  right: 13px;
+  text-align: right;
+}
+.gx .gd-location-wien .gd-map-name {
+  top: 12px;
+}
+.gx .gd-location-ostrava .gd-map-name {
+  top: -35px;
+}
+.gx .gd-map-country {
+  color: oklch(65% 0.035 151 / 0.65);
+  font: 8px var(--liftag-font-mono);
+  letter-spacing: 0.2em;
+  margin-left: -25px;
+}
+.gx .gd-map-country.is-primary {
+  color: oklch(85% 0.1 118);
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  margin-left: -35px;
+}
+.gx .gd-map-context {
+  position: absolute;
+  bottom: 17%;
+  left: 52%;
+  color: var(--gx-muted);
+}
+.gx .gd-map-route {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  font: 500 12px var(--liftag-font-body);
+  margin: 0 0 9px;
+}
+.gx .gd-map-route i { font-style: normal; opacity: 0.4; }
+.gx .gd-map-route .is-current { color: var(--gx-lime); }
+.gx .gd-map-status { font-size: 11px; margin: 0; }
+.gx .gd-map-open {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  min-height: 44px;
+  padding: 0;
+  margin-top: 8px;
+  color: var(--gx-fg);
+  background: transparent;
+  border: 0;
+  font: 500 11px var(--liftag-font-body);
+  cursor: pointer;
+}
+.gx .gd-map-open span { color: var(--gx-lime); }
 .gx .gd-copy {
   position: absolute;
   top: 26%;
@@ -415,7 +526,7 @@
 .gx .gd-replay,
 .gx .gd-floor-next {
   position: absolute;
-  bottom: 15%;
+  bottom: 12%;
   left: 7%;
   display: flex;
   gap: 30px;
@@ -426,6 +537,7 @@
   border: 0;
   padding: 0;
   font-size: 9px;
+  cursor: pointer;
 }
 .gx .gd-floor-next {
   left: 52%;
@@ -719,4 +831,36 @@
     margin: 0;
     pointer-events: auto;
   }
+}
+
+@media (max-width: 760px) {
+  .gx .gd-sticky[data-phase="0"] .gd-stage canvas {
+    mask-image: linear-gradient(180deg, transparent 27%, oklch(10% 0.01 151) 45%, oklch(10% 0.01 151) 79%, transparent 90%);
+  }
+  .gx .gd-map-name { font-size: 9px; left: 8px; }
+  .gx .is-slovak .gd-map-name { font-size: 11px; }
+  .gx .gd-map-name small { font-size: 8px; margin-top: 2px; }
+  .gx .gd-map-country { font-size: 6px; letter-spacing: 0.1em; }
+  .gx .gd-map-country.is-primary { font-size: 7px; margin-left: -20px; }
+  .gx .gd-location-bratislava .gd-map-name { top: 16px; left: 2px; }
+  .gx .gd-location-wien .gd-map-name { top: 14px; right: 9px; }
+  .gx .gd-location-brno .gd-map-name { top: -24px; right: 9px; }
+  .gx .gd-location-praha-karlin .gd-map-name { top: -28px; left: 8px; right: auto; text-align: left; }
+  .gx .gd-location-ostrava .gd-map-name { top: -32px; left: 5px; }
+  .gx .gd-map-context { left: 24px; bottom: 143px; }
+  .gx .gd-map-route { font-size: 10px; gap: 10px; margin-bottom: 5px; }
+  .gx .gd-map-status { font-size: 9px; }
+  .gx .gd-map-open { font-size: 10px; margin-top: 0; min-height: 38px; }
+  .gx .gd-story .gd-replay { left: auto; right: 24px; bottom: 141px; font-size: 7px; }
+}
+
+@media (max-width: 760px) and (max-height: 700px) {
+  .gx .gd-story:not(.is-simple) .gd-sticky[data-phase="0"] { min-height: 100svh; }
+  .gx .gd-sticky[data-phase="0"] .gd-copy { top: 85px; }
+  .gx .gd-sticky[data-phase="0"] h2 { font-size: 34px; }
+  .gx .gd-sticky[data-phase="0"] .gd-caption { font-size: 11px; }
+  .gx .gd-sticky[data-phase="0"] .gd-steps { display: none; }
+  .gx .gd-map-route, .gx .gd-map-status { display: none; }
+  .gx .gd-map-context { bottom: 120px; }
+  .gx .gd-story .gd-replay { bottom: 117px; }
 }

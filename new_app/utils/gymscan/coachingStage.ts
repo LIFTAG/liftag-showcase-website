@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { PHONE_SCREEN_Z } from '../phoneModel';
+import { PHONE_H, PHONE_SCREEN_Z } from '../phoneModel';
 import { disposeTree } from './dispose';
 import { coachingPose, type CoachingFrame } from './coachingTimeline';
 export type { CoachingFrame } from './coachingTimeline';
@@ -29,7 +29,6 @@ export function createCoachingContent() {
     return { image, ctx, texture };
   }
   const logger = surface(768, 1536);
-  const chips = surface(768, 474);
   const caption = surface(768, 84);
   const placement = surface(768, 474);
   const posterTexture = new THREE.Texture();
@@ -37,7 +36,7 @@ export function createCoachingContent() {
   posterTexture.generateMipmaps = false;
   posterTexture.minFilter = THREE.LinearFilter;
   const poster = new Image();
-  let posterReady = false, lastBrand = false, lastCaption = false, lastHasCustom = false, lastChip = '', lastReplay = 0, disposed = false;
+  let posterReady = false, lastBrand = false, lastCaption = false, lastHasCustom = false, lastReplay = 0, disposed = false;
   poster.onload = () => {
     if (disposed) return;
     posterReady = true;
@@ -75,7 +74,7 @@ export function createCoachingContent() {
       ctx.globalAlpha = 1;
       text(ctx, '▷', 354, 586, 72, '#ccff00');
     }
-    text(ctx, branded ? 'YOUR GYM’S INSTRUCTIONS' : 'VIDEO INSTRUCTIONS', 43, 840, 22, '#ccff00');
+    text(ctx, branded ? 'YOUR GYM’S VIDEO' : 'VIDEO GUIDE · INCLUDED', 43, 840, 22, '#ccff00');
     text(ctx, 'SET', 43, 926, 22, '#a4afa4');
     text(ctx, 'PREVIOUS', 167, 926, 22, '#a4afa4');
     text(ctx, 'KG', 441, 926, 22, '#a4afa4');
@@ -96,91 +95,56 @@ export function createCoachingContent() {
     texture.needsUpdate = true;
   }
   function drawPlacement() {
-    const { ctx, image, texture } = placement;
-    const w = image.width, h = image.height;
-    rect(ctx, 0, 0, w, h, '#101510');
+    const { ctx, texture } = placement;
+    rect(ctx, 0, 0, 768, 474, '#172019');
     if (posterReady) {
-      const scale = Math.max(w / poster.width, h / poster.height);
-      const dw = poster.width * scale, dh = poster.height * scale;
-      ctx.filter = 'grayscale(1)';
-      ctx.globalAlpha = .16;
-      ctx.drawImage(poster, (w - dw) / 2, (h - dh) / 2, dw, dh);
-      ctx.filter = 'none';
+      ctx.globalAlpha = .42;
+      ctx.drawImage(poster, 0, 23, 768, 429);
       ctx.globalAlpha = 1;
     }
-    rect(ctx, 0, 0, w, h, 'rgba(8,12,8,0.55)');
-    ctx.strokeStyle = '#ccff00';
-    ctx.lineWidth = 4;
-    ctx.setLineDash([18, 12]);
-    ctx.beginPath(); ctx.roundRect(26, 22, w - 52, h - 44, 16); ctx.stroke();
-    ctx.setLineDash([]);
-    const cx = w / 2, cy = h / 2 - 28;
-    ctx.beginPath();
-    ctx.arc(cx, cy - 8, 34, 0, Math.PI * 2);
-    ctx.fillStyle = '#ccff00';
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(cx - 10, cy - 24);
-    ctx.lineTo(cx - 10, cy + 8);
-    ctx.lineTo(cx + 18, cy - 8);
-    ctx.closePath();
-    ctx.fillStyle = '#17200d';
-    ctx.fill();
-    text(ctx, 'YOUR TRAINER’S VIDEO', cx, cy + 56, 30, '#edf1ed', 600, 'center');
-    text(ctx, 'Preview a clip from this device', cx, cy + 90, 20, '#a4afa4', 500, 'center');
-    texture.needsUpdate = true;
-  }
-  function chip(ctx: CanvasRenderingContext2D, x: number, y: number, label: string, fill: string, color: string, alpha: number, right = false) {
-    if (alpha < .04) return;
-    ctx.globalAlpha = Math.min(1, alpha + .15);
-    ctx.font = '700 22px Inter, sans-serif';
-    const pad = 16, height = 42, width = ctx.measureText(label).width + pad * 2;
-    const left = right ? x - width : x;
-    ctx.fillStyle = fill;
-    ctx.beginPath(); ctx.roundRect(left, y, width, height, 7); ctx.fill();
-    ctx.fillStyle = color;
-    ctx.fillText(label, left + pad, y + 28);
-    ctx.globalAlpha = 1;
-  }
-  function drawChips(rewrite: number, hasCustom: boolean) {
-    const { ctx, image, texture } = chips;
-    ctx.clearRect(0, 0, image.width, image.height);
-    const gymLabel = hasCustom ? 'YOUR CLIP' : 'YOUR GYM';
-    chip(ctx, 18, 16, 'LIFTAG SAMPLE', '#1c241b', '#ccff00', 1 - rewrite);
-    chip(ctx, image.width - 18, 16, gymLabel, '#ccff00', '#17200d', rewrite, true);
+    const shade = ctx.createLinearGradient(0, 130, 0, 474);
+    shade.addColorStop(0, 'rgba(9,16,10,0)');
+    shade.addColorStop(1, 'rgba(9,16,10,.97)');
+    ctx.fillStyle = shade; ctx.fillRect(0, 0, 768, 474);
+    ctx.strokeStyle = '#d6ded4'; ctx.lineWidth = 2;
+    for (const [x, y, sx, sy] of [[32, 32, 1, 1], [736, 32, -1, 1], [32, 442, 1, -1], [736, 442, -1, -1]]) {
+      ctx.beginPath(); ctx.moveTo(x! + sx! * 30, y!); ctx.lineTo(x!, y!); ctx.lineTo(x!, y! + sy! * 30); ctx.stroke();
+    }
+    text(ctx, 'YOUR VIDEO HERE', 55, 68, 20, '#d6ded4', 600);
+    text(ctx, 'Your trainer. This machine.', 55, 351, 37, '#edf1ed', 600);
+    text(ctx, 'Film a guide. Make it part of every scan.', 55, 397, 23, '#b7c5b6');
     texture.needsUpdate = true;
   }
   function drawCaption(branded: boolean, hasCustom: boolean) {
     const { ctx, texture } = caption;
     rect(ctx, 0, 0, 768, 84, branded ? '#ccff00' : '#1c241b');
-    const label = branded
-      ? (hasCustom ? 'YOUR GYM · YOUR CLIP' : 'YOUR GYM · TRAINER SLOT')
-      : 'LIFTAG · EXERCISE INSTRUCTIONS';
-    text(ctx, label, 22, 51, 22, branded ? '#17200d' : '#ccff00', 600);
+    const label = branded ? (hasCustom ? 'YOUR GYM’S VIDEO' : 'YOUR GYM’S VIDEO · PREVIEW') : 'LIFTAG · INCLUDED VIDEO GUIDE';
+    text(ctx, label, 24, 52, 23, branded ? '#17200d' : '#d6ded4', 600);
+    text(ctx, '↗', 714, 53, 28, branded ? '#17200d' : '#ccff00');
     texture.needsUpdate = true;
   }
 
-  const backing = new THREE.Mesh(new THREE.PlaneGeometry(.856, .596), new THREE.MeshBasicMaterial({ color: 0x101510, toneMapped: false, transparent: true }));
-  const catalogMat = new THREE.MeshBasicMaterial({ map: posterTexture, toneMapped: false, transparent: true });
-  const gymMat = new THREE.MeshBasicMaterial({ map: placement.texture, toneMapped: false, transparent: true, depthWrite: false });
-  const scanMat = new THREE.MeshBasicMaterial({ color: 0xccff00, toneMapped: false, transparent: true, depthWrite: false });
-  const glowMat = new THREE.MeshBasicMaterial({ color: 0xccff00, toneMapped: false, transparent: true, depthWrite: false, opacity: .28 });
-  const catalog = new THREE.Mesh(new THREE.PlaneGeometry(PICTURE_W, PICTURE_H), catalogMat);
-  const gym = new THREE.Mesh(new THREE.PlaneGeometry(PICTURE_W, PICTURE_H), gymMat);
-  const scan = new THREE.Mesh(new THREE.PlaneGeometry(PICTURE_W, .008), scanMat);
-  const glow = new THREE.Mesh(new THREE.PlaneGeometry(PICTURE_W, .028), glowMat);
-  catalog.position.set(0, .056, .002);
-  gym.position.set(0, .056, .003);
-  scan.position.set(0, .056, .0035);
-  glow.position.set(0, .056, .0034);
-  const chipMesh = new THREE.Mesh(new THREE.PlaneGeometry(PICTURE_W, PICTURE_H), new THREE.MeshBasicMaterial({ map: chips.texture, toneMapped: false, transparent: true, depthWrite: false }));
-  chipMesh.position.set(0, .056, .004);
+  const root = new THREE.Group();
+  group.add(root);
+  const backing = new THREE.Mesh(new THREE.PlaneGeometry(.87, .612), new THREE.MeshBasicMaterial({ color: 0x101510, toneMapped: false, transparent: true }));
+  const pictureMat = new THREE.MeshBasicMaterial({ map: posterTexture, toneMapped: false, transparent: true });
+  const picture = new THREE.Mesh(new THREE.PlaneGeometry(PICTURE_W, PICTURE_H), pictureMat);
+  picture.position.set(0, .056, .002);
   const captionMesh = new THREE.Mesh(new THREE.PlaneGeometry(.852, .094), new THREE.MeshBasicMaterial({ map: caption.texture, toneMapped: false, transparent: true }));
   captionMesh.position.set(0, -.233, .003);
-  const root = new THREE.Group();
-  root.add(backing, catalog, gym, glow, scan, chipMesh, captionMesh);
-  group.add(root);
-  const overlayMats = [backing.material, catalogMat, gymMat, captionMesh.material, chipMesh.material] as THREE.MeshBasicMaterial[];
+  root.add(backing, picture, captionMesh);
+  const corners = [new THREE.Vector3(-.435, .306, .004), new THREE.Vector3(.435, .306, .004), new THREE.Vector3(.435, -.306, .004), new THREE.Vector3(-.435, -.306, .004)];
+  const edgeMat = new THREE.LineBasicMaterial({ color: 0xaab6a6, transparent: true, opacity: .65, toneMapped: false });
+  root.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(corners), edgeMat));
+  // Four fine projection rails make the video's origin legible in space.
+  const railGeo = new THREE.BufferGeometry();
+  const railPositions = new THREE.BufferAttribute(new Float32Array(24), 3);
+  railPositions.setUsage(THREE.DynamicDrawUsage);
+  railGeo.setAttribute('position', railPositions);
+  const railMat = new THREE.LineBasicMaterial({ color: 0xa2b895, transparent: true, opacity: 0, depthWrite: false, toneMapped: false });
+  const rails = new THREE.LineSegments(railGeo, railMat);
+  rails.frustumCulled = false;
+  group.add(rails);
   const textures = new Map<HTMLVideoElement, THREE.VideoTexture>();
   function videoMap(video: HTMLVideoElement | null) {
     if (!video || video.readyState < 2 || !video.videoWidth) return null;
@@ -193,105 +157,81 @@ export function createCoachingContent() {
     }
     return texture;
   }
-  const displayed = { member: 0, owner: 0 };
+  const displayed: CoachingFrame = { member: 0, owner: 0, isOwner: false, reduced: false };
   const dock = new THREE.Vector3(0, .273, PHONE_SCREEN_Z + .008);
   const floating = new THREE.Vector3();
+  const point = new THREE.Vector3();
+  let initialized = false;
+  let replaying = false;
   function update(frame: CoachingFrame, width: number, phoneHeight: number, dt: number, mix: number, video: HTMLVideoElement | null, own: HTMLVideoElement | null, replay: number) {
     group.visible = mix > .001;
     if (!group.visible) return;
-    if (replay !== lastReplay) {
-      lastReplay = replay;
-      displayed.owner = 0;
-    }
-    const memberFollow = frame.reduced ? 1 : 1 - Math.exp(-18 * dt);
-    const ownerGap = Math.abs(frame.owner - displayed.owner);
-    const ownerFollow = frame.reduced ? 1 : 1 - Math.exp(-(ownerGap > .4 ? 1.7 : 18) * dt);
-    displayed.member += (frame.member - displayed.member) * memberFollow;
-    displayed.owner += (frame.owner - displayed.owner) * ownerFollow;
-    const pose = coachingPose({ ...frame, ...displayed });
+    if (!initialized) { Object.assign(displayed, frame); initialized = true; }
+    if (replay !== lastReplay) { lastReplay = replay; displayed.owner = 0; replaying = true; }
+    const follow = frame.reduced ? 1 : 1 - Math.exp(-(replaying ? 1.4 : 8) * dt);
+    displayed.member += (frame.member - displayed.member) * follow;
+    displayed.owner += (frame.owner - displayed.owner) * follow;
+    displayed.isOwner = frame.isOwner;
+    displayed.reduced = frame.reduced;
+    if (Math.abs(frame.owner - displayed.owner) < .004) replaying = false;
+    const pose = coachingPose(displayed);
     const hasCustom = !!(own && own.readyState >= 2 && own.videoWidth);
-    if (pose.branded !== lastBrand) {
-      lastBrand = pose.branded;
-      drawLogger(pose.branded);
-    }
-    const captionSlot = pose.rewrite > .45;
-    if (captionSlot !== lastCaption || hasCustom !== lastHasCustom) {
-      lastCaption = captionSlot;
-      lastHasCustom = hasCustom;
-      drawCaption(captionSlot, hasCustom);
-    }
-    const chipKey = `${pose.rewrite.toFixed(2)}:${hasCustom ? 1 : 0}`;
-    if (chipKey !== lastChip) {
-      lastChip = chipKey;
-      drawChips(pose.rewrite, hasCustom);
+    if (pose.branded !== lastBrand) { lastBrand = pose.branded; drawLogger(lastBrand); }
+    if (pose.branded !== lastCaption || hasCustom !== lastHasCustom) {
+      lastCaption = pose.branded; lastHasCustom = hasCustom;
+      drawCaption(pose.branded, hasCustom);
     }
     for (const [element, texture] of textures) {
       if (element !== video && element !== own) { texture.dispose(); textures.delete(element); }
     }
-    const catalogMap = videoMap(video) ?? posterTexture;
-    const gymMap = videoMap(own) ?? placement.texture;
-    if (catalogMat.map !== catalogMap) { catalogMat.map = catalogMap; catalogMat.needsUpdate = true; }
-    if (gymMat.map !== gymMap) {
-      if (gymMat.map) { gymMat.map.repeat.set(1, 1); gymMat.map.offset.set(0, 0); }
-      gymMat.map = gymMap; gymMat.needsUpdate = true;
-    }
-    catalog.visible = pose.rewrite < .98;
-    gym.visible = pose.rewrite > .001;
-    const scanning = pose.rewrite > .02 && pose.rewrite < .98;
-    scan.visible = glow.visible = scanning;
-    scanMat.opacity = mix;
-    glowMat.opacity = mix * .28;
-    const live = video && video.readyState >= 2 && video.videoWidth ? video : null;
-    const aspect = live ? live.videoWidth / live.videoHeight : 1080 / 603;
-    const plane = PICTURE_W / PICTURE_H;
-    const scaleX = Math.min(1, aspect / plane), scaleY = Math.min(1, plane / aspect);
+    const source = pose.branded ? own : video;
+    const map = videoMap(source) ?? (pose.branded ? placement.texture : posterTexture);
+    if (pictureMat.map !== map) { pictureMat.map = map; pictureMat.needsUpdate = true; }
+    // Contain portrait and landscape uploads without stretching or cutting off a rep.
+    const aspect = source && source.readyState >= 2 && source.videoWidth ? source.videoWidth / source.videoHeight : (pose.branded ? 768 / 474 : 1080 / 603);
+    const planeAspect = PICTURE_W / PICTURE_H;
+    picture.scale.set(Math.min(1, aspect / planeAspect), Math.min(1, planeAspect / aspect), 1);
     const compact = width <= 760;
-    catalog.scale.set(scaleX, scaleY, 1);
-    chipMesh.scale.copy(catalog.scale);
-    chipMesh.visible = !compact && pose.reveal > .15;
-    const rewrite = Math.max(pose.rewrite, 0.001);
-    gym.scale.set(scaleX, scaleY * rewrite, 1);
-    gym.position.y = catalog.position.y + PICTURE_H * scaleY * .5 * (1 - pose.rewrite);
-    gymMap.wrapS = THREE.ClampToEdgeWrapping;
-    gymMap.wrapT = THREE.ClampToEdgeWrapping;
-    if (pose.rewrite <= .001) {
-      gymMap.repeat.set(1, 1);
-      gymMap.offset.set(0, 0);
-    } else {
-      gymMap.repeat.set(1, rewrite);
-      gymMap.offset.set(0, 1 - pose.rewrite);
-    }
-    const pictureTop = catalog.position.y + PICTURE_H * scaleY * .5;
-    const scanY = pictureTop - pose.rewrite * PICTURE_H * scaleY;
-    scan.position.y = glow.position.y = scanY;
-    scan.scale.set(scaleX, 1, 1);
-    glow.scale.set(scaleX, 1, 1);
-    const separation = compact ? .04 : Math.min(1.8, width / Math.max(phoneHeight, 1) * .52);
-    floating.set(-separation, compact ? .3 : .45, PHONE_SCREEN_Z + .16);
-    const lift = compact ? pose.reveal * .18 : pose.reveal;
+    const units = Math.max(phoneHeight, 1) / PHONE_H;
+    const expandedWidth = Math.min(width * (compact ? .72 : .34), phoneHeight * (compact ? 1.1 : 1.05));
+    const expandedScale = expandedWidth / (units * PICTURE_W);
+    floating.set(-width * (compact ? .22 : .24) / units, compact ? -.08 : -.02, PHONE_SCREEN_Z + .14);
+    const lift = pose.reveal;
     root.position.copy(dock).lerp(floating, lift);
-    root.scale.setScalar(1 + lift * (compact ? .12 : .55));
-    root.rotation.set(0, lift * .08, 0);
-    overlayMats.forEach(material => { material.opacity = mix; });
+    root.scale.setScalar(1 + (expandedScale - 1) * lift);
+    // Change faces only at the edge-on instant. The reverse scroll is identical.
+    const turn = pose.rewrite < .5 ? Math.PI * pose.rewrite : -Math.PI * (1 - pose.rewrite);
+    root.rotation.set(0, frame.reduced ? 0 : turn + lift * .055, 0);
+    root.updateMatrix();
+    for (let i = 0; i < corners.length; i++) {
+      point.copy(corners[i]!).add(dock);
+      railPositions.setXYZ(i * 2, point.x, point.y, point.z - .006);
+      point.copy(corners[i]!).applyMatrix4(root.matrix);
+      railPositions.setXYZ(i * 2 + 1, point.x, point.y, point.z - .006);
+    }
+    railPositions.needsUpdate = true;
+    rails.visible = lift > .04 && !frame.reduced;
+    railMat.opacity = mix * lift * (compact ? .1 : .18);
+    edgeMat.color.setHex(pose.branded ? 0xccff00 : 0xaab6a6);
+    edgeMat.opacity = mix * (.22 + lift * .38);
+    backing.material.opacity = pictureMat.opacity = captionMesh.material.opacity = mix;
   }
   drawLogger(false);
   drawCaption(false, false);
   drawPlacement();
-  drawChips(0, false);
   return {
     group, texture: logger.texture, update,
     dispose() {
       disposed = true;
       poster.onload = null;
-      catalogMat.map = null;
-      gymMat.map = null;
+      pictureMat.map = null;
       group.removeFromParent();
       disposeTree(group);
-      textures.forEach(texture => texture.dispose());
-      textures.clear();
-      posterTexture.dispose();
-      logger.texture.dispose();
-      placement.texture.dispose();
+      // disposeTree handles Mesh resources; these line resources have their own owner.
+      root.children.forEach(child => { if (child instanceof THREE.LineLoop) child.geometry.dispose(); });
+      edgeMat.dispose(); railGeo.dispose(); railMat.dispose();
+      textures.forEach(texture => texture.dispose()); textures.clear();
+      posterTexture.dispose(); logger.texture.dispose(); placement.texture.dispose();
     },
   };
 }

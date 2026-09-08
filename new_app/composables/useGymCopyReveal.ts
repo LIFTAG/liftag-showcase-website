@@ -1,6 +1,6 @@
-// Arms `.gx-entry` nodes once they enter the viewport. Hold is provided by
-// the demo so the opening copy waits for the arrival doors and the first
-// hologram sweep; other surfaces (the partner kit) arm immediately.
+// Arms gym copy once it enters the viewport. Hold is provided by the demo so
+// the opening copy waits for the arrival doors and the first hologram sweep;
+// other surfaces (the partner kit) arm immediately.
 import type { InjectionKey, Ref } from 'vue'
 
 export const gymCopyHoldKey: InjectionKey<Ref<boolean>> = Symbol('gym-copy-hold')
@@ -51,8 +51,6 @@ export function useGymEntryArm(el: Ref<HTMLElement | null>) {
       },
       { threshold: 0.16, rootMargin: '0px 0px -6% 0px' },
     )
-    // The scan entry starts fully clipped, so it has no observable intersection
-    // area. Its layout parent stays measurable before the reveal begins.
     io.observe(node.parentElement ?? node)
   }
 

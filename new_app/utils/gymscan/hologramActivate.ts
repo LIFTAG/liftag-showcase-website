@@ -1,10 +1,14 @@
 // One-shot activation pass, played the frame the QR sticker lands.
 //
 // Idle is a read: a lime line walks the machine. Activation is the tag
-// coming online. The sticker itself flashes first, then a cool-white
-// skeleton grows out of that point. There is no travelling lime front and
-// no floor shockwave — those are the periodic sweep. Lime on this pass
-// lives only on the tag (the print, and a local cage bloom on the beam).
+// coming online. The sticker itself flashes first, then a green skeleton
+// grows out of that point. There is no travelling lime front and no floor
+// shockwave — those are the periodic sweep. Colour lives on the renderer
+// (ACTIVATE_RGB); this file only times the pass.
+//
+// The clock is wall-time, not a scrub. Once the vinyl is down the pass
+// plays out — including the fade — even if scroll jumps. Scrubbing back
+// off the mount rewinds it.
 //
 // Pure functions so the choreography can be unit-tested without WebGL.
 
@@ -13,11 +17,12 @@ import {
   smooth01,
 } from './hologramPass.ts'
 
-/** Seconds the cool-white fill takes to cover the cage. Gentler than the
- *  idle kick so the growth is seen leaving the sticker. */
+/** Seconds the fill takes to cover the cage. Gentler than the idle kick
+ *  so the growth is seen leaving the sticker. */
 export const ACTIVATE_TRAVEL = 1.12
-/** Whole pass: tag flash, fill, lock, fade. */
-export const ACTIVATE_SPAN = 1.85
+/** Whole pass: tag flash, fill, lock, fade. Fade is long enough to read
+ *  even when scroll has already left the plant. */
+export const ACTIVATE_SPAN = 2.20
 /** Soft edge of the growing fill, metres. Not a scan trail. */
 export const ACTIVATE_TRAIL = 0.55
 /** Unused as a travelling core. Kept so the cage uniform stays defined. */
@@ -57,14 +62,14 @@ export interface HologramActivate {
   coreWidth: number
   /** Local cage bloom at the sticker. Holds through the fill so the source stays. */
   ignite: number
-  /** Cool-white silhouette pulse. Does not add lime. */
+  /** Silhouette pulse after the cage is covered. */
   lock: number
   /**
-   * Cool-white interior of the sphere, 0..1. Grows out of the tag after the
-   * sticker has already flashed.
+   * Interior of the sphere, 0..1. Grows out of the tag after the sticker
+   * has already flashed.
    */
   fill: number
-  /** 0 = scanner lime, 1 = white-hot. Stays on the tag bloom. */
+  /** 0 = body green, 1 = ignition bloom. Stays on the tag. */
   hot: number
   /** Print emission on the sticker itself, 0..1. The cause, not the cage. */
   tag: number
@@ -102,6 +107,21 @@ export function hologramActivateTag(t: number, envelope: number): number {
   return hologramActivateAt(t, envelope, { maxR: 1, originY: 1, stemR: 0.3 }).tag
 }
 
+/**
+ * Wall-clock for the plant pass. Once the sticker is down it advances every
+ * frame; skip/scroll do not gate it. Reduced-motion and scrubbing off the
+ * mount rewind to idle.
+ */
+export function advanceActivationClock(
+  t: number,
+  dt: number,
+  planted: boolean,
+  reducedMotion: boolean,
+): number {
+  if (reducedMotion || !planted) return -1
+  return t < 0 ? dt : t + dt
+}
+
 /** Seconds into the pass at which the expanding sphere reaches the mat. */
 export function activateFloorTime(opts: HologramActivateOpts): number {
   const span = Math.max(opts.maxR, 1e-4)
@@ -122,7 +142,7 @@ export function hologramActivateAt(
   if (envelope <= 0.001 || t < 0 || t > ACTIVATE_SPAN) return idle
 
   const inRamp = Math.min(t / IN_RAMP, 1)
-  const fade = 1 - smooth01(1.40, ACTIVATE_SPAN, t)
+  const fade = 1 - smooth01(1.28, ACTIVATE_SPAN, t)
   const covered = t >= ACTIVATE_TRAVEL ? 1 : coverTravel(t / ACTIVATE_TRAVEL)
   const frontR = 0.04 + (opts.maxR - 0.04) * covered
   const cageAmp = envelope * inRamp * fade

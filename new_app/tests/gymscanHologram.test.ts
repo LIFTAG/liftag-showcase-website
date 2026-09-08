@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
+  ACTIVATE_HOT_RGB,
+  ACTIVATE_RGB,
   CAGE_CORE_GAIN,
   CAGE_FILL_GAIN,
   CAGE_LOCK_GAIN,
@@ -8,6 +10,7 @@ import {
   CORE_RGB,
   HOT_RGB,
   RETICLE_RGB,
+  WIRE_RGB,
   cageMixColor,
   cageShouldDraw,
   screenProbeWeight,
@@ -242,6 +245,19 @@ test('activation fill and lock are cool white, not a lime body', () => {
     'lock must share the gray body hue',
   )
   assert.ok(lock.g > fill.g, 'lock is the louder online beat')
+})
+
+test('plant hologram is green, not cool white and not scanner lime', () => {
+  assert.ok(ACTIVATE_RGB[1] > ACTIVATE_RGB[0] + 0.5, 'green channel must dominate')
+  assert.ok(ACTIVATE_RGB[1] > ACTIVATE_RGB[2])
+  assert.ok(ACTIVATE_RGB[0] < 0.2, 'green is not lime (lime has high red)')
+  assert.ok(ACTIVATE_RGB[2] > 0.12, 'green carries blue; lime has none')
+  assert.ok(ACTIVATE_RGB[2] < ACTIVATE_RGB[1] - 0.3)
+  assert.ok(WIRE_RGB[2] >= WIRE_RGB[1], 'cool white is the idle mesh, not the plant')
+  assert.ok(CORE_RGB[0] > 0.5 && CORE_RGB[2] === 0, 'scanner lime stays on the idle sweep')
+  assert.ok(ACTIVATE_HOT_RGB[0] < 0.25, 'ignition is not lime')
+  assert.ok(ACTIVATE_HOT_RGB[2] < ACTIVATE_HOT_RGB[1], 'ignition is not white')
+  assert.ok(ACTIVATE_HOT_RGB[1] > ACTIVATE_RGB[1])
 })
 
 test('activation core is white-hot, not scanner lime', () => {
