@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import {
+  GYM_ENV_SIZE,
   createGymEnvironment,
   createContactShadowTexture,
 } from "./environment";
@@ -16,7 +17,7 @@ export function createEquipmentGallery(renderer: THREE.WebGLRenderer) {
   scene.background = new THREE.Color(0x040605);
   scene.fog = new THREE.Fog(0x040605, 14, 35);
   const camera = new THREE.PerspectiveCamera(34, 1, 0.05, 45);
-  const environment = createGymEnvironment(renderer, 64);
+  const environment = createGymEnvironment(renderer, GYM_ENV_SIZE);
   scene.environment = environment.texture;
   const key = new THREE.DirectionalLight(0xe4eeeb, 4.2);
   key.position.set(1, 6, 5);

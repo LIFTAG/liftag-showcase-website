@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { probeTemporaryWebGL2 } from "~/utils/gymscan/device";
+import { compactLoggerOwnsCopy } from "~/utils/gymscan/handoff";
 import {
   experienceDevice,
   type GymJourney,
@@ -40,6 +41,7 @@ let viewObserver: IntersectionObserver | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let copyFlying = false;
 let copyBlur = false;
+let copyLogger = false;
 let copyDof = -1;
 let swept = false;
 
@@ -73,6 +75,11 @@ function syncCopy(info: FrameInfo) {
   if (!journey) return;
   const flying = info.act0.shot === "fly";
   const blur = info.dof > 0.001;
+  const logger = compactLoggerOwnsCopy(
+    (canvas.value?.clientWidth ?? 0) < 761,
+    info.fold,
+    info.heroMorph,
+  );
   if (flying !== copyFlying) {
     copyFlying = flying;
     journey.classList.toggle("is-stick-front", flying);
@@ -81,6 +88,10 @@ function syncCopy(info: FrameInfo) {
     copyBlur = blur;
     journey.classList.toggle("is-copy-blur", blur);
     if (!blur) journey.style.removeProperty("--gx-dof");
+  }
+  if (logger !== copyLogger) {
+    copyLogger = logger;
+    journey.classList.toggle("is-logger-front", logger);
   }
   if (blur && Math.abs(info.dof - copyDof) >= 0.004) {
     copyDof = info.dof;
@@ -91,9 +102,10 @@ function clearCopy() {
   const journey = copyRoot();
   copyFlying = false;
   copyBlur = false;
+  copyLogger = false;
   copyDof = -1;
   if (!journey) return;
-  journey.classList.remove("is-stick-front", "is-copy-blur");
+  journey.classList.remove("is-stick-front", "is-copy-blur", "is-logger-front");
   journey.style.removeProperty("--gx-dof");
 }
 function frame(info: FrameInfo) {
@@ -138,6 +150,8 @@ async function start() {
     probeTemporaryWebGL2(),
     saveData,
     canvas.value.clientWidth <= 760,
+    canvas.value.clientWidth,
+    canvas.value.clientHeight,
   );
   if (!device.startStage) {
     fallback.value = true;

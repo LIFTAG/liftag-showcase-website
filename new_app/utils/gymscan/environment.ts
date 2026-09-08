@@ -50,7 +50,20 @@ export interface GymEnvironment {
   dispose: () => void
 }
 
-export function createGymEnvironment(renderer: THREE.WebGLRenderer, size = 256): GymEnvironment {
+/**
+ * PMREM cube edge. A lookup is one sample either way, so 64/128 only saved
+ * the startup bake and left the machines looking like dull plastic. 256 is
+ * the signed-off metal.
+ */
+export const GYM_ENV_SIZE = 256
+/**
+ * Rubber-mat map edge. Adaptive quality used to pass 128; at the phone fill
+ * budget that is a couple of texels per centimetre and reads as pixels
+ * under the machine. 512 matches the desktop bake. Generation is one-time.
+ */
+export const GYM_FLOOR_MAP_SIZE = 512
+
+export function createGymEnvironment(renderer: THREE.WebGLRenderer, size = GYM_ENV_SIZE): GymEnvironment {
   const scene = new THREE.Scene()
   scene.background = new THREE.Color(0x000000)
 
@@ -148,7 +161,7 @@ export interface FloorMaps {
  * The maps are drawn to canvas rather than downloaded, so this costs bytes in
  * neither GLB nor a texture request.
  */
-export function createFloorMaps(anisotropy: number, size = 512, options: { seams?: boolean } = {}): FloorMaps {
+export function createFloorMaps(anisotropy: number, size = GYM_FLOOR_MAP_SIZE, options: { seams?: boolean } = {}): FloorMaps {
   const S = size
   const TILE = S / 2            // two tiles across the 2 m repeat
 

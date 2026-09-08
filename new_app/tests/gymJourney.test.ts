@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { gymJourneyAt, experienceDevice } from "../utils/gymscan/journey.ts";
+import {
+  EXPERIENCE_DESKTOP_DPR_CAP,
+  EXPERIENCE_PHONE_DPR_CAP,
+  EXPERIENCE_PIXEL_BUDGET,
+  discoveryPixelRatio,
+  experienceDevice,
+  experienceDprCap,
+  gymJourneyAt,
+} from "../utils/gymscan/journey.ts";
 
 test("the original installation completes before the scan and phone reveal", () => {
   const start = gymJourneyAt(0, 900, 3600, 5490);
@@ -26,6 +34,8 @@ test("graphics fallbacks apply on desktops and phones while retaining the same f
   assert.equal(experienceDevice(capable, false, false).cut, "floor");
   assert.equal(experienceDevice(capable, false, true).cut, "floor");
   assert.equal(experienceDevice(capable, false, true).bloom, false);
+  assert.equal(experienceDevice(capable, false, true).shadows, false);
+  assert.equal(experienceDevice(capable, false, true).msaa, false);
   assert.equal(experienceDevice(capable, true, false).startStage, false);
   assert.equal(
     experienceDevice({ ...capable, webgl2: false }, false, false).startStage,
@@ -35,6 +45,41 @@ test("graphics fallbacks apply on desktops and phones while retaining the same f
     experienceDevice({ ...capable, probeFailed: true }, false, true).startStage,
     false,
   );
+});
+
+test("phone DPR uses the unused fill budget so the hologram is not 1× on a 3× display", () => {
+  assert.equal(experienceDprCap(false), EXPERIENCE_DESKTOP_DPR_CAP);
+  assert.equal(experienceDprCap(false, 1920, 1080), EXPERIENCE_DESKTOP_DPR_CAP);
+
+  const phone = experienceDprCap(true, 390, 844);
+  assert.ok(phone >= 2, `390-wide phone should be at least 2×, got ${phone}`);
+  assert.ok(phone <= EXPERIENCE_PHONE_DPR_CAP);
+  assert.ok(
+    390 * 844 * phone * phone <= EXPERIENCE_PIXEL_BUDGET + 1,
+    "phone fill must not exceed the signed-off desktop budget",
+  );
+
+  const wideCompact = experienceDprCap(true, 760, 900);
+  assert.ok(wideCompact < phone, "a 760-wide canvas has less DPR headroom");
+  assert.ok(wideCompact > EXPERIENCE_DESKTOP_DPR_CAP);
+
+  const capable = { webgl2: true, probeFailed: false, maxTextureSize: 8192 };
+  assert.equal(
+    experienceDevice(capable, false, true, 390, 844).dprCap,
+    phone,
+  );
+  assert.equal(
+    experienceDevice(capable, false, false, 1440, 900).dprCap,
+    EXPERIENCE_DESKTOP_DPR_CAP,
+  );
+});
+
+test("discovery phone DPR follows the gym-film fill budget; desktop stays at 1.5", () => {
+  assert.equal(discoveryPixelRatio(2, 1440, 900), 1.5);
+  assert.equal(discoveryPixelRatio(1, 1440, 900), 1);
+  const phone = discoveryPixelRatio(3, 390, 844);
+  assert.equal(phone, experienceDprCap(true, 390, 844));
+  assert.ok(phone >= 2);
 });
 test("the kit is an explicit destination for chapter and abandonment tracking", () => {
   assert.equal(gymJourneyAt(7300, 900, 3600, 5490, 7200).chapter, "kit");

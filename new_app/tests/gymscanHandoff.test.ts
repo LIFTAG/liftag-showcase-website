@@ -9,6 +9,9 @@ import {
   HERO_PHONE_TILT_X,
   HERO_PHONE_TILT_Y,
   SCENE_END,
+  LOGGER_FRONT_FOLD,
+  LOGGER_FRONT_MORPH,
+  compactLoggerOwnsCopy,
   fallbackHeroSlot,
   gymScanStickySvh,
   heroBodyTargetFromPhoneBox,
@@ -44,6 +47,15 @@ test('scanner scroll catches up within ten frames without snapping', () => {
   }
   assert.ok(progress > 0.95, `expected >95% catch-up, got ${progress}`)
   assert.ok(progress < 1, 'scroll response should retain a short ease')
+})
+
+test('compact copy recedes while the parked logger owns the frame', () => {
+  assert.equal(compactLoggerOwnsCopy(false, 1, 0), false)
+  assert.equal(compactLoggerOwnsCopy(true, LOGGER_FRONT_FOLD - 0.01, 0), false)
+  assert.equal(compactLoggerOwnsCopy(true, LOGGER_FRONT_FOLD, 0), true)
+  assert.equal(compactLoggerOwnsCopy(true, 1, 0), true)
+  assert.equal(compactLoggerOwnsCopy(true, 1, LOGGER_FRONT_MORPH - 0.01), true)
+  assert.equal(compactLoggerOwnsCopy(true, 1, LOGGER_FRONT_MORPH), false)
 })
 
 test('scene and morph tile the scroll range and hand over at SCENE_END', () => {

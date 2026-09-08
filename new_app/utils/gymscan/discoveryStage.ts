@@ -7,10 +7,12 @@ import { createDiscoverySeams } from "./discoverySeams";
 import { createDiscoveryIsland } from "./discoveryIsland";
 import { discoveryEquipment } from "./discoveryEquipment";
 import {
+  GYM_ENV_SIZE,
   createGymEnvironment,
   createFloorMaps,
   createContactShadowTexture,
 } from "./environment";
+import { discoveryPixelRatio } from "./journey";
 import { createDiscoveryGlobe, GLOBE_RADIUS, latLngToGlobe } from "./discoveryGlobe";
 import { discoveryMapLocations, discoveryCountryLabels } from "./discoveryMapLocations";
 import {
@@ -97,7 +99,7 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(DISCOVERY_CAM_FOV, 1, 0.1, 50);
-  const environment = createGymEnvironment(renderer, 64);
+  const environment = createGymEnvironment(renderer, GYM_ENV_SIZE);
   scene.environment = environment.texture;
   const light = new THREE.DirectionalLight(0xe5efe8, 4.5);
   light.position.set(-3, 5, 6);
@@ -298,6 +300,7 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
   function resize() {
     width = canvas.clientWidth;
     height = canvas.clientHeight;
+    renderer.setPixelRatio(discoveryPixelRatio(devicePixelRatio || 1, width, height));
     renderer.setSize(width, height, false);
     camera.aspect = width / Math.max(1, height);
     camera.updateProjectionMatrix();

@@ -469,6 +469,12 @@
 .gx-journey.is-copy-blur .gx-install__copy {
   filter: blur(calc(var(--gx-dof) * 18px));
 }
+@media (max-width: 760px) {
+  .gx-journey.is-logger-front .gx-install__copy {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
 .gx-scroll {
   position: absolute;
   left: 4.5vw;
@@ -504,6 +510,7 @@
   flex-direction: column;
   justify-content: end;
   align-items: start;
+  transition: opacity 480ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 .gx-install__copy h2 {
   font-size: clamp(1.5rem, 2.3vw, 2.6rem);

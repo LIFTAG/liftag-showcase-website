@@ -50,6 +50,22 @@ export function heroMorphAt(p: number): number {
   return clamp01((p - SCENE_END) / (1 - SCENE_END))
 }
 
+/**
+ * Compact copy sits on the same pixels as the parked logger. Recede it once
+ * the glass is a phone, and keep it receded until the device has travelled
+ * into the coaching slot.
+ */
+export const LOGGER_FRONT_FOLD = 0.45
+export const LOGGER_FRONT_MORPH = 0.35
+
+export function compactLoggerOwnsCopy(
+  compact: boolean,
+  fold: number,
+  heroMorph: number,
+): boolean {
+  return compact && fold >= LOGGER_FRONT_FOLD && heroMorph < LOGGER_FRONT_MORPH
+}
+
 /** Ease-out quart. The phone should arrive, not coast. */
 export function heroTravelEase(t: number): number {
   const x = clamp01(t)

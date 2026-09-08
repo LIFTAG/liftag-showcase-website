@@ -15,6 +15,7 @@ import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLigh
 
 import {
   CEILING_STRIPS, STRIP_COLOR, STRIP_NITS,
+  GYM_ENV_SIZE, GYM_FLOOR_MAP_SIZE,
   createGymEnvironment, createContactShadowTexture, createFloorMaps,
 } from './environment'
 import {
@@ -415,7 +416,7 @@ export function createGymScanStage(opts: StageOptions) {
   const camera = new THREE.PerspectiveCamera(38, 1, 0.05, 90)
   camera.position.set(3.98, 2.22, 4.96)
 
-  const env = createGymEnvironment(renderer, opts.adaptiveQuality ? 128 : 256)
+  const env = createGymEnvironment(renderer, GYM_ENV_SIZE)
   scene.environment = env.texture
 
   const uniforms = createScanUniforms()
@@ -550,7 +551,10 @@ export function createGymScanStage(opts: StageOptions) {
   // reflection at grazing angles through Fresnel alone, but the fleck and seam
   // maps chop it into something with a scale, so the floor reads as a surface
   // the machine is standing on rather than a plane it is floating over.
-  const floorMaps = createFloorMaps(renderer.capabilities.getMaxAnisotropy(), opts.adaptiveQuality ? 128 : 512)
+  const floorMaps = createFloorMaps(
+    renderer.capabilities.getMaxAnisotropy(),
+    GYM_FLOOR_MAP_SIZE,
+  )
   // One recipe, two meshes: the 90 m plane and the slabs that build its middle
   // during 0A. They must be indistinguishable at rest, so nothing here may
   // diverge between them - only the shader patches below do.
