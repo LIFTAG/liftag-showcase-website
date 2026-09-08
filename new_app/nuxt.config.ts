@@ -136,11 +136,15 @@ export default defineNuxtConfig({
     },
   },
   routeRules: {
+    // One rule only. `/gym-scan/` sanitizes to the same Vercel function name
+    // (`gym-scan.func`); a second symlink onto `__fallback.func` is EEXIST
+    // and the production build dies. `vercel.json` `trailingSlash: false`
+    // already 308s the slash onto this path. `pages/gym-scan.vue` keeps
+    // query and hash if the page itself is hit.
+    '/gym-scan': { redirect: { to: '/demo', statusCode: 308 } },
     // Vercel also serves the prerendered root at its literal /index.html path,
     // which Search Console reports as a duplicate URL. Nitro compiles this rule
     // into the Vercel routing config ahead of static file serving.
-    '/gym-scan': { redirect: { to: '/demo', statusCode: 308 } },
-    '/gym-scan/': { redirect: { to: '/demo', statusCode: 308 } },
     '/index.html': { redirect: { to: '/', statusCode: 308 } },
     // "best workout tracker" is the same query as "best workout tracking app";
     // one article ranks for both, so the shorter slug forwards instead of
