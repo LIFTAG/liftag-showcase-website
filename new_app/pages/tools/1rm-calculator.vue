@@ -62,7 +62,10 @@ useLiftagStructuredData([
           </ol>
         </nav>
         <p class="protocol guide-eyebrow">TOOL · 1RM · EPLEY</p>
-        <h1 class="display guide-title">1RM <span class="lime">calculator</span></h1>
+        <h1 class="display guide-title">
+          <span class="guide-title-top">One-rep max</span>
+          <span class="lime">calculator</span>
+        </h1>
         <p class="guide-lead">{{ ONE_RM_LEAD }}</p>
       </header>
 
@@ -302,7 +305,20 @@ useLiftagStructuredData([
   text-decoration: none;
 }
 .guide-eyebrow { color: var(--liftag-primary); margin: 0 0 18px; }
-.guide-title { max-width: none; font-size: clamp(48px, 7vw, 96px); }
+.guide-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: none;
+  font-size: clamp(36px, 6.2vw, 84px);
+}
+.guide-title-top,
+.guide-title .lime {
+  display: block;
+}
+.guide-title-top {
+  white-space: nowrap;
+}
 .guide-lead {
   max-width: 62ch; margin: 18px 0 0; color: rgba(255, 255, 255, 0.66);
   font-size: clamp(17px, 1.8vw, 21px); font-weight: 300; line-height: 1.5;
