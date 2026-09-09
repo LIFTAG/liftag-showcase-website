@@ -144,6 +144,7 @@ const formulaName = computed(() => FORMULAS.find(item => item.id === formulaId.v
           <button type="button" class="orm-action" @click="copyLink">{{ copied ? 'Copied' : 'Copy link' }}</button>
           <button type="button" class="orm-action" @click="copyResult">Copy result</button>
           <button v-if="canShare" type="button" class="orm-action" @click="share">Share</button>
+          <a href="/get" class="orm-action orm-action-link">Log in LIFTAG</a>
         </div>
       </template>
     </div>
@@ -406,9 +407,18 @@ const formulaName = computed(() => FORMULAS.find(item => item.id === formulaId.v
   font-size: 11px;
   font-weight: 600;
   color: #fff;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+.orm-action-link {
+  background: var(--liftag-primary);
+  border-color: var(--liftag-primary);
+  color: #0e0e0e;
 }
 @media (hover: hover) and (pointer: fine) {
   .orm-action:hover { border-color: var(--liftag-primary); color: var(--liftag-primary); }
+  .orm-action-link:hover { color: #0e0e0e; filter: brightness(1.06); }
 }
 .orm-block {
   padding: 8px 28px 24px;

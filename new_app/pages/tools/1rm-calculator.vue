@@ -62,12 +62,8 @@ useLiftagStructuredData([
           </ol>
         </nav>
         <p class="protocol guide-eyebrow">TOOL · 1RM · EPLEY</p>
-        <h1 class="display guide-title">One-rep max<br /><span class="lime">calculator</span></h1>
+        <h1 class="display guide-title">1RM <span class="lime">calculator</span></h1>
         <p class="guide-lead">{{ ONE_RM_LEAD }}</p>
-        <div class="guide-actions">
-          <a href="#calculator" class="btn-primary">Estimate your 1RM</a>
-          <a href="/get" class="btn-ghost"><HoloPill />Log it in LIFTAG</a>
-        </div>
       </header>
 
       <div id="calculator" class="container orm-stage">
@@ -282,7 +278,7 @@ useLiftagStructuredData([
     #000;
   color: #fff;
 }
-.guide-hero { padding: 120px 0 28px; }
+.guide-hero { padding: 108px 0 20px; }
 .guide-crumbs ol {
   display: flex;
   flex-wrap: wrap;
@@ -306,13 +302,11 @@ useLiftagStructuredData([
   text-decoration: none;
 }
 .guide-eyebrow { color: var(--liftag-primary); margin: 0 0 18px; }
-.guide-title { max-width: 12ch; font-size: clamp(40px, 6.2vw, 84px); }
+.guide-title { max-width: none; font-size: clamp(48px, 7vw, 96px); }
 .guide-lead {
-  max-width: 68ch; margin: 28px 0 0; color: rgba(255, 255, 255, 0.66);
-  font-size: clamp(18px, 2vw, 23px); font-weight: 300; line-height: 1.55;
+  max-width: 62ch; margin: 18px 0 0; color: rgba(255, 255, 255, 0.66);
+  font-size: clamp(17px, 1.8vw, 21px); font-weight: 300; line-height: 1.5;
 }
-.guide-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
-.guide-actions a { text-decoration: none; }
 .orm-stage { padding: 8px 0 24px; max-width: 1080px; scroll-margin-top: 96px; }
 .guide-body { padding: 32px 0 80px; max-width: 880px; }
 .guide-body section { padding: 36px 0; border-top: 1px solid rgba(255, 255, 255, 0.06); }
@@ -377,10 +371,8 @@ useLiftagStructuredData([
   color: rgba(255, 255, 255, 0.5);
   font-size: 13px;
 }
-@media (max-width: 900px) { .guide-hero { padding-top: calc(120px + var(--liftag-safe-top)); } }
+@media (max-width: 900px) { .guide-hero { padding-top: calc(108px + var(--liftag-safe-top)); } }
 @media (max-width: 620px) {
-  .guide-hero { padding: 108px 0 36px; }
-  .guide-actions { flex-direction: column; }
-  .guide-actions a { width: 100%; text-align: center; }
+  .guide-hero { padding: 96px 0 16px; }
 }
 </style>

@@ -64,8 +64,8 @@ export function useOneRepMaxCalculator() {
   const initialFormula = queryString(route.query.f)
   const initialLift = queryString(route.query.lift)
 
-  const weightText = shallowRef(queryString(route.query.w))
-  const repsText = shallowRef(queryString(route.query.r))
+  const weightText = shallowRef(queryString(route.query.w) || '100')
+  const repsText = shallowRef(queryString(route.query.r) || '5')
   const unit = shallowRef<WeightUnit>(isWeightUnit(initialUnit) ? initialUnit : 'kg')
   const lift = shallowRef<LiftId>(isLiftId(initialLift) ? initialLift : 'other')
   const formulaId = shallowRef<FormulaId>(isFormulaId(initialFormula) ? initialFormula : DEFAULT_FORMULA_ID)
