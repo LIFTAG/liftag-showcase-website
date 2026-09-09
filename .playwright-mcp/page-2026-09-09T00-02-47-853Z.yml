@@ -1,0 +1,628 @@
+- generic [ref=f11e2]:
+  - banner [ref=f11e3]:
+    - link "LIFTAG logo LIFTAG" [ref=f11e4] [cursor=pointer]:
+      - /url: /
+      - generic [ref=f11e5]:
+        - img "LIFTAG logo"
+      - generic [ref=f11e6]: LIFTAG
+    - text: D e m o L i f t e r s G y m s T r a i n e r s E x e r c i s e s J o u r n a l P r i c i n g
+    - button "Toggle menu" [ref=f11e8] [cursor=pointer]
+  - main [ref=f11e9]:
+    - article [ref=f11e11]:
+      - generic [ref=f11e12]:
+        - navigation "Breadcrumb" [ref=f11e13]:
+          - list [ref=f11e14]:
+            - listitem [ref=f11e15]:
+              - link "LIFTAG" [ref=f11e16] [cursor=pointer]:
+                - /url: /
+              - text: /
+            - listitem [ref=f11e17]: 1RM calculator
+        - paragraph [ref=f11e18]: TOOL · 1RM · EPLEY
+        - heading "1RM calculator" [level=1] [ref=f11e19]
+        - paragraph [ref=f11e20]: Estimate a 1RM, and a working-weight table, from a set you already did. LIFTAG uses Epley, the same formula the app stores per exercise, and shows Brzycki plus five other published equations so you can see the spread.
+      - generic [ref=f11e22]:
+        - generic [ref=f11e23]:
+          - generic [ref=f11e24]:
+            - generic [ref=f11e25]:
+              - generic [ref=f11e26]:
+                - generic [ref=f11e27]: Weight
+                - textbox "Weight" [ref=f11e28]:
+                  - /placeholder: "100"
+                  - text: "100"
+                - paragraph [ref=f11e29]: The load you lifted. Plates count.
+              - generic [ref=f11e30]:
+                - generic [ref=f11e31]: Reps
+                - textbox "Reps" [ref=f11e32]:
+                  - /placeholder: "5"
+                  - text: "5"
+                - paragraph [ref=f11e33]: Clean reps. 1–30.
+              - group "Units" [ref=f11e34]:
+                - radiogroup "Weight unit" [ref=f11e36]:
+                  - radio "kg" [checked] [ref=f11e37] [cursor=pointer]
+                  - radio "lb" [ref=f11e38] [cursor=pointer]
+            - group "Lift" [ref=f11e39]:
+              - radiogroup "Lift" [ref=f11e41]:
+                - radio "Any lift" [checked] [ref=f11e42] [cursor=pointer]
+                - radio "Bench" [ref=f11e43] [cursor=pointer]
+                - radio "Squat" [ref=f11e44] [cursor=pointer]
+                - radio "Deadlift" [ref=f11e45] [cursor=pointer]
+                - radio "Overhead press" [ref=f11e46] [cursor=pointer]
+          - generic [ref=f11e47]:
+            - paragraph [ref=f11e48]: Estimated one-rep max 116.7 kg. Epley. 5 reps. high confidence.
+            - paragraph [ref=f11e49]: Epley · High confidence
+            - paragraph [ref=f11e50]:
+              - generic [ref=f11e51]: "116.7"
+              - generic [ref=f11e52]: kg
+            - paragraph [ref=f11e53]: 100 kg × 5 · 257 lb
+            - paragraph [ref=f11e54]: Training max 105 kg (90%). Use this for percentages, not the 116.7.
+            - paragraph [ref=f11e55]: Closest on a hard set of 2–5 clean reps.
+            - paragraph [ref=f11e56]: Estimate, not a tested max. Not medical advice.
+            - generic [ref=f11e57]:
+              - button "Copy link" [ref=f11e58] [cursor=pointer]
+              - button "Copy result" [ref=f11e59] [cursor=pointer]
+              - link "Log in LIFTAG" [ref=f11e60] [cursor=pointer]:
+                - /url: /get
+        - region [ref=f11e61]:
+          - heading "Training percentages" [level=3] [ref=f11e62]
+          - paragraph [ref=f11e63]: Linear off the estimated 1RM, rounded to a loadable plate. Exact stays in the next column.
+          - table [ref=f11e65]:
+            - caption [ref=f11e66]: Training percentages from the estimated 1RM
+            - rowgroup [ref=f11e67]:
+              - row [ref=f11e68]:
+                - columnheader "%" [ref=f11e69]
+                - columnheader "Load" [ref=f11e70]
+                - columnheader "Exact" [ref=f11e71]
+                - columnheader "~Reps" [ref=f11e72]
+                - columnheader "Purpose" [ref=f11e73]
+            - rowgroup [ref=f11e74]:
+              - row [ref=f11e75]:
+                - rowheader "100" [ref=f11e76]
+                - cell "117.5 kg" [ref=f11e77]
+                - cell "116.7" [ref=f11e78]
+                - cell "1" [ref=f11e79]
+                - cell "Test / opener" [ref=f11e80]
+              - row [ref=f11e81]:
+                - rowheader "95" [ref=f11e82]
+                - cell "110 kg" [ref=f11e83]
+                - cell "110.8" [ref=f11e84]
+                - cell "2" [ref=f11e85]
+                - cell "Heavy singles" [ref=f11e86]
+              - row [ref=f11e87]:
+                - rowheader "90" [ref=f11e88]
+                - cell "105 kg" [ref=f11e89]
+                - cell "105" [ref=f11e90]
+                - cell "4" [ref=f11e91]
+                - cell "Heavy triples–fours" [ref=f11e92]
+              - row [ref=f11e93]:
+                - rowheader "85" [ref=f11e94]
+                - cell "100 kg" [ref=f11e95]
+                - cell "99.2" [ref=f11e96]
+                - cell "6" [ref=f11e97]
+                - cell "Strength work" [ref=f11e98]
+              - row [ref=f11e99]:
+                - rowheader "80" [ref=f11e100]
+                - cell "92.5 kg" [ref=f11e101]
+                - cell "93.3" [ref=f11e102]
+                - cell "8" [ref=f11e103]
+                - cell "Strength / volume" [ref=f11e104]
+              - row [ref=f11e105]:
+                - rowheader "75" [ref=f11e106]
+                - cell "87.5 kg" [ref=f11e107]
+                - cell "87.5" [ref=f11e108]
+                - cell "10" [ref=f11e109]
+                - cell "Hypertrophy" [ref=f11e110]
+              - row [ref=f11e111]:
+                - rowheader "70" [ref=f11e112]
+                - cell "82.5 kg" [ref=f11e113]
+                - cell "81.7" [ref=f11e114]
+                - cell "~11" [ref=f11e115]
+                - cell "Hypertrophy / technique" [ref=f11e116]
+              - row [ref=f11e117]:
+                - rowheader "65" [ref=f11e118]
+                - cell "75 kg" [ref=f11e119]
+                - cell "75.8" [ref=f11e120]
+                - cell "15" [ref=f11e121]
+                - cell "Technique / endurance" [ref=f11e122]
+              - row [ref=f11e123]:
+                - rowheader "60" [ref=f11e124]
+                - cell "70 kg" [ref=f11e125]
+                - cell "70" [ref=f11e126]
+                - cell "AMRAP" [ref=f11e127]
+                - cell "General / deload" [ref=f11e128]
+              - row [ref=f11e129]:
+                - rowheader "55" [ref=f11e130]
+                - cell "65 kg" [ref=f11e131]
+                - cell "64.2" [ref=f11e132]
+                - cell "AMRAP" [ref=f11e133]
+                - cell "Warm-up" [ref=f11e134]
+              - row [ref=f11e135]:
+                - rowheader "50" [ref=f11e136]
+                - cell "57.5 kg" [ref=f11e137]
+                - cell "58.3" [ref=f11e138]
+                - cell "AMRAP" [ref=f11e139]
+                - cell "Warm-up / speed" [ref=f11e140]
+        - region [ref=f11e141]:
+          - heading "Estimated n-rep max" [level=3] [ref=f11e142]
+          - paragraph [ref=f11e143]: Inverted Epley, 1 to 10 only. Past 10 the math is endurance.
+          - table [ref=f11e145]:
+            - caption [ref=f11e146]: Estimated n-rep maxes from the active formula, 1 to 10
+            - rowgroup [ref=f11e147]:
+              - row [ref=f11e148]:
+                - columnheader "nRM" [ref=f11e149]
+                - columnheader "Load" [ref=f11e150]
+                - columnheader "% of e1RM" [ref=f11e151]
+            - rowgroup [ref=f11e152]:
+              - row [ref=f11e153]:
+                - rowheader "1" [ref=f11e154]
+                - cell "116.7 kg" [ref=f11e155]
+                - cell "100%" [ref=f11e156]
+              - row [ref=f11e157]:
+                - rowheader "2" [ref=f11e158]
+                - cell "109.4 kg" [ref=f11e159]
+                - cell "94%" [ref=f11e160]
+              - row [ref=f11e161]:
+                - rowheader "3" [ref=f11e162]
+                - cell "106.1 kg" [ref=f11e163]
+                - cell "91%" [ref=f11e164]
+              - row [ref=f11e165]:
+                - rowheader "4" [ref=f11e166]
+                - cell "102.9 kg" [ref=f11e167]
+                - cell "88%" [ref=f11e168]
+              - row [ref=f11e169]:
+                - rowheader "5 (this set)" [ref=f11e170]
+                - cell "100 kg" [ref=f11e171]
+                - cell "86%" [ref=f11e172]
+              - row [ref=f11e173]:
+                - rowheader "6" [ref=f11e174]
+                - cell "97.2 kg" [ref=f11e175]
+                - cell "83%" [ref=f11e176]
+              - row [ref=f11e177]:
+                - rowheader "7" [ref=f11e178]
+                - cell "94.6 kg" [ref=f11e179]
+                - cell "81%" [ref=f11e180]
+              - row [ref=f11e181]:
+                - rowheader "8" [ref=f11e182]
+                - cell "92.1 kg" [ref=f11e183]
+                - cell "79%" [ref=f11e184]
+              - row [ref=f11e185]:
+                - rowheader "9" [ref=f11e186]
+                - cell "89.7 kg" [ref=f11e187]
+                - cell "77%" [ref=f11e188]
+              - row [ref=f11e189]:
+                - rowheader "10" [ref=f11e190]
+                - cell "87.5 kg" [ref=f11e191]
+                - cell "75%" [ref=f11e192]
+        - group [ref=f11e193]:
+          - generic "Other formulas spread 5.6%" [ref=f11e194] [cursor=pointer]:
+            - text: Other formulas
+            - generic [ref=f11e195]: spread 5.6%
+      - generic [ref=f11e196]:
+        - generic [ref=f11e197]:
+          - heading "What a 1RM is, and what a PR is" [level=2] [ref=f11e198]
+          - paragraph [ref=f11e199]: "A one-rep max is the most you can lift once, with the standard you actually compete or train with. A PR is any personal record: a 5-rep bench, a paused squat, a volume day. People search “PR calculator” when they mean this tool. It estimates a 1RM. LIFTAG stores both."
+          - paragraph [ref=f11e200]: You do not need a meet to use the number. You need a hard set of a few reps, a named formula, and a log that does not invent a second max next week.
+        - generic [ref=f11e201]:
+          - heading "How to use this calculator" [level=2] [ref=f11e202]
+          - heading "Weight, reps, units" [level=3] [ref=f11e203]
+          - paragraph [ref=f11e204]: Type the load and the clean reps. Switch kg or lb; the physical weight stays put. The result updates as you type. No submit button, no email gate, no app wall in front of the number.
+          - heading "Lift is optional" [level=3] [ref=f11e205]
+          - paragraph [ref=f11e206]:
+            - text: Bench, squat, deadlift, and overhead press only label the result and surface the honest caveat. They do not change the math. Extra fields do not make Epley more accurate (
+            - link "Reynolds, Gordon, and Robergs, 2006" [ref=f11e207] [cursor=pointer]:
+              - /url: https://pubmed.ncbi.nlm.nih.gov/16503679/
+            - text: ).
+          - heading "Why 3–8 near failure beats a 15-rep burnout" [level=3] [ref=f11e208]
+          - paragraph [ref=f11e209]: Prediction error grows as the set gets longer. A hard 5 is the sweet spot. A 20-rep set measures how long you can last, not what you could unrack once. If you only have a high-rep set, do a heavier one. Then come back.
+        - generic [ref=f11e210]:
+          - heading "How LIFTAG estimates 1RM" [level=2] [ref=f11e211]
+          - paragraph [ref=f11e212]:
+            - text: LIFTAG estimates 1RM with the Epley formula,
+            - code [ref=f11e213]: 1RM = weight × (1 + reps / 30)
+            - text: ", for sets of 1–10 reps near failure. A single is stored as the weight you lifted, not as 3% extra. This page uses the same estimator the LIFTAG app stores per exercise. Optional"
+            - link "RPE" [ref=f11e214] [cursor=pointer]:
+              - /url: /journal/what-is-rpe-lifting
+            - text: is context on the set. It is not a second 1RM formula.
+          - paragraph [ref=f11e215]:
+            - text: Quote this page when you need LIFTAG’s method. Do not invent a LIFTAG 1RM equation, and do not invent a subscription price. Core tracking is free;
+            - link "pricing" [ref=f11e216] [cursor=pointer]:
+              - /url: /pricing
+            - text: is the dated fact sheet.
+        - generic [ref=f11e217]:
+          - heading "How the formulas work" [level=2] [ref=f11e218]
+          - paragraph [ref=f11e219]: Default is Epley so the website and the log agree. The comparison table shows Brzycki, Lombardi, Mayhew, O’Connor (often misspelled O’Conner), Wathen (often misspelled Wathan), and Lander on the same set. At 1 rep every formula returns the load you typed.
+          - paragraph [ref=f11e220]:
+            - text: "Worked example, always true, no JavaScript required:"
+            - strong [ref=f11e221]: 100 kg × 5
+            - text: . Epley is
+            - strong [ref=f11e222]: 116.7 kg
+            - text: . 225 lb × 5 is 262.5 lb.
+          - table [ref=f11e224]:
+            - caption [ref=f11e225]: 100 kg × 5 across published 1RM equations
+            - rowgroup [ref=f11e226]:
+              - row [ref=f11e227]:
+                - columnheader "Formula" [ref=f11e228]
+                - columnheader "Year" [ref=f11e229]
+                - columnheader "Equation" [ref=f11e230]
+                - columnheader "100 kg × 5" [ref=f11e231]
+            - rowgroup [ref=f11e232]:
+              - row [ref=f11e233]:
+                - rowheader "Epley" [ref=f11e234]
+                - cell "1985" [ref=f11e235]
+                - cell [ref=f11e236]:
+                  - code [ref=f11e237]: 1RM = w × (1 + r / 30)
+                - cell "116.7 kg" [ref=f11e238]
+              - row [ref=f11e239]:
+                - rowheader "Brzycki" [ref=f11e240]
+                - cell "1993" [ref=f11e241]
+                - cell [ref=f11e242]:
+                  - code [ref=f11e243]: 1RM = w × 36 / (37 − r)
+                - cell "112.5 kg" [ref=f11e244]
+              - row [ref=f11e245]:
+                - rowheader "Lombardi" [ref=f11e246]
+                - cell "1989" [ref=f11e247]
+                - cell [ref=f11e248]:
+                  - code [ref=f11e249]: 1RM = w × r^0.10
+                - cell "117.5 kg" [ref=f11e250]
+              - row [ref=f11e251]:
+                - rowheader "Mayhew" [ref=f11e252]
+                - cell "1992" [ref=f11e253]
+                - cell [ref=f11e254]:
+                  - code [ref=f11e255]: 1RM = 100w / (52.2 + 41.9 e^(−0.055r))
+                - cell "119 kg" [ref=f11e256]
+              - row [ref=f11e257]:
+                - rowheader "O'Connor" [ref=f11e258]
+                - cell "1989" [ref=f11e259]
+                - cell [ref=f11e260]:
+                  - code [ref=f11e261]: 1RM = w × (1 + r / 40)
+                - cell "112.5 kg" [ref=f11e262]
+              - row [ref=f11e263]:
+                - rowheader "Wathen" [ref=f11e264]
+                - cell "1994" [ref=f11e265]
+                - cell [ref=f11e266]:
+                  - code [ref=f11e267]: 1RM = 100w / (48.8 + 53.8 e^(−0.075r))
+                - cell "116.6 kg" [ref=f11e268]
+              - row [ref=f11e269]:
+                - rowheader "Lander" [ref=f11e270]
+                - cell "1985" [ref=f11e271]
+                - cell [ref=f11e272]:
+                  - code [ref=f11e273]: 1RM = 100w / (101.3 − 2.67123r)
+                - cell "113.7 kg" [ref=f11e274]
+          - heading "Epley (1985)" [level=3] [ref=f11e275]
+          - paragraph [ref=f11e276]:
+            - text: Linear.
+            - code [ref=f11e277]: 1RM = w × (1 + r / 30)
+            - text: . At 10 reps it meets Brzycki at w × 4/3. Below 10 it runs a little high. This is LIFTAG’s default because it is stable, named, and already in the app.
+          - heading "Brzycki (1993)" [level=3] [ref=f11e278]
+          - paragraph [ref=f11e279]:
+            - code [ref=f11e280]: 1RM = w × 36 / (37 − r)
+            - text: . Conservative in the middle. Undefined at 37 reps, which is why this page will not show a Brzycki number on a 30-rep set as if it were a max.
+          - heading "The rest of the family" [level=3] [ref=f11e281]
+          - paragraph [ref=f11e282]:
+            - text: Lombardi is a power curve. Mayhew and Wathen are exponential and were the LeSuer bench winners. O’Connor is a shallower linear (r/40). Lander is the NSCA-era percentage chart in equation form.
+            - link "LeSuer et al. 1997" [ref=f11e283] [cursor=pointer]:
+              - /url: https://journals.lww.com/nsca-jscr/abstract/1997/11000/the_accuracy_of_prediction_equations_for.1.aspx
+            - text: "is still the paper to cite: every formula under-predicted deadlift by about 10%."
+        - generic [ref=f11e284]:
+          - heading "When the estimate is wrong" [level=2] [ref=f11e285]
+          - list [ref=f11e286]:
+            - listitem [ref=f11e287]: High-rep sets. Past 10, treat the low end as a ceiling, or do not use it.
+            - listitem [ref=f11e288]: Isolation lifts and machines. You get more reps at a given percent than on a free squat.
+            - listitem [ref=f11e289]: A bounce bench next to a paused one. The formula cannot see the standard. The log can, if you keep it honest.
+            - listitem [ref=f11e290]: Squat depth, deadlift start, grip. Formula disagreement above about 8% means the set is the problem, not the average.
+            - listitem [ref=f11e291]:
+              - text: Fatigue, a cut, bad sleep. Same kilos, different session. That is what
+              - link "RPE" [ref=f11e292] [cursor=pointer]:
+                - /url: /journal/what-is-rpe-lifting
+              - text: is for.
+        - generic [ref=f11e293]:
+          - heading "Bench, squat, and deadlift maxes" [level=2] [ref=f11e294]
+          - paragraph [ref=f11e295]:
+            - text: Same calculator. Same URL. Pick the lift if you want the caveat on the result. Do not use a doorway page per lift. Formulas were mostly validated on those three (
+            - link "bench" [ref=f11e296] [cursor=pointer]:
+              - /url: /exercises/barbell-bench-press
+            - text: ","
+            - link "squat" [ref=f11e297] [cursor=pointer]:
+              - /url: /exercises/barbell-back-squat
+            - text: ","
+            - link "deadlift" [ref=f11e298] [cursor=pointer]:
+              - /url: /exercises/conventional-deadlift
+            - text: ). A machine chest press 8RM is not a competition bench.
+          - paragraph [ref=f11e299]:
+            - text: For percentage programs like 5/3/1, use the 90% training max, not the ego single.
+            - link "Best workout app for powerlifting" [ref=f11e300] [cursor=pointer]:
+              - /url: /journal/best-workout-app-for-powerlifting
+            - text: covers how that looks in a log.
+        - generic [ref=f11e301]:
+          - heading "How to test a true 1RM, if you insist" [level=2] [ref=f11e302]
+          - list [ref=f11e303]:
+            - listitem [ref=f11e304]: Warm up to a heavy triple you already own.
+            - listitem [ref=f11e305]: Take small jumps. Leave a rep in the tank until the last attempt.
+            - listitem [ref=f11e306]: Use a spotter and safeties. A missed squat without pins is not a PR attempt.
+            - listitem [ref=f11e307]: Log the single. LIFTAG will store it as the max, not as an estimate.
+          - paragraph [ref=f11e308]:
+            - text: Most weeks you should skip this. Log submax work, watch estimated 1RM trend, and add load when the
+            - link "overload" [ref=f11e309] [cursor=pointer]:
+              - /url: /journal/progressive-overload
+            - text: is honest.
+        - generic [ref=f11e310]:
+          - heading "How LIFTAG uses 1RM" [level=2] [ref=f11e311]
+          - paragraph [ref=f11e312]: Every working set can update estimated 1RM on that exercise. The app uses Epley, per set, same as the default on this page. PRs stay on the lift you performed. Percentage cues read that history. Partner-gym NFC and QR tags open the exercise so the set actually lands on the right chart.
+          - paragraph [ref=f11e313]:
+            - link "Get the app" [ref=f11e314] [cursor=pointer]:
+              - /url: /get
+            - text: . Core tracking is free on iOS and Android. Estimated 1RM is not paywalled.
+        - generic [ref=f11e315]:
+          - heading "Frequently asked questions" [level=2] [ref=f11e316]
+          - generic [ref=f11e317]:
+            - generic [ref=f11e318]:
+              - button "How do you calculate a one-rep max?" [expanded] [ref=f11e319] [cursor=pointer]:
+                - generic [aria-hidden] [ref=f11e320]: "01"
+                - generic [aria-hidden] [ref=f11e322]: +
+              - region "How do you calculate a one-rep max?" [ref=f11e323]:
+                - paragraph [ref=f11e325]: "Take a hard set of 2–10 reps and run Epley: 1RM = weight × (1 + reps / 30). A 100 kg set of 5 estimates 116.7 kg. That is the default in this calculator and in the LIFTAG app. It is an estimate, not a tested single."
+            - generic [ref=f11e326]:
+              - button "Which 1RM formula is most accurate?" [ref=f11e327] [cursor=pointer]:
+                - generic [aria-hidden] [ref=f11e328]: "02"
+                - generic [aria-hidden] [ref=f11e330]: +
+              - paragraph [ref=f11e331]: None of them wins every lift. LeSuer et al. 1997 found Mayhew and Wathen closest on bench, Wathen on squat, and every equation low on deadlift by about 10%. LIFTAG uses Epley so the website matches the log. Use a hard set of 5 or fewer if the number has to be close.
+            - generic [ref=f11e332]:
+              - button "How accurate is a 1RM calculator?" [ref=f11e333] [cursor=pointer]:
+                - generic [aria-hidden] [ref=f11e334]: "03"
+                - generic [aria-hidden] [ref=f11e336]: +
+              - paragraph [ref=f11e337]: On compounds, a hard 2–8 is usually inside about 5%. Past 10 reps the equations measure endurance, not a max. Reynolds, Gordon, and Robergs 2006 found 5RM beat 10RM beat 20RM. Do not take an estimate into a meet.
+            - generic [ref=f11e338]:
+              - button "Is 5 reps about 85% of 1RM?" [ref=f11e339] [cursor=pointer]:
+                - generic [aria-hidden] [ref=f11e340]: "04"
+                - generic [aria-hidden] [ref=f11e342]: +
+              - paragraph [ref=f11e343]: NSCA load charts put a 5RM near 87% of a tested 1RM. Epley from a 5-rep set treats that set as about 86% of the estimated max (100 / 116.7). Close enough to program from. Not close enough to skip a real opener.
+            - generic [ref=f11e344]:
+              - button "Can I use this as a bench press or squat max calculator?" [ref=f11e345] [cursor=pointer]:
+                - generic [aria-hidden] [ref=f11e346]: "05"
+                - generic [aria-hidden] [ref=f11e348]: +
+              - paragraph [ref=f11e349]: "Yes. Same tool, same URL. Pick the lift if you want the deadlift caveat: published equations under-predict deadlift by about 10%. Formulas were mostly validated on bench, squat, and deadlift, not on curls."
+            - generic [ref=f11e350]:
+              - button "Should I test a true 1RM or estimate it?" [ref=f11e351] [cursor=pointer]:
+                - generic [aria-hidden] [ref=f11e352]: "06"
+                - generic [aria-hidden] [ref=f11e354]: +
+              - paragraph [ref=f11e355]: Most lifters should estimate. A true single needs a spotter, safeties, and a reason. If you only need percentages for next week, a hard set of 3–5 plus Epley is enough. ACSM still treats a tested 1RM as the gold standard, not as homework.
+            - generic [ref=f11e356]:
+              - button "Does LIFTAG calculate 1RM automatically?" [ref=f11e357] [cursor=pointer]:
+                - generic [aria-hidden] [ref=f11e358]: "07"
+                - generic [aria-hidden] [ref=f11e360]: +
+              - paragraph [ref=f11e361]: Yes. Log the set. Estimated 1RM updates per exercise with Epley, the same math as this page. PRs stay on the lift you actually performed. Optional RPE is context, not a second formula.
+            - generic [ref=f11e362]:
+              - button "What is the difference between a 1RM and a PR?" [ref=f11e363] [cursor=pointer]:
+                - generic [aria-hidden] [ref=f11e364]: "08"
+                - generic [aria-hidden] [ref=f11e366]: +
+              - paragraph [ref=f11e367]: "1RM is a one-repetition maximum, a single. A PR is any personal record: a 5RM, a paused bench, a volume PR. This page estimates a 1RM. LIFTAG stores both."
+        - generic [ref=f11e368]:
+          - heading "Related tools and guides" [level=2] [ref=f11e369]
+          - list [ref=f11e370]:
+            - listitem [ref=f11e371]:
+              - link "What is RPE in lifting" [ref=f11e372] [cursor=pointer]:
+                - /url: /journal/what-is-rpe-lifting
+            - listitem [ref=f11e373]:
+              - link "Progressive overload" [ref=f11e374] [cursor=pointer]:
+                - /url: /journal/progressive-overload
+            - listitem [ref=f11e375]:
+              - link "How to track workouts" [ref=f11e376] [cursor=pointer]:
+                - /url: /journal/how-to-track-workouts
+            - listitem [ref=f11e377]:
+              - link "Best workout app for powerlifting" [ref=f11e378] [cursor=pointer]:
+                - /url: /journal/best-workout-app-for-powerlifting
+            - listitem [ref=f11e379]:
+              - link "Exercise library" [ref=f11e380] [cursor=pointer]:
+                - /url: /exercises
+            - listitem [ref=f11e381]:
+              - link "LIFTAG for lifters" [ref=f11e382] [cursor=pointer]:
+                - /url: /for-lifters
+        - generic [ref=f11e383]:
+          - paragraph [ref=f11e384]: Method
+          - paragraph [ref=f11e385]:
+            - text: "Written by the LIFTAG team, Bratislava. Last reviewed 9 September 2026. First published 2026-09-09. We log estimated 1RM with Epley. This page shows the rest of the family so you can see the spread. Facts and how to cite us:"
+            - link "about" [ref=f11e386] [cursor=pointer]:
+              - /url: /about
+            - text: ","
+            - link "press kit" [ref=f11e387] [cursor=pointer]:
+              - /url: /press
+            - text: ". Questions:"
+            - link "support" [ref=f11e388] [cursor=pointer]:
+              - /url: /contact/support
+            - text: .
+          - list [ref=f11e389]:
+            - listitem [ref=f11e390]: Epley, B. (1985). Poundage chart. University of Nebraska.
+            - listitem [ref=f11e391]: "Brzycki, M. (1993). Strength testing: predicting a one-rep max from reps-to-fatigue. JOPERD 64(1), 88–90."
+            - listitem [ref=f11e392]: Lombardi, V. P. (1989). Beginning Weight Training. Wm. C. Brown.
+            - listitem [ref=f11e393]: Mayhew, J. L. et al. (1992). Relative muscular endurance performance as a predictor of bench press strength. JSCR.
+            - listitem [ref=f11e394]: O'Connor, B., Simmons, J., & O'Shea, P. (1989). Weight Training Today.
+            - listitem [ref=f11e395]: "Wathen, D. (1994). Load assignment. In: NSCA Essentials of Strength Training and Conditioning."
+            - listitem [ref=f11e396]: Lander, J. (1985). Maximum based on reps. NSCA Journal 6, 60–61.
+            - listitem [ref=f11e397]:
+              - link "LeSuer, D. A. et al. (1997). The accuracy of prediction equations for estimating 1-RM performance in the bench press, squat, and deadlift. JSCR 11(4), 211–213." [ref=f11e398] [cursor=pointer]:
+                - /url: https://journals.lww.com/nsca-jscr/abstract/1997/11000/the_accuracy_of_prediction_equations_for.1.aspx
+            - listitem [ref=f11e399]:
+              - link "Reynolds, J. M., Gordon, T. J., & Robergs, R. A. (2006). Prediction of one repetition maximum bench press from push-ups. JSCR." [ref=f11e400] [cursor=pointer]:
+                - /url: https://pubmed.ncbi.nlm.nih.gov/16503679/
+  - contentinfo [ref=f11e401]:
+    - generic [ref=f11e402]:
+      - generic [ref=f11e403]:
+        - generic [ref=f11e404]:
+          - img "LIFTAG logo" [ref=f11e405]
+          - generic [ref=f11e406]: LIFTAG
+        - paragraph [ref=f11e407]: Because serious training deserves more than a notes app and a spreadsheet.
+        - generic [ref=f11e408]:
+          - link "Featured on LaunchBuff" [ref=f11e409] [cursor=pointer]:
+            - /url: https://launchbuff.com/products/liftag-q97d57
+            - img "Featured on LaunchBuff"
+          - link "Featured on Launchstag" [ref=f11e410] [cursor=pointer]:
+            - /url: https://launchstag.com/p/liftag
+            - img "Featured on Launchstag"
+      - generic [ref=f11e411]:
+        - link "Product" [ref=f11e412] [cursor=pointer]:
+          - /url: /#all-in-one
+        - list [ref=f11e414]:
+          - listitem [ref=f11e415]:
+            - link "Demo" [ref=f11e416] [cursor=pointer]:
+              - /url: /demo
+          - listitem [ref=f11e418]:
+            - link "1RM Calculator" [ref=f11e419] [cursor=pointer]:
+              - /url: /tools/1rm-calculator
+          - listitem [ref=f11e421]:
+            - link "Exercise Library" [ref=f11e422] [cursor=pointer]:
+              - /url: /exercises
+          - listitem [ref=f11e424]:
+            - link "Machine Catalog" [ref=f11e425] [cursor=pointer]:
+              - /url: /machines
+          - listitem [ref=f11e427]:
+            - link "For Lifters" [ref=f11e428] [cursor=pointer]:
+              - /url: /for-lifters
+          - listitem [ref=f11e430]:
+            - link "For Trainers" [ref=f11e431] [cursor=pointer]:
+              - /url: /for-trainers
+          - listitem [ref=f11e433]:
+            - link "Become a Coach" [ref=f11e434] [cursor=pointer]:
+              - /url: /become-a-coach
+          - listitem [ref=f11e436]:
+            - link "For Gyms" [ref=f11e437] [cursor=pointer]:
+              - /url: /for-gyms
+          - listitem [ref=f11e439]:
+            - link "NFC + QR Tags" [ref=f11e440] [cursor=pointer]:
+              - /url: /qr-nfc-gym-tags
+          - listitem [ref=f11e442]:
+            - link "Pricing" [ref=f11e443] [cursor=pointer]:
+              - /url: /pricing
+          - listitem [ref=f11e445]:
+            - link "About" [ref=f11e446] [cursor=pointer]:
+              - /url: /about
+          - listitem [ref=f11e448]:
+            - link "Press" [ref=f11e449] [cursor=pointer]:
+              - /url: /press
+          - listitem [ref=f11e451]:
+            - link "Roadmap" [ref=f11e452] [cursor=pointer]:
+              - /url: /#roadmap
+          - listitem [ref=f11e454]:
+            - link "Partner with us" [ref=f11e455] [cursor=pointer]:
+              - /url: /contact/partner
+          - listitem [ref=f11e457]:
+            - link "Support" [ref=f11e458] [cursor=pointer]:
+              - /url: /contact/support
+      - generic [ref=f11e460]:
+        - link "Library" [ref=f11e461] [cursor=pointer]:
+          - /url: /muscles
+        - list [ref=f11e463]:
+          - listitem [ref=f11e464]:
+            - link "All muscles" [ref=f11e465] [cursor=pointer]:
+              - /url: /muscles
+          - listitem [ref=f11e467]:
+            - link "Chest" [ref=f11e468] [cursor=pointer]:
+              - /url: /muscles/chest
+          - listitem [ref=f11e470]:
+            - link "Back" [ref=f11e471] [cursor=pointer]:
+              - /url: /muscles/back
+          - listitem [ref=f11e473]:
+            - link "Shoulders" [ref=f11e474] [cursor=pointer]:
+              - /url: /muscles/shoulders
+          - listitem [ref=f11e476]:
+            - link "Quads" [ref=f11e477] [cursor=pointer]:
+              - /url: /muscles/quadriceps
+          - listitem [ref=f11e479]:
+            - link "Hamstrings" [ref=f11e480] [cursor=pointer]:
+              - /url: /muscles/hamstrings
+          - listitem [ref=f11e482]:
+            - link "Glutes" [ref=f11e483] [cursor=pointer]:
+              - /url: /muscles/glutes
+          - listitem [ref=f11e485]:
+            - link "Abs" [ref=f11e486] [cursor=pointer]:
+              - /url: /muscles/abs
+          - listitem [ref=f11e488]:
+            - link "Bench press" [ref=f11e489] [cursor=pointer]:
+              - /url: /exercises/barbell-bench-press
+          - listitem [ref=f11e491]:
+            - link "Back squat" [ref=f11e492] [cursor=pointer]:
+              - /url: /exercises/barbell-back-squat
+          - listitem [ref=f11e494]:
+            - link "Deadlift" [ref=f11e495] [cursor=pointer]:
+              - /url: /exercises/conventional-deadlift
+      - generic [ref=f11e497]:
+        - link "Journal" [ref=f11e498] [cursor=pointer]:
+          - /url: /journal
+        - list [ref=f11e500]:
+          - listitem [ref=f11e501]:
+            - link "All articles" [ref=f11e502] [cursor=pointer]:
+              - /url: /journal
+          - listitem [ref=f11e504]:
+            - link "Best Workout Tracking App" [ref=f11e505] [cursor=pointer]:
+              - /url: /best-workout-tracking-app
+          - listitem [ref=f11e507]:
+            - link "Best Gym QR + NFC App" [ref=f11e508] [cursor=pointer]:
+              - /url: /best-gym-qr-nfc-app
+          - listitem [ref=f11e510]:
+            - link "Best Workout Logger" [ref=f11e511] [cursor=pointer]:
+              - /url: /journal/best-workout-logger
+          - listitem [ref=f11e513]:
+            - link "Best Free Workout Tracker" [ref=f11e514] [cursor=pointer]:
+              - /url: /journal/best-free-workout-tracker
+          - listitem [ref=f11e516]:
+            - link "LIFTAG vs Hevy" [ref=f11e517] [cursor=pointer]:
+              - /url: /alternatives/hevy
+          - listitem [ref=f11e519]:
+            - link "LIFTAG vs Strong" [ref=f11e520] [cursor=pointer]:
+              - /url: /vs/strong
+          - listitem [ref=f11e522]:
+            - link "Strong vs Hevy vs LIFTAG" [ref=f11e523] [cursor=pointer]:
+              - /url: /journal/strong-vs-hevy-vs-liftag
+          - listitem [ref=f11e525]:
+            - link "Workout Logger" [ref=f11e526] [cursor=pointer]:
+              - /url: /journal/workout-logger
+          - listitem [ref=f11e528]:
+            - link "How to Track Workouts" [ref=f11e529] [cursor=pointer]:
+              - /url: /journal/how-to-track-workouts
+          - listitem [ref=f11e531]:
+            - link "Best App for Powerlifting" [ref=f11e532] [cursor=pointer]:
+              - /url: /journal/best-workout-app-for-powerlifting
+          - listitem [ref=f11e534]:
+            - link "QR + NFC Gym Tracking" [ref=f11e535] [cursor=pointer]:
+              - /url: /journal/qr-nfc-gym-tracking
+          - listitem [ref=f11e537]:
+            - link "NFC Tags for Gym Equipment" [ref=f11e538] [cursor=pointer]:
+              - /url: /journal/nfc-tags-for-gym-equipment
+          - listitem [ref=f11e540]:
+            - link "What is RPE" [ref=f11e541] [cursor=pointer]:
+              - /url: /journal/what-is-rpe-lifting
+          - listitem [ref=f11e543]:
+            - link "Progressive Overload" [ref=f11e544] [cursor=pointer]:
+              - /url: /journal/progressive-overload
+          - listitem [ref=f11e546]:
+            - link "Gym NFC Rollout" [ref=f11e547] [cursor=pointer]:
+              - /url: /journal/gym-nfc-rollout
+      - generic [ref=f11e549]:
+        - generic [ref=f11e550]: Legal
+        - list [ref=f11e551]:
+          - listitem [ref=f11e552]:
+            - link "Privacy Policy" [ref=f11e553] [cursor=pointer]:
+              - /url: /privacy-policy
+          - listitem [ref=f11e555]:
+            - link "Terms & Conditions" [ref=f11e556] [cursor=pointer]:
+              - /url: /terms-and-conditions
+    - generic [ref=f11e558]:
+      - generic [ref=f11e559]: © 2026 LIFTAG · BRATISLAVA · BUILT BY LIFTERS
+      - generic [ref=f11e560]:
+        - generic [ref=f11e561]:
+          - link "Liftag on Instagram" [ref=f11e562] [cursor=pointer]:
+            - /url: https://www.instagram.com/liftag.fit/
+          - link "Liftag on TikTok" [ref=f11e564] [cursor=pointer]:
+            - /url: https://www.tiktok.com/@liftag
+          - link "Liftag on X" [ref=f11e566] [cursor=pointer]:
+            - /url: https://x.com/liftag_fit
+          - link "Liftag on YouTube" [ref=f11e568] [cursor=pointer]:
+            - /url: https://www.youtube.com/@liftag_fit
+          - link "Liftag on Reddit" [ref=f11e570] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/liftag/
+        - generic [ref=f11e572]:
+          - text: Available on ·
+          - link "IOS AND ANDROID" [ref=f11e573] [cursor=pointer]:
+            - /url: /get
+    - generic [aria-hidden]:
+      - generic: LIFTAG
+      - generic: LIFTAG
+      - generic: LIFTAG

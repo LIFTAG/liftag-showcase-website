@@ -80,6 +80,31 @@ export interface Rgb {
 }
 
 /**
+ * How loud the cursor probe is this frame, 0..1.
+ *
+ * Live as soon as the planted machine exists, including the Act 0 hold
+ * *before* the QR flies in. Gating on `assembleLive` deferred it until after
+ * the press: 0B stays the current shot until the last millisecond of the
+ * rain, which is exactly the native-scroll hold the gym page parks on.
+ *
+ * A falling mesh is not a surface to read yet (`dropLive`). After Act 1
+ * starts, `approachMix` already fades the field out as the dolly commits
+ * to the plate.
+ */
+export function cursorProbeReach(opts: {
+  act1Live: boolean
+  machineLive: boolean
+  dropLive: boolean
+  planted: boolean
+  approachMix: number
+}): number {
+  if (!opts.act1Live) {
+    return opts.machineLive && !opts.dropLive && opts.planted ? 1 : 0
+  }
+  return opts.approachMix
+}
+
+/**
  * Whether the cage mesh should be submitted this frame.
  *
  * Envelope still gates everything off. Between sweep cycles the shell stays

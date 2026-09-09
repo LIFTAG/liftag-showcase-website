@@ -6,6 +6,8 @@ import {
   buildPartnerMesh,
   createPartnerDraw,
   lightPartnerMesh,
+  partnerLayoutSize,
+  partnerPointerInLayout,
   partnerSplashMaxR,
   partnerSplashR,
   type PartnerHoloDraw,
@@ -68,21 +70,17 @@ export function useHoloPill(holoEl: { readonly value: HTMLCanvasElement | null |
   function cssSize(): { w: number, h: number } {
     const el = hostEl()
     if (!el) return { w: 1, h: 1 }
-    const r = el.getBoundingClientRect()
-    return {
-      w: Math.max(1, Math.round(r.width)),
-      h: Math.max(1, Math.round(r.height)),
-    }
+    return partnerLayoutSize(el.clientWidth, el.clientHeight)
   }
 
   function localPoint(e: PointerEvent | FocusEvent): { x: number, y: number } {
     const el = hostEl()
     if (!el) return { x: 0, y: 0 }
-    const r = el.getBoundingClientRect()
+    const { w, h } = partnerLayoutSize(el.clientWidth, el.clientHeight)
     if ('clientX' in e) {
-      return { x: e.clientX - r.left, y: e.clientY - r.top }
+      return partnerPointerInLayout(e.clientX, e.clientY, el.getBoundingClientRect(), w, h)
     }
-    return { x: r.width * 0.5, y: r.height * 0.5 }
+    return { x: w * 0.5, y: h * 0.5 }
   }
 
   function rebuild() {
@@ -103,7 +101,8 @@ export function useHoloPill(holoEl: { readonly value: HTMLCanvasElement | null |
   }
 
   function arm(x: number, y: number) {
-    if (!mesh) rebuild()
+    const { w, h } = cssSize()
+    if (!mesh || mesh.w !== w || mesh.h !== h) rebuild()
     const m = mesh
     if (!m || !heat) return
     originX = x
@@ -149,14 +148,19 @@ export function useHoloPill(holoEl: { readonly value: HTMLCanvasElement | null |
     const dt = Math.min(0.05, Math.max(0.001, (now - lastT) / 1000))
     lastT = now
 
-    const want = hovering || focused
-    hoverAmp = damp(hoverAmp, want ? 1 : 0, want ? 0.20 : 0.145, dt)
+    // Leave must not freeze a half-drawn scan. The splash is a one-shot
+    // cover of the pill: keep the field up until the front reaches the
+    // far edge, then fade. The cursor probe still tracks hover only.
+    const engaged = hovering || focused
+    const scanning = !splashFrozen && splashT0 > 0
+    const hold = engaged || scanning
+    hoverAmp = damp(hoverAmp, hold ? 1 : 0, hold ? 0.20 : 0.145, dt)
     probeAmp = damp(probeAmp, hovering ? 1 : 0, hovering ? 0.24 : 0.17, dt)
 
     setHoloOn(hoverAmp > 0.04)
 
     if (!mesh || !heat || !draw || !ctx || reduce) {
-      if (hoverAmp > 0.01 && !reduce) kick()
+      if ((hoverAmp > 0.01 || hold) && !reduce) kick()
       else {
         hoverAmp = 0
         clearCanvas()
@@ -199,7 +203,7 @@ export function useHoloPill(holoEl: { readonly value: HTMLCanvasElement | null |
     lightPartnerMesh(mesh, heat, state, dt, draw)
     paint(mesh, draw, state)
 
-    if (hoverAmp > 0.01 || want) kick()
+    if (hoverAmp > 0.01 || hold) kick()
     else {
       hoverAmp = 0
       clearCanvas()
@@ -302,10 +306,6 @@ export function useHoloPill(holoEl: { readonly value: HTMLCanvasElement | null |
 
   function onLeave() {
     hovering = false
-    if (!splashFrozen && mesh) {
-      frozenSplash = state.splashR
-      splashFrozen = true
-    }
     kick()
   }
 
@@ -320,11 +320,7 @@ export function useHoloPill(holoEl: { readonly value: HTMLCanvasElement | null |
 
   function onBlur() {
     focused = false
-    if (!hovering) {
-      splashFrozen = true
-      frozenSplash = state.splashR
-      kick()
-    }
+    if (!hovering) kick()
   }
 
   onMounted(() => {
@@ -354,12 +350,14 @@ export function useHoloPill(holoEl: { readonly value: HTMLCanvasElement | null |
       el.addEventListener('pointerenter', onEnter)
       el.addEventListener('pointermove', onMove)
       el.addEventListener('pointerleave', onLeave)
+      el.addEventListener('pointercancel', onLeave)
       el.addEventListener('focus', onFocus)
       el.addEventListener('blur', onBlur)
       unbindHost = () => {
         el.removeEventListener('pointerenter', onEnter)
         el.removeEventListener('pointermove', onMove)
         el.removeEventListener('pointerleave', onLeave)
+        el.removeEventListener('pointercancel', onLeave)
         el.removeEventListener('focus', onFocus)
         el.removeEventListener('blur', onBlur)
       }

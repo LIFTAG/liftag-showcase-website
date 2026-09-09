@@ -1,0 +1,27 @@
+- generic [active] [ref=f51e1]:
+  - main [ref=f51e251]:
+    - generic [ref=f51e252]:
+      - generic [ref=f51e253]:
+        - paragraph [ref=f51e254]: Install · iOS and Android
+        - heading "POINT YOUR PHONE HERE." [level=1] [ref=f51e255]: POINT YOURPHONE HERE.
+        - paragraph [ref=f51e256]: LIFTAG lives on the phone you train with. Scan the code and your store opens on your device.
+        - generic [ref=f51e257]:
+          - link "Download on the App Store" [ref=f51e258] [cursor=pointer]:
+            - /url: https://apps.apple.com/app/id6761140080
+            - generic [ref=f51e260]:
+              - generic [ref=f51e261]: Download on the
+              - generic [ref=f51e262]: App Store
+          - link "Get it on Google Play" [ref=f51e263] [cursor=pointer]:
+            - /url: https://play.google.com/store/apps/details?id=com.liftag.app
+            - generic [ref=f51e265]:
+              - generic [ref=f51e266]: Get it on
+              - generic [ref=f51e267]: Google Play
+      - generic [ref=f51e268]:
+        - img "QR code that opens the LIFTAG install page" [ref=f51e271]
+        - paragraph [ref=f51e274]: liftag.fit/get
+  - generic [ref=f51e184]:
+    - button "Toggle Nuxt DevTools" [ref=f51e185] [cursor=pointer]
+    - generic "Page load time" [ref=f51e189]:
+      - generic [ref=f51e190]: "209"
+      - generic [ref=f51e191]: ms
+    - button "Toggle Component Inspector" [ref=f51e193] [cursor=pointer]

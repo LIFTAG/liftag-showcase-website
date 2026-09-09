@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { CORE_RGB, WIRE_RGB } from '../utils/gymscan/hologramColor.ts'
 import { splashTravel } from '../utils/gymscan/hologramPass.ts'
+import { readFileSync } from 'node:fs'
 import {
   PARTNER_CORE,
   PARTNER_PROBE_R,
@@ -11,6 +12,8 @@ import {
   inStadium,
   lightPartnerMesh,
   partnerIncoming,
+  partnerLayoutSize,
+  partnerPointerInLayout,
   partnerSplashMaxR,
   partnerSplashR,
   partnerTriField,
@@ -49,6 +52,35 @@ test('the mesh is deterministic and covers the pill', () => {
     if (inStadium(a.cx[i]!, a.cy[i]!, W, H, 1.4)) inside++
   }
   assert.equal(inside, a.count)
+})
+
+test('listing-card scale must not shrink the mesh to a few pixels', () => {
+  const layout = partnerLayoutSize(334, 52)
+  const visualSize = partnerLayoutSize(20, 3)
+  assert.deepEqual(layout, { w: 334, h: 52 })
+  assert.deepEqual(visualSize, { w: 20, h: 3 })
+  assert.ok(
+    (layout.w * layout.h) / (visualSize.w * visualSize.h) > 200,
+    'visual rect at listing-card mount is a postage stamp of the pill',
+  )
+  const visual = { left: 100, top: 200, width: 20, height: 3 }
+  const p = partnerPointerInLayout(110, 201.5, visual, layout.w, layout.h)
+  assert.ok(Math.abs(p.x - 167) < 1, `mapped x ${p.x}`)
+  assert.ok(Math.abs(p.y - 26) < 1, `mapped y ${p.y}`)
+  assert.ok(buildPartnerMesh(layout.w, layout.h).count > 60)
+})
+
+test('holo pill sizes the canvas from layout px, not the visual rect', () => {
+  const src = readFileSync(
+    new URL('../composables/useHoloPill.ts', import.meta.url),
+    'utf8',
+  )
+  assert.match(
+    src,
+    /function cssSize[\s\S]{0,180}partnerLayoutSize\(el\.clientWidth, el\.clientHeight\)/,
+  )
+  assert.doesNotMatch(src, /function cssSize[\s\S]{0,180}getBoundingClientRect/)
+  assert.match(src, /partnerPointerInLayout/)
 })
 
 test('the AABB corners of a pill are outside the stadium', () => {

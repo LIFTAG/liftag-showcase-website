@@ -1,0 +1,10 @@
+- generic [ref=f24e4]:
+  - generic [aria-hidden] [ref=f24e11]:
+    - generic [ref=f24e12]: L
+    - generic [ref=f24e13]: I
+    - generic [ref=f24e14]: F
+    - generic [ref=f24e15]: T
+    - generic [ref=f24e16]: A
+    - generic [ref=f24e17]: G
+  - paragraph [ref=f24e18]: Your machines. Connected.
+  - button "Enter the gym" [ref=f24e20] [cursor=pointer]

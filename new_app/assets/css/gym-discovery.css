@@ -3,7 +3,9 @@
   z-index: 4;
   height: 450svh;
   padding: 0 !important;
-  background: oklch(12% 0.012 151);
+  /* Plate fades in with the zoom-out so it does not cover the 3D phone
+     while this section is still sliding over the instruction scene. */
+  background: oklch(12% 0.012 151 / var(--gx-earth-out, 0));
   scroll-margin-top: calc(-76px - env(safe-area-inset-top));
 }
 .gx .gd-sticky {
@@ -15,13 +17,14 @@
   overflow-anchor: none;
   background: radial-gradient(
     ellipse at 70% 50%,
-    oklch(19% 0.026 151),
+    oklch(19% 0.026 151 / var(--gd-reveal, 0)),
     transparent 58%
   );
 }
 .gx .gd-stage {
   position: absolute;
   inset: 0;
+  z-index: 0;
 }
 .gx .gd-stage canvas {
   display: block;
@@ -32,6 +35,12 @@
 }
 .gx .gd-stage.is-ready canvas {
   opacity: 1;
+}
+.gx .gd-sticky[data-phase="0"] .gd-stage canvas,
+.gx .gd-sticky[data-phase="0"] .gd-stage.is-ready canvas {
+  /* Full Earth by ~0.28 reveal so the gym shrinks over a visible globe. */
+  opacity: clamp(0, calc(var(--gd-reveal, 0) * 3.5), 1);
+  transition: none;
 }
 .gx .gd-sticky[data-phase="0"] .gd-stage canvas {
   mask-image: linear-gradient(90deg, transparent 28%, oklch(10% 0.01 151) 48%);
@@ -89,18 +98,27 @@
   top: 15px;
   left: 5px;
 }
-.gx .gd-location-wien .gd-map-name,
-.gx .gd-location-brno .gd-map-name,
-.gx .gd-location-praha-karlin .gd-map-name {
+.gx .gd-location-trencin .gd-map-name {
+  top: -28px;
+  left: 6px;
+}
+.gx .gd-location-banska-bystrica .gd-map-name {
+  top: -32px;
+  left: 6px;
+}
+.gx .gd-location-spisska-nova-ves .gd-map-name {
+  top: -32px;
   left: auto;
-  right: 13px;
+  right: 10px;
   text-align: right;
 }
-.gx .gd-location-wien .gd-map-name {
-  top: 12px;
+.gx .gd-location-presov .gd-map-name {
+  top: -28px;
+  left: 6px;
 }
-.gx .gd-location-ostrava .gd-map-name {
-  top: -35px;
+.gx .gd-location-kosice .gd-map-name {
+  top: 16px;
+  left: 6px;
 }
 .gx .gd-map-country {
   color: oklch(65% 0.035 151 / 0.65);
@@ -151,11 +169,49 @@
   width: 35%;
   z-index: 2;
 }
-.gx .gd-copy > .gx-protocol {
+.gx .gd-sticky[data-phase="0"] .gd-copy {
+  opacity: clamp(0, (var(--gd-reveal, 1) - 0.45) / 0.4, 1);
+}
+.gx .gd-sticky[data-phase="0"] .gd-map-context {
+  opacity: clamp(0, (var(--gd-reveal, 1) - 0.62) / 0.28, 1);
+}
+.gx .gd-copy-stage {
+  position: relative;
+}
+.gx .gd-copy-swap {
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition:
+    opacity 0.32s ease-out,
+    transform 0.48s var(--gx-ease);
+}
+.gx .gd-copy-swap:not(.is-on) {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+}
+.gx .gd-copy-swap.is-on {
+  position: relative;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  z-index: 1;
+}
+.gx .gd-copy-swap > .gx-protocol {
   color: var(--gx-lime);
   margin: 0 0 27px;
 }
-.gx .gd-copy h2 {
+.gx.is-reduced .gd-copy-swap,
+.gx .gd-story.is-simple .gd-copy-swap {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gx .gd-copy-swap {
+    transition: none;
+  }
+}
+.gx .gd-copy-title {
   font-family: var(--liftag-font-headline);
   font-size: clamp(36px, 4.6vw, 74px);
   line-height: 1.02;
@@ -190,12 +246,14 @@
   font: 500 11px var(--liftag-font-body);
   padding: 6px 0;
   cursor: pointer;
+  transition: color 220ms var(--gx-ease);
 }
 .gx .gd-step-dot {
   width: 5px;
   height: 5px;
   border: 1px solid currentColor;
   border-radius: 50%;
+  transition: background-color 220ms var(--gx-ease);
 }
 .gx .gd-steps button[aria-pressed="true"] {
   color: var(--gx-lime);
@@ -256,41 +314,83 @@
 }
 .gx .gd-profile {
   position: absolute;
-  left: 57%;
-  top: 19%;
-  width: clamp(290px, 27vw, 370px);
-  z-index: 2;
+  left: var(--gd-box-left, 57%);
+  top: var(--gd-box-top, 19%);
+  width: var(--gd-box-width, clamp(290px, 27vw, 370px));
+  height: var(--gd-box-height, auto);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: oklch(16% 0.011 151);
-  border: 1px solid oklch(45% 0.025 151 / 0.45);
-  border-radius: 12px;
-  box-shadow: 0 35px 100px oklch(5% 0.008 151 / 0.7);
+  border: calc(7px - 6px * var(--gd-listing, 0)) solid
+    oklch(22% 0.01 135 / calc(0.55 + 0.45 * var(--gd-listing, 0)));
+  border-radius: var(--gd-box-radius, 12px);
+  box-shadow:
+    0 0 calc(28px * (1 - var(--gd-listing, 0)))
+      oklch(88% 0.2 118 / calc(0.22 * (1 - var(--gd-listing, 0)))),
+    18px 22px 70px oklch(4% 0.01 135 / calc(0.45 * (1 - var(--gd-listing, 0)))),
+    0 35px 100px oklch(5% 0.008 151 / calc(0.7 * var(--gd-listing, 0)));
   opacity: 0;
-  transform: perspective(1000px) translateY(50px) rotateY(-14deg) rotateX(5deg)
-    scale(0.9);
   visibility: hidden;
-  transition:
-    transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.45s ease,
-    visibility 0.45s;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+  transform: perspective(1200px)
+    rotateY(calc(-7deg + 3deg * var(--gd-listing, 0)))
+    rotateX(calc(5deg - 3deg * var(--gd-listing, 0)));
 }
-.gx .gd-profile.is-shown {
-  opacity: 1;
+.gx .gd-sticky[data-phase="0"] .gd-profile,
+.gx .gd-sticky[data-phase="1"] .gd-profile {
+  opacity: calc(var(--gd-lift, 0) * (1 - var(--gd-floor, 0)));
   visibility: visible;
-  transform: perspective(1000px) translateY(0) rotateY(-5deg) rotateX(3deg)
-    scale(1);
+}
+.gx .gd-sticky[data-phase="1"] .gd-profile {
+  pointer-events: auto;
+}
+.gx .gd-profile-island {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  z-index: 2;
+  width: 28%;
+  height: 9px;
+  border-radius: 20px;
+  background: oklch(8% 0.01 151);
+  transform: translateX(-50%);
+  opacity: calc(1 - var(--gd-listing, 0) * 2.2);
+  pointer-events: none;
+}
+.gx .gd-location-bratislava .gd-map-name {
+  opacity: calc(1 - var(--gd-listing, 0));
+}
+.gx .gd-location-bratislava .gd-map-dot {
+  transform: scale(calc(1 + var(--gd-listing, 0) * 0.45));
+  box-shadow:
+    0 0 0 calc(5px + 4px * var(--gd-listing, 0)) oklch(88% 0.2 118 / 0.14),
+    0 0 22px oklch(88% 0.2 118 / 0.42);
+}
+.gx .gd-sticky[data-phase="1"] .gd-map-context {
+  opacity: clamp(0, 1 - var(--gd-listing, 0) * 3.4, 1);
+  pointer-events: none;
 }
 .gx .gd-profile-photo {
+  position: relative;
+  flex: 0 0 var(--gd-photo-h, auto);
+  height: var(--gd-photo-h, auto);
   aspect-ratio: 1.95;
   overflow: hidden;
-  border-radius: 11px 11px 0 0;
-  position: relative;
+  border-radius: calc(22px * (1 - var(--gd-listing, 0)))
+    calc(22px * (1 - var(--gd-listing, 0)))
+    calc(11px * var(--gd-listing, 0))
+    calc(11px * var(--gd-listing, 0));
+  opacity: 1;
 }
 .gx .gd-profile-photo img {
   position: absolute;
   width: 100%;
   height: auto;
   top: 0;
-  transform: translateY(-28.4%);
+  transform: translateY(calc(-28.4% * var(--gd-listing, 0)));
 }
 .gx .gd-profile-info {
   padding: 22px 24px 17px;
@@ -324,11 +424,13 @@
   inset: -1px 0 auto;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--gx-lime), transparent);
-  transform: scaleX(0);
-  transition: transform 1.2s 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: scaleX(clamp(0, (var(--gd-listing, 0) - 0.52) / 0.38, 1));
 }
-.gx .is-shown .gd-review:after {
-  transform: scaleX(1);
+.gx .gd-profile-info,
+.gx .gd-review,
+.gx .gd-profile-machines,
+.gx .gd-profile > small {
+  opacity: clamp(0, (var(--gd-listing, 0) - 0.36) / 0.4, 1);
 }
 .gx .gd-stars {
   display: block;
@@ -386,6 +488,20 @@
   outline: 2px solid var(--gx-lime);
   outline-offset: 5px;
 }
+.gx.is-reduced .gd-story,
+.gx.is-static .gd-story,
+.gx .gd-story.is-simple {
+  background: oklch(12% 0.012 151);
+}
+.gx.is-reduced .gd-sticky,
+.gx.is-static .gd-sticky,
+.gx .is-simple .gd-sticky {
+  background: radial-gradient(
+    ellipse at 70% 50%,
+    oklch(19% 0.026 151),
+    transparent 58%
+  );
+}
 .gx .gd-story.is-simple {
   height: auto;
 }
@@ -408,11 +524,40 @@
   top: 100px;
   left: auto;
   right: 6vw;
+  width: clamp(290px, 27vw, 370px);
+  height: auto;
+  opacity: 1;
+  visibility: visible;
   transform: none;
+  transform-origin: center;
+  border: 1px solid oklch(45% 0.025 151 / 0.45);
+  border-radius: 12px;
+  box-shadow: 0 35px 100px oklch(5% 0.008 151 / 0.7);
+}
+.gx .is-simple .gd-profile-island {
+  display: none;
+}
+.gx .is-simple .gd-profile-photo,
+.gx .is-simple .gd-profile-info,
+.gx .is-simple .gd-review,
+.gx .is-simple .gd-profile-machines,
+.gx .is-simple .gd-profile > small {
+  opacity: 1;
+}
+.gx .is-simple .gd-profile-photo {
+  flex: none;
+  height: auto;
+  border-radius: 11px 11px 0 0;
+}
+.gx .is-simple .gd-review:after {
+  transform: scaleX(1);
 }
 @media (max-width: 760px) {
   .gx .gd-story {
     height: 480svh;
+    /* Override main.css's mobile section clipping on the scroll track.
+       Clip both axes on .gd-sticky, which moves with its WebGL/copy layers. */
+    overflow-x: visible !important;
   }
   .gx .gd-sticky {
     min-height: 0;
@@ -429,11 +574,11 @@
     width: auto;
     padding: 105px 24px 0;
   }
-  .gx .gd-copy > .gx-protocol {
+  .gx .gd-copy-swap > .gx-protocol {
     font-size: 8px;
     margin-bottom: 16px;
   }
-  .gx .gd-copy h2 {
+  .gx .gd-copy-title {
     font-size: 40px;
     margin-bottom: 13px;
   }
@@ -468,9 +613,9 @@
     font-size: 8px;
   }
   .gx .gd-profile {
-    width: 260px;
-    left: calc(50% - 130px);
-    top: 290px;
+    width: var(--gd-box-width, 260px);
+    left: var(--gd-box-left, calc(50% - 130px));
+    top: var(--gd-box-top, 290px);
   }
   .gx .gd-profile-photo {
     aspect-ratio: 2.5;
@@ -562,6 +707,7 @@
   overflow: visible;
 }
 .gx .gd-machine-labels span {
+  --gd-label-mix: 0;
   position: absolute;
   left: 0;
   top: 0;
@@ -570,10 +716,11 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 1px solid oklch(70% 0.045 140 / 0.65);
-  background: var(--gx-bg);
+  border: 1px solid oklch(70% 0.045 140 / calc(0.65 * (1 - var(--gd-label-mix))));
+  background: oklch(12% 0.012 151 / calc(1 - var(--gd-label-mix)));
   color: var(--gx-lime);
-  font: 9px var(--liftag-font-mono);
+  font: 600 9px var(--liftag-font-mono);
+  letter-spacing: calc(-0.06em * var(--gd-label-mix));
   opacity: 0;
   translate: -50% -50%;
 }
@@ -664,8 +811,8 @@
   top: 18%;
   width: 30%;
 }
-.gx .gd-sticky[data-phase="2"] h2,
-.gx .gd-sticky[data-phase="3"] h2 {
+.gx .gd-sticky[data-phase="2"] .gd-copy-title,
+.gx .gd-sticky[data-phase="3"] .gd-copy-title {
   font-size: clamp(34px, 3.6vw, 57px);
 }
 .gx .gd-column-label {
@@ -711,8 +858,8 @@
     width: auto;
     padding-top: 100px;
   }
-  .gx .gd-sticky[data-phase="2"] h2,
-  .gx .gd-sticky[data-phase="3"] h2 {
+  .gx .gd-sticky[data-phase="2"] .gd-copy-title,
+  .gx .gd-sticky[data-phase="3"] .gd-copy-title {
     font-size: 34px;
   }
   .gx .gd-sticky[data-phase="2"] .gd-steps {
@@ -772,7 +919,6 @@
   .gx .gd-machine-labels span {
     width: 19px;
     height: 19px;
-    font-size: 7px;
   }
   .gx .gd-link {
     top: calc(max(265px, 32svh) + 84px + clamp(56px, 9svh, 82px) * 4 - 100px);
@@ -854,10 +1000,11 @@
   .gx .gd-map-country { font-size: 6px; letter-spacing: 0.1em; }
   .gx .gd-map-country.is-primary { font-size: 7px; margin-left: -20px; }
   .gx .gd-location-bratislava .gd-map-name { top: 16px; left: 2px; }
-  .gx .gd-location-wien .gd-map-name { top: 14px; right: 9px; }
-  .gx .gd-location-brno .gd-map-name { top: -24px; right: 9px; }
-  .gx .gd-location-praha-karlin .gd-map-name { top: -28px; left: 8px; right: auto; text-align: left; }
-  .gx .gd-location-ostrava .gd-map-name { top: -32px; left: 5px; }
+  .gx .gd-location-trencin .gd-map-name { top: -24px; left: 4px; }
+  .gx .gd-location-banska-bystrica .gd-map-name { top: -28px; left: 2px; }
+  .gx .gd-location-spisska-nova-ves .gd-map-name { top: -28px; right: 6px; }
+  .gx .gd-location-presov .gd-map-name { top: -26px; left: 4px; }
+  .gx .gd-location-kosice .gd-map-name { top: 16px; left: 2px; }
   .gx .gd-map-context { left: 24px; bottom: 143px; }
   .gx .gd-map-route { font-size: 10px; gap: 10px; margin-bottom: 5px; }
   .gx .gd-map-status { font-size: 9px; }
@@ -868,7 +1015,7 @@
 @media (max-width: 760px) and (max-height: 700px) {
   .gx .gd-story:not(.is-simple) .gd-sticky[data-phase="0"] { min-height: 100svh; }
   .gx .gd-sticky[data-phase="0"] .gd-copy { top: auto; padding-top: 85px; }
-  .gx .gd-sticky[data-phase="0"] h2 { font-size: 34px; }
+  .gx .gd-sticky[data-phase="0"] .gd-copy-title { font-size: 34px; }
   .gx .gd-sticky[data-phase="0"] .gd-caption { font-size: 11px; }
   .gx .gd-sticky[data-phase="0"] .gd-steps { display: none; }
   .gx .gd-map-route, .gx .gd-map-status { display: none; }

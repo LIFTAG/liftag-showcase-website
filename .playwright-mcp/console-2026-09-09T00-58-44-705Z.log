@@ -1,0 +1,88 @@
+[    1357ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[    1499ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    1499ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    1500ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/demo color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/demo, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788915526204} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    1522ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[    5830ms] [INFO] [gymscan] 0B calls explode 26 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1250
+[    7615ms] [INFO] [gymscan] 0B calls planted 48 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1254
+[  183384ms] Cannot load blob:http://localhost:3000/6cffaf33-85ec-42af-98a2-d025398dabc4 due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  183384ms] Cannot load blob:http://localhost:3000/5651941d-8c03-4e04-92d8-5c7b06458bb2 due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  183384ms] Cannot load blob:http://localhost:3000/80876177-59bf-4201-bfaa-f7218410a7dc due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  183384ms] Cannot load blob:http://localhost:3000/571f8205-b908-46b2-b6e9-4391d62fe098 due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  183384ms] Cannot load blob:http://localhost:3000/fe515e6a-769d-46c3-ba20-68745a73d2b1 due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  183384ms] Cannot load blob:http://localhost:3000/989ddf4d-e963-4f4d-9c01-9ee63d820038 due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  183384ms] Cannot load blob:http://localhost:3000/1f58f5b7-9f98-4077-baa2-b04e2be3e525 due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  183375ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/d836b270-c1a3-47e4-98af-e247ac2130c8 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183376ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/916ebd52-82fd-432c-bbdd-2ced57962518 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183376ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/3a8514ca-4268-442e-82c2-22a50b55ae5d @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183376ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/332ea72d-1ef5-474b-a3d0-b52bcde178c4 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183376ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/1d841679-14dd-49c8-902e-f7ef7191c374 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183376ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/6c53687f-d136-4934-b593-5fae10454e29 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183376ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/9c4b897e-18ff-4426-925a-633a288acf0d @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183376ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/0398cdf0-aaf4-41ee-8d6b-b5a040e05e6b @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183376ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/b736c492-6634-409b-9277-8555e5ee59b6 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183376ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/806b58d3-df92-48f8-87b4-3303caaa86f4 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183376ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/ee96fedc-5379-405b-81c6-99bf1637db43 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183376ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/bb270627-ed8c-4cae-b7a2-8306072a7e3e @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183376ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/d81d9b20-77d9-4bdd-b0a1-760193427e40 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183433ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/4d57767a-261e-4683-9bdf-00a7a2f4d89b @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/be67898e-c878-4ab7-98ce-4890e3e955c3 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/6263f918-ea0d-4f9a-8f2f-a07477e0f59d @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/c01f9e0a-9aa0-4721-90bf-8c4528b4ea9d @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/776fb515-d8e0-462b-a93c-4a7f07e8c287 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/3e37d65c-907a-4c5b-93d9-379dd92ce498 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/44d161a6-01a2-4317-b914-31caa48d7c2c @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/b168c841-5ecf-485b-9cec-df28f0ef9c49 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/1eb3723b-1ac5-492e-8f20-37272eed10df @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/f3a0257a-4cc1-4f62-8821-91bc1ed4f547 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/4405c93d-145e-4f86-aa67-ce04e1afca67 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/872592e8-ba95-4018-9b8a-4093770e0b97 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/4e5abbec-e054-468a-9afc-4e38ef9b041b @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/3564ad17-b1b0-4220-a69c-3ba89324401d @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/7a03e6ee-f023-4d7f-89c4-d4e1c8380d26 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/6a00bf14-7ab7-43bc-8188-a92d679f3419 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/8cb2f585-c524-4f9a-a2d4-4b594e11f597 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/7236ce95-cfb2-4957-883f-754e5c9c2b85 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/b3b775b3-ed96-49b3-b3bf-b82b9d5df7df @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/19c98a72-7f20-4721-9c08-5c727a963a14 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/6e800332-6f9d-439f-8669-35680801e016 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/105d8f6b-9a79-44ba-9434-642e20c606f3 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  183434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3000/b5d0848c-c202-443c-81b0-7b444ad21ac8 @ http://localhost:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  184454ms] [LOG] %cssr:success%c Vite server hmr 48 files 
+      background: #2ecc71;
+      border-radius: 0.5em;
+      color: white;
+      font-weight: bold;
+      padding: 2px 0.5em;
+      in 193.738ms 
+  at vite_node_entry_default (node_modules/.pnpm/@nuxt+vite-builder@3.21.2_@types+node@26.1.1_magicast@0.5.2_nuxt@3.21.2_@emnapi+core@1._a4b3153523cf62a7d8205505e2d0041e/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs)
+  at process.processTicksAndRejections (node:internal/process/task_queues)
+  at async Object.renderToString (node_modules/.pnpm/vue-bundle-renderer@2.2.0/node_modules/vue-bundle-renderer/dist/runtime.mjs)
+ @ http://localhost:3000/_nuxt/node_modules/.pnpm/consola@3.4.2/node_modules/consola/dist/browser.mjs?v=13688f5d:47
+[  184483ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  184610ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  184610ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  184611ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/demo color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/demo, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788915709315} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  184631ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  237925ms] [INFO] [gymscan] 0B calls planted 51 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1254
+[  237969ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  237969ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  237969ms] [ERROR] WebGL: INVALID_OPERATION: glDrawArrays: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  237969ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  237969ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  237969ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  237969ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  237969ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  237969ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  237969ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  237969ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  237969ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  237969ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0
+[  237969ms] [ERROR] WebGL: INVALID_OPERATION: glDrawElements: Mismatch between texture format and sampler type (signed/unsigned/float/shadow). @ :0

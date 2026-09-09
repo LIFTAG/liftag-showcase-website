@@ -21,8 +21,8 @@ import {
 import {
   applyScanShader, applySurfaceShader, createScanUniforms, createSurfaceUniforms, type SurfaceKind,
 } from './machineMaterial'
-import { WIRE_RGB } from './hologramColor'
-import { PASS_SPAN } from './hologramPass'
+import { cursorProbeReach, WIRE_RGB } from './hologramColor'
+import { IDLE_GAP_T } from './hologramPass'
 import { CompositeShader } from './composite'
 import { createStickFocus, STICK_FOCUS_LAYER } from './stickFocus'
 import { createHologramShell, type HologramShell } from './hologram'
@@ -47,6 +47,7 @@ import {
 import { createPhoneOverlay, phoneShrink, type PhoneOverlay } from './phoneOverlay'
 import { createScanAppScreen } from './scanApp.ts'
 import { createCoachingContent, type CoachingFrame } from './coachingStage'
+import { coachingPhoneSlot } from './coachingTimeline'
 import { PHONE_H, PHONE_W } from '../phoneModel'
 import {
   createReticleTracker,
@@ -61,7 +62,9 @@ import {
   fallbackHeroSlot,
   GYM_SCROLL_DAMP_RATE,
   heroMorphAt,
+  pointerTowardBox,
   sceneProgress,
+  lerpPhoneBox,
   travelPhoneBox,
   type PhoneBox,
 } from './handoff'
@@ -274,7 +277,13 @@ export interface StageOptions {
   onDeviceClassChange?: (deviceClass: GymScanDevice['deviceClass']) => void
   /** The new journey reuses this film, with native scroll owning its opening. */
   adaptiveQuality?: boolean
-  readPointer?: () => { mx: number; my: number; hasPointer: boolean }
+  readPointer?: () => {
+    mx: number
+    my: number
+    hasPointer: boolean
+    clientX?: number
+    clientY?: number
+  }
   readCoaching?: () => { frame: CoachingFrame; video: HTMLVideoElement | null; customVideo: HTMLVideoElement | null; replay: number }
   overlayCoversFrame?: () => boolean
   renderOverlay?: (renderer: THREE.WebGLRenderer, dt: number, width: number, height: number) => void
@@ -1062,6 +1071,7 @@ export function createGymScanStage(opts: StageOptions) {
 
   const phoneOverlay: PhoneOverlay = createPhoneOverlay({ shadows: renderer.shadowMap.enabled })
   let coaching: ReturnType<typeof createCoachingContent> | null = null
+  let coachingPresent = 0
   function updateCoaching(morph: number, dt: number) {
     const input = opts.readCoaching?.()
     const mix = input ? smoothstep((morph - .82) / .18) : 0
@@ -1070,7 +1080,19 @@ export function createGymScanStage(opts: StageOptions) {
       phoneOverlay.addContent(coaching.group)
     }
     phoneOverlay.setCoaching(coaching?.texture ?? null, mix)
-    if (coaching && input) coaching.update(input.frame, width, phoneTarget(1).h, dt, mix, input.video, input.customVideo, input.replay)
+    coachingPresent =
+      coaching && input
+        ? coaching.update(
+            input.frame,
+            width,
+            heightPx,
+            dt,
+            mix,
+            input.video,
+            input.customVideo,
+            input.replay,
+          )
+        : 0
   }
   const appScreen = createScanAppScreen({ reducedMotion, defer: opts.adaptiveQuality })
   const reticleOverlay = createReticleOverlay()
@@ -1284,9 +1306,15 @@ export function createGymScanStage(opts: StageOptions) {
   function phoneTarget(p: number): PhoneBox {
     const park = foldPhoneTarget()
     const morph = heroMorphAt(p)
-    if (morph <= 0) return park
     const slot = heroSlot ?? fallbackHeroSlot(width, heightPx)
-    return travelPhoneBox(park, slot, morph, reducedMotion)
+    const morphBox =
+      morph <= 0 ? park : travelPhoneBox(park, slot, morph, reducedMotion)
+    if (coachingPresent <= 0.001) return morphBox
+    return lerpPhoneBox(
+      morphBox,
+      coachingPhoneSlot(width, heightPx),
+      coachingPresent,
+    )
   }
 
   function resize() {
@@ -1377,6 +1405,27 @@ export function createGymScanStage(opts: StageOptions) {
     return { state, complete: sp >= 0.999 && state.foldU >= 0.999 }
   }
 
+  function phonePointer(target: PhoneBox): { mx: number; my: number; hasPointer: boolean } {
+    if (!tilt.active) return { mx: 0, my: 0, hasPointer: false }
+    const pointer = opts.readPointer?.()
+    if (
+      pointer &&
+      pointer.clientX != null &&
+      pointer.clientY != null
+    ) {
+      const rect = canvas.getBoundingClientRect()
+      const toward = pointerTowardBox(
+        pointer.clientX,
+        pointer.clientY,
+        rect.left,
+        rect.top,
+        target,
+      )
+      return { mx: toward.mx, my: toward.my, hasPointer: true }
+    }
+    return { mx: tilt.x, my: tilt.y, hasPointer: true }
+  }
+
   function frame() {
     if (disposed || !running) return
     raf = requestAnimationFrame(frame)
@@ -1389,7 +1438,7 @@ export function createGymScanStage(opts: StageOptions) {
     const input = opts.readPointer?.()
     if (input) {
       setPointer(input.mx, input.my, input.hasPointer)
-      setTilt(input.mx, input.my, input.hasPointer && targetProgress < 0.995)
+      setTilt(input.mx, input.my, input.hasPointer)
     }
     if (opts.overlayCoversFrame?.()) {
       splitSticker = false
@@ -1416,8 +1465,10 @@ export function createGymScanStage(opts: StageOptions) {
       updateCoaching(1, dt)
       phoneOverlay.setHeroMix(1)
       phoneOverlay.setAppMix(1)
-      phoneOverlay.pose(1, phoneTarget(1), width, heightPx, {
-        mx: 0, my: 0, hasPointer: false, dt, reducedMotion,
+      const parked = phoneTarget(1)
+      const lean = phonePointer(parked)
+      phoneOverlay.pose(1, parked, width, heightPx, {
+        mx: lean.mx, my: lean.my, hasPointer: lean.hasPointer, dt, reducedMotion,
       })
       phoneOverlay.renderFromTexture(renderer, composer.readBuffer.texture, 1)
       return
@@ -1642,12 +1693,17 @@ export function createGymScanStage(opts: StageOptions) {
     // --- cursor probe --------------------------------------------------------
     // The pointer is projected onto a vertical plane through the machine, so the
     // field tracks across the real surface instead of orbiting in screen space.
-    // Live for the Act 0 hold as well as the approach. The cursor reveal is
-    // the only thing on the first screen that answers the pointer, and a first
-    // screen that does not answer the pointer is a picture of a website.
-    const reach = !act1Live
-      ? (machineLive && !dropLive && !assembleLive ? 1 : 0)
-      : act1.shot === 'approach' ? 1 - ease(camU, 0.6, 0.8) : 0
+    // Live as soon as the planted machine exists, including the Act 0 hold
+    // *before* the QR flies in. `assembleLive` stays true until the last
+    // millisecond of 0B, which is the native-scroll hold the gym page parks
+    // on — gating on it deferred the reveal until after the press.
+    const reach = cursorProbeReach({
+      act1Live,
+      machineLive,
+      dropLive,
+      planted: holoLive,
+      approachMix: act1Live && act1.shot === 'approach' ? 1 - ease(camU, 0.6, 0.8) : 0,
+    })
     // With no pointer yet, x and y are both zero, which on this machine parks
     // the probe dead centre *inside* the frame and floods it: measured, the
     // idle probe alone was lifting every surface three to four times above its
@@ -1667,12 +1723,19 @@ export function createGymScanStage(opts: StageOptions) {
     probeNdcTarget.set(pointer.x, pointer.y)
     probeNdc.lerp(probeNdcTarget, reducedMotion ? 1 : 1 - Math.pow(0.001, dt))
     renderer.getDrawingBufferSize(probeViewport)
+    const holoProbe = {
+      ndc: probeNdc,
+      viewport: probeViewport,
+      amp: uniforms.uProbeAmp.value,
+      live: uniforms.uProbeLive.value,
+      time: uniforms.uTime.value,
+    }
 
     // --- hologram exoskeleton -----------------------------------------------
     // 0A plays one idle pass (cage line + floor shockwave) on the birth
     // clock, then dies. After the fused swap the same `update` idles on
-    // holoT. Probe stays off during the birth pass so a parked cursor
-    // cannot hold the cage.
+    // holoT. The cursor patch rides along: a parked pointer with live=0
+    // cannot hold the cage, and a moving one is the first-screen answer.
     //
     // The sticker landing plays a different pass: the print flashes, then a
     // green skeleton grows out of the tag and fades on its own clock. Idle
@@ -1698,7 +1761,7 @@ export function createGymScanStage(opts: StageOptions) {
       wasActivating = true
     }
     else if (holo && birth.draw && !skipBirth && !(classBLite && a0.shot !== 'floor')) {
-      holo.update(birth.sweepT, birth.envelope, false)
+      holo.update(birth.sweepT, birth.envelope, false, holoProbe)
       // Hand the envelope over at its live value, not at zero: the branch
       // below picks it up from here, and a discontinuity at the handover is
       // the sweep being cancelled mid-pass.
@@ -1708,39 +1771,29 @@ export function createGymScanStage(opts: StageOptions) {
       // One damped envelope for the whole rest of the film, rather than a
       // branch per shot.
       //
-      // The cage is an idle. It steps aside for 0C/0D, because the card owns
-      // those frames, and it comes back for the approach - which is where the
-      // sweeps and the cursor reveal used to live and where a hard `act1Live`
-      // gate had been killing both outright. It retires for good once the
-      // placard starts resolving: by then the analysis has found what it was
-      // looking for and the story is on the code.
-      //
-      // Damped rather than cut on either edge. The sweep that ran under 0B is
-      // mid-pass when 0C starts, and dropping its envelope to zero there reads
-      // as the hologram being switched off partway through its run; coming
-      // back the same way, it reads as a pass beginning rather than one being
-      // switched on.
+      // The travelling sweep steps aside for 0C/0D, because the card owns
+      // those frames. Envelope stays up so the cursor patch still answers
+      // the pointer — that used to die with the sweep, which is why the
+      // first screen stopped answering the mouse until the tag was down.
+      // It retires for good once the placard starts resolving: by then the
+      // analysis has found what it was looking for and the story is on the
+      // code.
       if (wasActivating) {
         // Rest in the idle gap so the next sweep is a new read, not a second
         // ignition stacked on the lock.
-        holoT = PASS_SPAN + 0.45
+        holoT = IDLE_GAP_T
         wasActivating = false
       }
       const cardBeat = !skipBirth && (a0.shot === 'fly' || a0.shot === 'stick')
-      const want = cardBeat || !holoLive ? 0 : scalarAt(HOLO, camSp)
+      const want = !holoLive ? 0 : scalarAt(HOLO, camSp)
       // ~0.8 s either way at 60fps, which is about the length of one pass.
       holoMix = reducedMotion ? want : damp(holoMix, want, 0.06, dt)
+      if (!reducedMotion && cardBeat) holoT = IDLE_GAP_T
       holo?.update(
         reducedMotion ? elapsed : holoT,
         holoMix,
         reducedMotion,
-        {
-          ndc: probeNdc,
-          viewport: probeViewport,
-          amp: uniforms.uProbeAmp.value,
-          live: uniforms.uProbeLive.value,
-          time: uniforms.uTime.value,
-        },
+        holoProbe,
       )
     }
 
@@ -1868,10 +1921,11 @@ export function createGymScanStage(opts: StageOptions) {
       perspective: 0,
     }
     if (overlayOn) {
+      const lean = phonePointer(target)
       phone = phoneOverlay.pose(fold, target, width, heightPx, {
-        mx: tilt.x,
-        my: tilt.y,
-        hasPointer: tilt.active,
+        mx: lean.mx,
+        my: lean.my,
+        hasPointer: lean.hasPointer,
         dt,
         reducedMotion,
         qr: qrLive,

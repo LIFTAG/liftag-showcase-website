@@ -1,0 +1,55 @@
+- generic [active] [ref=f40e1]:
+  - generic [ref=f40e3]:
+    - generic [ref=f40e4]:
+      - generic [ref=f40e5]:
+        - link "Nuxt" [ref=f40e6]:
+          - /url: https://nuxt.com
+        - heading "Welcome to Nuxt!" [level=1] [ref=f40e9]
+      - generic [ref=f40e10]:
+        - generic [ref=f40e15]:
+          - heading "Get started" [level=2] [ref=f40e16]
+          - paragraph [ref=f40e17]:
+            - text: Remove this welcome page by replacing <NuxtWelcome /> in
+            - link "app.vue" [ref=f40e18]:
+              - /url: https://nuxt.com/docs/guide/directory-structure/app
+            - text: with your own code, or creating your own app.vue if it doesn't exist.
+        - link [ref=f40e22]:
+          - /url: https://nuxt.com/modules
+          - img "modules icon" [ref=f40e23]
+          - generic [ref=f40e24]:
+            - heading "Modules" [level=3] [ref=f40e25]
+            - paragraph [ref=f40e26]: Discover our list of modules to supercharge your Nuxt project. Created by the Nuxt team and community.
+        - link [ref=f40e29]:
+          - /url: https://nuxt.com/docs
+          - generic [ref=f40e30]:
+            - generic [ref=f40e31]:
+              - heading "Documentation" [level=3] [ref=f40e32]
+              - paragraph [ref=f40e33]: We highly recommend you take a look at the Nuxt documentation to level up.
+            - img "documentation icon" [ref=f40e34]
+        - link [ref=f40e38]:
+          - /url: https://nuxt.com/docs/examples
+          - img "examples icon" [ref=f40e39]
+          - generic [ref=f40e40]:
+            - heading "Examples" [level=3] [ref=f40e41]
+            - paragraph [ref=f40e42]: Explore different way of using Nuxt features and get inspired with our list of examples.
+    - contentinfo [ref=f40e43]:
+      - link "Nuxt" [ref=f40e45]:
+        - /url: https://nuxt.com
+      - generic [ref=f40e50]:
+        - generic [ref=f40e51]: © 2016-2026 Nuxt - MIT License
+        - list [ref=f40e53]:
+          - listitem [ref=f40e54]:
+            - link "Nuxt Discord Server" [ref=f40e55]:
+              - /url: https://chat.nuxt.dev
+          - listitem [ref=f40e59]:
+            - link "Nuxt Twitter" [ref=f40e60]:
+              - /url: https://twitter.nuxt.dev
+          - listitem [ref=f40e64]:
+            - link "Nuxt GitHub Repository" [ref=f40e65]:
+              - /url: https://github.nuxt.dev
+  - generic [ref=f40e69]:
+    - button "Toggle Nuxt DevTools" [ref=f40e70] [cursor=pointer]
+    - generic "App load time" [ref=f40e74]:
+      - generic [ref=f40e75]: "2"
+      - generic [ref=f40e76]: s
+    - button "Toggle Component Inspector" [ref=f40e78] [cursor=pointer]

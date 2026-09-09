@@ -34,7 +34,9 @@ const { ready: meshReady, playing: meshPlaying, done: meshDone } = useGymGlyphMe
 .gx-hero-entry--button { display: inline-block; vertical-align: top; }
 .gx-hero-entry__content { display: block; }
 
-/* SSR stays readable; the projection is an enhancement after hydration. */
+/* First paint belongs to the boot overlay. No-JS and reduced motion stay
+   readable via the media queries at the bottom of this block. */
+.gx.is-static:not(.is-reduced) .gx-hero-entry__content,
 .gx:not(.is-static) .gx-hero-entry:not(.is-in) .gx-hero-entry__content {
   opacity: 0;
 }
@@ -139,7 +141,7 @@ const { ready: meshReady, playing: meshPlaying, done: meshDone } = useGymGlyphMe
   animation: none !important;
   opacity: 1 !important;
 }
-@media (prefers-reduced-motion: reduce), print {
+@media (prefers-reduced-motion: reduce), print, (scripting: none) {
   .gx-hero-entry .gx-hero-entry__content,
   .gx-hero-entry :deep(em),
   .gx-hero-entry :deep(a) { animation: none !important; opacity: 1 !important; }

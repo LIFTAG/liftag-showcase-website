@@ -2,6 +2,14 @@
 defineProps<{ reduced: boolean }>();
 const emit = defineEmits<{ motion: []; kit: [] }>();
 
+const destinations = [
+  { to: "#lifters", label: "Try LIFTAG", idx: "01" },
+  { to: "#gyms", label: "For gym owners", idx: "02" },
+  { to: "/for-trainers", label: "For coaches", idx: "03" },
+  { to: "/pricing", label: "Pricing", idx: "04" },
+  { to: "/exercises", label: "Exercise library", idx: "05" },
+] as const;
+
 const open = shallowRef(false);
 const root = useTemplateRef<HTMLElement>("root");
 const toggleButton = useTemplateRef<HTMLButtonElement>("menuToggle");
@@ -39,7 +47,10 @@ function toggle() {
 
 function closeAfterNavigation(event: MouseEvent) {
   const target = event.target as Element;
-  if (target.closest("a")) close();
+  if (!target.closest("a")) return;
+  // Close after the link's own handler (and the browser default) so
+  // `inert` on the drawer cannot cancel navigation in the same tick.
+  queueMicrotask(() => close());
 }
 
 function publishNavHeight() {
@@ -130,6 +141,7 @@ onBeforeUnmount(() => {
         :aria-label="open ? 'Close menu' : 'Open menu'"
         :aria-expanded="open"
         aria-controls="gx-mobile-navigation"
+        aria-haspopup="true"
         @click="toggle"
       >
         <svg width="24" height="24" viewBox="0 0 100 100" fill="none" aria-hidden="true">
@@ -147,25 +159,57 @@ onBeforeUnmount(() => {
       :aria-hidden="!open"
       :inert="!open"
     >
-      <nav aria-label="More navigation">
-        <a href="#lifters" class="gx-nav-drawer__link">Try LIFTAG</a>
-        <a href="#gyms" class="gx-nav-drawer__link">For gym owners</a>
-        <NuxtLink to="/for-trainers" class="gx-nav-drawer__link">For coaches</NuxtLink>
-        <NuxtLink to="/pricing" class="gx-nav-drawer__link">Pricing</NuxtLink>
-        <NuxtLink to="/exercises" class="gx-nav-drawer__link">Exercise library</NuxtLink>
-        <NuxtLink to="/get" class="gx-nav-drawer__link gx-nav-drawer__app">Get the app</NuxtLink>
-      </nav>
-      <div class="gx-nav-drawer__store">
-        <GetAppBtn label="Get the app" />
+      <div class="gx-nav-drawer__plate">
+        <div class="gx-nav-drawer__head gx-nav-drawer__in" aria-hidden="true" style="--i: 0">
+          <span class="gx-protocol">More</span>
+          <span class="gx-protocol">05</span>
+        </div>
+        <nav aria-label="More navigation">
+          <NuxtLink
+            v-for="(item, i) in destinations"
+            :key="item.idx"
+            :to="item.to"
+            class="gx-nav-drawer__link gx-nav-drawer__in"
+            :style="{ '--i': i + 1 }"
+          >
+            <span class="gx-nav-drawer__idx" aria-hidden="true">{{ item.idx }}</span>
+            <span class="gx-nav-drawer__label">{{ item.label }}</span>
+          </NuxtLink>
+        </nav>
+        <NuxtLink
+          to="/get"
+          class="gx-nav-drawer__app gx-nav-drawer__in"
+          :style="{ '--i': destinations.length + 1 }"
+        >
+          Get the app
+        </NuxtLink>
+        <div
+          class="gx-nav-drawer__store gx-nav-drawer__in"
+          :style="{ '--i': destinations.length + 1 }"
+        >
+          <GetAppBtn compact label="Get the app" />
+        </div>
+        <button
+          type="button"
+          class="gx-nav-drawer__motion gx-nav-drawer__in"
+          :style="{ '--i': destinations.length + 2 }"
+          :aria-pressed="reduced"
+          :aria-label="reduced ? 'Use full motion' : 'Reduce motion'"
+          @click.stop="emit('motion')"
+        >
+          <span class="gx-nav-drawer__motion-copy">
+            <span class="gx-protocol">Motion</span>
+            <span class="gx-nav-drawer__motion-state">{{
+              reduced ? "Reduced" : "Full"
+            }}</span>
+          </span>
+          <span
+            class="gx-nav-drawer__switch"
+            :class="{ 'is-on': reduced }"
+            aria-hidden="true"
+          ></span>
+        </button>
       </div>
-      <button
-        type="button"
-        class="gx-nav-drawer__link gx-nav-drawer__motion"
-        :aria-pressed="reduced"
-        @click.stop="emit('motion')"
-      >
-        Reduce motion {{ reduced ? "on" : "off" }}
-      </button>
     </div>
   </div>
 </template>

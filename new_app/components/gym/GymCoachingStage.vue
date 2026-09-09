@@ -15,14 +15,37 @@ onBeforeUnmount(() => {
 </script>
 <template>
   <div class="gc-stage">
-    <div class="gc-fallback-phone" aria-label="LIFTAG logger with exercise instructions above the set table">
+    <div class="gc-fallback-phone" aria-label="LIFTAG logger with the exercise video on the workout screen">
       <span class="gc-fallback-island" />
-      <div class="gc-fallback-bar">‹ <span>WORKOUT LOGGER</span> •••</div>
-      <h3>EZ-Bar Skullcrusher</h3><p>Flat bench · EZ bar</p>
-      <video v-if="customSrc && gymVideo" ref="video" :src="customSrc" controls muted playsinline loop preload="metadata" @loadeddata="syncVideo" @error="emit('customError')" />
-      <img v-else src="/assets/gym3d/bench-instruction.webp" width="1080" height="603" alt="EZ-Bar Skullcrusher video guide inside the workout" />
-      <strong>{{ gymVideo ? (customSrc ? 'Your gym’s video' : 'Your own video goes here') : 'Included LIFTAG guide' }}</strong>
-      <div class="gc-fallback-sets"><span>SET</span><span>KG</span><span>REPS</span><b>1 ✓</b><b>20</b><b>12</b><b>2</b><b>20</b><b>12</b><b>3</b><b>20</b><b>12</b></div>
+      <video
+        v-if="customSrc && gymVideo"
+        ref="video"
+        class="gc-fallback-video"
+        :src="customSrc"
+        controls
+        muted
+        playsinline
+        loop
+        preload="metadata"
+        @loadeddata="syncVideo"
+        @error="emit('customError')"
+      />
+      <img
+        v-else
+        class="gc-fallback-video"
+        :class="{ 'is-placeholder': gymVideo }"
+        src="/assets/gym3d/bench-instruction.webp"
+        width="1080"
+        height="603"
+        alt="EZ-Bar Skullcrusher video guide inside the workout"
+      />
+      <h3>EZ-Bar Skullcrusher</h3>
+      <p>Flat bench · EZ bar</p>
+      <strong>{{ gymVideo ? (customSrc ? 'Your gym’s video' : 'Your gym · preview') : 'Included LIFTAG guide' }}</strong>
+      <div class="gc-fallback-sets">
+        <b><span>WEIGHT</span>20 kg</b>
+        <b><span>REPS</span>12</b>
+      </div>
       <span class="gc-fallback-log">Log set</span>
     </div>
   </div>

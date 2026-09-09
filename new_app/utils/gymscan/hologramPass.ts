@@ -16,6 +16,12 @@ export const TRAVEL = 1.70
 export const SPLASH = 1.36
 /** One full idle pass: line travel plus the splash that finishes it. */
 export const PASS_SPAN = TRAVEL + SPLASH
+/**
+ * Rest in the gap after a pass so the next sweep is a new read, not a
+ * continuation. Still inside `PERIOD`, past both the cage travel and the
+ * floor splash, so parking here draws neither.
+ */
+export const IDLE_GAP_T = PASS_SPAN + 0.45
 /** Trail length on the machine cage, metres. */
 export const TRAIL = 0.22
 /** Launch hardness. Same family as the cage: fast start, no overshoot. */

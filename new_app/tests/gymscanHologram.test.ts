@@ -13,12 +13,15 @@ import {
   WIRE_RGB,
   cageMixColor,
   cageShouldDraw,
+  cursorProbeReach,
   screenProbeWeight,
 } from '../utils/gymscan/hologramColor.ts'
 import {
   hologramPassAt,
+  IDLE_GAP_T,
   inverseKickTravel,
   kickTravel,
+  PASS_SPAN,
   PEEL,
   PERIOD,
   SPLASH,
@@ -178,6 +181,61 @@ test('cage is hidden between cycles with no live probe and no sweep', () => {
     cageShouldDraw({ envelope: 1, cageAmp: 0, probeAmp: 0, steady: false }),
     false,
   )
+})
+
+test('cursor probe is live on the planted machine before the QR sticks', () => {
+  assert.equal(cursorProbeReach({
+    act1Live: false,
+    machineLive: true,
+    dropLive: false,
+    planted: true,
+    approachMix: 0,
+  }), 1)
+})
+
+test('cursor probe waits for the fused plant, not the end of the assemble shot', () => {
+  assert.equal(cursorProbeReach({
+    act1Live: false,
+    machineLive: true,
+    dropLive: false,
+    planted: false,
+    approachMix: 0,
+  }), 0)
+})
+
+test('cursor probe stays off while the machine is still falling', () => {
+  assert.equal(cursorProbeReach({
+    act1Live: false,
+    machineLive: true,
+    dropLive: true,
+    planted: true,
+    approachMix: 0,
+  }), 0)
+})
+
+test('cursor probe follows the approach fade once Act 1 owns the camera', () => {
+  assert.equal(cursorProbeReach({
+    act1Live: true,
+    machineLive: true,
+    dropLive: false,
+    planted: true,
+    approachMix: 0.4,
+  }), 0.4)
+  assert.equal(cursorProbeReach({
+    act1Live: true,
+    machineLive: true,
+    dropLive: false,
+    planted: true,
+    approachMix: 0,
+  }), 0)
+})
+
+test('idle-gap park sits between passes so a parked sweep draws nothing', () => {
+  assert.ok(IDLE_GAP_T > PASS_SPAN)
+  assert.ok(IDLE_GAP_T < PERIOD)
+  const pass = hologramPassAt(IDLE_GAP_T, 1, OPTS)
+  assert.equal(pass.cageAmp, 0)
+  assert.equal(pass.groundDraw, false)
 })
 
 test('trail-only cage mix is cool white, not lime', () => {

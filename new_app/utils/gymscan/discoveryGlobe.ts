@@ -1,7 +1,13 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import { discoveryGymArcs, discoveryGyms, discoveryHub } from "./discoveryGyms.ts";
+import {
+  discoveryGymArcs,
+  discoveryGyms,
+  discoveryHub,
+  discoveryRegionFocus,
+} from "./discoveryGyms.ts";
 import { globeAssemblyAt, globeNetworkAt } from "./discoveryTimeline.ts";
+import { clamp01 } from "./timeline.ts";
 import { createDiscoveryRegion } from "./discoveryRegion.ts";
 
 /**
@@ -234,26 +240,34 @@ export function createDiscoveryGlobe() {
     color: 0x050705,
     toneMapped: false,
   });
-  // A soft studio key and narrow limb light give the untextured ocean depth.
+  const innerUniforms = { uDetail: { value: 1 } };
+  // Studio key/rim while it is Earth. As detail dies the same sphere becomes
+  // the unlit 04 badge fill, with a thin lime edge standing in for the CSS ring.
   innerMat.onBeforeCompile = (shader) => {
+    shader.uniforms.uDetail = innerUniforms.uDetail;
     shader.vertexShader = "varying vec3 vGlobeNormal; varying vec3 vGlobeView;\n" + shader.vertexShader;
     shader.vertexShader = shader.vertexShader.replace(
       "#include <project_vertex>",
       "#include <project_vertex>\nvGlobeNormal = normalize(normalMatrix * normal); vGlobeView = -mvPosition.xyz;",
     );
-    shader.fragmentShader = "varying vec3 vGlobeNormal; varying vec3 vGlobeView;\n" + shader.fragmentShader;
+    shader.fragmentShader =
+      "varying vec3 vGlobeNormal; varying vec3 vGlobeView; uniform float uDetail;\n" +
+      shader.fragmentShader;
     shader.fragmentShader = shader.fragmentShader.replace(
       "#include <color_fragment>",
       `#include <color_fragment>
        vec3 n = normalize(vGlobeNormal);
        float key = max(0., dot(n, normalize(vec3(-0.6, 0.8, 1.))));
        float rim = pow(1. - max(0., dot(n, normalize(vGlobeView))), 3.);
-       diffuseColor.rgb = vec3(0.002, 0.004, 0.003)
+       vec3 lit = vec3(0.002, 0.004, 0.003)
          + vec3(0.012, 0.022, 0.018) * key
-         + vec3(0.03, 0.055, 0.025) * rim;`,
+         + vec3(0.03, 0.055, 0.025) * rim;
+       vec3 badge = vec3(0.047, 0.055, 0.05)
+         + vec3(0.55, 0.65, 0.22) * pow(rim, 8.) * 0.7;
+       diffuseColor.rgb = mix(badge, lit, uDetail);`,
     );
   };
-  innerMat.customProgramCacheKey = () => "discovery-globe-studio-v1";
+  innerMat.customProgramCacheKey = () => "discovery-globe-studio-v2";
   const inner = new THREE.Mesh(
     new THREE.SphereGeometry(GLOBE_RADIUS, 48, 32),
     innerMat,
@@ -329,8 +343,7 @@ export function createDiscoveryGlobe() {
   root.add(gyms);
 
   const arcGeoms: THREE.BufferGeometry[] = [];
-  // The regional Praha cluster is labelled as three gyms; one shared route stays legible.
-  const links = discoveryGymArcs().filter(link => !link.to.id.startsWith("praha-") || link.to.id === "praha-karlin");
+  const links = discoveryGymArcs();
   links.forEach((link, index) => {
     const start = latLngToGlobe(
       link.from.latitude,
@@ -408,35 +421,40 @@ export function createDiscoveryGlobe() {
     root.add(land);
   }
 
-  function update(seconds: number, amount: number, focus = 0) {
+  function update(seconds: number, amount: number, focus = 0, detail = 1) {
     const frame = globeAssemblyAt(seconds);
     const network = globeNetworkAt(seconds);
+    const surface = clamp01(detail);
     dotsMat.uniforms.uAssembly!.value = frame.assembly;
     dotsMat.uniforms.uSweep!.value = frame.sweepY;
     dotsMat.uniforms.uHologram!.value = frame.hologram;
     dotsMat.uniforms.uWave!.value = network.wave;
     dotsMat.uniforms.uBlink!.value = network.blink;
-    dotsMat.uniforms.uFade!.value = amount;
+    dotsMat.uniforms.uFade!.value = amount * surface;
     dotsMat.uniforms.uTime!.value = seconds;
     dotsMat.uniforms.uFocus!.value = focus;
     tubesMat.uniforms.uArcs!.value = network.arcs;
     tubesMat.uniforms.uTime!.value = seconds;
-    tubesMat.uniforms.uFade!.value = amount;
+    tubesMat.uniforms.uFade!.value = amount * surface;
     tubesMat.uniforms.uFocus!.value = focus;
+    innerUniforms.uDetail.value = surface;
     inner.visible = !!land && frame.assembly > 0.18 && amount > 0.05;
-    atmosphere.visible = frame.assembly > 0.55;
-    atmosphereMat.uniforms.opacity!.value = 0.3 * amount * frame.assembly * (1 - focus);
-    gyms.visible = amount > 0.05;
-    arcs.visible = network.arcs > 0.01 && amount > 0.05;
-    if (land) land.visible = amount > 0.04;
+    atmosphere.visible = frame.assembly > 0.55 && surface > 0.04;
+    atmosphereMat.uniforms.opacity!.value =
+      0.3 * amount * surface * frame.assembly * (1 - focus);
+    gyms.visible = amount > 0.05 && surface > 0.04;
+    arcs.visible = network.arcs > 0.01 && amount > 0.05 && surface > 0.04;
+    if (land) land.visible = amount > 0.04 && surface > 0.04;
     root.rotation.set(
-      THREE.MathUtils.lerp(0.48, THREE.MathUtils.degToRad(49.05), focus),
+      THREE.MathUtils.lerp(0.48, THREE.MathUtils.degToRad(discoveryRegionFocus.latitude), focus),
       -Math.PI / 2 -
-        THREE.MathUtils.degToRad(THREE.MathUtils.lerp(discoveryHub.longitude, 18.4, focus)) -
+        THREE.MathUtils.degToRad(
+          THREE.MathUtils.lerp(discoveryHub.longitude, discoveryRegionFocus.longitude, focus),
+        ) -
         (1 - frame.assembly) * 0.55 * (1 - focus),
       0,
     );
-    region.update(focus, amount);
+    region.update(focus, amount * surface);
   }
 
   return { root, applyLand, update };

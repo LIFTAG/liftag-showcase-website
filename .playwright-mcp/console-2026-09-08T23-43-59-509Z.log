@@ -1,0 +1,70 @@
+[      97ms] [WARNING] [nuxt] Cannot load payload  /exercises/_payload.json?1788911025821 TypeError: Load failed @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788911014829&v=3efe9c86:81
+[      98ms] [WARNING] [nuxt] Cannot load payload  /_payload.json?1788911025820 TypeError: Load failed @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788911014829&v=3efe9c86:81
+[    5320ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/components/gym/GymKit.vue:0
+[    5324ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/composables/useGymJourney.ts:0
+[    5325ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/composables/useCoachingScroll.ts:0
+[    5326ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/composables/useGymCopyReveal.ts:0
+[    5327ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/@id/virtual:public?%2Fassets%2Fgym3d%2Ftag-poster.webp:0
+[    5328ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/assets/css/gym-experience.css?vue&type=style&index=0&src=true&lang.css:0
+[    5329ms] [WARNING] [Vue Router warn]: uncaught error during route navigation: @ http://localhost:3000/_nuxt/node_modules/.pnpm/vue-router@4.6.4_vue@3.5.33_typescript@5.9.3_/node_modules/vue-router/dist/devtools-EWN81iOl.mjs?v=3efe9c86:34
+[    5329ms] [ERROR] TypeError: Importing a module script failed. @ http://localhost:3000/_nuxt/node_modules/.pnpm/vue-router@4.6.4_vue@3.5.33_typescript@5.9.3_/node_modules/vue-router/dist/vue-router.mjs?v=3efe9c86:1239
+[    5330ms] [ERROR] [nuxt] error caught during app initialization Error: Importing a module script failed. @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/nuxt.js?v=3efe9c86:123
+[    5331ms] [WARNING] [Vue Router warn]: Unexpected error when starting the router: TypeError: Importing a module script failed. @ http://localhost:3000/_nuxt/node_modules/.pnpm/vue-router@4.6.4_vue@3.5.33_typescript@5.9.3_/node_modules/vue-router/dist/devtools-EWN81iOl.mjs?v=3efe9c86:34
+[    5332ms] [LOG] %cssr:success%c Vite server hmr 5 files 
+      background: #2ecc71;
+      border-radius: 0.5em;
+      color: white;
+      font-weight: bold;
+      padding: 2px 0.5em;
+      in 0.001ms 
+  at vite_node_entry_default (node_modules/.pnpm/@nuxt+vite-builder@3.21.2_@types+node@26.1.1_magicast@0.5.2_nuxt@3.21.2_@emnapi+core@1._a4b3153523cf62a7d8205505e2d0041e/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs)
+  at process.processTicksAndRejections (node:internal/process/task_queues)
+  at async Object.renderToString (node_modules/.pnpm/vue-bundle-renderer@2.2.0/node_modules/vue-bundle-renderer/dist/runtime.mjs)
+ @ http://localhost:3000/_nuxt/node_modules/.pnpm/consola@3.4.2/node_modules/consola/dist/browser.mjs?v=3efe9c86:47
+[    5347ms] [ERROR] [nuxt] error caught during app initialization Error: Importing a module script failed. @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/nuxt.js?v=3efe9c86:123
+[    5353ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=3efe9c86:7239
+[    5358ms] [WARNING] [Vue warn]: Hydration node mismatch:
+- rendered on server: JSHandle@node (start of fragment) 
+- expected on client: div 
+  at <Error key=1 error= Error: Importing a module script failed. > 
+  at <NuxtRoot> @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=3efe9c86:49
+[    5359ms] [ERROR] Hydration completed but contains mismatches. @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=3efe9c86:1887
+[    5598ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    5598ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /, path: /} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    5599ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/ color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788911045107} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    6279ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/components/gym/GymArrival.vue?vue&type=style&index=0&scoped=1d9e7956&lang.css:0
+[    6280ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/components/gym/GymLogoEntry.vue:0
+[    6282ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/components/gym/GymLockupWord.vue:0
+[    6285ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/utils/brand/logoEntry.ts:0
+[    6293ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/components/gym/GymCoachingStage.vue:0
+[    6302ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/composables/useCoachingVideo.ts:0
+[    6470ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/assets/css/gym-coaching.css?vue&type=style&index=0&src=true&lang.css:0
+[    6473ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/utils/gymscan/device.ts:0
+[    6475ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/composables/useSharedMouse.ts:0
+[    6478ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/@id/virtual:public?%2Fassets%2Fgym3d%2Fleg-press-poster.webp:0
+[    6479ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/composables/useGymInstructionPreview.ts:0
+[    6488ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/utils/gymscan/journey.ts:0
+[    7469ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/utils/gymscan/handoff.ts:0
+[    7479ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/components/gym/GymHeroEntry.vue?vue&type=style&index=0&scoped=59567873&lang.css:0
+[    7489ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/composables/useGymGlyphMesh.ts:0
+[    7490ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_nuxt/?token=fWQnsj_IlGkW' failed: The network connection was lost. @ :0
+[    7494ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/_nuxt/@vite/client:864
+[    7513ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/components/gym/GymEquipmentInventory.vue:0
+[    7515ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/components/gym/GymDiscoveryStage.vue:0
+[    7529ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/utils/gymscan/discoveryEquipment.ts:0
+[    7672ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/composables/useDiscoveryScroll.ts:0
+[    7683ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/@id/virtual:public?%2Fassets%2Fscreens%2Fgym-detail-560.webp:0
+[    7691ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/assets/css/gym-discovery.css?vue&type=style&index=0&src=true&lang.css:0
+[    7695ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/assets/logo.svg:0
+[    7700ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/@id/virtual:nuxt:%2FUsers%2Fadrian%2Fliftag_repos%2Fliftag_showcase_website%2Fnew_app%2F.nuxt%2Fdevtools%2Fsettings.mjs:0
+[    7703ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/muscles/_payload.json?1788911045119:0
+[    7707ms] [WARNING] [nuxt] Cannot load payload  /muscles/_payload.json?1788911045119 SyntaxError: JSON Parse error: Unrecognized token '<' @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788911014829&v=3efe9c86:81
+[    7759ms] TypeError: Importing a module script failed.
+[    7771ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/builds/meta/dev.json:0
+[    7775ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/journal/_payload.json?1788911045119:0
+[    7787ms] [WARNING] [nuxt] Cannot load payload  /journal/_payload.json?1788911045119 SyntaxError: JSON Parse error: Unrecognized token '<' @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788911014829&v=3efe9c86:81
+[    7851ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/builds/meta/dev.json:0
+[    7853ms] [ERROR] [nuxt] Error fetching app manifest. FetchError: [GET] "/_nuxt/builds/meta/dev.json": 503 Service Unavailable @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/manifest.js?t=1788911014829&v=3efe9c86:18
+[    7854ms] [WARNING] [nuxt] Error preloading payload for /get @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/plugins/payload.client.js?t=1788911014829&v=3efe9c86:37
+[    7854ms] [WARNING] [nuxt] Error preloading payload for /get @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/plugins/payload.client.js?t=1788911014829&v=3efe9c86:37
+[  100137ms] [ERROR] Failed to load resource: Could not connect to the server. @ http://localhost:3000/demo:0

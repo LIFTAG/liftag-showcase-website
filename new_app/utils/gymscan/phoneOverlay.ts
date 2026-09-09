@@ -278,14 +278,16 @@ export function createPhoneOverlay(opts: { shadows: boolean }) {
 
     // Face-on while the frame is still the whole viewport, then settle into
     // the hero rest pose once the body is actually readable as a phone.
+    // Pointer lean is added on top so the parked logger nods at the cursor
+    // instead of abandoning the rest pose to face the viewport centre.
     const rotT = smoothstep((t - 0.38) / 0.62)
     let targetRotX = PHONE_REST_ROT_X * rotT
     let targetRotY = PHONE_REST_ROT_Y * rotT
     const tiltMix = input.reducedMotion ? 0 : heroTiltMix(shrink)
     if (input.hasPointer && tiltMix > 0) {
       const pointer = heroPointerTilt(input.mx, input.my)
-      targetRotX = lerp(targetRotX, pointer.rotX, tiltMix)
-      targetRotY = lerp(targetRotY, pointer.rotY, tiltMix)
+      targetRotX += pointer.rotX * tiltMix
+      targetRotY += pointer.rotY * tiltMix
     }
     if (input.reducedMotion) {
       currentRotX = targetRotX

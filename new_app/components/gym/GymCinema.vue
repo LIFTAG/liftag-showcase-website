@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { probeTemporaryWebGL2 } from "~/utils/gymscan/device";
-import { compactLoggerOwnsCopy } from "~/utils/gymscan/handoff";
+import { cinemaPhoneSlot, compactLoggerOwnsCopy } from "~/utils/gymscan/handoff";
 import {
   experienceDevice,
   type GymProductView,
@@ -53,6 +53,7 @@ let copyBlur = false;
 let copyLogger = false;
 let copyDof = -1;
 let swept = false;
+let earthPoll = 0;
 
 function sync() {
   stage?.setAssemblyProgress(journey.value.assembly);
@@ -63,16 +64,7 @@ function resize() {
   stage.resize();
   const width = canvas.value.clientWidth,
     height = canvas.value.clientHeight;
-  const compact = width < 761;
-  const short = compact && height <= 740;
-  const h = Math.min(height * (compact ? (short ? .34 : .38) : .65), 600);
-  const w = h * 0.475;
-  stage.setHeroSlot({
-    x: width * (compact ? .68 : .81) - w / 2,
-    y: compact ? height * (short ? .35 : .33) : (height - h) / 2,
-    w,
-    h,
-  });
+  stage.setHeroSlot(cinemaPhoneSlot(width, height));
   sync();
   activity();
 }
@@ -125,8 +117,24 @@ function frame(info: FrameInfo) {
   }
 }
 function activity() {
-  const filmVisible = ['experience', 'the-tag', 'lifters', 'gyms'].includes(journey.value.chapter);
+  const chapter = journey.value.chapter;
+  const earthOut = import.meta.client
+    ? Number.parseFloat(
+        getComputedStyle(host.value?.closest(".gx") ?? document.documentElement)
+          .getPropertyValue("--gx-earth-out") || "0",
+      )
+    : 1;
+  const pullingBack =
+    (chapter === "discover" || chapter === "kit") && earthOut < 0.97;
+  const filmVisible =
+    ["experience", "the-tag", "lifters", "gyms"].includes(chapter) || pullingBack;
   const active = ready.value && visible && !document.hidden && !props.paused && filmVisible;
+  if (pullingBack && !earthPoll) {
+    earthPoll = requestAnimationFrame(() => {
+      earthPoll = 0;
+      activity();
+    });
+  }
   const nextMedia = active && journey.value.film > .9 && !coaching.value.paused;
   if (mediaActive.value !== nextMedia) mediaActive.value = nextMedia;
   if (active) stage?.start();
@@ -136,6 +144,8 @@ function activity() {
 }
 function teardown() {
   cancelAnimationFrame(bootFrame);
+  cancelAnimationFrame(earthPoll);
+  earthPoll = 0;
   stage?.dispose();
   stage = null;
   ready.value = false;

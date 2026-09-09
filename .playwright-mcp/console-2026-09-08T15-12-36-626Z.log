@@ -111,3 +111,4 @@
 [18900913ms] [INFO] [gymscan] 0B calls planted 48 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1227
 [19006978ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_nuxt/?token=qPVWofL1MeaL' failed: The network connection was lost. @ :0
 [19007135ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/_nuxt/@vite/client:864
+[30783020ms] [ERROR] Failed to load resource: Could not connect to the server. @ http://localhost:3000/demo:0

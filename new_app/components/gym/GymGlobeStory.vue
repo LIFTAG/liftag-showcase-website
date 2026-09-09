@@ -8,18 +8,42 @@ const { film, phase, replay, go } = useDiscoveryScroll(
   root,
   () => simple.value,
 );
-const titles = [
-  "Every gym.\nOne place.",
-  "Let your members\nspeak for you.",
-  "Your floor.\nMade discoverable.",
-  "Your floor.\nOn their phone.",
-];
-const captions = [
-  "Find your next place to train. Starting in Slovakia, connected to gyms nearby.",
-  "Your place. Your community. Their reviews.",
-  "A clear view of what your gym has to offer.",
-  "The same machines, listed in LIFTAG, ready for a lifter to train.",
-];
+const beats = [
+  {
+    protocol: "08 GYMS · ONE NETWORK",
+    title: "Every gym.\nOne place.",
+    caption: "Find your next place to train. Eight gyms across Slovakia.",
+    step: "The network",
+  },
+  {
+    protocol: "YOUR PLACE ON THE MAP",
+    title: "Let your members\nspeak for you.",
+    caption: "Your place. Your community. Their reviews.",
+    step: "Member reviews",
+  },
+  {
+    protocol: "YOUR GYM, MACHINE BY MACHINE",
+    title: "Your floor.\nMade discoverable.",
+    caption: "A clear view of what your gym has to offer.",
+    step: "The gym floor",
+  },
+  {
+    protocol: "YOUR GYM, IN THE APP",
+    title: "Your floor.\nOn their phone.",
+    caption:
+      "The same machines, listed in LIFTAG, ready for a lifter to train.",
+    step: "In the app",
+  },
+] as const;
+const beat = computed(() => beats[simple.value ? 3 : phase.value] ?? beats[0]);
+const headline = computed(() =>
+  simple.value ? "Every gym.\nOne place." : beat.value.title,
+);
+const caption = computed(() =>
+  simple.value
+    ? "Eight gyms in Slovakia. Member reviews and every machine, in one place."
+    : beat.value.caption,
+);
 </script>
 <template>
   <section
@@ -39,45 +63,36 @@ const captions = [
         @unavailable="unavailable = true"
       />
       <div class="gd-copy">
-        <p class="gx-protocol">
-          <GymHeroEntry :key="`p-${phase}`" row>
-            05 /
-            {{
-              phase === 0
-                ? "08 GYMS · ONE NETWORK"
-                : phase === 1
-                  ? "YOUR PLACE ON THE MAP"
-                  : phase < 3
-                    ? "YOUR GYM, MACHINE BY MACHINE"
-                    : "YOUR GYM, IN THE APP"
-            }}
-          </GymHeroEntry>
-        </p>
-        <h2 id="gd-title">
-          <GymHeroEntry :key="`t-${phase}`" :delay="40">{{
-            simple ? "Every gym.\nOne place." : titles[phase]
-          }}</GymHeroEntry>
-        </h2>
-        <p class="gd-caption">
-          <GymHeroEntry :key="`c-${phase}`" :delay="120">{{
-            simple
-              ? "Gyms in Bratislava and Košice, Slovakia. Six more nearby. Member reviews and every machine, in one place."
-              : captions[phase]
-          }}</GymHeroEntry>
-        </p>
+        <h2 id="gd-title" class="sr-only">{{ headline }}</h2>
+        <div class="gd-copy-stage">
+          <div v-if="simple" class="gd-copy-swap is-on">
+            <p class="gx-protocol">05 / {{ beat.protocol }}</p>
+            <div class="gd-copy-title" aria-hidden="true">{{ headline }}</div>
+            <p class="gd-caption">{{ caption }}</p>
+          </div>
+          <template v-else>
+            <div
+              v-for="(item, index) in beats"
+              :key="item.step"
+              class="gd-copy-swap"
+              :class="{ 'is-on': phase === index }"
+              :inert="phase !== index"
+              :aria-hidden="phase !== index"
+            >
+              <p class="gx-protocol">05 / {{ item.protocol }}</p>
+              <div class="gd-copy-title" aria-hidden="true">{{ item.title }}</div>
+              <p class="gd-caption">{{ item.caption }}</p>
+            </div>
+          </template>
+        </div>
         <div v-if="!simple" class="gd-steps" aria-label="Explore gym discovery">
           <button
-            v-for="(label, index) in [
-              'The network',
-              'Member reviews',
-              'The gym floor',
-              'In the app',
-            ]"
-            :key="label"
+            v-for="(item, index) in beats"
+            :key="item.step"
             :aria-pressed="phase === index"
             @click="go(index)"
           >
-            <span class="gd-step-dot" aria-hidden="true" />{{ label }}
+            <span class="gd-step-dot" aria-hidden="true" />{{ item.step }}
           </button>
         </div>
         <NuxtLink
@@ -89,9 +104,10 @@ const captions = [
       </div>
       <div
         class="gd-profile"
-        :class="{ 'is-shown': phase === 1 || simple }"
+        :class="{ 'is-shown': phase < 2 || simple }"
         :inert="phase !== 1 && !simple"
       >
+        <span v-if="!simple" class="gd-profile-island" aria-hidden="true" />
         <div class="gd-profile-photo">
           <img
             src="/assets/screens/gym-detail-560.webp"

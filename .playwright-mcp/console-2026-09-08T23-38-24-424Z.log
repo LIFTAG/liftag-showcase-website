@@ -1,0 +1,109 @@
+[   15626ms] [LOG] %cssr:success%c Vite server hmr 3 files 
+      background: #2ecc71;
+      border-radius: 0.5em;
+      color: white;
+      font-weight: bold;
+      padding: 2px 0.5em;
+      in 0.004ms 
+  at vite_node_entry_default (node_modules/.pnpm/@nuxt+vite-builder@3.21.2_@types+node@26.1.1_magicast@0.5.2_nuxt@3.21.2_@emnapi+core@1._a4b3153523cf62a7d8205505e2d0041e/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs)
+  at process.processTicksAndRejections (node:internal/process/task_queues)
+  at async Object.renderToString (node_modules/.pnpm/vue-bundle-renderer@2.2.0/node_modules/vue-bundle-renderer/dist/runtime.mjs)
+ @ http://localhost:3000/_nuxt/node_modules/.pnpm/consola@3.4.2/node_modules/consola/dist/browser.mjs?v=3efe9c86:47
+[   15669ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=3efe9c86:7239
+[   16198ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   16198ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   16214ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/demo color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/demo, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788910720637} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   16359ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=3efe9c86:51
+[   18617ms] [WARNING] [nuxt] Cannot load payload  /exercises/_payload.json?1788910720611 TypeError: Load failed @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788910680893&v=3efe9c86:81
+[   18618ms] [WARNING] [nuxt] Cannot load payload  /for-trainers/_payload.json?1788910720611 TypeError: Load failed @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788910680893&v=3efe9c86:81
+[   18618ms] [WARNING] [nuxt] Cannot load payload  /pricing/_payload.json?1788910720611 TypeError: Load failed @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788910680893&v=3efe9c86:81
+[   18618ms] [WARNING] [nuxt] Cannot load payload  /_payload.json?1788910720611 TypeError: Load failed @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788910680893&v=3efe9c86:81
+[   24359ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=3efe9c86:7239
+[   24554ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   24554ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   24555ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/demo color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/demo, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788910728978} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   24671ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=3efe9c86:51
+[   30147ms] [INFO] [gymscan] 0B calls explode 26 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1231
+[   32102ms] [INFO] [gymscan] 0B calls planted 48 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1235
+[  161369ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_nuxt/?token=uZPZ5C40lL87' failed: The network connection was lost. @ :0
+[  161372ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/_nuxt/@vite/client:864
+[  163176ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo:0
+[  163817ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo:0
+[  165392ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo:0
+[  166886ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo:0
+[  168108ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo:0
+[  169264ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo:0
+[  170305ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo:0
+[  171371ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo:0
+[  179422ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=3efe9c86:7239
+[  180118ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  180119ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  180121ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/demo color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/demo, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788910884544} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  180837ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=3efe9c86:51
+[  189384ms] [INFO] [gymscan] 0B calls explode 26 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1231
+[  191213ms] [INFO] [gymscan] 0B calls planted 48 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1235
+[  202962ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/demo#the-tag color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/demo#the-tag, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788910907377} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  287613ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_nuxt/?token=SaWrS9DAP1oU' failed: The network connection was lost. @ :0
+[  287626ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/_nuxt/@vite/client:864
+[  291821ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#the-tag:0
+[  292311ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#the-tag:0
+[  293420ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#the-tag:0
+[  294542ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#the-tag:0
+[  296029ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#the-tag:0
+[  310458ms] [WARNING] [Vue Router warn]: uncaught error during route navigation: @ http://localhost:3000/_nuxt/node_modules/.pnpm/vue-router@4.6.4_vue@3.5.33_typescript@5.9.3_/node_modules/vue-router/dist/devtools-EWN81iOl.mjs?v=3efe9c86:34
+[  310459ms] [ERROR] TypeError: Importing a module script failed. @ http://localhost:3000/_nuxt/node_modules/.pnpm/vue-router@4.6.4_vue@3.5.33_typescript@5.9.3_/node_modules/vue-router/dist/vue-router.mjs?v=3efe9c86:1239
+[  310468ms] [ERROR] [nuxt] error caught during app initialization Error: Importing a module script failed. @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/nuxt.js?v=3efe9c86:123
+[  310475ms] [WARNING] [Vue Router warn]: Unexpected error when starting the router: TypeError: Importing a module script failed. @ http://localhost:3000/_nuxt/node_modules/.pnpm/vue-router@4.6.4_vue@3.5.33_typescript@5.9.3_/node_modules/vue-router/dist/devtools-EWN81iOl.mjs?v=3efe9c86:34
+[  310537ms] [ERROR] [nuxt] error caught during app initialization Error: Importing a module script failed. @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/nuxt.js?v=3efe9c86:123
+[  310557ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=3efe9c86:7239
+[  310565ms] [WARNING] [Vue warn]: Hydration node mismatch:
+- rendered on server: JSHandle@node (start of fragment) 
+- expected on client: div 
+  at <Error key=1 error= Error: Importing a module script failed. > 
+  at <NuxtRoot> @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=3efe9c86:49
+[  310568ms] [ERROR] Hydration completed but contains mismatches. @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=3efe9c86:1887
+[  310888ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  310888ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /, path: /} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  310890ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/#the-tag color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/#the-tag, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788911015313} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  310948ms] TypeError: Importing a module script failed.
+[  311809ms] Fetch API cannot load http://localhost:3000/_nuxt/builds/meta/dev.json due to access control checks.
+    at $fetchRaw2 (http://localhost:3000/_nuxt/node_modules/.pnpm/ofetch@1.5.1/node_modules/ofetch/dist/shared/ofetch.CWycOUEr.mjs?v=3efe9c86:274:37)
+    at $fetch2 (http://localhost:3000/_nuxt/node_modules/.pnpm/ofetch@1.5.1/node_modules/ofetch/dist/shared/ofetch.CWycOUEr.mjs?v=3efe9c86:332:30)
+    at fetchManifest (http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/manifest.js?v=3efe9c86:14:22)
+[  311815ms] Fetch API cannot load http://localhost:3000/_nuxt/builds/meta/dev.json due to access control checks.
+    at $fetchRaw2 (http://localhost:3000/_nuxt/node_modules/.pnpm/ofetch@1.5.1/node_modules/ofetch/dist/shared/ofetch.CWycOUEr.mjs?v=3efe9c86:274:37)
+    at $fetchRaw2 (http://localhost:3000/_nuxt/node_modules/.pnpm/ofetch@1.5.1/node_modules/ofetch/dist/shared/ofetch.CWycOUEr.mjs?v=3efe9c86:286:27)
+[  311793ms] [ERROR] [nuxt] Error fetching app manifest. FetchError: [GET] "/_nuxt/builds/meta/dev.json": <no response> Load failed @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/manifest.js?v=3efe9c86:18
+[  319626ms] [LOG] %cssr:success%c Vite server hmr 5 files 
+      background: #2ecc71;
+      border-radius: 0.5em;
+      color: white;
+      font-weight: bold;
+      padding: 2px 0.5em;
+      in 0.065ms 
+  at vite_node_entry_default (node_modules/.pnpm/@nuxt+vite-builder@3.21.2_@types+node@26.1.1_magicast@0.5.2_nuxt@3.21.2_@emnapi+core@1._a4b3153523cf62a7d8205505e2d0041e/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs)
+  at process.processTicksAndRejections (node:internal/process/task_queues)
+  at async Object.renderToString (node_modules/.pnpm/vue-bundle-renderer@2.2.0/node_modules/vue-bundle-renderer/dist/runtime.mjs)
+ @ http://localhost:3000/_nuxt/node_modules/.pnpm/consola@3.4.2/node_modules/consola/dist/browser.mjs?v=3efe9c86:47
+[  319692ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=3efe9c86:7239
+[  320115ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  320116ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  320120ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/demo#the-tag color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/demo#the-tag, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788911024543} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  320381ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=3efe9c86:51
+[  323104ms] [INFO] [gymscan] 0B calls explode 25 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1231
+[  323323ms] [INFO] [gymscan] 0B calls planted 37 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1235
+[  337442ms] [WARNING] [nuxt] Cannot load payload  /_payload.json?1788911024551 TypeError: Load failed @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788911014829&v=3efe9c86:81
+[  340396ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/@id/virtual:nuxt:%2FUsers%2Fadrian%2Fliftag_repos%2Fliftag_showcase_website%2Fnew_app%2F.nuxt%2Fcss.mjs:0
+[  340404ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/error.js?v=3efe9c86:0
+[  340407ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/nuxt.js?v=3efe9c86:0
+[  340408ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/@id/virtual:nuxt:%2FUsers%2Fadrian%2Fliftag_repos%2Fliftag_showcase_website%2Fnew_app%2F.nuxt%2Froot-component.mjs?t=1788910680893:0
+[  340409ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/@id/virtual:nuxt:%2FUsers%2Fadrian%2Fliftag_repos%2Fliftag_showcase_website%2Fnew_app%2F.nuxt%2Fnuxt.config.mjs:0
+[  341363ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/@id/virtual:nuxt:%2FUsers%2Fadrian%2Fliftag_repos%2Fliftag_showcase_website%2Fnew_app%2F.nuxt%2Fplugins.client.mjs?t=1788910680893:0
+[  341374ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/assets/gym3d/bench-instruction.webp:0
+[  341382ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/assets/gym3d/tag-poster.webp:0
+[  341388ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/assets/fonts/jetbrains-mono-latin.woff2:0
+[  341395ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/node_modules/.pnpm/vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_terser@5.46.2_yaml@2.8.3/node_modules/vite/dist/client/env.mjs:0
+[  341556ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/@id/virtual:nuxt:%2FUsers%2Fadrian%2Fliftag_repos%2Fliftag_showcase_website%2Fnew_app%2F.nuxt%2Fpaths.mjs:0
+[  341560ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/node_modules/.pnpm/ofetch@1.5.1/node_modules/ofetch/dist/index.mjs?v=3efe9c86:0
+[  341561ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-dom@3.5.33/node_modules/@vue/runtime-dom/dist/runtime-dom.esm-bundler.js?v=3efe9c86:0
+[  341564ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/site.webmanifest:0

@@ -1,0 +1,224 @@
+[    2142ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[    2563ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    2563ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    2567ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788923352433} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    2643ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[    4895ms] [INFO] [gymscan] 0B calls explode 57 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1267
+[    5080ms] [INFO] [gymscan] 0B calls planted 51 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1271
+[  134499ms] Blocked a frame with origin "https://challenges.cloudflare.com" from accessing a frame with origin "http://localhost:3000".  The frame requesting access has a protocol of "https", the frame being accessed has a protocol of "http". Protocols must match.
+
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/new/flexible?lang=auto:1:52315)
+    at Nv (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/new/flexible?lang=auto:1:80395)
+    at ND (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/new/flexible?lang=auto:1:58614)
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/new/flexible?lang=auto:1:51868)
+    at Nv (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/new/flexible?lang=auto:1:80395)
+    at D2 (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/new/flexible?lang=auto:1:123745)
+    at aSXYb (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/new/flexible?lang=auto:1:190108)
+    at Nt (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/new/flexible?lang=auto:1:195212)
+    at NS (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/new/flexible?lang=auto:1:192369)
+[  134790ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/3732240921:1788919508:ccNKXj0l8lQvY-1qEz5fWlhj1S-mFQy4DmhcvTh8yTA/a383015f6f0b9cca/VFAnkNzY2ITeGGvPr7YSpE60OWdg1Qgm97QNaCZ4MJs-1788923484-1.2.1.1-ZyEgyEXLH26RFPyFuPHqL3go3NjjbqJWy_F8bWq0FuT8cQaNTu1vwj9lntW9D_Tp:0
+[  144940ms] Blocked a frame with origin "https://challenges.cloudflare.com" from accessing a frame with origin "http://localhost:3000".  The frame requesting access has a protocol of "https", the frame being accessed has a protocol of "http". Protocols must match.
+
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchKxVoFMt5ey_78nJL1jfWRn7pItbnEDTATT1lQf0iNz8-1788923484-1.3.1.1-_JEYJgmNYp5IoC1yvykatWlz_IREsxl2CDo6qD14cPI/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:51996)
+    at Nv (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchKxVoFMt5ey_78nJL1jfWRn7pItbnEDTATT1lQf0iNz8-1788923484-1.3.1.1-_JEYJgmNYp5IoC1yvykatWlz_IREsxl2CDo6qD14cPI/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:83285)
+    at ND (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchKxVoFMt5ey_78nJL1jfWRn7pItbnEDTATT1lQf0iNz8-1788923484-1.3.1.1-_JEYJgmNYp5IoC1yvykatWlz_IREsxl2CDo6qD14cPI/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:186517)
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchKxVoFMt5ey_78nJL1jfWRn7pItbnEDTATT1lQf0iNz8-1788923484-1.3.1.1-_JEYJgmNYp5IoC1yvykatWlz_IREsxl2CDo6qD14cPI/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:51549)
+    at Nv (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchKxVoFMt5ey_78nJL1jfWRn7pItbnEDTATT1lQf0iNz8-1788923484-1.3.1.1-_JEYJgmNYp5IoC1yvykatWlz_IREsxl2CDo6qD14cPI/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:83285)
+    at D2 (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchKxVoFMt5ey_78nJL1jfWRn7pItbnEDTATT1lQf0iNz8-1788923484-1.3.1.1-_JEYJgmNYp5IoC1yvykatWlz_IREsxl2CDo6qD14cPI/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:117445)
+    at Nt (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchKxVoFMt5ey_78nJL1jfWRn7pItbnEDTATT1lQf0iNz8-1788923484-1.3.1.1-_JEYJgmNYp5IoC1yvykatWlz_IREsxl2CDo6qD14cPI/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:234492)
+    at NS (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchKxVoFMt5ey_78nJL1jfWRn7pItbnEDTATT1lQf0iNz8-1788923484-1.3.1.1-_JEYJgmNYp5IoC1yvykatWlz_IREsxl2CDo6qD14cPI/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:231546)
+[  145096ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/3732240921:1788919508:ccNKXj0l8lQvY-1qEz5fWlhj1S-mFQy4DmhcvTh8yTA/a38301a21da09cca/5D82RYYh0MLEVINB2rn4BMNZeXfK7qwkBuKhNZGdcAg-1788923494-1.2.1.1-I8nzQ51qaYEA00ARu625LH4zCnFABBpdEaSMtnOOMnCjwzUuhWAVQNbEJ9Q9BXq.:0
+[  155363ms] Blocked a frame with origin "https://challenges.cloudflare.com" from accessing a frame with origin "http://localhost:3000".  The frame requesting access has a protocol of "https", the frame being accessed has a protocol of "http". Protocols must match.
+
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rcht7A9pRfO_Br7UL5XK7wjmPRkLhGTP9LX4gLcMugL.6Q-1788923494-1.3.1.1-q3K6.GN38O_aT3p6NxknEjwoUVrjjEVRF7YAXzYAYso/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:50451)
+    at NR (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rcht7A9pRfO_Br7UL5XK7wjmPRkLhGTP9LX4gLcMugL.6Q-1788923494-1.3.1.1-q3K6.GN38O_aT3p6NxknEjwoUVrjjEVRF7YAXzYAYso/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:223731)
+    at Nq (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rcht7A9pRfO_Br7UL5XK7wjmPRkLhGTP9LX4gLcMugL.6Q-1788923494-1.3.1.1-q3K6.GN38O_aT3p6NxknEjwoUVrjjEVRF7YAXzYAYso/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:64260)
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rcht7A9pRfO_Br7UL5XK7wjmPRkLhGTP9LX4gLcMugL.6Q-1788923494-1.3.1.1-q3K6.GN38O_aT3p6NxknEjwoUVrjjEVRF7YAXzYAYso/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:50004)
+    at NR (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rcht7A9pRfO_Br7UL5XK7wjmPRkLhGTP9LX4gLcMugL.6Q-1788923494-1.3.1.1-q3K6.GN38O_aT3p6NxknEjwoUVrjjEVRF7YAXzYAYso/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:223731)
+    at D3 (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rcht7A9pRfO_Br7UL5XK7wjmPRkLhGTP9LX4gLcMugL.6Q-1788923494-1.3.1.1-q3K6.GN38O_aT3p6NxknEjwoUVrjjEVRF7YAXzYAYso/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:168659)
+    at MnAGh (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rcht7A9pRfO_Br7UL5XK7wjmPRkLhGTP9LX4gLcMugL.6Q-1788923494-1.3.1.1-q3K6.GN38O_aT3p6NxknEjwoUVrjjEVRF7YAXzYAYso/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:97810)
+    at Nt (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rcht7A9pRfO_Br7UL5XK7wjmPRkLhGTP9LX4gLcMugL.6Q-1788923494-1.3.1.1-q3K6.GN38O_aT3p6NxknEjwoUVrjjEVRF7YAXzYAYso/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:104547)
+    at NS (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rcht7A9pRfO_Br7UL5XK7wjmPRkLhGTP9LX4gLcMugL.6Q-1788923494-1.3.1.1-q3K6.GN38O_aT3p6NxknEjwoUVrjjEVRF7YAXzYAYso/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:100197)
+[  155517ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/3732240921:1788919508:ccNKXj0l8lQvY-1qEz5fWlhj1S-mFQy4DmhcvTh8yTA/a38301e2eaa39cca/q7GDwYg9lA41OaflRSeVKcg0OaecovMCDAZzqVBY6y8-1788923505-1.2.1.1-jv7hFSOFLbE1wY_DKXNJ_r87Z2XWEJ5e.eAJtnkoyGtlfgzNjXzcaUYBIVfHVKKG:0
+[  165799ms] Blocked a frame with origin "https://challenges.cloudflare.com" from accessing a frame with origin "http://localhost:3000".  The frame requesting access has a protocol of "https", the frame being accessed has a protocol of "http". Protocols must match.
+
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchWLKtE7Rcp4tOqXolTCpBiEBV5hOlZgpoNRu5NYtOvhY-1788923505-1.3.1.1-CdhowHKtm4QYlWXOkLSk8nMtDZ8NQbzZcBlv_Y7iVQo/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:51201)
+    at ba (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchWLKtE7Rcp4tOqXolTCpBiEBV5hOlZgpoNRu5NYtOvhY-1788923505-1.3.1.1-CdhowHKtm4QYlWXOkLSk8nMtDZ8NQbzZcBlv_Y7iVQo/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:128473)
+    at bH (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchWLKtE7Rcp4tOqXolTCpBiEBV5hOlZgpoNRu5NYtOvhY-1788923505-1.3.1.1-CdhowHKtm4QYlWXOkLSk8nMtDZ8NQbzZcBlv_Y7iVQo/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:148388)
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchWLKtE7Rcp4tOqXolTCpBiEBV5hOlZgpoNRu5NYtOvhY-1788923505-1.3.1.1-CdhowHKtm4QYlWXOkLSk8nMtDZ8NQbzZcBlv_Y7iVQo/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:50754)
+    at ba (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchWLKtE7Rcp4tOqXolTCpBiEBV5hOlZgpoNRu5NYtOvhY-1788923505-1.3.1.1-CdhowHKtm4QYlWXOkLSk8nMtDZ8NQbzZcBlv_Y7iVQo/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:128473)
+    at CdqSf (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchWLKtE7Rcp4tOqXolTCpBiEBV5hOlZgpoNRu5NYtOvhY-1788923505-1.3.1.1-CdhowHKtm4QYlWXOkLSk8nMtDZ8NQbzZcBlv_Y7iVQo/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:195413)
+    at y5 (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchWLKtE7Rcp4tOqXolTCpBiEBV5hOlZgpoNRu5NYtOvhY-1788923505-1.3.1.1-CdhowHKtm4QYlWXOkLSk8nMtDZ8NQbzZcBlv_Y7iVQo/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:203937)
+    at HytUV (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchWLKtE7Rcp4tOqXolTCpBiEBV5hOlZgpoNRu5NYtOvhY-1788923505-1.3.1.1-CdhowHKtm4QYlWXOkLSk8nMtDZ8NQbzZcBlv_Y7iVQo/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:71020)
+    at bm (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchWLKtE7Rcp4tOqXolTCpBiEBV5hOlZgpoNRu5NYtOvhY-1788923505-1.3.1.1-CdhowHKtm4QYlWXOkLSk8nMtDZ8NQbzZcBlv_Y7iVQo/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:79686)
+    at bk (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchWLKtE7Rcp4tOqXolTCpBiEBV5hOlZgpoNRu5NYtOvhY-1788923505-1.3.1.1-CdhowHKtm4QYlWXOkLSk8nMtDZ8NQbzZcBlv_Y7iVQo/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:73452)
+[  165956ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/3732240921:1788919508:ccNKXj0l8lQvY-1qEz5fWlhj1S-mFQy4DmhcvTh8yTA/a38302241db99cca/2JJMrQ.jRNRuhssXMI0F1A5slQE6fyulyhi1waxigxM-1788923515-1.2.1.1-lw5ScMg2Obak7UiOT9ecd5adccREZqDDNkqyNlr4A8KTRVubU2m4OZz0cyIxb9yD:0
+[  168801ms] [WARNING] [Vue warn]: injection "Symbol(gym-coaching)" not found. 
+  at <GymCinema onCustomError=fn onMediaFailed=fn paused=false  ... > 
+  at <GymExperience > 
+  at <Demo onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy > > 
+  at <RouteProvider key="/demo" vnode= {__v_isVNode: true, __v_skip: true, type: Object, props: Object, key: null} route= {fullPath: /demo#discover, hash: #discover, query: undefined, name: demo, path: /demo}  ... > 
+  at <RouterView name=undefined route=undefined > 
+  at <NuxtPage > 
+  at <NuxtLayoutProvider layoutProps= {ref: RefImpl} key=undefined name=false  ... > 
+  at <NuxtLayout > 
+  at <App key=4 > 
+  at <NuxtRoot> @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:49
+[  168805ms] [WARNING] [Vue warn]: Unhandled error during execution of setup function 
+  at <GymCinema onCustomError=fn onMediaFailed=fn paused=false  ... > 
+  at <GymExperience > 
+  at <Demo onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy > > 
+  at <RouteProvider key="/demo" vnode= {__v_isVNode: true, __v_skip: true, type: Object, props: Object, key: null} route= {fullPath: /demo#discover, hash: #discover, query: undefined, name: demo, path: /demo}  ... > 
+  at <RouterView name=undefined route=undefined > 
+  at <NuxtPage > 
+  at <NuxtLayoutProvider layoutProps= {ref: RefImpl} key=undefined name=false  ... > 
+  at <NuxtLayout > 
+  at <App key=4 > 
+  at <NuxtRoot> @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:49
+[  168806ms] [WARNING] [Vue warn]: Unhandled error during execution of scheduler flush 
+  at <GymCinema onCustomError=fn onMediaFailed=fn paused=false  ... > 
+  at <GymExperience > 
+  at <Demo onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy > > 
+  at <RouteProvider key="/demo" vnode= {__v_isVNode: true, __v_skip: true, type: Object, props: Object, key: null} route= {fullPath: /demo#discover, hash: #discover, query: undefined, name: demo, path: /demo}  ... > 
+  at <RouterView name=undefined route=undefined > 
+  at <NuxtPage > 
+  at <NuxtLayoutProvider layoutProps= {ref: RefImpl} key=undefined name=false  ... > 
+  at <NuxtLayout > 
+  at <App key=4 > 
+  at <NuxtRoot> @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:49
+[  168850ms] [WARNING] [Vue warn]: Unhandled error during execution of scheduler flush 
+  at <GymCinema onCustomError=fn onMediaFailed=fn paused=false  ... > 
+  at <GymExperience > 
+  at <Demo onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy > > 
+  at <RouteProvider key="/demo" vnode= {__v_isVNode: true, __v_skip: true, type: Object, props: Object, key: null} route= {fullPath: /demo#discover, hash: #discover, query: undefined, name: demo, path: /demo}  ... > 
+  at <RouterView name=undefined route=undefined > 
+  at <NuxtPage > 
+  at <NuxtLayoutProvider layoutProps= {ref: RefImpl} key=undefined name=false  ... > 
+  at <NuxtLayout > 
+  at <App key=4 > 
+  at <NuxtRoot> @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:49
+[  168854ms] Unhandled Promise Rejection: Error: GymCinema must render inside GymExperience
+    at logError (http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:266:16)
+    at handleError (http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:253:11)
+    at callWithErrorHandling (http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:199:16)
+    at flushJobs (http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:405:30)
+[  168855ms] Unhandled Promise Rejection: TypeError: null is not an object (evaluating 'instance.job.flags')
+    at logError (http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:266:16)
+    at handleError (http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:253:11)
+    at callWithErrorHandling (http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:199:16)
+    at flushJobs (http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:405:30)
+[  176092ms] Blocked a frame with origin "https://challenges.cloudflare.com" from accessing a frame with origin "http://localhost:3000".  The frame requesting access has a protocol of "https", the frame being accessed has a protocol of "http". Protocols must match.
+
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchCdmkghkjfCYk.cvWTDqc3WVugeTYI9_vspjXJDwlNsY-1788923515-1.3.1.1-D7XbG7cmB9Aj2zZHvxipBjjcRqOuI2qP8cjnWBJqo24/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:51406)
+    at NR (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchCdmkghkjfCYk.cvWTDqc3WVugeTYI9_vspjXJDwlNsY-1788923515-1.3.1.1-D7XbG7cmB9Aj2zZHvxipBjjcRqOuI2qP8cjnWBJqo24/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:219418)
+    at Nq (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchCdmkghkjfCYk.cvWTDqc3WVugeTYI9_vspjXJDwlNsY-1788923515-1.3.1.1-D7XbG7cmB9Aj2zZHvxipBjjcRqOuI2qP8cjnWBJqo24/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:140501)
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchCdmkghkjfCYk.cvWTDqc3WVugeTYI9_vspjXJDwlNsY-1788923515-1.3.1.1-D7XbG7cmB9Aj2zZHvxipBjjcRqOuI2qP8cjnWBJqo24/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:50959)
+    at NR (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchCdmkghkjfCYk.cvWTDqc3WVugeTYI9_vspjXJDwlNsY-1788923515-1.3.1.1-D7XbG7cmB9Aj2zZHvxipBjjcRqOuI2qP8cjnWBJqo24/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:219418)
+    at joLRW (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchCdmkghkjfCYk.cvWTDqc3WVugeTYI9_vspjXJDwlNsY-1788923515-1.3.1.1-D7XbG7cmB9Aj2zZHvxipBjjcRqOuI2qP8cjnWBJqo24/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:78528)
+    at D3 (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchCdmkghkjfCYk.cvWTDqc3WVugeTYI9_vspjXJDwlNsY-1788923515-1.3.1.1-D7XbG7cmB9Aj2zZHvxipBjjcRqOuI2qP8cjnWBJqo24/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:86987)
+    at VNdIX (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchCdmkghkjfCYk.cvWTDqc3WVugeTYI9_vspjXJDwlNsY-1788923515-1.3.1.1-D7XbG7cmB9Aj2zZHvxipBjjcRqOuI2qP8cjnWBJqo24/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:237012)
+    at Nt (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchCdmkghkjfCYk.cvWTDqc3WVugeTYI9_vspjXJDwlNsY-1788923515-1.3.1.1-D7XbG7cmB9Aj2zZHvxipBjjcRqOuI2qP8cjnWBJqo24/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:241398)
+    at NS (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchCdmkghkjfCYk.cvWTDqc3WVugeTYI9_vspjXJDwlNsY-1788923515-1.3.1.1-D7XbG7cmB9Aj2zZHvxipBjjcRqOuI2qP8cjnWBJqo24/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:238992)
+[  176242ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/3732240921:1788919508:ccNKXj0l8lQvY-1qEz5fWlhj1S-mFQy4DmhcvTh8yTA/a3830264d8c69cca/iXFK7oD4AyVkC67m0AOXY_jc6TTZRntpp.olAaO9C3M-1788923525-1.2.1.1-XDYx.sKxB4KaZGib7QqXOawGdcgLbW.omNVX.W8GFQrfKXrUTFKGqs7dv.vZrsaX:0
+[  186406ms] Blocked a frame with origin "https://challenges.cloudflare.com" from accessing a frame with origin "http://localhost:3000".  The frame requesting access has a protocol of "https", the frame being accessed has a protocol of "http". Protocols must match.
+
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch962.wlFiQu0QdhI_ZJEkaCHR.Pjc1l1mZTrQxovw8TU-1788923525-1.3.1.1-1MRwzLmR1qkh6_QfC7.Ul2tOSCSivjprBM343WRGdyA/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:53009)
+    at Nv (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch962.wlFiQu0QdhI_ZJEkaCHR.Pjc1l1mZTrQxovw8TU-1788923525-1.3.1.1-1MRwzLmR1qkh6_QfC7.Ul2tOSCSivjprBM343WRGdyA/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:225281)
+    at ND (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch962.wlFiQu0QdhI_ZJEkaCHR.Pjc1l1mZTrQxovw8TU-1788923525-1.3.1.1-1MRwzLmR1qkh6_QfC7.Ul2tOSCSivjprBM343WRGdyA/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:221694)
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch962.wlFiQu0QdhI_ZJEkaCHR.Pjc1l1mZTrQxovw8TU-1788923525-1.3.1.1-1MRwzLmR1qkh6_QfC7.Ul2tOSCSivjprBM343WRGdyA/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:52562)
+    at Nv (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch962.wlFiQu0QdhI_ZJEkaCHR.Pjc1l1mZTrQxovw8TU-1788923525-1.3.1.1-1MRwzLmR1qkh6_QfC7.Ul2tOSCSivjprBM343WRGdyA/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:225281)
+    at D2 (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch962.wlFiQu0QdhI_ZJEkaCHR.Pjc1l1mZTrQxovw8TU-1788923525-1.3.1.1-1MRwzLmR1qkh6_QfC7.Ul2tOSCSivjprBM343WRGdyA/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:181198)
+    at Nt (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch962.wlFiQu0QdhI_ZJEkaCHR.Pjc1l1mZTrQxovw8TU-1788923525-1.3.1.1-1MRwzLmR1qkh6_QfC7.Ul2tOSCSivjprBM343WRGdyA/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:110815)
+    at NS (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch962.wlFiQu0QdhI_ZJEkaCHR.Pjc1l1mZTrQxovw8TU-1788923525-1.3.1.1-1MRwzLmR1qkh6_QfC7.Ul2tOSCSivjprBM343WRGdyA/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:107282)
+[  186567ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/3732240921:1788919508:ccNKXj0l8lQvY-1qEz5fWlhj1S-mFQy4DmhcvTh8yTA/a38302a53ddb9cca/1lbAxHQGCj1M1gGMi.EDmmKHvQkAb8PLs_hQKsZ61Vw-1788923536-1.2.1.1-EV74ClWXTenvVKeOxB2bqg6.mLCgae8zCpsP78ki3GMNihdpeFKhHmT12XRzQJK8:0
+[  193206ms] [WARNING] [Vue warn]: Unhandled error during execution of scheduler flush 
+  at <GymCinema onCustomError=fn onMediaFailed=fn paused=false  ... > 
+  at <GymExperience > 
+  at <Demo onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< Proxy > > 
+  at <RouteProvider key="/demo" vnode= {__v_isVNode: true, __v_skip: true, type: Object, props: Object, key: null} route= {fullPath: /demo#discover, hash: #discover, query: undefined, name: demo, path: /demo}  ... > 
+  at <RouterView name=undefined route=undefined > 
+  at <NuxtPage > 
+  at <NuxtLayoutProvider layoutProps= {ref: RefImpl} key=undefined name=false  ... > 
+  at <NuxtLayout > 
+  at <App key=4 > 
+  at <NuxtRoot> @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:49
+[  193231ms] Unhandled Promise Rejection: TypeError: null is not an object (evaluating 'instance.job.flags')
+    at logError (http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:266:16)
+    at handleError (http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:253:11)
+    at callWithErrorHandling (http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:199:16)
+    at flushJobs (http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:405:30)
+[  196775ms] Blocked a frame with origin "https://challenges.cloudflare.com" from accessing a frame with origin "http://localhost:3000".  The frame requesting access has a protocol of "https", the frame being accessed has a protocol of "http". Protocols must match.
+
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchiqL3tok7kGJ7SpPNc7RBjPdFlehfO_zGNN6Exmi3BFY-1788923536-1.3.1.1-7hhJrV7c3YfSRErnm6dW6MOFewFfrTbOw0ywNzlWYT0/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:51529)
+    at bB (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchiqL3tok7kGJ7SpPNc7RBjPdFlehfO_zGNN6Exmi3BFY-1788923536-1.3.1.1-7hhJrV7c3YfSRErnm6dW6MOFewFfrTbOw0ywNzlWYT0/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:206213)
+    at venxJ (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchiqL3tok7kGJ7SpPNc7RBjPdFlehfO_zGNN6Exmi3BFY-1788923536-1.3.1.1-7hhJrV7c3YfSRErnm6dW6MOFewFfrTbOw0ywNzlWYT0/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:108991)
+    at by (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchiqL3tok7kGJ7SpPNc7RBjPdFlehfO_zGNN6Exmi3BFY-1788923536-1.3.1.1-7hhJrV7c3YfSRErnm6dW6MOFewFfrTbOw0ywNzlWYT0/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:110303)
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchiqL3tok7kGJ7SpPNc7RBjPdFlehfO_zGNN6Exmi3BFY-1788923536-1.3.1.1-7hhJrV7c3YfSRErnm6dW6MOFewFfrTbOw0ywNzlWYT0/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:51082)
+    at bB (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchiqL3tok7kGJ7SpPNc7RBjPdFlehfO_zGNN6Exmi3BFY-1788923536-1.3.1.1-7hhJrV7c3YfSRErnm6dW6MOFewFfrTbOw0ywNzlWYT0/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:206213)
+    at y2 (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchiqL3tok7kGJ7SpPNc7RBjPdFlehfO_zGNN6Exmi3BFY-1788923536-1.3.1.1-7hhJrV7c3YfSRErnm6dW6MOFewFfrTbOw0ywNzlWYT0/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:221725)
+    at bm (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchiqL3tok7kGJ7SpPNc7RBjPdFlehfO_zGNN6Exmi3BFY-1788923536-1.3.1.1-7hhJrV7c3YfSRErnm6dW6MOFewFfrTbOw0ywNzlWYT0/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:163389)
+    at zOmVM (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchiqL3tok7kGJ7SpPNc7RBjPdFlehfO_zGNN6Exmi3BFY-1788923536-1.3.1.1-7hhJrV7c3YfSRErnm6dW6MOFewFfrTbOw0ywNzlWYT0/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:159770)
+    at bk (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchiqL3tok7kGJ7SpPNc7RBjPdFlehfO_zGNN6Exmi3BFY-1788923536-1.3.1.1-7hhJrV7c3YfSRErnm6dW6MOFewFfrTbOw0ywNzlWYT0/7oti9/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:161943)
+[  196938ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/3732240921:1788919508:ccNKXj0l8lQvY-1qEz5fWlhj1S-mFQy4DmhcvTh8yTA/a38302e5dff89cca/7vF3tP3EjeQOXq3OyidS7MgmIGiZ22VWzeVKP9xL61c-1788923546-1.2.1.1-vaX0OdllPwlis9hg8BNogPmJsbfmAiKuqkITlk6Hj3JOSitTbATdUDd7XjXA9pbi:0
+[  202246ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_nuxt/?token=6nVcjFjrncq_' failed: The network connection was lost. @ :0
+[  202248ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/_nuxt/@vite/client:864
+[  204118ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#discover:0
+[  204307ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#discover:0
+[  205318ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#discover:0
+[  210764ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  211015ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  211016ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  211017ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788923560883} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  211109ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  213411ms] [INFO] [gymscan] 0B calls explode 13 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1267
+[  213539ms] [INFO] [gymscan] 0B calls planted 37 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1271
+[  216640ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_nuxt/?token=TKgJEX-3_rl0' failed: The network connection was lost. @ :0
+[  216640ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/_nuxt/@vite/client:864
+[  218019ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#discover:0
+[  218558ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#discover:0
+[  219580ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#discover:0
+[  220596ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#discover:0
+[  229534ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  230483ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  230484ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  230494ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788923580360} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  230900ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  232719ms] [INFO] [gymscan] 0B calls explode 13 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1267
+[  232824ms] [INFO] [gymscan] 0B calls planted 37 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1271
+[  365234ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  365744ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  365744ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  365752ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788923715618} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  365917ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  369198ms] [INFO] [gymscan] 0B calls explode 22 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1267
+[  369311ms] [INFO] [gymscan] 0B calls planted 37 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1271
+[  413303ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_nuxt/?token=MaJ0Zanr-kY5' failed: The network connection was lost. @ :0
+[  413307ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/_nuxt/@vite/client:864
+[  414715ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#discover:0
+[  415050ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#discover:0
+[  416241ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#discover:0
+[  418662ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#discover:0
+[  419835ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#discover:0
+[  420996ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#discover:0
+[  422011ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#discover:0
+[  423797ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/demo#discover:0
+[  437561ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  438142ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  438142ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  438144ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3000/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://localhost:3000/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788923788011} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  438680ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  444373ms] [INFO] [gymscan] 0B calls planted 37 @ http://localhost:3000/_nuxt/utils/gymscan/stage.ts:1271
+[  464887ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_nuxt/?token=vKnsNd5d-P14' failed: The network connection was lost. @ :0
+[  464894ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/_nuxt/@vite/client:864
+[  464962ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/api/gym-coaching-media/20260828T123726Z/video/segment_000.ts:0
+[  464963ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/api/gym-coaching-media/20260828T123726Z/audio/en/segment_000.ts:0
+[  466092ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/api/gym-coaching-media/20260828T123726Z/video/segment_000.ts:0
+[  466094ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/api/gym-coaching-media/20260828T123726Z/audio/en/segment_000.ts:0
+[  468819ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/api/gym-coaching-media/20260828T123726Z/video/segment_000.ts:0
+[  468819ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/api/gym-coaching-media/20260828T123726Z/audio/en/segment_000.ts:0
+[  472164ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/api/gym-coaching-media/20260828T123726Z/video/segment_000.ts:0
+[  472168ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/api/gym-coaching-media/20260828T123726Z/audio/en/segment_000.ts:0
+[  476506ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/api/gym-coaching-media/20260828T123726Z/video/segment_000.ts:0
+[  476508ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/api/gym-coaching-media/20260828T123726Z/audio/en/segment_000.ts:0
+[  482694ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/api/gym-coaching-media/20260828T123726Z/video/segment_000.ts:0
+[  482751ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3000/api/gym-coaching-media/20260828T123726Z/audio/en/segment_000.ts:0

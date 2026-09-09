@@ -109,6 +109,48 @@ export function heroPointerTilt(mx: number, my: number): { rotX: number, rotY: n
   }
 }
 
+/**
+ * Half-extents of the phone box that map to mx/my = ±1. 1 is the bezel;
+ * a little over lets the lean keep building just past the device.
+ */
+export const PHONE_POINTER_RANGE = 1.25
+
+function clampUnit(n: number): number {
+  return n < -1 ? -1 : n > 1 ? 1 : n
+}
+
+/**
+ * Pointer in the phone's own frame, not the viewport's. Cursor on the
+ * glass is 0,0 so the device looks at the pointer instead of the screen
+ * centre — the parked demo phone sits off to the right.
+ */
+export function pointerTowardBox(
+  clientX: number,
+  clientY: number,
+  originLeft: number,
+  originTop: number,
+  box: { x: number; y: number; w: number; h: number },
+  range = PHONE_POINTER_RANGE,
+): { mx: number; my: number } {
+  const cx = originLeft + box.x + box.w * 0.5
+  const cy = originTop + box.y + box.h * 0.5
+  const hx = Math.max(box.w * 0.5 * range, 1)
+  const hy = Math.max(box.h * 0.5 * range, 1)
+  return {
+    mx: clampUnit((clientX - cx) / hx),
+    my: clampUnit((clientY - cy) / hy),
+  }
+}
+
+/**
+ * Screen-up phone under an overhead camera. Hero yaw would spin the
+ * handset on the table; map it onto roll so the glass leans at the cursor.
+ */
+export function overheadPointerTilt(mx: number, my: number): { rotX: number; rotZ: number } {
+  const pointer = heroPointerTilt(mx, my)
+  return { rotX: pointer.rotX, rotZ: 0 - pointer.rotY }
+}
+
 export function heroFrontPhoneCssBox(viewW: number, top = 68): PhoneBox {
   const w = HERO_FRONT_PHONE_CSS_W
   const h = w / HERO_FRONT_PHONE_ASPECT
@@ -124,6 +166,25 @@ export function heroFrontPhoneCssBox(viewW: number, top = 68): PhoneBox {
 export function fallbackHeroSlot(viewW: number, viewH: number): PhoneBox {
   const top = Math.max(24, Math.min(viewH * 0.08, 80))
   return heroBodyTargetFromPhoneBox(heroFrontPhoneCssBox(viewW, top))
+}
+
+/**
+ * CSS-pixel body box of the parked gym-demo phone. GymCinema feeds this to
+ * the overlay; the discovery listing morphs out of the same rectangle.
+ */
+export const CINEMA_PHONE_ASPECT = 0.475
+
+export function cinemaPhoneSlot(viewW: number, viewH: number): PhoneBox {
+  const compact = viewW < 761
+  const short = compact && viewH <= 740
+  const h = Math.min(viewH * (compact ? (short ? 0.34 : 0.38) : 0.65), 600)
+  const w = h * CINEMA_PHONE_ASPECT
+  return {
+    x: viewW * (compact ? 0.68 : 0.81) - w / 2,
+    y: compact ? viewH * (short ? 0.35 : 0.33) : (viewH - h) / 2,
+    w,
+    h,
+  }
 }
 
 /**

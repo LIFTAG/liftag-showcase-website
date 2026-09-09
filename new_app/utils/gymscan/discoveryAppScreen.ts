@@ -1,9 +1,27 @@
 import { PHONE_SCR_H, PHONE_SCR_W } from "../phoneModel";
 import { discoveryEquipment, discoveryLocation } from "./discoveryEquipment";
-import { discoveryAppDivider, discoveryAppRow } from "./discoveryTimeline";
+import {
+  DISCOVERY_APP_TITLE,
+  discoveryAppDivider,
+  discoveryAppNumber,
+  discoveryAppRow,
+} from "./discoveryTimeline";
+
+function canvasX(localX: number, w: number) {
+  return (localX / PHONE_SCR_W + 0.5) * w;
+}
+
+function canvasY(localY: number, h: number) {
+  return (0.5 - localY / PHONE_SCR_H) * h;
+}
 
 /** A single texture; the actual floor models become its equipment thumbnails. */
-export function drawDiscoveryAppScreen(ctx: CanvasRenderingContext2D, w: number, h: number, options: { dividers?: boolean } = {}) {
+export function drawDiscoveryAppScreen(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  options: { dividers?: boolean; numbers?: boolean; title?: boolean } = {},
+) {
   const ink = "#eff2ed", muted = "#a8b1a9", lime = "#ccff00";
   const text = (value: string, x: number, y: number, size: number, color = ink, weight = 500) => {
     ctx.fillStyle = color;
@@ -27,7 +45,15 @@ export function drawDiscoveryAppScreen(ctx: CanvasRenderingContext2D, w: number,
   rounded(w - 37, 49, 3, 9, 1, muted);
   text("‹", 38, 147, 48);
   text("GYM OVERVIEW", 76, 137, 20, muted, 600);
-  text("Your gym", 38, 216, 57, ink, 650);
+  if (options.title !== false)
+    text(
+      DISCOVERY_APP_TITLE.text,
+      DISCOVERY_APP_TITLE.x,
+      DISCOVERY_APP_TITLE.baseline,
+      DISCOVERY_APP_TITLE.size,
+      ink,
+      DISCOVERY_APP_TITLE.weight,
+    );
   text(discoveryLocation.city, 40, 256, 26, muted);
   rounded(38, 288, w - 76, 64, 15, "#1c231e");
   ctx.strokeStyle = muted;
@@ -44,27 +70,36 @@ export function drawDiscoveryAppScreen(ctx: CanvasRenderingContext2D, w: number,
   for (let i = 0; i < discoveryEquipment.length; i++) {
     const item = discoveryEquipment[i]!;
     const row = discoveryAppRow(i);
+    const number = discoveryAppNumber(i);
     const thumb = row.thumb / PHONE_SCR_W * w;
-    const cx = (row.x / PHONE_SCR_W + 0.5) * w;
-    const cy = (0.5 - row.y / PHONE_SCR_H) * h;
+    const cx = canvasX(row.x, w);
+    const cy = canvasY(row.y, h);
     const x = cx - thumb / 2;
+    const areaX = canvasX(number.areaX, w);
+    const areaY = canvasY(number.baselineY, h);
     rounded(x, cy - thumb / 2, thumb, thumb, 20, "#29332c");
-    const tx = x + thumb + 25;
-    text(item.area.toUpperCase(), tx, cy - 49, 18, muted, 600);
-    if (item.id === "plate-loaded-pulldown") {
-      text("Plate-loaded", tx, cy - 9, 32, ink, 600);
-      text("pulldown", tx, cy + 27, 32, ink, 600);
-    } else {
-      text(item.name, tx, cy + 5, 32, ink, 600);
+    if (options.numbers) {
+      ctx.fillStyle = lime;
+      ctx.font = `600 ${number.size / PHONE_SCR_H * h}px "JetBrains Mono", ui-monospace, monospace`;
+      ctx.textAlign = "center";
+      ctx.fillText(item.number, canvasX(number.x, w), areaY);
+      ctx.textAlign = "left";
     }
-    text("View exercises", tx, cy + 65, 21, lime);
+    text(item.area.toUpperCase(), areaX, areaY, 18, muted, 600);
+    if (item.id === "plate-loaded-pulldown") {
+      text("Plate-loaded", areaX, cy - 9, 32, ink, 600);
+      text("pulldown", areaX, cy + 27, 32, ink, 600);
+    } else {
+      text(item.name, areaX, cy + 5, 32, ink, 600);
+    }
+    text("View exercises", areaX, cy + 65, 21, lime);
     ctx.textAlign = "right";
     text("›", w - 32, cy + 11, 36, muted);
     ctx.textAlign = "left";
     if (options.dividers !== false && i < discoveryEquipment.length - 1) {
       const divider = discoveryAppDivider(i);
       const inset = (0.5 - divider.halfWidth / PHONE_SCR_W) * w;
-      const y = (0.5 - divider.y / PHONE_SCR_H) * h;
+      const y = canvasY(divider.y, h);
       ctx.strokeStyle = "#29312a";
       ctx.lineWidth = divider.thickness / PHONE_SCR_H * h;
       ctx.beginPath(); ctx.moveTo(inset, y); ctx.lineTo(w - inset, y); ctx.stroke();

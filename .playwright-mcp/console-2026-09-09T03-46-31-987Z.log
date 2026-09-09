@@ -1,0 +1,59 @@
+[     490ms] [LOG] %cssr:success%c Vite server hmr 1 files 
+      background: #2ecc71;
+      border-radius: 0.5em;
+      color: white;
+      font-weight: bold;
+      padding: 2px 0.5em;
+      in 0.002ms 
+  at vite_node_entry_default (node_modules/.pnpm/@nuxt+vite-builder@3.21.2_@types+node@26.1.1_magicast@0.5.2_nuxt@3.21.2_@emnapi+core@1._a4b3153523cf62a7d8205505e2d0041e/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs)
+  at process.processTicksAndRejections (node:internal/process/task_queues)
+  at async Object.renderToString (node_modules/.pnpm/vue-bundle-renderer@2.2.0/node_modules/vue-bundle-renderer/dist/runtime.mjs)
+ @ http://localhost:3010/_nuxt/node_modules/.pnpm/consola@3.4.2/node_modules/consola/dist/browser.mjs?v=13688f5d:47
+[     518ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3010/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[     678ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[     679ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[     681ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3010/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://localhost:3010/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788925592667} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[     706ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3010/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[    1449ms] [INFO] [gymscan] 0B calls planted 71 @ http://localhost:3010/_nuxt/utils/gymscan/stage.ts:1271
+[  117996ms] [LOG] %cssr:success%c Vite server hmr 21 files 
+      background: #2ecc71;
+      border-radius: 0.5em;
+      color: white;
+      font-weight: bold;
+      padding: 2px 0.5em;
+      in 29.477ms 
+  at vite_node_entry_default (node_modules/.pnpm/@nuxt+vite-builder@3.21.2_@types+node@26.1.1_magicast@0.5.2_nuxt@3.21.2_@emnapi+core@1._a4b3153523cf62a7d8205505e2d0041e/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs)
+  at process.processTicksAndRejections (node:internal/process/task_queues)
+  at async Object.renderToString (node_modules/.pnpm/vue-bundle-renderer@2.2.0/node_modules/vue-bundle-renderer/dist/runtime.mjs)
+ @ http://localhost:3010/_nuxt/node_modules/.pnpm/consola@3.4.2/node_modules/consola/dist/browser.mjs?v=13688f5d:47
+[  118055ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3010/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  118301ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  118301ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  118306ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3010/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://localhost:3010/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788925710292} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  118452ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3010/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  119863ms] [INFO] [gymscan] 0B calls planted 57 @ http://localhost:3010/_nuxt/utils/gymscan/stage.ts:1271
+[  147302ms] [ERROR] WebSocket connection to 'ws://localhost:3010/_nuxt/?token=pF2MHQDATzYF' failed: The network connection was lost. @ :0
+[  147303ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3010/_nuxt/@vite/client:864
+[  149776ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3010/demo#discover:0
+[  150146ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3010/demo#discover:0
+[  151190ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3010/demo#discover:0
+[  156299ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3010/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  156550ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  156550ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  156551ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3010/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://localhost:3010/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788925748537} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  156616ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3010/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  158490ms] [INFO] [gymscan] 0B calls planted 57 @ http://localhost:3010/_nuxt/utils/gymscan/stage.ts:1271
+[  205027ms] [ERROR] WebSocket connection to 'ws://localhost:3010/_nuxt/?token=hA91d3wz2NRL' failed: The network connection was lost. @ :0
+[  205034ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3010/_nuxt/@vite/client:864
+[ 3756639ms] [ERROR] Failed to load resource: Could not connect to the server. @ http://localhost:3010/_nuxt/builds/latest.json?1788929348594:0
+[ 3756656ms] [ERROR] Failed to load resource: Could not connect to the server. @ http://localhost:3010/_nuxt/builds/latest.json?1788929348594:0
+[ 7356586ms] [ERROR] Failed to load resource: Could not connect to the server. @ http://localhost:3010/_nuxt/builds/latest.json?1788932948557:0
+[ 7356595ms] [ERROR] Failed to load resource: Could not connect to the server. @ http://localhost:3010/_nuxt/builds/latest.json?1788932948557:0
+[10956677ms] [ERROR] Failed to load resource: Could not connect to the server. @ http://localhost:3010/_nuxt/builds/latest.json?1788936548645:0
+[10956689ms] [ERROR] Failed to load resource: Could not connect to the server. @ http://localhost:3010/_nuxt/builds/latest.json?1788936548645:0
+[14556654ms] [ERROR] Failed to load resource: Could not connect to the server. @ http://localhost:3010/_nuxt/builds/latest.json?1788940148625:0
+[14556663ms] [ERROR] Failed to load resource: Could not connect to the server. @ http://localhost:3010/_nuxt/builds/latest.json?1788940148625:0
+[18156638ms] [ERROR] Failed to load resource: Could not connect to the server. @ http://localhost:3010/_nuxt/builds/latest.json?1788943748611:0
+[18156645ms] [ERROR] Failed to load resource: Could not connect to the server. @ http://localhost:3010/_nuxt/builds/latest.json?1788943748611:0
+[21756696ms] [ERROR] Failed to load resource: Could not connect to the server. @ http://localhost:3010/_nuxt/builds/latest.json?1788947348667:0
+[21756702ms] [ERROR] Failed to load resource: Could not connect to the server. @ http://localhost:3010/_nuxt/builds/latest.json?1788947348667:0
