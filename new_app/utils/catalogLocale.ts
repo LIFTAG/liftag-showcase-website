@@ -38,6 +38,7 @@ export const SK_MUSCLE_NAMES: Record<string, string> = {
   forearms: 'Predlaktia',
   quadriceps: 'Kvadriceps',
   hamstrings: 'Hamstringy',
+  adductors: 'Adduktory',
   calves: 'Lýtka',
   glutes: 'Gluteus',
   abs: 'Brucho',

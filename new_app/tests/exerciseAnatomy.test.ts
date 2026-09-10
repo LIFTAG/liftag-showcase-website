@@ -77,6 +77,19 @@ test('highlighter muscle ids reverse-map to catalog hub slugs', () => {
   }
 })
 
+test('catalog adductors lights posterior adductor, not anterior abductors', () => {
+  assert.deepEqual(SLUG_TO_MUSCLES.adductors, ['adductor'])
+  assert.equal(highlighterMuscleToSlug('adductor'), 'adductors')
+  assert.equal(highlighterMuscleToSlug('abductors'), null)
+  assert.equal('abductors' in MUSCLE_TO_SLUG, false)
+  assert.equal(hasExerciseAnatomy('adductors'), true)
+  const posterior = HIGHLIGHTER_VIEW_POLYGONS.posterior.find(row => row.muscle === 'adductor')
+  assert.equal(posterior?.count, 2)
+  const anteriorAbductors = HIGHLIGHTER_VIEW_POLYGONS.anterior.find(row => row.muscle === 'abductors')
+  assert.equal(anteriorAbductors?.count, 2)
+  assert.equal(HIGHLIGHTER_VIEW_POLYGONS.anterior.some(row => row.muscle === 'adductor'), false)
+})
+
 test('highlighter view layouts stamp 33 polygons each', () => {
   for (const view of ['anterior', 'posterior'] as const) {
     const total = HIGHLIGHTER_VIEW_POLYGONS[view].reduce((sum, row) => sum + row.count, 0)
