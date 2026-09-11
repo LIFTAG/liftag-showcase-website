@@ -42,7 +42,7 @@ const guides = [
     href: '/best-gym-qr-nfc-app',
     eyebrow: 'COMPARISON',
     title: 'Best gym QR and NFC app',
-    body: 'LIFTAG versus Liftd, ScanLiftLog, and RepTag: free tags, gym cost, NFC, and who actually wins each row.',
+    body: 'LIFTAG versus Liftd, ScanLiftLog, and RepTag: free dashboard, gym cost, NFC, and who actually wins each row.',
   },
   {
     href: '/journal/best-workout-logger',

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { computed, shallowRef } from 'vue'
 import { STATIC_PAGES } from '../utils/staticPages.ts'
 import {
   FORMULAS,
@@ -16,12 +17,16 @@ import {
   parseRepsInput,
   parseWeightInput,
   queryToSearchParams,
+  relabelWeightInput,
   roundToIncrement,
   trainingMaxKg,
   trainingPercentTable,
+  weightToKg,
+  type WeightUnit,
 } from '../utils/oneRepMax.ts'
 import {
   ONE_RM_DESCRIPTION,
+  ONE_RM_FAQS,
   ONE_RM_PATH,
   ONE_RM_TITLE,
   workedEpleyKg,
@@ -38,6 +43,7 @@ test('Epley 225 lb × 5 is 262.5 lb', () => {
   const kg = estimateOne(lbToKg(225), 5, 'epley')
   assert.ok(kg != null)
   assert.equal(Math.round(kgToLb(kg) * 10) / 10, 262.5)
+  assert.equal(formatLoad(kg, 'lb'), '262.5')
 })
 
 test('worked example helper matches Epley 100 × 5', () => {
@@ -134,6 +140,51 @@ test('kg/lb conversion does not drift', () => {
   assert.ok(Math.abs(lbToKg(kgToLb(kg)) - kg) < 1e-12)
 })
 
+test('toggling the input unit keeps the original load', () => {
+  const cases: Array<{ text: string, unit: WeightUnit }> = [
+    { text: '100', unit: 'kg' },
+    { text: '80', unit: 'kg' },
+    { text: '62.5', unit: 'kg' },
+    { text: '225', unit: 'lb' },
+    { text: '135', unit: 'lb' },
+  ]
+  for (const item of cases) {
+    const kg = weightToKg(item.text, item.unit)
+    assert.ok(kg != null, item.text)
+    let unit: WeightUnit = item.unit
+    let display = item.text
+    for (let i = 0; i < 40; i++) {
+      unit = unit === 'kg' ? 'lb' : 'kg'
+      display = relabelWeightInput(kg, unit)
+    }
+    assert.equal(relabelWeightInput(kg, item.unit), item.text)
+    assert.equal(display, item.text)
+    assert.equal(weightToKg(item.text, item.unit), kg)
+  }
+})
+
+test('relabeling the field does not reparse the rounded display', () => {
+  const unit = shallowRef<WeightUnit>('kg')
+  const draft = shallowRef('100')
+  const kg = shallowRef<number | null>(weightToKg('100', 'kg'))
+  const text = computed({
+    get: () => draft.value,
+    set(value: string) {
+      draft.value = value
+      kg.value = weightToKg(value, unit.value)
+    },
+  })
+  const original = kg.value
+  assert.equal(original, 100)
+  for (let i = 0; i < 40; i++) {
+    const next: WeightUnit = unit.value === 'kg' ? 'lb' : 'kg'
+    unit.value = next
+    if (kg.value != null) draft.value = relabelWeightInput(kg.value, next)
+  }
+  assert.equal(kg.value, original)
+  assert.equal(text.value, '100')
+})
+
 test('share query omits default formula and Any lift', () => {
   const query = buildShareQuery({
     weightText: '100',
@@ -146,10 +197,19 @@ test('share query omits default formula and Any lift', () => {
 })
 
 test('title and description stay inside SERP budgets', () => {
+  assert.equal(ONE_RM_TITLE, '1RM Calculator | LIFTAG')
   assert.ok(ONE_RM_TITLE.length <= 62)
   assert.ok(ONE_RM_DESCRIPTION.length <= 160)
-  assert.match(ONE_RM_TITLE, /1RM Calculator/)
   assert.match(ONE_RM_DESCRIPTION, /Epley/)
+  assert.match(ONE_RM_DESCRIPTION, /one-rep max/)
+  assert.doesNotMatch(ONE_RM_TITLE, /best/i)
+})
+
+test('FAQ states why this is the best 1RM calculator', () => {
+  const item = ONE_RM_FAQS.find(faq => /best 1RM calculator/i.test(faq.question))
+  assert.ok(item)
+  assert.match(item.answer, /Epley/)
+  assert.match(item.answer, /seven/i)
 })
 
 test('calculator URL is a static sitemap page', () => {

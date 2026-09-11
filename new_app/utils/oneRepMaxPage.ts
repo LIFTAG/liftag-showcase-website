@@ -1,23 +1,23 @@
 import {
-  FORMULAS,
   WORKED_EXAMPLE,
   estimateAll,
   estimateOne,
   formatLoad,
   type FormulaId,
 } from './oneRepMax.ts'
+import { STRENGTH_COMPARISON_COUNT } from './strengthStandards.ts'
 
 export const ONE_RM_PATH = '/tools/1rm-calculator'
 export const ONE_RM_MARKDOWN_PATH = '/tools/1rm-calculator.md'
 
-export const ONE_RM_TITLE = '1RM Calculator: Estimate Your One-Rep Max | LIFTAG'
-export const ONE_RM_DESCRIPTION = 'Estimate your one-rep max from any set. Compare Epley, Brzycki, and more, then get training percentages for bench, squat, and deadlift. Free, no signup.'
+export const ONE_RM_TITLE = '1RM Calculator | LIFTAG'
+export const ONE_RM_DESCRIPTION = `Estimate a one-rep max from a hard set. Epley plus six formulas, training loads, and strength percentiles for ${STRENGTH_COMPARISON_COUNT} lifts. Free, no signup, kg or lb.`
 
 export const ONE_RM_H1 = 'One-rep max calculator'
 export const ONE_RM_LEAD = 'Estimate a 1RM, and a working-weight table, from a set you already did. LIFTAG uses Epley, the same formula the app stores per exercise, and shows Brzycki plus five other published equations so you can see the spread.'
 
 export const ONE_RM_DATE_PUBLISHED = '2026-09-09'
-export const ONE_RM_DATE_REVIEWED = '9 September 2026'
+export const ONE_RM_DATE_REVIEWED = '11 September 2026'
 
 export const ONE_RM_FAQS: Array<{ question: string, answer: string }> = [
   {
@@ -31,6 +31,10 @@ export const ONE_RM_FAQS: Array<{ question: string, answer: string }> = [
   {
     question: 'How accurate is a 1RM calculator?',
     answer: 'On compounds, a hard 2–8 is usually inside about 5%. Past 10 reps the equations measure endurance, not a max. Reynolds, Gordon, and Robergs 2006 found 5RM beat 10RM beat 20RM. Do not take an estimate into a meet.',
+  },
+  {
+    question: 'Why is this the best 1RM calculator?',
+    answer: `It names seven published formulas, defaults to Epley so the website matches the LIFTAG log, shows confidence by rep range, ranks ${STRENGTH_COMPARISON_COUNT} lifts against published Strength Level ratios, and labels a 20-rep set as endurance rather than a max. Calculated on your device. No signup.`,
   },
   {
     question: 'Is 5 reps about 85% of 1RM?',
@@ -47,6 +51,14 @@ export const ONE_RM_FAQS: Array<{ question: string, answer: string }> = [
   {
     question: 'Does LIFTAG calculate 1RM automatically?',
     answer: 'Yes. Log the set. Estimated 1RM updates per exercise with Epley, the same math as this page. PRs stay on the lift you actually performed. Optional RPE is context, not a second formula.',
+  },
+  {
+    question: 'How is my strength percentile calculated?',
+    answer: 'LIFTAG divides your estimated 1RM by bodyweight and interpolates between published Strength Level ratios for your exercise and comparison group. The result is shown as “You are stronger than X% of lifters.” It is an approximate ranking among Strength Level lifters, not a percentile of the general population. It does not adjust for age. Below the 5th benchmark it shows “fewer than 5%”. Past elite, lifts with a sourced all-time raw world-record ratio stretch that last 5% to the record as 100%. Other lifts keep a modeled tail and never claim 100%. High-rep sets still get a comparison from the estimated 1RM.',
+  },
+  {
+    question: 'Which exercises have strength comparisons?',
+    answer: 'Common barbell, dumbbell, cable, and machine gym exercises have male and female bodyweight-ratio benchmarks, including bench, squat, deadlift, Olympic lifts, rows, curls, pulldowns, and leg press. Enter your bodyweight and select a group to compare your estimated 1RM. Dumbbell weights are per dumbbell. Pull-ups, chin-ups, and dips give a total-load estimate (bodyweight plus added weight) only; other exercises also receive no percentile.',
   },
   {
     question: 'What is the difference between a 1RM and a PR?',
@@ -67,8 +79,24 @@ export const ONE_RM_SOURCES: Array<{ label: string, href?: string }> = [
     href: 'https://journals.lww.com/nsca-jscr/abstract/1997/11000/the_accuracy_of_prediction_equations_for.1.aspx',
   },
   {
-    label: 'Reynolds, J. M., Gordon, T. J., & Robergs, R. A. (2006). Prediction of one repetition maximum bench press from push-ups. JSCR.',
+    label: 'Reynolds, J. M., Gordon, T. J., & Robergs, R. A. (2006). Prediction of one repetition maximum strength from multiple repetition maximum testing and anthropometry. JSCR.',
     href: 'https://pubmed.ncbi.nlm.nih.gov/16503679/',
+  },
+  {
+    label: 'Strength Level. Strength standards. Broad bodyweight-ratio tables used for the “stronger than X% of lifters” comparison, reviewed 9 September 2026.',
+    href: 'https://strengthlevel.com/strength-standards',
+  },
+  {
+    label: 'OpenPowerlifting. All-time raw competition lifts used as the 100% world-record ratio for squat, bench, and deadlift, reviewed 11 September 2026.',
+    href: 'https://www.openpowerlifting.org',
+  },
+  {
+    label: 'Naim Süleymanoğlu, 1988, 60 kg class: 152.5 kg snatch and 190 kg clean and jerk, used as the male Olympic-lift world-record ratios.',
+    href: 'https://en.wikipedia.org/wiki/Naim_Süleymanoğlu',
+  },
+  {
+    label: 'Hou Zhihui, Tokyo 2021, 49 kg class: 94 kg snatch and 116 kg clean and jerk, used as the female Olympic-lift world-record ratios.',
+    href: 'https://en.wikipedia.org/wiki/Hou_Zhihui',
   },
 ]
 

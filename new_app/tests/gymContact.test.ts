@@ -13,7 +13,7 @@ const body = {
   name: "Test Owner",
   email: "test@example.com",
   subject: "Gym partnership inquiry",
-  message: "Free LIFTAG kit request\nGym: Test Gym\nCity: Test City",
+  message: "Gym partnership request\nGym: Test Gym\nCity: Test City",
   turnstileToken: "test-challenge",
 };
 test("contact remains pending until the transport resolves and then succeeds", async () => {

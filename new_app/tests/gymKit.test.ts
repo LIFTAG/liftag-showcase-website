@@ -40,7 +40,7 @@ test("kit request preserves the contact API and accepts optional empty fields", 
   ]);
   assert.equal(payload.name, "Ada Owner");
   assert.equal(payload.email, "ada@example.com");
-  assert.match(payload.message, /Gym: Steel & Chalk\nCity: Bratislava/);
+  assert.match(payload.message, /^Gym partnership request\nGym: Steel & Chalk\nCity: Bratislava/);
   assert.equal(payload.subject, "Gym partnership inquiry");
   assert.equal(payload.turnstileToken, "test-challenge");
 });

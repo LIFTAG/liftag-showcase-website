@@ -8,6 +8,7 @@ import {
   PARTNER_WAKE,
   buildPartnerMesh,
   createPartnerDraw,
+  inRoundRect,
   inStadium,
   lightPartnerMesh,
   partnerIncoming,
@@ -56,6 +57,24 @@ test('the AABB corners of a pill are outside the stadium', () => {
   assert.equal(inStadium(0, 0, W, H), false)
   assert.equal(inStadium(W, 0, W, H), false)
   assert.equal(inStadium(0, H, W, H), false)
+})
+
+test('a stadium is a rounded rect with half-height corners', () => {
+  assert.equal(inRoundRect(W / 2, H / 2, W, H, H / 2), inStadium(W / 2, H / 2, W, H))
+  assert.equal(inRoundRect(0, 0, W, H, H / 2), inStadium(0, 0, W, H))
+  assert.equal(inRoundRect(24, 0, W, H, H / 2), inStadium(24, 0, W, H))
+})
+
+test('a rounded-rect mesh covers a chip and leaves sharp AABB corners out', () => {
+  const r = 8
+  const mesh = buildPartnerMesh(48, 40, r)
+  assert.ok(mesh.count > 20, `too sparse: ${mesh.count}`)
+  for (let i = 0; i < mesh.count; i++) {
+    assert.equal(inRoundRect(mesh.cx[i]!, mesh.cy[i]!, 48, 40, r, 1.4), true)
+  }
+  assert.equal(inRoundRect(0, 0, 48, 40, r), false)
+  assert.equal(inRoundRect(24, 20, 48, 40, r), true)
+  assert.equal(inRoundRect(8, 20, 48, 40, r), true)
 })
 
 test('splash radius uses the floor kick and covers the far corner', () => {

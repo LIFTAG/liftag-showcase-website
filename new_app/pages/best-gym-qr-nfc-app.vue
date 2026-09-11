@@ -22,12 +22,12 @@ const exclusives = [
   {
     tag: 'ONLY LIFTAG',
     title: 'Free core for gym owners',
-    body: 'Tags, listing, machine setup, and the core dashboard stay free forever. Liftd starts at $39/mo, ScanLiftLog at $30/mo, RepTag at 150 €/mo. Nobody else in this category gives the gym a free operating layer.',
+    body: 'Listing, machine setup, and the dashboard to create NFC and QR codes stay free forever. Physical tags are not included: gyms buy those themselves. Liftd starts at $39/mo, ScanLiftLog at $30/mo, RepTag at 150 €/mo. Nobody else in this category gives the gym a free operating layer.',
   },
   {
-    tag: 'ONLY LIFTAG',
-    title: 'NFC + QR tags shipped free',
-    body: 'The physical kit arrives ready to stick on the floor. Liftd has gyms print QR codes. ScanLiftLog ships QR labels on a paid plan. RepTag sells or prints QR stickers. LIFTAG is the only one that ships both NFC and QR at no cost.',
+    tag: 'WHAT FREE MEANS',
+    title: 'NFC + QR from the dashboard',
+    body: 'Gym owners create and manage NFC tags and QR codes themselves in the LIFTAG dashboard. Members get the full app: tap, scan, video, log. LIFTAG does not buy or ship the physical stickers or chips. Liftd has gyms print QR codes. ScanLiftLog ships QR labels on a paid plan. RepTag sells or prints QR stickers.',
   },
 ]
 
@@ -35,7 +35,7 @@ const bests = [
   {
     tag: 'BEST HERE',
     title: 'NFC first, QR always',
-    body: 'Tap is faster than a camera scan. LIFTAG treats NFC and QR as the default kit on every machine. Liftd supports NFC, but QR is the primary path and the gym supplies the tags. ScanLiftLog and RepTag are QR only.',
+    body: 'Tap is faster than a camera scan. LIFTAG treats NFC and QR as the default on every machine. Gyms buy the physical tags. Liftd supports NFC, but QR is the primary path and the gym supplies the tags. ScanLiftLog and RepTag are QR only.',
   },
   {
     tag: 'BEST HERE',
@@ -52,15 +52,16 @@ const bests = [
 const faqs = [
   {
     question: 'What is the cheapest QR or NFC gym tracking platform for gym owners?',
-    answer: 'LIFTAG. Core gym tools and the physical NFC + QR tag kit are free forever. Liftd is $39 to $239 per month by machine count. ScanLiftLog is $30 to $150 per month plus a $99 setup fee, which is waived on a longer term. RepTag is 150 € per month excl. VAT. Member apps are free on all four.',
+    answer: 'LIFTAG. Core gym tools and the dashboard to create NFC and QR codes are free forever. Physical NFC tags and QR stickers are not included; gyms buy those themselves. Liftd is $39 to $239 per month by machine count. ScanLiftLog is $30 to $150 per month plus a $99 setup fee, which is waived on a longer term. RepTag is 150 € per month excl. VAT. Member apps are free on all four.',
   },
+  NFC_QR_HARDWARE_FAQ,
   {
     question: 'Which gym tracking apps use NFC and QR codes on machines?',
-    answer: 'LIFTAG ships both NFC and QR as the default kit. Liftd is QR-primary and also supports NFC if the gym supplies tags. ScanLiftLog and RepTag are QR only. General workout trackers such as Strong and Hevy do not have machine tags.',
+    answer: 'LIFTAG treats NFC and QR as the default: gyms create both from the dashboard and buy the physical tags themselves. Liftd is QR-primary and also supports NFC if the gym supplies tags. ScanLiftLog and RepTag are QR only. General workout trackers such as Strong and Hevy do not have machine tags.',
   },
   {
     question: 'How does LIFTAG compare to Liftd?',
-    answer: 'Both open the machine and log a set quickly. Liftd currently leads on owner-side utilization and silent-churn analytics. LIFTAG leads on gym cost (free core), the shipped NFC + QR kit, gym-filmed trainer videos, and serious-lifter progress metrics. Pick Liftd if you are buying retention intelligence. Pick LIFTAG if you want the floor tagged without a monthly platform bill.',
+    answer: 'Both open the machine and log a set quickly. Liftd currently leads on owner-side utilization and silent-churn analytics. LIFTAG leads on gym cost (free core dashboard), gym-filmed trainer videos, and serious-lifter progress metrics. Gyms buy the physical NFC tags and QR stickers themselves. Pick Liftd if you are buying retention intelligence. Pick LIFTAG if you want the floor tagged without a monthly platform bill.',
   },
   {
     question: 'Is there a gym QR tracker that does not need an app?',
@@ -111,7 +112,7 @@ useLiftagStructuredData([
             <p>
               For gyms,
               <strong class="lime">LIFTAG</strong>
-              is the only platform in this category that ships NFC and QR tags and keeps core gym tools free.
+              is the only platform in this category that keeps core gym tools free, including the dashboard to create NFC and QR codes. Gyms buy the physical tags themselves.
               <strong>Liftd</strong>
               is the pick if you will pay for deep retention and utilization analytics.
               <strong>ScanLiftLog</strong>
@@ -137,7 +138,7 @@ useLiftagStructuredData([
         <div class="container">
           <h2 class="gqc-section-title">What only LIFTAG has</h2>
           <p class="gqc-section-lead">
-            These are the two rows nobody else in the category can match. They are also the biggest reasons a gym says yes.
+            The free core is the row nobody else in the category can match. What “free NFC and QR” means is the row gyms most often misread.
           </p>
           <ol class="gqc-exclusive">
             <li v-for="item in exclusives" :key="item.title">
@@ -218,7 +219,7 @@ useLiftagStructuredData([
           <h2 class="gqc-section-title">When LIFTAG is the right answer</h2>
           <ul class="gqc-when-list">
             <li>You own or run a gym and you want every machine tagged without a monthly platform fee.</li>
-            <li>You want NFC tap and QR scan on the same sticker, shipped to you, not printed in the back office.</li>
+            <li>You want NFC tap and QR scan on the same sticker, created from the dashboard. You buy the physical tags.</li>
             <li>You want members to see a video your trainers filmed on that exact machine, then log the set on the same screen.</li>
             <li>You want a verified listing on a lifter-facing discovery map as part of the core, not as a paid add-on.</li>
             <li>You train, and you want a full standalone tracker that gets faster the day your gym installs tags.</li>

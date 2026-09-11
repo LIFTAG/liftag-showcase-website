@@ -47,7 +47,7 @@ export function kitContactPayload(fields: KitFields, turnstileToken: string) {
     email: fields.email.trim(),
     subject: "Gym partnership inquiry",
     message: [
-      "Free LIFTAG kit request",
+      "Gym partnership request",
       `Gym: ${fields.gym.trim()}`,
       `City: ${fields.city.trim()}`,
       `Equipment count: ${fields.equipment.trim() || "Not provided"}`,

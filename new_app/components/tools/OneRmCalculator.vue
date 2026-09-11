@@ -1,455 +1,147 @@
 <script setup lang="ts">
-import OneRmFormulaCompare from '~/components/tools/OneRmFormulaCompare.vue'
-import OneRmNrmTable from '~/components/tools/OneRmNrmTable.vue'
-import OneRmPercentTable from '~/components/tools/OneRmPercentTable.vue'
-import { CONFIDENCE_LABEL, CONFIDENCE_NOTE, FORMULAS, LIFTS } from '~/utils/oneRepMax'
+import OneRmSetForm from './OneRmSetForm.vue'
+import OneRmGlass from './OneRmGlass.vue'
+import OneRmResult from './OneRmResult.vue'
+import OneRmStrength from './OneRmStrength.vue'
+import OneRmFormulaCompare from './OneRmFormulaCompare.vue'
+import OneRmNrmTable from './OneRmNrmTable.vue'
+import OneRmPercentTable from './OneRmPercentTable.vue'
+import { exerciseFor, loadQualifier } from '~/utils/oneRepMaxExercises'
+import { FORMULAS } from '~/utils/oneRepMax'
+import { strengthSource } from '~/utils/strengthStandards'
 
-const calc = useOneRepMaxCalculator()
 const {
-  weightText,
-  repsText,
-  unit,
-  lift,
-  formulaId,
-  copied,
-  idle,
-  weightError,
-  repsError,
-  weightKg,
-  reps,
-  oneRmKg,
-  estimates,
-  cluster,
-  confidence,
-  percentRows,
-  nrmRows,
-  trainingMax,
-  liveSummary,
-  caveat,
-  otherUnit,
-  canShare,
-  setUnit,
-  setLift,
-  setFormula,
-  copyLink,
-  copyResult,
-  share,
-  formatLoad,
-  formatLoadWithUnit,
-} = calc
-
+  weightText, repsText, unit, lift, formulaId, copied, copyError, weightError, repsError,
+  reps, weightKg, oneRmKg, estimates, cluster, confidence, percentRows, nrmRows, trainingMax,
+  liveSummary, caveat, canShare, setUnit, setFormula, copyLink, copyResult, share,
+  formatLoad, bodyweightText, bodyweightKg, comparisonSex, bodyweightError, comparison, stepWeight,
+} = useOneRepMaxCalculator()
 const formulaName = computed(() => FORMULAS.find(item => item.id === formulaId.value)?.name ?? 'Epley')
+const sourceHref = computed(() => strengthSource(lift.value))
 </script>
 
 <template>
   <div class="orm">
-    <div class="orm-top">
-    <form class="orm-form" @submit.prevent>
-      <div class="orm-fields">
-        <div class="orm-field">
-          <label class="orm-label" for="orm-weight">Weight</label>
-          <input
-            id="orm-weight"
-            v-model="weightText"
-            class="orm-input"
-            type="text"
-            inputmode="decimal"
-            autocomplete="off"
-            spellcheck="false"
-            placeholder="100"
-            :aria-invalid="Boolean(weightError)"
-            :aria-describedby="weightError ? 'orm-weight-error' : 'orm-weight-hint'"
-          >
-          <p id="orm-weight-hint" class="orm-hint">The load you lifted. Plates count.</p>
-          <p v-if="weightError" id="orm-weight-error" class="orm-error">{{ weightError }}</p>
-        </div>
-        <div class="orm-field">
-          <label class="orm-label" for="orm-reps">Reps</label>
-          <input
-            id="orm-reps"
-            v-model="repsText"
-            class="orm-input"
-            type="text"
-            inputmode="numeric"
-            autocomplete="off"
-            spellcheck="false"
-            placeholder="5"
-            maxlength="2"
-            :aria-invalid="Boolean(repsError)"
-            :aria-describedby="repsError ? 'orm-reps-error' : 'orm-reps-hint'"
-          >
-          <p id="orm-reps-hint" class="orm-hint">Clean reps. 1–30.</p>
-          <p v-if="repsError" id="orm-reps-error" class="orm-error">{{ repsError }}</p>
-        </div>
-        <fieldset class="orm-field orm-units">
-          <legend class="orm-label">Units</legend>
-          <div class="orm-seg" role="radiogroup" aria-label="Weight unit">
-            <button
-              type="button"
-              class="orm-seg-btn"
-              role="radio"
-              :aria-checked="unit === 'kg'"
-              @click="setUnit('kg')"
-            >kg</button>
-            <button
-              type="button"
-              class="orm-seg-btn"
-              role="radio"
-              :aria-checked="unit === 'lb'"
-              @click="setUnit('lb')"
-            >lb</button>
-          </div>
-        </fieldset>
+    <div class="calculator-workspace">
+      <OneRmGlass />
+      <div class="calculator-main">
+        <OneRmSetForm v-model:weight="weightText" v-model:reps="repsText" :lift="lift" :unit="unit" :weight-kg="weightKg" :weight-error="weightError" :reps-error="repsError" @unit="setUnit" @step="stepWeight" />
+        <OneRmResult :kg="oneRmKg" :weight-kg="weightKg" :unit="unit" :reps="reps" :formula="formulaName" :formula-id="formulaId" :estimates="estimates" :confidence="confidence" :training-max="trainingMax" :summary="liveSummary" :qualifier="loadQualifier(lift)" @select="setFormula" />
       </div>
-
-      <fieldset class="orm-lifts">
-        <legend class="orm-label">Lift</legend>
-        <div class="orm-chips" role="radiogroup" aria-label="Lift">
-          <button
-            v-for="item in LIFTS"
-            :key="item.id"
-            type="button"
-            class="orm-chip"
-            role="radio"
-            :aria-checked="lift === item.id"
-            @click="setLift(item.id)"
-          >{{ item.label }}</button>
+      <OneRmStrength v-model:bodyweight="bodyweightText" v-model:sex="comparisonSex" v-model:lift="lift" :unit="unit" :comparison="comparison" :bodyweight-kg="bodyweightKg" :bodyweight-error="bodyweightError" :valid-set="oneRmKg != null" />
+      <div class="calculator-footer">
+        <p>Calculated on your device. No signup.</p>
+        <div class="result-actions">
+          <button type="button" :disabled="oneRmKg == null" @click="copyResult">{{ copied === 'result' ? 'Copied ✓' : 'Copy result' }}</button>
+          <button type="button" :disabled="oneRmKg == null" @click="copyLink">{{ copied === 'link' ? 'Copied ✓' : 'Copy link' }}</button>
+          <button v-if="canShare" type="button" :disabled="oneRmKg == null" @click="share">Share</button>
         </div>
-      </fieldset>
-    </form>
+        <p v-if="copyError" class="copy-error" role="status">{{ copyError }}</p>
+        <span class="sr-only" role="status">{{ copied ? `${copied === 'link' ? 'Link' : 'Result'} copied.` : '' }}</span>
+      </div>
+    </div>
+    <p id="strength-method-note" class="strength-method">
+      Data from <a v-if="sourceHref" :href="sourceHref" rel="noopener">Strength Level</a><span v-else>Strength Level</span>’s published bodyweight-ratio standards for people who log lifts there.
+      <template v-if="exerciseFor(lift).basis === 'machine'">Machine designs and pulley ratios vary; comparisons are especially approximate.</template>
+      Not the general population. No age adjustment. Approximate. <a href="#percentile-method">How it works <span aria-hidden="true">↗</span></a>
+    </p>
 
-    <div class="orm-result" aria-live="polite" aria-atomic="true">
-      <p class="visually-hidden">{{ liveSummary }}</p>
-      <template v-if="idle || oneRmKg == null || weightKg == null || reps == null || !confidence">
-        <p class="orm-idle">Enter a set.</p>
-        <p class="orm-idle-sub">Weight, reps, estimated max. Epley, same formula as the app.</p>
-      </template>
-      <template v-else>
-        <p class="protocol orm-result-kicker">{{ formulaName }} · {{ CONFIDENCE_LABEL[confidence] }}</p>
-        <p class="orm-max">
-          <span class="orm-max-num">{{ formatLoad(oneRmKg, unit) }}</span>
-          <span class="orm-max-unit">{{ unit }}</span>
-        </p>
-        <p class="orm-set">
-          {{ formatLoad(weightKg, unit) }} {{ unit }} × {{ reps }}
-          <span class="orm-set-alt">· {{ formatLoadWithUnit(oneRmKg, otherUnit) }}</span>
-        </p>
-        <p v-if="trainingMax != null" class="orm-tm">
-          Training max {{ formatLoadWithUnit(trainingMax, unit) }} (90%). Use this for percentages, not the {{ formatLoad(oneRmKg, unit) }}.
-        </p>
-        <p class="orm-note">{{ CONFIDENCE_NOTE[confidence] }}</p>
-        <p v-if="caveat" class="orm-note">{{ caveat }}</p>
-        <p class="orm-disclaimer">Estimate, not a tested max. Not medical advice.</p>
-        <div class="orm-actions">
-          <button type="button" class="orm-action" @click="copyLink">{{ copied ? 'Copied' : 'Copy link' }}</button>
-          <button type="button" class="orm-action" @click="copyResult">Copy result</button>
-          <button v-if="canShare" type="button" class="orm-action" @click="share">Share</button>
-          <a href="/get" class="orm-action orm-action-link">Log in LIFTAG</a>
+    <div class="training-details">
+      <details class="training-disclosure">
+        <summary><span><strong>Training load tables</strong><small>Percentages & rep maxes</small></span><span class="disclosure-icon" aria-hidden="true">+</span></summary>
+        <div class="training-content">
+          <p v-if="!percentRows.length">Enter a valid set to get training loads.</p>
+          <template v-else>
+            <h3>Training percentages</h3>
+            <p>Based on your {{ formulaName }} 1RM<span v-if="loadQualifier(lift)">, {{ loadQualifier(lift) }}</span>. Loads rounded to {{ unit === 'kg' ? '2.5 kg' : '5 lb' }} increments; exact values shown alongside.</p>
+            <OneRmPercentTable :rows="percentRows" :unit="unit" :format-load="formatLoad" />
+            <h3>Estimated rep maxes</h3>
+            <p>Predicted maximum weight for each rep target, using {{ formulaName }}<span v-if="loadQualifier(lift)">, {{ loadQualifier(lift) }}</span>.</p>
+            <OneRmNrmTable :rows="nrmRows" :unit="unit" :format-load="formatLoad" />
+          </template>
         </div>
-      </template>
+      </details>
+      <OneRmFormulaCompare v-if="estimates.length" :rows="estimates" :active-id="formulaId" :unit="unit" :spread-pct="cluster?.spreadPct ?? null" :format-load="formatLoad" @select="setFormula" />
     </div>
-    </div>
-
-    <section v-if="percentRows.length" class="orm-block" aria-labelledby="orm-percents-title">
-      <h3 id="orm-percents-title" class="orm-block-title">Training percentages</h3>
-      <p class="orm-block-lead">Linear off the estimated 1RM, rounded to a loadable plate. Exact stays in the next column.</p>
-      <OneRmPercentTable :rows="percentRows" :unit="unit" :format-load="formatLoad" />
-    </section>
-
-    <section v-if="nrmRows.length" class="orm-block" aria-labelledby="orm-nrm-title">
-      <h3 id="orm-nrm-title" class="orm-block-title">Estimated n-rep max</h3>
-      <p class="orm-block-lead">Inverted {{ formulaName }}, 1 to 10 only. Past 10 the math is endurance.</p>
-      <OneRmNrmTable :rows="nrmRows" :unit="unit" :format-load="formatLoad" />
-    </section>
-
-    <OneRmFormulaCompare
-      v-if="estimates.length"
-      :rows="estimates"
-      :active-id="formulaId"
-      :unit="unit"
-      :spread-pct="cluster?.spreadPct ?? null"
-      :format-load="formatLoad"
-      @select="setFormula"
-    />
+    <p v-if="caveat" class="lift-context">{{ caveat }}</p>
   </div>
 </template>
 
 <style scoped>
 .orm {
-  display: grid;
-  gap: 0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 22px;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(204, 255, 0, 0.08), transparent 42%),
-    #0e0e0e;
+  --orm-surface: oklch(16% .005 115);
+  --orm-result: oklch(18% .007 115);
+  --orm-input: oklch(20% .006 115 / .72);
+  --orm-field-glass: linear-gradient(155deg, oklch(96% .007 115 / .12), oklch(96% .007 115 / .018) 42%, oklch(96% .007 115 / .045)), oklch(18% .006 115 / .38);
+  --orm-glass-line: oklch(88% .012 115 / .16);
+  --orm-glass-shadow: inset 0 1px 0 oklch(98% .005 115 / .15), inset 0 -1px 0 oklch(96% .007 115 / .04), 0 5px 16px oklch(8% .005 115 / .16);
+  --orm-glass-filter: blur(12px) saturate(1.35);
+  --orm-line: oklch(29% .008 115);
+  --orm-ink: oklch(96% .007 115);
+  --orm-muted: oklch(73% .009 115);
+  --orm-accent: oklch(92% .23 120);
+  --orm-accent-soft: oklch(25% .04 120);
+  --orm-error: oklch(76% .15 20);
+  --orm-warning: oklch(81% .12 85);
+  color: var(--orm-ink);
+  font-family: var(--liftag-font-body);
+}
+.calculator-workspace {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid oklch(79% .025 115 / .16);
+  border-radius: 24px;
+  background: var(--orm-surface);
   overflow: clip;
+  box-shadow: 0 28px 80px oklch(8% .005 115 / .4), 0 0 60px oklch(80% .16 120 / .025);
 }
-.orm-top {
-  display: grid;
-  grid-template-columns: 1fr;
-}
-.orm-form {
-  display: grid;
-  gap: 22px;
-  padding: 28px 28px 22px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-}
-@media (min-width: 900px) {
-  .orm-top {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-    align-items: start;
-  }
-  .orm-form {
-    border-bottom: 0;
-    border-right: 1px solid rgba(255, 255, 255, 0.07);
-  }
-  .orm-result {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-height: 100%;
-  }
-  .orm-max-num {
-    font-size: clamp(52px, 6.4vw, 80px);
-  }
-}
-.orm-fields {
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr) auto;
-  gap: 16px;
-  align-items: start;
-}
-.orm-field {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-}
-.orm-units {
-  border: 0;
-  margin: 0;
-  padding: 0;
-  min-width: 132px;
-}
-.orm-lifts {
-  border: 0;
-  margin: 0;
-  padding: 0;
-}
-.orm-label {
-  font-family: var(--liftag-font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
-}
-.orm-input {
-  width: 100%;
-  height: 64px;
-  padding: 0 16px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  background: #161616;
-  color: #fff;
-  font-family: var(--liftag-font-mono);
-  font-size: 28px;
-  font-weight: 600;
-  letter-spacing: -0.03em;
-}
-.orm-input::placeholder {
-  color: rgba(255, 255, 255, 0.22);
-}
-.orm-input:focus {
-  outline: 2px solid var(--liftag-primary);
-  outline-offset: 2px;
-  border-color: transparent;
-}
-.orm-input[aria-invalid="true"] {
-  border-color: var(--liftag-red-neon);
-}
-.orm-hint,
-.orm-error {
-  margin: 0;
-  font-size: 12.5px;
-  line-height: 1.4;
-}
-.orm-hint { color: rgba(255, 255, 255, 0.38); }
-.orm-error { color: var(--liftag-red-neon); }
-.orm-seg {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  height: 64px;
-  padding: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  background: #161616;
-}
-.orm-seg-btn,
-.orm-chip,
-.orm-action {
-  border: 0;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.62);
-  cursor: pointer;
-  font-family: var(--liftag-font-mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.orm-seg-btn {
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 700;
-}
-.orm-seg-btn[aria-checked="true"],
-.orm-chip[aria-checked="true"] {
-  background: var(--liftag-primary);
-  color: #0e0e0e;
-}
-.orm-seg-btn:focus-visible,
-.orm-chip:focus-visible,
-.orm-action:focus-visible {
-  outline: 2px solid var(--liftag-primary);
-  outline-offset: 2px;
-}
-.orm-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.orm-chip {
-  height: 36px;
-  padding: 0 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-}
-.orm-result {
-  min-height: 220px;
-  padding: 32px 28px 28px;
-}
-.orm-idle {
-  margin: 0;
-  font-family: var(--liftag-font-headline);
-  font-size: clamp(36px, 6vw, 64px);
-  font-style: italic;
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  text-transform: uppercase;
-  line-height: 0.95;
-}
-.orm-idle-sub {
-  max-width: 36ch;
-  margin: 14px 0 0;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 16px;
-  font-weight: 300;
-  line-height: 1.5;
-}
-.orm-result-kicker {
-  color: var(--liftag-primary);
-  margin: 0 0 10px;
-}
-.orm-max {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin: 0;
-  line-height: 0.85;
-}
-.orm-max-num {
-  font-family: var(--liftag-font-mono);
-  font-size: clamp(64px, 12vw, 112px);
-  font-weight: 700;
-  letter-spacing: -0.06em;
-  color: var(--liftag-primary);
-}
-.orm-max-unit {
-  font-family: var(--liftag-font-mono);
-  font-size: clamp(18px, 3vw, 28px);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
-}
-.orm-set,
-.orm-tm,
-.orm-note,
-.orm-disclaimer {
-  margin: 12px 0 0;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 15px;
-  font-weight: 300;
-  line-height: 1.55;
-}
-.orm-set {
-  font-family: var(--liftag-font-mono);
-  font-size: 16px;
-  font-weight: 500;
-  color: #fff;
-}
-.orm-set-alt { color: rgba(255, 255, 255, 0.45); }
-.orm-disclaimer {
-  color: rgba(255, 255, 255, 0.48);
-  font-size: 13.5px;
-}
-.orm-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 20px;
-}
-.orm-action {
-  height: 40px;
-  padding: 0 14px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #fff;
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
-}
-.orm-action-link {
-  background: var(--liftag-primary);
-  border-color: var(--liftag-primary);
-  color: #0e0e0e;
-}
-@media (hover: hover) and (pointer: fine) {
-  .orm-action:hover { border-color: var(--liftag-primary); color: var(--liftag-primary); }
-  .orm-action-link:hover { color: #0e0e0e; filter: brightness(1.06); }
-}
-.orm-block {
-  padding: 8px 28px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-}
-.orm-block-title {
-  margin: 16px 0 0;
-  font-family: var(--liftag-font-headline);
-  font-size: 20px;
-  font-style: italic;
-  text-transform: uppercase;
-}
-.orm-block-lead {
-  margin: 8px 0 0;
-  color: rgba(255, 255, 255, 0.52);
-  font-size: 14px;
-  font-weight: 300;
-  line-height: 1.5;
-}
-.visually-hidden {
+/* A static hairline reflection frames the workspace without intercepting input. */
+.calculator-workspace::after {
+  content: '';
   position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 1px 0 oklch(96% .007 115 / .14), inset 1px 0 0 oklch(96% .007 115 / .035), inset 0 -1px 0 oklch(92% .12 120 / .06);
 }
-@media (max-width: 720px) {
-  .orm-fields { grid-template-columns: 1fr 1fr; }
-  .orm-units { grid-column: 1 / -1; }
-  .orm-form, .orm-result, .orm-block { padding-left: 18px; padding-right: 18px; }
-  .orm-input, .orm-seg { height: 56px; }
-  .orm-input { font-size: 24px; }
+.calculator-main, .calculator-footer, .calculator-workspace > :deep(.strength) { position: relative; z-index: 1; }
+.calculator-main { display: grid; grid-template-columns: minmax(0, .83fr) minmax(0, 1.17fr); }
+.calculator-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px; padding: 8px 32px; border-top: 1px solid var(--orm-line); background: oklch(12% .005 115 / .35); }
+.calculator-footer > p { margin: 0; font-size: 11px; line-height: 1.6; color: var(--orm-muted); }
+.result-actions { display: flex; align-items: center; gap: 18px; }
+.result-actions button { display: inline-flex; align-items: center; min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--orm-ink); font: inherit; font-size: 11px; cursor: pointer; transition: color .2s; }
+.result-actions button:hover { color: var(--orm-accent); }
+.result-actions button:disabled { opacity: .4; cursor: default; }
+.result-actions button:focus-visible, summary:focus-visible { outline: 2px solid var(--orm-accent); outline-offset: 3px; }
+.calculator-footer .copy-error { flex-basis: 100%; color: var(--orm-error); }
+.strength-method { margin: 12px 4px 0; max-width: 72ch; font-size: 11px; line-height: 1.65; color: oklch(58% .007 115); }
+.strength-method a { color: inherit; text-underline-offset: 2px; }
+.strength-method a:last-child { white-space: nowrap; }
+.strength-method a:focus-visible { outline: 2px solid var(--orm-accent); outline-offset: 3px; }
+.training-details { margin-top: 20px; }
+.training-disclosure { border-top: 1px solid var(--orm-line); border-bottom: 1px solid var(--orm-line); }
+.training-disclosure summary { display: flex; align-items: center; justify-content: space-between; padding: 20px 4px; cursor: pointer; list-style: none; gap: 12px; }
+.training-disclosure summary::-webkit-details-marker { display: none; }
+.training-disclosure strong { font-size: 15px; font-weight: 500; }
+.training-disclosure small { font-size: 12px; color: var(--orm-muted); margin-left: 18px; }
+.disclosure-icon { font-size: 22px; font-weight: 300; color: var(--orm-muted); transition: transform .2s; }
+.training-disclosure[open] .disclosure-icon { transform: rotate(45deg); }
+.training-content { padding: 0 4px 28px; }
+.training-content h3 { margin: 24px 0 8px; font-size: 17px; font-weight: 500; }
+.training-content p { color: var(--orm-muted); font-size: 13px; line-height: 1.6; }
+.lift-context { margin: 18px 0 0; font-size: 12px; color: var(--orm-muted); line-height: 1.7; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+@media (max-width: 700px) {
+  .calculator-main { grid-template-columns: 1fr; }
+  .calculator-workspace { border-radius: 16px; }
+  .calculator-footer { padding: 12px 20px; }
+  .result-actions { gap: 24px; }
+  .result-actions button { min-height: 40px; font-size: 12px; }
+  .training-disclosure small { display: block; margin: 5px 0 0; }
+}
+@media (prefers-reduced-motion: reduce) { .disclosure-icon, .result-actions button { transition: none; } }
+@media (prefers-reduced-transparency: reduce) {
+  .orm { --orm-field-glass: var(--orm-surface); --orm-glass-filter: none; }
 }
 </style>

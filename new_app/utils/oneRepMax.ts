@@ -1,8 +1,10 @@
+import { ONE_RM_EXERCISES, type OneRmExerciseId } from './oneRepMaxExercises.ts'
+export type LiftId = OneRmExerciseId
+
 /** One-rep-max estimates. Internal math is always kilograms. */
 
 export type WeightUnit = 'kg' | 'lb'
 export type FormulaId = 'epley' | 'brzycki' | 'lombardi' | 'mayhew' | 'oconnor' | 'wathen' | 'lander'
-export type LiftId = 'bench' | 'squat' | 'deadlift' | 'ohp' | 'other'
 export type Confidence = 'measured' | 'high' | 'good' | 'usable' | 'rough' | 'endurance'
 
 /** International avoirdupois pound. Never round-trip through a shorter constant. */
@@ -115,13 +117,7 @@ export const FORMULAS: readonly FormulaDef[] = [
 
 export const DEFAULT_FORMULA_ID: FormulaId = 'epley'
 
-export const LIFTS: readonly { id: LiftId, label: string }[] = [
-  { id: 'other', label: 'Any lift' },
-  { id: 'bench', label: 'Bench' },
-  { id: 'squat', label: 'Squat' },
-  { id: 'deadlift', label: 'Deadlift' },
-  { id: 'ohp', label: 'Overhead press' },
-]
+export const LIFTS = ONE_RM_EXERCISES
 
 export function formulaById(id: FormulaId): FormulaDef {
   const found = FORMULAS.find(item => item.id === id)
@@ -153,15 +149,9 @@ export function loadIncrement(unit: WeightUnit): number {
   return unit === 'kg' ? 2.5 : 5
 }
 
-/** Display: kg to 1 decimal (drop trailing .0); lb as integer at 100+, else 1 decimal. */
+/** Display one decimal in either unit, dropping a trailing .0. */
 export function formatLoad(kg: number, unit: WeightUnit): string {
-  const value = fromKg(kg, unit)
-  if (unit === 'kg') {
-    const rounded = Math.round(value * 10) / 10
-    return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1)
-  }
-  if (Math.abs(value) >= 100) return String(Math.round(value))
-  const rounded = Math.round(value * 10) / 10
+  const rounded = Math.round(fromKg(kg, unit) * 10) / 10
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1)
 }
 
@@ -208,6 +198,21 @@ export function parseWeightInput(raw: string): ParseResult {
   const value = Number(numeric)
   if (!Number.isFinite(value) || value <= 0) return { value: null, detectedUnit, error: 'Weight has to be greater than 0.' }
   return { value, detectedUnit, error: null }
+}
+
+/** Parse a typed load into kilograms, honoring a unit token in the text when present. */
+export function weightToKg(raw: string, unit: WeightUnit): number | null {
+  const parsed = parseWeightInput(raw)
+  if (parsed.value == null) return null
+  return toKg(parsed.value, parsed.detectedUnit ?? unit)
+}
+
+/**
+ * Relabel a stored kilogram load for the weight field.
+ * Always convert from the frozen kilograms — never from a previously rounded display.
+ */
+export function relabelWeightInput(kg: number, unit: WeightUnit): string {
+  return formatInputWeight(fromKg(kg, unit), unit)
 }
 
 export function parseRepsInput(raw: string): ParseResult {

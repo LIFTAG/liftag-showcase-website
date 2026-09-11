@@ -44,7 +44,7 @@ const turnstileOptions = computed(() => ({
   "error-callback": () => {
     token.value = "";
     verificationMessage.value =
-      "Verification is unavailable right now. Please try again, or email support@liftag.fit to request your kit.";
+      "Verification is unavailable right now. Please try again, or email support@liftag.fit to partner with us.";
     return true;
   },
 }));
@@ -128,8 +128,9 @@ onBeforeUnmount(() => {
       <span class="gx-form-confirmation__mark" aria-hidden="true">↗</span>
       <h3>YOUR GYM.<br />OUR NEXT CONVERSATION.</h3>
       <p>
-        Request received. LIFTAG will contact you by email to arrange your free
-        kit.
+        Request received. LIFTAG will contact you by email about dashboard
+        access and setup. Physical NFC tags and QR stickers are not included;
+        gyms buy those themselves.
       </p>
       <NuxtLink class="btn-ghost" to="/for-gyms"
         ><HoloPill />Explore LIFTAG for gyms</NuxtLink
@@ -244,10 +245,10 @@ onBeforeUnmount(() => {
         type="submit"
         :disabled="pending || !hydrated"
       >
-        {{ pending ? "Sending your request…" : "Request your free kit" }}
+        {{ pending ? "Sending your request…" : "Become a partner gym" }}
       </button>
       <p class="gx-form-form-note">
-        We’ll contact you to arrange your kit. By submitting, you agree to our
+        We’ll contact you about partnering your gym. By submitting, you agree to our
         <NuxtLink to="/privacy-policy">Privacy Policy</NuxtLink>.
       </p>
       <p class="gx-form-form-note">

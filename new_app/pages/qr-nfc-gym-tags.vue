@@ -25,9 +25,10 @@ useLiftagStructuredData([
       answer: 'Yes. Tags reduce uncertainty at the machine by opening the correct exercise setup, variations, and gym-filmed instruction video directly from the equipment.',
     },
     {
-      question: 'Do other gym QR platforms ship NFC tags?',
-      answer: 'LIFTAG is the only platform in this category that ships both NFC and QR tags as the default kit, at no cost. Liftd supports NFC if the gym supplies tags. ScanLiftLog and RepTag are QR only.',
+      question: 'Do other gym QR platforms support NFC tags?',
+      answer: 'LIFTAG treats NFC and QR as the default: gyms create both from the dashboard and buy the physical tags themselves. Liftd supports NFC if the gym supplies tags. ScanLiftLog and RepTag are QR only.',
     },
+    NFC_QR_HARDWARE_FAQ,
   ]),
 ])
 
@@ -62,9 +63,10 @@ const faqs = [
     answer: 'Yes. Tags reduce uncertainty at the machine by opening the correct exercise setup, variations, and gym-filmed instruction video directly from the equipment.',
   },
   {
-    question: 'Do other gym QR platforms ship NFC tags?',
-    answer: 'LIFTAG is the only platform in this category that ships both NFC and QR tags as the default kit, at no cost. Liftd supports NFC if the gym supplies tags. ScanLiftLog and RepTag are QR only.',
+    question: 'Do other gym QR platforms support NFC tags?',
+    answer: 'LIFTAG treats NFC and QR as the default: gyms create both from the dashboard and buy the physical tags themselves. Liftd supports NFC if the gym supplies tags. ScanLiftLog and RepTag are QR only.',
   },
+  NFC_QR_HARDWARE_FAQ,
 ]
 </script>
 
@@ -83,7 +85,7 @@ const faqs = [
       <p class="protocol tag-compare-eyebrow">NFC + QR</p>
       <h2 class="tag-compare-title">Most competitors stop at a printed QR.</h2>
       <p class="tag-compare-lead">
-        LIFTAG ships NFC for tap-to-open speed and QR as the universal fallback, on the same machine, at no cost to the gym.
+        LIFTAG treats NFC for tap-to-open speed and QR as the universal fallback, on the same machine. Gyms create both from the dashboard and buy the physical tags themselves.
       </p>
       <GymQrComparisonTable
         kind="matrix"

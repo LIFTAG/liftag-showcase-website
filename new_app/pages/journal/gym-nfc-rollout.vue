@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const title = 'How gyms roll out <span class="lime">NFC tags.</span>'
-const description = 'A practical LIFTAG rollout: tag one floor, confirm every machine opens the right lift, then copy the kit across locations. No invented gym quotes — the 1→12 path the product is built for.'
+const description = 'A practical LIFTAG rollout: tag one floor, confirm every machine opens the right lift, then copy the catalog across locations. No invented gym quotes. The 1→12 path the product is built for.'
 
 const path = '/journal/gym-nfc-rollout'
 const datePublished = '2026-08-20'
@@ -18,8 +18,9 @@ const faqs = [
   },
   {
     question: 'What does LIFTAG cost a gym?',
-    answer: 'Tags, listing, machine setup, and the core dashboard are free. Advanced business tools are optional. Compare the kit with Liftd, ScanLiftLog, and RepTag on the gym QR page.',
+    answer: 'Listing, machine setup, and the dashboard to create NFC and QR codes are free. Physical NFC tags and QR stickers are not included: gyms buy those themselves. Advanced business tools are optional. Compare with Liftd, ScanLiftLog, and RepTag on the gym QR page.',
   },
+  NFC_QR_HARDWARE_FAQ,
   {
     question: 'Do we film videos on day one?',
     answer: 'No. Day one is the right exercise opening from the tag. Gym-filmed videos on the actual machines come after the map is stable, so you are not reshooting a mislabeled lat pulldown.',
@@ -82,7 +83,7 @@ useLiftagStructuredData([
           <section>
             <h2>This is not a fake testimonial</h2>
             <p>
-              We are not inventing a named club and a 37% retention chart. The public fact on LIFTAG is the product shape: tags and a core dashboard that are free, and a catalog meant to be copied from one location to twelve. This page is the rollout those tools assume.
+              We are not inventing a named club and a 37% retention chart. The public fact on LIFTAG is the product shape: a core dashboard that is free, NFC and QR codes you create there, physical tags you buy yourself, and a catalog meant to be copied from one location to twelve. This page is the rollout those tools assume.
             </p>
             <p>
               If you want hardware folklore (chip types, height, glare), use
@@ -126,7 +127,7 @@ useLiftagStructuredData([
               <li>A second location feels like the first when someone travels.</li>
             </ul>
             <p>
-              That is the case. Ask for a kit at
+              That is the case. Become a partner at
               <a href="/contact/partner">contact/partner</a>.
             </p>
           </section>
@@ -138,7 +139,7 @@ useLiftagStructuredData([
 
           <section class="guide-method">
             <p class="protocol">Written by</p>
-            <p>The LIFTAG team. We send the tags this playbook assumes. Updated August 2026.</p>
+            <p>The LIFTAG team. Gyms buy the tags this playbook assumes; LIFTAG provides the dashboard. Updated August 2026.</p>
           </section>
         </div>
       </article>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const title = 'NFC and QR tags for <span class="lime">gym machines.</span>'
-const description = 'LIFTAG gives gyms free NFC and QR tags, listing, machine setup, and a core dashboard. Advanced business tools are optional.'
+const description = 'LIFTAG gives gyms a free dashboard to create and manage NFC tags and QR codes, plus listing, machine setup, and the full member app. Gyms buy the physical tags and stickers themselves. Advanced business tools are optional.'
 
 useLiftagSeo({
   title: 'NFC and QR Gym Machine Tags | LIFTAG for Gyms',
@@ -26,11 +26,12 @@ useLiftagStructuredData([
     },
     {
       question: 'What does LIFTAG cost for gyms?',
-      answer: 'Tags, listing, machine setup, and the core dashboard are free forever. Advanced business tools are optional.',
+      answer: 'Listing, machine setup, and the dashboard to create and manage NFC tags and QR codes are free forever. Physical NFC tags and QR stickers are not included: gyms buy those themselves. Advanced business tools are optional.',
     },
+    NFC_QR_HARDWARE_FAQ,
     {
       question: 'How does LIFTAG compare to Liftd, ScanLiftLog, or RepTag?',
-      answer: 'LIFTAG is the only one of those four that ships NFC and QR tags and keeps core gym tools free. Liftd leads on paid owner-side churn analytics. ScanLiftLog is the no-app option. RepTag is strongest for DACH studios that want trainer chat and a digital floor plan. The full table is on the QR and NFC comparison page.',
+      answer: 'LIFTAG is the only one of those four that keeps core gym tools free, including the dashboard to create NFC and QR codes. Gyms buy the physical tags themselves. Liftd leads on paid owner-side churn analytics. ScanLiftLog is the no-app option. RepTag is strongest for DACH studios that want trainer chat and a digital floor plan. The full table is on the QR and NFC comparison page.',
     },
   ]),
 ])
@@ -44,7 +45,7 @@ const metrics = [
 const sections = [
   {
     title: 'Turn every machine into an entry point',
-    body: 'Add a LIFTAG NFC tag or QR sticker to each machine. Members land on the correct movement, machine setup, variations, and logging screen without searching.',
+    body: 'Add an NFC tag or QR sticker to each machine. You buy the physical tags; the dashboard encodes them. Members land on the correct movement, machine setup, variations, and logging screen without searching.',
   },
   {
     title: 'Use your own trainer videos',
@@ -67,11 +68,12 @@ const faqs = [
   },
   {
     question: 'What does LIFTAG cost for gyms?',
-    answer: 'Tags, listing, machine setup, and the core dashboard are free forever. Advanced business tools are optional.',
+    answer: 'Listing, machine setup, and the dashboard to create and manage NFC tags and QR codes are free forever. Physical NFC tags and QR stickers are not included: gyms buy those themselves. Advanced business tools are optional.',
   },
+  NFC_QR_HARDWARE_FAQ,
   {
     question: 'How does LIFTAG compare to Liftd, ScanLiftLog, or RepTag?',
-    answer: 'LIFTAG is the only one of those four that ships NFC and QR tags and keeps core gym tools free. Liftd leads on paid owner-side churn analytics. ScanLiftLog is the no-app option. RepTag is strongest for DACH studios that want trainer chat and a digital floor plan. The full table is on the QR and NFC comparison page.',
+    answer: 'LIFTAG is the only one of those four that keeps core gym tools free, including the dashboard to create NFC and QR codes. Gyms buy the physical tags themselves. Liftd leads on paid owner-side churn analytics. ScanLiftLog is the no-app option. RepTag is strongest for DACH studios that want trainer chat and a digital floor plan. The full table is on the QR and NFC comparison page.',
   },
 ]
 </script>
@@ -91,7 +93,7 @@ const faqs = [
       <p class="protocol gym-compare-eyebrow">THE DECIDER</p>
       <h2 class="gym-compare-title">The only free core in the category.</h2>
       <p class="gym-compare-lead">
-        Liftd, ScanLiftLog, and RepTag all charge the gym a monthly platform fee. LIFTAG ships NFC and QR tags and keeps listing, machine setup, and the core dashboard free.
+        Liftd, ScanLiftLog, and RepTag all charge the gym a monthly platform fee. LIFTAG keeps listing, machine setup, and the dashboard to create NFC and QR codes free. Gyms buy the physical tags themselves.
       </p>
       <GymQrComparisonTable
         kind="matrix"

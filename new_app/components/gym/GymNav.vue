@@ -121,7 +121,7 @@ onBeforeUnmount(() => {
         ><NuxtLink to="/get">Get the app ↗</NuxtLink>
       </nav>
       <a class="btn-primary gx-nav__kit" href="#kit" @click="emit('kit')"
-        ><span>Request your </span><span class="gx-nav__kit-label">free kit</span></a
+        ><span>Become a </span><span class="gx-nav__kit-label">partner gym</span></a
       >
       <button
         ref="menuToggle"

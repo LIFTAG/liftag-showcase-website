@@ -39,7 +39,7 @@ LIFTAG positions itself like a high-end SaaS product built for real training. Th
 6. **Progress** - Make analytics and PR tracking feel tangible.
 7. **App Merge** - Show LIFTAG replacing scattered gym apps and tools.
 8. **Trainers** - Expand into coaching profiles and trainer discovery.
-9. **Gyms** - Explain the free QR kit, verified gym presence, and member value.
+9. **Gyms** - Explain the free dashboard to create NFC and QR codes, that gyms buy the physical tags themselves, verified gym presence, and member value.
 10. **Dashboard** - Signal professional-grade analytics and operational visibility.
 11. **Roadmap** - Show the platform vision beyond launch features.
 12. **Final CTA** - Bring the promise back to action: track real progress, scan real machines, skip the spreadsheet.

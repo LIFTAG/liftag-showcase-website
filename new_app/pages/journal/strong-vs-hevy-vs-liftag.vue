@@ -122,7 +122,7 @@ useLiftagStructuredData([
                     <th scope="row">Gym machine tags</th>
                     <td>None</td>
                     <td>None</td>
-                    <td>NFC + QR, shipped free to partner gyms</td>
+                    <td>NFC + QR at partner gyms; gyms buy the stickers</td>
                   </tr>
                   <tr>
                     <th scope="row">PRs, 1RM, rest timer</th>
