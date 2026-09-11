@@ -54,6 +54,9 @@ import {
   DISCOVERY_BADGE_PX,
   DISCOVERY_GLOBE_BADGE,
   GLOBE_SETTLE_AT,
+  GLOBE_PHONE_HOLD,
+  GLOBE_PHONE_FADE,
+  GLOBE_REVEAL_START,
   GLOBE_REVEAL_PROGRESS,
   GLOBE_FOCUS_PROGRESS,
   GLOBE_SURFACE_ALTITUDE,
@@ -97,13 +100,21 @@ test("planet zoom-out follows scroll, not elapsed time", () => {
     new URL("../utils/gymscan/discoveryTimeline.ts", import.meta.url),
     "utf8",
   );
-  assert.match(timeline, /progress \/ GLOBE_REVEAL_PROGRESS/);
+  assert.match(timeline, /progress - GLOBE_REVEAL_START/);
   assert.doesNotMatch(timeline, /seconds \/ GLOBE_REVEAL/);
-  assert.deepEqual(globeJourneyAt(0), { reveal: 0, focus: 0, labels: 0 });
+  assert.deepEqual(globeJourneyAt(0), {
+    reveal: 0,
+    focus: 0,
+    labels: 0,
+    phoneOut: 0,
+  });
   assert.equal(globeJourneyAt(12, 0).reveal, 0, "waiting does not pull back from the gym");
   assert.equal(globeJourneyAt(0, GLOBE_REVEAL_PROGRESS).reveal, 1);
   assert.equal(globeJourneyAt(0, GLOBE_REVEAL_PROGRESS).focus, 0);
-  const mid = globeJourneyAt(0, GLOBE_REVEAL_PROGRESS / 2).reveal;
+  const mid = globeJourneyAt(
+    0,
+    (GLOBE_REVEAL_START + GLOBE_REVEAL_PROGRESS) / 2,
+  ).reveal;
   assert.ok(mid > 0.4 && mid < 0.6);
   let previous = 0;
   for (let step = 0; step <= 200; step++) {
@@ -112,6 +123,22 @@ test("planet zoom-out follows scroll, not elapsed time", () => {
     assert.ok(reveal - previous < 0.02, "zoom-out must stay continuous");
     previous = reveal;
   }
+});
+
+test("the parked phone recedes before Earth is allowed on screen", () => {
+  assert.ok(GLOBE_REVEAL_START > GLOBE_PHONE_HOLD);
+  assert.equal(GLOBE_REVEAL_START, GLOBE_PHONE_HOLD + GLOBE_PHONE_FADE);
+  assert.equal(globeJourneyAt(0, 0).phoneOut, 0);
+  assert.equal(globeJourneyAt(0, GLOBE_PHONE_HOLD).phoneOut, 0);
+  assert.equal(globeJourneyAt(0, GLOBE_REVEAL_START).phoneOut, 1);
+  assert.equal(globeJourneyAt(0, GLOBE_REVEAL_START).reveal, 0);
+  assert.ok(globeJourneyAt(0, GLOBE_REVEAL_START + 0.001).reveal < 0.02);
+  const midPhone = globeJourneyAt(
+    0,
+    GLOBE_PHONE_HOLD + GLOBE_PHONE_FADE / 2,
+  );
+  assert.ok(midPhone.phoneOut > 0.4 && midPhone.phoneOut < 0.6);
+  assert.equal(midPhone.reveal, 0);
 });
 
 test("Slovakia approach waits until the zoom-out has finished", () => {
@@ -272,7 +299,7 @@ test("the gym listing blooms out of the Bratislava pin after the 3D phone recede
   assert.match(host, /publishListing/);
   assert.match(host, /gd-location-bratislava/);
   assert.match(host, /discoveryListingPinBox/);
-  assert.match(host, /Math\.max\(focus, floor\)/);
+  assert.match(host, /Math\.max\(phoneOut, floor\)/);
   assert.doesNotMatch(host, /cinemaPhoneSlot/);
   assert.match(host, /--gd-box-left/);
   assert.match(host, /discoveryAt\(progress\)\.floor < 0\.12/);

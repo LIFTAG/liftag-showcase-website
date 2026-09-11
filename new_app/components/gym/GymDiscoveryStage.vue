@@ -105,7 +105,7 @@ function draw(time: number) {
     reveal = point.reveal;
     spawning = point.spawning;
     publishEarthOut(reveal);
-    publishListing(point.listing, point.floor, point.focus);
+    publishListing(point.listing, point.floor, point.phoneOut);
   } catch {
     lost();
     return;
@@ -195,11 +195,11 @@ function publishListingMix(
   target: HTMLElement,
   listing: number,
   floor: number,
-  focus: number,
+  phoneOut: number,
 ) {
   target.style.setProperty("--gd-listing", listing.toFixed(4));
   target.style.setProperty("--gd-listing-card", listingCard(listing).toFixed(4));
-  target.style.setProperty("--gd-phone-out", Math.max(focus, floor).toFixed(4));
+  target.style.setProperty("--gd-phone-out", Math.max(phoneOut, floor).toFixed(4));
   target.style.setProperty("--gd-floor", floor.toFixed(4));
 }
 function publishListingBox(
@@ -229,7 +229,7 @@ function pinOrigin(sticky: HTMLElement) {
     DISCOVERY_LISTING_PIN_SIZE,
   );
 }
-function publishListing(listing: number, floor: number, focus: number) {
+function publishListing(listing: number, floor: number, phoneOut: number) {
   const sticky = host.value?.parentElement;
   if (!sticky) return;
   const profile = sticky.querySelector(".gd-profile") as HTMLElement | null;
@@ -249,10 +249,10 @@ function publishListing(listing: number, floor: number, focus: number) {
     listingRest && listingPin
       ? discoveryListingBox(listingPin, listingRest, listing)
       : null;
-  publishListingMix(sticky, listing, floor, focus);
+  publishListingMix(sticky, listing, floor, phoneOut);
   if (box) publishListingBox(sticky, box);
   const page = rootPage();
-  if (page) publishListingMix(page, listing, floor, focus);
+  if (page) publishListingMix(page, listing, floor, phoneOut);
 }
 function activity() {
   stop();
@@ -312,7 +312,7 @@ onMounted(() => {
       publishListing(
         frame.listing,
         frame.floor,
-        globeJourneyAt(0, props.film.progress).focus,
+        globeJourneyAt(0, props.film.progress).phoneOut,
       );
       boot();
     } else clearEarthOut();

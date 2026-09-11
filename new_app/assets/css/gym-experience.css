@@ -1956,7 +1956,7 @@ html[data-gym-motion="reduce"] {
   z-index: 5;
 }
 .gx-cinema.is-ready.is-discovery canvas {
-  /* Stay the 3D parked phone until the listing plate hands off to the card. */
+  /* Hold the custom-video phone, then recede before Earth is on screen. */
   opacity: clamp(0, calc(1 - var(--gd-phone-out, 0)), 1);
   transition: none;
   will-change: opacity;

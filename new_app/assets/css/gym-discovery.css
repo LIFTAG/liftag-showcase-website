@@ -3,8 +3,7 @@
   z-index: 4;
   height: 450svh;
   padding: 0 !important;
-  /* Plate fades in with the zoom-out so it does not cover the 3D phone
-     while this section is still sliding over the instruction scene. */
+  /* Plate waits until the 3D phone has receded, then fades in with Earth. */
   background: oklch(12% 0.012 151 / var(--gx-earth-out, 0));
   scroll-margin-top: calc(-76px - env(safe-area-inset-top));
 }

@@ -317,6 +317,7 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
     reveal: 0,
     listing: 0,
     floor: 0,
+    phoneOut: 0,
     spawning: false,
   };
   function resize() {
@@ -592,6 +593,7 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
     result.spawning = spawning;
     result.listing = frame.listing;
     result.floor = frame.floor;
+    result.phoneOut = journey.phoneOut;
     return result;
   }
   return {

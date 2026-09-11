@@ -155,8 +155,13 @@ export type DiscoveryTitlePose = {
 
 export const GLOBE_SETTLE_AT = 2.8;
 export const GLOBE_WAVE_PERIOD = 3.7;
+/** Keep the parked 3D phone after the custom-video beat. */
+export const GLOBE_PHONE_HOLD = 0.05;
+/** Then fade that phone before Earth is allowed on screen. */
+export const GLOBE_PHONE_FADE = 0.05;
+export const GLOBE_REVEAL_START = GLOBE_PHONE_HOLD + GLOBE_PHONE_FADE;
 /** Scroll progress that finishes the gym-to-Earth zoom-out. */
-export const GLOBE_REVEAL_PROGRESS = 0.16;
+export const GLOBE_REVEAL_PROGRESS = 0.22;
 /** Scroll progress that finishes the north-up approach to Slovakia. */
 export const GLOBE_FOCUS_PROGRESS = 0.27;
 /** Camera height above the globe surface at the start of the zoom-out. */
@@ -170,7 +175,13 @@ export const GLOBE_PRIOR_SCALE = 0.012;
  * Construction passes still take elapsed time; the camera does not.
  */
 export function globeJourneyAt(_seconds: number, progress = 0) {
-  const reveal = smoothstep(progress / GLOBE_REVEAL_PROGRESS);
+  const phoneOut = smoothstep(
+    (progress - GLOBE_PHONE_HOLD) / GLOBE_PHONE_FADE,
+  );
+  const reveal = smoothstep(
+    (progress - GLOBE_REVEAL_START) /
+      (GLOBE_REVEAL_PROGRESS - GLOBE_REVEAL_START),
+  );
   const focus = smoothstep(
     (progress - GLOBE_REVEAL_PROGRESS) /
       (GLOBE_FOCUS_PROGRESS - GLOBE_REVEAL_PROGRESS),
@@ -178,7 +189,7 @@ export function globeJourneyAt(_seconds: number, progress = 0) {
   const labels =
     smoothstep((focus - 0.68) / 0.28) *
     (1 - smoothstep((progress - GLOBE_FOCUS_PROGRESS) / 0.04));
-  return { reveal, focus, labels };
+  return { reveal, focus, labels, phoneOut };
 }
 
 /** Logarithmic altitude so equal time covers equal changes of scale. */
@@ -300,8 +311,8 @@ export function discoveryAt(progress: number) {
   );
   return {
     listing: smoothstep((progress - GLOBE_FOCUS_PROGRESS) / 0.1),
-    /** Cinema overlay is the 3D phone from the first frames of discovery. */
-    lift: smoothstep(progress / 0.045),
+    /** Parked 3D phone recedes before Earth. Same window as globeJourneyAt.phoneOut. */
+    lift: smoothstep((progress - GLOBE_PHONE_HOLD) / GLOBE_PHONE_FADE),
     floor: smoothstep((progress - 0.43) / 0.16),
     overhead: smoothstep((progress - 0.61) / 0.16),
     morph,
