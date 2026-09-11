@@ -114,8 +114,9 @@ useLiftagStructuredData([
               <li>If it fails, log the fail. A skipped row is how stalls hide.</li>
             </ol>
             <p>
-              LIFTAG keeps the last working sets, PRs, and estimated 1RM on the lift you actually performed — the
-              <a href="/exercises">library</a> is the same catalog as the app. Estimated 1RM is a trend, not a meet attempt.
+              LIFTAG keeps the last working sets, PRs, and estimated 1RM on the lift you actually performed. The
+              <a href="/exercises">library</a> is the same catalog as the app. Estimated 1RM is Epley, the same math as the
+              <a href="/tools/1rm-calculator">1RM calculator</a>: a trend, not a meet attempt.
             </p>
           </section>
 

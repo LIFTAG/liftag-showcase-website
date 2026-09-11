@@ -14,8 +14,9 @@ useLiftagSeo({
 const faqs = [
   {
     question: 'What NFC tag should a gym put on machines?',
-    answer: 'NTAG213 is enough for a URL. NTAG215/216 give more memory if you later store extra records. LIFTAG ships a dual NFC + QR kit, so the gym does not have to source chips, print stickers, and hope they encode the same exercise.',
+    answer: 'NTAG213 is enough for a URL. NTAG215/216 give more memory if you later store extra records. Gyms buy the chips and stickers themselves, then encode NFC and QR from the LIFTAG dashboard so both open the same exercise.',
   },
+  NFC_QR_HARDWARE_FAQ,
   {
     question: 'Where should the tag go on the machine?',
     answer: 'On a flat, clean surface at hand height, away from the weight stack’s deepest metal well if you can. The lifter should tap without crouching into the footplate. Same spot on every machine in the club so the habit transfers.',
@@ -100,7 +101,7 @@ useLiftagStructuredData([
               <li><strong>Both on one plate</strong> — the only setup that does not create a support ticket per phone brand.</li>
             </ul>
             <p>
-              In the small machine-tag category, LIFTAG is the one that ships NFC + QR as the default kit. Liftd can do NFC if the gym supplies tags. ScanLiftLog and RepTag are QR-first. Details live in the
+              In the small machine-tag category, LIFTAG treats NFC + QR as the default: gyms create both from the dashboard and buy the physical tags. Liftd can do NFC if the gym supplies tags. ScanLiftLog and RepTag are QR-first. Details live in the
               <a href="/best-gym-qr-nfc-app">gym QR comparison</a>.
             </p>
           </section>
@@ -123,9 +124,9 @@ useLiftagStructuredData([
               NTAG213 is enough for a URL. Step up only if you have a reason. Do not buy mystery eBay chips and hope they survive a squat rack. Durability is the sticker laminate and the adhesive, not the NFC forum type number on a spreadsheet.
             </p>
             <p>
-              If you do not want to source any of that, that is the kit LIFTAG sends partner gyms: both radios, mapped to the catalog, free at the core. The floor walk is
+              LIFTAG does not buy or ship those chips. Partner gyms purchase NFC tags and QR stickers, then encode both from the dashboard so they open the same catalog exercise. The floor walk is
               <a href="/journal/gym-nfc-rollout">how gyms roll out NFC tags</a>.
-              <a href="/contact/partner">Ask for a rollout</a>.
+              <a href="/contact/partner">Become a partner gym</a>.
             </p>
           </section>
 
@@ -137,7 +138,7 @@ useLiftagStructuredData([
           <section class="guide-method">
             <p class="protocol">Written by</p>
             <p>
-              The LIFTAG team. We ship the tags this guide describes. Updated August 2026.
+              The LIFTAG team. Gyms buy the tags this guide describes; LIFTAG provides the dashboard. Updated August 2026.
             </p>
           </section>
         </div>

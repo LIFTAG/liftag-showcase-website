@@ -68,6 +68,7 @@ test('names the product as a workout logger', () => {
   assert.ok(liftagSoftwareApplication.alternateName.includes('LIFTAG Workout Logger'))
   assert.ok(liftagOrganization.knowsAbout.includes('workout logger'))
   assert.ok(liftagOrganization.knowsAbout.includes('workout logbook'))
+  assert.ok(liftagOrganization.knowsAbout.includes('one-rep max'))
 })
 
 test('emits HowTo steps that match visible copy', () => {

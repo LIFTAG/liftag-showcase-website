@@ -51,7 +51,7 @@ const rows: Row[] = [
   {
     need: 'Gym machine tags',
     hevy: 'None.',
-    liftag: 'NFC tap and QR scan, shipped free to partner gyms.',
+    liftag: 'NFC tap and QR scan at partner gyms. Gyms create the codes in the dashboard and buy the stickers.',
   },
   {
     need: 'Social feed',

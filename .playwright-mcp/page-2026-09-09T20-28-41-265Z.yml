@@ -1,0 +1,820 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - link "LIFTAG logo LIFTAG" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e5]:
+          - img "LIFTAG logo"
+        - generic [ref=e6]: LIFTAG
+      - navigation [ref=e7]:
+        - link "Demo" [ref=e8] [cursor=pointer]:
+          - /url: /demo
+          - generic [aria-hidden] [ref=e9]:
+            - generic [ref=e10]:
+              - generic [ref=e11]: D
+              - text: D
+            - generic [ref=e12]:
+              - generic [ref=e13]: e
+              - text: e
+            - generic [ref=e14]:
+              - generic [ref=e15]: m
+              - text: m
+            - generic [ref=e16]:
+              - generic [ref=e17]: o
+              - text: o
+        - link "Lifters" [ref=e18] [cursor=pointer]:
+          - /url: /#lifters
+          - generic [aria-hidden] [ref=e19]:
+            - generic [ref=e20]:
+              - generic [ref=e21]: L
+              - text: L
+            - generic [ref=e22]:
+              - generic [ref=e23]: i
+              - text: i
+            - generic [ref=e24]:
+              - generic [ref=e25]: f
+              - text: f
+            - generic [ref=e26]:
+              - generic [ref=e27]: t
+              - text: t
+            - generic [ref=e28]:
+              - generic [ref=e29]: e
+              - text: e
+            - generic [ref=e30]:
+              - generic [ref=e31]: r
+              - text: r
+            - generic [ref=e32]:
+              - generic [ref=e33]: s
+              - text: s
+        - link "Gyms" [ref=e34] [cursor=pointer]:
+          - /url: /#gyms
+          - generic [aria-hidden] [ref=e35]:
+            - generic [ref=e36]:
+              - generic [ref=e37]: G
+              - text: G
+            - generic [ref=e38]:
+              - generic [ref=e39]: "y"
+              - text: "y"
+            - generic [ref=e40]:
+              - generic [ref=e41]: m
+              - text: m
+            - generic [ref=e42]:
+              - generic [ref=e43]: s
+              - text: s
+        - link "Trainers" [ref=e44] [cursor=pointer]:
+          - /url: /#trainers
+          - generic [aria-hidden] [ref=e45]:
+            - generic [ref=e46]:
+              - generic [ref=e47]: T
+              - text: T
+            - generic [ref=e48]:
+              - generic [ref=e49]: r
+              - text: r
+            - generic [ref=e50]:
+              - generic [ref=e51]: a
+              - text: a
+            - generic [ref=e52]:
+              - generic [ref=e53]: i
+              - text: i
+            - generic [ref=e54]:
+              - generic [ref=e55]: "n"
+              - text: "n"
+            - generic [ref=e56]:
+              - generic [ref=e57]: e
+              - text: e
+            - generic [ref=e58]:
+              - generic [ref=e59]: r
+              - text: r
+            - generic [ref=e60]:
+              - generic [ref=e61]: s
+              - text: s
+        - link "Exercises" [ref=e62] [cursor=pointer]:
+          - /url: /exercises
+          - generic [aria-hidden] [ref=e63]:
+            - generic [ref=e64]:
+              - generic [ref=e65]: E
+              - text: E
+            - generic [ref=e66]:
+              - generic [ref=e67]: x
+              - text: x
+            - generic [ref=e68]:
+              - generic [ref=e69]: e
+              - text: e
+            - generic [ref=e70]:
+              - generic [ref=e71]: r
+              - text: r
+            - generic [ref=e72]:
+              - generic [ref=e73]: c
+              - text: c
+            - generic [ref=e74]:
+              - generic [ref=e75]: i
+              - text: i
+            - generic [ref=e76]:
+              - generic [ref=e77]: s
+              - text: s
+            - generic [ref=e78]:
+              - generic [ref=e79]: e
+              - text: e
+            - generic [ref=e80]:
+              - generic [ref=e81]: s
+              - text: s
+        - link "Journal" [ref=e82] [cursor=pointer]:
+          - /url: /journal
+          - generic [aria-hidden] [ref=e83]:
+            - generic [ref=e84]:
+              - generic [ref=e85]: J
+              - text: J
+            - generic [ref=e86]:
+              - generic [ref=e87]: o
+              - text: o
+            - generic [ref=e88]:
+              - generic [ref=e89]: u
+              - text: u
+            - generic [ref=e90]:
+              - generic [ref=e91]: r
+              - text: r
+            - generic [ref=e92]:
+              - generic [ref=e93]: "n"
+              - text: "n"
+            - generic [ref=e94]:
+              - generic [ref=e95]: a
+              - text: a
+            - generic [ref=e96]:
+              - generic [ref=e97]: l
+              - text: l
+        - link "Pricing" [ref=e98] [cursor=pointer]:
+          - /url: /pricing
+          - generic [aria-hidden] [ref=e99]:
+            - generic [ref=e100]:
+              - generic [ref=e101]: P
+              - text: P
+            - generic [ref=e102]:
+              - generic [ref=e103]: r
+              - text: r
+            - generic [ref=e104]:
+              - generic [ref=e105]: i
+              - text: i
+            - generic [ref=e106]:
+              - generic [ref=e107]: c
+              - text: c
+            - generic [ref=e108]:
+              - generic [ref=e109]: i
+              - text: i
+            - generic [ref=e110]:
+              - generic [ref=e111]: "n"
+              - text: "n"
+            - generic [ref=e112]:
+              - generic [ref=e113]: g
+              - text: g
+      - generic [ref=e114]:
+        - link "Dashboard" [ref=e115] [cursor=pointer]:
+          - /url: https://app.liftag.fit/login
+        - link "Get the app" [ref=e117] [cursor=pointer]:
+          - /url: /get
+    - main [ref=e118]:
+      - article [ref=e119]:
+        - generic [ref=e120]:
+          - generic [ref=e121]:
+            - generic [ref=e122]:
+              - navigation "Breadcrumb" [ref=e123]:
+                - link "LIFTAG" [ref=e124] [cursor=pointer]:
+                  - /url: /
+                - generic [aria-hidden] [ref=e125]: /
+                - generic [ref=e126]: Training tools
+              - heading "One-rep max calculator" [level=1] [ref=e127]: One-rep max calculator.
+              - paragraph [ref=e128]: One good set. Know your strength.
+            - link "The science behind your number" [ref=e129] [cursor=pointer]:
+              - /url: "#method"
+              - text: The science behind your number ↗
+          - generic [ref=e131]:
+            - generic [ref=e132]:
+              - generic [ref=e133]:
+                - generic [ref=e134]:
+                  - generic [ref=e135]:
+                    - heading "Your last set" [level=2] [ref=e136]
+                    - group "Weight unit" [ref=e137]:
+                      - button "kg" [pressed] [ref=e138] [cursor=pointer]
+                      - button "lb" [ref=e139] [cursor=pointer]
+                  - generic [ref=e140]:
+                    - generic [ref=e141]:
+                      - generic [ref=e142]:
+                        - text: Weight lifted
+                        - generic [ref=e143]: kg
+                      - generic [ref=e144]:
+                        - button "Decrease weight by 2.5 kg" [ref=e145] [cursor=pointer]: −
+                        - textbox "Weight lifted kg" [ref=e146]:
+                          - /placeholder: "100"
+                          - text: "100"
+                        - button "Increase weight by 2.5 kg" [ref=e147] [cursor=pointer]: +
+                    - generic [ref=e148]:
+                      - generic [ref=e149]: Repetitions
+                      - generic [ref=e150]:
+                        - button "Decrease reps by 1" [ref=e151] [cursor=pointer]: −
+                        - textbox "Repetitions" [ref=e152]:
+                          - /placeholder: "5"
+                          - text: "5"
+                        - button "Increase reps by 1" [ref=e153] [cursor=pointer]: +
+                  - group "Quick-set reps" [ref=e154]:
+                    - generic [ref=e155]:
+                      - generic [ref=e156]: Quick-set reps
+                      - generic [ref=e157]: Tap a count
+                    - generic [ref=e158]:
+                      - button "Set 2 reps" [ref=e159] [cursor=pointer]:
+                        - strong [ref=e160]: "2"
+                        - generic [ref=e161]: reps
+                      - button "Set 3 reps" [ref=e162] [cursor=pointer]:
+                        - strong [ref=e163]: "3"
+                        - generic [ref=e164]: reps
+                      - button "Set 4 reps" [ref=e165] [cursor=pointer]:
+                        - strong [ref=e166]: "4"
+                        - generic [ref=e167]: reps
+                      - button "Set 5 reps" [pressed] [ref=e168] [cursor=pointer]:
+                        - strong [ref=e169]: "5"
+                        - generic [ref=e170]: reps
+                      - button "Set 6 reps" [ref=e171] [cursor=pointer]:
+                        - strong [ref=e172]: "6"
+                        - generic [ref=e173]: reps
+                      - button "Set 7 reps" [ref=e174] [cursor=pointer]:
+                        - strong [ref=e175]: "7"
+                        - generic [ref=e176]: reps
+                      - button "Set 8 reps" [ref=e177] [cursor=pointer]:
+                        - strong [ref=e178]: "8"
+                        - generic [ref=e179]: reps
+                      - button "Set 9 reps" [ref=e180] [cursor=pointer]:
+                        - strong [ref=e181]: "9"
+                        - generic [ref=e182]: reps
+                      - button "Set 10 reps" [ref=e183] [cursor=pointer]:
+                        - strong [ref=e184]: "10"
+                        - generic [ref=e185]: reps
+                      - button "Set 11 reps" [ref=e186] [cursor=pointer]:
+                        - strong [ref=e187]: "11"
+                        - generic [ref=e188]: reps
+                      - button "Set 12 reps" [ref=e189] [cursor=pointer]:
+                        - strong [ref=e190]: "12"
+                        - generic [ref=e191]: reps
+                  - paragraph [ref=e192]: Use clean reps close to failure. Estimate only.
+                - region [ref=e193]:
+                  - generic [ref=e194]:
+                    - heading "Your estimated 1RM" [level=2] [ref=e195]
+                    - generic [ref=e196]: Live
+                  - status [ref=e198]: Estimated one-rep max 116.7 kg. Epley. 5 reps. high confidence.
+                  - generic [aria-hidden] [ref=e199]:
+                    - generic [ref=e200]: "116.7"
+                    - generic [ref=e201]: kg
+                  - paragraph [ref=e202]: 257.2 lb · Epley estimate
+                  - paragraph [ref=e245]: Your set · 86% of max
+                  - generic [ref=e246]:
+                    - generic [ref=e247]:
+                      - text: Training max
+                      - generic [ref=e248]: 90% · rounded
+                    - strong [ref=e249]: 105 kg
+                  - paragraph [ref=e250]: High confidence · An estimate, not a tested maximum.
+              - region [ref=e251]:
+                - generic [ref=e252]:
+                  - generic [ref=e253]:
+                    - heading "How strong is that?" [level=2] [ref=e254]
+                    - generic [ref=e255]: Optional
+                  - paragraph [ref=e256]: Search the lift, then add bodyweight to compare.
+                  - generic [ref=e784]:
+                    - generic [ref=e785]:
+                      - text: Exercise
+                      - generic [ref=e786]: 107 to compare
+                    - generic [ref=e787]:
+                      - combobox "Exercise 107 to compare" [expanded] [active] [ref=e788]: rdl
+                      - button "Clear search" [ref=e795] [cursor=pointer]
+                    - listbox "Matching exercises" [ref=e796]:
+                      - option "Romanian deadlift Barbell" [selected] [ref=e797] [cursor=pointer]:
+                        - strong [ref=e798]: Romanian deadlift
+                        - generic [ref=e799]: Barbell
+                      - option "Dumbbell Romanian deadlift Dumbbell" [ref=e800] [cursor=pointer]:
+                        - strong [ref=e801]: Dumbbell Romanian deadlift
+                        - generic [ref=e802]: Dumbbell
+                    - status [ref=e794]: 2 matches.
+                  - generic [ref=e268]:
+                    - generic [ref=e269]:
+                      - generic [ref=e270]:
+                        - text: Your bodyweight
+                        - generic [ref=e271]: kg
+                      - textbox "Your bodyweight kg" [ref=e272]:
+                        - /placeholder: e.g. 80
+                    - generic [ref=e273]:
+                      - generic [ref=e274]: Compare with
+                      - combobox "Compare with" [ref=e275]:
+                        - option "Select group" [disabled] [selected]
+                        - option "Male lifters"
+                        - option "Female lifters"
+                - generic [ref=e276]:
+                  - status [ref=e277]:
+                    - paragraph [ref=e278]:
+                      - strong [ref=e279]: Find your level
+                  - generic [aria-hidden] [ref=e331]:
+                    - generic [ref=e332]: "0"
+                    - generic [ref=e333]: 50th · intermediate
+                    - generic [ref=e334]: "100"
+                  - paragraph [ref=e335]: Search a barbell, dumbbell, cable or machine exercise to compare.
+                - paragraph [ref=e336]:
+                  - text: Approximation from Strength Level bodyweight-ratio standards. Lifter benchmarks, not the general population. No age adjustment.
+                  - link "How it works" [ref=e337] [cursor=pointer]:
+                    - /url: "#percentile-method"
+                    - text: How it works ↗
+              - generic [ref=e338]:
+                - paragraph [ref=e339]: No signup. No waiting. Just your numbers.
+                - generic [ref=e340]:
+                  - button "Copy result" [ref=e341] [cursor=pointer]
+                  - button "Copy link ↗" [ref=e342] [cursor=pointer]
+                  - button "Share" [ref=e769] [cursor=pointer]
+                - status [ref=e343]
+            - generic [ref=e344]:
+              - group [ref=e345]:
+                - generic [ref=e346] [cursor=pointer]:
+                  - generic [ref=e347]:
+                    - strong [ref=e348]: Plan your next set
+                    - text: Training percentages & rep targets
+                  - generic [aria-hidden] [ref=e349]: +
+              - group [ref=e350]:
+                - generic "Compare all seven formulas 5.6% spread +" [ref=e351] [cursor=pointer]:
+                  - text: Compare all seven formulas
+                  - generic [ref=e352]: 5.6% spread
+                  - text: +
+          - generic [ref=e353]:
+            - paragraph [ref=e354]:
+              - strong [ref=e355]: Make progress a habit.
+              - text: Track your sets. Watch your max grow.
+            - link "Track with LIFTAG" [ref=e356] [cursor=pointer]:
+              - /url: /get
+              - text: Track with LIFTAG ↗
+          - generic [ref=e357]:
+            - complementary [ref=e358]:
+              - paragraph [ref=e359]: Behind the numbers
+              - navigation "Calculator guide" [ref=e360]:
+                - link "Understand your 1RM" [ref=e361] [cursor=pointer]:
+                  - /url: "#what"
+                - link "Using the calculator" [ref=e362] [cursor=pointer]:
+                  - /url: "#how"
+                - link "Our method" [ref=e363] [cursor=pointer]:
+                  - /url: "#method"
+                - link "Strength percentiles" [ref=e364] [cursor=pointer]:
+                  - /url: "#percentile-method"
+                - link "The seven formulas" [ref=e365] [cursor=pointer]:
+                  - /url: "#formulas"
+                - link "Accuracy & limitations" [ref=e366] [cursor=pointer]:
+                  - /url: "#when-wrong"
+                - link "Common questions" [ref=e367] [cursor=pointer]:
+                  - /url: "#faq"
+                - link "Sources & review" [ref=e368] [cursor=pointer]:
+                  - /url: "#sources"
+              - link "Back to calculator ↑" [ref=e369] [cursor=pointer]:
+                - /url: "#calculator"
+            - generic [ref=e370]:
+              - generic [ref=e371]:
+                - heading "What a 1RM is, and what a PR is" [level=2] [ref=e372]
+                - paragraph [ref=e373]: "A one-rep max is the most you can lift once, with the standard you actually compete or train with. A PR is any personal record: a 5-rep bench, a paused squat, a volume day. People search “PR calculator” when they mean this tool. It estimates a 1RM. LIFTAG stores both."
+                - paragraph [ref=e374]: You do not need a meet to use the number. You need a hard set of a few reps, a named formula, and a log that does not invent a second max next week.
+              - generic [ref=e375]:
+                - heading "How to use this calculator" [level=2] [ref=e376]
+                - heading "Weight, reps, units" [level=3] [ref=e377]
+                - paragraph [ref=e378]: Type the load and the clean reps. Switch kg or lb; the physical weight stays put. The result updates as you type. No submit button, no email gate, no app wall in front of the number.
+                - heading "Pick an exercise to compare your strength" [level=3] [ref=e379]
+                - paragraph [ref=e380]: In How strong is that?, search from 107 common gym exercises with strength benchmarks, across barbell, dumbbell, cable, and machine lifts. Choose a lift, enter your bodyweight, and select a comparison group to see an approximate percentile. Exercise selection changes the comparison, not the 1RM equation.
+                - heading "Why 3–8 near failure beats a 15-rep burnout" [level=3] [ref=e381]
+                - paragraph [ref=e382]: Prediction error grows as the set gets longer. A hard 5 is the sweet spot. A 20-rep set measures how long you can last, not what you could unrack once. If you only have a high-rep set, do a heavier one. Then come back.
+              - generic [ref=e383]:
+                - heading "How LIFTAG estimates 1RM" [level=2] [ref=e384]
+                - paragraph [ref=e385]:
+                  - text: LIFTAG estimates 1RM with the Epley formula,
+                  - code [ref=e386]: 1RM = weight × (1 + reps / 30)
+                  - text: ", for sets of 1–10 reps near failure. A single is stored as the weight you lifted, not as 3% extra. This page uses the same estimator the LIFTAG app stores per exercise. Optional"
+                  - link "RPE" [ref=e387] [cursor=pointer]:
+                    - /url: /journal/what-is-rpe-lifting
+                  - text: is context on the set. It is not a second 1RM formula.
+                - paragraph [ref=e388]:
+                  - text: The formula, assumptions, and worked example are also available in a
+                  - link "plain Markdown version" [ref=e389] [cursor=pointer]:
+                    - /url: /tools/1rm-calculator.md
+                  - text: for readers and search assistants. Core tracking is free;
+                  - link "pricing" [ref=e390] [cursor=pointer]:
+                    - /url: /pricing
+                  - text: is the dated fact sheet.
+              - generic [ref=e391]:
+                - heading "How the strength percentile works" [level=2] [ref=e392]
+                - paragraph [ref=e393]: Your estimated 1RM divided by your bodyweight gives your strength-to-bodyweight ratio. We compare it with the published male or female ratios from Strength Level for the selected exercise. All 107 supported exercises have male and female benchmarks.
+                - paragraph [ref=e394]: The benchmark anchors are the 5th (beginner), 20th (novice), 50th (intermediate), 80th (advanced), and 95th (elite) percentiles. LIFTAG linearly interpolates between those anchors. Outside them, we show “below 5th” or “above 95th” instead of extrapolating.
+                - paragraph [ref=e395]: This is an approximate benchmark comparison, not a measured population percentile or Strength Level’s exact-bodyweight calculator. The source reflects people who log lifts, not all people. Broad ratios do not account for age, body proportions, or all differences across bodyweights. Comparisons are available for sets of 1–10 reps and bodyweights of 30–300 kg. A result ranks the selected exercise only, not your overall fitness.
+                - paragraph [ref=e396]: Dumbbell loads and results are per dumbbell, including the handle; goblet squats and dumbbell pullovers use one weight. Machine designs and pulley ratios vary, making machine comparisons especially approximate. Pull-ups, chin-ups, and dips use bodyweight plus added weight for a total-load 1RM estimate; they do not receive a percentile because compatible bodyweight-ratio benchmarks are unavailable here. All training loads for these exercises include bodyweight too. “Other exercise” also gives an estimate only.
+                - group [ref=e397]:
+                  - generic "All 107 exercise benchmarks & sources" [ref=e398] [cursor=pointer]
+              - generic [ref=e399]:
+                - heading "How the formulas work" [level=2] [ref=e400]
+                - paragraph [ref=e401]: Default is Epley so the website and the log agree. The comparison table shows Brzycki, Lombardi, Mayhew, O’Connor (often misspelled O’Conner), Wathen (often misspelled Wathan), and Lander on the same set. At 1 rep every formula returns the load you typed.
+                - paragraph [ref=e402]:
+                  - text: "Worked example, always true, no JavaScript required:"
+                  - strong [ref=e403]: 100 kg × 5
+                  - text: . Epley is
+                  - strong [ref=e404]: 116.7 kg
+                  - text: . 225 lb × 5 is 262.5 lb.
+                - table [ref=e406]:
+                  - caption [ref=e407]: 100 kg × 5 across published 1RM equations
+                  - rowgroup [ref=e408]:
+                    - row [ref=e409]:
+                      - columnheader "Formula" [ref=e410]
+                      - columnheader "Year" [ref=e411]
+                      - columnheader "Equation" [ref=e412]
+                      - columnheader "100 kg × 5" [ref=e413]
+                  - rowgroup [ref=e414]:
+                    - row [ref=e415]:
+                      - rowheader "Epley" [ref=e416]
+                      - cell "1985" [ref=e417]
+                      - cell [ref=e418]:
+                        - code [ref=e419]: 1RM = w × (1 + r / 30)
+                      - cell "116.7 kg" [ref=e420]
+                    - row [ref=e421]:
+                      - rowheader "Brzycki" [ref=e422]
+                      - cell "1993" [ref=e423]
+                      - cell [ref=e424]:
+                        - code [ref=e425]: 1RM = w × 36 / (37 − r)
+                      - cell "112.5 kg" [ref=e426]
+                    - row [ref=e427]:
+                      - rowheader "Lombardi" [ref=e428]
+                      - cell "1989" [ref=e429]
+                      - cell [ref=e430]:
+                        - code [ref=e431]: 1RM = w × r^0.10
+                      - cell "117.5 kg" [ref=e432]
+                    - row [ref=e433]:
+                      - rowheader "Mayhew" [ref=e434]
+                      - cell "1992" [ref=e435]
+                      - cell [ref=e436]:
+                        - code [ref=e437]: 1RM = 100w / (52.2 + 41.9 e^(−0.055r))
+                      - cell "119 kg" [ref=e438]
+                    - row [ref=e439]:
+                      - rowheader "O'Connor" [ref=e440]
+                      - cell "1989" [ref=e441]
+                      - cell [ref=e442]:
+                        - code [ref=e443]: 1RM = w × (1 + r / 40)
+                      - cell "112.5 kg" [ref=e444]
+                    - row [ref=e445]:
+                      - rowheader "Wathen" [ref=e446]
+                      - cell "1994" [ref=e447]
+                      - cell [ref=e448]:
+                        - code [ref=e449]: 1RM = 100w / (48.8 + 53.8 e^(−0.075r))
+                      - cell "116.6 kg" [ref=e450]
+                    - row [ref=e451]:
+                      - rowheader "Lander" [ref=e452]
+                      - cell "1985" [ref=e453]
+                      - cell [ref=e454]:
+                        - code [ref=e455]: 1RM = 100w / (101.3 − 2.67123r)
+                      - cell "113.7 kg" [ref=e456]
+                - heading "Epley (1985)" [level=3] [ref=e457]
+                - paragraph [ref=e458]:
+                  - text: Linear.
+                  - code [ref=e459]: 1RM = w × (1 + r / 30)
+                  - text: . At 10 reps it meets Brzycki at w × 4/3. Below 10 it runs a little high. This is LIFTAG’s default because it is stable, named, and already in the app.
+                - heading "Brzycki (1993)" [level=3] [ref=e460]
+                - paragraph [ref=e461]:
+                  - code [ref=e462]: 1RM = w × 36 / (37 − r)
+                  - text: . Conservative in the middle. Undefined at 37 reps, which is why this page will not show a Brzycki number on a 30-rep set as if it were a max.
+                - heading "The rest of the family" [level=3] [ref=e463]
+                - paragraph [ref=e464]:
+                  - text: Lombardi is a power curve. Mayhew and Wathen are exponential and were the LeSuer bench winners. O’Connor is a shallower linear (r/40). Lander is the NSCA-era percentage chart in equation form.
+                  - link "LeSuer et al. 1997" [ref=e465] [cursor=pointer]:
+                    - /url: https://journals.lww.com/nsca-jscr/abstract/1997/11000/the_accuracy_of_prediction_equations_for.1.aspx
+                  - text: "is still the paper to cite: every formula under-predicted deadlift by about 10%."
+              - generic [ref=e466]:
+                - heading "When the estimate is wrong" [level=2] [ref=e467]
+                - list [ref=e468]:
+                  - listitem [ref=e469]: High-rep sets. Past 10, uncertainty increases. Use a lower-rep set before making training decisions.
+                  - listitem [ref=e470]: Isolation lifts and machines. You get more reps at a given percent than on a free squat.
+                  - listitem [ref=e471]: A bounce bench next to a paused one. The formula cannot see the standard. The log can, if you keep it honest.
+                  - listitem [ref=e472]: Squat depth, deadlift start, grip. Formula disagreement is not a confidence interval and cannot diagnose the quality of a set.
+                  - listitem [ref=e473]:
+                    - text: Fatigue, a cut, bad sleep. Same kilos, different session. That is what
+                    - link "RPE" [ref=e474] [cursor=pointer]:
+                      - /url: /journal/what-is-rpe-lifting
+                    - text: is for.
+              - generic [ref=e475]:
+                - heading "Bench, squat, and deadlift maxes" [level=2] [ref=e476]
+                - paragraph [ref=e477]:
+                  - text: Select your exercise in the calculator for lift-specific context and strength benchmarks. The 1RM formulas remain the same. Most validation studies focus on
+                  - link "bench" [ref=e478] [cursor=pointer]:
+                    - /url: /exercises/barbell-bench-press
+                  - text: ","
+                  - link "squat" [ref=e479] [cursor=pointer]:
+                    - /url: /exercises/barbell-back-squat
+                  - text: ","
+                  - link "deadlift" [ref=e480] [cursor=pointer]:
+                    - /url: /exercises/conventional-deadlift
+                  - text: . A machine chest press 8RM is not a competition bench.
+                - paragraph [ref=e481]:
+                  - text: For percentage programs like 5/3/1, use the 90% training max, as a conservative reference.
+                  - link "Best workout app for powerlifting" [ref=e482] [cursor=pointer]:
+                    - /url: /journal/best-workout-app-for-powerlifting
+                  - text: covers how that looks in a log.
+              - generic [ref=e483]:
+                - heading "How to test a true 1RM" [level=2] [ref=e484]
+                - list [ref=e485]:
+                  - listitem [ref=e486]: Warm up to a heavy triple you already own.
+                  - listitem [ref=e487]: Take small jumps. Leave a rep in the tank until the last attempt.
+                  - listitem [ref=e488]: Use a spotter and safeties. Set the safety pins before adding load.
+                  - listitem [ref=e489]: Log the single. LIFTAG will store it as the max, not as an estimate.
+                - paragraph [ref=e490]:
+                  - text: Most weeks you should skip this. Log submax work, watch estimated 1RM trend, and add load when the
+                  - link "overload" [ref=e491] [cursor=pointer]:
+                    - /url: /journal/progressive-overload
+                  - text: is honest.
+              - generic [ref=e492]:
+                - heading "How LIFTAG uses 1RM" [level=2] [ref=e493]
+                - paragraph [ref=e494]: Every working set can update estimated 1RM on that exercise. The app uses Epley, per set, same as the default on this page. PRs stay on the lift you performed. Percentage cues read that history. Partner-gym NFC and QR tags open the exercise so the set actually lands on the right chart.
+                - paragraph [ref=e495]:
+                  - link "Get the app" [ref=e496] [cursor=pointer]:
+                    - /url: /get
+                  - text: . Core tracking is free on iOS and Android. Estimated 1RM is not paywalled.
+              - generic [ref=e497]:
+                - heading "Frequently asked questions" [level=2] [ref=e498]
+                - generic [ref=e499]:
+                  - generic [ref=e500]:
+                    - button "How do you calculate a one-rep max?" [expanded] [ref=e501] [cursor=pointer]:
+                      - generic [aria-hidden] [ref=e502]: "01"
+                      - generic [aria-hidden] [ref=e504]: +
+                    - region "How do you calculate a one-rep max?" [ref=e505]:
+                      - paragraph [ref=e507]: "Take a hard set of 2–10 reps and run Epley: 1RM = weight × (1 + reps / 30). A 100 kg set of 5 estimates 116.7 kg. That is the default in this calculator and in the LIFTAG app. It is an estimate, not a tested single."
+                  - generic [ref=e508]:
+                    - button "Which 1RM formula is most accurate?" [ref=e509] [cursor=pointer]:
+                      - generic [aria-hidden] [ref=e510]: "02"
+                      - generic [aria-hidden] [ref=e512]: +
+                    - paragraph [ref=e513]: None of them wins every lift. LeSuer et al. 1997 found Mayhew and Wathen closest on bench, Wathen on squat, and every equation low on deadlift by about 10%. LIFTAG uses Epley so the website matches the log. Use a hard set of 5 or fewer if the number has to be close.
+                  - generic [ref=e514]:
+                    - button "How accurate is a 1RM calculator?" [ref=e515] [cursor=pointer]:
+                      - generic [aria-hidden] [ref=e516]: "03"
+                      - generic [aria-hidden] [ref=e518]: +
+                    - paragraph [ref=e519]: On compounds, a hard 2–8 is usually inside about 5%. Past 10 reps the equations measure endurance, not a max. Reynolds, Gordon, and Robergs 2006 found 5RM beat 10RM beat 20RM. Do not take an estimate into a meet.
+                  - generic [ref=e520]:
+                    - button "Is 5 reps about 85% of 1RM?" [ref=e521] [cursor=pointer]:
+                      - generic [aria-hidden] [ref=e522]: "04"
+                      - generic [aria-hidden] [ref=e524]: +
+                    - paragraph [ref=e525]: NSCA load charts put a 5RM near 87% of a tested 1RM. Epley from a 5-rep set treats that set as about 86% of the estimated max (100 / 116.7). Close enough to program from. Not close enough to skip a real opener.
+                  - generic [ref=e526]:
+                    - button "Can I use this as a bench press or squat max calculator?" [ref=e527] [cursor=pointer]:
+                      - generic [aria-hidden] [ref=e528]: "05"
+                      - generic [aria-hidden] [ref=e530]: +
+                    - paragraph [ref=e531]: "Yes. Same tool, same URL. Pick the lift if you want the deadlift caveat: published equations under-predict deadlift by about 10%. Formulas were mostly validated on bench, squat, and deadlift, not on curls."
+                  - generic [ref=e532]:
+                    - button "Should I test a true 1RM or estimate it?" [ref=e533] [cursor=pointer]:
+                      - generic [aria-hidden] [ref=e534]: "06"
+                      - generic [aria-hidden] [ref=e536]: +
+                    - paragraph [ref=e537]: Most lifters should estimate. A true single needs a spotter, safeties, and a reason. If you only need percentages for next week, a hard set of 3–5 plus Epley is enough. ACSM still treats a tested 1RM as the gold standard, not as homework.
+                  - generic [ref=e538]:
+                    - button "Does LIFTAG calculate 1RM automatically?" [ref=e539] [cursor=pointer]:
+                      - generic [aria-hidden] [ref=e540]: "07"
+                      - generic [aria-hidden] [ref=e542]: +
+                    - paragraph [ref=e543]: Yes. Log the set. Estimated 1RM updates per exercise with Epley, the same math as this page. PRs stay on the lift you actually performed. Optional RPE is context, not a second formula.
+                  - generic [ref=e544]:
+                    - button "How is my strength percentile calculated?" [ref=e545] [cursor=pointer]:
+                      - generic [aria-hidden] [ref=e546]: "08"
+                      - generic [aria-hidden] [ref=e548]: +
+                    - paragraph [ref=e549]: LIFTAG divides your estimated 1RM by bodyweight and interpolates between published Strength Level ratios for your exercise and comparison group. It is an approximate lifter benchmark, not a percentile of the general population. It does not adjust for age. Below the 5th or above the 95th benchmark, the calculator shows a bound instead of extrapolating.
+                  - generic [ref=e550]:
+                    - button "Which exercises have strength comparisons?" [ref=e551] [cursor=pointer]:
+                      - generic [aria-hidden] [ref=e552]: "09"
+                      - generic [aria-hidden] [ref=e554]: +
+                    - paragraph [ref=e555]: Common barbell, dumbbell, cable, and machine gym exercises have male and female bodyweight-ratio benchmarks, including bench, squat, deadlift, Olympic lifts, rows, curls, pulldowns, and leg press. Enter your bodyweight and select a group to compare a set of 1–10 reps. Dumbbell weights are per dumbbell. Pull-ups, chin-ups, and dips give a total-load estimate (bodyweight plus added weight) only; other exercises also receive no percentile.
+                  - generic [ref=e556]:
+                    - button "What is the difference between a 1RM and a PR?" [ref=e557] [cursor=pointer]:
+                      - generic [aria-hidden] [ref=e558]: "10"
+                      - generic [aria-hidden] [ref=e560]: +
+                    - paragraph [ref=e561]: "1RM is a one-repetition maximum, a single. A PR is any personal record: a 5RM, a paused bench, a volume PR. This page estimates a 1RM. LIFTAG stores both."
+              - generic [ref=e562]:
+                - heading "Related tools and guides" [level=2] [ref=e563]
+                - list [ref=e564]:
+                  - listitem [ref=e565]:
+                    - link "What is RPE in lifting" [ref=e566] [cursor=pointer]:
+                      - /url: /journal/what-is-rpe-lifting
+                  - listitem [ref=e567]:
+                    - link "Progressive overload" [ref=e568] [cursor=pointer]:
+                      - /url: /journal/progressive-overload
+                  - listitem [ref=e569]:
+                    - link "How to track workouts" [ref=e570] [cursor=pointer]:
+                      - /url: /journal/how-to-track-workouts
+                  - listitem [ref=e571]:
+                    - link "Best workout app for powerlifting" [ref=e572] [cursor=pointer]:
+                      - /url: /journal/best-workout-app-for-powerlifting
+                  - listitem [ref=e573]:
+                    - link "Exercise library" [ref=e574] [cursor=pointer]:
+                      - /url: /exercises
+                  - listitem [ref=e575]:
+                    - link "LIFTAG for lifters" [ref=e576] [cursor=pointer]:
+                      - /url: /for-lifters
+              - generic [ref=e577]:
+                - paragraph [ref=e578]: Method
+                - paragraph [ref=e579]:
+                  - text: "Written by the LIFTAG team, Bratislava. Last reviewed 9 September 2026. First published 2026-09-09. We log estimated 1RM with Epley. This page shows the rest of the family so you can see the spread. Facts and how to cite us:"
+                  - link "about" [ref=e580] [cursor=pointer]:
+                    - /url: /about
+                  - text: ","
+                  - link "press kit" [ref=e581] [cursor=pointer]:
+                    - /url: /press
+                  - text: ". Questions:"
+                  - link "support" [ref=e582] [cursor=pointer]:
+                    - /url: /contact/support
+                  - text: .
+                - list [ref=e583]:
+                  - listitem [ref=e584]: Epley, B. (1985). Poundage chart. University of Nebraska.
+                  - listitem [ref=e585]: "Brzycki, M. (1993). Strength testing: predicting a one-rep max from reps-to-fatigue. JOPERD 64(1), 88–90."
+                  - listitem [ref=e586]: Lombardi, V. P. (1989). Beginning Weight Training. Wm. C. Brown.
+                  - listitem [ref=e587]: Mayhew, J. L. et al. (1992). Relative muscular endurance performance as a predictor of bench press strength. JSCR.
+                  - listitem [ref=e588]: O'Connor, B., Simmons, J., & O'Shea, P. (1989). Weight Training Today.
+                  - listitem [ref=e589]: "Wathen, D. (1994). Load assignment. In: NSCA Essentials of Strength Training and Conditioning."
+                  - listitem [ref=e590]: Lander, J. (1985). Maximum based on reps. NSCA Journal 6, 60–61.
+                  - listitem [ref=e591]:
+                    - link "LeSuer, D. A. et al. (1997). The accuracy of prediction equations for estimating 1-RM performance in the bench press, squat, and deadlift. JSCR 11(4), 211–213." [ref=e592] [cursor=pointer]:
+                      - /url: https://journals.lww.com/nsca-jscr/abstract/1997/11000/the_accuracy_of_prediction_equations_for.1.aspx
+                  - listitem [ref=e593]:
+                    - link "Reynolds, J. M., Gordon, T. J., & Robergs, R. A. (2006). Prediction of one repetition maximum strength from multiple repetition maximum testing and anthropometry. JSCR." [ref=e594] [cursor=pointer]:
+                      - /url: https://pubmed.ncbi.nlm.nih.gov/16503679/
+    - contentinfo [ref=e595]:
+      - generic [ref=e596]:
+        - generic [ref=e597]:
+          - generic [ref=e598]:
+            - img "LIFTAG logo" [ref=e599]
+            - generic [ref=e600]: LIFTAG
+          - paragraph [ref=e601]: Because serious training deserves more than a notes app and a spreadsheet.
+          - generic [ref=e602]:
+            - link "Featured on LaunchBuff" [ref=e603] [cursor=pointer]:
+              - /url: https://launchbuff.com/products/liftag-q97d57
+              - img "Featured on LaunchBuff"
+            - link "Featured on Launchstag" [ref=e604] [cursor=pointer]:
+              - /url: https://launchstag.com/p/liftag
+              - img "Featured on Launchstag"
+        - generic [ref=e605]:
+          - link "Product" [ref=e606] [cursor=pointer]:
+            - /url: /#all-in-one
+          - list [ref=e608]:
+            - listitem [ref=e609]:
+              - link "Demo" [ref=e610] [cursor=pointer]:
+                - /url: /demo
+            - listitem [ref=e612]:
+              - link "1RM Calculator" [ref=e613] [cursor=pointer]:
+                - /url: /tools/1rm-calculator
+            - listitem [ref=e615]:
+              - link "Exercise Library" [ref=e616] [cursor=pointer]:
+                - /url: /exercises
+            - listitem [ref=e618]:
+              - link "Machine Catalog" [ref=e619] [cursor=pointer]:
+                - /url: /machines
+            - listitem [ref=e621]:
+              - link "For Lifters" [ref=e622] [cursor=pointer]:
+                - /url: /for-lifters
+            - listitem [ref=e624]:
+              - link "For Trainers" [ref=e625] [cursor=pointer]:
+                - /url: /for-trainers
+            - listitem [ref=e627]:
+              - link "Become a Coach" [ref=e628] [cursor=pointer]:
+                - /url: /become-a-coach
+            - listitem [ref=e630]:
+              - link "For Gyms" [ref=e631] [cursor=pointer]:
+                - /url: /for-gyms
+            - listitem [ref=e633]:
+              - link "NFC + QR Tags" [ref=e634] [cursor=pointer]:
+                - /url: /qr-nfc-gym-tags
+            - listitem [ref=e636]:
+              - link "Pricing" [ref=e637] [cursor=pointer]:
+                - /url: /pricing
+            - listitem [ref=e639]:
+              - link "About" [ref=e640] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=e642]:
+              - link "Press" [ref=e643] [cursor=pointer]:
+                - /url: /press
+            - listitem [ref=e645]:
+              - link "Roadmap" [ref=e646] [cursor=pointer]:
+                - /url: /#roadmap
+            - listitem [ref=e648]:
+              - link "Partner with us" [ref=e649] [cursor=pointer]:
+                - /url: /contact/partner
+            - listitem [ref=e651]:
+              - link "Support" [ref=e652] [cursor=pointer]:
+                - /url: /contact/support
+        - generic [ref=e654]:
+          - link "Library" [ref=e655] [cursor=pointer]:
+            - /url: /muscles
+          - list [ref=e657]:
+            - listitem [ref=e658]:
+              - link "All muscles" [ref=e659] [cursor=pointer]:
+                - /url: /muscles
+            - listitem [ref=e661]:
+              - link "Chest" [ref=e662] [cursor=pointer]:
+                - /url: /muscles/chest
+            - listitem [ref=e664]:
+              - link "Back" [ref=e665] [cursor=pointer]:
+                - /url: /muscles/back
+            - listitem [ref=e667]:
+              - link "Shoulders" [ref=e668] [cursor=pointer]:
+                - /url: /muscles/shoulders
+            - listitem [ref=e670]:
+              - link "Quads" [ref=e671] [cursor=pointer]:
+                - /url: /muscles/quadriceps
+            - listitem [ref=e673]:
+              - link "Hamstrings" [ref=e674] [cursor=pointer]:
+                - /url: /muscles/hamstrings
+            - listitem [ref=e676]:
+              - link "Glutes" [ref=e677] [cursor=pointer]:
+                - /url: /muscles/glutes
+            - listitem [ref=e679]:
+              - link "Abs" [ref=e680] [cursor=pointer]:
+                - /url: /muscles/abs
+            - listitem [ref=e682]:
+              - link "Bench press" [ref=e683] [cursor=pointer]:
+                - /url: /exercises/barbell-bench-press
+            - listitem [ref=e685]:
+              - link "Back squat" [ref=e686] [cursor=pointer]:
+                - /url: /exercises/barbell-back-squat
+            - listitem [ref=e688]:
+              - link "Deadlift" [ref=e689] [cursor=pointer]:
+                - /url: /exercises/conventional-deadlift
+        - generic [ref=e691]:
+          - link "Journal" [ref=e692] [cursor=pointer]:
+            - /url: /journal
+          - list [ref=e694]:
+            - listitem [ref=e695]:
+              - link "All articles" [ref=e696] [cursor=pointer]:
+                - /url: /journal
+            - listitem [ref=e698]:
+              - link "Best Workout Tracking App" [ref=e699] [cursor=pointer]:
+                - /url: /best-workout-tracking-app
+            - listitem [ref=e701]:
+              - link "Best Gym QR + NFC App" [ref=e702] [cursor=pointer]:
+                - /url: /best-gym-qr-nfc-app
+            - listitem [ref=e704]:
+              - link "Best Workout Logger" [ref=e705] [cursor=pointer]:
+                - /url: /journal/best-workout-logger
+            - listitem [ref=e707]:
+              - link "Best Free Workout Tracker" [ref=e708] [cursor=pointer]:
+                - /url: /journal/best-free-workout-tracker
+            - listitem [ref=e710]:
+              - link "LIFTAG vs Hevy" [ref=e711] [cursor=pointer]:
+                - /url: /alternatives/hevy
+            - listitem [ref=e713]:
+              - link "LIFTAG vs Strong" [ref=e714] [cursor=pointer]:
+                - /url: /vs/strong
+            - listitem [ref=e716]:
+              - link "Strong vs Hevy vs LIFTAG" [ref=e717] [cursor=pointer]:
+                - /url: /journal/strong-vs-hevy-vs-liftag
+            - listitem [ref=e719]:
+              - link "Workout Logger" [ref=e720] [cursor=pointer]:
+                - /url: /journal/workout-logger
+            - listitem [ref=e722]:
+              - link "How to Track Workouts" [ref=e723] [cursor=pointer]:
+                - /url: /journal/how-to-track-workouts
+            - listitem [ref=e725]:
+              - link "Best App for Powerlifting" [ref=e726] [cursor=pointer]:
+                - /url: /journal/best-workout-app-for-powerlifting
+            - listitem [ref=e728]:
+              - link "QR + NFC Gym Tracking" [ref=e729] [cursor=pointer]:
+                - /url: /journal/qr-nfc-gym-tracking
+            - listitem [ref=e731]:
+              - link "NFC Tags for Gym Equipment" [ref=e732] [cursor=pointer]:
+                - /url: /journal/nfc-tags-for-gym-equipment
+            - listitem [ref=e734]:
+              - link "What is RPE" [ref=e735] [cursor=pointer]:
+                - /url: /journal/what-is-rpe-lifting
+            - listitem [ref=e737]:
+              - link "Progressive Overload" [ref=e738] [cursor=pointer]:
+                - /url: /journal/progressive-overload
+            - listitem [ref=e740]:
+              - link "Gym NFC Rollout" [ref=e741] [cursor=pointer]:
+                - /url: /journal/gym-nfc-rollout
+        - generic [ref=e743]:
+          - generic [ref=e744]: Legal
+          - list [ref=e745]:
+            - listitem [ref=e746]:
+              - link "Privacy Policy" [ref=e747] [cursor=pointer]:
+                - /url: /privacy-policy
+            - listitem [ref=e749]:
+              - link "Terms & Conditions" [ref=e750] [cursor=pointer]:
+                - /url: /terms-and-conditions
+      - generic [ref=e752]:
+        - generic [ref=e753]: © 2026 LIFTAG · BRATISLAVA · BUILT BY LIFTERS
+        - generic [ref=e754]:
+          - generic [ref=e755]:
+            - link "Liftag on Instagram" [ref=e756] [cursor=pointer]:
+              - /url: https://www.instagram.com/liftag.fit/
+            - link "Liftag on TikTok" [ref=e758] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@liftag
+            - link "Liftag on X" [ref=e760] [cursor=pointer]:
+              - /url: https://x.com/liftag_fit
+            - link "Liftag on YouTube" [ref=e762] [cursor=pointer]:
+              - /url: https://www.youtube.com/@liftag_fit
+            - link "Liftag on Reddit" [ref=e764] [cursor=pointer]:
+              - /url: https://www.reddit.com/r/liftag/
+          - generic [ref=e766]:
+            - text: Available on ·
+            - link "IOS AND ANDROID" [ref=e767] [cursor=pointer]:
+              - /url: /get
+      - generic [aria-hidden]:
+        - generic: LIFTAG
+        - generic: LIFTAG
+        - generic: LIFTAG
+  - generic [ref=e770]:
+    - button "Toggle Nuxt DevTools" [ref=e771] [cursor=pointer]
+    - generic "Page load time" [ref=e775]:
+      - generic [ref=e776]: "62"
+      - generic [ref=e777]: ms
+    - button "Toggle Component Inspector" [ref=e779] [cursor=pointer]

@@ -168,7 +168,8 @@ const picks: Pick[] = [
                 <strong>Top sets and PR history.</strong> You want to know exactly what your last competition single, your last heavy triple, and your last paused-bench top set were. The tracker should make those numbers one tap away.
               </li>
               <li>
-                <strong>Estimated 1RM trends.</strong> Estimated max is approximate but useful: it smooths over rep ranges so you can see whether your squat strength is trending up across a block, not just whether yesterday’s set was heavier than last week’s.
+                <strong>Estimated 1RM trends.</strong> Estimated max is Epley, the same formula as the
+                <a href="/tools/1rm-calculator">1RM calculator</a>. Approximate, useful: it smooths over rep ranges so you can see whether your squat strength is trending up across a block, not just whether yesterday’s set was heavier than last week’s.
               </li>
               <li>
                 <strong>Percentage-based loading.</strong> Most powerlifting programs prescribe percentages of a current max. The tracker needs a current max per lift and a fast way to log the prescribed set.

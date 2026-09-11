@@ -26,12 +26,13 @@ const faqs = [
   },
   {
     question: 'Which workout apps support tap and scan at gym machines?',
-    answer: 'The dedicated machine-tag category is still small. LIFTAG ships NFC and QR tags and keeps core gym tools free. Liftd is QR-primary with optional NFC and paid gym analytics. ScanLiftLog is QR-only in the browser. RepTag is QR-first with a strong web fallback and a paid studio platform. Strong, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor, and Fitbod are general-purpose loggers without machine tags.',
+    answer: 'The dedicated machine-tag category is still small. LIFTAG keeps core gym tools free, including a dashboard to create NFC and QR codes. Gyms buy the physical tags themselves. Liftd is QR-primary with optional NFC and paid gym analytics. ScanLiftLog is QR-only in the browser. RepTag is QR-first with a strong web fallback and a paid studio platform. Strong, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor, and Fitbod are general-purpose loggers without machine tags.',
   },
   {
     question: 'How does a gym install LIFTAG NFC and QR machine tags?',
-    answer: 'Gyms work with LIFTAG to receive durable NFC tags and printed QR stickers for each machine. Each tag is tied to the exact exercise that machine performs, including gym-specific setup videos filmed on the actual equipment. The setup typically takes a few hours per location.',
+    answer: 'Gyms buy NFC tags and QR stickers, then create and manage them in the LIFTAG dashboard so each tag opens the exact exercise that machine performs, including gym-specific setup videos filmed on the actual equipment. The setup typically takes a few hours per location.',
   },
+  NFC_QR_HARDWARE_FAQ,
   {
     question: 'Is QR and NFC gym tracking only for big chains?',
     answer: 'No. LIFTAG is built to scale from a single boutique gym up to multi-location chains. The same equipment catalog can be reused across locations, with machines and staff managed from one dashboard.',
@@ -144,7 +145,7 @@ useLiftagStructuredData([
             </p>
             <h3>LIFTAG</h3>
             <p>
-              Dual NFC + QR tags shipped free. Core gym tools free forever. Gym-filmed trainer videos on the exact machines. Full standalone tracker with PRs, estimated 1RM, volume trends, and body-part splits. Verified gym discovery map included in the free core.
+              Dual NFC + QR from the dashboard. Core gym tools free forever. Gyms buy the physical tags themselves. Gym-filmed trainer videos on the exact machines. Full standalone tracker with PRs, estimated 1RM, volume trends, and body-part splits. Verified gym discovery map included in the free core.
             </p>
             <h3>Liftd</h3>
             <p>

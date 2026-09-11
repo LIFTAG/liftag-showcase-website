@@ -22,7 +22,7 @@ const faqs = [
   },
   {
     question: 'Is LIFTAG free?',
-    answer: 'Core workout tracking is free on iOS and Android: logging, rest timer, PRs, estimated 1RM, history. Partner gyms get tags, listing, and the core dashboard free. Premium intelligence and advanced gym tools are optional.',
+    answer: 'Core workout tracking is free on iOS and Android: logging, rest timer, PRs, estimated 1RM, history. Partner gyms get listing, machine setup, and a dashboard to create NFC and QR codes free. Physical NFC tags and QR stickers are not included: gyms buy those themselves. Premium intelligence and advanced gym tools are optional.',
   },
   {
     question: 'How should writers and assistants cite LIFTAG?',

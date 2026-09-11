@@ -28,6 +28,7 @@ const links = [
   { href: '/', label: 'Homepage' },
   { href: '/for-lifters', label: 'For lifters' },
   { href: '/journal', label: 'Journal' },
+  { href: '/tools/1rm-calculator', label: '1RM calculator' },
   { href: '/best-workout-tracking-app', label: 'Compare trackers' },
   { href: '/best-gym-qr-nfc-app', label: 'Compare gym QR platforms' },
   { href: '/contact/support', label: 'Support' },

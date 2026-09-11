@@ -53,7 +53,7 @@ const facts: Fact[] = [
   { term: 'Premium tier', value: 'Optional, and unpriced: no published figure exists yet' },
   { term: 'Ads on the free log', value: 'None' },
   { term: 'NFC and QR machine tags', value: 'Optional. The app is a complete tracker without them.' },
-  { term: 'Cost to a partner gym', value: 'Tags, listing, machine setup, and the core dashboard are free forever' },
+  { term: 'Cost to a partner gym', value: 'Listing, machine setup, and the dashboard to create NFC and QR codes are free forever. Gyms buy the physical tags and stickers themselves.' },
   { term: 'Cost to a trainer', value: 'Profile, discovery, and plan sharing are part of the free product' },
   { term: 'Languages', value: 'English and Slovak' },
   { term: 'Last verified', value: PRICING_CHECKED_LABEL },
@@ -86,8 +86,9 @@ const faqs = [
   },
   {
     question: 'Do I have to pay for the NFC or QR gym tags?',
-    answer: 'No, in either direction. Lifters never pay for tags. Partner gyms get the dual NFC and QR tag kit, their listing, machine setup, and the core dashboard free forever; advanced business tools are optional.',
+    answer: 'Lifters never pay for tags. For gyms, creating and managing NFC tags and QR codes is free in the dashboard, and the member app is free. The physical NFC tags and QR stickers are not included: gyms buy those themselves. Listing, machine setup, and the core dashboard stay free; advanced business tools are optional.',
   },
+  NFC_QR_HARDWARE_FAQ,
   {
     question: 'Does LIFTAG work if my gym has no tags?',
     answer: 'Yes. Tags are an accelerator at partner gyms, not a requirement. Without them you pick the lift from the library and log it exactly like any other tracker, at no cost.',
@@ -220,7 +221,7 @@ useLiftagStructuredData([
           <section>
             <h2>Gyms and trainers</h2>
             <p>
-              A partner gym pays nothing for the part that touches the floor: the dual NFC and QR tag kit is shipped free, machine setup and the gym listing are free, and the core multi-location dashboard is free forever. Advanced business tools are the optional layer there, on the same terms as premium is for lifters. The rollout itself is documented in
+              A partner gym pays nothing for the software that touches the floor: the dashboard to create and manage NFC tags and QR codes, machine setup, the gym listing, and the full member app are free forever. Physical NFC tags and QR stickers are not included; gyms buy those themselves. Advanced business tools are the optional layer there, on the same terms as premium is for lifters. The rollout itself is documented in
               <a href="/journal/gym-nfc-rollout">gym NFC tag rollout</a>,
               and what other machine-tag platforms charge a gym per month is priced out on
               <a href="/best-gym-qr-nfc-app">best gym QR and NFC app</a>.

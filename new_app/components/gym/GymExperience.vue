@@ -131,7 +131,7 @@ useHead({
             </h1>
             <p><GymHeroEntry :delay="300">Put a tag on a machine. Members scan, watch and log.</GymHeroEntry></p>
             <div class="gx-actions">
-              <GymHeroEntry button :delay="400"><a class="btn-primary" href="#kit" @click="kit">Request your free kit</a></GymHeroEntry>
+              <GymHeroEntry button :delay="400"><a class="btn-primary" href="#kit" @click="kit">Become a partner gym</a></GymHeroEntry>
               <GymHeroEntry button :delay="480"><NuxtLink class="btn-ghost" to="/get"><HoloPill />Get the app</NuxtLink></GymHeroEntry>
             </div>
           </div>
@@ -196,7 +196,7 @@ useHead({
         href="#kit"
         @click="kit"
         :aria-current="chapter === 'kit' ? 'step' : undefined"
-        aria-label="Request your free kit"
+        aria-label="Become a partner gym"
         >↗</a
       >
     </nav>

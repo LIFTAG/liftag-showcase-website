@@ -1,9 +1,9 @@
 <script setup lang="ts">
 definePageMeta({ layout: false });
 useLiftagSeo({
-  title: "Request your free gym kit | LIFTAG",
+  title: "Become a LIFTAG partner gym | LIFTAG",
   description:
-    "Connect your gym equipment with free LIFTAG QR and NFC tags. Request your kit, equipment setup, gym listing, and core dashboard.",
+    "Connect your gym equipment with LIFTAG. The dashboard to create NFC tags and QR codes is free, along with listing, setup, and the member app. Gyms buy the physical tags themselves.",
   path: "/contact/partner",
 });
 </script>

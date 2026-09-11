@@ -164,6 +164,10 @@ export default defineNuxtConfig({
     '/vs/**': { prerender: true },
     '/journal': { prerender: true },
     '/journal/**': { prerender: true },
+    '/tools/**': { prerender: true },
+    '/1rm-calculator': { redirect: { to: '/tools/1rm-calculator', statusCode: 308 } },
+    '/pr-calculator': { redirect: { to: '/tools/1rm-calculator', statusCode: 308 } },
+    '/one-rep-max-calculator': { redirect: { to: '/tools/1rm-calculator', statusCode: 308 } },
     // Old hub name. Keep the 308s so indexed /guides URLs and in-app
     // bookmarks land on /journal instead of competing as a second tree.
     '/guides': { redirect: { to: '/journal', statusCode: 308 } },
@@ -212,6 +216,7 @@ export default defineNuxtConfig({
     '/logo_silhouette.svg': { headers: { 'cache-control': LONG_CACHE } },
     '/logo-apple-touch.png': { headers: { 'cache-control': LONG_CACHE } },
     '/og-image.jpg': { headers: { 'cache-control': LONG_CACHE } },
+    '/api/og/1rm-calculator': { headers: { 'cache-control': LONG_CACHE } },
   },
   nitro: {
     compressPublicAssets: true,

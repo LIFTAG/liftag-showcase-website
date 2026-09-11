@@ -81,6 +81,26 @@ function hash2(i: number, j: number): number {
   return n - Math.floor(n)
 }
 
+/**
+ * Rounded-rect SDF test. `r` is the CSS corner radius; `pad` grows (or
+ * shrinks) the shape. A stadium is this with `r = min(w, h) / 2`.
+ */
+export function inRoundRect(
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+  pad = 0,
+): boolean {
+  const corner = Math.max(0, Math.min(r, Math.min(w, h) * 0.5))
+  const radius = corner + pad
+  if (radius <= 0) return false
+  const cx = x < corner ? corner : x > w - corner ? w - corner : x
+  const cy = y < corner ? corner : y > h - corner ? h - corner : y
+  return Math.hypot(x - cx, y - cy) <= radius
+}
+
 /** Stadium SDF test. `pad` grows (or shrinks) the pill, CSS px. */
 export function inStadium(
   x: number,
@@ -89,12 +109,7 @@ export function inStadium(
   h: number,
   pad = 0,
 ): boolean {
-  const inner = Math.min(w, h) * 0.5
-  const r = inner + pad
-  if (r <= 0) return false
-  const cx = x < inner ? inner : x > w - inner ? w - inner : x
-  const cy = h * 0.5
-  return Math.hypot(x - cx, y - cy) <= r
+  return inRoundRect(x, y, w, h, Math.min(w, h) * 0.5, pad)
 }
 
 /**
@@ -146,9 +161,10 @@ export function partnerSplashR(u: number, maxR: number): number {
   return maxR * splashTravel(u)
 }
 
-export function buildPartnerMesh(w: number, h: number): PartnerMesh {
+export function buildPartnerMesh(w: number, h: number, radius?: number): PartnerMesh {
   const width = Math.max(1, w)
   const height = Math.max(1, h)
+  const clip = radius ?? Math.min(width, height) * 0.5
   const cols = Math.max(5, Math.round(width / PARTNER_CELL))
   const rows = Math.max(3, Math.round(height / (PARTNER_CELL * 0.82)))
   const nx = cols + 1
@@ -185,7 +201,7 @@ export function buildPartnerMesh(w: number, h: number): PartnerMesh {
     const cy = ys[cj * nx + ci]!
     const mx = (ax + bx + cx) / 3
     const my = (ay + by + cy) / 3
-    if (!inStadium(mx, my, width, height, 1.4)) return
+    if (!inRoundRect(mx, my, width, height, clip, 1.4)) return
     verts.push(ax, ay, bx, by, cx, cy)
     cxs.push(mx)
     cys.push(my)

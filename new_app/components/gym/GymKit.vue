@@ -11,7 +11,7 @@ withDefaults(defineProps<{ source?: "experience" | "partner" }>(), {
       <h2 id="gx-kit-title">
         <GymHeroEntry row>Put your gym </GymHeroEntry><br /><GymHeroEntry :delay="90"><em>in their workout.</em></GymHeroEntry>
       </h2>
-      <p><GymHeroEntry :delay="180">Free QR + NFC tags. Your equipment, connected.</GymHeroEntry></p>
+      <p><GymHeroEntry :delay="180">Create NFC and QR codes in the dashboard. Your equipment, connected.</GymHeroEntry></p>
       <div class="gx-kit__tag">
         <img
           src="/assets/gym3d/qr-sticker.webp"
@@ -24,14 +24,16 @@ withDefaults(defineProps<{ source?: "experience" | "partner" }>(), {
       <details class="gx-included">
         <summary>What’s free? <span aria-hidden="true">+</span></summary>
         <p>
-          Your QR + NFC tags, gym listing, equipment setup, and core dashboard.
-          Advanced business tools are optional.
+          The dashboard to create and manage NFC tags and QR codes, your gym
+          listing, equipment setup, and the full member app. Physical NFC tags
+          and QR stickers are not included: you buy those yourself. Advanced
+          business tools are optional.
         </p>
         <NuxtLink to="/pricing">See what’s included ↗</NuxtLink>
       </details>
     </div>
     <div class="gx-kit__form">
-      <h3><GymHeroEntry :delay="80">Request your free kit.</GymHeroEntry></h3>
+      <h3><GymHeroEntry :delay="80">Become a partner gym.</GymHeroEntry></h3>
       <GymKitForm :source="source" theme="dark" />
     </div>
     <div class="gx-faqs">

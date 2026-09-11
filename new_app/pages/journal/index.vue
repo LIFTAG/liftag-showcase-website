@@ -9,6 +9,12 @@ useLiftagSeo({
 
 const guides = [
   {
+    href: '/tools/1rm-calculator',
+    eyebrow: 'TOOL',
+    title: '1RM calculator',
+    body: 'Estimate a one-rep max from any set. Epley, same formula as the app, plus Brzycki and the rest of the family.',
+  },
+  {
     href: '/journal/how-to-track-workouts',
     eyebrow: 'LIFTING',
     title: 'How to track workouts properly',
@@ -36,7 +42,7 @@ const guides = [
     href: '/best-gym-qr-nfc-app',
     eyebrow: 'COMPARISON',
     title: 'Best gym QR and NFC app',
-    body: 'LIFTAG versus Liftd, ScanLiftLog, and RepTag: free tags, gym cost, NFC, and who actually wins each row.',
+    body: 'LIFTAG versus Liftd, ScanLiftLog, and RepTag: free dashboard, gym cost, NFC, and who actually wins each row.',
   },
   {
     href: '/journal/best-workout-logger',
@@ -148,7 +154,7 @@ useLiftagStructuredData([
           <p class="protocol guides-card-eyebrow">{{ guide.eyebrow }}</p>
           <h2>{{ guide.title }}</h2>
           <p>{{ guide.body }}</p>
-          <a :href="guide.href" class="guides-card-link">Read</a>
+          <a :href="guide.href" class="guides-card-link">{{ guide.eyebrow === 'TOOL' ? 'Open' : 'Read' }}</a>
         </article>
       </section>
     </main>

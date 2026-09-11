@@ -1,9 +1,9 @@
 <script setup lang="ts">
 const benefits = [
   {
-    tag: 'QR + NFC KIT',
+    tag: 'QR + NFC',
     title: 'Every machine, explained.',
-    body: 'Tags and stickers ship free. Members tap, scan, watch, lift.',
+    body: 'Create tags in the dashboard. Members tap, scan, watch, lift. You buy the stickers.',
   },
   {
     tag: 'YOUR CONTENT',
@@ -18,13 +18,13 @@ const benefits = [
   {
     tag: 'FREE',
     title: 'Core gym tools. Free forever.',
-    body: 'Tags, listing, machine setup, and the core dashboard stay free. Advanced business tools are optional.',
+    body: 'Dashboard, listing, machine setup, and the member app stay free. Physical NFC tags and QR stickers are not included.',
   },
 ]
 
 const gymNumbers = [
   { n: '0€', l: 'Core gym tools', sub: 'free forever' },
-  { n: 'FREE', l: 'QR + NFC kit', sub: 'we ship it to you' },
+  { n: 'FREE', l: 'NFC + QR dashboard', sub: 'you buy the stickers' },
   { n: 'MAP', l: 'Featured placement', sub: 'verified gym badge' },
 ]
 
@@ -370,7 +370,7 @@ onBeforeUnmount(() => {
               }"
             />
             <span class="protocol" :style="{ color: '#CCFF00', fontSize: '9px' }">
-              FREE QR + NFC KIT · APPLY NOW
+              NFC + QR · APPLY NOW
             </span>
           </div>
         </div>

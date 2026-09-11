@@ -21,6 +21,7 @@ export const STATIC_PAGES: StaticPageEntry[] = [
   { path: '/alternatives/hevy', lastmod: '2026-08-27', changefreq: 'monthly', priority: '0.8' },
   { path: '/vs/strong', lastmod: '2026-08-27', changefreq: 'monthly', priority: '0.8' },
   { path: '/journal', lastmod: '2026-09-02', changefreq: 'weekly', priority: '0.7' },
+  { path: '/tools/1rm-calculator', lastmod: '2026-09-11', changefreq: 'monthly', priority: '0.8' },
   { path: '/journal/how-to-track-workouts', lastmod: '2026-09-02', changefreq: 'monthly', priority: '0.7' },
   { path: '/journal/best-workout-app-for-powerlifting', lastmod: '2026-09-02', changefreq: 'monthly', priority: '0.7' },
   { path: '/journal/qr-nfc-gym-tracking', lastmod: '2026-09-02', changefreq: 'monthly', priority: '0.7' },

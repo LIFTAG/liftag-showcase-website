@@ -16,6 +16,15 @@ import {
 } from '../utils/gymscan/partnerHolo.ts'
 
 /**
+ * Keyboard focus keeps the field alive; pointer click focus must not.
+ * Clicking a stay-on-page control (rep chips, formula toggle) would otherwise
+ * leave the hologram latched after the cursor leaves.
+ */
+export function holoShouldLatchFocus(fromPointer: boolean, focusVisible: boolean): boolean {
+  return !fromPointer && focusVisible
+}
+
+/**
  * Triangle-read hologram for outline pills. The canvas is a child of the
  * button; the parent is the stadium. RAF only runs while the field is live.
  */
@@ -31,6 +40,7 @@ export function useHoloPill(holoEl: { readonly value: HTMLCanvasElement | null |
   let lastT = 0
   let hovering = false
   let focused = false
+  let pointerFocus = false
   let reduce = false
   let fine = true
   let splashT0 = 0
@@ -46,6 +56,7 @@ export function useHoloPill(holoEl: { readonly value: HTMLCanvasElement | null |
   let originY = 0
   let hoverAmp = 0
   let probeAmp = 0
+  let clipR = 0
   let ro: ResizeObserver | null = null
   let unbindMql: (() => void) | null = null
   let unbindHost: (() => void) | null = null
@@ -73,6 +84,15 @@ export function useHoloPill(holoEl: { readonly value: HTMLCanvasElement | null |
     return partnerLayoutSize(el.clientWidth, el.clientHeight)
   }
 
+  function hostClipRadius(w: number, h: number): number {
+    const el = hostEl()
+    const cap = Math.min(w, h) * 0.5
+    if (!el) return cap
+    const parsed = parseFloat(getComputedStyle(el).borderTopLeftRadius)
+    if (!Number.isFinite(parsed)) return cap
+    return Math.max(0, Math.min(parsed, cap))
+  }
+
   function localPoint(e: PointerEvent | FocusEvent): { x: number, y: number } {
     const el = hostEl()
     if (!el) return { x: 0, y: 0 }
@@ -94,7 +114,8 @@ export function useHoloPill(holoEl: { readonly value: HTMLCanvasElement | null |
       canvas.width = bw
       canvas.height = bh
     }
-    mesh = buildPartnerMesh(w, h)
+    clipR = hostClipRadius(w, h)
+    mesh = buildPartnerMesh(w, h, clipR)
     heat = new Float32Array(mesh.count)
     draw = createPartnerDraw(mesh.count)
     ctx = canvas.getContext('2d')
@@ -230,7 +251,7 @@ export function useHoloPill(holoEl: { readonly value: HTMLCanvasElement | null |
     ctx.clearRect(0, 0, w, h)
     ctx.save()
     ctx.beginPath()
-    ctx.roundRect(0, 0, w, h, Math.min(w, h) * 0.5)
+    ctx.roundRect(0, 0, w, h, clipR)
     ctx.clip()
     ctx.lineJoin = 'bevel'
     ctx.lineCap = 'butt'
@@ -304,13 +325,24 @@ export function useHoloPill(holoEl: { readonly value: HTMLCanvasElement | null |
     ptrY = p.y
   }
 
+  function onPointerDown() {
+    // Click focuses the host. That is not a keyboard probe — do not latch.
+    pointerFocus = true
+  }
+
   function onLeave() {
     hovering = false
+    pointerFocus = false
+    const host = hostEl()
+    if (focused && !host?.matches(':focus-visible')) focused = false
     kick()
   }
 
   function onFocus(e: Event) {
     if (reduce || !(e instanceof FocusEvent)) return
+    const fromPointer = pointerFocus || hovering
+    pointerFocus = false
+    if (!holoShouldLatchFocus(fromPointer, hostEl()?.matches(':focus-visible') === true)) return
     focused = true
     if (!hovering) {
       const p = localPoint(e)
@@ -320,6 +352,7 @@ export function useHoloPill(holoEl: { readonly value: HTMLCanvasElement | null |
 
   function onBlur() {
     focused = false
+    pointerFocus = false
     if (!hovering) kick()
   }
 
@@ -347,6 +380,7 @@ export function useHoloPill(holoEl: { readonly value: HTMLCanvasElement | null |
     rebuild()
     const el = hostEl()
     if (el) {
+      el.addEventListener('pointerdown', onPointerDown)
       el.addEventListener('pointerenter', onEnter)
       el.addEventListener('pointermove', onMove)
       el.addEventListener('pointerleave', onLeave)
@@ -354,6 +388,7 @@ export function useHoloPill(holoEl: { readonly value: HTMLCanvasElement | null |
       el.addEventListener('focus', onFocus)
       el.addEventListener('blur', onBlur)
       unbindHost = () => {
+        el.removeEventListener('pointerdown', onPointerDown)
         el.removeEventListener('pointerenter', onEnter)
         el.removeEventListener('pointermove', onMove)
         el.removeEventListener('pointerleave', onLeave)

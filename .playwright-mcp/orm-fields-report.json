@@ -1,0 +1,186 @@
+{
+  "rest": {
+    "weightValue": "100",
+    "repsValue": "5",
+    "weightFocused": false,
+    "repsFocused": false,
+    "weightDial": "100",
+    "repsDial": "5",
+    "weightDialCount": 1,
+    "repsDialCount": 1,
+    "weightInput": {
+      "color": "rgba(0, 0, 0, 0)",
+      "fill": "rgba(0, 0, 0, 0)",
+      "caret": "rgba(0, 0, 0, 0)",
+      "fontSize": "40px"
+    },
+    "repsInput": {
+      "color": "rgba(0, 0, 0, 0)",
+      "fill": "rgba(0, 0, 0, 0)",
+      "caret": "rgba(0, 0, 0, 0)",
+      "fontSize": "40px"
+    },
+    "rolling": 0
+  },
+  "midWeight": {
+    "weightValue": "102.5",
+    "repsValue": "5",
+    "weightFocused": false,
+    "repsFocused": false,
+    "weightDial": "1002.5",
+    "repsDial": "5",
+    "weightDialCount": 1,
+    "repsDialCount": 1,
+    "weightInput": {
+      "color": "rgba(0, 0, 0, 0)",
+      "fill": "rgba(0, 0, 0, 0)",
+      "caret": "rgba(0, 0, 0, 0)",
+      "fontSize": "40px"
+    },
+    "repsInput": {
+      "color": "rgba(0, 0, 0, 0)",
+      "fill": "rgba(0, 0, 0, 0)",
+      "caret": "rgba(0, 0, 0, 0)",
+      "fontSize": "40px"
+    },
+    "rolling": 6
+  },
+  "midReps": {
+    "weightValue": "102.5",
+    "repsValue": "6",
+    "weightFocused": false,
+    "repsFocused": false,
+    "weightDial": "102.5",
+    "repsDial": "56",
+    "weightDialCount": 1,
+    "repsDialCount": 1,
+    "weightInput": {
+      "color": "rgba(0, 0, 0, 0)",
+      "fill": "rgba(0, 0, 0, 0)",
+      "caret": "rgba(0, 0, 0, 0)",
+      "fontSize": "40px"
+    },
+    "repsInput": {
+      "color": "rgba(0, 0, 0, 0)",
+      "fill": "rgba(0, 0, 0, 0)",
+      "caret": "rgba(0, 0, 0, 0)",
+      "fontSize": "40px"
+    },
+    "rolling": 6
+  },
+  "quick": {
+    "weightValue": "102.5",
+    "repsValue": "8",
+    "weightFocused": false,
+    "repsFocused": false,
+    "weightDial": "102.5",
+    "repsDial": "68",
+    "weightDialCount": 1,
+    "repsDialCount": 1,
+    "weightInput": {
+      "color": "rgba(0, 0, 0, 0)",
+      "fill": "rgba(0, 0, 0, 0)",
+      "caret": "rgba(0, 0, 0, 0)",
+      "fontSize": "40px"
+    },
+    "repsInput": {
+      "color": "rgba(0, 0, 0, 0)",
+      "fill": "rgba(0, 0, 0, 0)",
+      "caret": "rgba(0, 0, 0, 0)",
+      "fontSize": "40px"
+    },
+    "rolling": 4
+  },
+  "focused": {
+    "weightValue": "102.5",
+    "repsValue": "8",
+    "weightFocused": true,
+    "repsFocused": false,
+    "weightDial": "",
+    "repsDial": "8",
+    "weightDialCount": 0,
+    "repsDialCount": 1,
+    "weightInput": {
+      "color": "oklch(0.96 0.007 115)",
+      "fill": "oklch(0.96 0.007 115)",
+      "caret": "oklch(0.96 0.007 115)",
+      "fontSize": "40px"
+    },
+    "repsInput": {
+      "color": "rgba(0, 0, 0, 0)",
+      "fill": "rgba(0, 0, 0, 0)",
+      "caret": "rgba(0, 0, 0, 0)",
+      "fontSize": "40px"
+    },
+    "rolling": 0
+  },
+  "typing": {
+    "weightValue": "120",
+    "repsValue": "8",
+    "weightFocused": true,
+    "repsFocused": false,
+    "weightDial": "",
+    "repsDial": "8",
+    "weightDialCount": 0,
+    "repsDialCount": 1,
+    "weightInput": {
+      "color": "oklch(0.96 0.007 115)",
+      "fill": "oklch(0.96 0.007 115)",
+      "caret": "oklch(0.96 0.007 115)",
+      "fontSize": "40px"
+    },
+    "repsInput": {
+      "color": "rgba(0, 0, 0, 0)",
+      "fill": "rgba(0, 0, 0, 0)",
+      "caret": "rgba(0, 0, 0, 0)",
+      "fontSize": "40px"
+    },
+    "rolling": 6
+  },
+  "afterBlur": {
+    "weightValue": "120",
+    "repsValue": "8",
+    "weightFocused": false,
+    "repsFocused": false,
+    "weightDial": "120",
+    "repsDial": "8",
+    "weightDialCount": 1,
+    "repsDialCount": 1,
+    "weightInput": {
+      "color": "rgba(0, 0, 0, 0)",
+      "fill": "rgba(0, 0, 0, 0)",
+      "caret": "rgba(0, 0, 0, 0)",
+      "fontSize": "40px"
+    },
+    "repsInput": {
+      "color": "rgba(0, 0, 0, 0)",
+      "fill": "rgba(0, 0, 0, 0)",
+      "caret": "rgba(0, 0, 0, 0)",
+      "fontSize": "40px"
+    },
+    "rolling": 5
+  },
+  "phonePlus": {
+    "weightValue": "122.5",
+    "repsValue": "8",
+    "weightFocused": false,
+    "repsFocused": false,
+    "weightDial": "1202.5",
+    "repsDial": "8",
+    "weightDialCount": 1,
+    "repsDialCount": 1,
+    "weightInput": {
+      "color": "rgba(0, 0, 0, 0)",
+      "fill": "rgba(0, 0, 0, 0)",
+      "caret": "rgba(0, 0, 0, 0)",
+      "fontSize": "26px"
+    },
+    "repsInput": {
+      "color": "rgba(0, 0, 0, 0)",
+      "fill": "rgba(0, 0, 0, 0)",
+      "caret": "rgba(0, 0, 0, 0)",
+      "fontSize": "26px"
+    },
+    "rolling": 4
+  }
+}

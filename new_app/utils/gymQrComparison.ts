@@ -48,9 +48,9 @@ export const gymQrGlanceRows: GymQrGlanceRow[] = [
   {
     name: 'LIFTAG',
     bestFor: 'Gyms that want tags and tracking without a monthly platform bill',
-    gymCost: 'Free core forever. Tags shipped free. Advanced tools optional.',
+    gymCost: 'Free core forever. Dashboard to create NFC + QR. You buy the stickers. Advanced tools optional.',
     weakSpot: 'Owner-side churn analytics are still basic next to Liftd',
-    unique: 'The only platform here that ships NFC + QR tags and keeps core gym tools free',
+    unique: 'The only platform here that keeps core gym tools free, including the dashboard to create and manage NFC + QR',
   },
   {
     name: 'Liftd',
@@ -82,7 +82,7 @@ export const gymQrMatrixRows: GymQrMatrixRow[] = [
     variants: ['full', 'gym', 'tags'],
     cells: {
       LIFTAG: {
-        text: 'Free core forever. Tags, listing, machine setup, and the core dashboard stay free. Advanced business tools are optional.',
+        text: 'Free core forever. Listing, machine setup, and the dashboard to create NFC and QR codes stay free. Gyms buy the physical tags. Advanced business tools are optional.',
         mark: 'only',
       },
       Liftd: {
@@ -102,8 +102,7 @@ export const gymQrMatrixRows: GymQrMatrixRow[] = [
     variants: ['full', 'gym', 'tags'],
     cells: {
       LIFTAG: {
-        text: 'NFC + QR tags shipped to the gym at no cost and tied to the machine catalog.',
-        mark: 'only',
+        text: 'Gyms buy NFC tags and QR stickers, then create and manage them in the free dashboard. LIFTAG does not ship the physical tags.',
       },
       Liftd: {
         text: 'Gym prints QR codes from the dashboard. NFC is supported; the gym supplies those tags.',
@@ -122,7 +121,7 @@ export const gymQrMatrixRows: GymQrMatrixRow[] = [
     variants: ['full', 'gym', 'tags'],
     cells: {
       LIFTAG: {
-        text: 'NFC + QR as the default kit. Tap for speed, scan as the universal fallback.',
+        text: 'NFC + QR as the default. Tap for speed, scan as the universal fallback. Gyms buy the physical tags.',
         mark: 'best',
       },
       Liftd: {
@@ -303,8 +302,7 @@ export const gymQrMatrixRows: GymQrMatrixRow[] = [
     variants: ['full', 'gym'],
     cells: {
       LIFTAG: {
-        text: 'Machine catalog plus free NFC and QR tags shipped to the floor.',
-        mark: 'best',
+        text: 'Machine catalog plus a dashboard to create NFC and QR codes. Gyms buy and stick the physical tags.',
       },
       Liftd: {
         text: 'Add machines from a commercial catalog or by hand, then print QR codes. Claimed under an hour.',
@@ -325,7 +323,7 @@ export const gymQrCards: GymQrCard[] = [
     href: 'https://liftag.fit/',
     oneLine: 'The only free-core NFC + QR gym platform that also works as a serious standalone tracker.',
     goodAt: [
-      'Free core for gyms: tags shipped, listing, machine setup, and the core dashboard',
+      'Free core for gyms: listing, machine setup, and a dashboard to create and manage NFC and QR codes',
       'Dual NFC + QR on every machine, not QR with NFC as an afterthought',
       'Gym-filmed trainer videos attached to the exact machine the member is standing at',
       'Serious-lifter metrics: PRs, estimated 1RM, volume trends, body-part splits, RPE, streaks',
@@ -337,7 +335,7 @@ export const gymQrCards: GymQrCard[] = [
       'ScanLiftLog and RepTag are easier if members must never install an app',
       'The partner-gym network is still expanding',
     ],
-    pickWhen: 'You run a gym and do not want a monthly platform bill just to put tags on the floor, or you train and want a real tracker that gets faster the moment your gym installs LIFTAG.',
+    pickWhen: 'You run a gym and do not want a monthly platform bill to create NFC and QR codes (you buy the stickers yourself), or you train and want a real tracker that gets faster the moment your gym installs LIFTAG.',
   },
   {
     name: 'Liftd',
@@ -355,7 +353,7 @@ export const gymQrCards: GymQrCard[] = [
       'Gyms print QR codes and supply their own NFC tags',
       'Scale claims (500+ gyms, 2M+ workouts) are self-reported; the App Store listing launched around May 2026',
     ],
-    pickWhen: 'You will pay for owner-side retention analytics and you want utilization and churn data more than a free tag kit.',
+    pickWhen: 'You will pay for owner-side retention analytics and you want utilization and churn data more than a free dashboard.',
   },
   {
     name: 'ScanLiftLog',
