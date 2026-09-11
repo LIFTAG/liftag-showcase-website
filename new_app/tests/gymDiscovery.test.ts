@@ -36,6 +36,8 @@ import {
   discoveryTitlePoseAt,
   discoveryTitleScreenWorld,
   discoveryMorphBeats,
+  listingMorphBeats,
+  listingFromStyle,
   discoveryMorphRect,
   discoveryPhoneBodyRect,
   discoveryPhoneScreenRect,
@@ -280,13 +282,51 @@ test("the gym listing morphs out of the parked cinema phone", () => {
   );
   assert.match(css, /--gd-box-left/);
   assert.match(css, /--gd-listing/);
-  assert.match(css, /--gd-lift/);
+  assert.match(css, /--gd-listing-card/);
   assert.match(css, /gd-profile-island/);
   assert.doesNotMatch(css, /gd-profile-stem/);
+  assert.doesNotMatch(css, /rotateY\(calc/);
   assert.doesNotMatch(
     css,
     /\.gd-profile\.is-shown \{[\s\S]*transform: perspective/,
   );
+  assert.equal(listingMorphBeats(0).shape, discoveryMorphBeats(0).shape);
+  assert.equal(listingMorphBeats(1).shape, discoveryMorphBeats(1).shape);
+  assert.equal(listingMorphBeats(0).device, 1);
+  assert.equal(listingMorphBeats(1).device, 0);
+  assert.equal(listingMorphBeats(0).card, 0);
+  assert.equal(listingMorphBeats(1).card, 1);
+  assert.equal(listingMorphBeats(0.52).device, 0, "3D phone is gone where the floor morph would introduce it");
+  assert.equal(discoveryMorphBeats(0.52).device, 0);
+  const overlay = readFileSync(
+    new URL("../utils/gymscan/phoneOverlay.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(overlay, /listingMorphBeats/);
+  assert.match(overlay, /createRoundedPlate/);
+  assert.match(overlay, /listingPlate/);
+  const cinema = readFileSync(
+    new URL("../components/gym/GymCinema.vue", import.meta.url),
+    "utf8",
+  );
+  assert.match(cinema, /listingFromStyle/);
+  assert.match(cinema, /readListing/);
+  const parsed = listingFromStyle({
+    getPropertyValue(name: string) {
+      if (name === "--gd-listing") return "0.4";
+      if (name === "--gd-listing-card") return "0.1";
+      if (name === "--gd-phone-out") return "0.1";
+      if (name === "--gd-box-left") return "10px";
+      if (name === "--gd-box-top") return "20px";
+      if (name === "--gd-box-width") return "200px";
+      if (name === "--gd-box-height") return "400px";
+      if (name === "--gd-box-radius") return "18px";
+      return "";
+    },
+  } as CSSStyleDeclaration);
+  assert.equal(parsed.listing, 0.4);
+  assert.equal(parsed.card, 0.1);
+  assert.deepEqual(parsed.box, { x: 10, y: 20, w: 200, h: 400, radius: 18 });
 });
 
 test("blue marble land heuristic keeps continents and ice, drops ocean", () => {
@@ -716,8 +756,13 @@ test("the discovery stage morphs a phone-curved stand-in, then the shared 3D pho
   assert.match(stage, /tilt\.rotation\.set\(tiltX, 0, tiltZ\)/);
   assert.match(stage, /drawDiscoveryAppScreen/);
   assert.match(stage, /JetBrains Mono/);
-  assert.match(stage, /uRadius/);
+  assert.match(stage, /createRoundedPlate/);
   assert.match(stage, /DISCOVERY_PHONE_ROT_X/);
+  const plate = readFileSync(
+    new URL("../utils/gymscan/roundedPlate.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(plate, /uRadius/);
   assert.match(stage, /createFloorMaps/);
   assert.doesNotMatch(stage, /TIRE|discoveryTire|discoveryBump|const bump/);
   assert.match(stage, /camera\.up\.set\(0, 1 - frame\.overhead, -frame\.overhead\)/);
@@ -773,15 +818,15 @@ test("the discovery stage morphs a phone-curved stand-in, then the shared 3D pho
     new URL("../assets/css/gym-experience.css", import.meta.url),
     "utf8",
   );
-  assert.match(experienceCss, /--gx-earth-scale/);
   assert.match(
     experienceCss,
     /is-ready\.is-discovery canvas/,
   );
   assert.match(
     experienceCss,
-    /opacity:\s*clamp\(0,\s*calc\(1 - var\(--gx-earth-out, 0\) \* 8\), 1\)/,
+    /opacity:\s*clamp\(0,\s*calc\(1 - var\(--gd-phone-out, 0\)\), 1\)/,
   );
+  assert.doesNotMatch(experienceCss, /--gx-earth-out, 0\) \* 8/);
   assert.doesNotMatch(
     experienceCss,
     /\.gx-cinema\.is-discovery \{[^}]*transform:\s*scale/,
@@ -807,8 +852,9 @@ test("the discovery stage morphs a phone-curved stand-in, then the shared 3D pho
   assert.match(host, /v-if="reduced"/);
   assert.doesNotMatch(host, /!ready \|\| reduced/);
   assert.doesNotMatch(host, /365|Fit&Co/);
-  assert.match(host, /globePriorScale/);
-  assert.match(host, /--gx-earth-scale/);
+  assert.match(host, /listingMorphBeats/);
+  assert.match(host, /--gd-phone-out/);
+  assert.match(host, /--gd-listing-card/);
   assert.match(host, /--gd-label-mix/);
   const appScreen = readFileSync(
     new URL("../utils/gymscan/discoveryAppScreen.ts", import.meta.url),

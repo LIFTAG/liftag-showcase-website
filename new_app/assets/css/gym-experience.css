@@ -1956,13 +1956,10 @@ html[data-gym-motion="reduce"] {
   z-index: 5;
 }
 .gx-cinema.is-ready.is-discovery canvas {
-  transform-origin: 70% 48%;
-  transform: scale(var(--gx-earth-scale, 1));
-  /* Globe is fully in at reveal ≈ 0.28 (`* 3.5`). Get the parked phone
-     out of the way almost as soon as Earth starts to appear. */
-  opacity: clamp(0, calc(1 - var(--gx-earth-out, 0) * 8), 1);
+  /* Stay the 3D parked phone until the listing plate hands off to the card. */
+  opacity: clamp(0, calc(1 - var(--gd-phone-out, 0)), 1);
   transition: none;
-  will-change: transform, opacity;
+  will-change: opacity;
 }
 .gx.is-reduced .gx-cinema.is-discovery,
 .gx.is-static .gx-cinema.is-discovery {
@@ -1971,14 +1968,8 @@ html[data-gym-motion="reduce"] {
 .gx.is-reduced .gx-cinema.is-discovery canvas,
 .gx.is-static .gx-cinema.is-discovery canvas {
   visibility: hidden;
-  transform: none;
   opacity: 1;
   will-change: auto;
-}
-@media (max-width: 760px) {
-  .gx-cinema.is-ready.is-discovery canvas {
-    transform-origin: 68% 38%;
-  }
 }
 .gx .gx-member-shot { min-height: 320svh; }
 .gx .gx-owner-shot { min-height: 340svh; }

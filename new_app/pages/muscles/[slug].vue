@@ -639,23 +639,23 @@ useLiftagStructuredData([
     padding-left: 0;
   }
 
-  /* Match /exercises: one row, 12px type, steal width from padding/gap. */
+  /* Match /exercises and /machines: wrap instead of clipping All / Cardio. */
   .mu-filters {
-    flex-wrap: nowrap;
-    gap: 4px;
-    overflow-x: auto;
+    flex-wrap: wrap;
+    gap: 8px;
+    overflow-x: visible;
   }
 
   .mu-filter {
-    flex: 1 0 auto;
-    padding: 8px;
-    font-size: 12px;
+    flex: 0 0 auto;
+    padding: 9px 16px;
+    font-size: 13px;
     letter-spacing: 0.02em;
     white-space: nowrap;
   }
 
   .mu-filter__count {
-    font-size: 11px;
+    font-size: 12px;
   }
 }
 

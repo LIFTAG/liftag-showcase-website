@@ -110,6 +110,9 @@ export type DiscoveryMorphBeats = {
   layout: number;
 };
 
+export type { ListingMorphBeats, DiscoveryListingStyle } from "./listingMorph.ts";
+export { listingMorphBeats, listingFromStyle } from "./listingMorph.ts";
+
 export type DiscoveryAppRow = {
   x: number;
   y: number;
@@ -297,10 +300,7 @@ export function discoveryAt(progress: number) {
   );
   return {
     listing: smoothstep((progress - GLOBE_FOCUS_PROGRESS) / 0.1),
-    /**
-     * DOM phone takes over the cinema overlay as Earth appears. Matches the
-     * canvas fade `1 - reveal * 8` so the listing is already the device.
-     */
+    /** Cinema overlay is the 3D phone from the first frames of discovery. */
     lift: smoothstep(progress / 0.045),
     floor: smoothstep((progress - 0.43) / 0.16),
     overhead: smoothstep((progress - 0.61) / 0.16),

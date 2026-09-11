@@ -7,8 +7,8 @@ import {
   GLOBE_FOCUS_PROGRESS,
   discoveryAt,
   discoveryListingBox,
-  globePriorScale,
 } from "~/utils/gymscan/discoveryTimeline";
+import { listingMorphBeats } from "~/utils/gymscan/listingMorph";
 import { cinemaPhoneSlot } from "~/utils/gymscan/handoff";
 import {
   discoveryMapLocations,
@@ -143,7 +143,6 @@ function publishEarthOut(reveal: number) {
   const page = rootPage();
   if (!page) return;
   page.style.setProperty("--gx-earth-out", reveal.toFixed(4));
-  page.style.setProperty("--gx-earth-scale", globePriorScale(reveal).toFixed(5));
 }
 function clearEarthOut() {
   host.value?.parentElement?.style.removeProperty("--gd-reveal");
@@ -160,12 +159,14 @@ const listingBoxKeys = [
   "--gd-box-radius",
   "--gd-photo-h",
 ] as const;
-const listingKeys = [
+const listingMixKeys = [
   "--gd-listing",
+  "--gd-listing-card",
+  "--gd-phone-out",
   "--gd-floor",
   "--gd-lift",
-  ...listingBoxKeys,
 ] as const;
+const listingKeys = [...listingMixKeys, ...listingBoxKeys] as const;
 let listingRest: {
   left: number;
   top: number;
@@ -175,38 +176,66 @@ let listingRest: {
 function clearListing() {
   const sticky = host.value?.parentElement;
   listingRest = null;
-  if (!sticky) return;
-  for (const key of listingKeys) sticky.style.removeProperty(key);
+  if (sticky) {
+    for (const key of listingKeys) sticky.style.removeProperty(key);
+  }
+  const page = rootPage();
+  if (!page) return;
+  for (const key of listingKeys) page.style.removeProperty(key);
+  // Keep the cinema overlay off while discovery is unmounted (kit, etc).
+  page.style.setProperty("--gd-phone-out", "1");
+}
+function publishListingMix(
+  target: HTMLElement,
+  listing: number,
+  floor: number,
+  lift: number,
+  beats: ReturnType<typeof listingMorphBeats>,
+) {
+  target.style.setProperty("--gd-listing", listing.toFixed(4));
+  target.style.setProperty("--gd-listing-card", beats.card.toFixed(4));
+  target.style.setProperty("--gd-phone-out", Math.max(beats.card, floor).toFixed(4));
+  target.style.setProperty("--gd-floor", floor.toFixed(4));
+  target.style.setProperty("--gd-lift", lift.toFixed(4));
+}
+function publishListingBox(
+  target: HTMLElement,
+  box: ReturnType<typeof discoveryListingBox>,
+) {
+  target.style.setProperty("--gd-box-left", `${box.left.toFixed(1)}px`);
+  target.style.setProperty("--gd-box-top", `${box.top.toFixed(1)}px`);
+  target.style.setProperty("--gd-box-width", `${box.width.toFixed(1)}px`);
+  target.style.setProperty("--gd-box-height", `${box.height.toFixed(1)}px`);
+  target.style.setProperty("--gd-box-radius", `${box.radius.toFixed(1)}px`);
+  target.style.setProperty("--gd-photo-h", `${box.photoH.toFixed(1)}px`);
 }
 function publishListing(listing: number, floor: number, lift: number) {
   const sticky = host.value?.parentElement;
   if (!sticky) return;
-  sticky.style.setProperty("--gd-listing", listing.toFixed(4));
-  sticky.style.setProperty("--gd-floor", floor.toFixed(4));
-  sticky.style.setProperty("--gd-lift", lift.toFixed(4));
+  const beats = listingMorphBeats(listing);
   const profile = sticky.querySelector(".gd-profile") as HTMLElement | null;
-  if (!profile) return;
-  if (!listingRest) {
+  if (profile && !listingRest) {
     for (const key of listingBoxKeys) sticky.style.removeProperty(key);
-    if (profile.offsetWidth < 8) return;
-    listingRest = {
-      left: profile.offsetLeft,
-      top: profile.offsetTop,
-      width: profile.offsetWidth,
-      height: profile.offsetHeight,
-    };
+    if (profile.offsetWidth >= 8) {
+      listingRest = {
+        left: profile.offsetLeft,
+        top: profile.offsetTop,
+        width: profile.offsetWidth,
+        height: profile.offsetHeight,
+      };
+    }
   }
-  const box = discoveryListingBox(
-    cinemaPhoneSlot(sticky.clientWidth, sticky.clientHeight),
-    listingRest,
-    listing,
-  );
-  sticky.style.setProperty("--gd-box-left", `${box.left.toFixed(1)}px`);
-  sticky.style.setProperty("--gd-box-top", `${box.top.toFixed(1)}px`);
-  sticky.style.setProperty("--gd-box-width", `${box.width.toFixed(1)}px`);
-  sticky.style.setProperty("--gd-box-height", `${box.height.toFixed(1)}px`);
-  sticky.style.setProperty("--gd-box-radius", `${box.radius.toFixed(1)}px`);
-  sticky.style.setProperty("--gd-photo-h", `${box.photoH.toFixed(1)}px`);
+  const box = listingRest
+    ? discoveryListingBox(
+        cinemaPhoneSlot(sticky.clientWidth, sticky.clientHeight),
+        listingRest,
+        listing,
+      )
+    : null;
+  publishListingMix(sticky, listing, floor, lift, beats);
+  if (box) publishListingBox(sticky, box);
+  const page = rootPage();
+  if (page) publishListingMix(page, listing, floor, lift, beats);
 }
 function activity() {
   stop();
@@ -261,8 +290,11 @@ onMounted(() => {
   }
   observer = new IntersectionObserver(([entry]) => {
     visible = entry?.isIntersecting ?? false;
-    if (visible) boot();
-    else clearEarthOut();
+    if (visible) {
+      const frame = discoveryAt(props.film.progress);
+      publishListing(frame.listing, frame.floor, frame.lift);
+      boot();
+    } else clearEarthOut();
     activity();
   });
   if (host.value) observer.observe(host.value);

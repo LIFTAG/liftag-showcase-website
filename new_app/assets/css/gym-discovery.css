@@ -323,42 +323,23 @@
   flex-direction: column;
   overflow: hidden;
   background: oklch(16% 0.011 151);
-  border: calc(7px - 6px * var(--gd-listing, 0)) solid
-    oklch(22% 0.01 135 / calc(0.55 + 0.45 * var(--gd-listing, 0)));
+  border: 1px solid oklch(45% 0.025 151 / 0.45);
   border-radius: var(--gd-box-radius, 12px);
-  box-shadow:
-    0 0 calc(28px * (1 - var(--gd-listing, 0)))
-      oklch(88% 0.2 118 / calc(0.22 * (1 - var(--gd-listing, 0)))),
-    18px 22px 70px oklch(4% 0.01 135 / calc(0.45 * (1 - var(--gd-listing, 0)))),
-    0 35px 100px oklch(5% 0.008 151 / calc(0.7 * var(--gd-listing, 0)));
+  box-shadow: 0 35px 100px oklch(5% 0.008 151 / 0.7);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transform-origin: 50% 50%;
-  transform: perspective(1200px)
-    rotateY(calc(-7deg + 3deg * var(--gd-listing, 0)))
-    rotateX(calc(5deg - 3deg * var(--gd-listing, 0)));
 }
 .gx .gd-sticky[data-phase="0"] .gd-profile,
 .gx .gd-sticky[data-phase="1"] .gd-profile {
-  opacity: calc(var(--gd-lift, 0) * (1 - var(--gd-floor, 0)));
+  opacity: calc(var(--gd-listing-card, 0) * (1 - var(--gd-floor, 0)));
   visibility: visible;
 }
 .gx .gd-sticky[data-phase="1"] .gd-profile {
   pointer-events: auto;
 }
 .gx .gd-profile-island {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  z-index: 2;
-  width: 28%;
-  height: 9px;
-  border-radius: 20px;
-  background: oklch(8% 0.01 151);
-  transform: translateX(-50%);
-  opacity: calc(1 - var(--gd-listing, 0) * 2.2);
-  pointer-events: none;
+  display: none;
 }
 .gx .gd-location-bratislava .gd-map-name {
   opacity: calc(1 - var(--gd-listing, 0));
@@ -379,10 +360,7 @@
   height: var(--gd-photo-h, auto);
   aspect-ratio: 1.95;
   overflow: hidden;
-  border-radius: calc(22px * (1 - var(--gd-listing, 0)))
-    calc(22px * (1 - var(--gd-listing, 0)))
-    calc(11px * var(--gd-listing, 0))
-    calc(11px * var(--gd-listing, 0));
+  border-radius: 11px 11px 0 0;
   opacity: 1;
 }
 .gx .gd-profile-photo img {

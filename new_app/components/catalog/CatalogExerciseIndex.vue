@@ -653,24 +653,24 @@ useLiftagStructuredData([
     padding-left: 0;
   }
 
-  /* One row on desktop: keep 12px type and steal the width from padding/gap,
-     not from the labels. Overflow-x is only a last resort on a squeezed window. */
+  /* Wrap once the row no longer fits (Adductors pushed it past 1240px).
+     Same treatment as /machines so All and Cardio stay fully visible. */
   .ex-chips {
-    flex-wrap: nowrap;
-    gap: 4px;
-    overflow-x: auto;
+    flex-wrap: wrap;
+    gap: 8px;
+    overflow-x: visible;
   }
 
   .ex-chip {
-    flex: 1 0 auto;
-    padding: 8px;
-    font-size: 12px;
+    flex: 0 0 auto;
+    padding: 9px 16px;
+    font-size: 13px;
     letter-spacing: 0.02em;
     white-space: nowrap;
   }
 
   .ex-chip__count {
-    font-size: 11px;
+    font-size: 12px;
   }
 }
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { probeTemporaryWebGL2 } from "~/utils/gymscan/device";
 import { cinemaPhoneSlot, compactLoggerOwnsCopy } from "~/utils/gymscan/handoff";
+import { listingFromStyle } from "~/utils/gymscan/listingMorph";
 import {
   experienceDevice,
   type GymProductView,
@@ -116,20 +117,26 @@ function frame(info: FrameInfo) {
     emit("swept");
   }
 }
+function listingPose() {
+  if (!import.meta.client) return null;
+  const sticky = document.querySelector(".gd-sticky");
+  if (!sticky) return null;
+  const next = listingFromStyle(getComputedStyle(sticky));
+  return next.box ? { listing: next.listing, box: next.box } : null;
+}
+function phoneOut() {
+  if (!import.meta.client) return 1;
+  const gx = host.value?.closest(".gx") ?? document.documentElement;
+  return listingFromStyle(getComputedStyle(gx)).phoneOut;
+}
 function activity() {
   const chapter = journey.value.chapter;
-  const earthOut = import.meta.client
-    ? Number.parseFloat(
-        getComputedStyle(host.value?.closest(".gx") ?? document.documentElement)
-          .getPropertyValue("--gx-earth-out") || "0",
-      )
-    : 1;
-  const pullingBack =
-    (chapter === "discover" || chapter === "kit") && earthOut < 0.97;
+  const discoveryLive = chapter === "discover" || chapter === "kit";
+  const discoveryPhone = chapter === "discover" && phoneOut() < 0.97;
   const filmVisible =
-    ["experience", "the-tag", "lifters", "gyms"].includes(chapter) || pullingBack;
+    ["experience", "the-tag", "lifters", "gyms"].includes(chapter) || discoveryPhone;
   const active = ready.value && visible && !document.hidden && !props.paused && filmVisible;
-  if (pullingBack && !earthPoll) {
+  if (discoveryLive && !earthPoll) {
     earthPoll = requestAnimationFrame(() => {
       earthPoll = 0;
       activity();
@@ -191,6 +198,7 @@ async function start() {
       onFrame: frame,
       readPointer: () => mouse.latest,
       readCoaching: () => ({ frame: coaching.value.frame, video: video.value, customVideo: customVideo.value, replay: coaching.value.replay }),
+      readListing: () => (discoveryFilm.value ? listingPose() : null),
     });
     resize();
     await stage.load();
