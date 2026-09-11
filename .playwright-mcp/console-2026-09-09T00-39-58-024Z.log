@@ -1,0 +1,209 @@
+[    1278ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://[::1]:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[    1586ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    1586ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    1587ms] [LOG] %c[Vercel Web Analytics]%c [view] http://[::1]:3000/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://[::1]:3000/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788914399611} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    1631ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://[::1]:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[    3104ms] [INFO] [gymscan] 0B calls planted 24 @ http://[::1]:3000/_nuxt/utils/gymscan/stage.ts:1254
+[   64627ms] [ERROR] WebSocket connection to 'ws://[::1]:3000/_nuxt/?token=IFhqqHz32LNF' failed: The network connection was lost. @ :0
+[   64628ms] [LOG] [vite] server connection lost. Polling for restart... @ http://[::1]:3000/_nuxt/@vite/client:864
+[  427949ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://[::1]:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  428629ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  428632ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  428652ms] [LOG] %c[Vercel Web Analytics]%c [view] http://[::1]:3000/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://[::1]:3000/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788914826675} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  428918ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://[::1]:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  431838ms] [INFO] [gymscan] 0B calls planted 57 @ http://[::1]:3000/_nuxt/utils/gymscan/stage.ts:1254
+[  590491ms] [LOG] %cssr:success%c Vite server hmr 52 files 
+      background: #2ecc71;
+      border-radius: 0.5em;
+      color: white;
+      font-weight: bold;
+      padding: 2px 0.5em;
+      in 115.566ms 
+  at vite_node_entry_default (node_modules/.pnpm/@nuxt+vite-builder@3.21.2_@types+node@26.1.1_magicast@0.5.2_nuxt@3.21.2_@emnapi+core@1._a4b3153523cf62a7d8205505e2d0041e/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs)
+  at process.processTicksAndRejections (node:internal/process/task_queues)
+  at async Object.renderToString (node_modules/.pnpm/vue-bundle-renderer@2.2.0/node_modules/vue-bundle-renderer/dist/runtime.mjs)
+ @ http://[::1]:3000/_nuxt/node_modules/.pnpm/consola@3.4.2/node_modules/consola/dist/browser.mjs?v=13688f5d:47
+[  590537ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://[::1]:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  590776ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  590776ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  590779ms] [LOG] %c[Vercel Web Analytics]%c [view] http://[::1]:3000/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://[::1]:3000/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788914988802} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  590844ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://[::1]:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  593250ms] [INFO] [gymscan] 0B calls explode 13 @ http://[::1]:3000/_nuxt/utils/gymscan/stage.ts:1250
+[  593444ms] [INFO] [gymscan] 0B calls planted 37 @ http://[::1]:3000/_nuxt/utils/gymscan/stage.ts:1254
+[  660821ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://[::1]:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  661127ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  661127ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  661130ms] [LOG] %c[Vercel Web Analytics]%c [view] http://[::1]:3000/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://[::1]:3000/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788915059153} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  661196ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://[::1]:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  662918ms] [INFO] [gymscan] 0B calls explode 35 @ http://[::1]:3000/_nuxt/utils/gymscan/stage.ts:1250
+[  663030ms] [INFO] [gymscan] 0B calls planted 37 @ http://[::1]:3000/_nuxt/utils/gymscan/stage.ts:1254
+[  689175ms] [ERROR] WebSocket connection to 'ws://[::1]:3000/_nuxt/?token=oQQ-WRSmfc4G' failed: The network connection was lost. @ :0
+[  689176ms] [LOG] [vite] server connection lost. Polling for restart... @ http://[::1]:3000/_nuxt/@vite/client:864
+[  690640ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://[::1]:3000/demo#discover:0
+[  690823ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://[::1]:3000/demo#discover:0
+[  691856ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://[::1]:3000/demo#discover:0
+[  696613ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://[::1]:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  696963ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  696963ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  696965ms] [LOG] %c[Vercel Web Analytics]%c [view] http://[::1]:3000/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://[::1]:3000/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788915094988} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  697088ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://[::1]:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  699842ms] [INFO] [gymscan] 0B calls explode 35 @ http://[::1]:3000/_nuxt/utils/gymscan/stage.ts:1250
+[  700133ms] [INFO] [gymscan] 0B calls planted 37 @ http://[::1]:3000/_nuxt/utils/gymscan/stage.ts:1254
+[  783453ms] Fetch API cannot load blob:http://[::1]:3000/f1054431-7300-4793-820d-ffa9d74a103a due to access control checks.
+    at load (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  783455ms] Fetch API cannot load blob:http://[::1]:3000/d2a4fc70-f5f5-408b-9596-02ac8ec69b39 due to access control checks.
+    at load (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  783455ms] Fetch API cannot load blob:http://[::1]:3000/4f4ce449-b2d3-40e4-b19f-3c47c5864c84 due to access control checks.
+    at load (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  783455ms] Fetch API cannot load blob:http://[::1]:3000/c6c3b069-6a58-42ed-9fa8-d256b63977b0 due to access control checks.
+    at load (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  783455ms] Fetch API cannot load blob:http://[::1]:3000/fa7658a5-02ca-4d5a-a6e6-c5f01e87c680 due to access control checks.
+    at load (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  783455ms] Fetch API cannot load blob:http://[::1]:3000/006ec892-952e-41b8-960d-85ab64ab6050 due to access control checks.
+    at load (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  783455ms] Fetch API cannot load blob:http://[::1]:3000/f6aa0afa-9d0e-40dc-84ac-bc09afcba8b0 due to access control checks.
+    at load (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  783455ms] Fetch API cannot load blob:http://[::1]:3000/d896d29e-23f9-4ee3-ba5f-aadca5e78252 due to access control checks.
+    at load (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  783455ms] Fetch API cannot load blob:http://[::1]:3000/02655d68-1f1e-4000-9160-0867807d6f53 due to access control checks.
+    at load (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  783455ms] Fetch API cannot load blob:http://[::1]:3000/be4395c2-8f41-4d4f-96b7-605ff5942124 due to access control checks.
+    at load (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  783455ms] Fetch API cannot load blob:http://[::1]:3000/97b72970-9594-4995-8063-bb9436ec239c due to access control checks.
+    at load (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  783455ms] Fetch API cannot load blob:http://[::1]:3000/ec99eec6-aeb2-4ee1-9c13-039df60a8f74 due to access control checks.
+    at load (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  783455ms] Fetch API cannot load blob:http://[::1]:3000/06364e0d-7306-4050-8f39-5235da12d641 due to access control checks.
+    at load (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  783455ms] Fetch API cannot load blob:http://[::1]:3000/d7fa7778-6c37-4955-abe2-2098086ddd8b due to access control checks.
+    at load (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  783455ms] Cannot load blob:http://[::1]:3000/0d5f7aab-d5a0-4215-ae85-0ed1edbd0556 due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/6c230c50-1b3e-4a78-960d-7ce69b6f178e due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/de0bcec1-a7c0-4997-acb9-a55f59bc5733 due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/40f08163-3fc9-42a6-a90e-cc7127b22f01 due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/e55fc8fa-d017-4ae7-8ea5-dab6c11ffe33 due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/b5992a79-fcf3-4b1a-ba72-af89e847fb4b due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/2cc34caf-6199-4d69-bd1b-afb7b4ffee8a due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/4489de30-686a-4a13-b2d1-49cb553c458a due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/b749a655-0d30-4943-b634-aca712a047be due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/f9e5e143-dd00-4f0d-9718-d486e3c33151 due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/4a9e6382-feed-4a1b-9b1f-222e1071fb58 due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/491444f5-b097-4d4c-826e-9813177a5490 due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/19a086f2-4e89-4847-b64a-620d28f0510f due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/26068abc-a322-4a58-82f5-5904e0f8130a due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/eada24d2-fd5b-4c46-945f-cb9f888405c9 due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/07046a11-c895-4671-8d41-7aaa1e1b31fe due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/509115cd-ab42-4c50-b47a-bc38ff0b6f0c due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/c51f5eaf-c563-43a5-9c96-8eb34bbc7c63 due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/820f2f10-0a4a-481b-b4fd-bc26289535a7 due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783455ms] Cannot load blob:http://[::1]:3000/17ee7ae6-9ea5-471c-b96c-0220e34552cf due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783460ms] Cannot load blob:http://[::1]:3000/a682ba4d-2cb5-4f7a-aacf-a06d4fbf2dab due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783460ms] Cannot load blob:http://[::1]:3000/58f10aa6-eca5-43bf-9799-f632f38da3de due to access control checks.
+    at createImageBitmap ([native code]:0:0)
+[  783460ms] Cannot load blob:http://[::1]:3000/5e8cfea2-16b6-4cc2-8a31-3065e1f6fe4e due to access control checks.
+    at unknown (http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_DRACOLoader__js.js?v=13688f5d:224:35)
+[  783434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/f1054431-7300-4793-820d-ffa9d74a103a @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/d2a4fc70-f5f5-408b-9596-02ac8ec69b39 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/4f4ce449-b2d3-40e4-b19f-3c47c5864c84 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/c6c3b069-6a58-42ed-9fa8-d256b63977b0 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/fa7658a5-02ca-4d5a-a6e6-c5f01e87c680 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/006ec892-952e-41b8-960d-85ab64ab6050 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783434ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/f6aa0afa-9d0e-40dc-84ac-bc09afcba8b0 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783435ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/d896d29e-23f9-4ee3-ba5f-aadca5e78252 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783435ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/02655d68-1f1e-4000-9160-0867807d6f53 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783435ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/be4395c2-8f41-4d4f-96b7-605ff5942124 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783435ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/97b72970-9594-4995-8063-bb9436ec239c @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783435ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/ec99eec6-aeb2-4ee1-9c13-039df60a8f74 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783435ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/06364e0d-7306-4050-8f39-5235da12d641 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783435ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/d7fa7778-6c37-4955-abe2-2098086ddd8b @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783435ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/a1ef8f39-889b-4e53-9411-38d3023a8bc3 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783435ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/2400e31d-3e97-4b03-bc34-68d2ec23d151 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783435ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/c7402779-6f5e-4116-b13c-d8aaf8bcb559 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783435ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/fdce710d-3ba7-4b32-bd72-2647190a6d5e @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783436ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/46e887fd-98a0-4ff9-827b-c378db832327 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783436ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/c4261bfe-2d63-4c25-8345-90fb909d7e33 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783436ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/578139ed-9d8a-424a-b11c-5a2c879f58b7 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783436ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/0f503be6-a57d-4637-8c81-a0f0cd19c381 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783436ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/ec243eaa-113a-4b44-a927-86a7a20f5866 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783436ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/327025cb-dc75-4e8a-90b0-20b312741732 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783436ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/e6dda870-47a3-4a65-b47f-bdabbd22bf3f @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783436ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/bf0e6760-5317-4858-b11e-ef94f8f20c12 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783436ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/d2372e0d-6a73-4cc8-a29c-dd6c0bdb094f @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783436ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/7e53c1e4-4f24-4464-bcc2-77ee4d58bdb7 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783436ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/a372f7ce-50c1-464d-85b7-44917d5a9610 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783436ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/5b0008d8-31a3-4430-ac3e-4c47e1b4b053 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783436ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/ade8da00-7a25-43a9-a7db-7ab79d3e3647 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783436ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/c70d24ed-82b3-45a5-8d82-e9e028dc0d36 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783436ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/f2f14847-8aaa-46f9-89cb-bfe62d798b90 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783437ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/64f0d948-71b9-40ee-985d-68f22aba30c5 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783437ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/e8e23563-8f63-4769-8957-c35e4ecf2e84 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  783437ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://[::1]:3000/99975b8d-2698-4b16-a545-e6ecbdca1167 @ http://[::1]:3000/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  786242ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://[::1]:3000/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  786635ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  786635ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  786636ms] [LOG] %c[Vercel Web Analytics]%c [view] http://[::1]:3000/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://[::1]:3000/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788915184660} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  786783ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://[::1]:3000/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  790930ms] [INFO] [gymscan] 0B calls planted 57 @ http://[::1]:3000/_nuxt/utils/gymscan/stage.ts:1254

@@ -112,6 +112,37 @@ export function inStadium(
   return inRoundRect(x, y, w, h, Math.min(w, h) * 0.5, pad)
 }
 
+/**
+ * Backing-store size in layout CSS px. Do not pass getBoundingClientRect:
+ * ancestor transforms (the listing card scales from ~0.06) would size the
+ * mesh to a few pixels and the hover would look like a zoomed-in bitmap.
+ */
+export function partnerLayoutSize(
+  clientW: number,
+  clientH: number,
+): { w: number, h: number } {
+  return {
+    w: Math.max(1, Math.round(clientW || 1)),
+    h: Math.max(1, Math.round(clientH || 1)),
+  }
+}
+
+/** Map a viewport pointer onto layout-space mesh coordinates. */
+export function partnerPointerInLayout(
+  clientX: number,
+  clientY: number,
+  visual: { left: number, top: number, width: number, height: number },
+  layoutW: number,
+  layoutH: number,
+): { x: number, y: number } {
+  const vw = visual.width || 1
+  const vh = visual.height || 1
+  return {
+    x: ((clientX - visual.left) / vw) * layoutW,
+    y: ((clientY - visual.top) / vh) * layoutH,
+  }
+}
+
 export function partnerSplashMaxR(
   originX: number,
   originY: number,

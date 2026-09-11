@@ -1,0 +1,308 @@
+- generic [active] [ref=f6e1]:
+  - generic [ref=f6e2]:
+    - banner [ref=f6e3]:
+      - link "LIFTAG logo LIFTAG" [ref=f6e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f6e5]:
+          - img "LIFTAG logo"
+        - generic [ref=f6e6]: LIFTAG
+      - text: D e m o L i f t e r s G y m s T r a i n e r s E x e r c i s e s J o u r n a l P r i c i n g
+      - button "Toggle menu" [ref=f6e8] [cursor=pointer]
+    - main [ref=f6e9]:
+      - main [ref=f6e11]:
+        - generic [ref=f6e12]:
+          - paragraph [ref=f6e13]: JOURNAL · LIFTAG
+          - heading "Lift with a record." [level=1] [ref=f6e14]
+          - paragraph [ref=f6e15]: "The LIFTAG journal: workout tracking, powerlifting apps, and QR/NFC gym machine tags. Written for serious lifters, trainers, and gyms."
+        - region "LIFTAG journal" [ref=f6e16]:
+          - article [ref=f6e17]:
+            - paragraph [ref=f6e18]: TOOL
+            - heading "1RM calculator" [level=2] [ref=f6e19]
+            - paragraph [ref=f6e20]: Estimate a one-rep max from any set. Epley, same formula as the app, plus Brzycki and the rest of the family.
+            - link "Open" [ref=f6e21] [cursor=pointer]:
+              - /url: /tools/1rm-calculator
+          - article [ref=f6e22]:
+            - paragraph [ref=f6e23]: LIFTING
+            - heading "How to track workouts properly" [level=2] [ref=f6e24]
+            - paragraph [ref=f6e25]: What to log, what to ignore, how to read progress, and which workout tracking app actually helps.
+            - link "Read" [ref=f6e26] [cursor=pointer]:
+              - /url: /journal/how-to-track-workouts
+          - article [ref=f6e27]:
+            - paragraph [ref=f6e28]: POWERLIFTING
+            - heading "Best workout app for powerlifting" [level=2] [ref=f6e29]
+            - paragraph [ref=f6e30]: Set tracking, % of 1RM programming, and PR history compared across LIFTAG, Strong, Boostcamp, and Hevy.
+            - link "Read" [ref=f6e31] [cursor=pointer]:
+              - /url: /journal/best-workout-app-for-powerlifting
+          - article [ref=f6e32]:
+            - paragraph [ref=f6e33]: GYM TECH
+            - heading "QR and NFC gym tracking" [level=2] [ref=f6e34]
+            - paragraph [ref=f6e35]: How tap-and-scan machine tags change logging, and which apps actually support the flow.
+            - link "Read" [ref=f6e36] [cursor=pointer]:
+              - /url: /journal/qr-nfc-gym-tracking
+          - article [ref=f6e37]:
+            - paragraph [ref=f6e38]: COMPARISON
+            - heading "Best workout tracking app" [level=2] [ref=f6e39]
+            - paragraph [ref=f6e40]: An honest head-to-head of LIFTAG against Strong, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor, and Fitbod.
+            - link "Read" [ref=f6e41] [cursor=pointer]:
+              - /url: /best-workout-tracking-app
+          - article [ref=f6e42]:
+            - paragraph [ref=f6e43]: COMPARISON
+            - heading "Best gym QR and NFC app" [level=2] [ref=f6e44]
+            - paragraph [ref=f6e45]: "LIFTAG versus Liftd, ScanLiftLog, and RepTag: free tags, gym cost, NFC, and who actually wins each row."
+            - link "Read" [ref=f6e46] [cursor=pointer]:
+              - /url: /best-gym-qr-nfc-app
+          - article [ref=f6e47]:
+            - paragraph [ref=f6e48]: COMPARISON
+            - heading "Best workout logger" [level=2] [ref=f6e49]
+            - paragraph [ref=f6e50]: "Logger vs tracker vs paper logbook. Which apps actually write the set down in 2026: LIFTAG, Strong, Hevy, FitNotes."
+            - link "Read" [ref=f6e51] [cursor=pointer]:
+              - /url: /journal/best-workout-logger
+          - article [ref=f6e52]:
+            - paragraph [ref=f6e53]: COMPARISON
+            - heading "Best free workout tracker" [level=2] [ref=f6e54]
+            - paragraph [ref=f6e55]: What you actually get without paying on LIFTAG, Strong, Hevy, and FitNotes — and where each free tier stops.
+            - link "Read" [ref=f6e56] [cursor=pointer]:
+              - /url: /journal/best-free-workout-tracker
+          - article [ref=f6e57]:
+            - paragraph [ref=f6e58]: COMPARISON
+            - heading "LIFTAG vs Hevy" [level=2] [ref=f6e59]
+            - paragraph [ref=f6e60]: Hevy features and pricing in 2026, quoted from its own store listing, next to a tracker with no free-tier caps and no paid tier.
+            - link "Read" [ref=f6e61] [cursor=pointer]:
+              - /url: /alternatives/hevy
+          - article [ref=f6e62]:
+            - paragraph [ref=f6e63]: COMPARISON
+            - heading "LIFTAG vs Strong" [level=2] [ref=f6e64]
+            - paragraph [ref=f6e65]: Strong caps the free tier at three routines and sells PRO. Where that matters, where it does not, and where Strong still wins.
+            - link "Read" [ref=f6e66] [cursor=pointer]:
+              - /url: /vs/strong
+          - article [ref=f6e67]:
+            - paragraph [ref=f6e68]: PRICING
+            - heading "LIFTAG pricing" [level=2] [ref=f6e69]
+            - paragraph [ref=f6e70]: "A dated fact sheet: what is free forever, what has no published price, and what a partner gym pays. No invented numbers."
+            - link "Read" [ref=f6e71] [cursor=pointer]:
+              - /url: /pricing
+          - article [ref=f6e72]:
+            - paragraph [ref=f6e73]: COMPARISON
+            - heading "Strong vs Hevy vs LIFTAG" [level=2] [ref=f6e74]
+            - paragraph [ref=f6e75]: "The comparison people type: logging speed, free tiers, social features, and gym machine tags."
+            - link "Read" [ref=f6e76] [cursor=pointer]:
+              - /url: /journal/strong-vs-hevy-vs-liftag
+          - article [ref=f6e77]:
+            - paragraph [ref=f6e78]: COMPARISON
+            - heading "Workout logger vs tracker" [level=2] [ref=f6e79]
+            - paragraph [ref=f6e80]: What a workout logger actually is, how it differs from a tracker and a paper logbook, and which app — or notebook — to pick.
+            - link "Read" [ref=f6e81] [cursor=pointer]:
+              - /url: /journal/workout-logger
+          - article [ref=f6e82]:
+            - paragraph [ref=f6e83]: GYM TECH
+            - heading "NFC tags for gym equipment" [level=2] [ref=f6e84]
+            - paragraph [ref=f6e85]: What to put on each machine, where to stick it, and why a dual NFC + QR plate beats QR alone.
+            - link "Read" [ref=f6e86] [cursor=pointer]:
+              - /url: /journal/nfc-tags-for-gym-equipment
+          - article [ref=f6e87]:
+            - paragraph [ref=f6e88]: LIFTING
+            - heading "What is RPE in lifting" [level=2] [ref=f6e89]
+            - paragraph [ref=f6e90]: How to rate a set, when to log RPE in a workout tracker, and how it pairs with rest time and load.
+            - link "Read" [ref=f6e91] [cursor=pointer]:
+              - /url: /journal/what-is-rpe-lifting
+          - article [ref=f6e92]:
+            - paragraph [ref=f6e93]: LIFTING
+            - heading "Progressive overload" [level=2] [ref=f6e94]
+            - paragraph [ref=f6e95]: How to add load, reps, or sets without lying to the log — and how a tracker makes the next jump obvious.
+            - link "Read" [ref=f6e96] [cursor=pointer]:
+              - /url: /journal/progressive-overload
+          - article [ref=f6e97]:
+            - paragraph [ref=f6e98]: GYMS
+            - heading "Gym NFC tag rollout" [level=2] [ref=f6e99]
+            - paragraph [ref=f6e100]: How a club tags a floor, then 12 locations, without a fake case-study quote. The actual LIFTAG rollout.
+            - link "Read" [ref=f6e101] [cursor=pointer]:
+              - /url: /journal/gym-nfc-rollout
+    - contentinfo [ref=f6e102]:
+      - generic [ref=f6e103]:
+        - generic [ref=f6e104]:
+          - generic [ref=f6e105]:
+            - img "LIFTAG logo" [ref=f6e106]
+            - generic [ref=f6e107]: LIFTAG
+          - paragraph [ref=f6e108]: Because serious training deserves more than a notes app and a spreadsheet.
+          - generic [ref=f6e109]:
+            - link "Featured on LaunchBuff" [ref=f6e110] [cursor=pointer]:
+              - /url: https://launchbuff.com/products/liftag-q97d57
+              - img "Featured on LaunchBuff"
+            - link "Featured on Launchstag" [ref=f6e111] [cursor=pointer]:
+              - /url: https://launchstag.com/p/liftag
+              - img "Featured on Launchstag"
+        - generic [ref=f6e112]:
+          - link "Product" [ref=f6e113] [cursor=pointer]:
+            - /url: /#all-in-one
+          - list [ref=f6e115]:
+            - listitem [ref=f6e116]:
+              - link "Demo" [ref=f6e117] [cursor=pointer]:
+                - /url: /demo
+            - listitem [ref=f6e119]:
+              - link "1RM Calculator" [ref=f6e120] [cursor=pointer]:
+                - /url: /tools/1rm-calculator
+            - listitem [ref=f6e122]:
+              - link "Exercise Library" [ref=f6e123] [cursor=pointer]:
+                - /url: /exercises
+            - listitem [ref=f6e125]:
+              - link "Machine Catalog" [ref=f6e126] [cursor=pointer]:
+                - /url: /machines
+            - listitem [ref=f6e128]:
+              - link "For Lifters" [ref=f6e129] [cursor=pointer]:
+                - /url: /for-lifters
+            - listitem [ref=f6e131]:
+              - link "For Trainers" [ref=f6e132] [cursor=pointer]:
+                - /url: /for-trainers
+            - listitem [ref=f6e134]:
+              - link "Become a Coach" [ref=f6e135] [cursor=pointer]:
+                - /url: /become-a-coach
+            - listitem [ref=f6e137]:
+              - link "For Gyms" [ref=f6e138] [cursor=pointer]:
+                - /url: /for-gyms
+            - listitem [ref=f6e140]:
+              - link "NFC + QR Tags" [ref=f6e141] [cursor=pointer]:
+                - /url: /qr-nfc-gym-tags
+            - listitem [ref=f6e143]:
+              - link "Pricing" [ref=f6e144] [cursor=pointer]:
+                - /url: /pricing
+            - listitem [ref=f6e146]:
+              - link "About" [ref=f6e147] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=f6e149]:
+              - link "Press" [ref=f6e150] [cursor=pointer]:
+                - /url: /press
+            - listitem [ref=f6e152]:
+              - link "Roadmap" [ref=f6e153] [cursor=pointer]:
+                - /url: /#roadmap
+            - listitem [ref=f6e155]:
+              - link "Partner with us" [ref=f6e156] [cursor=pointer]:
+                - /url: /contact/partner
+            - listitem [ref=f6e158]:
+              - link "Support" [ref=f6e159] [cursor=pointer]:
+                - /url: /contact/support
+        - generic [ref=f6e161]:
+          - link "Library" [ref=f6e162] [cursor=pointer]:
+            - /url: /muscles
+          - list [ref=f6e164]:
+            - listitem [ref=f6e165]:
+              - link "All muscles" [ref=f6e166] [cursor=pointer]:
+                - /url: /muscles
+            - listitem [ref=f6e168]:
+              - link "Chest" [ref=f6e169] [cursor=pointer]:
+                - /url: /muscles/chest
+            - listitem [ref=f6e171]:
+              - link "Back" [ref=f6e172] [cursor=pointer]:
+                - /url: /muscles/back
+            - listitem [ref=f6e174]:
+              - link "Shoulders" [ref=f6e175] [cursor=pointer]:
+                - /url: /muscles/shoulders
+            - listitem [ref=f6e177]:
+              - link "Quads" [ref=f6e178] [cursor=pointer]:
+                - /url: /muscles/quadriceps
+            - listitem [ref=f6e180]:
+              - link "Hamstrings" [ref=f6e181] [cursor=pointer]:
+                - /url: /muscles/hamstrings
+            - listitem [ref=f6e183]:
+              - link "Glutes" [ref=f6e184] [cursor=pointer]:
+                - /url: /muscles/glutes
+            - listitem [ref=f6e186]:
+              - link "Abs" [ref=f6e187] [cursor=pointer]:
+                - /url: /muscles/abs
+            - listitem [ref=f6e189]:
+              - link "Bench press" [ref=f6e190] [cursor=pointer]:
+                - /url: /exercises/barbell-bench-press
+            - listitem [ref=f6e192]:
+              - link "Back squat" [ref=f6e193] [cursor=pointer]:
+                - /url: /exercises/barbell-back-squat
+            - listitem [ref=f6e195]:
+              - link "Deadlift" [ref=f6e196] [cursor=pointer]:
+                - /url: /exercises/conventional-deadlift
+        - generic [ref=f6e198]:
+          - link "Journal" [ref=f6e199] [cursor=pointer]:
+            - /url: /journal
+          - list [ref=f6e201]:
+            - listitem [ref=f6e202]:
+              - link "All articles" [ref=f6e203] [cursor=pointer]:
+                - /url: /journal
+            - listitem [ref=f6e205]:
+              - link "Best Workout Tracking App" [ref=f6e206] [cursor=pointer]:
+                - /url: /best-workout-tracking-app
+            - listitem [ref=f6e208]:
+              - link "Best Gym QR + NFC App" [ref=f6e209] [cursor=pointer]:
+                - /url: /best-gym-qr-nfc-app
+            - listitem [ref=f6e211]:
+              - link "Best Workout Logger" [ref=f6e212] [cursor=pointer]:
+                - /url: /journal/best-workout-logger
+            - listitem [ref=f6e214]:
+              - link "Best Free Workout Tracker" [ref=f6e215] [cursor=pointer]:
+                - /url: /journal/best-free-workout-tracker
+            - listitem [ref=f6e217]:
+              - link "LIFTAG vs Hevy" [ref=f6e218] [cursor=pointer]:
+                - /url: /alternatives/hevy
+            - listitem [ref=f6e220]:
+              - link "LIFTAG vs Strong" [ref=f6e221] [cursor=pointer]:
+                - /url: /vs/strong
+            - listitem [ref=f6e223]:
+              - link "Strong vs Hevy vs LIFTAG" [ref=f6e224] [cursor=pointer]:
+                - /url: /journal/strong-vs-hevy-vs-liftag
+            - listitem [ref=f6e226]:
+              - link "Workout Logger" [ref=f6e227] [cursor=pointer]:
+                - /url: /journal/workout-logger
+            - listitem [ref=f6e229]:
+              - link "How to Track Workouts" [ref=f6e230] [cursor=pointer]:
+                - /url: /journal/how-to-track-workouts
+            - listitem [ref=f6e232]:
+              - link "Best App for Powerlifting" [ref=f6e233] [cursor=pointer]:
+                - /url: /journal/best-workout-app-for-powerlifting
+            - listitem [ref=f6e235]:
+              - link "QR + NFC Gym Tracking" [ref=f6e236] [cursor=pointer]:
+                - /url: /journal/qr-nfc-gym-tracking
+            - listitem [ref=f6e238]:
+              - link "NFC Tags for Gym Equipment" [ref=f6e239] [cursor=pointer]:
+                - /url: /journal/nfc-tags-for-gym-equipment
+            - listitem [ref=f6e241]:
+              - link "What is RPE" [ref=f6e242] [cursor=pointer]:
+                - /url: /journal/what-is-rpe-lifting
+            - listitem [ref=f6e244]:
+              - link "Progressive Overload" [ref=f6e245] [cursor=pointer]:
+                - /url: /journal/progressive-overload
+            - listitem [ref=f6e247]:
+              - link "Gym NFC Rollout" [ref=f6e248] [cursor=pointer]:
+                - /url: /journal/gym-nfc-rollout
+        - generic [ref=f6e250]:
+          - generic [ref=f6e251]: Legal
+          - list [ref=f6e252]:
+            - listitem [ref=f6e253]:
+              - link "Privacy Policy" [ref=f6e254] [cursor=pointer]:
+                - /url: /privacy-policy
+            - listitem [ref=f6e256]:
+              - link "Terms & Conditions" [ref=f6e257] [cursor=pointer]:
+                - /url: /terms-and-conditions
+      - generic [ref=f6e259]:
+        - generic [ref=f6e260]: © 2026 LIFTAG · BRATISLAVA · BUILT BY LIFTERS
+        - generic [ref=f6e261]:
+          - generic [ref=f6e262]:
+            - link "Liftag on Instagram" [ref=f6e263] [cursor=pointer]:
+              - /url: https://www.instagram.com/liftag.fit/
+            - link "Liftag on TikTok" [ref=f6e265] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@liftag
+            - link "Liftag on X" [ref=f6e267] [cursor=pointer]:
+              - /url: https://x.com/liftag_fit
+            - link "Liftag on YouTube" [ref=f6e269] [cursor=pointer]:
+              - /url: https://www.youtube.com/@liftag_fit
+            - link "Liftag on Reddit" [ref=f6e271] [cursor=pointer]:
+              - /url: https://www.reddit.com/r/liftag/
+          - generic [ref=f6e273]:
+            - text: Available on ·
+            - link "IOS AND ANDROID" [ref=f6e274] [cursor=pointer]:
+              - /url: /get
+      - generic [aria-hidden]:
+        - generic: LIFTAG
+        - generic: LIFTAG
+        - generic: LIFTAG
+  - generic [ref=f6e276]:
+    - button "Toggle Nuxt DevTools" [ref=f6e277] [cursor=pointer]
+    - generic "Page load time" [ref=f6e281]:
+      - generic [ref=f6e282]: "32"
+      - generic [ref=f6e283]: ms
+    - button "Toggle Component Inspector" [ref=f6e285] [cursor=pointer]

@@ -1,0 +1,172 @@
+- generic [ref=f6e2]:
+  - banner [ref=f6e3]:
+    - generic [ref=f6e5]:
+      - checkbox [ref=f6e6]
+      - generic "Light mode" [ref=f6e8] [cursor=pointer]
+  - generic [ref=f6e13]:
+    - heading "Error" [level=4] [ref=f6e14]
+    - heading "An error has occurred" [level=1] [ref=f6e15]
+  - 'heading "ENOENT: no such file or directory, mkdir ''/Users/adrian/liftag_repos/liftag_showcase_website/new_app/.nuxt/dev'' Copy error with stack trace to clipboard" [level=2] [ref=f6e19]':
+    - generic [ref=f6e23]: "ENOENT: no such file or directory, mkdir '/Users/adrian/liftag_repos/liftag_showcase_website/new_app/.nuxt/dev'"
+    - button "Copy error with stack trace to clipboard" [ref=f6e24] [cursor=pointer]
+  - generic [ref=f6e30]:
+    - heading "Stack Trace" [level=3] [ref=f6e33]
+    - generic [ref=f6e35]:
+      - generic [ref=f6e36]:
+        - generic [ref=f6e38]:
+          - checkbox "View All Frames" [ref=f6e39]
+          - generic [ref=f6e40]: View All Frames
+        - generic [ref=f6e42]:
+          - button "Pretty" [ref=f6e43]
+          - button "Raw" [ref=f6e44]
+      - list [ref=f6e47]:
+        - listitem [ref=f6e48]:
+          - generic [ref=f6e49]:
+            - button [ref=f6e50]:
+              - link "node_modules/.pnpm/nitropack@2.13.3_srvx@0.11.15_supports-color@10.2.2/node_modules/nitropack/dist/core/index.mjs" [ref=f6e51]:
+                - /url: vscode://file//Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/nitropack@2.13.3_srvx@0.11.15_supports-color@10.2.2/node_modules/nitropack/dist/core/index.mjs:2926
+              - generic [ref=f6e52]:
+                - text: in
+                - code [ref=f6e53]: async prepareDir
+              - generic [ref=f6e54]:
+                - text: at line
+                - code [ref=f6e55]: 2926:3
+            - button [ref=f6e57]
+          - code [ref=f6e62]:
+            - generic [ref=f6e63]: "await prepareDir(nitro.options.output.serverDir); } } async function prepareDir(dir) { await fsp.rm(dir, { recursive: true, force: true }); await fsp.mkdir(dir, { recursive: true }); } function defineNitroConfig(config) { return config; }"
+        - listitem [ref=f6e77]:
+          - generic [ref=f6e78]:
+            - button [ref=f6e79]:
+              - link "node_modules/.pnpm/nitropack@2.13.3_srvx@0.11.15_supports-color@10.2.2/node_modules/nitropack/dist/core/index.mjs" [ref=f6e80]:
+                - /url: vscode://file//Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/nitropack@2.13.3_srvx@0.11.15_supports-color@10.2.2/node_modules/nitropack/dist/core/index.mjs:2921
+              - generic [ref=f6e81]:
+                - text: in
+                - code [ref=f6e82]: async prepare
+              - generic [ref=f6e83]:
+                - text: at line
+                - code [ref=f6e84]: 2921:5
+            - button [ref=f6e86]
+        - listitem [ref=f6e89]:
+          - generic [ref=f6e91]:
+            - link "async file://node_modules/.pnpm/@nuxt+nitro-server@3.21.2_db0@0.3.4_ioredis@5.10.1_supports-color@10.2.2__magicast@0.5._234f0be78b65523887875f2e5f724a5e/node_modules/@nuxt/nitro-server/dist/index.mjs" [ref=f6e92]:
+              - /url: vscode://file/async file:///Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/@nuxt+nitro-server@3.21.2_db0@0.3.4_ioredis@5.10.1_supports-color@10.2.2__magicast@0.5._234f0be78b65523887875f2e5f724a5e/node_modules/@nuxt/nitro-server/dist/index.mjs:710
+            - generic [ref=f6e93]:
+              - text: at line
+              - code [ref=f6e94]: 710:3
+        - listitem [ref=f6e95]:
+          - generic [ref=f6e96]:
+            - button [ref=f6e97]:
+              - link "node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/index.mjs" [ref=f6e98]:
+                - /url: vscode://file//Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/index.mjs:7258
+              - generic:
+                - text: in
+                - code [ref=f6e99]: async build
+              - generic:
+                - text: at line
+                - code [ref=f6e100]: 7258:3
+            - button [ref=f6e102]
+        - listitem [ref=f6e105]:
+          - generic [ref=f6e106]:
+            - button [ref=f6e107]:
+              - link "node_modules/.pnpm/@nuxt+cli@3.34.0_@nuxt+schema@3.21.2_cac@6.7.14_magicast@0.5.2_supports-color@10.2.2/node_modules/@nuxt/cli/dist/dev-D5McAnmo.mjs" [ref=f6e108]:
+                - /url: vscode://file//Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/@nuxt+cli@3.34.0_@nuxt+schema@3.21.2_cac@6.7.14_magicast@0.5.2_supports-color@10.2.2/node_modules/@nuxt/cli/dist/dev-D5McAnmo.mjs:522
+              - generic [ref=f6e109]:
+                - text: in
+                - code [ref=f6e110]: "async #initializeNuxt"
+              - generic [ref=f6e111]:
+                - text: at line
+                - code [ref=f6e112]: 522:3
+            - button [ref=f6e114]
+        - listitem [ref=f6e117]:
+          - generic [ref=f6e118]:
+            - button [ref=f6e119]:
+              - link "node_modules/.pnpm/@nuxt+cli@3.34.0_@nuxt+schema@3.21.2_cac@6.7.14_magicast@0.5.2_supports-color@10.2.2/node_modules/@nuxt/cli/dist/dev-D5McAnmo.mjs" [ref=f6e120]:
+                - /url: vscode://file//Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/@nuxt+cli@3.34.0_@nuxt+schema@3.21.2_cac@6.7.14_magicast@0.5.2_supports-color@10.2.2/node_modules/@nuxt/cli/dist/dev-D5McAnmo.mjs:553
+              - generic [ref=f6e121]:
+                - text: in
+                - code [ref=f6e122]: "async #load"
+              - generic [ref=f6e123]:
+                - text: at line
+                - code [ref=f6e124]: 553:3
+            - button [ref=f6e126]
+        - listitem [ref=f6e129]:
+          - generic [ref=f6e130]:
+            - button [ref=f6e131]:
+              - link "node_modules/.pnpm/@nuxt+cli@3.34.0_@nuxt+schema@3.21.2_cac@6.7.14_magicast@0.5.2_supports-color@10.2.2/node_modules/@nuxt/cli/dist/dev-D5McAnmo.mjs" [ref=f6e132]:
+                - /url: vscode://file//Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/@nuxt+cli@3.34.0_@nuxt+schema@3.21.2_cac@6.7.14_magicast@0.5.2_supports-color@10.2.2/node_modules/@nuxt/cli/dist/dev-D5McAnmo.mjs:395
+              - generic [ref=f6e133]:
+                - text: in
+                - code [ref=f6e134]: async NuxtDevServer.load
+              - generic [ref=f6e135]:
+                - text: at line
+                - code [ref=f6e136]: 395:4
+            - button [ref=f6e138]
+        - listitem [ref=f6e141]:
+          - generic [ref=f6e142]:
+            - button [ref=f6e143]:
+              - link "node_modules/.pnpm/perfect-debounce@2.1.0/node_modules/perfect-debounce/dist/index.mjs" [ref=f6e144]:
+                - /url: vscode://file//Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/perfect-debounce@2.1.0/node_modules/perfect-debounce/dist/index.mjs:85
+              - generic [ref=f6e145]:
+                - text: in
+                - code [ref=f6e146]: async _applyPromised
+              - generic [ref=f6e147]:
+                - text: at line
+                - code [ref=f6e148]: 85:9
+            - button [ref=f6e150]
+  - generic [ref=f6e154]:
+    - heading "Request" [level=3] [ref=f6e156]
+    - generic [ref=f6e157]:
+      - generic [ref=f6e158]:
+        - heading "url" [level=4] [ref=f6e159]
+        - text: /demo
+      - generic [ref=f6e160]:
+        - heading "method" [level=4] [ref=f6e161]
+        - text: GET
+      - generic [ref=f6e162]:
+        - heading "headers" [level=4] [ref=f6e163]
+        - table [ref=f6e164]:
+          - rowgroup [ref=f6e165]:
+            - row [ref=f6e166]:
+              - cell "host" [ref=f6e167]
+              - cell "localhost:3000" [ref=f6e168]
+            - row [ref=f6e169]:
+              - cell "accept" [ref=f6e170]
+              - cell "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" [ref=f6e171]
+            - row [ref=f6e172]:
+              - cell "sec-fetch-site" [ref=f6e173]
+              - cell "none" [ref=f6e174]
+            - row [ref=f6e175]:
+              - cell "upgrade-insecure-requests" [ref=f6e176]
+              - cell "1" [ref=f6e177]
+            - row [ref=f6e178]:
+              - cell "sec-fetch-mode" [ref=f6e179]
+              - cell "navigate" [ref=f6e180]
+            - row [ref=f6e181]:
+              - cell "user-agent" [ref=f6e182]
+              - cell "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Safari/605.1.15" [ref=f6e183]
+            - row [ref=f6e184]:
+              - cell "sec-fetch-dest" [ref=f6e185]
+              - cell "document" [ref=f6e186]
+            - row [ref=f6e187]:
+              - cell "cache-control" [ref=f6e188]
+              - cell "max-age=0" [ref=f6e189]
+            - row [ref=f6e190]:
+              - cell "accept-language" [ref=f6e191]
+              - cell "en-GB,en;q=0.9" [ref=f6e192]
+            - row [ref=f6e193]:
+              - cell "priority" [ref=f6e194]
+              - cell "u=0, i" [ref=f6e195]
+            - row [ref=f6e196]:
+              - cell "accept-encoding" [ref=f6e197]
+              - cell "gzip, deflate" [ref=f6e198]
+            - row [ref=f6e199]:
+              - cell "cookie" [ref=f6e200]
+              - cell [ref=f6e201]:
+                - code [ref=f6e204]:
+                  - generic [ref=f6e205]:
+                    - text: "Object {"
+                    - button "▼" [ref=f6e206]
+                    - text: "}"
+            - row [ref=f6e208]:
+              - cell "connection" [ref=f6e209]
+              - cell "keep-alive" [ref=f6e210]

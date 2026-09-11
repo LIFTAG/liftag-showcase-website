@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import {
   GYM_SCAN_STICKY_SVH,
@@ -12,6 +13,8 @@ import {
   LOGGER_FRONT_FOLD,
   LOGGER_FRONT_MORPH,
   compactLoggerOwnsCopy,
+  cinemaPhoneSlot,
+  CINEMA_PHONE_ASPECT,
   fallbackHeroSlot,
   gymScanStickySvh,
   heroBodyTargetFromPhoneBox,
@@ -19,6 +22,9 @@ import {
   heroPointerTilt,
   heroScaleEase,
   heroTiltMix,
+  overheadPointerTilt,
+  pointerTowardBox,
+  PHONE_POINTER_RANGE,
   heroTravelEase,
   lerpPhoneBox,
   phoneVisibleHeight,
@@ -138,6 +144,54 @@ test('tilt mix is off at full-bleed and on once the bezel reads', () => {
   assert.ok(heroTiltMix(0.04) < 0.01)
   assert.ok(heroTiltMix(0.15) > 0.4 && heroTiltMix(0.15) < 0.6)
   assert.equal(heroTiltMix(1), 1)
+})
+
+test('pointerTowardBox is zero over the phone centre and saturates past the bezel', () => {
+  const box = { x: 100, y: 50, w: 200, h: 400 }
+  assert.deepEqual(pointerTowardBox(200, 250, 0, 0, box, 1), { mx: 0, my: 0 })
+  assert.deepEqual(pointerTowardBox(300, 250, 0, 0, box, 1), { mx: 1, my: 0 })
+  assert.deepEqual(pointerTowardBox(100, 50, 0, 0, box, 1), { mx: -1, my: -1 })
+  const ranged = pointerTowardBox(200 + 100 * PHONE_POINTER_RANGE, 250, 0, 0, box)
+  assert.ok(Math.abs(ranged.mx - 1) < 1e-9)
+  assert.equal(ranged.my, 0)
+  const shifted = pointerTowardBox(220, 260, 20, 10, box, 1)
+  assert.deepEqual(shifted, { mx: 0, my: 0 })
+})
+
+test('overhead tilt leans on X/Z instead of yawing the screen-up phone', () => {
+  const lean = overheadPointerTilt(1, -1)
+  assert.equal(lean.rotX, -HERO_PHONE_TILT_X)
+  assert.equal(lean.rotZ, -HERO_PHONE_TILT_Y)
+  assert.equal(overheadPointerTilt(0, 0).rotX, 0)
+  assert.equal(overheadPointerTilt(0, 0).rotZ, 0)
+})
+
+test('the parked gym-demo phone keeps pointer tilt after the film ends', () => {
+  const stage = readFileSync(new URL('../utils/gymscan/stage.ts', import.meta.url), 'utf8')
+  assert.match(stage, /function phonePointer/)
+  assert.match(stage, /pointerTowardBox/)
+  assert.match(stage, /const lean = phonePointer\(parked\)/)
+  assert.doesNotMatch(stage, /hasPointer && targetProgress < 0\.995/)
+  const overlay = readFileSync(new URL('../utils/gymscan/phoneOverlay.ts', import.meta.url), 'utf8')
+  assert.match(overlay, /targetRotX \+= pointer\.rotX \* tiltMix/)
+})
+
+test('cinema phone slot matches the parked gym-demo overlay', () => {
+  const desktop = cinemaPhoneSlot(1440, 900)
+  assert.equal(desktop.h, 585)
+  assert.ok(Math.abs(desktop.w - 585 * CINEMA_PHONE_ASPECT) < 1e-9)
+  assert.ok(Math.abs(desktop.x - (1440 * 0.81 - desktop.w / 2)) < 1e-9)
+  assert.ok(Math.abs(desktop.y - (900 - 585) / 2) < 1e-9)
+  const compact = cinemaPhoneSlot(390, 800)
+  assert.ok(Math.abs(compact.h - 800 * 0.38) < 1e-9)
+  assert.ok(Math.abs(compact.x - (390 * 0.68 - compact.w / 2)) < 1e-9)
+  assert.ok(Math.abs(compact.y - 800 * 0.33) < 1e-9)
+  const cinema = readFileSync(
+    new URL('../components/gym/GymCinema.vue', import.meta.url),
+    'utf8',
+  )
+  assert.match(cinema, /cinemaPhoneSlot/)
+  assert.doesNotMatch(cinema, /h \* 0\.475/)
 })
 
 test('fallback hero slot is the smaller front-phone body', () => {

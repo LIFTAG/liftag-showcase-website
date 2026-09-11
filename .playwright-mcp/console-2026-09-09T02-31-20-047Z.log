@@ -1,0 +1,93 @@
+[    1023ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://[::1]:3001/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[    1515ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    1515ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    1516ms] [LOG] %c[Vercel Web Analytics]%c [view] http://[::1]:3001/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://[::1]:3001/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788921081562} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    1583ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://[::1]:3001/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[    2665ms] [INFO] [gymscan] 0B calls planted 57 @ http://[::1]:3001/_nuxt/utils/gymscan/stage.ts:1254
+[  174598ms] [ERROR] WebSocket connection to 'ws://[::1]:3001/_nuxt/?token=QhCvPFX1H9VK' failed: The network connection was lost. @ :0
+[  174598ms] [LOG] [vite] server connection lost. Polling for restart... @ http://[::1]:3001/_nuxt/@vite/client:864
+[  175786ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://[::1]:3001/demo#discover:0
+[  176442ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://[::1]:3001/demo#discover:0
+[  182011ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://[::1]:3001/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  182034ms] [WARNING] [Vue warn]: Hydration node mismatch:
+- rendered on server: JSHandle@node  
+- expected on client: div 
+  at <GymCoachingStory reduced=false enhanced=false custom-error=0  ... > 
+  at <GymExperience > 
+  at <Demo onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< undefined > > 
+  at <RouteProvider key="/demo" vnode= {__v_isVNode: true, __v_skip: true, type: Object, props: Object, key: null} route= {fullPath: /demo#discover, hash: #discover, query: undefined, name: demo, path: /demo}  ... > 
+  at <RouterView name=undefined route=undefined > 
+  at <NuxtPage > 
+  at <NuxtLayoutProvider layoutProps= {ref: RefImpl} key=undefined name=false  ... > 
+  at <NuxtLayout > 
+  at <App key=4 > 
+  at <NuxtRoot> @ http://[::1]:3001/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:49
+[  182036ms] [ERROR] Hydration completed but contains mismatches. @ http://[::1]:3001/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:1887
+[  182037ms] [WARNING] [Vue warn]: Hydration node mismatch:
+- rendered on server: JSHandle@node  
+- expected on client: Symbol(v-cmt) 
+  at <GymCoachingStory reduced=false enhanced=false custom-error=0  ... > 
+  at <GymExperience > 
+  at <Demo onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< undefined > > 
+  at <RouteProvider key="/demo" vnode= {__v_isVNode: true, __v_skip: true, type: Object, props: Object, key: null} route= {fullPath: /demo#discover, hash: #discover, query: undefined, name: demo, path: /demo}  ... > 
+  at <RouterView name=undefined route=undefined > 
+  at <NuxtPage > 
+  at <NuxtLayoutProvider layoutProps= {ref: RefImpl} key=undefined name=false  ... > 
+  at <NuxtLayout > 
+  at <App key=4 > 
+  at <NuxtRoot> @ http://[::1]:3001/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:49
+[  182038ms] [WARNING] [Vue warn]: Hydration children mismatch on JSHandle@node 
+Server rendered element contains more child nodes than client vdom. 
+  at <GymCoachingStory reduced=false enhanced=false custom-error=0  ... > 
+  at <GymExperience > 
+  at <Demo onVnodeUnmounted=fn<onVnodeUnmounted> ref=Ref< undefined > > 
+  at <RouteProvider key="/demo" vnode= {__v_isVNode: true, __v_skip: true, type: Object, props: Object, key: null} route= {fullPath: /demo#discover, hash: #discover, query: undefined, name: demo, path: /demo}  ... > 
+  at <RouterView name=undefined route=undefined > 
+  at <NuxtPage > 
+  at <NuxtLayoutProvider layoutProps= {ref: RefImpl} key=undefined name=false  ... > 
+  at <NuxtLayout > 
+  at <App key=4 > 
+  at <NuxtRoot> @ http://[::1]:3001/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:49
+[  182224ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  182225ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  182225ms] [LOG] %c[Vercel Web Analytics]%c [view] http://[::1]:3001/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://[::1]:3001/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788921262271} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  182288ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://[::1]:3001/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  184406ms] [INFO] [gymscan] 0B calls explode 8 @ http://[::1]:3001/_nuxt/utils/gymscan/stage.ts:1267
+[  184572ms] [INFO] [gymscan] 0B calls planted 37 @ http://[::1]:3001/_nuxt/utils/gymscan/stage.ts:1271
+[  184597ms] [WARNING] The resource http://[::1]:3001/assets/fonts/inter-latin.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it wasn't preloaded for nothing. @ :0
+[  184597ms] [WARNING] The resource http://[::1]:3001/assets/fonts/space-grotesk-latin.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it wasn't preloaded for nothing. @ :0
+[  184838ms] [WARNING] [nuxt] Cannot load payload  /_payload.json?1788921262312 TypeError: Load failed @ http://[::1]:3001/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?v=13688f5d:81
+[  186760ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://[::1]:3001/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  186913ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  186913ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  186914ms] [LOG] %c[Vercel Web Analytics]%c [view] http://[::1]:3001/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://[::1]:3001/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788921266960} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  186998ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://[::1]:3001/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  190192ms] [INFO] [gymscan] 0B calls planted 57 @ http://[::1]:3001/_nuxt/utils/gymscan/stage.ts:1271
+[  193664ms] [ERROR] WebSocket connection to 'ws://[::1]:3001/_nuxt/?token=8YX2RV2B2vzg' failed: The network connection was lost. @ :0
+[  193665ms] [LOG] [vite] server connection lost. Polling for restart... @ http://[::1]:3001/_nuxt/@vite/client:864
+[  195536ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://[::1]:3001/demo#discover:0
+[  195692ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://[::1]:3001/demo#discover:0
+[  196703ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://[::1]:3001/demo#discover:0
+[  201836ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://[::1]:3001/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  202391ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  202392ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  202392ms] [LOG] %c[Vercel Web Analytics]%c [view] http://[::1]:3001/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://[::1]:3001/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788921282439} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  202478ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://[::1]:3001/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  202714ms] [WARNING] [nuxt] Cannot load payload  /_payload.json?1788921282555 TypeError: Load failed @ http://[::1]:3001/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?v=13688f5d:81
+[  203385ms] Fetch API cannot load http://[::1]:3001/_nuxt/builds/meta/dev.json due to access control checks.
+    at $fetchRaw2 (http://[::1]:3001/_nuxt/node_modules/.pnpm/ofetch@1.5.1/node_modules/ofetch/dist/shared/ofetch.CWycOUEr.mjs?v=13688f5d:274:37)
+    at $fetch2 (http://[::1]:3001/_nuxt/node_modules/.pnpm/ofetch@1.5.1/node_modules/ofetch/dist/shared/ofetch.CWycOUEr.mjs?v=13688f5d:332:30)
+    at fetchManifest (http://[::1]:3001/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/manifest.js?v=13688f5d:14:22)
+[  203385ms] Fetch API cannot load http://[::1]:3001/_nuxt/builds/meta/dev.json due to access control checks.
+    at $fetchRaw2 (http://[::1]:3001/_nuxt/node_modules/.pnpm/ofetch@1.5.1/node_modules/ofetch/dist/shared/ofetch.CWycOUEr.mjs?v=13688f5d:274:37)
+    at $fetchRaw2 (http://[::1]:3001/_nuxt/node_modules/.pnpm/ofetch@1.5.1/node_modules/ofetch/dist/shared/ofetch.CWycOUEr.mjs?v=13688f5d:286:27)
+[  203382ms] [ERROR] [nuxt] Error fetching app manifest. FetchError: [GET] "/_nuxt/builds/meta/dev.json": <no response> Load failed @ http://[::1]:3001/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/manifest.js?v=13688f5d:18
+[  205264ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://[::1]:3001/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  205641ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  205642ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  205642ms] [LOG] %c[Vercel Web Analytics]%c [view] http://[::1]:3001/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://[::1]:3001/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788921285688} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  205709ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://[::1]:3001/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  208734ms] [INFO] [gymscan] 0B calls explode 36 @ http://[::1]:3001/_nuxt/utils/gymscan/stage.ts:1267
+[  209725ms] [INFO] [gymscan] 0B calls planted 37 @ http://[::1]:3001/_nuxt/utils/gymscan/stage.ts:1271
+[  254941ms] [ERROR] WebSocket connection to 'ws://[::1]:3001/_nuxt/?token=y67UVh1I2Zoj' failed: The network connection was lost. @ :0
+[  254941ms] [LOG] [vite] server connection lost. Polling for restart... @ http://[::1]:3001/_nuxt/@vite/client:864

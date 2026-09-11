@@ -1,0 +1,175 @@
+- generic [ref=f84e2]:
+  - banner [ref=f84e3]:
+    - generic [ref=f84e5]:
+      - checkbox [ref=f84e6]
+      - generic "Light mode" [ref=f84e8] [cursor=pointer]
+  - generic [ref=f84e13]:
+    - heading "Error" [level=4] [ref=f84e14]
+    - heading "An error has occurred" [level=1] [ref=f84e15]
+  - 'heading "ENOENT: no such file or directory, mkdir ''/Users/adrian/liftag_repos/liftag_showcase_website/new_app/.nuxt/dev'' Copy error with stack trace to clipboard" [level=2] [ref=f84e19]':
+    - generic [ref=f84e23]: "ENOENT: no such file or directory, mkdir '/Users/adrian/liftag_repos/liftag_showcase_website/new_app/.nuxt/dev'"
+    - button "Copy error with stack trace to clipboard" [ref=f84e24] [cursor=pointer]
+  - generic [ref=f84e30]:
+    - heading "Stack Trace" [level=3] [ref=f84e33]
+    - generic [ref=f84e35]:
+      - generic [ref=f84e36]:
+        - generic [ref=f84e38]:
+          - checkbox "View All Frames" [ref=f84e39]
+          - generic [ref=f84e40]: View All Frames
+        - generic [ref=f84e42]:
+          - button "Pretty" [ref=f84e43]
+          - button "Raw" [ref=f84e44]
+      - list [ref=f84e47]:
+        - listitem [ref=f84e48]:
+          - generic [ref=f84e49]:
+            - button [ref=f84e50]:
+              - link "node_modules/.pnpm/nitropack@2.13.3_srvx@0.11.15_supports-color@10.2.2/node_modules/nitropack/dist/core/index.mjs" [ref=f84e51]:
+                - /url: vscode://file//Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/nitropack@2.13.3_srvx@0.11.15_supports-color@10.2.2/node_modules/nitropack/dist/core/index.mjs:2926
+              - generic [ref=f84e52]:
+                - text: in
+                - code [ref=f84e53]: async prepareDir
+              - generic [ref=f84e54]:
+                - text: at line
+                - code [ref=f84e55]: 2926:3
+            - button [ref=f84e57]
+          - code [ref=f84e62]:
+            - generic [ref=f84e63]: "await prepareDir(nitro.options.output.serverDir); } } async function prepareDir(dir) { await fsp.rm(dir, { recursive: true, force: true }); await fsp.mkdir(dir, { recursive: true }); } function defineNitroConfig(config) { return config; }"
+        - listitem [ref=f84e77]:
+          - generic [ref=f84e78]:
+            - button [ref=f84e79]:
+              - link "node_modules/.pnpm/nitropack@2.13.3_srvx@0.11.15_supports-color@10.2.2/node_modules/nitropack/dist/core/index.mjs" [ref=f84e80]:
+                - /url: vscode://file//Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/nitropack@2.13.3_srvx@0.11.15_supports-color@10.2.2/node_modules/nitropack/dist/core/index.mjs:2921
+              - generic [ref=f84e81]:
+                - text: in
+                - code [ref=f84e82]: async prepare
+              - generic [ref=f84e83]:
+                - text: at line
+                - code [ref=f84e84]: 2921:5
+            - button [ref=f84e86]
+        - listitem [ref=f84e89]:
+          - generic [ref=f84e91]:
+            - link "async file://node_modules/.pnpm/@nuxt+nitro-server@3.21.2_db0@0.3.4_ioredis@5.10.1_supports-color@10.2.2__magicast@0.5._234f0be78b65523887875f2e5f724a5e/node_modules/@nuxt/nitro-server/dist/index.mjs" [ref=f84e92]:
+              - /url: vscode://file/async file:///Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/@nuxt+nitro-server@3.21.2_db0@0.3.4_ioredis@5.10.1_supports-color@10.2.2__magicast@0.5._234f0be78b65523887875f2e5f724a5e/node_modules/@nuxt/nitro-server/dist/index.mjs:710
+            - generic [ref=f84e93]:
+              - text: at line
+              - code [ref=f84e94]: 710:3
+        - listitem [ref=f84e95]:
+          - generic [ref=f84e96]:
+            - button [ref=f84e97]:
+              - link "node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/index.mjs" [ref=f84e98]:
+                - /url: vscode://file//Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/index.mjs:7258
+              - generic:
+                - text: in
+                - code [ref=f84e99]: async build
+              - generic:
+                - text: at line
+                - code [ref=f84e100]: 7258:3
+            - button [ref=f84e102]
+        - listitem [ref=f84e105]:
+          - generic [ref=f84e106]:
+            - button [ref=f84e107]:
+              - link "node_modules/.pnpm/@nuxt+cli@3.34.0_@nuxt+schema@3.21.2_cac@6.7.14_magicast@0.5.2_supports-color@10.2.2/node_modules/@nuxt/cli/dist/dev-D5McAnmo.mjs" [ref=f84e108]:
+                - /url: vscode://file//Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/@nuxt+cli@3.34.0_@nuxt+schema@3.21.2_cac@6.7.14_magicast@0.5.2_supports-color@10.2.2/node_modules/@nuxt/cli/dist/dev-D5McAnmo.mjs:522
+              - generic [ref=f84e109]:
+                - text: in
+                - code [ref=f84e110]: "async #initializeNuxt"
+              - generic [ref=f84e111]:
+                - text: at line
+                - code [ref=f84e112]: 522:3
+            - button [ref=f84e114]
+        - listitem [ref=f84e117]:
+          - generic [ref=f84e118]:
+            - button [ref=f84e119]:
+              - link "node_modules/.pnpm/@nuxt+cli@3.34.0_@nuxt+schema@3.21.2_cac@6.7.14_magicast@0.5.2_supports-color@10.2.2/node_modules/@nuxt/cli/dist/dev-D5McAnmo.mjs" [ref=f84e120]:
+                - /url: vscode://file//Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/@nuxt+cli@3.34.0_@nuxt+schema@3.21.2_cac@6.7.14_magicast@0.5.2_supports-color@10.2.2/node_modules/@nuxt/cli/dist/dev-D5McAnmo.mjs:553
+              - generic [ref=f84e121]:
+                - text: in
+                - code [ref=f84e122]: "async #load"
+              - generic [ref=f84e123]:
+                - text: at line
+                - code [ref=f84e124]: 553:3
+            - button [ref=f84e126]
+        - listitem [ref=f84e129]:
+          - generic [ref=f84e130]:
+            - button [ref=f84e131]:
+              - link "node_modules/.pnpm/@nuxt+cli@3.34.0_@nuxt+schema@3.21.2_cac@6.7.14_magicast@0.5.2_supports-color@10.2.2/node_modules/@nuxt/cli/dist/dev-D5McAnmo.mjs" [ref=f84e132]:
+                - /url: vscode://file//Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/@nuxt+cli@3.34.0_@nuxt+schema@3.21.2_cac@6.7.14_magicast@0.5.2_supports-color@10.2.2/node_modules/@nuxt/cli/dist/dev-D5McAnmo.mjs:395
+              - generic [ref=f84e133]:
+                - text: in
+                - code [ref=f84e134]: async NuxtDevServer.load
+              - generic [ref=f84e135]:
+                - text: at line
+                - code [ref=f84e136]: 395:4
+            - button [ref=f84e138]
+        - listitem [ref=f84e141]:
+          - generic [ref=f84e142]:
+            - button [ref=f84e143]:
+              - link "node_modules/.pnpm/perfect-debounce@2.1.0/node_modules/perfect-debounce/dist/index.mjs" [ref=f84e144]:
+                - /url: vscode://file//Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/perfect-debounce@2.1.0/node_modules/perfect-debounce/dist/index.mjs:85
+              - generic [ref=f84e145]:
+                - text: in
+                - code [ref=f84e146]: async _applyPromised
+              - generic [ref=f84e147]:
+                - text: at line
+                - code [ref=f84e148]: 85:9
+            - button [ref=f84e150]
+  - generic [ref=f84e154]:
+    - heading "Request" [level=3] [ref=f84e156]
+    - generic [ref=f84e157]:
+      - generic [ref=f84e158]:
+        - heading "url" [level=4] [ref=f84e159]
+        - text: /demo?spawn=5
+      - generic [ref=f84e160]:
+        - heading "method" [level=4] [ref=f84e161]
+        - text: GET
+      - generic [ref=f84e162]:
+        - heading "headers" [level=4] [ref=f84e163]
+        - table [ref=f84e164]:
+          - rowgroup [ref=f84e165]:
+            - row [ref=f84e166]:
+              - cell "host" [ref=f84e167]
+              - cell "localhost:3000" [ref=f84e168]
+            - row [ref=f84e169]:
+              - cell "accept" [ref=f84e170]
+              - cell "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" [ref=f84e171]
+            - row [ref=f84e172]:
+              - cell "sec-fetch-site" [ref=f84e173]
+              - cell "same-origin" [ref=f84e174]
+            - row [ref=f84e175]:
+              - cell "upgrade-insecure-requests" [ref=f84e176]
+              - cell "1" [ref=f84e177]
+            - row [ref=f84e178]:
+              - cell "sec-fetch-mode" [ref=f84e179]
+              - cell "navigate" [ref=f84e180]
+            - row [ref=f84e181]:
+              - cell "user-agent" [ref=f84e182]
+              - cell "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Safari/605.1.15" [ref=f84e183]
+            - row [ref=f84e184]:
+              - cell "referer" [ref=f84e185]
+              - cell "http://localhost:3000/demo?spawn=5" [ref=f84e186]
+            - row [ref=f84e187]:
+              - cell "sec-fetch-dest" [ref=f84e188]
+              - cell "document" [ref=f84e189]
+            - row [ref=f84e190]:
+              - cell "cache-control" [ref=f84e191]
+              - cell "max-age=0" [ref=f84e192]
+            - row [ref=f84e193]:
+              - cell "accept-language" [ref=f84e194]
+              - cell "en-GB,en;q=0.9" [ref=f84e195]
+            - row [ref=f84e196]:
+              - cell "priority" [ref=f84e197]
+              - cell "u=0, i" [ref=f84e198]
+            - row [ref=f84e199]:
+              - cell "accept-encoding" [ref=f84e200]
+              - cell "gzip, deflate" [ref=f84e201]
+            - row [ref=f84e202]:
+              - cell "cookie" [ref=f84e203]
+              - cell [ref=f84e204]:
+                - code [ref=f84e207]:
+                  - generic [ref=f84e208]:
+                    - text: "Object {"
+                    - button "▼" [ref=f84e209]
+                    - text: "}"
+            - row [ref=f84e211]:
+              - cell "connection" [ref=f84e212]
+              - cell "keep-alive" [ref=f84e213]

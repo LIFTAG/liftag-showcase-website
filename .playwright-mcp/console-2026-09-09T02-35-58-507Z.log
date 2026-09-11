@@ -1,0 +1,273 @@
+[      21ms] [WARNING] [nuxt] Cannot load payload  /_payload.json?1788921353323 TypeError: Load failed @ http://localhost:3001/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?v=13688f5d:81
+[      24ms] [WARNING] [nuxt] Cannot load payload  /exercises/_payload.json?1788921353323 TypeError: Load failed @ http://localhost:3001/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?v=13688f5d:81
+[     889ms] [ERROR] [vite] TypeError: Importing a module script failed. @ http://localhost:3001/_nuxt/@vite/client:179
+[     890ms] [ERROR] [vite] Failed to reload /assets/css/gym-coaching.css?vue&type=style&index=0&src=true&lang.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:3001/_nuxt/@vite/client:180
+[     890ms] [ERROR] [vite] TypeError: Importing a module script failed. @ http://localhost:3001/_nuxt/@vite/client:179
+[     891ms] [ERROR] [vite] Failed to reload /components/gym/GymCinema.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://localhost:3001/_nuxt/@vite/client:180
+[    7399ms] [LOG] %cssr:success%c Vite server hmr 45 files 
+      background: #2ecc71;
+      border-radius: 0.5em;
+      color: white;
+      font-weight: bold;
+      padding: 2px 0.5em;
+      in 1860.345ms 
+  at vite_node_entry_default (node_modules/.pnpm/@nuxt+vite-builder@3.21.2_@types+node@26.1.1_magicast@0.5.2_nuxt@3.21.2_@emnapi+core@1._a4b3153523cf62a7d8205505e2d0041e/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs)
+  at process.processTicksAndRejections (node:internal/process/task_queues)
+  at async Object.renderToString (node_modules/.pnpm/vue-bundle-renderer@2.2.0/node_modules/vue-bundle-renderer/dist/runtime.mjs)
+ @ http://localhost:3001/_nuxt/node_modules/.pnpm/consola@3.4.2/node_modules/consola/dist/browser.mjs?v=13688f5d:47
+[    7464ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3001/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[    7786ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    7787ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    7787ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3001/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://localhost:3001/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788921366293} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    7928ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3001/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[   11562ms] [INFO] [gymscan] 0B calls planted 52 @ http://localhost:3001/_nuxt/utils/gymscan/stage.ts?t=1788921359386:1271
+[   69507ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3001/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[   69745ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   69745ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   69745ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3001/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://localhost:3001/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788921428252} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   69803ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3001/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[   71586ms] [INFO] [gymscan] 0B calls explode 81 @ http://localhost:3001/_nuxt/utils/gymscan/stage.ts?t=1788921407820:1267
+[   71653ms] [INFO] [gymscan] 0B calls planted 51 @ http://localhost:3001/_nuxt/utils/gymscan/stage.ts?t=1788921407820:1271
+[  132459ms] [LOG] %cssr:success%c Vite server hmr 12 files 
+      background: #2ecc71;
+      border-radius: 0.5em;
+      color: white;
+      font-weight: bold;
+      padding: 2px 0.5em;
+      in 22.175ms 
+  at vite_node_entry_default (node_modules/.pnpm/@nuxt+vite-builder@3.21.2_@types+node@26.1.1_magicast@0.5.2_nuxt@3.21.2_@emnapi+core@1._a4b3153523cf62a7d8205505e2d0041e/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs)
+  at process.processTicksAndRejections (node:internal/process/task_queues)
+  at async Object.renderToString (node_modules/.pnpm/vue-bundle-renderer@2.2.0/node_modules/vue-bundle-renderer/dist/runtime.mjs)
+ @ http://localhost:3001/_nuxt/node_modules/.pnpm/consola@3.4.2/node_modules/consola/dist/browser.mjs?v=13688f5d:47
+[  132487ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3001/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  132634ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  132634ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  132635ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3001/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://localhost:3001/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788921491141} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  132673ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3001/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  133739ms] [INFO] [gymscan] 0B calls planted 71 @ http://localhost:3001/_nuxt/utils/gymscan/stage.ts?t=1788921407820:1271
+[  227356ms] [LOG] %cssr:success%c Vite server hmr 11 files 
+      background: #2ecc71;
+      border-radius: 0.5em;
+      color: white;
+      font-weight: bold;
+      padding: 2px 0.5em;
+      in 25.219ms 
+  at vite_node_entry_default (node_modules/.pnpm/@nuxt+vite-builder@3.21.2_@types+node@26.1.1_magicast@0.5.2_nuxt@3.21.2_@emnapi+core@1._a4b3153523cf62a7d8205505e2d0041e/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs)
+  at process.processTicksAndRejections (node:internal/process/task_queues)
+  at async Object.renderToString (node_modules/.pnpm/vue-bundle-renderer@2.2.0/node_modules/vue-bundle-renderer/dist/runtime.mjs)
+ @ http://localhost:3001/_nuxt/node_modules/.pnpm/consola@3.4.2/node_modules/consola/dist/browser.mjs?v=13688f5d:47
+[  227404ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3001/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  227554ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  227554ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  227555ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3001/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://localhost:3001/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788921586061} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  227594ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3001/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  228624ms] [INFO] [gymscan] 0B calls explode 57 @ http://localhost:3001/_nuxt/utils/gymscan/stage.ts?t=1788921407820:1267
+[  228680ms] [INFO] [gymscan] 0B calls planted 51 @ http://localhost:3001/_nuxt/utils/gymscan/stage.ts?t=1788921407820:1271
+[  331230ms] Fetch API cannot load http://localhost:3001/draco/draco_wasm_wrapper.js due to access control checks.
+    at load (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:23220:10)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_DRACOLoader__js.js?v=13688f5d:187:18)
+    at Promise (:1:11)
+    at _loadLibrary (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_DRACOLoader__js.js?v=13688f5d:186:23)
+    at _initDecoder (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_DRACOLoader__js.js?v=13688f5d:201:46)
+    at preload (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_DRACOLoader__js.js?v=13688f5d:191:22)
+    at GLTFDracoMeshCompressionExtension (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1022:29)
+    at parse (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:334:78)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:207:20)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:23291:45)
+[  331231ms] Fetch API cannot load http://localhost:3001/draco/draco_decoder.wasm due to access control checks.
+    at load (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:23220:10)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_DRACOLoader__js.js?v=13688f5d:187:18)
+    at Promise (:1:11)
+    at _loadLibrary (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_DRACOLoader__js.js?v=13688f5d:186:23)
+    at _initDecoder (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_DRACOLoader__js.js?v=13688f5d:202:46)
+    at preload (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_DRACOLoader__js.js?v=13688f5d:191:22)
+    at GLTFDracoMeshCompressionExtension (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1022:29)
+    at parse (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:334:78)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:207:20)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:23291:45)
+[  331231ms] Fetch API cannot load blob:http://localhost:3001/e888c567-2994-4355-aa03-860252bbdbac due to access control checks.
+    at load (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  331231ms] Fetch API cannot load blob:http://localhost:3001/e6e1adac-41ee-45da-a67e-f5c8d88f7f23 due to access control checks.
+    at load (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  331231ms] Fetch API cannot load blob:http://localhost:3001/6406ad83-0035-45ef-9682-fd89f411c9f5 due to access control checks.
+    at load (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  331231ms] Fetch API cannot load blob:http://localhost:3001/6430e9e7-577d-437d-8301-77326bfd73d7 due to access control checks.
+    at load (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  331231ms] Fetch API cannot load blob:http://localhost:3001/eac5f9ab-a9ee-4f77-9c79-f6d4ccde0c05 due to access control checks.
+    at load (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  331231ms] Fetch API cannot load blob:http://localhost:3001/c3d3b5b1-4b85-4e6d-b770-d08b682c141c due to access control checks.
+    at load (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  331231ms] Fetch API cannot load blob:http://localhost:3001/f0b95fc6-f34d-4fb1-a097-74e808e51237 due to access control checks.
+    at load (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  331231ms] Fetch API cannot load blob:http://localhost:3001/6598b15e-a236-4750-a56d-dbec9e3735e3 due to access control checks.
+    at load (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  331231ms] Fetch API cannot load blob:http://localhost:3001/7ebea5ce-57bb-455a-b023-aab0d0784eec due to access control checks.
+    at load (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  331231ms] Fetch API cannot load blob:http://localhost:3001/d68b13e0-398e-401b-b23a-7db0af018ff8 due to access control checks.
+    at load (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  331231ms] Fetch API cannot load blob:http://localhost:3001/d984fa94-71ed-45cb-a250-a109bf8a5aad due to access control checks.
+    at load (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/chunk-EBR7NRNZ.js?v=13688f5d:26056:26)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1821:20)
+    at Promise (:1:11)
+    at unknown (http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1812:25)
+[  331241ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3001/e888c567-2994-4355-aa03-860252bbdbac @ http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  331241ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3001/e6e1adac-41ee-45da-a67e-f5c8d88f7f23 @ http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  331241ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3001/6406ad83-0035-45ef-9682-fd89f411c9f5 @ http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  331242ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3001/6430e9e7-577d-437d-8301-77326bfd73d7 @ http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  331242ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3001/eac5f9ab-a9ee-4f77-9c79-f6d4ccde0c05 @ http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  331242ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3001/c3d3b5b1-4b85-4e6d-b770-d08b682c141c @ http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  331242ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3001/f0b95fc6-f34d-4fb1-a097-74e808e51237 @ http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  331242ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3001/6598b15e-a236-4750-a56d-dbec9e3735e3 @ http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  331242ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3001/7ebea5ce-57bb-455a-b023-aab0d0784eec @ http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  331242ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3001/d68b13e0-398e-401b-b23a-7db0af018ff8 @ http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  331242ms] [ERROR] THREE.GLTFLoader: Couldn't load texture blob:http://localhost:3001/d984fa94-71ed-45cb-a250-a109bf8a5aad @ http://localhost:3001/_nuxt/node_modules/.cache/vite/client/deps/three_examples_jsm_loaders_GLTFLoader__js.js?v=13688f5d:1830
+[  331300ms] [WARNING] [nuxt] Cannot load payload  /_payload.json?1788921689798 TypeError: Load failed @ http://localhost:3001/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788921362308&v=13688f5d:81
+[  331300ms] [WARNING] [nuxt] Cannot load payload  /privacy-policy/_payload.json?1788921689798 TypeError: Load failed @ http://localhost:3001/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788921362308&v=13688f5d:81
+[  331301ms] [WARNING] [nuxt] Cannot load payload  /for-lifters/_payload.json?1788921689798 TypeError: Load failed @ http://localhost:3001/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788921362308&v=13688f5d:81
+[  331301ms] [WARNING] [nuxt] Cannot load payload  /contact/support/_payload.json?1788921689798 TypeError: Load failed @ http://localhost:3001/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788921362308&v=13688f5d:81
+[  331301ms] [WARNING] [nuxt] Cannot load payload  /for-trainers/_payload.json?1788921689798 TypeError: Load failed @ http://localhost:3001/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788921362308&v=13688f5d:81
+[  331304ms] [WARNING] [nuxt] Cannot load payload  /for-trainers/_payload.json?1788921689798 TypeError: Load failed @ http://localhost:3001/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788921362308&v=13688f5d:81
+[  331305ms] [WARNING] [nuxt] Cannot load payload  /_payload.json?1788921689798 TypeError: Load failed @ http://localhost:3001/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788921362308&v=13688f5d:81
+[  331305ms] [WARNING] [nuxt] Cannot load payload  /privacy-policy/_payload.json?1788921689798 TypeError: Load failed @ http://localhost:3001/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788921362308&v=13688f5d:81
+[  331305ms] [WARNING] [nuxt] Cannot load payload  /for-gyms/_payload.json?1788921689798 TypeError: Load failed @ http://localhost:3001/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788921362308&v=13688f5d:81
+[  331305ms] [WARNING] [nuxt] Cannot load payload  /exercises/_payload.json?1788921689798 TypeError: Load failed @ http://localhost:3001/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788921362308&v=13688f5d:81
+[  331305ms] [WARNING] [nuxt] Cannot load payload  /pricing/_payload.json?1788921689798 TypeError: Load failed @ http://localhost:3001/_nuxt/node_modules/.pnpm/nuxt@3.21.2_@emnapi+core@1.10.0_@emnapi+runtime@1.11.3_@parcel+watcher@2.5.6_@types+nod_529923af24574705ccdd3c2cb50f4411/node_modules/nuxt/dist/app/composables/payload.js?t=1788921362308&v=13688f5d:81
+[  332665ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://localhost:3001/_nuxt/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=13688f5d:7239
+[  332823ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  332823ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /demo, path: /demo} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  332824ms] [LOG] %c[Vercel Web Analytics]%c [view] http://localhost:3001/demo#discover color: rgb(120, 120, 120) color: inherit {o: http://localhost:3001/demo#discover, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788921691330} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[  332874ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://localhost:3001/_nuxt/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=13688f5d:51
+[  361250ms] Blocked a frame with origin "https://challenges.cloudflare.com" from accessing a frame with origin "http://localhost:3001".  The frame requesting access has a protocol of "https", the frame being accessed has a protocol of "http". Protocols must match.
+
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/new/flexible?lang=auto:1:50936)
+    at bB (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/new/flexible?lang=auto:1:82971)
+    at by (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/new/flexible?lang=auto:1:160398)
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/new/flexible?lang=auto:1:50489)
+    at bB (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/new/flexible?lang=auto:1:82971)
+    at y2 (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/new/flexible?lang=auto:1:62613)
+    at bm (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/new/flexible?lang=auto:1:240871)
+    at UeqwJ (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/new/flexible?lang=auto:1:236606)
+    at bk (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/new/flexible?lang=auto:1:238851)
+[  361399ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/3732240921:1788919508:ccNKXj0l8lQvY-1qEz5fWlhj1S-mFQy4DmhcvTh8yTA/a382d64b9ef93a0d/MHdrGjWeyUmfD6HEncY8GUkjvDxkWLJgLmaVnKviHQU-1788921719-1.2.1.1-XgDa_yiJcMw38zDY49s8jw6GfJIFqKaS28Pyivej6Vjir51.L2ZH5nDFd8teOsIN:0
+[  371563ms] Blocked a frame with origin "https://challenges.cloudflare.com" from accessing a frame with origin "http://localhost:3001".  The frame requesting access has a protocol of "https", the frame being accessed has a protocol of "http". Protocols must match.
+
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchKSZzCKkAMRE4hGB28jSaLkJN.mkSO1OWyqUPMGKXCWs-1788921719-1.3.1.1-b0Xe2aWnyqo8rPqcGgrqxyE.6OjLcmjJGWhM4YY9k34/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:52763)
+    at NR (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchKSZzCKkAMRE4hGB28jSaLkJN.mkSO1OWyqUPMGKXCWs-1788921719-1.3.1.1-b0Xe2aWnyqo8rPqcGgrqxyE.6OjLcmjJGWhM4YY9k34/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:94594)
+    at Nq (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchKSZzCKkAMRE4hGB28jSaLkJN.mkSO1OWyqUPMGKXCWs-1788921719-1.3.1.1-b0Xe2aWnyqo8rPqcGgrqxyE.6OjLcmjJGWhM4YY9k34/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:196101)
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchKSZzCKkAMRE4hGB28jSaLkJN.mkSO1OWyqUPMGKXCWs-1788921719-1.3.1.1-b0Xe2aWnyqo8rPqcGgrqxyE.6OjLcmjJGWhM4YY9k34/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:52316)
+    at NR (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchKSZzCKkAMRE4hGB28jSaLkJN.mkSO1OWyqUPMGKXCWs-1788921719-1.3.1.1-b0Xe2aWnyqo8rPqcGgrqxyE.6OjLcmjJGWhM4YY9k34/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:94594)
+    at D3 (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchKSZzCKkAMRE4hGB28jSaLkJN.mkSO1OWyqUPMGKXCWs-1788921719-1.3.1.1-b0Xe2aWnyqo8rPqcGgrqxyE.6OjLcmjJGWhM4YY9k34/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:76976)
+    at PxEAQ (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchKSZzCKkAMRE4hGB28jSaLkJN.mkSO1OWyqUPMGKXCWs-1788921719-1.3.1.1-b0Xe2aWnyqo8rPqcGgrqxyE.6OjLcmjJGWhM4YY9k34/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:203211)
+    at Nt (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchKSZzCKkAMRE4hGB28jSaLkJN.mkSO1OWyqUPMGKXCWs-1788921719-1.3.1.1-b0Xe2aWnyqo8rPqcGgrqxyE.6OjLcmjJGWhM4YY9k34/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:206865)
+    at NS (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchKSZzCKkAMRE4hGB28jSaLkJN.mkSO1OWyqUPMGKXCWs-1788921719-1.3.1.1-b0Xe2aWnyqo8rPqcGgrqxyE.6OjLcmjJGWhM4YY9k34/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:205668)
+[  371702ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/3732240921:1788919508:ccNKXj0l8lQvY-1qEz5fWlhj1S-mFQy4DmhcvTh8yTA/a382d68c99d63a0d/Dq6QsbaZNWqJY5kITtSLEPKBqLSdWnJdYl_JVV3paxo-1788921730-1.2.1.1-y2LFmkKlweKcLX09JkmJGNu9VenUA3hCwN6biX7v.U09w6oY.tpFqkMn5YgafkW_:0
+[  381841ms] Blocked a frame with origin "https://challenges.cloudflare.com" from accessing a frame with origin "http://localhost:3001".  The frame requesting access has a protocol of "https", the frame being accessed has a protocol of "http". Protocols must match.
+
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchrNyA3KHv8msmh2.KepPzJTtevDNU4Y4HDpmGY8WJY2Q-1788921730-1.3.1.1-9htBoLy3DjMt.uIrVAYlXXMtyj0RxptU0lX2EEnSfSI/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:52359)
+    at bB (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchrNyA3KHv8msmh2.KepPzJTtevDNU4Y4HDpmGY8WJY2Q-1788921730-1.3.1.1-9htBoLy3DjMt.uIrVAYlXXMtyj0RxptU0lX2EEnSfSI/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:137648)
+    at by (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchrNyA3KHv8msmh2.KepPzJTtevDNU4Y4HDpmGY8WJY2Q-1788921730-1.3.1.1-9htBoLy3DjMt.uIrVAYlXXMtyj0RxptU0lX2EEnSfSI/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:140422)
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchrNyA3KHv8msmh2.KepPzJTtevDNU4Y4HDpmGY8WJY2Q-1788921730-1.3.1.1-9htBoLy3DjMt.uIrVAYlXXMtyj0RxptU0lX2EEnSfSI/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:51912)
+    at bB (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchrNyA3KHv8msmh2.KepPzJTtevDNU4Y4HDpmGY8WJY2Q-1788921730-1.3.1.1-9htBoLy3DjMt.uIrVAYlXXMtyj0RxptU0lX2EEnSfSI/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:137648)
+    at y2 (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchrNyA3KHv8msmh2.KepPzJTtevDNU4Y4HDpmGY8WJY2Q-1788921730-1.3.1.1-9htBoLy3DjMt.uIrVAYlXXMtyj0RxptU0lX2EEnSfSI/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:175110)
+    at fuuGq (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchrNyA3KHv8msmh2.KepPzJTtevDNU4Y4HDpmGY8WJY2Q-1788921730-1.3.1.1-9htBoLy3DjMt.uIrVAYlXXMtyj0RxptU0lX2EEnSfSI/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:76230)
+    at bm (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchrNyA3KHv8msmh2.KepPzJTtevDNU4Y4HDpmGY8WJY2Q-1788921730-1.3.1.1-9htBoLy3DjMt.uIrVAYlXXMtyj0RxptU0lX2EEnSfSI/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:80151)
+    at QXnxE (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchrNyA3KHv8msmh2.KepPzJTtevDNU4Y4HDpmGY8WJY2Q-1788921730-1.3.1.1-9htBoLy3DjMt.uIrVAYlXXMtyj0RxptU0lX2EEnSfSI/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:77137)
+    at bk (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchrNyA3KHv8msmh2.KepPzJTtevDNU4Y4HDpmGY8WJY2Q-1788921730-1.3.1.1-9htBoLy3DjMt.uIrVAYlXXMtyj0RxptU0lX2EEnSfSI/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:79024)
+[  381986ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/3732240921:1788919508:ccNKXj0l8lQvY-1qEz5fWlhj1S-mFQy4DmhcvTh8yTA/a382d6ccec903a0d/0nvQ18xu7rYXzQWtt4lfD7n2EmV30jncRHd6jT02CAU-1788921740-1.2.1.1-2A.QivHYApNjPL9nbqTjJFzhJuNIooZaTEa.LjCw6HTnx1mwWcMmBHIjsagDaCbk:0
+[  392110ms] Blocked a frame with origin "https://challenges.cloudflare.com" from accessing a frame with origin "http://localhost:3001".  The frame requesting access has a protocol of "https", the frame being accessed has a protocol of "http". Protocols must match.
+
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch2FCV.KDuvdhSunab65tPBJ5Z9O0ZF.PH1opRFksq.lc-1788921740-1.3.1.1-9F711xIBj9QVnxABC64SByr4ZJBlR9xj0ca4UPf5SZo/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:51757)
+    at NR (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch2FCV.KDuvdhSunab65tPBJ5Z9O0ZF.PH1opRFksq.lc-1788921740-1.3.1.1-9F711xIBj9QVnxABC64SByr4ZJBlR9xj0ca4UPf5SZo/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:91601)
+    at bxxDh (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch2FCV.KDuvdhSunab65tPBJ5Z9O0ZF.PH1opRFksq.lc-1788921740-1.3.1.1-9F711xIBj9QVnxABC64SByr4ZJBlR9xj0ca4UPf5SZo/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:228055)
+    at Nq (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch2FCV.KDuvdhSunab65tPBJ5Z9O0ZF.PH1opRFksq.lc-1788921740-1.3.1.1-9F711xIBj9QVnxABC64SByr4ZJBlR9xj0ca4UPf5SZo/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:229333)
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch2FCV.KDuvdhSunab65tPBJ5Z9O0ZF.PH1opRFksq.lc-1788921740-1.3.1.1-9F711xIBj9QVnxABC64SByr4ZJBlR9xj0ca4UPf5SZo/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:51310)
+    at NR (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch2FCV.KDuvdhSunab65tPBJ5Z9O0ZF.PH1opRFksq.lc-1788921740-1.3.1.1-9F711xIBj9QVnxABC64SByr4ZJBlR9xj0ca4UPf5SZo/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:91601)
+    at D3 (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch2FCV.KDuvdhSunab65tPBJ5Z9O0ZF.PH1opRFksq.lc-1788921740-1.3.1.1-9F711xIBj9QVnxABC64SByr4ZJBlR9xj0ca4UPf5SZo/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:214791)
+    at QSSQj (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch2FCV.KDuvdhSunab65tPBJ5Z9O0ZF.PH1opRFksq.lc-1788921740-1.3.1.1-9F711xIBj9QVnxABC64SByr4ZJBlR9xj0ca4UPf5SZo/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:96066)
+    at Nt (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch2FCV.KDuvdhSunab65tPBJ5Z9O0ZF.PH1opRFksq.lc-1788921740-1.3.1.1-9F711xIBj9QVnxABC64SByr4ZJBlR9xj0ca4UPf5SZo/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:100991)
+    at NS (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rch2FCV.KDuvdhSunab65tPBJ5Z9O0ZF.PH1opRFksq.lc-1788921740-1.3.1.1-9F711xIBj9QVnxABC64SByr4ZJBlR9xj0ca4UPf5SZo/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:98175)
+[  392264ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/3732240921:1788919508:ccNKXj0l8lQvY-1qEz5fWlhj1S-mFQy4DmhcvTh8yTA/a382d70d1bd43a0d/zAYOAWFRB8g2X3uxDxAo_R5eOnHFhnOfSaiK_1249Po-1788921750-1.2.1.1-XqOrgB8d.mv_GzbvdQtnWdP_rH7JvqZfEPVVNV4Ns86mvGEoldNBIolrHLdGhRz5:0
+[  402403ms] Blocked a frame with origin "https://challenges.cloudflare.com" from accessing a frame with origin "http://localhost:3001".  The frame requesting access has a protocol of "https", the frame being accessed has a protocol of "http". Protocols must match.
+
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchEw23xgcYEN33zspmLIVeQNIWgwkJdWb6fGxxH9.yIcg-1788921750-1.3.1.1-VWg91h3vrl1tC_AJw880b1XMQM1dPWHH7Rc.qDOcjvw/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:51757)
+    at NR (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchEw23xgcYEN33zspmLIVeQNIWgwkJdWb6fGxxH9.yIcg-1788921750-1.3.1.1-VWg91h3vrl1tC_AJw880b1XMQM1dPWHH7Rc.qDOcjvw/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:91601)
+    at bxxDh (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchEw23xgcYEN33zspmLIVeQNIWgwkJdWb6fGxxH9.yIcg-1788921750-1.3.1.1-VWg91h3vrl1tC_AJw880b1XMQM1dPWHH7Rc.qDOcjvw/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:228055)
+    at Nq (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchEw23xgcYEN33zspmLIVeQNIWgwkJdWb6fGxxH9.yIcg-1788921750-1.3.1.1-VWg91h3vrl1tC_AJw880b1XMQM1dPWHH7Rc.qDOcjvw/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:229333)
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchEw23xgcYEN33zspmLIVeQNIWgwkJdWb6fGxxH9.yIcg-1788921750-1.3.1.1-VWg91h3vrl1tC_AJw880b1XMQM1dPWHH7Rc.qDOcjvw/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:51310)
+    at NR (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchEw23xgcYEN33zspmLIVeQNIWgwkJdWb6fGxxH9.yIcg-1788921750-1.3.1.1-VWg91h3vrl1tC_AJw880b1XMQM1dPWHH7Rc.qDOcjvw/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:91601)
+    at D3 (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchEw23xgcYEN33zspmLIVeQNIWgwkJdWb6fGxxH9.yIcg-1788921750-1.3.1.1-VWg91h3vrl1tC_AJw880b1XMQM1dPWHH7Rc.qDOcjvw/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:214791)
+    at QSSQj (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchEw23xgcYEN33zspmLIVeQNIWgwkJdWb6fGxxH9.yIcg-1788921750-1.3.1.1-VWg91h3vrl1tC_AJw880b1XMQM1dPWHH7Rc.qDOcjvw/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:96066)
+    at Nt (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchEw23xgcYEN33zspmLIVeQNIWgwkJdWb6fGxxH9.yIcg-1788921750-1.3.1.1-VWg91h3vrl1tC_AJw880b1XMQM1dPWHH7Rc.qDOcjvw/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:100991)
+    at NS (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchEw23xgcYEN33zspmLIVeQNIWgwkJdWb6fGxxH9.yIcg-1788921750-1.3.1.1-VWg91h3vrl1tC_AJw880b1XMQM1dPWHH7Rc.qDOcjvw/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:98175)
+[  402550ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/3732240921:1788919508:ccNKXj0l8lQvY-1qEz5fWlhj1S-mFQy4DmhcvTh8yTA/a382d74d4bac3a0d/1KR3NxuTDPwVetdmI1TdkRL2O1MT2I7_9VrUQSwcdrM-1788921760-1.2.1.1-RgWZJdydxVqLXtSJGjhmNAYAgO7qbZG9Oc0zA05yaLVXzKkecdMdsg2v5CVG_7Vu:0
+[  412817ms] [ERROR] Unable to post message to https://challenges.cloudflare.com. Recipient has origin http://localhost:3001.
+ @ https://challenges.cloudflare.com/turnstile/v0/g/330e41bb475c/api.js:1
+[  412872ms] Blocked a frame with origin "https://challenges.cloudflare.com" from accessing a frame with origin "http://localhost:3001".  The frame requesting access has a protocol of "https", the frame being accessed has a protocol of "http". Protocols must match.
+
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchJs7a6brlBOaqzACVETVQWH8YKV9WJDRIQTAHL6XFjp0-1788921760-1.3.1.1-cTq8z38wq81IKYUZOR3GMVh6I.EOOnLoZRZCK10Fl.8/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:52315)
+    at Nv (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchJs7a6brlBOaqzACVETVQWH8YKV9WJDRIQTAHL6XFjp0-1788921760-1.3.1.1-cTq8z38wq81IKYUZOR3GMVh6I.EOOnLoZRZCK10Fl.8/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:97062)
+    at xRofx (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchJs7a6brlBOaqzACVETVQWH8YKV9WJDRIQTAHL6XFjp0-1788921760-1.3.1.1-cTq8z38wq81IKYUZOR3GMVh6I.EOOnLoZRZCK10Fl.8/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:235340)
+    at ND (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchJs7a6brlBOaqzACVETVQWH8YKV9WJDRIQTAHL6XFjp0-1788921760-1.3.1.1-cTq8z38wq81IKYUZOR3GMVh6I.EOOnLoZRZCK10Fl.8/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:236478)
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchJs7a6brlBOaqzACVETVQWH8YKV9WJDRIQTAHL6XFjp0-1788921760-1.3.1.1-cTq8z38wq81IKYUZOR3GMVh6I.EOOnLoZRZCK10Fl.8/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:51868)
+    at Nv (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchJs7a6brlBOaqzACVETVQWH8YKV9WJDRIQTAHL6XFjp0-1788921760-1.3.1.1-cTq8z38wq81IKYUZOR3GMVh6I.EOOnLoZRZCK10Fl.8/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:97062)
+    at VewaO (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchJs7a6brlBOaqzACVETVQWH8YKV9WJDRIQTAHL6XFjp0-1788921760-1.3.1.1-cTq8z38wq81IKYUZOR3GMVh6I.EOOnLoZRZCK10Fl.8/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:216952)
+    at D2 (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchJs7a6brlBOaqzACVETVQWH8YKV9WJDRIQTAHL6XFjp0-1788921760-1.3.1.1-cTq8z38wq81IKYUZOR3GMVh6I.EOOnLoZRZCK10Fl.8/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:224586)
+    at vTCwD (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchJs7a6brlBOaqzACVETVQWH8YKV9WJDRIQTAHL6XFjp0-1788921760-1.3.1.1-cTq8z38wq81IKYUZOR3GMVh6I.EOOnLoZRZCK10Fl.8/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:102390)
+    at Nt (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchJs7a6brlBOaqzACVETVQWH8YKV9WJDRIQTAHL6XFjp0-1788921760-1.3.1.1-cTq8z38wq81IKYUZOR3GMVh6I.EOOnLoZRZCK10Fl.8/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:107526)
+    at NS (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchJs7a6brlBOaqzACVETVQWH8YKV9WJDRIQTAHL6XFjp0-1788921760-1.3.1.1-cTq8z38wq81IKYUZOR3GMVh6I.EOOnLoZRZCK10Fl.8/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:104709)
+[  413025ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/3732240921:1788919508:ccNKXj0l8lQvY-1qEz5fWlhj1S-mFQy4DmhcvTh8yTA/a382d78dcaa33a0d/C_c0jVGhLkhGMgwSDNvN1HFp5uN4KjhMbUZz1VCKkAE-1788921771-1.2.1.1-VX8VJmV2uYfTbTtIo.x0dtbP77SleF6abOZZKOmIopYGI8PbrRJWkhCs5QNkEF05:0
+[  423156ms] Blocked a frame with origin "https://challenges.cloudflare.com" from accessing a frame with origin "http://localhost:3001".  The frame requesting access has a protocol of "https", the frame being accessed has a protocol of "http". Protocols must match.
+
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchXkhaMHpYwUHUr36S9R6ADbUTagwugOvtUEBINmrryYg-1788921771-1.3.1.1-svOQ1V_xuTG0VN0vcHnumgXKtkBGcjG7A.tXiEXUDn4/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:51196)
+    at bB (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchXkhaMHpYwUHUr36S9R6ADbUTagwugOvtUEBINmrryYg-1788921771-1.3.1.1-svOQ1V_xuTG0VN0vcHnumgXKtkBGcjG7A.tXiEXUDn4/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:153492)
+    at HIWYj (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchXkhaMHpYwUHUr36S9R6ADbUTagwugOvtUEBINmrryYg-1788921771-1.3.1.1-svOQ1V_xuTG0VN0vcHnumgXKtkBGcjG7A.tXiEXUDn4/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:87707)
+    at by (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchXkhaMHpYwUHUr36S9R6ADbUTagwugOvtUEBINmrryYg-1788921771-1.3.1.1-svOQ1V_xuTG0VN0vcHnumgXKtkBGcjG7A.tXiEXUDn4/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:89035)
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchXkhaMHpYwUHUr36S9R6ADbUTagwugOvtUEBINmrryYg-1788921771-1.3.1.1-svOQ1V_xuTG0VN0vcHnumgXKtkBGcjG7A.tXiEXUDn4/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:50749)
+    at bB (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchXkhaMHpYwUHUr36S9R6ADbUTagwugOvtUEBINmrryYg-1788921771-1.3.1.1-svOQ1V_xuTG0VN0vcHnumgXKtkBGcjG7A.tXiEXUDn4/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:153492)
+    at QhtiA (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchXkhaMHpYwUHUr36S9R6ADbUTagwugOvtUEBINmrryYg-1788921771-1.3.1.1-svOQ1V_xuTG0VN0vcHnumgXKtkBGcjG7A.tXiEXUDn4/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:93028)
+    at y2 (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchXkhaMHpYwUHUr36S9R6ADbUTagwugOvtUEBINmrryYg-1788921771-1.3.1.1-svOQ1V_xuTG0VN0vcHnumgXKtkBGcjG7A.tXiEXUDn4/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:101652)
+    at bm (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchXkhaMHpYwUHUr36S9R6ADbUTagwugOvtUEBINmrryYg-1788921771-1.3.1.1-svOQ1V_xuTG0VN0vcHnumgXKtkBGcjG7A.tXiEXUDn4/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:196586)
+    at bk (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchXkhaMHpYwUHUr36S9R6ADbUTagwugOvtUEBINmrryYg-1788921771-1.3.1.1-svOQ1V_xuTG0VN0vcHnumgXKtkBGcjG7A.tXiEXUDn4/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:194213)
+[  423307ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/3732240921:1788919508:ccNKXj0l8lQvY-1qEz5fWlhj1S-mFQy4DmhcvTh8yTA/a382d7cf19753a0d/406fEqHUyfJy8pwuv_c7D.3QGUFnCuEjjSd5LtaEAu0-1788921781-1.2.1.1-Zdg0dWQPlipb0R73NAfezmCufzy4alnyfLxIt39IjC83VW0g7bN_5oCuw7ieAxV_:0
+[  433431ms] Blocked a frame with origin "https://challenges.cloudflare.com" from accessing a frame with origin "http://localhost:3001".  The frame requesting access has a protocol of "https", the frame being accessed has a protocol of "http". Protocols must match.
+
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchcYkEr0ZYCCod35aJHBIL6RiqHhrdllEm5lJvDFIDFAA-1788921781-1.3.1.1-4NpO8ErHgYyOAOhdclWFuLlVF6JymQo4zMbE0d8hrkA/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:52691)
+    at NR (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchcYkEr0ZYCCod35aJHBIL6RiqHhrdllEm5lJvDFIDFAA-1788921781-1.3.1.1-4NpO8ErHgYyOAOhdclWFuLlVF6JymQo4zMbE0d8hrkA/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:55064)
+    at Nq (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchcYkEr0ZYCCod35aJHBIL6RiqHhrdllEm5lJvDFIDFAA-1788921781-1.3.1.1-4NpO8ErHgYyOAOhdclWFuLlVF6JymQo4zMbE0d8hrkA/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:63530)
+    at unknown (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchcYkEr0ZYCCod35aJHBIL6RiqHhrdllEm5lJvDFIDFAA-1788921781-1.3.1.1-4NpO8ErHgYyOAOhdclWFuLlVF6JymQo4zMbE0d8hrkA/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:52244)
+    at NR (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchcYkEr0ZYCCod35aJHBIL6RiqHhrdllEm5lJvDFIDFAA-1788921781-1.3.1.1-4NpO8ErHgYyOAOhdclWFuLlVF6JymQo4zMbE0d8hrkA/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:55064)
+    at D3 (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchcYkEr0ZYCCod35aJHBIL6RiqHhrdllEm5lJvDFIDFAA-1788921781-1.3.1.1-4NpO8ErHgYyOAOhdclWFuLlVF6JymQo4zMbE0d8hrkA/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:119624)
+    at WRkdN (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchcYkEr0ZYCCod35aJHBIL6RiqHhrdllEm5lJvDFIDFAA-1788921781-1.3.1.1-4NpO8ErHgYyOAOhdclWFuLlVF6JymQo4zMbE0d8hrkA/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:242592)
+    at Nt (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchcYkEr0ZYCCod35aJHBIL6RiqHhrdllEm5lJvDFIDFAA-1788921781-1.3.1.1-4NpO8ErHgYyOAOhdclWFuLlVF6JymQo4zMbE0d8hrkA/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:246477)
+    at NS (https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/turnstile/f/av0/rchcYkEr0ZYCCod35aJHBIL6RiqHhrdllEm5lJvDFIDFAA-1788921781-1.3.1.1-4NpO8ErHgYyOAOhdclWFuLlVF6JymQo4zMbE0d8hrkA/cb2qy/0x4AAAAAADV3ju2YEd8uiR-k/dark/fbE/failure_retry/flexible?lang=auto:1:245025)
+[  433575ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/g/fo/3732240921:1788919508:ccNKXj0l8lQvY-1qEz5fWlhj1S-mFQy4DmhcvTh8yTA/a382d80f596f3a0d/xDr_g1QgsjkyVpZHTJiCLLkr7fc1Q5fxY664fxVcRu0-1788921791-1.2.1.1-.pav6s92ojJz4VAQ1w0f75dTRFQ4HLBE4_Hvf.1edV3KRQg.TQlxB4rqEOAzicnz:0

@@ -3,6 +3,7 @@ import { gymAnchor } from "~/utils/gymscan/navigation";
 import type { CoachingState } from '~/utils/gymscan/coachingStage';
 import { gymJourneyKey } from '~/composables/useGymJourney';
 import { gymCoachingKey } from '~/composables/useCoachingScroll';
+import { GYM_ARRIVAL_STATE_KEY } from '~/utils/gymscan/arrivalBootstrap';
 const coaching = shallowRef<CoachingState>({ frame: { member: 0, owner: 0, isOwner: false, reduced: false }, paused: false, customSrc: '', replay: 0 });
 const customError = shallowRef(0);
 const mediaFailed = shallowRef(false);
@@ -12,7 +13,8 @@ provide(gymJourneyKey, current);
 provide(gymCoachingKey, coaching);
 const enhanced = shallowRef(false);
 const hydrated = shallowRef(false);
-const arriving = shallowRef(false);
+const arrivalSeen = useState(GYM_ARRIVAL_STATE_KEY, () => false);
+const arriving = shallowRef(!arrivalSeen.value);
 const fallback = shallowRef(false);
 const swept = shallowRef(false);
 const copyHold = computed(
@@ -100,10 +102,11 @@ useHead({
     <GymArrival :ready="enhanced" :fallback="fallback" :reduced="reducedMotion" @active="arriving = $event" />
     <GymNav
       :reduced="reducedMotion"
+      :inert="arriving ? true : undefined"
       @motion="reducedMotion = !reducedMotion"
       @kit="kit"
     />
-    <main>
+    <main :inert="arriving ? true : undefined">
       <div ref="journey" class="gx-journey">
         <GymCinema
           @custom-error="customError++"
@@ -163,7 +166,7 @@ useHead({
       </div>
       <GymKit />
     </main>
-    <footer class="gx-footer">
+    <footer class="gx-footer" :inert="arriving ? true : undefined">
       <NuxtLink class="gx-logo" to="/"
         ><img src="/assets/logo.svg" width="25" height="25" alt="" /><span
           >LIFTAG</span
@@ -179,14 +182,14 @@ useHead({
       </nav>
       <span class="gx-protocol">BUILT FOR REAL TRAINING.</span>
     </footer>
-    <nav v-show="chapter !== 'kit'" class="gx-chapters" aria-label="Experience chapters">
+    <nav v-show="chapter !== 'kit'" class="gx-chapters" aria-label="Experience chapters" :inert="arriving ? true : undefined">
       <a
         v-for="(item, i) in chapters"
         :key="item.id"
         :href="`#${item.id}`"
         :aria-label="item.label"
         :aria-current="chapter === item.id ? 'step' : undefined"
-        ><span class="gx-protocol" aria-hidden="true">0{{ i + 1 }}</span
+        ><HoloPill /><span class="gx-protocol" aria-hidden="true">0{{ i + 1 }}</span
         ><span class="gx-chapters__label" aria-hidden="true">{{ item.label }}</span
         ><span class="gx-chapters__compact" aria-hidden="true">{{ item.compact }}</span></a
       ><a

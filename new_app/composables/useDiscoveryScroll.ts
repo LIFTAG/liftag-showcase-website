@@ -1,4 +1,4 @@
-import { discoveryAt } from "~/utils/gymscan/discoveryTimeline";
+import { discoveryAt, GLOBE_REVEAL_PROGRESS } from "~/utils/gymscan/discoveryTimeline";
 import { useStableViewportHeight } from "~/composables/useStableViewportHeight";
 
 export function useDiscoveryScroll(
@@ -40,7 +40,7 @@ export function useDiscoveryScroll(
       top:
         start +
         (root.value.offsetHeight - viewport) *
-          ([0, 0.36, 0.61, 0.985][index] ?? 0),
+          ([GLOBE_REVEAL_PROGRESS, 0.36, 0.61, 0.985][index] ?? 0),
       behavior: "smooth",
     });
   }

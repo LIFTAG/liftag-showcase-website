@@ -1,0 +1,26 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [aria-hidden] [ref=e11]:
+      - generic [ref=e12]: L
+      - generic [ref=e13]: I
+      - generic [ref=e14]: F
+      - generic [ref=e15]: T
+      - generic [ref=e16]: A
+      - generic [ref=e17]: G
+    - paragraph [ref=e18]: Your machines. Connected.
+    - button "Enter the gym" [ref=e20] [cursor=pointer]
+  - generic:
+    - generic:
+      - img "Example gym with free weights and strength machines"
+    - generic:
+      - paragraph: YOUR PLACE ON THE MAP
+      - heading "Your gym" [level=3]
+      - paragraph:
+        - text: Bratislava, Slovakia
+        - generic [aria-hidden]: ↗
+    - generic:
+      - generic [aria-hidden]: ☆ ☆ ☆ ☆ ☆
+      - strong: Member reviews
+      - paragraph: No reviews yet. Yours could be the first.
+    - button "Explore the gym floor"
+    - generic: Example gym listing

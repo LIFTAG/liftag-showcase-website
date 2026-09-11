@@ -1308,10 +1308,9 @@ onBeforeUnmount(() => {
   /* Charges in with the logo, flares at the burst, then settles to a steady
      glow instead of running at full strength for the rest of the section.
      This ramp is specific to the merge beat, so it stays local. */
-  --prism-strength: calc(
-    clamp(0, var(--finale-p, 0) / 0.28, 1) *
-    clamp(0.5, 1 - (var(--finale-p, 0) - 0.34) * 0.72, 1)
-  );
+  --prism-in: clamp(0, var(--finale-p, 0) / 0.28, 1);
+  --prism-out: clamp(0.5, 1 - (var(--finale-p, 0) - 0.34) * 0.72, 1);
+  --prism-strength: calc(var(--prism-in) * var(--prism-out));
 }
 
 .liftag-icon-shell {

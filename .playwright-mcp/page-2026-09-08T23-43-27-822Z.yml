@@ -1,0 +1,48 @@
+- generic [ref=f4e3]:
+  - generic [ref=f4e4]:
+    - generic [ref=f4e5]:
+      - link "Nuxt" [ref=f4e6]:
+        - /url: https://nuxt.com
+      - heading "Welcome to Nuxt!" [level=1] [ref=f4e9]
+    - generic [ref=f4e10]:
+      - generic [ref=f4e15]:
+        - heading "Get started" [level=2] [ref=f4e16]
+        - paragraph [ref=f4e17]:
+          - text: Remove this welcome page by replacing <NuxtWelcome /> in
+          - link "app.vue" [ref=f4e18]:
+            - /url: https://nuxt.com/docs/guide/directory-structure/app
+          - text: with your own code, or creating your own app.vue if it doesn't exist.
+      - link [ref=f4e22]:
+        - /url: https://nuxt.com/modules
+        - img "modules icon" [ref=f4e23]
+        - generic [ref=f4e24]:
+          - heading "Modules" [level=3] [ref=f4e25]
+          - paragraph [ref=f4e26]: Discover our list of modules to supercharge your Nuxt project. Created by the Nuxt team and community.
+      - link [ref=f4e29]:
+        - /url: https://nuxt.com/docs
+        - generic [ref=f4e30]:
+          - generic [ref=f4e31]:
+            - heading "Documentation" [level=3] [ref=f4e32]
+            - paragraph [ref=f4e33]: We highly recommend you take a look at the Nuxt documentation to level up.
+          - img "documentation icon" [ref=f4e34]
+      - link [ref=f4e38]:
+        - /url: https://nuxt.com/docs/examples
+        - img "examples icon" [ref=f4e39]
+        - generic [ref=f4e40]:
+          - heading "Examples" [level=3] [ref=f4e41]
+          - paragraph [ref=f4e42]: Explore different way of using Nuxt features and get inspired with our list of examples.
+  - contentinfo [ref=f4e43]:
+    - link "Nuxt" [ref=f4e45]:
+      - /url: https://nuxt.com
+    - generic [ref=f4e50]:
+      - generic [ref=f4e51]: © 2016-2026 Nuxt - MIT License
+      - list [ref=f4e53]:
+        - listitem [ref=f4e54]:
+          - link "Nuxt Discord Server" [ref=f4e55]:
+            - /url: https://chat.nuxt.dev
+        - listitem [ref=f4e59]:
+          - link "Nuxt Twitter" [ref=f4e60]:
+            - /url: https://twitter.nuxt.dev
+        - listitem [ref=f4e64]:
+          - link "Nuxt GitHub Repository" [ref=f4e65]:
+            - /url: https://github.nuxt.dev

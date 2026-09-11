@@ -59,6 +59,51 @@ export function phoneRoundedRect(w: number, h: number, r: number) {
   return shape
 }
 
+/**
+ * The top band of the screen: the same corner radius as the glass, with a
+ * pill hole so a video plane cannot cover the Dynamic Island.
+ */
+export function phoneScreenHeaderShape(headerH: number) {
+  const hw = PHONE_SCR_W / 2
+  const top = PHONE_SCR_H / 2
+  const bot = top - Math.min(headerH, PHONE_SCR_H)
+  const r = PHONE_SCR_R
+  const shape = new THREE.Shape()
+  shape.moveTo(-hw, bot)
+  shape.lineTo(hw, bot)
+  shape.lineTo(hw, top - r)
+  shape.quadraticCurveTo(hw, top, hw - r, top)
+  shape.lineTo(-hw + r, top)
+  shape.quadraticCurveTo(-hw, top, -hw, top - r)
+  shape.lineTo(-hw, bot)
+
+  const pad = 0.01
+  const diW = PHONE_ISLAND.width + pad * 2
+  const diH = PHONE_ISLAND.height + pad * 2
+  const diR = diH / 2
+  const hole = new THREE.Path()
+  hole.absarc(-diW / 2 + diR, PHONE_ISLAND.y, diR, -Math.PI / 2, Math.PI / 2, true)
+  hole.absarc(diW / 2 - diR, PHONE_ISLAND.y, diR, Math.PI / 2, -Math.PI / 2, true)
+  shape.holes.push(hole)
+  return shape
+}
+
+export function phoneScreenHeaderGeometry(headerH: number) {
+  const shape = phoneScreenHeaderShape(headerH)
+  const geometry = new THREE.ShapeGeometry(shape, 20)
+  const pos = geometry.attributes.position as THREE.BufferAttribute
+  const uvs = new Float32Array(pos.count * 2)
+  const top = PHONE_SCR_H / 2
+  const bot = top - Math.min(headerH, PHONE_SCR_H)
+  const span = Math.max(1e-6, top - bot)
+  for (let i = 0; i < pos.count; i += 1) {
+    uvs[i * 2] = (pos.getX(i) + PHONE_SCR_W / 2) / PHONE_SCR_W
+    uvs[i * 2 + 1] = (pos.getY(i) - bot) / span
+  }
+  geometry.setAttribute("uv", new THREE.BufferAttribute(uvs, 2))
+  return geometry
+}
+
 export type PhoneModel = {
   group: THREE.Group
   screen: THREE.Mesh
@@ -128,6 +173,7 @@ export function createPhoneModel(opts: {
     new THREE.MeshBasicMaterial({ color: 0x000000 }),
   )
   dynamicIsland.position.set(0, PHONE_ISLAND.y, PHONE_ISLAND.z)
+  dynamicIsland.renderOrder = 4
 
   const btnMat = new THREE.MeshPhysicalMaterial({
     color: 0x2a2a2e,

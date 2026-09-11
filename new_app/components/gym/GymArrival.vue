@@ -5,11 +5,15 @@ import {
   LOGO_NAME_MS,
   LOGO_OPEN_MS,
 } from "~/utils/brand/logoEntry";
+import {
+  GYM_ARRIVAL_OVERLAY_ID,
+  GYM_ARRIVAL_STATE_KEY,
+} from "~/utils/gymscan/arrivalBootstrap";
 
 const props = defineProps<{ ready: boolean; reduced: boolean; fallback: boolean }>();
 const emit = defineEmits<{ active: [value: boolean] }>();
-const seen = useState("gym-arrival-seen", () => false);
-const visible = shallowRef(false);
+const seen = useState(GYM_ARRIVAL_STATE_KEY, () => false);
+const visible = shallowRef(!seen.value);
 const opening = shallowRef(false);
 const named = shallowRef(false);
 const mark = useTemplateRef<HTMLElement>("mark");
@@ -20,9 +24,14 @@ let nameTimer: ReturnType<typeof setTimeout> | undefined;
 let limitTimer: ReturnType<typeof setTimeout> | undefined;
 let finishTimer: ReturnType<typeof setTimeout> | undefined;
 let flight: Animation | undefined;
+function publishArrival(phase: "play" | "open" | "skip" | "done") {
+  if (!import.meta.client) return;
+  document.documentElement.setAttribute("data-gym-arrival", phase);
+}
 function finish() {
   visible.value = false;
   emit("active", false);
+  publishArrival("done");
 }
 function flyToNav() {
   const destination = document
@@ -55,6 +64,7 @@ function open(immediate = false) {
     return;
   }
   named.value = true;
+  publishArrival("open");
   flyToNav();
   finishTimer = setTimeout(() => {
     if (!disposed) finish();
@@ -66,6 +76,18 @@ function skip() {
 function keydown(event: KeyboardEvent) {
   if (event.key === "Tab" || event.key === "Escape") skip();
 }
+function shouldSkipEntry() {
+  const saveData = (
+    navigator as Navigator & { connection?: { saveData?: boolean } }
+  ).connection?.saveData;
+  return Boolean(
+    location.hash ||
+      scrollY > 40 ||
+      props.reduced ||
+      matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      saveData,
+  );
+}
 watch(
   () => [props.ready, props.fallback, props.reduced],
   () => {
@@ -74,21 +96,18 @@ watch(
   },
 );
 onMounted(() => {
-  const saveData = (
-    navigator as Navigator & { connection?: { saveData?: boolean } }
-  ).connection?.saveData;
-  if (
-    seen.value ||
-    location.hash ||
-    scrollY > 40 ||
-    props.reduced ||
-    matchMedia("(prefers-reduced-motion: reduce)").matches ||
-    saveData
-  )
+  if (shouldSkipEntry()) {
+    if (visible.value) skip();
+    else publishArrival("skip");
     return;
+  }
+  if (seen.value) return;
   seen.value = true;
-  visible.value = true;
-  emit("active", true);
+  if (!visible.value) {
+    visible.value = true;
+    emit("active", true);
+  }
+  publishArrival("play");
   nameTimer = setTimeout(() => {
     if (!disposed) named.value = true;
   }, LOGO_NAME_MS);
@@ -116,7 +135,12 @@ onBeforeUnmount(() => {
 });
 </script>
 <template>
-  <div v-if="visible" class="gx-arrival" :class="{ 'is-opening': opening }">
+  <div
+    v-if="visible"
+    :id="GYM_ARRIVAL_OVERLAY_ID"
+    class="gx-arrival"
+    :class="{ 'is-opening': opening }"
+  >
     <div class="gx-arrival__door gx-arrival__door--left" /><div class="gx-arrival__door gx-arrival__door--right" />
     <div class="gx-arrival__stage">
       <div
@@ -124,7 +148,11 @@ onBeforeUnmount(() => {
         class="gx-arrival__brand"
         :class="{ 'is-pending': !named, 'is-signed': named }"
       >
-        <span class="gx-arrival__svg" aria-hidden="true"><GymLogoEntry /></span>
+        <span class="gx-arrival__svg" aria-hidden="true">
+          <ClientOnly>
+            <GymLogoEntry />
+          </ClientOnly>
+        </span>
         <GymLockupWord />
       </div>
     </div>
@@ -139,7 +167,9 @@ onBeforeUnmount(() => {
   --gx-mark: clamp(72px, 18vw, 148px);
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 80;
+  overflow: hidden;
+  background: #040605;
   pointer-events: auto;
 }
 .gx-arrival__door {
@@ -156,6 +186,10 @@ onBeforeUnmount(() => {
 }
 .gx-arrival__door--right {
   right: 0;
+}
+.is-opening.gx-arrival {
+  background: transparent;
+  pointer-events: none;
 }
 .is-opening .gx-arrival__door--left {
   transform: translateX(-100%);

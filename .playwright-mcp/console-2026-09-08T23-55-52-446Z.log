@@ -1,0 +1,32 @@
+[     569ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://127.0.0.1:3056/_nuxt/@fs/Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=9b6c48a2:7239
+[     627ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://127.0.0.1:3056/_nuxt/@fs/Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=9b6c48a2:51
+[     633ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[     633ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /tools/1rm-calculator, path: /tools/1rm-calculator} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[     634ms] [LOG] %c[Vercel Web Analytics]%c [view] http://127.0.0.1:3056/tools/1rm-calculator?w=100&r=5&u=kg color: rgb(120, 120, 120) color: inherit {o: http://127.0.0.1:3056/tools/1rm-calculator?w=100&r=5&u=kg, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788911753080} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    3412ms] [WARNING] The resource http://127.0.0.1:3056/assets/fonts/space-grotesk-latin.woff2 was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it wasn't preloaded for nothing. @ :0
+[   20016ms] [ERROR] [vite] TypeError: Importing a module script failed. @ http://127.0.0.1:3056/_nuxt/@vite/client:179
+[   20018ms] [ERROR] [vite] Failed to reload /pages/tools/1rm-calculator.vue. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://127.0.0.1:3056/_nuxt/@vite/client:180
+[   20018ms] [ERROR] [vite] TypeError: Importing a module script failed. @ http://127.0.0.1:3056/_nuxt/@vite/client:179
+[   20019ms] [ERROR] [vite] Failed to reload /pages/tools/1rm-calculator.vue?vue&type=style&index=0&scoped=7a868744&lang.css. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://127.0.0.1:3056/_nuxt/@vite/client:180
+[   20019ms] [ERROR] [vite] TypeError: Importing a module script failed. @ http://127.0.0.1:3056/_nuxt/@vite/client:179
+[   20019ms] [ERROR] [vite] Failed to reload /pages/tools/1rm-calculator.vue?macro=true. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://127.0.0.1:3056/_nuxt/@vite/client:180
+[   20019ms] [ERROR] [vite] TypeError: Importing a module script failed. @ http://127.0.0.1:3056/_nuxt/@vite/client:179
+[   20019ms] [ERROR] [vite] Failed to reload /@id/virtual:nuxt:%2FUsers%2Fadrian%2Fliftag_repos%2Fliftag_showcase_website-pr-calculator%2Fnew_app%2F.nuxt%2Froutes.mjs. This could be due to syntax errors or importing non-existent modules. (see errors above) @ http://127.0.0.1:3056/_nuxt/@vite/client:180
+[   20026ms] Unhandled Promise Rejection: TypeError: undefined is not an object (evaluating 'mod.default')
+    at handleMessage (http://127.0.0.1:3056/_nuxt/@vite/client:838:21)
+[   20612ms] [LOG] %cssr:success%c Vite server hmr 35 files 
+      background: #2ecc71;
+      border-radius: 0.5em;
+      color: white;
+      font-weight: bold;
+      padding: 2px 0.5em;
+      in 63.231ms 
+  at vite_node_entry_default (/Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/@nuxt+vite-builder@3.21.2_@types+node@26.1.1_magicast@0.5.2_nuxt@3.21.2_@emnapi+core@1._a4b3153523cf62a7d8205505e2d0041e/node_modules/@nuxt/vite-builder/dist/vite-node-entry.mjs)
+  at process.processTicksAndRejections (node:internal/process/task_queues)
+  at async Object.renderToString (/Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/vue-bundle-renderer@2.2.0/node_modules/vue-bundle-renderer/dist/runtime.mjs)
+ @ http://127.0.0.1:3056/_nuxt/@fs/Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/consola@3.4.2/node_modules/consola/dist/browser.mjs?v=9b6c48a2:47
+[   20666ms] [INFO] <Suspense> is an experimental feature and its API will likely change. @ http://127.0.0.1:3056/_nuxt/@fs/Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/@vue+runtime-core@3.5.33/node_modules/@vue/runtime-core/dist/runtime-core.esm-bundler.js?v=9b6c48a2:7239
+[   20742ms] [LOG] ✨ %cNuxt DevTools %c Press Shift + Option + D to open DevTools color: black; border-radius: 3px 0 0 3px; padding: 2px 2px 1px 10px; background: #00DC82 border-radius: 0 3px 3px 0; padding: 2px 10px 1px 2px; background: #00DC8220  @ http://127.0.0.1:3056/_nuxt/@fs/Users/adrian/liftag_repos/liftag_showcase_website/new_app/node_modules/.pnpm/@nuxt+devtools@3.2.4_supports-color@10.2.2_vite@7.3.2_@types+node@26.1.1_jiti@2.6.1_ter_28972f42c82fd27b0e3f96c17cda5782/node_modules/@nuxt/devtools/dist/runtime/plugins/devtools.client.js?v=9b6c48a2:51
+[   20750ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   20750ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /tools/1rm-calculator, path: /tools/1rm-calculator} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[   20750ms] [LOG] %c[Vercel Web Analytics]%c [view] http://127.0.0.1:3056/tools/1rm-calculator?w=100&r=5&u=kg color: rgb(120, 120, 120) color: inherit {o: http://127.0.0.1:3056/tools/1rm-calculator?w=100&r=5&u=kg, sv: 0.1.3, sdkn: @vercel/analytics/nuxt, sdkv: 2.0.1, ts: 1788911773196} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
