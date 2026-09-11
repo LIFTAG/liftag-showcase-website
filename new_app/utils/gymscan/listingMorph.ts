@@ -1,25 +1,15 @@
 import type { PhoneBox } from "./handoff.ts";
 import { clamp01, smoothstep } from "./timeline.ts";
 
-/**
- * Reverse of the gym-floor morph beats: 3D phone → 2D review card.
- * `shape` uses the same window as the floor plate; `device` dies where the
- * floor morph would introduce the 3D phone.
- */
+/** Review card fade as it blooms from the Bratislava pin. */
 export type ListingMorphBeats = {
-  shape: number;
-  flatten: number;
-  device: number;
   card: number;
 };
 
 export function listingMorphBeats(listing: number): ListingMorphBeats {
   const m = clamp01(listing);
   return {
-    shape: smoothstep(m / 0.62),
-    flatten: smoothstep(m / 0.32),
-    device: 1 - smoothstep((m - 0.08) / 0.44),
-    card: smoothstep((m - 0.42) / 0.4),
+    card: smoothstep(m / 0.22),
   };
 }
 

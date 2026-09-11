@@ -323,35 +323,45 @@ export type DiscoveryListingMorph = DiscoveryListingBox & {
   photoH: number;
 };
 
-/** Resting card corner once the listing has left the phone. */
+/** Resting card corner once the listing has left the pin. */
 export const DISCOVERY_LISTING_RADIUS = 12;
+/** Seed size of the review card while it is still the Bratislava pin. */
+export const DISCOVERY_LISTING_PIN_SIZE = 18;
 /** Photo header aspect on the settled card (matches `.gd-profile-photo`). */
 export const DISCOVERY_LISTING_PHOTO_ASPECT = 1.95;
 
+export function discoveryListingPinBox(
+  cx: number,
+  cy: number,
+  size = DISCOVERY_LISTING_PIN_SIZE,
+): PhoneBox {
+  return { x: cx - size / 2, y: cy - size / 2, w: size, h: size };
+}
+
 /**
- * Scroll-driven box of the gym listing. `listing` 0 is the parked cinema
- * phone; 1 is the rest card. Position uses the snappy travel ease, size lags
- * so the device visibly widens into the review card.
+ * Scroll-driven box of the gym listing. `listing` 0 is a circle on the
+ * Bratislava pin; 1 is the rest card. Position uses the snappy travel ease,
+ * size lags so the pin blooms into the review card.
  */
 export function discoveryListingBox(
-  phone: PhoneBox,
+  origin: PhoneBox,
   rest: DiscoveryListingBox,
   listing: number,
 ): DiscoveryListingMorph {
   const t = clamp01(listing);
   const posT = heroTravelEase(t);
   const sizeT = heroScaleEase(t);
-  const w = lerp(phone.w, rest.width, sizeT);
-  const h = lerp(phone.h, rest.height, sizeT);
-  const cx = lerp(phone.x + phone.w / 2, rest.left + rest.width / 2, posT);
-  const cy = lerp(phone.y + phone.h / 2, rest.top + rest.height / 2, posT);
+  const w = lerp(origin.w, rest.width, sizeT);
+  const h = lerp(origin.h, rest.height, sizeT);
+  const cx = lerp(origin.x + origin.w / 2, rest.left + rest.width / 2, posT);
+  const cy = lerp(origin.y + origin.h / 2, rest.top + rest.height / 2, posT);
   return {
     left: cx - w / 2,
     top: cy - h / 2,
     width: w,
     height: h,
-    radius: lerp((PHONE_R / PHONE_H) * phone.h, DISCOVERY_LISTING_RADIUS, sizeT),
-    photoH: lerp(h, rest.width / DISCOVERY_LISTING_PHOTO_ASPECT, sizeT),
+    radius: lerp(Math.min(origin.w, origin.h) / 2, DISCOVERY_LISTING_RADIUS, sizeT),
+    photoH: lerp(origin.h, rest.width / DISCOVERY_LISTING_PHOTO_ASPECT, sizeT),
   };
 }
 
@@ -415,16 +425,16 @@ export function discoverySpawnDone(seconds: number) {
  * Floor 01–04 badges travel with the machines, then peel into the in-app
  * index slots. Alpha only drops once they already cover those slots so the
  * canvas numbers can take over without the badges fading off the machines.
+ * 04 is the globe landing; 01–03 fade in on that same handoff so the four
+ * floor numbers appear together.
  */
 export function discoveryLabelAt(progress: number, index: number): DiscoveryLabel {
+  const frame = discoveryAt(progress);
   const appear = smoothstep((progress - 0.59 - index * 0.014) / 0.065);
   const travel = smoothstep((equipmentOrderAt(progress, index) - 0.08) / 0.92);
-  const screen = discoveryMorphBeats(discoveryAt(progress).morph).screen;
+  const screen = discoveryMorphBeats(frame.morph).screen;
   const handoff = smoothstep((travel * screen - 0.9) / 0.1);
-  const shown =
-    index === DISCOVERY_GLOBE_BADGE
-      ? Math.max(appear, globeBadgeAt(discoveryAt(progress).floor).handoff)
-      : appear;
+  const shown = Math.max(appear, globeBadgeAt(frame.floor).handoff);
   return {
     appear: shown,
     travel,

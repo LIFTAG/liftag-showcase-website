@@ -117,13 +117,6 @@ function frame(info: FrameInfo) {
     emit("swept");
   }
 }
-function listingPose() {
-  if (!import.meta.client) return null;
-  const sticky = document.querySelector(".gd-sticky");
-  if (!sticky) return null;
-  const next = listingFromStyle(getComputedStyle(sticky));
-  return next.box ? { listing: next.listing, box: next.box } : null;
-}
 function phoneOut() {
   if (!import.meta.client) return 1;
   const gx = host.value?.closest(".gx") ?? document.documentElement;
@@ -198,7 +191,6 @@ async function start() {
       onFrame: frame,
       readPointer: () => mouse.latest,
       readCoaching: () => ({ frame: coaching.value.frame, video: video.value, customVideo: customVideo.value, replay: coaching.value.replay }),
-      readListing: () => (discoveryFilm.value ? listingPose() : null),
     });
     resize();
     await stage.load();

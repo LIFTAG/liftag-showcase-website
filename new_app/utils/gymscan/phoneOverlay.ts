@@ -11,7 +11,6 @@ import {
   PHONE_CAM_FOV,
   PHONE_CAM_Z,
   PHONE_H,
-  PHONE_R,
   PHONE_REST_ROT_X,
   PHONE_REST_ROT_Y,
   PHONE_SCR_H,
@@ -19,8 +18,6 @@ import {
   PHONE_SCR_W,
   PHONE_SCREEN_Z,
 } from '../phoneModel'
-import { listingMorphBeats } from './listingMorph'
-import { createRoundedPlate } from './roundedPlate'
 import {
   HERO_PHONE_KEY_LIGHT,
   HERO_PHONE_TILT_LERP,
@@ -73,12 +70,6 @@ export type PhoneOverlayPoseInput = {
   reducedMotion: boolean
   /** CSS-pixel box of the QR on the gym canvas. Centres it on the phone. */
   qr?: { x: number, y: number, w: number, h: number } | null
-  /**
-   * Discovery listing mix. 0 keeps the parked 3D phone; 1 is the 2D review
-   * card. The overlay morphs a rounded plate the same way the gym floor does.
-   */
-  listingMix?: number
-  listingRadius?: number
 }
 
 const SCREEN_VERT = /* glsl */`
@@ -233,14 +224,6 @@ export function createPhoneOverlay(opts: { shadows: boolean }) {
   glassMat.depthWrite = false
   scene.add(model.group)
 
-  const listingPlate = createRoundedPlate(4, "listing-card-plate")
-  listingPlate.material.color.set(0x1c1c1e)
-  listingPlate.material.metalness = 0.95
-  listingPlate.material.roughness = 0.2
-  listingPlate.material.clearcoat = 0.8
-  listingPlate.material.clearcoatRoughness = 0.15
-  scene.add(listingPlate.mesh)
-
   const shadowPlane = new THREE.Mesh(
     new THREE.PlaneGeometry(4, 6),
     new THREE.ShadowMaterial({ opacity: 0 }),
@@ -248,19 +231,6 @@ export function createPhoneOverlay(opts: { shadows: boolean }) {
   shadowPlane.position.z = -0.15
   shadowPlane.receiveShadow = opts.shadows
   model.group.add(shadowPlane)
-
-  const phoneBody = model.group.children[0] as THREE.Mesh
-  const partEntries: { material: THREE.Material; opacity: number; chrome: boolean }[] = []
-  model.group.traverse((node) => {
-    if (!(node instanceof THREE.Mesh)) return
-    if (node === model.screen || node === model.glass || node === shadowPlane) return
-    const chrome = node !== phoneBody
-    for (const material of Array.isArray(node.material) ? node.material : [node.material]) {
-      if (material === screenMat) continue
-      if (partEntries.some((entry) => entry.material === material)) continue
-      partEntries.push({ material, opacity: material.opacity, chrome })
-    }
-  })
 
   let scale = 1
   let lightMix = 0
@@ -326,43 +296,8 @@ export function createPhoneOverlay(opts: { shadows: boolean }) {
       currentRotX = damp(currentRotX, targetRotX, HERO_PHONE_TILT_LERP, input.dt)
       currentRotY = damp(currentRotY, targetRotY, HERO_PHONE_TILT_LERP, input.dt)
     }
-    const listingMix = clamp01(input.listingMix ?? 0)
-    const beats = listingMorphBeats(listingMix)
-    const flatten = listingMix > 0 ? (input.reducedMotion ? 1 : beats.flatten) : 0
-    const displayRotX = currentRotX * (1 - flatten)
-    const displayRotY = currentRotY * (1 - flatten)
-    model.group.rotation.set(displayRotX, displayRotY, 0)
-    if (flatten > 0) {
-      model.group.scale.set(scale, scale, lerp(scale, scale * 0.04, flatten))
-    }
+    model.group.rotation.set(currentRotX, currentRotY, 0)
     model.group.updateMatrixWorld(true)
-    const device = listingMix > 0 ? beats.device : 1
-    model.group.visible = device > 0.001
-    for (const entry of partEntries) {
-      const amount = entry.chrome ? device * (1 - beats.flatten) : device
-      const opacity = entry.opacity * amount
-      entry.material.opacity = opacity
-      entry.material.transparent = opacity < 0.999 || entry.opacity < 0.999
-      entry.material.depthWrite = opacity > 0.95 && entry.opacity > 0.95
-    }
-    model.screen.visible = device > 0.45
-    if (listingMix > 0.001 && beats.card < 0.999) {
-      const worldW = (target.w / width) * visW
-      const worldH = (target.h / heightPx) * visH
-      const worldR =
-        ((input.listingRadius ?? (PHONE_R / PHONE_H) * target.h) / heightPx) * visH
-      listingPlate.half.value.set(worldW / 2, worldH / 2)
-      listingPlate.radius.value = worldR
-      listingPlate.mesh.position.set(xFinal, yFinal, 0)
-      listingPlate.mesh.visible = true
-      listingPlate.material.opacity = Math.min(1, beats.shape * 1.2) * (1 - beats.card)
-      listingPlate.material.metalness = lerp(0.95, 0, beats.flatten)
-      listingPlate.material.roughness = lerp(0.2, 0.92, beats.flatten)
-      listingPlate.material.clearcoat = lerp(0.8, 0, beats.flatten)
-    } else {
-      listingPlate.mesh.visible = false
-      listingPlate.material.opacity = 0
-    }
 
     const lightMx = input.hasPointer && !input.reducedMotion ? input.mx * tiltMix : 0
     const lightMy = input.hasPointer && !input.reducedMotion ? input.my * tiltMix : 0
@@ -396,9 +331,9 @@ export function createPhoneOverlay(opts: { shadows: boolean }) {
     }
 
     if (opts.shadows) {
-      (shadowPlane.material as THREE.ShadowMaterial).opacity = 0.35 * shrink * device
+      (shadowPlane.material as THREE.ShadowMaterial).opacity = 0.35 * shrink
     }
-    glassMat.opacity = 0.03 * shrink * device
+    glassMat.opacity = 0.03 * shrink
 
     // Fold lighting is hotter so the bezel reads while the room is still the
     // screen. Once the overlay is the landing hero's front phone, match the
@@ -437,8 +372,8 @@ export function createPhoneOverlay(opts: { shadows: boolean }) {
       w: maxX - minX,
       h: maxY - minY,
       radius: (PHONE_SCR_R / PHONE_SCR_H) * (maxY - minY),
-      rotX: displayRotX,
-      rotY: displayRotY,
+      rotX: currentRotX,
+      rotY: currentRotY,
       perspective: 0,
     }
   }

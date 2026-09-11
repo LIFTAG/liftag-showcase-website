@@ -18,7 +18,9 @@ import {
   discoveryAt,
   discoveryCameraPose,
   discoveryListingBox,
+  discoveryListingPinBox,
   DISCOVERY_LISTING_PHOTO_ASPECT,
+  DISCOVERY_LISTING_PIN_SIZE,
   DISCOVERY_LISTING_RADIUS,
   discoveryCornerRadius,
   discoveryFloorRect,
@@ -36,7 +38,6 @@ import {
   discoveryTitlePoseAt,
   discoveryTitleScreenWorld,
   discoveryMorphBeats,
-  listingMorphBeats,
   listingFromStyle,
   discoveryMorphRect,
   discoveryPhoneBodyRect,
@@ -76,7 +77,6 @@ import {
   PHONE_W,
 } from "../utils/phoneModel.ts";
 import {
-  cinemaPhoneSlot,
   heroPointerTilt,
   overheadPointerTilt,
   HERO_PHONE_TILT_X,
@@ -178,7 +178,14 @@ test("as the gym floor unzooms, the globe morphs into the black 04 badge", () =>
   const pixelScale = globeBadgeWorldScale(11, 800, 38, 2, 24);
   assert.ok(pixelScale > 0.03 && pixelScale < 0.12);
   assert.ok(discoveryLabelAt(0.566, 3).appear > 0, "04 appears as the globe lands");
-  assert.equal(discoveryLabelAt(0.566, 0).appear, 0, "the other badges still wait for spawn");
+  assert.equal(
+    discoveryLabelAt(0.566, 0).appear,
+    discoveryLabelAt(0.566, 3).appear,
+    "01-03 fade in with the 04 morph",
+  );
+  assert.equal(discoveryLabelAt(0.566, 1).appear, discoveryLabelAt(0.566, 3).appear);
+  assert.equal(discoveryLabelAt(0.566, 2).appear, discoveryLabelAt(0.566, 3).appear);
+  assert.equal(discoveryLabelAt(0.5, 0).appear, 0, "the other badges stay off until the globe starts handing off");
   const stage = readFileSync(
     new URL("../utils/gymscan/discoveryStage.ts", import.meta.url),
     "utf8",
@@ -225,34 +232,33 @@ test("regional labels cluster same-city gyms without stacking Bratislava or Koš
   assert.ok(discoveryMapLocations.every(place => place.country === "Slovakia"));
 });
 
-test("the gym listing morphs out of the parked cinema phone", () => {
+test("the gym listing blooms out of the Bratislava pin after the 3D phone recedes", () => {
   assert.equal(discoveryHubLocationIndex, 0);
-  assert.equal(discoveryAt(0).lift, 0);
-  assert.equal(discoveryAt(0.05).lift, 1);
   assert.equal(discoveryAt(GLOBE_FOCUS_PROGRESS).listing, 0);
   assert.equal(discoveryAt(GLOBE_FOCUS_PROGRESS).phase, 1);
   assert.ok(discoveryAt(GLOBE_FOCUS_PROGRESS + 0.05).listing > 0.4);
   assert.equal(discoveryAt(GLOBE_FOCUS_PROGRESS + 0.1).listing, 1);
   assert.equal(discoveryAt(0.4).floor, 0);
-  const phone = cinemaPhoneSlot(1440, 900);
+  const pin = discoveryListingPinBox(640, 420);
+  assert.equal(pin.w, DISCOVERY_LISTING_PIN_SIZE);
+  assert.equal(pin.h, DISCOVERY_LISTING_PIN_SIZE);
   const rest = { left: 822, top: 171, width: 333, height: 507 };
-  const start = discoveryListingBox(phone, rest, 0);
-  const end = discoveryListingBox(phone, rest, 1);
-  assert.ok(Math.abs(start.left - phone.x) < 1e-6);
-  assert.ok(Math.abs(start.top - phone.y) < 1e-6);
-  assert.ok(Math.abs(start.width - phone.w) < 1e-6);
-  assert.ok(Math.abs(start.height - phone.h) < 1e-6);
-  assert.ok(Math.abs(start.photoH - phone.h) < 1e-6);
+  const start = discoveryListingBox(pin, rest, 0);
+  const end = discoveryListingBox(pin, rest, 1);
+  assert.ok(Math.abs(start.left - pin.x) < 1e-6);
+  assert.ok(Math.abs(start.top - pin.y) < 1e-6);
+  assert.ok(Math.abs(start.width - pin.w) < 1e-6);
+  assert.ok(Math.abs(start.height - pin.h) < 1e-6);
+  assert.ok(Math.abs(start.radius - pin.w / 2) < 1e-6);
   assert.deepEqual(
     { left: end.left, top: end.top, width: end.width, height: end.height },
     rest,
   );
   assert.equal(end.radius, DISCOVERY_LISTING_RADIUS);
   assert.ok(Math.abs(end.photoH - rest.width / DISCOVERY_LISTING_PHOTO_ASPECT) < 1e-6);
-  assert.ok(start.radius > end.radius);
-  const mid = discoveryListingBox(phone, rest, 0.5);
+  const mid = discoveryListingBox(pin, rest, 0.5);
   assert.ok(mid.width > start.width && mid.width < end.width);
-  assert.ok(mid.photoH < start.photoH && mid.photoH > end.photoH);
+  assert.ok(mid.height > start.height && mid.height < end.height);
   const stage = readFileSync(
     new URL("../utils/gymscan/discoveryStage.ts", import.meta.url),
     "utf8",
@@ -264,7 +270,10 @@ test("the gym listing morphs out of the parked cinema phone", () => {
     "utf8",
   );
   assert.match(host, /publishListing/);
-  assert.match(host, /cinemaPhoneSlot/);
+  assert.match(host, /gd-location-bratislava/);
+  assert.match(host, /discoveryListingPinBox/);
+  assert.match(host, /Math\.max\(focus, floor\)/);
+  assert.doesNotMatch(host, /cinemaPhoneSlot/);
   assert.match(host, /--gd-box-left/);
   assert.match(host, /discoveryAt\(progress\)\.floor < 0\.12/);
   assert.doesNotMatch(host, /mapVisible\.value = progress < GLOBE_FOCUS_PROGRESS/);
@@ -283,34 +292,21 @@ test("the gym listing morphs out of the parked cinema phone", () => {
   assert.match(css, /--gd-box-left/);
   assert.match(css, /--gd-listing/);
   assert.match(css, /--gd-listing-card/);
-  assert.match(css, /gd-profile-island/);
+  assert.match(css, /gd-location-bratislava \.gd-map-dot/);
   assert.doesNotMatch(css, /gd-profile-stem/);
   assert.doesNotMatch(css, /rotateY\(calc/);
-  assert.doesNotMatch(
-    css,
-    /\.gd-profile\.is-shown \{[\s\S]*transform: perspective/,
-  );
-  assert.equal(listingMorphBeats(0).shape, discoveryMorphBeats(0).shape);
-  assert.equal(listingMorphBeats(1).shape, discoveryMorphBeats(1).shape);
-  assert.equal(listingMorphBeats(0).device, 1);
-  assert.equal(listingMorphBeats(1).device, 0);
-  assert.equal(listingMorphBeats(0).card, 0);
-  assert.equal(listingMorphBeats(1).card, 1);
-  assert.equal(listingMorphBeats(0.52).device, 0, "3D phone is gone where the floor morph would introduce it");
-  assert.equal(discoveryMorphBeats(0.52).device, 0);
   const overlay = readFileSync(
     new URL("../utils/gymscan/phoneOverlay.ts", import.meta.url),
     "utf8",
   );
-  assert.match(overlay, /listingMorphBeats/);
-  assert.match(overlay, /createRoundedPlate/);
-  assert.match(overlay, /listingPlate/);
+  assert.doesNotMatch(overlay, /listingMorphBeats/);
+  assert.doesNotMatch(overlay, /listingPlate/);
   const cinema = readFileSync(
     new URL("../components/gym/GymCinema.vue", import.meta.url),
     "utf8",
   );
   assert.match(cinema, /listingFromStyle/);
-  assert.match(cinema, /readListing/);
+  assert.doesNotMatch(cinema, /readListing/);
   const parsed = listingFromStyle({
     getPropertyValue(name: string) {
       if (name === "--gd-listing") return "0.4";
@@ -852,7 +848,7 @@ test("the discovery stage morphs a phone-curved stand-in, then the shared 3D pho
   assert.match(host, /v-if="reduced"/);
   assert.doesNotMatch(host, /!ready \|\| reduced/);
   assert.doesNotMatch(host, /365|Fit&Co/);
-  assert.match(host, /listingMorphBeats/);
+  assert.match(host, /listingCard/);
   assert.match(host, /--gd-phone-out/);
   assert.match(host, /--gd-listing-card/);
   assert.match(host, /--gd-label-mix/);

@@ -285,10 +285,6 @@ export interface StageOptions {
     clientY?: number
   }
   readCoaching?: () => { frame: CoachingFrame; video: HTMLVideoElement | null; customVideo: HTMLVideoElement | null; replay: number }
-  readListing?: () => {
-    listing: number
-    box: PhoneBox & { radius: number }
-  } | null
   overlayCoversFrame?: () => boolean
   renderOverlay?: (renderer: THREE.WebGLRenderer, dt: number, width: number, height: number) => void
 }
@@ -1469,13 +1465,10 @@ export function createGymScanStage(opts: StageOptions) {
       updateCoaching(1, dt)
       phoneOverlay.setHeroMix(1)
       phoneOverlay.setAppMix(1)
-      const listing = opts.readListing?.()
-      const parked = listing?.box && listing.listing > 0 ? listing.box : phoneTarget(1)
+      const parked = phoneTarget(1)
       const lean = phonePointer(parked)
       phoneOverlay.pose(1, parked, width, heightPx, {
         mx: lean.mx, my: lean.my, hasPointer: lean.hasPointer, dt, reducedMotion,
-        listingMix: listing?.listing ?? 0,
-        listingRadius: listing?.box?.radius,
       })
       phoneOverlay.renderFromTexture(renderer, composer.readBuffer.texture, 1)
       return
@@ -1928,18 +1921,14 @@ export function createGymScanStage(opts: StageOptions) {
       perspective: 0,
     }
     if (overlayOn) {
-      const listing = opts.readListing?.()
-      const overlayTarget = listing?.box && listing.listing > 0 ? listing.box : target
-      const lean = phonePointer(overlayTarget)
-      phone = phoneOverlay.pose(fold, overlayTarget, width, heightPx, {
+      const lean = phonePointer(target)
+      phone = phoneOverlay.pose(fold, target, width, heightPx, {
         mx: lean.mx,
         my: lean.my,
         hasPointer: lean.hasPointer,
         dt,
         reducedMotion,
         qr: qrLive,
-        listingMix: listing?.listing ?? 0,
-        listingRadius: listing?.box?.radius,
       })
       phoneOverlay.renderFromTexture(renderer, gymTex, shrink)
     } else {

@@ -3,13 +3,14 @@ import type { createDiscoveryStage } from "~/utils/gymscan/discoveryStage";
 import { discoveryEquipment } from "~/utils/gymscan/discoveryEquipment";
 import { onMouseEvent, useSharedMouse } from "~/composables/useSharedMouse";
 import {
+  DISCOVERY_LISTING_PIN_SIZE,
   DISCOVERY_MORPH_START,
   GLOBE_FOCUS_PROGRESS,
   discoveryAt,
   discoveryListingBox,
+  discoveryListingPinBox,
+  globeJourneyAt,
 } from "~/utils/gymscan/discoveryTimeline";
-import { listingMorphBeats } from "~/utils/gymscan/listingMorph";
-import { cinemaPhoneSlot } from "~/utils/gymscan/handoff";
 import {
   discoveryMapLocations,
   discoveryCountryLabels,
@@ -104,7 +105,7 @@ function draw(time: number) {
     reveal = point.reveal;
     spawning = point.spawning;
     publishEarthOut(reveal);
-    publishListing(point.listing, point.floor, discoveryAt(progress).lift);
+    publishListing(point.listing, point.floor, point.focus);
   } catch {
     lost();
     return;
@@ -164,7 +165,6 @@ const listingMixKeys = [
   "--gd-listing-card",
   "--gd-phone-out",
   "--gd-floor",
-  "--gd-lift",
 ] as const;
 const listingKeys = [...listingMixKeys, ...listingBoxKeys] as const;
 let listingRest: {
@@ -173,9 +173,11 @@ let listingRest: {
   width: number;
   height: number;
 } | null = null;
+let listingPin: ReturnType<typeof discoveryListingPinBox> | null = null;
 function clearListing() {
   const sticky = host.value?.parentElement;
   listingRest = null;
+  listingPin = null;
   if (sticky) {
     for (const key of listingKeys) sticky.style.removeProperty(key);
   }
@@ -185,18 +187,20 @@ function clearListing() {
   // Keep the cinema overlay off while discovery is unmounted (kit, etc).
   page.style.setProperty("--gd-phone-out", "1");
 }
+function listingCard(listing: number) {
+  const t = Math.min(1, Math.max(0, listing / 0.22));
+  return t * t * (3 - 2 * t);
+}
 function publishListingMix(
   target: HTMLElement,
   listing: number,
   floor: number,
-  lift: number,
-  beats: ReturnType<typeof listingMorphBeats>,
+  focus: number,
 ) {
   target.style.setProperty("--gd-listing", listing.toFixed(4));
-  target.style.setProperty("--gd-listing-card", beats.card.toFixed(4));
-  target.style.setProperty("--gd-phone-out", Math.max(beats.card, floor).toFixed(4));
+  target.style.setProperty("--gd-listing-card", listingCard(listing).toFixed(4));
+  target.style.setProperty("--gd-phone-out", Math.max(focus, floor).toFixed(4));
   target.style.setProperty("--gd-floor", floor.toFixed(4));
-  target.style.setProperty("--gd-lift", lift.toFixed(4));
 }
 function publishListingBox(
   target: HTMLElement,
@@ -209,10 +213,25 @@ function publishListingBox(
   target.style.setProperty("--gd-box-radius", `${box.radius.toFixed(1)}px`);
   target.style.setProperty("--gd-photo-h", `${box.photoH.toFixed(1)}px`);
 }
-function publishListing(listing: number, floor: number, lift: number) {
+function pinOrigin(sticky: HTMLElement) {
+  const pin = sticky.querySelector(
+    ".gd-location-bratislava .gd-map-dot",
+  ) as HTMLElement | null;
+  if (!pin) return null;
+  const parent = pin.parentElement;
+  if (!parent || parent.style.visibility === "hidden") return null;
+  const hostBox = sticky.getBoundingClientRect();
+  const pinBox = pin.getBoundingClientRect();
+  if (pinBox.width < 1 || pinBox.height < 1) return null;
+  return discoveryListingPinBox(
+    pinBox.left - hostBox.left + pinBox.width / 2,
+    pinBox.top - hostBox.top + pinBox.height / 2,
+    DISCOVERY_LISTING_PIN_SIZE,
+  );
+}
+function publishListing(listing: number, floor: number, focus: number) {
   const sticky = host.value?.parentElement;
   if (!sticky) return;
-  const beats = listingMorphBeats(listing);
   const profile = sticky.querySelector(".gd-profile") as HTMLElement | null;
   if (profile && !listingRest) {
     for (const key of listingBoxKeys) sticky.style.removeProperty(key);
@@ -225,17 +244,15 @@ function publishListing(listing: number, floor: number, lift: number) {
       };
     }
   }
-  const box = listingRest
-    ? discoveryListingBox(
-        cinemaPhoneSlot(sticky.clientWidth, sticky.clientHeight),
-        listingRest,
-        listing,
-      )
-    : null;
-  publishListingMix(sticky, listing, floor, lift, beats);
+  if (!listingPin && listing > 0.001) listingPin = pinOrigin(sticky);
+  const box =
+    listingRest && listingPin
+      ? discoveryListingBox(listingPin, listingRest, listing)
+      : null;
+  publishListingMix(sticky, listing, floor, focus);
   if (box) publishListingBox(sticky, box);
   const page = rootPage();
-  if (page) publishListingMix(page, listing, floor, lift, beats);
+  if (page) publishListingMix(page, listing, floor, focus);
 }
 function activity() {
   stop();
@@ -292,7 +309,11 @@ onMounted(() => {
     visible = entry?.isIntersecting ?? false;
     if (visible) {
       const frame = discoveryAt(props.film.progress);
-      publishListing(frame.listing, frame.floor, frame.lift);
+      publishListing(
+        frame.listing,
+        frame.floor,
+        globeJourneyAt(0, props.film.progress).focus,
+      );
       boot();
     } else clearEarthOut();
     activity();
@@ -300,6 +321,7 @@ onMounted(() => {
   if (host.value) observer.observe(host.value);
   resize = new ResizeObserver(() => {
     listingRest = null;
+    listingPin = null;
     stage?.resize();
     activity();
   });
