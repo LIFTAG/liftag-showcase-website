@@ -6,6 +6,7 @@ import { benchInstruction } from "~/utils/gymscan/equipment";
 import { en, sk } from '~/i18n/messages/gymDemo';
 import { useVideoLanguage } from '~/composables/useVideoLanguage';
 import { useSiteLocale } from '~/composables/useSiteLocale';
+import { canUseNativeHls } from '~/utils/exerciseVideoLanguage';
 
 const emit = defineEmits<{ close: []; playing: [] }>();
 const dialog = useTemplateRef<HTMLDialogElement>("dialog");
@@ -55,7 +56,7 @@ onMounted(async () => {
     if (!el || disposed) return;
     if (
       /\.m3u8(?:\?|$)/i.test(source) &&
-      !el.canPlayType("application/vnd.apple.mpegurl")
+      !canUseNativeHls(el)
     ) {
       const HlsCtor = (await import("hls.js")).default;
       if (disposed) return;

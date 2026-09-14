@@ -2,6 +2,7 @@
 import type Hls from 'hls.js'
 import type { DiscoveryLocale } from '~/types/discovery'
 import { discoveryCopy } from '~/utils/discoveryCopy'
+import { canUseNativeHls } from '~/utils/exerciseVideoLanguage'
 const props = defineProps<{ src: string; poster?: string | null; title: string; locale: DiscoveryLocale }>()
 const video = useTemplateRef<HTMLVideoElement>('video')
 const failed = shallowRef(false)
@@ -42,7 +43,7 @@ watch(() => props.src, async (src, _previous, onCleanup) => {
   if (cancelled || !video.value || youtube.value) return
   const element = video.value
   attached = element
-  if (/\.m3u8(?:\?|$)/i.test(src) && !element.canPlayType('application/vnd.apple.mpegurl')) {
+  if (/\.m3u8(?:\?|$)/i.test(src) && !canUseNativeHls(element)) {
     try {
       const { default: HlsPlayer } = await import('hls.js')
       if (cancelled) return

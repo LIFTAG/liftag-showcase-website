@@ -6,6 +6,7 @@ import { benchInstruction } from '../utils/gymscan/equipment.ts';
 import { coachingMediaSource } from '../utils/gymscan/coachingMedia.ts';
 import type { SiteLocale } from '~/types/locale';
 import { useVideoLanguage } from './useVideoLanguage.ts';
+import { canUseNativeHls } from '../utils/exerciseVideoLanguage.ts';
 
 /** Resolve only the real matched bench instruction, near its visible shot. */
 export function useGymInstructionPreview(video: Ref<HTMLVideoElement | null>, active: () => boolean, reduced: () => boolean, sameOrigin = false, locale: MaybeRefOrGetter<SiteLocale> = 'en') {
@@ -54,7 +55,7 @@ export function useGymInstructionPreview(video: Ref<HTMLVideoElement | null>, ac
         hls = null;
         attached = el;
         attachedSource = source;
-        if (/\.m3u8(?:\?|$)/i.test(source) && !el.canPlayType('application/vnd.apple.mpegurl')) {
+        if (/\.m3u8(?:\?|$)/i.test(source) && !canUseNativeHls(el)) {
           const HlsCtor = (await import('hls.js')).default;
           if (disposed || current !== revision || attached !== el || attachedSource !== source) return;
           if (HlsCtor.isSupported()) {

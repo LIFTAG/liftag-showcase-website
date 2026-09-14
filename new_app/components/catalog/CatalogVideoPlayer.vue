@@ -9,6 +9,7 @@
 import type Hls from 'hls.js'
 import { CATALOG_VIDEOS_ENABLED, catalogMediaAspectRatio } from '~/utils/catalogVideo'
 import { en, sk } from '~/i18n/messages/catalogMedia'
+import { canUseNativeHls } from '~/utils/exerciseVideoLanguage'
 
 const props = defineProps<{
   videoUrl: string | null
@@ -190,7 +191,7 @@ async function startPreview() {
   const video = previewRef.value
   if (!video || request !== previewRequest || !previewMounted.value) return
 
-  if (isHlsSource.value && !video.canPlayType('application/vnd.apple.mpegurl')) {
+  if (isHlsSource.value && !canUseNativeHls(video)) {
     const HlsCtor = (await import('hls.js')).default
     if (request !== previewRequest || !previewMounted.value) return
     if (!HlsCtor.isSupported()) {
@@ -268,7 +269,7 @@ async function play() {
   if (!video || request !== playbackRequest || !playing.value) return
 
   try {
-    if (isHlsSource.value && !video.canPlayType('application/vnd.apple.mpegurl')) {
+    if (isHlsSource.value && !canUseNativeHls(video)) {
       const HlsCtor = (await import('hls.js')).default
       if (request !== playbackRequest || !playing.value) return
       if (!HlsCtor.isSupported()) { failPlayback(); return }
