@@ -17,6 +17,6 @@ test('localized prices retain the same dated dollar amounts and source URLs', ()
     assert.equal(localized.name, app.name)
     assert.notEqual(localized.caveat, app.caveat)
   }
-  assert.match(priceCell(hevyPricing, 'sk'), /2,99.*USD mesačne.*23,99.*USD ročne.*74,99.*USD.*doživotie/)
+  assert.match(priceCell(hevyPricing, 'sk'), /2,99.*USD mesačne.*23,99.*USD ročne.*74,99.*USD.*doživot/)
   assert.equal(localizedAppPricing(liftagPricing, 'sk').paidPrice, null)
 })

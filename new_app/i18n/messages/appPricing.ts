@@ -21,7 +21,7 @@ export const en = {
   liftagSource: 'LIFTAG on the App Store',
 }
 export const sk: typeof en = {
-  hevyPrice: '{month} mesačne, {year} ročne alebo {lifetime} jednorazovo na doživotie',
+  hevyPrice: '{month} mesačne, {year} ročne alebo {lifetime} jednorazovo za doživotný prístup',
   strongPrice: '{month} mesačne alebo {year} ročne',
   noPaid: 'Cena platenej verzie zatiaľ nie je zverejnená',
   updated: 'Aktualizované {date}',

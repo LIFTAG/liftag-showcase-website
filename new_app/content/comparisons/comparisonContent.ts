@@ -56,11 +56,11 @@ export function hevyContent(locale: 'en' | 'sk', v: Vars): ComparisonContent {
   if (locale === 'sk')
     return {
       title: 'Alternatíva k Hevy, ktorá pozná <span class="lime">stroj.</span>',
-      description: `Funkcie a ceny Hevy v roku 2026 vedľa LIFTAG. Hevy Pro stojí ${v.price}. Hevy vyniká komunitou; LIFTAG nemá platenú verziu a otvorí cvik dotykom NFC alebo skenom QR kódu na stroji.`,
+      description: `Porovnanie funkcií a cien Hevy a LIFTAGu v roku 2026. Hevy Pro stojí ${v.price}. Hevy vyniká komunitou; LIFTAG nemá platenú verziu a cvik v ňom otvoríš priložením telefónu k NFC štítku alebo naskenovaním QR kódu na stroji.`,
       seoTitle: 'Alternatíva k Hevy 2026: LIFTAG verzus Hevy, funkcie a ceny',
       eyebrow: 'ALTERNATÍVY · HEVY',
       cta: 'Získať LIFTAG zadarmo',
-      other: 'LIFTAG verzus ďalšia možnosť',
+      other: 'LIFTAG verzus Strong',
       short: 'Krátka verzia',
       pricing: 'Uvedené ceny',
       features: 'Porovnanie funkciu po funkcii',
@@ -170,7 +170,7 @@ export function hevyContent(locale: 'en' | 'sk', v: Vars): ComparisonContent {
       faqs: [
         [
           'Koľko stojí Hevy v roku 2026?',
-          `Hevy je na stiahnutie zadarmo a Hevy Pro stojí ${v.price} v americkom App Store podľa kontroly ${v.date}. Ceny sa líšia podľa regiónu a účtu, preto si pred predplatným over ponuku v obchode.`,
+          `Hevy je na stiahnutie zadarmo a Hevy Pro stojí ${v.price} v americkom App Store podľa kontroly ${v.date}. ${v.caveat}`,
         ],
         [
           'Čo Hevy Pro odomkne?',
@@ -209,7 +209,7 @@ export function hevyContent(locale: 'en' | 'sk', v: Vars): ComparisonContent {
     seoTitle: 'Hevy Alternative 2026: LIFTAG vs Hevy, Features and Pricing',
     eyebrow: 'ALTERNATIVES · HEVY',
     cta: 'Get LIFTAG free',
-    other: 'LIFTAG vs the other option',
+    other: 'LIFTAG vs Strong',
     short: 'The short version',
     pricing: 'Pricing, quoted',
     features: 'Feature by feature',
@@ -344,7 +344,7 @@ export function strongContent(locale: 'en' | 'sk', v: Vars): ComparisonContent {
   const L = sk
     ? {
         title: 'LIFTAG verzus <span class="lime">Strong.</span>',
-        description: `LIFTAG proti Strong v roku 2026. Strong obmedzuje bezplatnú verziu na 3 tréningové zostavy a PRO stojí ${v.price} mesačne; LIFTAG nemá limit ani platenú verziu a otvorí cvik dotykom NFC alebo skenom QR kódu na stroji.`,
+        description: `LIFTAG proti Strong v roku 2026. Strong obmedzuje bezplatnú verziu na 3 tréningové zostavy a PRO stojí ${v.price}. LIFTAG počet zostáv neobmedzuje, nemá platenú verziu a cvik v ňom otvoríš priložením telefónu k NFC štítku alebo naskenovaním QR kódu na stroji.`,
         seoTitle: 'LIFTAG verzus Strong 2026 | Bezplatná verzia, funkcie a cena PRO',
         eyebrow: 'POROVNANIE · LIFTAG VERZUS STRONG',
         cta: 'Získať LIFTAG zadarmo',
@@ -362,7 +362,7 @@ export function strongContent(locale: 'en' | 'sk', v: Vars): ComparisonContent {
       }
     : {
         title: 'LIFTAG vs <span class="lime">Strong.</span>',
-        description: `LIFTAG against Strong in 2026. Strong caps free routines at 3 and sells PRO at ${v.price} a month; LIFTAG has no cap and no paid tier, and opens the lift from an NFC tap or QR scan on the machine.`,
+        description: `LIFTAG against Strong in 2026. Strong caps free routines at 3 and sells PRO at ${v.price}; LIFTAG has no cap and no paid tier, and opens the lift from an NFC tap or QR scan on the machine.`,
         seoTitle: 'LIFTAG vs Strong 2026 | Free Tier, Features, PRO Pricing',
         eyebrow: 'COMPARISON · LIFTAG VS STRONG',
         cta: 'Get LIFTAG free',
