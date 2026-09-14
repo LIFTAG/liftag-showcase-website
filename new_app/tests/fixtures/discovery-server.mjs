@@ -105,6 +105,9 @@ const server = createServer(async (request, response) => {
   if (/\/gyms\/machines\/[^/]+\/resolve$/.test(path)) {
     const machine = fixtureMachine(lang)
     machine.machine.gymMachineId = path.split('/').at(-2)
+    machine.machine.photoUrls = [`${mediaOrigin}/logo-apple-touch.png`]
+    // Distinct URLs exercise switching an active player between adjacent video thumbnails.
+    machine.machine.videoUrls = ['a', 'b'].map((clip) => `${mediaOrigin}/assets/videos/scan-flow.mp4?clip=${clip}`)
     return send({ data: machine })
   }
   if (path.endsWith('/reviews')) {

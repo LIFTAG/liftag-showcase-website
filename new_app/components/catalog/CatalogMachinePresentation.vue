@@ -475,10 +475,16 @@ a.ma-crumb:hover {
     object-position: top center;
   }
 
+  .ma-photo :deep(.cat-player:not(.is-cinema)) {
+    /* Inline video controls must sit below the fixed mobile navbar. */
+    margin-top: var(--liftag-nav-h, calc(60px + var(--liftag-safe-top) + var(--liftag-vv-top)));
+  }
+
   .ma-hero-ui {
     position: absolute;
     inset: 0;
     display: block;
+    pointer-events: none;
   }
 
   .ma-hero-scrim {

@@ -105,9 +105,20 @@ Useful fixture routes:
 
 The integration script checks normalized public endpoints, manufacturer OR matching, pagination, custom IDs, ownership rejection, error statuses, SSR content, metadata, and URL/cookie/gym language precedence. It uses no production accounts or writes.
 
+### Machine video and contextual error regressions
+
+`tests/catalogVideoPlayer.test.ts` executes the actual player setup with Vue reactivity and controlled media objects. It covers source changes, HLS attachment cleanup, pending playback cancellation, hover preview cleanup, and preserving playback when only the poster or title changes. `tests/catalogExerciseResource.test.ts` checks temporary catalog errors versus confirmed 404s, UUID fallback, custom exercises, cancellation, gym overrides, and ordinary catalog routes.
+
+For browser checks, the fixture machine has a photo followed by two video URLs (the same local clip with distinct query strings):
+
+1. Open `/machines/33333333-3333-4333-8333-333333333333?gym=11111111-1111-4111-8111-111111111111&lang=en` at a phone width, such as 390px.
+2. Select Video 2 and play it. Native pause/seek controls must receive pointer input; the close button must sit below the fixed navbar. Muscle chips must remain clickable.
+3. While playing, select Video 3. The previous player must stop and show the Watch instructions button. Playing again must load the URL ending in `clip=b`.
+4. Close the video, select Photo 1, and verify the image returns. Repeat source switching at desktop width; also check phone landscape cinema mode on a touch device.
+
 ## Verification coverage
 
-- The unit suite contains 595 tests. TypeScript and production builds are included in `pnpm verify`.
+- The unit suite, TypeScript, and production build are included in `pnpm verify`.
 - Fixture integration covers both shared detail routes, template-free machines/exercises, English/Slovak SSR, contextual canonicals, legacy redirects (301), malformed contexts (400), ownership rejection (404), public-content pagination, and section-specific failures.
 - Chromium checks during implementation covered mobile widths of 320–430px, tablet, and 1440px desktop. The desktop Explore sidebar measures 400px. Search/filter transitions, stale requests, first/second card and pin activation, Back restoration, denied location, and equipment/trainer pagination were exercised.
 - The supplied Maps key and `DEMO_MAP_ID` rendered the dark basemap and live photo markers locally; marker selection updated the card, camera, and URL. This is local configuration validation, not production launch approval.
