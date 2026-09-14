@@ -3,7 +3,7 @@ export const en = {
     nav: {
       language: 'Language',
       demo: 'Demo',
-      gyms: 'Gyms',
+      gyms: 'Fitness centers',
       lifters: 'Lifters',
       owners: 'For gym owners',
       trainers: 'Trainers',
@@ -26,7 +26,7 @@ export const en = {
       featuredLaunchBuff: 'Featured on LaunchBuff',
       featuredLaunchstag: 'Featured on Launchstag',
       links: {
-        gyms: 'Gyms',
+        gyms: 'Fitness centers',
         demo: 'Demo',
         calculator: '1RM Calculator',
         exercises: 'Exercise Library',
@@ -110,7 +110,7 @@ export const sk = {
     nav: {
       language: 'Jazyk',
       demo: 'Ukážka',
-      gyms: 'Fitká',
+      gyms: 'Fitness centrá',
       lifters: 'Pre cvičencov',
       owners: 'Pre majiteľov fitiek',
       trainers: 'Tréneri',
@@ -133,7 +133,7 @@ export const sk = {
       featuredLaunchBuff: 'Odporúčané na LaunchBuff',
       featuredLaunchstag: 'Odporúčané na Launchstag',
       links: {
-        gyms: 'Fitká',
+        gyms: 'Fitness centrá',
         demo: 'Ukážka',
         calculator: 'Kalkulačka 1RM',
         exercises: 'Knižnica cvikov',

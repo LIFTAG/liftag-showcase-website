@@ -1025,7 +1025,7 @@ onBeforeUnmount(() => {
   height: 44px;
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1439px) {
   .nav-center-links {
     display: none;
   }
