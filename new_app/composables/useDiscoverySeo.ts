@@ -1,44 +1,37 @@
 import type { MaybeRefOrGetter } from 'vue'
 import type { DiscoveryLocale } from '~/types/discovery'
 import { discoveryCopy } from '~/utils/discoveryCopy'
+import { DEFAULT_OG_IMAGE, SITE_URL, liftagBreadcrumbs } from '~/utils/seoSchema'
 
-export function useDiscoverySeo(
-  name: MaybeRefOrGetter<string>,
-  description: MaybeRefOrGetter<string>,
-  locale: MaybeRefOrGetter<DiscoveryLocale>,
-  photo?: MaybeRefOrGetter<string | null | undefined>,
-  kind: 'gym' | 'profile' | 'page' = 'page',
-  details?: MaybeRefOrGetter<Record<string, unknown>>,
-  canonicalPath?: MaybeRefOrGetter<string>,
-) {
+interface DiscoverySeoOptions {
+  name: MaybeRefOrGetter<string>
+  description: MaybeRefOrGetter<string>
+  locale: MaybeRefOrGetter<DiscoveryLocale>
+  photo?: MaybeRefOrGetter<string | null | undefined>
+  kind?: 'gym' | 'profile' | 'page'
+  /** Extra schema.org fields merged into the page's primary entity. */
+  details?: MaybeRefOrGetter<Record<string, unknown>>
+  canonicalPath?: MaybeRefOrGetter<string>
+}
+
+export function useDiscoverySeo(options: DiscoverySeoOptions) {
+  const { name, description, locale, photo, details, canonicalPath, kind = 'page' } = options
   const route = useRoute()
-  const url = computed(() => `https://liftag.fit${toValue(canonicalPath) ?? `${route.path}?lang=${toValue(locale)}`}`)
+  const url = computed(
+    () => `${SITE_URL}${toValue(canonicalPath) ?? `${route.path}?lang=${toValue(locale)}`}`,
+  )
   useSeoMeta({
     title: () => `${toValue(name)} | LIFTAG`,
     description: () => toValue(description),
     ogTitle: () => `${toValue(name)} | LIFTAG`,
     ogDescription: () => toValue(description),
     ogUrl: () => url.value,
-    ogImage: () => toValue(photo) ?? 'https://liftag.fit/og-image.jpg',
+    ogImage: () => toValue(photo) ?? DEFAULT_OG_IMAGE,
     ogLocale: () => (toValue(locale) === 'sk' ? 'sk_SK' : 'en_US'),
     twitterCard: 'summary_large_image',
   })
   useHead(() => {
     const copy = discoveryCopy(toValue(locale))
-    const crumbs = [
-      { '@type': 'ListItem', position: 1, name: 'LIFTAG', item: 'https://liftag.fit/' },
-      ...(route.path === '/explore'
-        ? []
-        : [
-            {
-              '@type': 'ListItem',
-              position: 2,
-              name: copy.explore,
-              item: `https://liftag.fit/explore?lang=${toValue(locale)}`,
-            },
-          ]),
-    ]
-    crumbs.push({ '@type': 'ListItem', position: crumbs.length + 1, name: toValue(name), item: url.value })
     const schema = {
       '@context': 'https://schema.org',
       '@graph': [
@@ -53,7 +46,13 @@ export function useDiscoverySeo(
             : {}),
           ...toValue(details),
         },
-        { '@type': 'BreadcrumbList', itemListElement: crumbs },
+        liftagBreadcrumbs([
+          { name: 'LIFTAG', path: '/' },
+          ...(route.path === '/explore'
+            ? []
+            : [{ name: copy.explore, path: `/explore?lang=${toValue(locale)}` }]),
+          { name: toValue(name), path: url.value },
+        ]),
       ],
     }
     return {

@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { discoveryCopy } from '~/utils/discoveryCopy'
 import '~/assets/css/discovery.css'
+const { locale } = useSiteLocale()
+const copy = computed(() => discoveryCopy(locale.value))
 </script>
 <template>
-  <a class="discovery-skip" href="#discovery-content">Skip to content</a>
+  <a class="discovery-skip" href="#discovery-content">{{ copy.skip }}</a>
   <SiteNav />
   <div class="discovery-root discovery-shell"><slot /></div>
 </template>
@@ -13,7 +16,7 @@ import '~/assets/css/discovery.css'
   left: 16px;
   z-index: 101;
   padding: 12px 16px;
-  background: #ccff00;
+  background: var(--liftag-primary);
   color: #101405;
   border-radius: 8px;
   transform: translateY(-200%);

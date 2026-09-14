@@ -1,9 +1,4 @@
-import {
-  discoveryListQuery,
-  discoveryNumber,
-  readDiscoveryApi,
-  requestedDiscoveryLocale,
-} from '../../utils/discoveryApi'
+import { discoveryListQuery, discoveryNumber, readDiscoveryApi } from '../../utils/discoveryApi'
 import { discoveryRecord, normalizeExploreGym } from '../../../utils/discoveryData'
 
 export default defineEventHandler(async (event) => {
@@ -15,21 +10,16 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 422, statusMessage: 'Invalid map bounds' })
   const filters = discoveryListQuery(event)
   const response = discoveryRecord(
-    await readDiscoveryApi(
-      event,
-      '/v1/gyms/map',
-      {
-        north,
-        south,
-        east,
-        west,
-        zoom: Math.round(discoveryNumber(event, 'zoom', 0, 22)),
-        ...(filters['machineManufacturerIds[]']
-          ? { 'machineManufacturerIds[]': filters['machineManufacturerIds[]'] }
-          : {}),
-      },
-      requestedDiscoveryLocale(event),
-    ),
+    await readDiscoveryApi(event, '/v1/gyms/map', {
+      north,
+      south,
+      east,
+      west,
+      zoom: Math.round(discoveryNumber(event, 'zoom', 0, 22)),
+      ...(filters['machineManufacturerIds[]']
+        ? { 'machineManufacturerIds[]': filters['machineManufacturerIds[]'] }
+        : {}),
+    }),
   )
   const meta = discoveryRecord(response.metadata)
   if (!Array.isArray(response.data))

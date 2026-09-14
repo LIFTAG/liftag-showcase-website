@@ -1,7 +1,7 @@
 import type { H3Event } from 'h3'
 import type { DiscoveryLocale } from '../../types/discovery'
 import { DISCOVERY_UUID, defaultDiscoveryLocale, discoveryLocale, normalizedIds } from '../../utils/discovery'
-import { discoveryRecord } from '../../utils/discoveryData'
+import { discoveryRecord, normalizeDiscoveryPage } from '../../utils/discoveryData'
 
 export function discoveryParam(event: H3Event, key = 'id'): string {
   const id = getRouterParam(event, key) ?? ''
@@ -53,17 +53,18 @@ export async function readDiscoveryApi(
   event: H3Event,
   path: string,
   query: Record<string, string | number | string[]> = {},
-  locale: DiscoveryLocale = 'en',
+  locale?: DiscoveryLocale,
 ): Promise<unknown> {
+  const lang = locale ?? requestedDiscoveryLocale(event) ?? 'en'
   setHeader(event, 'Cache-Control', 'no-store')
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(query))
     for (const item of Array.isArray(value) ? value : [value]) params.append(key, String(item))
-  params.set('lang', locale)
+  params.set('lang', lang)
   try {
     return await $fetch(`${path}?${params}`, {
       baseURL: String(useRuntimeConfig().public.apiBaseUrl),
-      headers: { 'Accept-Language': locale },
+      headers: { 'Accept-Language': lang },
       timeout: 12000,
       retry: 0,
     })
@@ -93,4 +94,28 @@ export async function readLocalizedGym(
     response = discoveryRecord(await readDiscoveryApi(event, path, query, locale))
   }
   return { data: response.data, locale }
+}
+/**
+ * The paginated explore lists differ only in upstream path and row normaliser.
+ * Route files declare those two things; validation order (id before query) and
+ * the locale stay owned here so a new list cannot forget them.
+ */
+export function discoveryListHandler<T>(
+  path: (event: H3Event) => string,
+  normalize: (row: unknown) => T,
+  options: {
+    equipment?: boolean
+    query?: (event: H3Event) => Record<string, string | number | string[]>
+  } = {},
+) {
+  return defineEventHandler(async (event) => {
+    const upstream = path(event)
+    return normalizeDiscoveryPage(
+      await readDiscoveryApi(event, upstream, {
+        ...discoveryListQuery(event, options.equipment),
+        ...options.query?.(event),
+      }),
+      normalize,
+    )
+  })
 }

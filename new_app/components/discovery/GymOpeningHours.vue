@@ -1,26 +1,29 @@
 <script setup lang="ts">
 import type { DiscoveryLocale, ExploreGym } from '~/types/discovery'
 import { discoveryCopy, discoveryWeekdays } from '~/utils/discoveryCopy'
+import { weekdayIndex } from '~/utils/discoveryData'
 const props = defineProps<{ gym: ExploreGym; locale: DiscoveryLocale }>()
 const copy = computed(() => discoveryCopy(props.locale))
 const weekdays = computed(() => discoveryWeekdays(props.locale))
-const english = discoveryWeekdays('en')
-const today = shallowRef('')
+const today = shallowRef(-1)
 onMounted(() => {
   try {
-    today.value = new Intl.DateTimeFormat('en', {
-      weekday: 'long',
-      timeZone: props.gym.timezone ?? undefined,
-    }).format(new Date())
+    today.value =
+      weekdayIndex(
+        new Intl.DateTimeFormat('en', {
+          weekday: 'long',
+          timeZone: props.gym.timezone ?? undefined,
+        }).format(new Date()),
+      ) ?? -1
   } catch {
     /* No local-day emphasis for invalid legacy zones. */
   }
 })
 const rows = computed(() =>
-  english.map((day, index) => ({
+  weekdays.value.map((label, day) => ({
     day,
-    label: weekdays.value[index],
-    hours: props.gym.hours.find((h) => h.day.toLowerCase() === day.toLowerCase()),
+    label,
+    hours: props.gym.hours.find((h) => h.day === day),
   })),
 )
 </script>

@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import GymMachineView from '~/components/discovery/GymMachineView.vue'
 import { gymCatalogContext } from '~/utils/gymCatalog'
+// Only a gym-context URL needs the discovery stack (and its stylesheet); a plain
+// catalog machine page must not ship it.
+const GymMachineView = defineAsyncComponent(
+  () => import('~/components/discovery/GymMachineView.vue'),
+)
 const route = useRoute()
 definePageMeta({ key: (route) => `${route.params.slug}:${route.query.gym ?? ''}` })
 const context = (() => {

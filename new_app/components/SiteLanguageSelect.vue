@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue'
 import type { SiteLocale } from '~/types/locale'
+import { discoveryCopy } from '~/utils/discoveryCopy'
 import { SITE_LANGUAGES } from '~/utils/siteLocale'
 
 const emit = defineEmits<{ select: [] }>()
@@ -12,7 +13,7 @@ const menu = useTemplateRef<HTMLDivElement>('menu')
 const open = ref(false)
 const focusedIndex = ref(0)
 const placement = ref<CSSProperties>({})
-const label = computed(() => locale.value === 'sk' ? 'Jazyk' : 'Language')
+const label = computed(() => discoveryCopy(locale.value).language)
 const currentLanguage = computed(() => SITE_LANGUAGES.find(language => language.locale === locale.value)!)
 
 function positionMenu() {

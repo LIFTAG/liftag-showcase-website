@@ -4,13 +4,15 @@ import { discoveryCopy } from '~/utils/discoveryCopy'
 const props = defineProps<{ gymId: string; locale: DiscoveryLocale; count: number | null }>()
 const copy = computed(() => discoveryCopy(props.locale)),
   gate = shallowRef(false)
-const { items, loading, error, hasMore, retry, loadMore } = await useDiscoveryPage<GymReview>(
+const reviews = await useDiscoveryPage<GymReview>(
   () => `/api/explore/gyms/${props.gymId}/reviews`,
   () => ({ lang: props.locale }),
 )
+/** One formatter per locale, not one per review per render. */
+const dateFormat = computed(() => new Intl.DateTimeFormat(props.locale, { dateStyle: 'medium' }))
 function date(value: string) {
   const d = new Date(value)
-  return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString(props.locale, { dateStyle: 'medium' })
+  return Number.isNaN(d.getTime()) ? '' : dateFormat.value.format(d)
 }
 </script>
 <template>
@@ -23,28 +25,26 @@ function date(value: string) {
       <button class="d-link d-small" @click="gate = true">{{ copy.rateGym }}</button>
     </div>
     <DiscoveryAppGate v-if="gate" kind="review" :locale="locale" @close="gate = false" />
-    <DiscoveryState v-if="error" :locale="locale" error @retry="retry" />
-    <DiscoveryState v-else-if="loading && !items.length" :locale="locale" loading />
-    <p v-else-if="!items.length" class="d-muted d-small">{{ copy.noReviews }}</p>
-    <article v-for="review in items" :key="review.id" class="d-review">
-      <div class="d-between">
-        <div class="d-row">
-          <img v-if="review.avatarUrl" :src="review.avatarUrl" alt="" loading="lazy" />
-          <div>
-            <strong>{{ review.name }}</strong>
-            <div class="d-small d-muted">{{ date(review.createdAt) }}</div>
+    <DiscoveryList :state="reviews" :locale="locale" :empty="copy.noReviews">
+      <template #default="{ items }">
+        <article v-for="review in items" :key="review.id" class="d-review">
+          <div class="d-between">
+            <div class="d-row">
+              <img v-if="review.avatarUrl" :src="review.avatarUrl" alt="" loading="lazy" />
+              <div>
+                <strong>{{ review.name }}</strong>
+                <div class="d-small d-muted">{{ date(review.createdAt) }}</div>
+              </div>
+            </div>
+            <span v-if="review.rating !== null" class="d-stars">
+              <DiscoveryIcon name="star" :size="16" />
+              {{ review.rating }}
+            </span>
           </div>
-        </div>
-        <span v-if="review.rating !== null" class="d-stars">
-          <DiscoveryIcon name="star" :size="16" />
-          {{ review.rating }}
-        </span>
-      </div>
-      <p v-if="review.text" class="d-copy d-small">{{ review.text }}</p>
-    </article>
-    <button v-if="hasMore" class="d-button" :disabled="loading" @click="loadMore">
-      {{ loading ? copy.loading : copy.more }}
-    </button>
+          <p v-if="review.text" class="d-copy d-small">{{ review.text }}</p>
+        </article>
+      </template>
+    </DiscoveryList>
   </section>
 </template>
 <style scoped>

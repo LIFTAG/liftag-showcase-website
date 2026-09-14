@@ -22,29 +22,18 @@ const [routines, plans] = await Promise.all([
         {{ copy.routines }}
         <span v-if="routines.total.value !== null" class="d-muted">({{ routines.total.value }})</span>
       </h2>
-      <DiscoveryState v-if="routines.error.value" :locale="locale" error @retry="routines.retry" />
-      <DiscoveryState
-        v-else-if="routines.loading.value && !routines.items.value.length"
-        :locale="locale"
-        loading
-      />
-      <p v-else-if="!routines.items.value.length" class="d-muted d-small">{{ copy.noRoutines }}</p>
-      <div v-else class="d-card-grid">
-        <DiscoveryRoutineCard
-          v-for="routine in routines.items.value"
-          :key="routine.id"
-          :routine="routine"
-          :locale="locale"
-        />
-      </div>
-      <button
-        v-if="routines.hasMore.value"
-        class="d-button"
-        :disabled="routines.loading.value"
-        @click="routines.loadMore"
-      >
-        {{ routines.loading.value ? copy.loading : copy.more }}
-      </button>
+      <DiscoveryList :state="routines" :locale="locale" :empty="copy.noRoutines">
+        <template #default="{ items }">
+          <div class="d-card-grid">
+            <DiscoveryRoutineCard
+              v-for="routine in items"
+              :key="routine.id"
+              :routine="routine"
+              :locale="locale"
+            />
+          </div>
+        </template>
+      </DiscoveryList>
     </section>
     <section class="d-section">
       <h2 class="d-subtitle">
@@ -52,31 +41,24 @@ const [routines, plans] = await Promise.all([
         <span v-if="plans.total.value !== null" class="d-muted">({{ plans.total.value }})</span>
       </h2>
       <DiscoveryAppGate v-if="gate" kind="plan" :locale="locale" @close="gate = false" />
-      <DiscoveryState v-if="plans.error.value" :locale="locale" error @retry="plans.retry" />
-      <DiscoveryState v-else-if="plans.loading.value && !plans.items.value.length" :locale="locale" loading />
-      <p v-else-if="!plans.items.value.length" class="d-muted d-small">{{ copy.noPlans }}</p>
-      <div v-else class="d-card-grid">
-        <button v-for="plan in plans.items.value" :key="plan.id" class="d-plan-preview" @click="gate = true">
-          <img v-if="plan.image" :src="plan.image" alt="" loading="lazy" />
-          <span v-else class="d-plan-art"><DiscoveryIcon name="calendar" :size="36" /></span>
-          <span class="d-plan-copy">
-            <strong>{{ plan.name }}</strong>
-            <span v-if="plan.description" class="d-muted d-small">{{ plan.description }}</span>
-            <span class="d-link d-small">
-              {{ copy.planPreview }}
-              <DiscoveryIcon name="arrow" :size="16" />
-            </span>
-          </span>
-        </button>
-      </div>
-      <button
-        v-if="plans.hasMore.value"
-        class="d-button"
-        :disabled="plans.loading.value"
-        @click="plans.loadMore"
-      >
-        {{ plans.loading.value ? copy.loading : copy.more }}
-      </button>
+      <DiscoveryList :state="plans" :locale="locale" :empty="copy.noPlans">
+        <template #default="{ items }">
+          <div class="d-card-grid">
+            <button v-for="plan in items" :key="plan.id" class="d-plan-preview" @click="gate = true">
+              <img v-if="plan.image" :src="plan.image" alt="" loading="lazy" />
+              <span v-else class="d-plan-art"><DiscoveryIcon name="calendar" :size="36" /></span>
+              <span class="d-plan-copy">
+                <strong>{{ plan.name }}</strong>
+                <span v-if="plan.description" class="d-muted d-small">{{ plan.description }}</span>
+                <span class="d-link d-small">
+                  {{ copy.planPreview }}
+                  <DiscoveryIcon name="arrow" :size="16" />
+                </span>
+              </span>
+            </button>
+          </div>
+        </template>
+      </DiscoveryList>
     </section>
   </div>
 </template>

@@ -4,9 +4,10 @@ import { discoveryHref } from '~/utils/discovery'
 import { gymExerciseHref } from '~/utils/gymCatalog'
 import { discoveryMuscleName } from '~/utils/discoveryMuscles'
 import type { CatalogMachine } from '~/types/catalog'
+/** Exactly one source is supplied: a catalog machine, or a gym's resolved machine. */
 const props = withDefaults(
   defineProps<{
-    machine: Pick<
+    machine?: Pick<
       CatalogMachine,
       'id' | 'name' | 'description' | 'categories' | 'photoUrls' | 'photoUrl' | 'exercises'
     >
@@ -15,19 +16,19 @@ const props = withDefaults(
   }>(),
   { locale: 'en' },
 )
-const name = computed(() => props.machine.name)
-const photos = computed(() =>
-  props.machine.photoUrls?.length
-    ? props.machine.photoUrls
-    : props.machine.photoUrl
-      ? [props.machine.photoUrl]
-      : [],
-)
+const source = computed(() => props.gymMachine ?? props.machine)
+const name = computed(() => source.value?.name ?? '')
+const description = computed(() => source.value?.description ?? null)
+const photos = computed(() => {
+  const catalog = props.machine
+  if (catalog?.photoUrls?.length) return catalog.photoUrls
+  return catalog?.photoUrl ? [catalog.photoUrl] : []
+})
 const isSk = computed(() => props.locale === 'sk')
 const categories = computed(() =>
   props.gymMachine
     ? props.gymMachine.muscles.map((slug) => ({ slug, name: discoveryMuscleName(slug, props.locale) }))
-    : props.machine.categories,
+    : (props.machine?.categories ?? []),
 )
 const media = computed(
   () =>
@@ -43,7 +44,7 @@ const exercises = computed(() =>
         label: exercise.muscles.map((slug) => discoveryMuscleName(slug, props.locale)).join(' · '),
         video: exercise.videos[0] ?? null,
       }))
-    : (props.machine.exercises ?? []).map((exercise) => ({
+    : (props.machine?.exercises ?? []).map((exercise) => ({
         id: exercise.id,
         name: exercise.name,
         imageUrl: exercise.imageUrl,
@@ -55,7 +56,7 @@ const exercises = computed(() =>
 const heroAlt = computed(() => `${name.value} — gym machine in the LIFTAG catalog`)
 const activePhoto = shallowRef(0)
 watch(
-  () => props.machine.id,
+  () => source.value?.id,
   () => {
     activePhoto.value = 0
   },
@@ -82,62 +83,60 @@ watch(
 
       <div class="ma-stage">
         <div class="ma-media">
-          <slot name="media">
-            <div class="ma-photo">
-              <CatalogVideoPlayer
-                v-if="media[activePhoto]?.type === 'video'"
-                :video-url="media[activePhoto]!.url"
-                :poster="media[activePhoto]!.posterUrl"
-                :name="name"
-              />
-              <img
-                v-else-if="media[activePhoto]"
-                :src="media[activePhoto]!.url"
-                :alt="heroAlt"
-                fetchpriority="high"
-                decoding="async"
-              />
-              <span v-else class="ma-photo__placeholder" aria-hidden="true">{{ name.slice(0, 1) }}</span>
+          <div class="ma-photo">
+            <CatalogVideoPlayer
+              v-if="media[activePhoto]?.type === 'video'"
+              :video-url="media[activePhoto]!.url"
+              :poster="media[activePhoto]!.posterUrl"
+              :name="name"
+            />
+            <img
+              v-else-if="media[activePhoto]"
+              :src="media[activePhoto]!.url"
+              :alt="heroAlt"
+              fetchpriority="high"
+              decoding="async"
+            />
+            <span v-else class="ma-photo__placeholder" aria-hidden="true">{{ name.slice(0, 1) }}</span>
 
-              <div class="ma-hero-ui">
-                <div class="ma-hero-scrim" aria-hidden="true" />
-                <div class="ma-hero-overlay">
-                  <p class="ma-name ma-name--hero" aria-hidden="true">{{ name }}</p>
-                  <CatalogMuscleChips
-                    v-if="categories.length"
-                    compact
-                    :secondary="categories"
-                    :to-for="(slug) => muscleChipPath(slug, locale)"
-                  />
-                </div>
+            <div class="ma-hero-ui">
+              <div class="ma-hero-scrim" aria-hidden="true" />
+              <div class="ma-hero-overlay">
+                <p class="ma-name ma-name--hero" aria-hidden="true">{{ name }}</p>
+                <CatalogMuscleChips
+                  v-if="categories.length"
+                  compact
+                  :secondary="categories"
+                  :to-for="(slug) => muscleChipPath(slug, locale)"
+                />
               </div>
             </div>
-            <div
-              v-if="media.length > 1"
-              class="ma-thumbs"
-              :aria-label="isSk ? 'Fotografie a videá' : 'Machine photos and videos'"
+          </div>
+          <div
+            v-if="media.length > 1"
+            class="ma-thumbs"
+            :aria-label="isSk ? 'Fotografie a videá' : 'Machine photos and videos'"
+          >
+            <button
+              v-for="(item, photoIndex) in media"
+              :key="item.url"
+              type="button"
+              class="ma-thumb"
+              :class="{ 'is-active': photoIndex === activePhoto }"
+              :aria-label="`${item.type === 'video' ? 'Video' : isSk ? 'Fotografia' : 'Photo'} ${photoIndex + 1}`"
+              :aria-pressed="photoIndex === activePhoto"
+              @click="activePhoto = photoIndex"
             >
-              <button
-                v-for="(item, photoIndex) in media"
-                :key="item.url"
-                type="button"
-                class="ma-thumb"
-                :class="{ 'is-active': photoIndex === activePhoto }"
-                :aria-label="`${item.type === 'video' ? (isSk ? 'Video' : 'Video') : isSk ? 'Fotografia' : 'Photo'} ${photoIndex + 1}`"
-                :aria-pressed="photoIndex === activePhoto"
-                @click="activePhoto = photoIndex"
-              >
-                <img
-                  v-if="item.type === 'image' || item.posterUrl"
-                  :src="item.type === 'image' ? item.url : item.posterUrl!"
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                />
-                <span v-else class="ma-video-thumb" aria-hidden="true">▶</span>
-              </button>
-            </div>
-          </slot>
+              <img
+                v-if="item.type === 'image' || item.posterUrl"
+                :src="item.type === 'image' ? item.url : item.posterUrl!"
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+              <span v-else class="ma-video-thumb" aria-hidden="true">▶</span>
+            </button>
+          </div>
         </div>
 
         <div class="ma-info">
@@ -150,13 +149,7 @@ watch(
             :to-for="(slug) => muscleChipPath(slug, locale)"
           />
 
-          <slot name="description">
-            <CatalogExpandableNote
-              v-if="machine.description"
-              class="ma-description"
-              :text="machine.description"
-            />
-          </slot>
+          <CatalogExpandableNote v-if="description" class="ma-description" :text="description" />
           <slot name="info" />
           <div class="ma-scan-panel">
             <p class="protocol ma-scan-panel__eyebrow">
@@ -178,41 +171,39 @@ watch(
         </div>
       </div>
 
-      <slot name="exercises">
-        <section class="container ma-exercises" aria-label="Exercises on this machine">
-          <h2 class="protocol ma-section-title">
-            {{ isSk ? 'CVIKY NA TOMTO STROJI' : 'EXERCISES ON THIS MACHINE' }}
-            <span v-if="exercises.length" class="ma-section-count">{{ exercises.length }}</span>
-          </h2>
+      <section class="container ma-exercises" aria-label="Exercises on this machine">
+        <h2 class="protocol ma-section-title">
+          {{ isSk ? 'CVIKY NA TOMTO STROJI' : 'EXERCISES ON THIS MACHINE' }}
+          <span v-if="exercises.length" class="ma-section-count">{{ exercises.length }}</span>
+        </h2>
 
-          <div v-if="exercises.length" class="ma-ex-grid">
-            <CatalogExerciseTile
-              v-for="exercise in exercises"
-              :key="exercise.id"
-              :to="exercise.to"
-              :name="exercise.name"
-              :image-url="exercise.imageUrl"
-              :label="exercise.label"
-              :has-video="Boolean(exercise.video)"
-              :preview-video-url="exercise.video"
-            />
-          </div>
+        <div v-if="exercises.length" class="ma-ex-grid">
+          <CatalogExerciseTile
+            v-for="exercise in exercises"
+            :key="exercise.id"
+            :to="exercise.to"
+            :name="exercise.name"
+            :image-url="exercise.imageUrl"
+            :label="exercise.label"
+            :has-video="Boolean(exercise.video)"
+            :preview-video-url="exercise.video"
+          />
+        </div>
 
-          <div v-else class="ma-ex-empty">
-            <p>
-              {{
-                isSk
-                  ? 'Tento stroj zatiaľ nemá pridané cviky.'
-                  : 'The exercise list for this machine is on its way.'
-              }}
-            </p>
-            <NuxtLink :to="exerciseIndexPath(locale)" class="btn-ghost">
-              <HoloPill />
-              {{ isSk ? 'Zobraziť všetky cviky' : 'Browse all exercises' }}
-            </NuxtLink>
-          </div>
-        </section>
-      </slot>
+        <div v-else class="ma-ex-empty">
+          <p>
+            {{
+              isSk
+                ? 'Tento stroj zatiaľ nemá pridané cviky.'
+                : 'The exercise list for this machine is on its way.'
+            }}
+          </p>
+          <NuxtLink :to="exerciseIndexPath(locale)" class="btn-ghost">
+            <HoloPill />
+            {{ isSk ? 'Zobraziť všetky cviky' : 'Browse all exercises' }}
+          </NuxtLink>
+        </div>
+      </section>
     </div>
 
     <AppCtaBar

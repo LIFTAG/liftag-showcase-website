@@ -14,7 +14,7 @@ const copy = computed(() => discoveryCopy(props.locale))
 </script>
 <template>
   <div v-if="loading" class="d-stack" role="status" :aria-label="copy.loading">
-    <span class="d-sr-only">{{ copy.loading }}</span>
+    <span class="sr-only">{{ copy.loading }}</span>
     <div v-for="i in 3" :key="i" class="d-skeleton" />
   </div>
   <div v-else class="d-empty" role="status">

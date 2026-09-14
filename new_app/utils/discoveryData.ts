@@ -104,9 +104,19 @@ export function normalizeExploreGym(value: unknown): ExploreGym {
     reopensAt: text(r.reopensAt),
     hours: array(r.openingHours)
       .map(discoveryRecord)
-      .filter((h) => text(h.day) && typeof h.open === 'string' && typeof h.close === 'string')
-      .map((h) => ({ day: String(h.day), open: String(h.open), close: String(h.close) })),
+      .flatMap((h) => {
+        const day = weekdayIndex(h.day)
+        return day === null || typeof h.open !== 'string' || typeof h.close !== 'string'
+          ? []
+          : [{ day, open: h.open, close: h.close }]
+      }),
   }
+}
+const WEEKDAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+/** Upstream sends English weekday names; every consumer wants a Monday-first index. */
+export function weekdayIndex(value: unknown): number | null {
+  const index = typeof value === 'string' ? WEEKDAYS.indexOf(value.trim().toLowerCase()) : -1
+  return index === -1 ? null : index
 }
 export function normalizeEquipment(value: unknown): EquipmentItem {
   const r = discoveryRecord(value)
@@ -173,15 +183,10 @@ export function normalizeReview(value: unknown): GymReview {
     createdAt: required(r.createdAt),
   }
 }
-export function normalizeGymMachine(
-  value: unknown,
-  locale: DiscoveryLocale,
-  expectedGymId: string,
-): GymMachineDetail {
+export function normalizeGymMachine(value: unknown, locale: DiscoveryLocale): GymMachineDetail {
   const r = discoveryRecord(value),
     m = discoveryRecord(r.machine),
     gym = discoveryRecord(r.gym)
-  if (gym.id !== expectedGymId) throw new Error('MACHINE_GYM_MISMATCH')
   return {
     id: required(m.gymMachineId),
     templateId: text(m.machineTemplateId),
@@ -252,8 +257,7 @@ export function normalizeTrainer(value: unknown): PublicTrainer {
 function prescription(value: unknown): SetPrescription {
   const r = discoveryRecord(value),
     result: SetPrescription = {}
-  if (text(r.reps)) result.reps = String(r.reps)
-  else if (number(r.reps) !== null) result.reps = String(r.reps)
+  if (text(r.reps) || number(r.reps) !== null) result.reps = String(r.reps)
   for (const key of ['weightKg', 'durationSeconds', 'calories', 'restSeconds', 'rpe'] as const) {
     const n = number(r[key])
     if (n !== null) result[key] = n

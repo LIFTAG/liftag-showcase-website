@@ -20,12 +20,12 @@ const message = computed(
       <div class="d-install-aura" aria-hidden="true" />
       <div class="d-install-copy">
         <p class="protocol d-install-eyebrow">
-          LIFTAG · {{ locale === 'sk' ? 'TVOJ TRÉNINGOVÝ PARTNER' : 'YOUR TRAINING PARTNER' }}
+          LIFTAG · {{ copy.appEyebrow }}
         </p>
         <h3 class="display d-install-title">
-          {{ locale === 'sk' ? 'POKRAČUJ V' : 'TAKE IT TO' }}
+          {{ copy.appHeadlineLead }}
           <br />
-          <span>{{ locale === 'sk' ? 'APLIKÁCII.' : 'THE APP.' }}</span>
+          <span>{{ copy.appHeadlineTail }}</span>
         </h3>
         <p class="d-install-message">{{ message }}</p>
         <div class="d-install-stores">
@@ -39,7 +39,7 @@ const message = computed(
       </div>
       <div class="d-install-qr">
         <InstallQrCode size="220px" padding="16px" radius="22px" />
-        <p>{{ locale === 'sk' ? 'Naskenuj fotoaparátom v telefóne.' : 'Scan with your phone camera.' }}</p>
+        <p>{{ copy.appScan }}</p>
         <span class="protocol">LIFTAG.FIT/GET</span>
       </div>
     </div>

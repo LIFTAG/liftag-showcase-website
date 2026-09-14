@@ -2,10 +2,10 @@
   --d-bg: #0e0e0e;
   --d-panel: #1a1a1a;
   --d-raised: #242424;
-  --d-border: #333;
+  --d-border: var(--liftag-border);
   --d-muted: #a8a8a8;
   --d-text: #f5f5f3;
-  --d-accent: #ccff00;
+  --d-accent: var(--liftag-primary);
   --d-header: var(--liftag-nav-h, 80px);
   min-height: 100dvh;
   background: var(--d-bg);
@@ -255,14 +255,6 @@ button.d-chip {
   border: 1px solid var(--d-border);
   border-radius: 16px;
   animation: d-pulse 1.6s ease-in-out infinite alternate;
-}
-.d-sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
 }
 .d-pagination {
   display: flex;

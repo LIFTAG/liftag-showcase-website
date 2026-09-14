@@ -1,5 +1,16 @@
-import type { MaybeRefOrGetter, Ref } from 'vue'
+import type { ComputedRef, MaybeRefOrGetter, Ref } from 'vue'
 import type { DiscoveryPage } from '~/types/discovery'
+
+/** What every paginated discovery list exposes; <DiscoveryList> renders it. */
+export interface DiscoveryPageState<T> {
+  items: ComputedRef<T[]>
+  total: ComputedRef<number | null>
+  loading: ComputedRef<boolean>
+  error: ComputedRef<boolean>
+  hasMore: ComputedRef<boolean>
+  loadMore: () => Promise<void>
+  retry: () => Promise<void>
+}
 
 /** SSR the first page; further pages belong to one resource, locale and query. */
 export function useDiscoveryPage<T>(
@@ -60,7 +71,7 @@ export function useDiscoveryPage<T>(
     generation++
     controller?.abort()
   })
-  const result = {
+  const result: DiscoveryPageState<T> = {
     items: computed(() => [...(firstData.value?.items ?? []), ...pages.value.flatMap((p) => p.items)]),
     total: computed(() => firstData.value?.meta.total ?? null),
     loading: computed(() => first.status.value === 'pending' || moreLoading.value),

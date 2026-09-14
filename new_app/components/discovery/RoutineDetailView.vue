@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import RoutineExerciseCard from '~/components/discovery/RoutineExerciseCard.vue'
 import type { DiscoveryExercise, PublicRoutine } from '~/types/discovery'
-import { discoveryLabel } from '~/utils/discoveryCopy'
+import { discoveryLabel, discoveryRating } from '~/utils/discoveryCopy'
 import { discoveryMuscleName } from '~/utils/discoveryMuscles'
 const props = defineProps<{ id: string }>()
 const { locale, copy, href } = useDiscoveryLocale()
@@ -23,12 +23,12 @@ const groupStarts = computed(
       ]) ?? [],
     ),
 )
-useDiscoverySeo(
-  () => routine.value?.name ?? copy.value.publicWorkout,
-  () => routine.value?.description ?? copy.value.routines,
+useDiscoverySeo({
+  name: () => routine.value?.name ?? copy.value.publicWorkout,
+  description: () => routine.value?.description ?? copy.value.routines,
   locale,
-  () => routine.value?.image,
-)
+  photo: () => routine.value?.image,
+})
 </script>
 <template>
   <main id="discovery-content" class="d-wrap">
@@ -74,7 +74,7 @@ useDiscoverySeo(
             </span>
             <span v-if="routine.rating !== null" class="d-chip d-stars">
               <DiscoveryIcon name="star" :size="15" />
-              {{ routine.rating.toLocaleString(locale, { maximumFractionDigits: 1 }) }}
+              {{ discoveryRating(routine.rating, locale) }}
               <span v-if="routine.ratingCount !== null" class="d-muted">({{ routine.ratingCount }})</span>
             </span>
             <span v-if="routine.copyCount !== null" class="d-chip">

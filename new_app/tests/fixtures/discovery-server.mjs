@@ -116,7 +116,6 @@ const server = createServer(async (request, response) => {
     return send({
       data: {
         id: 123,
-        memberSince: '2021-01-01',
         isTrainer: true,
         publicRoutinesCount: 25,
         publicPlansCount: 25,

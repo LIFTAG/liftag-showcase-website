@@ -6,5 +6,5 @@ export default defineEventHandler(async (event) => {
   const { data, locale } = await readLocalizedGym(event, `/v1/gyms/machines/${machineId}/resolve`)
   if (discoveryRecord(discoveryRecord(data).gym).id !== id)
     throw createError({ statusCode: 404, statusMessage: 'Machine not found' })
-  return normalizeGymMachine(data, locale, id)
+  return normalizeGymMachine(data, locale)
 })

@@ -38,7 +38,7 @@ const columns = computed(() =>
       :aria-label="`${exercise.name}: ${copy.sets}`"
     >
       <table>
-        <caption class="d-sr-only">
+        <caption class="sr-only">
           {{ exercise.name }}
           ·
           {{ copy.sets }}

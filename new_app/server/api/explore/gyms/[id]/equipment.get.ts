@@ -1,18 +1,7 @@
-import {
-  discoveryParam,
-  discoveryListQuery,
-  readDiscoveryApi,
-  requestedDiscoveryLocale,
-} from '../../../../utils/discoveryApi'
-import { normalizeDiscoveryPage, normalizeEquipment } from '../../../../../utils/discoveryData'
-export default defineEventHandler(async (event) =>
-  normalizeDiscoveryPage(
-    await readDiscoveryApi(
-      event,
-      `/v1/gyms/${discoveryParam(event)}/machines`,
-      discoveryListQuery(event, true),
-      requestedDiscoveryLocale(event),
-    ),
-    normalizeEquipment,
-  ),
+import { discoveryListHandler, discoveryParam } from '../../../../utils/discoveryApi'
+import { normalizeEquipment } from '../../../../../utils/discoveryData'
+export default discoveryListHandler(
+  (event) => `/v1/gyms/${discoveryParam(event)}/machines`,
+  normalizeEquipment,
+  { equipment: true },
 )

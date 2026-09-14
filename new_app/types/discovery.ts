@@ -29,7 +29,8 @@ export interface DiscoveryMedia {
   posterUrl: string | null
 }
 export interface GymHours {
-  day: string
+  /** Monday-first weekday index, 0-6. */
+  day: number
   open: string
   close: string
 }
@@ -129,7 +130,6 @@ export interface PublicTrainer {
   specializations: string[]
   contacts: { label: string; href: string }[]
   gyms: { id: string; name: string; address: string | null }[]
-  memberSince?: string | null
 }
 export interface SetPrescription {
   reps?: string

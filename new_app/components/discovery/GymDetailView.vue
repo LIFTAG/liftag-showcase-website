@@ -5,39 +5,35 @@ import GymReviews from '~/components/discovery/GymReviews.vue'
 import GymWorkouts from '~/components/discovery/GymWorkouts.vue'
 import type { GymDetail } from '~/types/discovery'
 import { distanceKm, googleDirections } from '~/utils/discovery'
-import { discoveryCount } from '~/utils/discoveryCopy'
+import { discoveryCount, discoveryDistance, discoveryRating } from '~/utils/discoveryCopy'
 const props = defineProps<{ id: string }>()
-const timezone = shallowRef<string | null | undefined>(undefined)
-const { locale, preference, copy, href } = useDiscoveryLocale(timezone)
+/** The gym's timezone only arrives with the response, so the locale resolves after it. */
+const { preference } = useSiteLocale()
 const { data, status, error, refresh } = await useDiscoveryResource<GymDetail>(
   () => `/api/explore/gyms/${props.id}`,
   preference,
 )
-watchEffect(() => {
-  timezone.value = data.value?.gym.timezone
-})
+const { locale, copy, href } = useDiscoveryLocale(() => data.value?.gym.timezone)
 const gym = computed(() => data.value?.gym)
 const { location } = useDiscoveryLocation()
 const distance = computed(() =>
-  location.value && gym.value
-    ? distanceKm(location.value, gym.value).toLocaleString(locale.value, { maximumFractionDigits: 1 })
-    : null,
+  location.value && gym.value ? discoveryDistance(distanceKm(location.value, gym.value), locale.value) : null,
 )
 const gate = shallowRef(false)
-useDiscoverySeo(
-  () => gym.value?.name ?? copy.value.gym,
-  () => gym.value?.description ?? gym.value?.address ?? copy.value.intro,
+useDiscoverySeo({
+  name: () => gym.value?.name ?? copy.value.gym,
+  description: () => gym.value?.description ?? gym.value?.address ?? copy.value.intro,
   locale,
-  () => gym.value?.photo,
-  'gym',
-  () =>
+  photo: () => gym.value?.photo,
+  kind: 'gym',
+  details: () =>
     gym.value
       ? {
           ...(gym.value.address ? { address: gym.value.address } : {}),
           geo: { '@type': 'GeoCoordinates', latitude: gym.value.lat, longitude: gym.value.lng },
         }
       : {},
-)
+})
 </script>
 <template>
   <main id="discovery-content" class="d-wrap">
@@ -73,12 +69,12 @@ useDiscoverySeo(
         <div class="d-row d-small">
           <span v-if="gym.rating !== null" class="d-stars">
             <DiscoveryIcon name="star" />
-            {{ gym.rating.toLocaleString(locale, { maximumFractionDigits: 1 }) }}
+            {{ discoveryRating(gym.rating, locale) }}
             <span v-if="gym.reviewCount !== null" class="d-muted">
               ({{ discoveryCount(gym.reviewCount, 'reviews', locale) }})
             </span>
           </span>
-          <span v-if="distance" class="d-chip">{{ distance }} km {{ copy.away }}</span>
+          <span v-if="distance" class="d-chip">{{ distance }} {{ copy.away }}</span>
         </div>
         <div v-if="gym.temporarilyClosed" class="d-closure" role="status">
           <strong>{{ copy.closedTemporarily }}</strong>

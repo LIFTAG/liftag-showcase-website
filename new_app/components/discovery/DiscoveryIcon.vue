@@ -1,5 +1,5 @@
-<script setup lang="ts">
-withDefaults(defineProps<{ name: string; size?: number }>(), { size: 20 })
+<script lang="ts">
+/** Module scope: an explore list renders hundreds of icons off this one table. */
 const paths: Record<string, string> = {
   search: 'm21 21-5-5 M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0',
   arrow: 'm9 5 7 7-7 7',
@@ -18,13 +18,14 @@ const paths: Record<string, string> = {
   globe: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM3 12h18M12 3c5 5 5 13 0 18-5-5-5-13 0-18',
   image: 'M3 3h18v18H3Zm0 13 5-5 5 5 3-3 5 5M8 7h.01',
   play: 'm8 4 12 8-12 8Z',
-  menu: 'M4 6h16M4 12h16M4 18h16',
-  download: 'M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5',
   user: 'M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM4 21v-2a8 8 0 0 1 16 0v2',
   calendar: 'M4 5h16v16H4ZM8 3v4m8-4v4M4 10h16',
   bookmark: 'M6 3h12v18l-6-4-6 4Z',
   copy: 'M9 8h12v13H9ZM15 8V3H3v13h6',
 }
+</script>
+<script setup lang="ts">
+withDefaults(defineProps<{ name: string; size?: number }>(), { size: 20 })
 </script>
 <template>
   <svg

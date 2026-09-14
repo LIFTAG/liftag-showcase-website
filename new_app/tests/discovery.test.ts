@@ -13,6 +13,7 @@ import {
   resolveDiscoveryLocale,
   safeDiscoveryUrl,
   splitMapBounds,
+  writeDiscoveryQuery,
 } from '../utils/discovery.ts'
 import {
   normalizeDiscoveryMedia,
@@ -135,7 +136,7 @@ test('missing gym data remains missing and closure overrides a stale open flag',
 })
 
 test('custom stickerless machines preserve gym IDs and never invent catalog identities', () => {
-  const machine = normalizeGymMachine(fixtureMachine(), 'en', ids.gym)
+  const machine = normalizeGymMachine(fixtureMachine(), 'en')
   assert.equal(machine.id, ids.machine)
   assert.equal(machine.templateId, null)
   assert.equal(machine.qrCodeId, null)
@@ -143,7 +144,6 @@ test('custom stickerless machines preserve gym IDs and never invent catalog iden
   assert.equal(machine.exercises[0]?.instructions, 'Use the gym-specific instructions.')
   assert.equal(machine.manufacturer?.name, 'Fixture Works')
   assert.equal(normalizeEquipment(fixtureEquipment()).gymMachineId, ids.machine)
-  assert.throws(() => normalizeGymMachine(fixtureMachine(), 'en', ids.otherGym), /MACHINE_GYM_MISMATCH/)
 })
 
 test('template-backed gym machine still uses resolved overrides', () => {
@@ -163,7 +163,6 @@ test('template-backed gym machine still uses resolved overrides', () => {
       ],
     },
     'sk',
-    ids.gym,
   )
   assert.equal(machine.templateId, ids.otherBrand)
   assert.equal(machine.id, ids.machine)
@@ -241,7 +240,7 @@ test('missing routine prescriptions and round counts remain unspecified', () => 
 test('gym equipment shares catalog routes without confusing custom, template, and QR identities', async () => {
   const { gymMachineHref, gymExerciseHref, gymCatalogContext, gymExercisePresentation } =
     await import('../utils/gymCatalog.ts')
-  const machine = normalizeGymMachine(fixtureMachine(), 'en', ids.gym)
+  const machine = normalizeGymMachine(fixtureMachine(), 'en')
   const exercise = machine.exercises[0]!
   const machineUrl = new URL(gymMachineHref(ids.gym, ids.machine, 'sk'), 'https://liftag.fit')
   assert.equal(machineUrl.pathname, `/machines/${ids.machine}`)
@@ -274,4 +273,30 @@ test('gym equipment shares catalog routes without confusing custom, template, an
   ]) {
     assert.throws(() => gymCatalogContext(query), /Invalid gym equipment context/)
   }
+})
+
+test('discovery URL state round-trips through write and read', () => {
+  const state = {
+    filters: {
+      distance: 5,
+      rating: 4,
+      open: true,
+      supported: true,
+      manufacturers: [ids.brand, ids.otherBrand].sort(),
+    },
+    search: 'Fixture Gym',
+    selectedId: ids.gym,
+    viewport: discoveryViewport({ lat: 48.15, lng: 17.11 }, 13),
+  }
+  const parsed = readDiscoveryQuery(writeDiscoveryQuery(state))
+  assert.deepEqual(parsed.filters, state.filters)
+  assert.equal(parsed.search, state.search)
+  assert.equal(parsed.selectedId, state.selectedId)
+  assert.deepEqual(parsed.viewport, state.viewport)
+
+  const empty = { filters: emptyDiscoveryFilters(), search: '', selectedId: null, viewport: state.viewport }
+  const emptyQuery = writeDiscoveryQuery(empty)
+  assert.equal('q' in emptyQuery, false, 'An empty search must not be written to the URL')
+  assert.equal('gym' in emptyQuery, false)
+  assert.deepEqual(readDiscoveryQuery(emptyQuery).filters, emptyDiscoveryFilters())
 })

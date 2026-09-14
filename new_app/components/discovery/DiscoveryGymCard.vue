@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Coordinate, DiscoveryLocale, ExploreGym } from '~/types/discovery'
 import { distanceKm } from '~/utils/discovery'
-import { discoveryCopy } from '~/utils/discoveryCopy'
+import { discoveryCopy, discoveryDistance, discoveryRating } from '~/utils/discoveryCopy'
 const props = defineProps<{
   gym: ExploreGym
   locale: DiscoveryLocale
@@ -11,9 +11,7 @@ const props = defineProps<{
 defineEmits<{ activate: [gym: ExploreGym] }>()
 const copy = computed(() => discoveryCopy(props.locale))
 const distance = computed(() =>
-  props.location
-    ? distanceKm(props.location, props.gym).toLocaleString(props.locale, { maximumFractionDigits: 1 })
-    : null,
+  props.location ? discoveryDistance(distanceKm(props.location, props.gym), props.locale) : null,
 )
 const photoFailed = shallowRef(false)
 </script>
@@ -41,7 +39,7 @@ const photoFailed = shallowRef(false)
         <span class="d-gym-meta">
           <span v-if="gym.rating !== null" class="d-stars">
             <DiscoveryIcon name="star" :size="15" />
-            {{ gym.rating.toLocaleString(locale, { maximumFractionDigits: 1 }) }}
+            {{ discoveryRating(gym.rating, locale) }}
             <span v-if="gym.reviewCount !== null" class="d-muted">({{ gym.reviewCount }})</span>
           </span>
           <span v-if="gym.isOpen !== null" class="d-gym-open" :class="{ 'is-closed': !gym.isOpen }">
@@ -50,7 +48,7 @@ const photoFailed = shallowRef(false)
         </span>
         <span v-if="distance" class="d-gym-distance">
           <DiscoveryIcon name="pin" :size="13" />
-          {{ distance }} km {{ copy.away }}
+          {{ distance }} {{ copy.away }}
         </span>
         <span v-else-if="gym.supported" class="d-gym-distance">{{ copy.supported }}</span>
       </span>

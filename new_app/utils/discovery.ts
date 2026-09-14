@@ -49,6 +49,11 @@ export function discoveryMode(
 ): 'search' | 'nearby' | 'map' {
   return search.trim() ? 'search' : filters.distance !== null && location ? 'nearby' : 'map'
 }
+export const MAP_VIEWPORT_KEYS = ['lat', 'lng', 'zoom', 'north', 'south', 'west', 'east'] as const
+/** Compared on every map idle event, so it reads the seven fields rather than serialising. */
+export function sameViewport(a: MapViewport, b: MapViewport): boolean {
+  return MAP_VIEWPORT_KEYS.every((key) => a[key] === b[key])
+}
 /** Match the app's five-decimal cache precision; camera center jitter is not a new area. */
 export function discoveryMapKey(view: MapViewport): number[] {
   return [view.north, view.south, view.west, view.east, view.zoom].map((value) =>
@@ -78,6 +83,10 @@ export function activeDiscoveryFilters(f: DiscoveryFilters): number {
     Number(f.supported) +
     Number(f.manufacturers.length > 0)
   )
+}
+/** Filter chips add and remove ids from the same sorted, deduped lists. */
+export function toggleDiscoveryId(values: string[], id: string): string[] {
+  return values.includes(id) ? values.filter((value) => value !== id) : [...values, id].sort()
 }
 export function normalizedIds(value: unknown, cap = 200): string[] {
   const parts = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : []
@@ -132,6 +141,32 @@ export function discoveryViewport(point: Coordinate, zoom: number): MapViewport 
     south: Math.max(-85, point.lat - span / 2),
     west: point.lng - span,
     east: point.lng + span,
+  }
+}
+/** The inverse of readDiscoveryQuery; the pair must round-trip. */
+export function writeDiscoveryQuery(state: {
+  filters: DiscoveryFilters
+  search: string
+  selectedId: string | null
+  viewport: MapViewport
+}): Record<string, string> {
+  const f = state.filters,
+    v = state.viewport
+  return {
+    ...(state.search ? { q: state.search } : {}),
+    lat: String(v.lat),
+    lng: String(v.lng),
+    zoom: String(v.zoom),
+    north: String(v.north),
+    south: String(v.south),
+    west: String(v.west),
+    east: String(v.east),
+    ...(state.selectedId ? { gym: state.selectedId } : {}),
+    ...(f.distance !== null ? { distance: String(f.distance) } : {}),
+    ...(f.rating !== null ? { rating: String(f.rating) } : {}),
+    ...(f.open ? { open: '1' } : {}),
+    ...(f.supported ? { supported: '1' } : {}),
+    ...(f.manufacturers.length ? { manufacturers: f.manufacturers.join(',') } : {}),
   }
 }
 export function readDiscoveryQuery(query: Record<string, unknown>): {

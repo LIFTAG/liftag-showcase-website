@@ -6,7 +6,6 @@ import { loadDiscoveryMaps } from '~/lib/discoveryMaps'
 const props = defineProps<{
   gyms: ExploreGym[]
   selectedId: string | null
-  viewport: MapViewport
   camera: { point: Coordinate; zoom: number; revision: number }
   locale: DiscoveryLocale
   location: Coordinate | null
@@ -17,15 +16,24 @@ const error = shallowRef(false),
   ready = shallowRef(false)
 const copy = computed(() => discoveryCopy(props.locale))
 let map: google.maps.Map | undefined, Marker: typeof google.maps.marker.AdvancedMarkerElement | undefined
-const markers = new Map<
-  string,
-  {
-    marker: google.maps.marker.AdvancedMarkerElement
-    element: HTMLElement
-    photo: string | null
-    dispose: () => void
-  }
->()
+/**
+ * Google re-projects a marker's DOM node on every `position` write, so each
+ * entry remembers what it is already showing. A pan refreshes the whole result
+ * set and a selection change re-runs this sync; without the guards both rewrite
+ * every marker on screen.
+ */
+interface MarkerEntry {
+  marker: google.maps.marker.AdvancedMarkerElement
+  element: HTMLElement
+  photo: string | null
+  lat: number
+  lng: number
+  title: string
+  selected: boolean
+  supported: boolean
+  dispose: () => void
+}
+const markers = new Map<string, MarkerEntry>()
 let locationMarker: google.maps.marker.AdvancedMarkerElement | undefined,
   idle: google.maps.MapsEventListener | undefined,
   disposed = false
@@ -67,6 +75,7 @@ function syncMarkers() {
       markers.delete(id)
     }
   for (const gym of props.gyms) {
+    const selected = gym.id === props.selectedId
     let entry = markers.get(gym.id)
     if (!entry) {
       const element = document.createElement('div')
@@ -77,25 +86,42 @@ function syncMarkers() {
         if (current) emit('select', current)
       }
       marker.addEventListener('gmp-click', onClick)
+      updatePhoto(element, gym.photo)
       entry = {
         marker,
         element,
         dispose: () => marker.removeEventListener('gmp-click', onClick),
-        photo: null,
+        photo: gym.photo,
+        lat: gym.lat,
+        lng: gym.lng,
+        title: gym.name,
+        selected: false,
+        supported: false,
       }
-      updatePhoto(element, gym.photo)
-      entry.photo = gym.photo
       markers.set(gym.id, entry)
     }
     if (entry.photo !== gym.photo) {
       updatePhoto(entry.element, gym.photo)
       entry.photo = gym.photo
     }
-    entry.marker.position = { lat: gym.lat, lng: gym.lng }
-    entry.marker.title = gym.name
-    entry.element.classList.toggle('is-selected', gym.id === props.selectedId)
-    entry.element.classList.toggle('is-supported', gym.supported)
-    entry.marker.zIndex = gym.id === props.selectedId ? 1000 : 1
+    if (entry.lat !== gym.lat || entry.lng !== gym.lng) {
+      entry.marker.position = { lat: gym.lat, lng: gym.lng }
+      entry.lat = gym.lat
+      entry.lng = gym.lng
+    }
+    if (entry.title !== gym.name) {
+      entry.marker.title = gym.name
+      entry.title = gym.name
+    }
+    if (entry.selected !== selected) {
+      entry.element.classList.toggle('is-selected', selected)
+      entry.marker.zIndex = selected ? 1000 : 1
+      entry.selected = selected
+    }
+    if (entry.supported !== gym.supported) {
+      entry.element.classList.toggle('is-supported', gym.supported)
+      entry.supported = gym.supported
+    }
   }
 }
 function syncLocation() {

@@ -9,12 +9,15 @@ import type {
   MapViewport,
 } from '~/types/discovery'
 import {
+  MAP_VIEWPORT_KEYS,
   discoveryMode,
   discoveryMapKey,
   discoveryViewport,
   emptyDiscoveryFilters,
   filterDiscoveryGyms,
   readDiscoveryQuery,
+  sameViewport,
+  writeDiscoveryQuery,
   splitMapBounds,
 } from '../utils/discovery.ts'
 
@@ -37,7 +40,7 @@ const stateSignature = (state: BrowseState) =>
     state.search,
     state.filters,
     state.selectedId,
-    ...(['lat', 'lng', 'zoom', 'north', 'south', 'west', 'east'] as const).map((key) => state.viewport[key]),
+    ...MAP_VIEWPORT_KEYS.map((key) => state.viewport[key]),
   ])
 
 export function useExplore(locale: Ref<DiscoveryLocale>) {
@@ -80,11 +83,18 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
   const visible = computed(() =>
     filterDiscoveryGyms(items.value, filters.value, settledSearch.value, location.value),
   )
-  const queryKey = computed(() =>
+  // Everything but the camera: while this is unchanged a map request is just a
+  // pan, so the previous results stay on screen instead of being cleared.
+  const queryBase = computed(() =>
     JSON.stringify([
       mode.value,
       locale.value,
       mode.value === 'search' ? settledSearch.value.trim() : filters.value.manufacturers,
+    ]),
+  )
+  const queryKey = computed(() =>
+    JSON.stringify([
+      queryBase.value,
       mode.value === 'map'
         ? discoveryMapKey(viewport.value)
         : mode.value === 'nearby'
@@ -121,24 +131,14 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
   function saveQuery() {
     if (route.path !== '/explore' || disposed) return
     persist()
-    const f = filters.value,
-      v = viewport.value
     const query = {
       ...(route.query.lang ? { lang: route.query.lang } : {}),
-      ...(search.value ? { q: search.value } : {}),
-      lat: String(v.lat),
-      lng: String(v.lng),
-      zoom: String(v.zoom),
-      north: String(v.north),
-      south: String(v.south),
-      west: String(v.west),
-      east: String(v.east),
-      ...(selectedId.value ? { gym: selectedId.value } : {}),
-      ...(f.distance !== null ? { distance: String(f.distance) } : {}),
-      ...(f.rating !== null ? { rating: String(f.rating) } : {}),
-      ...(f.open ? { open: '1' } : {}),
-      ...(f.supported ? { supported: '1' } : {}),
-      ...(f.manufacturers.length ? { manufacturers: f.manufacturers.join(',') } : {}),
+      ...writeDiscoveryQuery({
+        filters: filters.value,
+        search: search.value,
+        selectedId: selectedId.value,
+        viewport: viewport.value,
+      }),
     }
     lastWritten = querySignature(query)
     if (lastWritten !== querySignature(route.query)) void router.replace({ query })
@@ -215,7 +215,7 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
     move(gym, Math.max(12, viewport.value.zoom))
   }
   function updateViewport(value: MapViewport) {
-    if (JSON.stringify(value) !== JSON.stringify(viewport.value)) viewport.value = value
+    if (!sameViewport(value, viewport.value)) viewport.value = value
   }
   async function findLocation() {
     const point = await locate()
@@ -248,14 +248,11 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
     }, 300)
     cleanup(() => clearTimeout(timeout))
   })
-  watch(queryKey, (next, previous) => {
-    const currentQuery = JSON.parse(next)
-    const previousQuery = JSON.parse(previous)
-    scheduleLoad(
-      currentQuery[0] === 'map' &&
-        previousQuery[0] === 'map' &&
-        JSON.stringify(currentQuery.slice(0, 3)) === JSON.stringify(previousQuery.slice(0, 3)),
-    )
+  let lastQueryBase = queryBase.value
+  watch(queryKey, () => {
+    const panOnly = mode.value === 'map' && queryBase.value === lastQueryBase
+    lastQueryBase = queryBase.value
+    scheduleLoad(panOnly)
   })
   watch(
     () => [search.value, filters.value, viewport.value, selectedId.value],
@@ -284,7 +281,7 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
       search.value = next.search
       filters.value = next.filters
       selectedId.value = next.selectedId
-      if (JSON.stringify(next.viewport) !== JSON.stringify(viewport.value)) {
+      if (!sameViewport(next.viewport, viewport.value)) {
         viewport.value = next.viewport
         camera.value = { point: next.viewport, zoom: next.viewport.zoom, revision: camera.value.revision + 1 }
       }

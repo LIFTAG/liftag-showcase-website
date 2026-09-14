@@ -54,7 +54,6 @@ const en = {
   noEquipment: 'This gym has not added its equipment yet.',
   noEquipmentMatch: 'No equipment matches these filters.',
   exercises: 'Exercises',
-  units: 'units',
   brands: 'brands',
   generate: 'Generate a workout with AI',
   generateHint: 'Built around the equipment in this gym.',
@@ -89,6 +88,10 @@ const en = {
   noExercises: 'No exercises have been added yet.',
   appTitle: 'Continue in the LIFTAG app',
   appDownload: 'Download LIFTAG',
+  appEyebrow: 'YOUR TRAINING PARTNER',
+  appHeadlineLead: 'TAKE IT TO',
+  appHeadlineTail: 'THE APP.',
+  appScan: 'Scan with your phone camera.',
   appGenerate: 'Download LIFTAG to generate a workout using this gym’s equipment.',
   appReview: 'Download LIFTAG to rate this gym and write a review.',
   appRoutine: 'Download LIFTAG to start, save, copy, or rate this workout.',
@@ -96,28 +99,23 @@ const en = {
   unavailable: 'This page is unavailable',
   unavailableHint: 'It may have been removed or is no longer public.',
   intro: 'Find your next training spot.',
-  manufacturer: 'Manufacturer',
   video: 'Video',
   noMedia: 'No photos yet',
   exerciseDetails: 'Exercise details',
   phone: 'Phone',
   email: 'Email',
   website: 'Website',
-  of: 'of',
   minutes: 'min',
   seconds: 'sec',
   copies: 'copies',
   publicWorkout: 'Public workout',
   language: 'Language',
   map: 'Map',
-  gymEquipment: 'Gym equipment',
   gymMachine: 'Gym machine',
   skip: 'Skip to content',
   planPreview: 'View in app',
   clearFilters: 'Clear filters',
   list: 'Gym list',
-  share: 'Copy link',
-  copied: 'Link copied',
 }
 export type DiscoveryCopy = typeof en
 const sk: DiscoveryCopy = {
@@ -174,7 +172,6 @@ const sk: DiscoveryCopy = {
   noEquipment: 'Toto fitko zatiaľ nepridalo vybavenie.',
   noEquipmentMatch: 'Týmto filtrom nezodpovedá žiadne vybavenie.',
   exercises: 'Cviky',
-  units: 'kusov',
   brands: 'značiek',
   generate: 'Vygenerovať tréning pomocou AI',
   generateHint: 'Tréning prispôsobený vybaveniu tohto fitka.',
@@ -209,6 +206,10 @@ const sk: DiscoveryCopy = {
   noExercises: 'Zatiaľ neboli pridané žiadne cviky.',
   appTitle: 'Pokračuj v aplikácii LIFTAG',
   appDownload: 'Stiahnuť LIFTAG',
+  appEyebrow: 'TVOJ TRÉNINGOVÝ PARTNER',
+  appHeadlineLead: 'POKRAČUJ V',
+  appHeadlineTail: 'APLIKÁCII.',
+  appScan: 'Naskenuj fotoaparátom v telefóne.',
   appGenerate: 'Stiahni si LIFTAG a vygeneruj tréning podľa vybavenia tohto fitka.',
   appReview: 'Stiahni si LIFTAG, ohodnoť toto fitko a napíš recenziu.',
   appRoutine: 'Stiahni si LIFTAG a začni, ulož, skopíruj alebo ohodnoť tento tréning.',
@@ -216,28 +217,23 @@ const sk: DiscoveryCopy = {
   unavailable: 'Táto stránka nie je dostupná',
   unavailableHint: 'Mohla byť odstránená alebo už nie je verejná.',
   intro: 'Nájdi svoje ďalšie fitko.',
-  manufacturer: 'Výrobca',
   video: 'Video',
   noMedia: 'Zatiaľ bez fotografií',
   exerciseDetails: 'Detail cviku',
   phone: 'Telefón',
   email: 'E-mail',
   website: 'Web',
-  of: 'z',
   minutes: 'min',
   seconds: 's',
   copies: 'kópií',
   publicWorkout: 'Verejný tréning',
   language: 'Jazyk',
   map: 'Mapa',
-  gymEquipment: 'Vybavenie fitka',
   gymMachine: 'Stroj vo fitku',
   skip: 'Preskočiť na obsah',
   planPreview: 'Otvoriť v aplikácii',
   clearFilters: 'Vymazať filtre',
   list: 'Zoznam fitiek',
-  share: 'Kopírovať odkaz',
-  copied: 'Odkaz skopírovaný',
 }
 export const discoveryCopy = (locale: DiscoveryLocale): DiscoveryCopy => (locale === 'sk' ? sk : en)
 export const discoveryWeekdays = (locale: DiscoveryLocale): string[] =>
@@ -260,36 +256,59 @@ const specializationLabels: Record<string, string> = {
   yoga: 'Joga',
   pilates: 'Pilates',
 }
+const levelLabels: Record<string, string> = {
+  beginner: 'Začiatočník',
+  intermediate: 'Pokročilý',
+  advanced: 'Skúsený',
+}
 export function discoveryLabel(value: string, locale: DiscoveryLocale): string {
-  const levels: Record<string, string> = {
-    beginner: 'Začiatočník',
-    intermediate: 'Pokročilý',
-    advanced: 'Skúsený',
-  }
-  return locale === 'sk' && (specializationLabels[value] || levels[value])
-    ? (specializationLabels[value] ?? levels[value] ?? value)
-    : value.replaceAll('_', ' ').replace(/^./, (c) => c.toUpperCase())
+  const translated = specializationLabels[value] ?? levelLabels[value]
+  if (locale === 'sk' && translated) return translated
+  return value.replaceAll('_', ' ').replace(/^./, (c) => c.toUpperCase())
 }
 
-export function discoveryCount(
-  count: number,
-  kind: 'exercises' | 'machines' | 'units' | 'sets' | 'reviews',
-  locale: DiscoveryLocale,
-): string {
-  const en = {
+/** Slovak needs a third form for 5+; English only ever needs singular/plural. */
+const countForms = {
+  en: {
     exercises: ['exercise', 'exercises'],
     machines: ['equipment type', 'equipment types'],
     units: ['unit', 'units'],
     sets: ['set', 'sets'],
     reviews: ['review', 'reviews'],
-  }
-  const sk = {
+  },
+  sk: {
     exercises: ['cvik', 'cviky', 'cvikov'],
     machines: ['typ vybavenia', 'typy vybavenia', 'typov vybavenia'],
     units: ['kus', 'kusy', 'kusov'],
     sets: ['séria', 'série', 'sérií'],
     reviews: ['recenzia', 'recenzie', 'recenzií'],
-  }
-  const index = count === 1 ? 0 : count >= 2 && count <= 4 ? 1 : 2
-  return `${count.toLocaleString(locale)} ${locale === 'sk' ? sk[kind][index] : en[kind][count === 1 ? 0 : 1]}`
+  },
+} as const
+
+export function discoveryCount(
+  count: number,
+  kind: keyof (typeof countForms)['en'],
+  locale: DiscoveryLocale,
+): string {
+  const forms = countForms[locale][kind]
+  const index = locale === 'sk' ? (count === 1 ? 0 : count >= 2 && count <= 4 ? 1 : 2) : count === 1 ? 0 : 1
+  return `${count.toLocaleString(locale)} ${forms[index]}`
 }
+
+/**
+ * Ratings and distances render once per card in lists that are hundreds long,
+ * so the formatters are built once per locale instead of once per value.
+ */
+const decimalFormats = new Map<DiscoveryLocale, Intl.NumberFormat>()
+function decimalFormat(locale: DiscoveryLocale): Intl.NumberFormat {
+  let format = decimalFormats.get(locale)
+  if (!format) {
+    format = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 })
+    decimalFormats.set(locale, format)
+  }
+  return format
+}
+export const discoveryRating = (value: number, locale: DiscoveryLocale): string =>
+  decimalFormat(locale).format(value)
+export const discoveryDistance = (km: number, locale: DiscoveryLocale): string =>
+  `${decimalFormat(locale).format(km)} km`

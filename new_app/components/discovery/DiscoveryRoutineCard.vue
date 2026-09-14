@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DiscoveryLocale, PublicRoutine } from '~/types/discovery'
 import { discoveryHref } from '~/utils/discovery'
-import { discoveryCopy, discoveryLabel } from '~/utils/discoveryCopy'
+import { discoveryCopy, discoveryLabel, discoveryRating } from '~/utils/discoveryCopy'
 const props = defineProps<{ routine: PublicRoutine; locale: DiscoveryLocale }>()
 const copy = computed(() => discoveryCopy(props.locale))
 </script>
@@ -20,7 +20,7 @@ const copy = computed(() => discoveryCopy(props.locale))
         <span v-if="routine.difficulty">{{ discoveryLabel(routine.difficulty, locale) }}</span>
         <span v-if="routine.rating !== null && routine.ratingCount" class="d-stars">
           <DiscoveryIcon name="star" :size="14" />
-          {{ routine.rating.toFixed(1) }}
+          {{ discoveryRating(routine.rating, locale) }}
         </span>
       </div>
     </div>

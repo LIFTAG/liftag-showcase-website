@@ -54,15 +54,14 @@ function viewerKeydown(event: KeyboardEvent) {
         />
         <span v-else class="d-gallery-empty"><DiscoveryIcon name="image" :size="40" /></span>
       </button>
-      <div v-if="media.length > 1" class="d-gallery-controls">
-        <button class="d-icon-button" :aria-label="copy.previous" @click="step(-1)">
-          <DiscoveryIcon name="back" />
-        </button>
-        <span>{{ index + 1 }} / {{ media.length }}</span>
-        <button class="d-icon-button" :aria-label="copy.next" @click="step(1)">
-          <DiscoveryIcon name="arrow" />
-        </button>
-      </div>
+      <DiscoveryGalleryNav
+        v-if="media.length > 1"
+        class="d-gallery-controls"
+        :index="index"
+        :total="media.length"
+        :locale="locale"
+        @step="step"
+      />
     </div>
     <div v-else class="d-gallery-empty">
       <DiscoveryIcon name="image" :size="40" />
@@ -118,15 +117,15 @@ function viewerKeydown(event: KeyboardEvent) {
           <p>{{ copy.loadError }}</p>
         </div>
       </div>
-      <div v-if="media.length > 1" class="d-expanded-controls">
-        <button class="d-icon-button" :aria-label="copy.previous" @click="step(-1)">
-          <DiscoveryIcon name="back" />
-        </button>
-        <span aria-live="polite" aria-atomic="true">{{ index + 1 }} / {{ media.length }}</span>
-        <button class="d-icon-button" :aria-label="copy.next" @click="step(1)">
-          <DiscoveryIcon name="arrow" />
-        </button>
-      </div>
+      <DiscoveryGalleryNav
+        v-if="media.length > 1"
+        class="d-expanded-controls"
+        :index="index"
+        :total="media.length"
+        :locale="locale"
+        live
+        @step="step"
+      />
     </DiscoveryDialog>
   </section>
 </template>
@@ -242,7 +241,8 @@ function viewerKeydown(event: KeyboardEvent) {
     max(8px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
   border-top: 1px solid var(--d-border);
 }
-.d-expanded-controls > span {
+/* The counter lives inside <DiscoveryGalleryNav>, past this component's scope. */
+.d-expanded-controls :deep(span) {
   min-width: 64px;
   text-align: center;
   font-size: 0.875rem;

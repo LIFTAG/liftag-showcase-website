@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DiscoveryFilters, DiscoveryLocale, Manufacturer } from '~/types/discovery'
-import { DISTANCE_OPTIONS, emptyDiscoveryFilters } from '~/utils/discovery'
+import { DISTANCE_OPTIONS, emptyDiscoveryFilters, toggleDiscoveryId } from '~/utils/discovery'
 import { discoveryCopy } from '~/utils/discoveryCopy'
 const filters = defineModel<DiscoveryFilters>({ required: true })
 const props = defineProps<{ locale: DiscoveryLocale; hasLocation: boolean }>()
@@ -20,12 +20,7 @@ function set<K extends keyof DiscoveryFilters>(key: K, value: DiscoveryFilters[K
   filters.value = { ...filters.value, [key]: value }
 }
 function toggleBrand(id: string) {
-  set(
-    'manufacturers',
-    filters.value.manufacturers.includes(id)
-      ? filters.value.manufacturers.filter((v) => v !== id)
-      : [...filters.value.manufacturers, id].sort(),
-  )
+  set('manufacturers', toggleDiscoveryId(filters.value.manufacturers, id))
 }
 </script>
 <template>

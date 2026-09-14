@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { scrollToTrainerHandoff } from '~/utils/dashboardScroll'
+import { discoveryHref } from '~/utils/discovery'
 
 const props = withDefaults(defineProps<{
   deferred?: boolean
@@ -32,7 +33,7 @@ const navChars = (label: string) => Array.from(label)
 
 const navLinks = computed<[string, string][]>(() => [
   ['Demo', '/demo'],
-  ['Gyms', localeReady.value ? `/explore?lang=${locale.value}` : '/explore'],
+  ['Gyms', localeReady.value ? discoveryHref('/explore', locale.value) : '/explore'],
   ['Lifters', sectionHref('#lifters')],
   ['For gym owners', sectionHref('#gyms')],
   ['Trainers', sectionHref('#trainers')],

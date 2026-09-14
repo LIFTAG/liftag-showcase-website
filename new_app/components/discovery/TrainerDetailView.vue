@@ -14,13 +14,13 @@ const contactLabel = (label: string) =>
   ({ Phone: copy.value.phone, Email: copy.value.email, Website: copy.value.website })[
     label as 'Phone' | 'Email' | 'Website'
   ] ?? label
-useDiscoverySeo(
-  () => trainer.value?.name ?? copy.value.trainers,
-  () => trainer.value?.bio ?? copy.value.online,
+useDiscoverySeo({
+  name: () => trainer.value?.name ?? copy.value.trainers,
+  description: () => trainer.value?.bio ?? copy.value.online,
   locale,
-  () => trainer.value?.avatar,
-  'profile',
-)
+  photo: () => trainer.value?.avatar,
+  kind: 'profile',
+})
 </script>
 <template>
   <main id="discovery-content" class="d-wrap">

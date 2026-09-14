@@ -7,7 +7,6 @@ const {
   search,
   settledSearch,
   filters,
-  viewport,
   selectedId,
   scroll,
   location,
@@ -33,11 +32,14 @@ watch(contextTimezone, (value) => {
 const filtersOpen = shallowRef(false)
 const filterCount = computed(() => activeDiscoveryFilters(filters.value))
 const results = useTemplateRef<HTMLElement>('results')
+/** The sidebar scrolls vertically at >=1024px and horizontally below it. */
+let wideLayout: MediaQueryList | undefined
 const viewportHeight = shallowRef<number>()
 function resizeViewport() {
   viewportHeight.value = window.visualViewport?.height
 }
 onMounted(() => {
+  wideLayout = window.matchMedia('(min-width: 1024px)')
   resizeViewport()
   window.visualViewport?.addEventListener('resize', resizeViewport)
 })
@@ -80,7 +82,7 @@ watch(selectedId, (value) => {
 })
 function saveScroll() {
   if (results.value)
-    scroll.value = window.innerWidth >= 1024 ? results.value.scrollTop : results.value.scrollLeft
+    scroll.value = wideLayout?.matches ? results.value.scrollTop : results.value.scrollLeft
 }
 function activateGym(gym: ExploreGym) {
   if (selectedId.value === gym.id) void navigateTo(gymHref(gym.id))
@@ -89,11 +91,11 @@ function activateGym(gym: ExploreGym) {
 function gymHref(id: string) {
   return preference.value ? discoveryHref(`/gyms/${id}`, preference.value) : `/gyms/${id}`
 }
-useDiscoverySeo(
-  () => copy.value.explore,
-  () => copy.value.intro,
+useDiscoverySeo({
+  name: () => copy.value.explore,
+  description: () => copy.value.intro,
   locale,
-)
+})
 </script>
 <template>
   <main
@@ -106,7 +108,6 @@ useDiscoverySeo(
         <DiscoveryMap
           :gyms="visible"
           :selected-id="selectedId"
-          :viewport="viewport"
           :camera="camera"
           :locale="locale"
           :location="location"

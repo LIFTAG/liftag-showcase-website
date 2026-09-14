@@ -1,29 +1,30 @@
 <script setup lang="ts">
 import EquipmentCard from '~/components/discovery/EquipmentCard.vue'
 import type { EquipmentItem, GymDetail } from '~/types/discovery'
-import { normalizedIds } from '~/utils/discovery'
+import { normalizedIds, toggleDiscoveryId } from '~/utils/discovery'
 import { discoveryCount } from '~/utils/discoveryCopy'
 import { muscleDisplayName } from '~/utils/catalogLocale'
+/** Server caps: the equipment endpoint accepts 100 brands and 32 muscle groups. */
+const MANUFACTURER_CAP = 100,
+  CATEGORY_CAP = 32
 const props = defineProps<{ id: string }>()
 const route = useRoute()
 const searchField = useTemplateRef<{ focus: () => void }>('searchField')
 onMounted(() => {
   if (route.query.focus === '1') searchField.value?.focus()
 })
-const timezone = shallowRef<string | null | undefined>(undefined)
-const { locale, preference, copy, href } = useDiscoveryLocale(timezone)
+/** The gym's timezone only arrives with the response, so the locale resolves after it. */
+const { preference } = useSiteLocale()
 const {
   data: detail,
   error: detailError,
   refresh,
 } = await useDiscoveryResource<GymDetail>(() => `/api/explore/gyms/${props.id}`, preference)
-watchEffect(() => {
-  timezone.value = detail.value?.gym.timezone
-})
+const { locale, copy, href } = useDiscoveryLocale(() => detail.value?.gym.timezone)
 const search = shallowRef(typeof route.query.q === 'string' ? route.query.q : ''),
   settled = shallowRef(search.value)
-const manufacturers = ref(normalizedIds(route.query.manufacturers, 100)),
-  categories = ref(normalizedIds(route.query.categories, 32))
+const manufacturers = ref(normalizedIds(route.query.manufacturers, MANUFACTURER_CAP)),
+  categories = ref(normalizedIds(route.query.categories, CATEGORY_CAP))
 watch(search, (value, _, cleanup) => {
   const timeout = setTimeout(() => {
     settled.value = value
@@ -36,7 +37,7 @@ const query = computed(() => ({
   manufacturers: manufacturers.value.join(','),
   categories: categories.value.join(','),
 }))
-const { items, total, loading, error, hasMore, retry, loadMore } = await useDiscoveryPage<EquipmentItem>(
+const equipment = await useDiscoveryPage<EquipmentItem>(
   () => `/api/explore/gyms/${props.id}/equipment`,
   query,
 )
@@ -47,25 +48,18 @@ const { data: muscleGroups } = useFetch<{ id: string; name: string; slug: string
 const filtered = computed(
   () => manufacturers.value.length > 0 || categories.value.length > 0 || Boolean(search.value),
 )
-function toggle(values: string[], id: string): string[] {
-  return values.includes(id) ? values.filter((v) => v !== id) : [...values, id].sort()
-}
 function clearFilters() {
   search.value = ''
   manufacturers.value = []
   categories.value = []
 }
 watch(
-  () => route.query.q,
-  (value) => { search.value = typeof value === 'string' ? value : '' },
-)
-watch(
-  () => route.query.manufacturers,
-  (value) => { manufacturers.value = normalizedIds(value, 100) },
-)
-watch(
-  () => route.query.categories,
-  (value) => { categories.value = normalizedIds(value, 32) },
+  () => route.query,
+  (query) => {
+    search.value = typeof query.q === 'string' ? query.q : ''
+    manufacturers.value = normalizedIds(query.manufacturers, MANUFACTURER_CAP)
+    categories.value = normalizedIds(query.categories, CATEGORY_CAP)
+  },
 )
 watch(
   () => JSON.stringify([search.value, manufacturers.value, categories.value, locale.value]),
@@ -89,11 +83,11 @@ watch(
     cleanup(() => clearTimeout(timeout))
   },
 )
-useDiscoverySeo(
-  () => `${detail.value?.gym.name ?? ''} · ${copy.value.equipment}`,
-  () => copy.value.searchEquipment,
+useDiscoverySeo({
+  name: () => `${detail.value?.gym.name ?? ''} · ${copy.value.equipment}`,
+  description: () => copy.value.searchEquipment,
   locale,
-)
+})
 </script>
 <template>
   <main id="discovery-content" class="d-wrap">
@@ -116,7 +110,9 @@ useDiscoverySeo(
           <h1 class="d-title">{{ copy.equipment }}</h1>
           <p class="d-muted d-small">
             {{ detail?.gym.name }}
-            <span v-if="total !== null">· {{ discoveryCount(total, 'machines', locale) }}</span>
+            <span v-if="equipment.total.value !== null">
+              · {{ discoveryCount(equipment.total.value, 'machines', locale) }}
+            </span>
           </p>
         </div>
         <button v-if="filtered" class="d-link" @click="clearFilters">
@@ -139,7 +135,7 @@ useDiscoverySeo(
                 :key="brand.id"
                 class="d-chip"
                 :aria-pressed="manufacturers.includes(brand.id)"
-                @click="manufacturers = toggle(manufacturers, brand.id)"
+                @click="manufacturers = toggleDiscoveryId(manufacturers, brand.id)"
               >
                 {{ brand.name }}
               </button>
@@ -153,35 +149,33 @@ useDiscoverySeo(
                 :key="group.id"
                 class="d-chip"
                 :aria-pressed="categories.includes(group.id)"
-                @click="categories = toggle(categories, group.id)"
+                @click="categories = toggleDiscoveryId(categories, group.id)"
               >
                 {{ muscleDisplayName(group.slug, group.name, locale) }}
               </button>
             </div>
           </details>
         </aside>
-        <section class="d-section" :aria-label="copy.equipment" :aria-busy="loading">
-          <DiscoveryState v-if="error" :locale="locale" error @retry="retry" />
-          <DiscoveryState v-else-if="loading && !items.length" :locale="locale" loading />
-          <DiscoveryState
-            v-else-if="!items.length"
-            :locale="locale"
-            :title="filtered ? copy.noEquipmentMatch : copy.noEquipment"
-          />
-          <template v-else>
-            <div class="d-equipment-grid">
-              <EquipmentCard
-                v-for="item in items"
-                :key="item.gymMachineId"
-                :item="item"
-                :gym-id="id"
+        <section class="d-section" :aria-label="copy.equipment" :aria-busy="equipment.loading.value">
+          <DiscoveryList :state="equipment" :locale="locale">
+            <template #empty>
+              <DiscoveryState
                 :locale="locale"
+                :title="filtered ? copy.noEquipmentMatch : copy.noEquipment"
               />
-            </div>
-          </template>
-          <button v-if="hasMore" class="d-button" :disabled="loading" @click="loadMore">
-            {{ loading ? copy.loading : copy.more }}
-          </button>
+            </template>
+            <template #default="{ items }">
+              <div class="d-equipment-grid">
+                <EquipmentCard
+                  v-for="item in items"
+                  :key="item.gymMachineId"
+                  :item="item"
+                  :gym-id="id"
+                  :locale="locale"
+                />
+              </div>
+            </template>
+          </DiscoveryList>
         </section>
       </div>
     </template>
