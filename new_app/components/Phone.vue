@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/shell'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 // Async: Phone is rendered eagerly in the hero, and a static import here would
 // drag three.js (~142KB gzip) into the modulepreloaded entry chunk. The
 // placeholder <img> below covers the load - it stays visible until Phone3D
@@ -361,7 +363,7 @@ onBeforeUnmount(() => {
           :src="staticDisplaySrc"
           :srcset="staticScreenSrcset"
           :sizes="staticScreenSrcset ? props.sizes : undefined"
-          alt="LIFTAG screen"
+        :alt="t('shell.app.screenAlt')"
           width="393"
           height="852"
           aria-hidden="true"
@@ -389,7 +391,7 @@ onBeforeUnmount(() => {
           :src="staticDisplaySrc"
           :srcset="staticScreenSrcset"
           :sizes="staticScreenSrcset ? props.sizes : undefined"
-          alt="LIFTAG screen"
+        :alt="t('shell.app.screenAlt')"
           width="393"
           height="852"
           :loading="imageLoading"
@@ -406,7 +408,7 @@ onBeforeUnmount(() => {
           :src="staticDisplaySrc"
           :srcset="staticScreenSrcset"
           :sizes="staticScreenSrcset ? props.sizes : undefined"
-          alt="LIFTAG screen"
+          :alt="t('shell.app.screenAlt')"
           width="393"
           height="852"
           :loading="imageLoading"

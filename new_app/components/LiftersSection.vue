@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/marketing'
+const { t, tm, rt } = useI18n({ useScope: 'local', messages: { en, sk } })
+const { href } = useSiteLocale()
 interface FeatureCardProps {
   span: string
   tall?: boolean
@@ -90,6 +93,34 @@ const numbers = [
   { n: 'EN · SK', l: 'Languages, day one' },
   { n: '0', l: 'Spreadsheets required' },
 ]
+
+const localizedLibraryLabels = computed(() => [
+  t('marketing.lifters.libraryLinkPullUp'),
+  t('marketing.lifters.libraryLinkOverheadPress'),
+  t('marketing.lifters.libraryLinkRomanianDeadlift'),
+])
+
+const localizedCards = computed(() => {
+  const copy = tm('marketing.lifters.cards') as Array<{ tag: string, title: string, body: string, linkLabel?: string }>
+  return cards.map((card, i) => ({
+    ...card,
+    tag: rt(copy[i].tag),
+    title: rt(copy[i].title),
+    body: rt(copy[i].body),
+    linkLabel: copy[i].linkLabel ? rt(copy[i].linkLabel) : undefined,
+    href: card.href ? href(card.href) : undefined,
+    lifts: card.lifts?.map((lift, liftIndex) => ({
+      ...lift,
+      href: href(lift.href),
+      label: localizedLibraryLabels.value[liftIndex] ?? lift.label,
+    })),
+  }))
+})
+
+const localizedNumbers = computed(() => {
+  const copy = tm('marketing.lifters.numbers') as Array<{ label: string }>
+  return numbers.map((number, i) => ({ ...number, l: rt(copy[i].label) }))
+})
 
 function imgPositionX(card: FeatureCardProps) {
   return card.imgPosition?.split(/\s+/)[0] ?? '50%'
@@ -297,11 +328,10 @@ onBeforeUnmount(() => {
     <div class="container" style="position: relative;">
       <SectionHeader :cols="'1.6fr 1fr'" :copy-max="380">
         <template #title>
-          Train smarter.<br /><span class="lime">Lift heavier.</span> Compound everything.
+          {{ t('marketing.lifters.title') }}
         </template>
-        <template #eyebrow>▸ FOR LIFTERS</template>
-        Progressive overload, made obvious. Goals, PRs, history, and clean charts that show, at a
-        glance, whether you're getting stronger or stalling.
+        <template #eyebrow>{{ t('marketing.lifters.eyebrow') }}</template>
+        {{ t('marketing.lifters.lead') }}
       </SectionHeader>
 
       <!-- Bento grid -->
@@ -315,7 +345,7 @@ onBeforeUnmount(() => {
         }"
       >
         <div
-          v-for="(card, i) in cards"
+          v-for="(card, i) in localizedCards"
           :key="i"
           :ref="(el) => setCardRef(el, i)"
           :class="['lifters-card', cardStateClass(i), { 'is-pan-active': tapPanCard === i }]"
@@ -442,18 +472,17 @@ onBeforeUnmount(() => {
               }"
             >
               {{ card.body }}
-              <template v-if="card.lifts?.length">
-                Log a
-                <template v-for="(lift, i) in card.lifts" :key="lift.href">
-                  <template v-if="i > 0">{{ i === (card.lifts?.length ?? 0) - 1 ? ', or ' : ', ' }}</template>
-                  <NuxtLink
-                    :to="lift.href"
-                    class="lifters-inline-lift"
-                    @click.stop
-                  >{{ lift.label }}</NuxtLink>
+              <i18n-t v-if="card.lifts?.length" keypath="marketing.lifters.libraryPrompt" tag="span">
+                <template #pullUp>
+                  <NuxtLink :to="card.lifts[0].href" class="lifters-inline-lift" @click.stop>{{ card.lifts[0].label }}</NuxtLink>
                 </template>
-                from the same library.
-              </template>
+                <template #overheadPress>
+                  <NuxtLink :to="card.lifts[1].href" class="lifters-inline-lift" @click.stop>{{ card.lifts[1].label }}</NuxtLink>
+                </template>
+                <template #romanianDeadlift>
+                  <NuxtLink :to="card.lifts[2].href" class="lifters-inline-lift" @click.stop>{{ card.lifts[2].label }}</NuxtLink>
+                </template>
+              </i18n-t>
             </p>
             <NuxtLink
               v-if="card.href"
@@ -461,7 +490,7 @@ onBeforeUnmount(() => {
               class="lifters-card-link"
               @click.stop
             >
-              {{ card.linkLabel ?? 'Learn more' }} →
+              {{ card.linkLabel }} →
             </NuxtLink>
           </div>
         </div>
@@ -479,7 +508,7 @@ onBeforeUnmount(() => {
           borderTop: '1px solid var(--liftag-border-strong)',
         }"
       >
-        <div v-for="(pair, i) in numbers" :key="i" class="reveal">
+        <div v-for="(pair, i) in localizedNumbers" :key="i" class="reveal">
           <div
             class="stat-num"
             style="--stat-num-size: clamp(32px, 3.6vw, 48px);"

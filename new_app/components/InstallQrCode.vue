@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { t } = useI18n({ useScope: 'global' })
 const props = withDefaults(defineProps<{
   size?: string
   padding?: string
@@ -24,7 +25,7 @@ const panelStyle = computed(() => ({
         src="/assets/qr/get.svg"
         width="260"
         height="260"
-        alt="QR code that opens the LIFTAG install page"
+        :alt="t('common.installQr')"
         class="install-qr__code"
       >
       <span class="install-qr__mark" aria-hidden="true">

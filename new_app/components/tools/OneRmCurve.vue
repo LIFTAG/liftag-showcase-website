@@ -1,6 +1,9 @@
 <script setup lang="ts">
+const formatLoad = useLoadFormatter()
 import { buildRepCurves } from '~/utils/oneRepMaxCurve'
-import { formatLoad, fromKg, loadIncrement, roundToIncrement, toKg, type FormulaId, type WeightUnit } from '~/utils/oneRepMax'
+import { fromKg, loadIncrement, roundToIncrement, toKg, type FormulaId, type WeightUnit } from '~/utils/oneRepMax'
+import { en, sk } from '~/i18n/messages/tools'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 
 const props = defineProps<{
   weightKg: number
@@ -170,7 +173,7 @@ watch(targetReps, (destination) => {
 })
 const ticks = computed(() => [...new Set([1, 5, 10, 15, lastRep.value])]
   .filter(tick => tick === lastRep.value || lastRep.value - tick >= 3))
-const targetLabel = computed(() => `${targetReps.value} ${targetReps.value === 1 ? 'rep' : 'reps'}, estimated maximum ${formatLoad(target.value.kg, props.unit)} ${props.unit}`)
+const targetLabel = computed(() => `${targetReps.value} ${targetReps.value === 1 ? t('tools.curve.rep') : t('tools.curve.reps')}, ${t('tools.result.estimated')} ${formatLoad(target.value.kg, props.unit)} ${props.unit}`)
 const formulaRange = computed(() => {
   const values = curves.value.map(curve => curve.points[targetReps.value - 1]!.kg)
   return `${formatLoad(Math.min(...values), props.unit)}–${formatLoad(Math.max(...values), props.unit)} ${props.unit}`
@@ -189,11 +192,11 @@ function explore(event: PointerEvent) {
 <template>
   <div class="strength-curve">
     <div class="curve-heading">
-      <h3>Your strength curve</h3>
+      <h3>{{ t('tools.curve.title') }}</h3>
       <button type="button" class="formula-toggle" :aria-pressed="showFormulas" @click="showFormulas = !showFormulas">
         <HoloPill />
         <svg width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" aria-hidden="true"><path d="M2 4c6 0 8 12 16 12M2 10h16M2 16C8 16 10 4 18 4" /></svg>
-        7 formulas
+        {{ t('tools.curve.formulas') }}
       </button>
     </div>
     <div ref="chart" class="curve-plot" @pointerdown="explore" @pointermove="explore">
@@ -226,7 +229,7 @@ function explore(event: PointerEvent) {
         <path class="curve-line" :d="activePath" />
         <g class="input-anchor" :transform="`translate(${anchor.x}, ${anchor.y})`">
           <circle r="4" />
-          <text class="input-label" :y="anchor.y < plot.top + 32 ? 21 : -13" :text-anchor="reps > lastRep - 3 ? 'end' : 'start'" :x="reps > lastRep - 3 ? -10 : 10">Your set</text>
+          <text class="input-label" :y="anchor.y < plot.top + 32 ? 21 : -13" :text-anchor="reps > lastRep - 3 ? 'end' : 'start'" :x="reps > lastRep - 3 ? -10 : 10">{{ t('tools.curve.yourSet') }}</text>
         </g>
         <g class="curve-cursor">
           <line class="cursor-line" :style="{ transform: `translateX(${pillarX}px)` }" :y1="plot.top" :y2="plot.bottom" />
@@ -234,14 +237,14 @@ function explore(event: PointerEvent) {
             <circle class="cursor-halo" r="15" /><circle class="cursor-ring" r="8" /><circle class="cursor-core" r="3.5" />
           </g>
         </g>
-        <text v-for="tick in ticks" :key="tick" class="axis-tick" :x="x(tick)" :y="chartHeight - 5" :text-anchor="tick === lastRep ? 'end' : 'middle'">{{ tick }}<tspan v-if="tick === lastRep"> reps</tspan></text>
+        <text v-for="tick in ticks" :key="tick" class="axis-tick" :x="x(tick)" :y="chartHeight - 5" :text-anchor="tick === lastRep ? 'end' : 'middle'">{{ tick }}<tspan v-if="tick === lastRep"> {{ t('tools.curve.reps') }}</tspan></text>
         <text x="28" :y="plot.top - 16" text-anchor="end" class="axis-unit">{{ unit }}</text>
       </svg>
     </div>
     <div class="target-control">
       <div class="target-heading">
-        <label :for="`${uid}-reps`">Explore a rep target</label>
-        <span class="target-reps">{{ targetReps }} <small>{{ targetReps === 1 ? 'rep' : 'reps' }}</small></span>
+        <label :for="`${uid}-reps`">{{ t('tools.curve.explore') }}</label>
+      <span class="target-reps">{{ targetReps }} <small>{{ targetReps === 1 ? t('tools.curve.rep') : t('tools.curve.reps') }}</small></span>
       </div>
       <div class="target-slider">
         <div class="target-slider-visual" aria-hidden="true">
@@ -253,13 +256,13 @@ function explore(event: PointerEvent) {
       </div>
     </div>
     <div class="target-result">
-      <div><span class="target-caption">{{ targetReps === reps ? 'Your completed set' : 'Estimated rep max' }}</span><p><strong>{{ formatLoad(target.kg, unit) }}</strong> {{ unit }} <span class="target-times">×</span> <strong>{{ targetReps }}</strong> <span class="target-unit">{{ targetReps === 1 ? 'rep' : 'reps' }}</span></p></div>
-      <div class="target-context"><strong>{{ Math.round(target.kg / maxKg * 100) }}% <span>of 1RM</span></strong><span>{{ formatLoad(roundedKg, unit) }} {{ unit }} rounded</span></div>
+      <div><span class="target-caption">{{ targetReps === reps ? t('tools.curve.completed') : t('tools.curve.estimated') }}</span><p><strong>{{ formatLoad(target.kg, unit) }}</strong> {{ unit }} <span class="target-times">×</span> <strong>{{ targetReps }}</strong> <span class="target-unit">{{ targetReps === 1 ? t('tools.curve.rep') : t('tools.curve.reps') }}</span></p></div>
+      <div class="target-context"><strong>{{ Math.round(target.kg / maxKg * 100) }}% <span>{{ t('tools.curve.ofMax') }}</span></strong><span>{{ formatLoad(roundedKg, unit) }} {{ unit }} {{ t('tools.curve.rounded') }}</span></div>
     </div>
     <p class="curve-explanation" aria-live="polite">
-      <template v-if="showFormulas">{{ formulaRange }} across seven formulas at {{ targetReps }} {{ targetReps === 1 ? 'rep' : 'reps' }}. Their spread is disagreement, not a confidence interval.</template>
-      <template v-else>More reps, less weight. The same estimated strength.<template v-if="targetReps > 10 || reps > 10"> Above 10 reps, predictions are rougher.</template><template v-else> Rep maxes assume a hard set.</template></template>
-      <template v-if="qualifier"> Loads {{ qualifier }}.</template>
+      <template v-if="showFormulas">{{ formulaRange }} {{ t('tools.curve.across', { count: targetReps, reps: targetReps === 1 ? t('tools.curve.rep') : t('tools.curve.reps') }) }} {{ t('tools.curve.spread') }}</template>
+      <template v-else>{{ t('tools.curve.more') }}<template v-if="targetReps > 10 || reps > 10"> {{ t('tools.curve.rough') }}</template><template v-else> {{ t('tools.curve.hard') }}</template></template>
+      <template v-if="qualifier"> {{ t('tools.curve.loads') }} {{ qualifier }}.</template>
     </p>
   </div>
 </template>

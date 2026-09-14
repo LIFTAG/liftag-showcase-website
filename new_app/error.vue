@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/errors'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+const { href } = useSiteLocale()
 const props = defineProps<{
   error: {
     statusCode?: number
@@ -8,30 +11,26 @@ const props = defineProps<{
 }>()
 
 const is404 = computed(() => props.error?.statusCode === 404)
-const title = computed(() => is404.value ? 'Page not found | LIFTAG' : 'Something went wrong | LIFTAG')
-const description = computed(() =>
-  is404.value
-    ? 'That LIFTAG page does not exist. Open the homepage, the journal, or get the workout tracking app.'
-    : 'LIFTAG hit an unexpected error. Go back to the homepage or contact support.',
-)
+const title = computed(() => t(is404.value ? 'missingTitle' : 'failureTitle'))
+const description = computed(() => t(is404.value ? 'missingDescription' : 'failureDescription'))
 
 const route = useRoute()
 
-useLiftagSeo({
+useLiftagSeo(() => ({
   title: title.value,
   description: description.value,
   path: route.path,
   noindex: true,
-})
+}))
 
 const links = [
-  { href: '/', label: 'Homepage' },
-  { href: '/for-lifters', label: 'For lifters' },
-  { href: '/journal', label: 'Journal' },
-  { href: '/tools/1rm-calculator', label: '1RM calculator' },
-  { href: '/best-workout-tracking-app', label: 'Compare trackers' },
-  { href: '/best-gym-qr-nfc-app', label: 'Compare gym QR platforms' },
-  { href: '/contact/support', label: 'Support' },
+  { href: '/', label: 'home' },
+  { href: '/for-lifters', label: 'lifters' },
+  { href: '/journal', label: 'journal' },
+  { href: '/tools/1rm-calculator', label: 'calculator' },
+  { href: '/best-workout-tracking-app', label: 'trackers' },
+  { href: '/best-gym-qr-nfc-app', label: 'platforms' },
+  { href: '/contact/support', label: 'support' },
 ]
 </script>
 
@@ -41,21 +40,19 @@ const links = [
     <main class="error-main">
       <p class="protocol error-code">{{ error?.statusCode ?? 500 }}</p>
       <h1 class="display error-title">
-        <template v-if="is404">This lift is<br /><span class="lime">empty.</span></template>
-        <template v-else>Something<br /><span class="lime">broke.</span></template>
+        {{ t(is404 ? 'missingHeading' : 'failureHeading') }}<br />
+        <span class="lime">{{ t(is404 ? 'missingAccent' : 'failureAccent') }}</span>
       </h1>
       <p class="error-lead">
-        {{ is404
-          ? 'That URL is not a LIFTAG page. The app, the journal, and the gym network are still here.'
-          : 'An unexpected error stopped this page. Try again, or tell us what you were doing.' }}
+        {{ t(is404 ? 'missingLead' : 'failureLead') }}
       </p>
       <div class="error-actions">
-        <a href="/" class="btn-primary">Back to LIFTAG</a>
-        <a href="/get" class="btn-ghost"><HoloPill />Get the app</a>
+        <a :href="href('/')" class="btn-primary">{{ t('back') }}</a>
+        <a :href="href('/get')" class="btn-ghost"><HoloPill />{{ t('app') }}</a>
       </div>
       <ul class="error-links">
         <li v-for="item in links" :key="item.href">
-          <a :href="item.href">{{ item.label }}</a>
+          <a :href="href(item.href)">{{ t(item.label) }}</a>
         </li>
       </ul>
     </main>

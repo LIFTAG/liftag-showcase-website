@@ -1,61 +1,48 @@
 import type { MaybeRefOrGetter } from 'vue'
 import type { SiteLocale } from '~/types/locale'
-import { defaultSiteLocale, siteLocale, siteLocaleLocation, sitePathLocale } from '~/utils/siteLocale'
+import { isDiscoveryLocalePath, siteBasePath, siteLocale, siteLocaleLocation, siteLocalePath, sitePathLocale } from '~/utils/siteLocale'
 
-interface PageLocale {
-  owner: string
-  path: string
-  locale: SiteLocale
-}
-
-function usePageLocaleState() {
-  return useState<PageLocale | null>('site-page-locale', () => null)
-}
-
-/** One preference for the whole site; page translations can be added gradually. */
+/** The i18n composer owns active language; this facade owns the manual preference. */
 export function useSiteLocale() {
   const route = useRoute()
+  const i18n = useNuxtApp().$i18n
+  const switching = useState('site-locale-switching', () => false)
   const saved = useCookie<SiteLocale | null>('liftag-language', {
-    path: '/',
-    sameSite: 'lax',
-    maxAge: 31536000,
-    default: () => null,
+    path: '/', sameSite: 'lax', maxAge: 31536000, default: () => null,
   })
-  const browserLanguage = useState('site-browser-language', () =>
-    import.meta.server
-      ? (useRequestHeaders(['accept-language'])['accept-language'] ?? '')
-      : navigator.language,
-  )
-  // Prerendered marketing pages cannot capture a visitor's browser language.
-  onMounted(() => { browserLanguage.value = navigator.language })
-  const page = usePageLocaleState()
-  const preference = computed(() => siteLocale(route.query.lang) ?? siteLocale(saved.value))
-  const locale = computed(() =>
-    siteLocale(route.query.lang)
-    ?? sitePathLocale(route.path)
-    ?? preference.value
-    ?? (page.value?.path === route.path ? page.value.locale : undefined)
-    ?? defaultSiteLocale(undefined, browserLanguage.value),
-  )
-
+  const browserLanguage = useState('site-browser-language', () => import.meta.server
+    ? (useRequestHeaders(['accept-language'])['accept-language'] ?? '') : navigator.language)
+  const preference = computed(() => siteLocale(route.query.lang)
+    ?? (sitePathLocale(route.path) === 'sk' ? 'sk' : undefined)
+    ?? siteLocale(saved.value))
+  const locale = computed<SiteLocale>(() => siteLocale(i18n.locale.value) ?? 'en')
   async function setLocale(value: SiteLocale) {
     saved.value = value
-    await navigateTo(siteLocaleLocation(route, value), { replace: true })
+    switching.value = true
+    try {
+      await navigateTo(siteLocaleLocation(route, value), { replace: true })
+      await nextTick()
+    } finally { switching.value = false }
   }
-
-  return { locale, preference, browserLanguage: readonly(browserLanguage), setLocale }
+  const href = (path: string) => {
+    if (/^(?:https?:|mailto:|tel:|#)/.test(path)) return path
+    if (/^\/(?:get|qr|routines|plans|trainer-invites|auth)(?:[/?#]|$)/.test(path)) {
+      const url = new URL(path, 'https://liftag.fit')
+      url.searchParams.set('lang', locale.value)
+      return `${url.pathname}${url.search}${url.hash}`
+    }
+    return siteLocalePath(path, locale.value)
+  }
+  return { locale, preference, switching: readonly(switching), browserLanguage: readonly(browserLanguage), setLocale, href, basePath: computed(() => siteBasePath(route.path)) }
 }
 
-/** Let the navbar reflect a page's automatic gym-language default without saving it. */
-export function useSitePageLocale(locale: MaybeRefOrGetter<SiteLocale>) {
+/** Automatic discovery choices resolve to a language URL without saving a manual preference. */
+export function useSitePageLocale(value: MaybeRefOrGetter<SiteLocale>) {
+  const app = useNuxtApp()
   const route = useRoute()
-  const path = route.path
-  const owner = useId()
-  const page = usePageLocaleState()
-  watchEffect(() => {
-    if (route.path === path) page.value = { owner, path, locale: toValue(locale) }
-  })
-  onScopeDispose(() => {
-    if (page.value?.owner === owner) page.value = null
-  })
+  watch(() => toValue(value), async resolved => {
+    if (isDiscoveryLocalePath(route.path, route.query) && sitePathLocale(route.path) !== resolved) {
+      await app.runWithContext(() => navigateTo(siteLocaleLocation(route, resolved), { replace: true, redirectCode: 302 }))
+    }
+  }, { immediate: true })
 }

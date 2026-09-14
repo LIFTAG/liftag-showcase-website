@@ -4,6 +4,9 @@ import { discoveryHref } from '~/utils/discovery'
 import { gymExerciseHref } from '~/utils/gymCatalog'
 import { discoveryMuscleName } from '~/utils/discoveryMuscles'
 import type { CatalogMachine } from '~/types/catalog'
+import { catalogChrome } from '~/utils/catalogCopy'
+import { muscleDisplayName } from '~/utils/catalogLocale'
+const { href } = useSiteLocale()
 /** Exactly one source is supplied: a catalog machine, or a gym's resolved machine. */
 const props = withDefaults(
   defineProps<{
@@ -24,11 +27,14 @@ const photos = computed(() => {
   if (catalog?.photoUrls?.length) return catalog.photoUrls
   return catalog?.photoUrl ? [catalog.photoUrl] : []
 })
-const isSk = computed(() => props.locale === 'sk')
+const chrome = computed(() => catalogChrome(props.locale))
 const categories = computed(() =>
   props.gymMachine
     ? props.gymMachine.muscles.map((slug) => ({ slug, name: discoveryMuscleName(slug, props.locale) }))
-    : (props.machine?.categories ?? []),
+    : (props.machine?.categories ?? []).map(category => ({
+      ...category,
+      name: muscleDisplayName(category.slug, category.name, props.locale),
+    })),
 )
 const media = computed(
   () =>
@@ -42,7 +48,7 @@ const exercises = computed(() =>
         imageUrl: exercise.image,
         to: gymExerciseHref(props.gymMachine!, exercise, props.locale),
         label: exercise.muscles.map((slug) => discoveryMuscleName(slug, props.locale)).join(' · '),
-        video: exercise.videos[0] ?? null,
+        video: preferredCatalogVideoUrl(exercise.videos, props.locale),
       }))
     : (props.machine?.exercises ?? []).map((exercise) => ({
         id: exercise.id,
@@ -50,10 +56,10 @@ const exercises = computed(() =>
         imageUrl: exercise.imageUrl,
         to: exercisePath(exercise.slug ?? exercise.id, props.locale),
         label: exercise.primaryCategory?.name,
-        video: preferredCatalogVideoUrl(exercise.videos),
+        video: preferredCatalogVideoUrl(exercise.videos, props.locale),
       })),
 )
-const heroAlt = computed(() => `${name.value} — gym machine in the LIFTAG catalog`)
+const heroAlt = computed(() => chrome.value.machineAlt(name.value, name.value))
 const activePhoto = shallowRef(0)
 watch(
   () => source.value?.id,
@@ -66,7 +72,7 @@ watch(
 <template>
   <div class="ma-detail">
     <div class="ma-main">
-      <nav class="container ma-breadcrumb" aria-label="Breadcrumb">
+      <nav class="container ma-breadcrumb" :aria-label="chrome.breadcrumbAria">
         <NuxtLink
           v-if="gymMachine"
           :to="discoveryHref(`/gyms/${gymMachine.gym.id}/equipment`, locale)"
@@ -74,8 +80,8 @@ watch(
         >
           {{ gymMachine.gym.name }}
         </NuxtLink>
-        <NuxtLink v-else to="/machines" class="protocol ma-crumb">
-          {{ isSk ? 'STROJE' : 'MACHINES' }}
+        <NuxtLink v-else :to="href('/machines')" class="protocol ma-crumb">
+          {{ chrome.breadcrumbMachines }}
         </NuxtLink>
         <span class="ma-crumb-sep" aria-hidden="true">/</span>
         <span class="protocol ma-crumb ma-crumb--current">{{ name }}</span>
@@ -106,6 +112,7 @@ watch(
                 <CatalogMuscleChips
                   v-if="categories.length"
                   compact
+                  :locale="locale"
                   :secondary="categories"
                   :to-for="(slug) => muscleChipPath(slug, locale)"
                 />
@@ -115,7 +122,7 @@ watch(
           <div
             v-if="media.length > 1"
             class="ma-thumbs"
-            :aria-label="isSk ? 'Fotografie a videá' : 'Machine photos and videos'"
+            :aria-label="chrome.mediaAria"
           >
             <button
               v-for="(item, photoIndex) in media"
@@ -123,7 +130,7 @@ watch(
               type="button"
               class="ma-thumb"
               :class="{ 'is-active': photoIndex === activePhoto }"
-              :aria-label="`${item.type === 'video' ? 'Video' : isSk ? 'Fotografia' : 'Photo'} ${photoIndex + 1}`"
+              :aria-label="`${item.type === 'video' ? chrome.video : chrome.photo} ${photoIndex + 1}`"
               :aria-pressed="photoIndex === activePhoto"
               @click="activePhoto = photoIndex"
             >
@@ -145,35 +152,33 @@ watch(
           <CatalogMuscleChips
             v-if="categories.length"
             class="ma-muscles"
+            :locale="locale"
             :secondary="categories"
             :to-for="(slug) => muscleChipPath(slug, locale)"
           />
 
-          <CatalogExpandableNote v-if="description" class="ma-description" :text="description" />
+          <CatalogExpandableNote v-if="description" class="ma-description" :text="description" :locale="locale" />
           <slot name="info" />
           <div class="ma-scan-panel">
             <p class="protocol ma-scan-panel__eyebrow">
-              {{ isSk ? 'TRÉNUJ S LIFTAG' : 'TRAIN WITH LIFTAG' }}
+              {{ chrome.trainEyebrow }}
             </p>
-            <GetAppBtn :label="isSk ? 'Získaj LIFTAG zadarmo' : 'Get LIFTAG free'" />
+            <GetAppBtn :label="chrome.trainCta" />
             <p v-if="gymMachine" class="ma-scan-panel__copy">
               {{
-                isSk
-                  ? 'Vyber si cvik, pozri si správnu techniku a zaznamenaj každú sériu v aplikácii.'
-                  : 'Choose your exercise, watch the setup, and log every set in the app.'
+                chrome.trainGymCopy
               }}
             </p>
             <p v-else class="ma-scan-panel__copy">
-              This is the screen the app opens when you scan the QR tag on a
-              {{ name }} — pick the exercise, watch the setup, log your sets.
+              {{ chrome.trainCatalogCopy(name) }}
             </p>
           </div>
         </div>
       </div>
 
-      <section class="container ma-exercises" aria-label="Exercises on this machine">
+      <section class="container ma-exercises" :aria-label="chrome.exercisesHeading">
         <h2 class="protocol ma-section-title">
-          {{ isSk ? 'CVIKY NA TOMTO STROJI' : 'EXERCISES ON THIS MACHINE' }}
+          {{ chrome.exercisesHeading }}
           <span v-if="exercises.length" class="ma-section-count">{{ exercises.length }}</span>
         </h2>
 
@@ -193,21 +198,19 @@ watch(
         <div v-else class="ma-ex-empty">
           <p>
             {{
-              isSk
-                ? 'Tento stroj zatiaľ nemá pridané cviky.'
-                : 'The exercise list for this machine is on its way.'
+              chrome.noExercises
             }}
           </p>
           <NuxtLink :to="exerciseIndexPath(locale)" class="btn-ghost">
             <HoloPill />
-            {{ isSk ? 'Zobraziť všetky cviky' : 'Browse all exercises' }}
+            {{ chrome.browseAllExercises }}
           </NuxtLink>
         </div>
       </section>
     </div>
 
     <AppCtaBar
-      :message="gymMachine ? (isSk ? 'Trénuj s LIFTAG' : 'Train with LIFTAG') : `Scan the ${name} tag`"
+      :message="gymMachine ? chrome.trainWithLiftag : chrome.scanTag(name)"
     />
   </div>
 </template>

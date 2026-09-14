@@ -25,3 +25,15 @@ test('catalog stills expose their own aspect ratio, not a shared frame', () => {
   assert.equal(catalogMediaAspectRatio(1080, 0), null)
   assert.equal(catalogMediaAspectRatio(Number.NaN, 1080), null)
 })
+
+test('video language selection prefers the requested locale, then English, then available media', () => {
+  const videos = [
+    {locale:'en',url:'en',displayOrder:0,uploadedByUserId:null},
+    {locale:'sk',url:'sk-later',displayOrder:4,uploadedByUserId:null},
+    {locale:'sk',url:'sk-first',displayOrder:1,uploadedByUserId:null},
+  ]
+  assert.equal(preferredCatalogVideoUrl(videos,'sk'),'sk-first')
+  assert.equal(preferredCatalogVideoUrl(videos,'en'),'en')
+  assert.equal(preferredCatalogVideoUrl(videos.slice(0,1),'sk'),'en')
+  assert.equal(videos[1].url,'sk-later')
+})

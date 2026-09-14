@@ -1,13 +1,19 @@
 <script setup lang="ts">
-const description = 'Browse LIFTAG exercises by muscle group: chest, back, shoulders, arms, legs, adductors, glutes, abs, and cardio, with setup cues and how to log every set.'
+import { en, sk } from '~/i18n/messages/muscles'
+import { muscleHubsForLocale } from '~/utils/muscles'
 
-useLiftagSeo({
-  title: 'Exercises by Muscle Group | LIFTAG Library',
-  description,
+const { locale, href } = useSiteLocale()
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+const description = computed(() => t('indexDescription'))
+
+useLiftagSeo(() => ({
+  title: t('indexSeoTitle'),
+  description: description.value,
   path: '/muscles',
-})
+}))
 
-const { data: index } = await useCatalogIndex()
+const { data: index } = await useCatalogIndex(locale)
+const hubs = computed(() => muscleHubsForLocale(locale.value))
 
 const counts = computed(() => {
   const map = new Map<string, number>()
@@ -20,25 +26,25 @@ const counts = computed(() => {
   return map
 })
 
-useLiftagStructuredData([
+useLiftagStructuredData(() => [
   liftagOrganization,
   liftagSoftwareApplication,
   liftagWebPage({
-    path: '/muscles',
-    name: 'Exercises by muscle group',
-    description,
+    path: href('/muscles'),
+    name: t('indexWebPageName'),
+    description: description.value,
     type: 'CollectionPage',
   }),
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
-    { name: 'Exercise Library', path: '/exercises' },
-    { name: 'Muscles', path: '/muscles' },
+    { name: t('library'), path: href('/exercises') },
+    { name: t('muscles'), path: href('/muscles') },
   ]),
   liftagItemList({
-    name: 'LIFTAG muscle group hubs',
-    items: MUSCLE_HUBS.map(hub => ({
+    name: t('indexWebPageName'),
+    items: hubs.value.map(hub => ({
       name: hub.name,
-      url: `https://liftag.fit${musclePath(hub.slug)}`,
+      url: `https://liftag.fit${href(musclePath(hub.slug))}`,
     })),
   }),
 ])
@@ -48,23 +54,23 @@ useLiftagStructuredData([
   <div class="mu-index">
     <main>
       <header class="mu-hero container">
-        <p class="protocol mu-eyebrow">EXERCISE LIBRARY · MUSCLES</p>
-        <h1 class="display mu-title">Train by <span class="lime">muscle.</span></h1>
+        <p class="protocol mu-eyebrow">{{ t('indexEyebrow') }}</p>
+        <h1 class="display mu-title">{{ t('indexTitleLead') }}<span class="lime">{{ t('indexTitleLime') }}</span></h1>
         <p class="mu-lead">{{ description }}</p>
       </header>
 
-      <section class="container mu-grid" aria-label="Muscle groups">
+      <section class="container mu-grid" :aria-label="t('indexAria')">
         <NuxtLink
-          v-for="hub in MUSCLE_HUBS"
+          v-for="hub in hubs"
           :key="hub.slug"
-          :to="musclePath(hub.slug)"
+          :to="href(musclePath(hub.slug))"
           class="mu-card"
         >
           <p class="protocol mu-card-eyebrow">{{ hub.name.toUpperCase() }}</p>
           <h2>{{ hub.headline }}</h2>
           <p>{{ hub.intro }}</p>
           <p v-if="index" class="protocol mu-card-count">
-            {{ counts.get(hub.slug) ?? 0 }} EXERCISES
+            {{ t('indexCount', { count: counts.get(hub.slug) ?? 0 }) }}
           </p>
         </NuxtLink>
       </section>

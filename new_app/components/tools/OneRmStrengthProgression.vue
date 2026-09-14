@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { formatLoad, type LiftId, type WeightUnit } from '~/utils/oneRepMax'
+const formatLoad = useLoadFormatter()
+import { type LiftId, type WeightUnit } from '~/utils/oneRepMax'
 import { standardsFor, STRENGTH_LEVELS, type ComparisonSex, type StrengthComparison } from '~/utils/strengthStandards'
 import { worldRecordRatio } from '~/utils/worldRecords'
+import { en, sk } from '~/i18n/messages/tools'
+import { strengthLevelKey } from '~/content/tools/oneRmExercises'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 
 const props = defineProps<{
   lift: LiftId
@@ -33,6 +37,11 @@ const benchmarks = computed(() => {
 const focusedBenchmark = computed(() => benchmarks.value.find(item => item.label === selectedBenchmark.value)
   ?? benchmarks.value.find(item => item.label === props.comparison?.next?.label)
   ?? (props.comparison?.level === 'World record' ? benchmarks.value[benchmarks.value.length - 1]! : benchmarks.value[4]!))
+const displayLabel = (label: string) => {
+  if (label === 'World record') return t('tools.progression.worldRecord')
+  const levelKey = strengthLevelKey(label)
+  return levelKey ? t(`tools.progression.${levelKey}`) : label
+}
 const gapKg = computed(() => {
   if (!props.comparison || props.bodyweightKg == null || focusedBenchmark.value.kg == null) return null
   return Math.max(0, focusedBenchmark.value.kg - props.comparison.ratio * props.bodyweightKg)
@@ -52,30 +61,30 @@ watch(() => [props.lift, props.sex], () => { selectedBenchmark.value = null })
 
 <template>
     <div class="strength-progression">
-      <div class="progression-heading"><h3>Your next chapter.</h3><span>{{ comparison ? 'Explore a benchmark' : 'Benchmarks. Your own pace.' }}</span></div>
-      <div class="benchmark-ladder" :class="{ 'has-record': benchmarks.length > 5 }" aria-label="Strength benchmarks">
+      <div class="progression-heading"><h3>{{ t('tools.progression.title') }}</h3><span>{{ comparison ? t('tools.progression.explore') : t('tools.progression.pace') }}</span></div>
+      <div class="benchmark-ladder" :class="{ 'has-record': benchmarks.length > 5 }" :aria-label="t('tools.progression.benchmarks')">
         <button v-for="(benchmark, index) in benchmarks" :key="benchmark.label" type="button" class="benchmark" :class="{ reached: benchmark.reached, selected: comparison && focusedBenchmark.label === benchmark.label, current: comparison?.level === benchmark.label }" :disabled="!comparison" :aria-pressed="Boolean(comparison && focusedBenchmark.label === benchmark.label)" @click="selectedBenchmark = benchmark.label">
           <span class="benchmark-track" aria-hidden="true"><i>{{ benchmark.reached ? '✓' : String(index + 1).padStart(2, '0') }}</i></span>
-          <span class="benchmark-name">{{ benchmark.label }}</span>
+          <span class="benchmark-name">{{ displayLabel(benchmark.label) }}<small v-if="comparison?.level === benchmark.label"> · {{ t('tools.progression.yourLevel') }}</small></span>
           <span class="benchmark-load">{{ benchmark.kg != null ? formatLoad(benchmark.kg, unit) : '· · ·' }} <small v-if="benchmark.kg != null">{{ unit }}</small></span>
-          <span class="benchmark-percentile">Stronger than {{ benchmark.percentile }}%</span>
-          <span class="benchmark-state">{{ comparison?.level === benchmark.label ? 'Your level' : comparison?.next?.label === benchmark.label ? 'Next benchmark' : benchmark.reached ? 'Reached' : ' ' }}</span>
+          <span class="benchmark-percentile">{{ t('tools.progression.strongerThan', { percent: benchmark.percentile }) }}</span>
+          <span class="benchmark-state">{{ comparison?.level === benchmark.label ? t('tools.progression.yourLevel') : comparison?.next?.label === benchmark.label ? t('tools.progression.next') : benchmark.reached ? t('tools.progression.reached') : ' ' }}</span>
         </button>
       </div>
       <div v-if="comparison && focusedBenchmark.kg != null" class="benchmark-detail">
         <div class="target-copy">
           <span class="target-icon" aria-hidden="true">{{ focusedBenchmark.reached ? '✓' : '↗' }}</span>
-          <div><p><strong>{{ focusedBenchmark.label }}</strong> at <strong>{{ formatLoad(focusedBenchmark.kg, unit) }} {{ unit }}</strong><span v-if="qualifier">, {{ qualifier }}</span></p>
-            <span v-if="gapKg != null && gapKg > 0">{{ formatLoad(gapKg, unit) === '0' ? `Less than 0.1 ${unit}` : `${formatLoad(gapKg, unit)} ${unit}` }} from your estimated max to this benchmark.</span>
-            <span v-else-if="focusedBenchmark.label === 'World record' && comparison.boundary === 'above'">Past the all-time raw world-record ratio.</span>
-            <span v-else-if="focusedBenchmark.label === 'World record'">This is the all-time raw world-record ratio.</span>
-            <span v-else-if="pastEliteKg != null">{{ formatLoad(pastEliteKg, unit) === '0' ? `Less than 0.1 ${unit}` : `${formatLoad(pastEliteKg, unit)} ${unit}` }} past the published elite standard.</span>
-            <span v-else>You’ve reached this benchmark. Keep building on it.</span>
+          <div><p><strong>{{ displayLabel(focusedBenchmark.label) }}</strong> {{ t('tools.progression.targetAt') }} <strong>{{ formatLoad(focusedBenchmark.kg, unit) }} {{ unit }}</strong><span v-if="qualifier">, {{ qualifier }}</span></p>
+            <span v-if="gapKg != null && gapKg > 0">{{ formatLoad(gapKg, unit) === '0' ? t('tools.progression.less', { unit }) : `${formatLoad(gapKg, unit)} ${unit}` }} {{ t('tools.progression.fromMax') }}</span>
+            <span v-else-if="focusedBenchmark.label === 'World record' && comparison.boundary === 'above'">{{ t('tools.progression.pastRaw') }}</span>
+            <span v-else-if="focusedBenchmark.label === 'World record'">{{ t('tools.progression.raw') }}</span>
+            <span v-else-if="pastEliteKg != null">{{ formatLoad(pastEliteKg, unit) === '0' ? t('tools.progression.less', { unit }) : t('tools.progression.pastElite', { load: formatLoad(pastEliteKg, unit), unit }) }}</span>
+            <span v-else>{{ t('tools.progression.reachedKeep') }}</span>
           </div>
         </div>
-        <div class="target-progress" aria-hidden="true"><span>{{ focusedBenchmark.reached ? (pastEliteKg != null ? 'Past elite' : 'Reached') : `${Math.floor(progress * 100)}% of target load` }}</span><div><i :style="{ transform: `scaleX(${progress})` }" /></div></div>
+        <div class="target-progress" aria-hidden="true"><span>{{ focusedBenchmark.reached ? (pastEliteKg != null ? t('tools.progression.pastEliteShort') : t('tools.progression.targetReached')) : t('tools.progression.targetLoad', { percent: Math.floor(progress * 100) }) }}</span><div><i :style="{ transform: `scaleX(${progress})` }" /></div></div>
       </div>
-      <p v-else class="progression-note">{{ supported ? 'Your benchmark weights appear once you add your bodyweight and comparison group.' : 'Select a supported exercise to see its strength benchmarks.' }}</p>
+      <p v-else class="progression-note">{{ supported ? t('tools.progression.addDetails') : t('tools.progression.unsupported') }}</p>
     </div>
 </template>
 
@@ -134,7 +143,7 @@ watch(() => [props.lift, props.sex], () => { selectedBenchmark.value = null })
   .benchmark-load { grid-column: 3; grid-row: 1 / 3; margin: 0; font-size: 24px; }
   .benchmark-percentile { grid-column: 2; margin-top: 4px; font-size: 10px; }
   .benchmark-state { display: none; }
-  .current .benchmark-name::after { content: ' · You'; font-size: 10px; font-weight: 400; }
+  .benchmark-name small { font-size: 10px; font-weight: 400; }
   .benchmark-detail { align-items: stretch; flex-direction: column; gap: 16px; padding-top: 16px; }
   .target-progress { width: auto; margin-left: 36px; }
   .target-progress > span { text-align: left; }

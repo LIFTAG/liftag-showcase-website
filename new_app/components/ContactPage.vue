@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/contact'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+const { href } = useSiteLocale()
 interface ContactPageProps {
   eyebrow: string
   title: string
@@ -16,13 +19,13 @@ interface ContactPageProps {
 
 const props = defineProps<ContactPageProps>()
 
-useLiftagSeo({
+useLiftagSeo(() => ({
   title: props.seoTitle,
   description: props.seoDescription,
   path: props.seoPath,
-})
+}))
 
-useLiftagStructuredData([
+useLiftagStructuredData(() => [
   liftagOrganization,
   liftagContactPage({
     name: props.seoTitle,
@@ -46,7 +49,13 @@ const message = ref('')
 const token = ref('')
 const turnstileRef = ref<{ reset: () => void } | null>(null)
 
-const { status, errorMessage, submit, reset: resetSubmit } = useContactSubmit()
+const { status, errorCode, submit, reset: resetSubmit } = useContactSubmit()
+const errorMessage = computed(() => {
+  const error = errorCode.value
+  if (!error) return null
+  const unit = error.retryUnit ? t(`contact.${error.retryUnit}`) : undefined
+  return t(`contact.${error.code}`, { retryAfter: error.retryAfter, unit })
+})
 
 const isSubmitting = computed(() => status.value === 'submitting')
 const isSuccess = computed(() => status.value === 'success')
@@ -70,9 +79,9 @@ async function onSubmit() {
   if (!canSubmit.value) return
   const submittedMessage = props.collectGymContext
     ? [
-        `Gym: ${gym.value.trim()}`,
-        `City: ${city.value.trim()}`,
-        `Floor context: ${floorContext.value.trim()}`,
+        `${t('contact.gym')}: ${gym.value.trim()}`,
+        `${t('contact.city')}: ${city.value.trim()}`,
+        `${t('contact.floorContext')}: ${floorContext.value.trim()}`,
         '',
         message.value.trim(),
       ].join('\n')
@@ -120,7 +129,7 @@ function sendAnother() {
             </SectionTitle>
             <p class="contact-lead copy-soft">{{ lead }}</p>
             <div class="contact-subject-pill">
-              <span class="protocol contact-subject-label">SUBJECT</span>
+              <span class="protocol contact-subject-label">{{ t('contact.subjectLabel') }}</span>
               <span class="contact-subject-value">{{ lockedSubject }}</span>
             </div>
           </div>
@@ -128,7 +137,7 @@ function sendAnother() {
           <div class="contact-card reveal">
             <form v-if="!isSuccess" class="contact-form" @submit.prevent="onSubmit">
               <div class="contact-field">
-                <label for="contact-name" class="protocol contact-label">Name</label>
+                <label for="contact-name" class="protocol contact-label">{{ t('contact.name') }}</label>
                 <input
                   id="contact-name"
                   v-model="name"
@@ -142,7 +151,7 @@ function sendAnother() {
               </div>
 
               <div class="contact-field">
-                <label for="contact-email" class="protocol contact-label">Email</label>
+                <label for="contact-email" class="protocol contact-label">{{ t('contact.email') }}</label>
                 <input
                   id="contact-email"
                   v-model="email"
@@ -156,7 +165,7 @@ function sendAnother() {
 
               <template v-if="collectGymContext">
                 <div class="contact-field">
-                  <label for="contact-gym" class="protocol contact-label">Gym</label>
+                  <label for="contact-gym" class="protocol contact-label">{{ t('contact.gym') }}</label>
                   <input
                     id="contact-gym"
                     v-model="gym"
@@ -170,7 +179,7 @@ function sendAnother() {
                 </div>
 
                 <div class="contact-field">
-                  <label for="contact-city" class="protocol contact-label">City</label>
+                  <label for="contact-city" class="protocol contact-label">{{ t('contact.city') }}</label>
                   <input
                     id="contact-city"
                     v-model="city"
@@ -184,7 +193,7 @@ function sendAnother() {
                 </div>
 
                 <div class="contact-field">
-                  <label for="contact-floor-context" class="protocol contact-label">Floor context</label>
+                  <label for="contact-floor-context" class="protocol contact-label">{{ t('contact.floorContext') }}</label>
                   <textarea
                     id="contact-floor-context"
                     v-model="floorContext"
@@ -192,14 +201,14 @@ function sendAnother() {
                     required
                     minlength="3"
                     maxlength="1000"
-                    placeholder="Training areas, floor count, and the machines you want members to find"
+                    :placeholder="t('contact.floorPlaceholder')"
                     :disabled="isSubmitting"
                   />
                 </div>
               </template>
 
               <div class="contact-field">
-                <label for="contact-message" class="protocol contact-label">Message</label>
+                <label for="contact-message" class="protocol contact-label">{{ t('contact.message') }}</label>
                 <textarea
                   id="contact-message"
                   v-model="message"
@@ -225,7 +234,7 @@ function sendAnother() {
                 class="btn-primary contact-submit"
                 :disabled="!canSubmit"
               >
-                {{ isSubmitting ? 'Sending…' : 'Send message' }}
+                {{ isSubmitting ? t('contact.sending') : t('contact.send') }}
               </button>
 
               <p v-if="errorMessage" class="contact-error" role="alert">
@@ -247,17 +256,17 @@ function sendAnother() {
                 </svg>
               </div>
               <h2 class="contact-success-title">
-                {{ successHeadline ?? 'Message sent.' }}
+                {{ successHeadline ?? t('contact.send') }}
               </h2>
               <p class="contact-success-body">
-                Thanks for reaching out. We’ll get back to you at <strong>{{ email }}</strong> as soon as we can.
+                {{ t('contact.successBody', { email }) }}
               </p>
               <div class="contact-success-actions">
-                <NuxtLink :to="successPath ?? '/'" class="btn-ghost contact-success-btn">
-                  <HoloPill />{{ successLinkLabel ?? 'Back to home' }}
+                <NuxtLink :to="href(successPath ?? '/')" class="btn-ghost contact-success-btn">
+                  <HoloPill />{{ successLinkLabel ?? t('contact.backHome') }}
                 </NuxtLink>
                 <button type="button" class="contact-success-link" @click="sendAnother">
-                  Send another
+                  {{ t('contact.another') }}
                 </button>
               </div>
             </div>

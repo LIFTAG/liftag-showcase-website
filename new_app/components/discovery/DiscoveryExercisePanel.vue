@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { DiscoveryExercise, DiscoveryLocale } from '~/types/discovery'
 import { discoveryCopy } from '~/utils/discoveryCopy'
+import { preferredCatalogVideoUrl } from '~/utils/catalogVideo'
 import { exercisePath } from '~/utils/catalogLocale'
 import { discoveryMuscleName } from '~/utils/discoveryMuscles'
 const props = defineProps<{ exercise: DiscoveryExercise; locale: DiscoveryLocale }>()
 defineEmits<{ close: [] }>()
+const videoUrl = computed(() => preferredCatalogVideoUrl(props.exercise.videos, props.locale))
 const copy = computed(() => discoveryCopy(props.locale))
 </script>
 <template>
@@ -24,9 +26,8 @@ const copy = computed(() => discoveryCopy(props.locale))
         <p class="d-copy d-small">{{ exercise.instructions }}</p>
       </section>
       <DiscoveryVideo
-        v-for="video in exercise.videos"
-        :key="video"
-        :src="video"
+        v-if="videoUrl"
+        :src="videoUrl"
         :poster="exercise.image"
         :title="exercise.name"
         :locale="locale"

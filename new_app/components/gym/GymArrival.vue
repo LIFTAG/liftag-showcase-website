@@ -9,9 +9,11 @@ import {
   GYM_ARRIVAL_OVERLAY_ID,
   GYM_ARRIVAL_STATE_KEY,
 } from "~/utils/gymscan/arrivalBootstrap";
+import { en, sk } from '~/i18n/messages/gymDemo';
 
 const props = defineProps<{ ready: boolean; reduced: boolean; fallback: boolean }>();
 const emit = defineEmits<{ active: [value: boolean] }>();
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } });
 const seen = useState(GYM_ARRIVAL_STATE_KEY, () => false);
 const visible = shallowRef(!seen.value);
 const opening = shallowRef(false);
@@ -156,9 +158,9 @@ onBeforeUnmount(() => {
         <GymLockupWord />
       </div>
     </div>
-    <p class="gx-arrival__caption gx-protocol">Your machines. Connected.</p>
+    <p class="gx-arrival__caption gx-protocol">{{ t('arrival.caption') }}</p>
     <div class="gx-arrival__skip">
-      <button type="button" class="btn-ghost" @click="skip"><HoloPill />Enter the gym</button>
+      <button type="button" class="btn-ghost" @click="skip"><HoloPill />{{ t('arrival.enter') }}</button>
     </div>
   </div>
 </template>

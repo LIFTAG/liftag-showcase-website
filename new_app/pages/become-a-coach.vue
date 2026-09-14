@@ -1,42 +1,27 @@
 <script setup lang="ts">
 import { useReveal } from '~/composables/useReveal'
+import { en, sk } from '~/i18n/messages/marketingCoach'
+const { t, tm, rt } = useI18n({ useScope: 'local', messages: { en, sk } })
+const { href, locale } = useSiteLocale()
 
-const description
-  = 'Coach where your clients already train. Build your profile inside LIFTAG, get discovered by lifters, share routines, and track real progress.'
+const description = computed(() => t('coach.description'))
 
-const faqs = [
-  {
-    question: 'How do I apply to become a coach?',
-    answer: 'Download the LIFTAG app, then open Profile and tap Become a Trainer. Fill out your application with your bio, specializations, experience, and location. It takes a couple of minutes, then our team reviews it.',
-  },
-  {
-    question: 'How long does approval take?',
-    answer: 'Each application is reviewed by our team. You get a notification the moment a decision is made, and you can keep editing your application while it is still pending.',
-  },
-  {
-    question: 'Can I coach online and in person?',
-    answer: 'Yes. You choose whether you offer online coaching, in-person coaching, or both, and set your location so nearby lifters can find you in the directory.',
-  },
-  {
-    question: 'Where do clients find me once I am approved?',
-    answer: 'Approved coaches appear in the in-app LIFTAG trainer directory, where lifters search and filter by specialty, experience, gym, and location, then contact you directly.',
-  },
-]
+const coachCopy = computed(() => tm('coach') as typeof en.coach)
 
-useLiftagSeo({
-  title: 'Become a Coach on LIFTAG | Train Clients Where They Lift',
-  description,
+useLiftagSeo(() => ({
+  title: t('coach.seoTitle'),
+  description: description.value,
   path: '/become-a-coach',
-})
+}))
 
-useLiftagStructuredData([
+useLiftagStructuredData(() => [
   liftagOrganization,
   liftagMobileApplication,
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
-    { name: 'Become a Coach', path: '/become-a-coach' },
+    { name: t('coach.breadcrumb'), path: '/become-a-coach' },
   ]),
-  liftagFAQPage(faqs),
+  liftagFAQPage((coachCopy.value.faq as Array<{ question: string, answer: string }>).map(item => ({ question: rt(item.question), answer: rt(item.answer) }))),
 ])
 
 useReveal()
@@ -59,12 +44,6 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (enterTimer) clearTimeout(enterTimer)
 })
-
-const heroPills: Array<{ label: string, hot: boolean }> = [
-  { label: 'Listed in the directory', hot: true },
-  { label: 'Online & in-person', hot: false },
-  { label: 'Verified coach badge', hot: false },
-]
 
 /* ── Why coach here ── */
 interface WhyCard {
@@ -98,45 +77,6 @@ const whyCards: WhyCard[] = [
     body: 'Coach remote clients and the regulars at your gym from a single dashboard. The same product handles discovery, plans, and progress for both.',
     icon: 'devices',
     lime: false,
-  },
-]
-
-const replaces = ['the notes app', 'the spreadsheet', 'the third-party plan builder', 'the screenshot threads', 'the separate client app']
-
-const specialties = [
-  'Strength', 'Powerlifting', 'Bodybuilding', 'Olympic Lifting', 'Nutrition Coaching',
-  'Mobility', 'Conditioning', 'Boxing', 'HIIT', 'Weight Loss', 'Yoga', 'Pilates', 'Posture', 'Dance Fitness',
-]
-
-/* ── Steps ── */
-interface Step {
-  no: string
-  title: string
-  body: string
-  store?: boolean
-}
-
-const steps: Step[] = [
-  {
-    no: '01',
-    title: 'Download the app',
-    body: 'Get LIFTAG free on iOS or Android and create your account. It is the same app your future clients use to train, so everything stays in one place.',
-    store: true,
-  },
-  {
-    no: '02',
-    title: 'Open your coach application',
-    body: 'Go to Profile and tap Become a Trainer. Add your bio, specializations, years of experience, location, socials, and whether you coach online, in person, or both.',
-  },
-  {
-    no: '03',
-    title: 'We review your profile',
-    body: 'Your application goes under review. You get a notification the moment a decision is made, and you can keep editing it while it is still pending.',
-  },
-  {
-    no: '04',
-    title: 'Go live and start coaching',
-    body: 'Once approved, your profile is published to the trainer directory. Lifters discover you, reach out, and you start building routines and tracking their progress.',
   },
 ]
 
@@ -191,7 +131,7 @@ const features: Feature[] = [
 ]
 
 const active = ref(0)
-const f = computed(() => features[active.value])
+const f = computed(() => localizedFeatures.value[active.value])
 
 interface Essential {
   title: string
@@ -204,6 +144,30 @@ const essentials: Essential[] = [
   { title: 'Custom exercises & videos', body: 'Add your own exercises with instructional videos, then share them inside the routines you build.', icon: 'video' },
   { title: 'Client progress at a glance', body: 'Volume trends, PRs, and estimated 1RM for every client, pulled from the sets they actually logged.', icon: 'chart' },
 ]
+
+const localizedHeroPills = computed(() => (coachCopy.value.pills as string[]).map((label, i) => ({ label: rt(label), hot: i === 0 })))
+const localizedWhyCards = computed(() => (coachCopy.value.why as Array<{ title: string, body: string }>).map((item, i) => ({ ...item, title: rt(item.title), body: rt(item.body), icon: whyCards[i]?.icon ?? 'chart', lime: i === 1 })))
+const localizedSpecialties = computed(() => (coachCopy.value.specialties as string[]).map(item => rt(item)))
+const localizedSteps = computed(() => (coachCopy.value.steps as Array<{ title: string, body: string }>).map((item, i) => ({ ...item, no: `0${i + 1}`, title: rt(item.title), body: rt(item.body), store: i === 0 })))
+const localizedFeatures = computed(() => {
+  const labels = coachCopy.value.featureLabels as string[]
+  const titles = coachCopy.value.featureTitles as string[]
+  const bodies = coachCopy.value.featureBodies as string[]
+  const bullets = coachCopy.value.featureBullets as string[][]
+  const chips = coachCopy.value.featureChips as string[][][]
+  return features.map((feature, i) => ({
+    ...feature,
+    tag: rt(labels[i]),
+    title: rt(titles[i]),
+    body: rt(bodies[i]),
+    bullets: bullets[i].map(item => rt(item)),
+    chip1: { label: rt(chips[i][0][0]), value: rt(chips[i][0][1]), sub: rt(chips[i][0][2]) },
+    chip2: { label: rt(chips[i][1][0]), value: rt(chips[i][1][1]), sub: rt(chips[i][1][2]) },
+  }))
+})
+const localizedReplaces = computed(() => (coachCopy.value.replaces as string[]).map(item => rt(item)))
+const localizedEssentials = computed(() => (coachCopy.value.essentials as string[]).map((title, i) => ({ ...(essentials[i] as Essential), title: rt(title), body: rt((coachCopy.value.essentialsBodies as string[])[i]) })))
+const localizedFaqs = computed(() => (coachCopy.value.faq as Array<{ question: string, answer: string }>).map(item => ({ question: rt(item.question), answer: rt(item.answer) })))
 
 </script>
 
@@ -221,21 +185,20 @@ const essentials: Essential[] = [
           <div class="coach-hero-copy">
             <p class="protocol coach-eyebrow enter h-eyebrow">
               <span class="coach-eyebrow-tick" aria-hidden="true" />
-              Join as a coach
+              {{ t('coach.heroEyebrow') }}
             </p>
 
             <h1 class="display coach-hero-title">
-              <span class="enter h-pre">Coach where your clients already </span><span class="accent enter h-accent">train.</span>
+              <span class="enter h-pre">{{ t('coach.heroTitleBefore') }} </span><span class="accent enter h-accent">{{ t('coach.heroTitleAccent') }}</span>
             </h1>
 
             <p class="coach-hero-lead enter h-lead">
-              Build your coaching profile inside LIFTAG, get discovered by lifters, and track real
-              progress, from the same app your clients open every single session.
+              {{ description }}
             </p>
 
             <div class="coach-pills enter h-pills">
               <span
-                v-for="pill in heroPills"
+                v-for="pill in localizedHeroPills"
                 :key="pill.label"
                 class="coach-pill"
                 :class="{ 'is-hot': pill.hot }"
@@ -247,15 +210,15 @@ const essentials: Essential[] = [
             </div>
 
             <div class="coach-hero-links enter h-links">
-              <a href="#join" class="coach-jumplink">How it works <span aria-hidden="true">↓</span></a>
-              <a href="#showcase" class="coach-jumplink">What you get <span aria-hidden="true">→</span></a>
+              <a href="#join" class="coach-jumplink">{{ t('coach.howItWorksLink') }} <span aria-hidden="true">↓</span></a>
+              <a href="#showcase" class="coach-jumplink">{{ t('coach.whatYouGetLink') }} <span aria-hidden="true">→</span></a>
             </div>
           </div>
 
           <!-- RIGHT: gym photo + peeking phone + chips -->
           <div class="coach-hero-visual coach-hide-mobile">
             <div class="coach-hero-photo">
-              <img src="/assets/img/deadlift.webp" alt="Lifter performing a deadlift in a dark gym" >
+              <img src="/assets/img/deadlift.webp" :alt="t('coach.heroImageAlt')" >
               <span class="coach-hero-photo-shade coach-hero-photo-shade--side" aria-hidden="true" />
               <span class="coach-hero-photo-shade coach-hero-photo-shade--bottom" aria-hidden="true" />
               <span class="coach-hero-tick coach-hero-tick--tr" aria-hidden="true" />
@@ -271,15 +234,15 @@ const essentials: Essential[] = [
                 </svg>
               </span>
               <div>
-                <div class="protocol coach-hero-chip-kicker">PROFILE STATUS</div>
-                <div class="coach-hero-chip-value">VERIFIED COACH</div>
+                <div class="protocol coach-hero-chip-kicker">{{ t('coach.profileStatus') }}</div>
+                <div class="coach-hero-chip-value">{{ t('coach.verified') }}</div>
               </div>
             </div>
 
             <!-- directory chip -->
             <div class="coach-hero-chip coach-hero-chip--directory">
-              <div class="protocol coach-hero-chip-kicker coach-hero-chip-kicker--muted">WHERE CLIENTS FIND YOU</div>
-              <div class="coach-hero-chip-value">TRAINER DIRECTORY</div>
+              <div class="protocol coach-hero-chip-kicker coach-hero-chip-kicker--muted">{{ t('coach.findClients') }}</div>
+              <div class="coach-hero-chip-value">{{ t('coach.directory') }}</div>
             </div>
 
             <!-- peeking phone — 3D model on desktop, static screenshot on phones -->
@@ -295,7 +258,7 @@ const essentials: Essential[] = [
 
         <!-- scroll cue -->
         <div class="coach-scrollcue coach-hide-mobile">
-          <span class="protocol">SCROLL</span>
+          <span class="protocol">{{ t('coach.scroll') }}</span>
           <span class="coach-scrollcue-line" aria-hidden="true" />
         </div>
       </section>
@@ -304,19 +267,18 @@ const essentials: Essential[] = [
       <section id="why" class="coach-why">
         <div class="container">
           <header class="coach-section-head reveal">
-            <p class="protocol coach-eyebrow"><span class="coach-eyebrow-tick" aria-hidden="true" />Why coach on LIFTAG</p>
+            <p class="protocol coach-eyebrow"><span class="coach-eyebrow-tick" aria-hidden="true" />{{ t('coach.whyEyebrow') }}</p>
             <h2 class="display coach-section-title">
-              Not a directory. The same app<br >your clients <span class="accent">train in.</span>
+              {{ t('coach.whyTitle') }}
             </h2>
             <p class="coach-section-lead">
-              Most coaching tools sit beside the workout. LIFTAG is the workout, so the routine you
-              write, the sets your client logs, and the progress you review are never more than one tap apart.
+              {{ t('coach.whyLead') }}
             </p>
           </header>
 
           <div class="coach-why-grid">
             <article
-              v-for="card in whyCards"
+              v-for="card in localizedWhyCards"
               :key="card.title"
               class="coach-why-card reveal"
               :class="{ 'is-lime': card.lime }"
@@ -338,11 +300,11 @@ const essentials: Essential[] = [
 
           <!-- what you're replacing -->
           <div class="coach-replaces reveal">
-            <span class="protocol coach-replaces-label">REPLACES</span>
+            <span class="protocol coach-replaces-label">{{ t('coach.replacesLabel') }}</span>
             <div class="coach-replaces-items">
-              <span v-for="(item, i) in replaces" :key="item" class="coach-replaces-item">
+              <span v-for="(item, i) in localizedReplaces" :key="item" class="coach-replaces-item">
                 <span class="coach-replaces-strike">{{ item }}</span>
-                <span v-if="i < replaces.length - 1" class="coach-replaces-dot">·</span>
+                <span v-if="i < localizedReplaces.length - 1" class="coach-replaces-dot">·</span>
               </span>
             </div>
           </div>
@@ -353,7 +315,7 @@ const essentials: Essential[] = [
           <div class="coach-marquee-track">
             <div v-for="rep in 2" :key="rep" class="coach-marquee-group" :aria-hidden="rep === 2">
               <span
-                v-for="(s, i) in specialties"
+                v-for="(s, i) in localizedSpecialties"
                 :key="s + rep"
                 class="coach-marquee-item"
               >
@@ -371,30 +333,29 @@ const essentials: Essential[] = [
         <div class="container">
           <div class="coach-split coach-steps-split">
             <header class="coach-steps-intro reveal">
-              <p class="protocol coach-eyebrow"><span class="coach-eyebrow-tick" aria-hidden="true" />How to join</p>
+              <p class="protocol coach-eyebrow"><span class="coach-eyebrow-tick" aria-hidden="true" />{{ t('coach.joinEyebrow') }}</p>
               <h2 class="display coach-steps-title">
-                Four steps from<br >lifter to <span class="accent">coach.</span>
+                {{ t('coach.joinTitle') }}
               </h2>
               <p class="coach-steps-lead">
-                There is no web form to fill in. You apply straight from the LIFTAG app, and once a
-                quick review is done your profile goes live in the directory.
+                {{ t('coach.joinLead') }}
               </p>
               <div class="coach-steps-pill">
                 <span class="coach-steps-pill-dot" aria-hidden="true" />
-                <span class="protocol">TAKES ~2 MINUTES</span>
+                <span class="protocol">{{ t('coach.joinTime') }}</span>
               </div>
             </header>
 
             <ol class="coach-steps-list">
               <li
-                v-for="(step, i) in steps"
+                v-for="(step, i) in localizedSteps"
                 :key="step.no"
                 class="coach-step reveal"
-                :class="{ 'is-last': i === steps.length - 1 }"
+                :class="{ 'is-last': i === localizedSteps.length - 1 }"
               >
                 <div class="coach-step-rail">
                   <span class="coach-step-no">{{ step.no }}</span>
-                  <span v-if="i < steps.length - 1" class="coach-step-line" aria-hidden="true" />
+                  <span v-if="i < localizedSteps.length - 1" class="coach-step-line" aria-hidden="true" />
                 </div>
                 <div class="coach-step-body">
                   <h3 class="coach-step-title">{{ step.title }}</h3>
@@ -417,14 +378,13 @@ const essentials: Essential[] = [
         <div class="container">
           <header class="coach-showcase-head">
             <div class="reveal">
-              <p class="protocol coach-eyebrow"><span class="coach-eyebrow-tick" aria-hidden="true" />What you get</p>
+              <p class="protocol coach-eyebrow"><span class="coach-eyebrow-tick" aria-hidden="true" />{{ t('coach.showcaseEyebrow') }}</p>
               <h2 class="display coach-section-title">
-                Everything you need<br >to <span class="accent">coach.</span>
+                {{ t('coach.showcaseTitle') }}
               </h2>
             </div>
             <p class="coach-showcase-lead reveal">
-              A full coaching surface, not just a listing. Profile, discovery, shared plans, and client
-              progress tied to real set history, with nothing else to stitch together.
+              {{ t('coach.showcaseLead') }}
             </p>
           </header>
 
@@ -441,7 +401,7 @@ const essentials: Essential[] = [
                 </div>
                 <div class="coach-showcase-bullet-end" />
               </div>
-              <a href="#join" class="btn-primary coach-showcase-cta">Apply as a coach</a>
+              <a href="#join" class="btn-primary coach-showcase-cta">{{ t('coach.apply') }}</a>
             </div>
 
             <!-- CENTER: phone + chips -->
@@ -473,7 +433,7 @@ const essentials: Essential[] = [
             <!-- RIGHT: vertical tabs -->
             <div class="coach-tabs coach-hide-mobile">
               <button
-                v-for="(feat, i) in features"
+                v-for="(feat, i) in localizedFeatures"
                 :key="feat.tag"
                 type="button"
                 class="coach-tab"
@@ -489,12 +449,12 @@ const essentials: Essential[] = [
             <!-- MOBILE dots -->
             <div class="coach-dots">
               <button
-                v-for="(feat, i) in features"
+                v-for="(feat, i) in localizedFeatures"
                 :key="feat.tag"
                 type="button"
                 class="coach-dot"
                 :class="{ 'is-active': active === i }"
-                :aria-label="`Feature ${i + 1}`"
+                :aria-label="t('coach.featureAria', { count: i + 1 })"
                 @click="active = i"
               />
             </div>
@@ -502,7 +462,7 @@ const essentials: Essential[] = [
 
           <!-- essentials -->
           <div class="coach-essentials">
-            <article v-for="e in essentials" :key="e.title" class="coach-essential reveal">
+            <article v-for="e in localizedEssentials" :key="e.title" class="coach-essential reveal">
               <span class="coach-essential-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                   <template v-if="e.icon === 'badge'"><path d="M12 3l2.3 1.6 2.8.2 1 2.6 2 2-1 2.6.2 2.8L19 19l-2.8.2L14 21l-2-1.5L9 21l-2.2-1.8L4 19l-1.5-2.3.2-2.8-1-2.6 2-2 1-2.6 2.8-.2z" /><path d="M9 12l2 2 4-4" /></template>
@@ -522,12 +482,12 @@ const essentials: Essential[] = [
         <div class="container">
           <div class="coach-faq-split">
             <header class="coach-faq-intro reveal">
-              <p class="protocol coach-eyebrow"><span class="coach-eyebrow-tick" aria-hidden="true" />Common questions</p>
-              <h2 class="display coach-faq-title">Before you<br ><span class="accent">apply.</span></h2>
+              <p class="protocol coach-eyebrow"><span class="coach-eyebrow-tick" aria-hidden="true" />{{ t('coach.faqEyebrow') }}</p>
+              <h2 class="display coach-faq-title">{{ t('coach.faqTitle') }}</h2>
             </header>
             <FaqAccordion
               class="reveal"
-              :items="faqs"
+              :items="localizedFaqs"
               id-prefix="coach-faq"
             />
           </div>
@@ -541,19 +501,19 @@ const essentials: Essential[] = [
         <span class="coach-final-glow" aria-hidden="true" />
 
         <div class="container coach-final-inner reveal">
-          <p class="protocol coach-eyebrow coach-final-eyebrow"><span class="coach-eyebrow-tick" aria-hidden="true" />For lifters / by lifters</p>
+          <p class="protocol coach-eyebrow coach-final-eyebrow"><span class="coach-eyebrow-tick" aria-hidden="true" />{{ t('coach.finalEyebrow') }}</p>
           <h2 class="display coach-final-title">
-            Ready to coach<br >on <span class="accent coach-final-accent">LIFTAG?</span>
+            {{ t('coach.finalTitle') }}
           </h2>
           <p class="coach-final-lead">
-            Download the app, open your application, and start building your roster.
+            {{ t('coach.finalLead') }}
           </p>
           <div class="coach-store-row coach-final-store">
             <GetAppBtn />
           </div>
           <div class="coach-final-links">
-            <a href="/for-trainers" class="coach-textlink">Explore trainer features →</a>
-            <a href="/" class="coach-textlink coach-textlink--muted">Back to home</a>
+            <a :href="href('/for-trainers')" class="coach-textlink">{{ t('coach.trainerLink') }}</a>
+            <a :href="href('/')" class="coach-textlink coach-textlink--muted">{{ t('coach.homeLink') }}</a>
           </div>
         </div>
       </section>

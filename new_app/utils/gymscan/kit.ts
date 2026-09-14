@@ -1,3 +1,6 @@
+import type { SiteLocale } from '../../types/locale'
+import { gymDemoMessages } from '../../i18n/messages/gymDemo.ts'
+
 export interface KitFields {
   name: string;
   email: string;
@@ -14,29 +17,29 @@ export const KIT_LIMITS = {
   city: 120,
 } as const;
 
-export function validateKit(fields: KitFields): KitErrors {
+export function validateKit(fields: KitFields, locale: SiteLocale = 'en'): KitErrors {
+  const copy = gymDemoMessages(locale).kit
   const errors: KitErrors = {};
   for (const key of ["name", "gym", "city"] as const) {
     if (!fields[key].trim())
-      errors[key] =
-        `Enter ${key === "name" ? "your name" : key === "gym" ? "your gym name" : "your city"}.`;
+      errors[key] = copy.required[key === 'name' ? 'name' : key === 'gym' ? 'gym' : 'city'];
     else if (fields[key].trim().length > KIT_LIMITS[key])
-      errors[key] = `Use ${KIT_LIMITS[key]} characters or fewer.`;
+      errors[key] = copy.maxLength.replace('{max}', String(KIT_LIMITS[key]));
   }
   if (
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email.trim()) ||
     fields.email.length > 254
   )
-    errors.email = "Enter a valid email address.";
+    errors.email = copy.emailError;
   if (
     fields.equipment.trim() &&
     (!/^\d+$/.test(fields.equipment.trim()) ||
       Number(fields.equipment) < 1 ||
       Number(fields.equipment) > 10000)
   )
-    errors.equipment = "Enter a whole number from 1 to 10,000.";
+    errors.equipment = copy.equipment;
   if (fields.notes.length > 2000)
-    errors.notes = "Use 2,000 characters or fewer.";
+    errors.notes = copy.notes;
   return errors;
 }
 

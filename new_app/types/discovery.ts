@@ -1,3 +1,4 @@
+import type { CatalogVideo } from './catalog'
 import type { SiteLocale } from './locale.ts'
 
 export type DiscoveryLocale = SiteLocale
@@ -102,7 +103,7 @@ export interface DiscoveryExercise {
   description: string | null
   instructions: string | null
   image: string | null
-  videos: string[]
+  videos: CatalogVideo[]
   muscles: string[]
 }
 export interface GymMachineDetail {

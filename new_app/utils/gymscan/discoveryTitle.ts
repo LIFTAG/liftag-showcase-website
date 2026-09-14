@@ -3,25 +3,26 @@ import {
   DISCOVERY_APP_TITLE,
   discoveryTitlePoseAt,
 } from "./discoveryTimeline";
+import type { GymDemoMessages } from '~/i18n/messages/gymDemo';
 
 const TEX_W = 1024;
 const TEX_H = 240;
 
-function drawCaption(ctx: CanvasRenderingContext2D, w: number, h: number) {
+function drawCaption(ctx: CanvasRenderingContext2D, w: number, h: number, copy: GymDemoMessages['discovery']) {
   ctx.clearRect(0, 0, w, h);
-  const { text, x, baseline, size, weight, boxX, boxY, boxW, boxH } = DISCOVERY_APP_TITLE;
+  const { x, baseline, size, weight, boxX, boxY, boxW, boxH } = DISCOVERY_APP_TITLE;
   ctx.fillStyle = "#eff2ed";
   ctx.font = `${weight} ${(size / boxH) * h}px Inter, sans-serif`;
   ctx.textBaseline = "alphabetic";
-  ctx.fillText(text, ((x - boxX) / boxW) * w, ((baseline - boxY) / boxH) * h);
+  ctx.fillText(copy.profileTitle, ((x - boxX) / boxW) * w, ((baseline - boxY) / boxH) * h);
 }
 
 /** Floor "Your gym" caption that travels into the in-app title. */
-export function createDiscoveryTitle() {
+export function createDiscoveryTitle(copy: GymDemoMessages['discovery']) {
   const image = document.createElement("canvas");
   image.width = TEX_W;
   image.height = TEX_H;
-  drawCaption(image.getContext("2d")!, TEX_W, TEX_H);
+  drawCaption(image.getContext("2d")!, TEX_W, TEX_H, copy);
   const texture = new THREE.CanvasTexture(image);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.generateMipmaps = false;
@@ -45,8 +46,8 @@ export function createDiscoveryTitle() {
   root.add(mesh);
   return {
     root,
-    paintClean() {
-      drawCaption(image.getContext("2d")!, TEX_W, TEX_H);
+    paintClean(nextCopy = copy) {
+      drawCaption(image.getContext("2d")!, TEX_W, TEX_H, nextCopy);
       texture.needsUpdate = true;
     },
     update(progress: number) {

@@ -12,6 +12,7 @@
 // glossy and metallic in exactly the pixels where it is copper-coloured.
 import * as THREE from 'three'
 import { patchPeelVertex, type PeelUniforms } from './peel.ts'
+import { gymDemoMessages, type GymDemoMessages } from '../../i18n/messages/gymDemo.ts'
 
 const TEX_W = 512
 const TEX_H = 541          // 827 x 874 artwork aspect, so front and back register
@@ -84,6 +85,7 @@ interface InlayStyle {
   pad: string
   mottle: number
   text: string | null
+  copy?: GymDemoMessages['canvas']
 }
 
 function drawInlay(ctx: CanvasRenderingContext2D, w: number, h: number, s: InlayStyle): void {
@@ -144,8 +146,8 @@ function drawInlay(ctx: CanvasRenderingContext2D, w: number, h: number, s: Inlay
     ctx.fillStyle = s.text
     ctx.font = `500 ${Math.round(w * 0.030)}px "JetBrains Mono", monospace`
     ctx.textAlign = 'center'
-    ctx.fillText('NFC 13.56 MHz', w * 0.5, h * 0.925)
-    ctx.fillText('LIFTAG TAG-01', w * 0.5, h * 0.078)
+    ctx.fillText(s.copy!.nfc, w * 0.5, h * 0.925)
+    ctx.fillText(s.copy!.tag, w * 0.5, h * 0.078)
   }
   ctx.restore()
 }
@@ -161,11 +163,13 @@ export interface NfcMaps {
   map: THREE.CanvasTexture
   /** ORM: R unused, G roughness, B metalness - copper is glossy, PET is not. */
   orm: THREE.CanvasTexture
+  setCopy: (copy: GymDemoMessages['canvas']) => void
 }
 
-export function createNfcMaps(anisotropy: number): NfcMaps {
+export function createNfcMaps(anisotropy: number, copy?: GymDemoMessages['canvas']): NfcMaps {
+  const localizedCopy = copy ?? gymDemoMessages('en').canvas
   const colorCtx = canvas(TEX_W, TEX_H)
-  drawInlay(colorCtx, TEX_W, TEX_H, {
+  const colorStyle: InlayStyle = {
     // Neutral, not warm. A brown substrate under a copper coil reads as one
     // corroded object rather than as a bronze antenna on a plastic carrier -
     // the back of the card looked rusty. The trace keeps its bronze; the
@@ -177,8 +181,9 @@ export function createNfcMaps(anisotropy: number): NfcMaps {
     chip: '#0a0a0c',
     pad: '#9aa2ab',
     mottle: 0.02,
-    text: 'rgba(168,176,186,0.28)',
-  })
+    text: 'rgba(168,176,186,0.28)', copy: localizedCopy,
+  }
+  drawInlay(colorCtx, TEX_W, TEX_H, colorStyle)
   const ormCtx = canvas(TEX_W, TEX_H)
   drawInlay(ormCtx, TEX_W, TEX_H, {
     // Adhesive backing, not a laminate: near-fully rough. At 0.77 the 0C key
@@ -201,7 +206,15 @@ export function createNfcMaps(anisotropy: number): NfcMaps {
   const orm = new THREE.CanvasTexture(ormCtx.canvas)
   orm.colorSpace = THREE.NoColorSpace
   orm.anisotropy = anisotropy
-  return { map, orm }
+  return {
+    map,
+    orm,
+    setCopy(next) {
+      colorStyle.copy = next
+      drawInlay(colorCtx, TEX_W, TEX_H, colorStyle)
+      map.needsUpdate = true
+    },
+  }
 }
 
 /**

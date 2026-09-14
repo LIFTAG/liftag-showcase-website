@@ -1,3 +1,4 @@
+import { en as calculatorCopy } from '../i18n/messages/calculatorLogic.ts'
 import { ONE_RM_EXERCISES, type OneRmExerciseId } from './oneRepMaxExercises.ts'
 export type LiftId = OneRmExerciseId
 
@@ -150,13 +151,13 @@ export function loadIncrement(unit: WeightUnit): number {
 }
 
 /** Display one decimal in either unit, dropping a trailing .0. */
-export function formatLoad(kg: number, unit: WeightUnit): string {
+export function formatLoad(kg: number, unit: WeightUnit, locale = 'en'): string {
   const rounded = Math.round(fromKg(kg, unit) * 10) / 10
-  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1)
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(rounded)
 }
 
-export function formatLoadWithUnit(kg: number, unit: WeightUnit): string {
-  return `${formatLoad(kg, unit)} ${unit}`
+export function formatLoadWithUnit(kg: number, unit: WeightUnit, locale = 'en'): string {
+  return `${formatLoad(kg, unit, locale)} ${unit}`
 }
 
 /** Keep typed input readable: 100 stays "100", 62.5 stays "62.5". */
@@ -175,7 +176,7 @@ export interface ParseResult {
 
 const UNIT_TOKEN_RE = /(kgs?|kilos?|kilograms?|lbs?|pounds?)/i
 
-export function parseWeightInput(raw: string): ParseResult {
+export function parseWeightInput(raw: string, copy = calculatorCopy): ParseResult {
   const trimmed = raw.trim()
   if (!trimmed) return { value: null, detectedUnit: null, error: null }
 
@@ -191,12 +192,12 @@ export function parseWeightInput(raw: string): ParseResult {
     .replace(/\s+/g, '')
     .replace(',', '.')
 
-  if (!numeric) return { value: null, detectedUnit, error: 'Need a weight and the reps you actually did.' }
-  if (/[eE]/.test(numeric)) return { value: null, detectedUnit, error: 'Enter a gym load, not scientific notation.' }
-  if (!/^\d+(\.\d+)?$/.test(numeric)) return { value: null, detectedUnit, error: 'Weight has to be a number.' }
+  if (!numeric) return { value: null, detectedUnit, error: copy.weightRequired }
+  if (/[eE]/.test(numeric)) return { value: null, detectedUnit, error: copy.scientific }
+  if (!/^\d+(\.\d+)?$/.test(numeric)) return { value: null, detectedUnit, error: copy.weightNumber }
 
   const value = Number(numeric)
-  if (!Number.isFinite(value) || value <= 0) return { value: null, detectedUnit, error: 'Weight has to be greater than 0.' }
+  if (!Number.isFinite(value) || value <= 0) return { value: null, detectedUnit, error: copy.weightPositive }
   return { value, detectedUnit, error: null }
 }
 
@@ -215,13 +216,13 @@ export function relabelWeightInput(kg: number, unit: WeightUnit): string {
   return formatInputWeight(fromKg(kg, unit), unit)
 }
 
-export function parseRepsInput(raw: string): ParseResult {
+export function parseRepsInput(raw: string, copy = calculatorCopy): ParseResult {
   const trimmed = raw.trim()
   if (!trimmed) return { value: null, detectedUnit: null, error: null }
-  if (!/^\d+$/.test(trimmed)) return { value: null, detectedUnit: null, error: `Reps: ${MIN_REPS}–${MAX_REPS}, whole numbers.` }
+  if (!/^\d+$/.test(trimmed)) return { value: null, detectedUnit: null, error: copy.repsWhole.replace('{min}', String(MIN_REPS)).replace('{max}', String(MAX_REPS)) }
   const value = Number(trimmed)
   if (value < MIN_REPS || value > MAX_REPS) {
-    return { value: null, detectedUnit: null, error: `Reps: ${MIN_REPS}–${MAX_REPS}.` }
+    return { value: null, detectedUnit: null, error: copy.repsRange.replace('{min}', String(MIN_REPS)).replace('{max}', String(MAX_REPS)) }
   }
   return { value, detectedUnit: null, error: null }
 }

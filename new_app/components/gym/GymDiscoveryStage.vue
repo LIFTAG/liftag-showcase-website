@@ -15,12 +15,16 @@ import {
   discoveryMapLocations,
   discoveryCountryLabels,
 } from "~/utils/gymscan/discoveryMapLocations";
+import { en, sk, gymDemoMessages } from '~/i18n/messages/gymDemo';
+import { useSiteLocale } from '~/composables/useSiteLocale';
 const mouse = useSharedMouse();
 const props = defineProps<{
   film: { progress: number };
   reduced: boolean;
   replay: number;
 }>();
+const { locale } = useSiteLocale();
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } });
 const emit = defineEmits<{ open: []; unavailable: [] }>();
 const host = useTemplateRef<HTMLElement>("host");
 const canvas = useTemplateRef<HTMLCanvasElement>("canvas");
@@ -269,7 +273,7 @@ async function boot() {
   try {
     const module = await import("~/utils/gymscan/discoveryStage");
     if (disposed || !canvas.value) return;
-    stage = module.createDiscoveryStage(canvas.value);
+    stage = module.createDiscoveryStage(canvas.value, { copy: gymDemoMessages(locale.value) });
     await stage.ready;
     if (disposed || failed) return;
     ready.value = true;
@@ -293,6 +297,7 @@ watch(
     activity();
   },
 );
+watch(locale, (value) => stage?.setCopy(gymDemoMessages(value)));
 onMounted(() => {
   labelNodes = Array.from(
     labels.value?.querySelectorAll<HTMLElement>("span") ?? [],
@@ -355,7 +360,7 @@ onBeforeUnmount(() => {
         :class="[`gd-location-${location.id}`, { 'is-slovak': location.country === 'Slovakia' }]"
       >
         <span class="gd-map-dot" aria-hidden="true" />
-        <span class="gd-map-name">{{ location.city }}<small>{{ location.count }} {{ location.count === 1 ? 'gym' : 'gyms' }}</small></span>
+        <span class="gd-map-name">{{ location.city }}<small>{{ location.count }} {{ location.count === 1 ? t('discovery.gym') : t('discovery.gyms') }}</small></span>
       </div>
       <span
         v-for="country in discoveryCountryLabels"
@@ -364,15 +369,15 @@ onBeforeUnmount(() => {
         class="gd-map-country"
         :class="{ 'is-primary': country.primary }"
         aria-hidden="true"
-      >{{ country.city }}</span>
+      >{{ t(`discovery.countryLabels.${country.city}`) }}</span>
     </div>
     <div v-if="mapVisible" class="gd-map-context">
-      <p class="gd-map-route" aria-label="From the world to gyms in Slovakia">
-        <span :class="{ 'is-current': locationPhase === 0 }">The world</span><i aria-hidden="true">/</i>
-        <span :class="{ 'is-current': locationPhase > 0 }">Slovakia</span>
+      <p class="gd-map-route" :aria-label="t('discovery.fromWorld')">
+        <span :class="{ 'is-current': locationPhase === 0 }">{{ t('discovery.world') }}</span><i aria-hidden="true">/</i>
+        <span :class="{ 'is-current': locationPhase > 0 }">{{ t('discovery.slovakia') }}</span>
       </p>
-      <p class="gd-map-status" role="status">{{ ['One connected gym network', 'A closer look at Slovakia', '8 gyms in Slovakia.'][locationPhase] }}</p>
-      <button v-if="locationPhase === 2" class="gd-map-open" @click="emit('open')">Explore a gym listing <span aria-hidden="true">↗</span></button>
+      <p class="gd-map-status" role="status">{{ [t('discovery.networkStatus'), t('discovery.closerStatus'), t('discovery.countStatus')][locationPhase] }}</p>
+      <button v-if="locationPhase === 2" class="gd-map-open" @click="emit('open')">{{ t('discovery.openListing') }} <span aria-hidden="true">↗</span></button>
     </div>
     <div ref="labels" class="gd-machine-labels" aria-hidden="true">
       <span v-for="item in discoveryEquipment" :key="item.id">{{ item.number }}</span>

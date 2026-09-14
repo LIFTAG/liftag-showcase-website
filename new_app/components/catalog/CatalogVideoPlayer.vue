@@ -8,12 +8,17 @@
  */
 import type Hls from 'hls.js'
 import { CATALOG_VIDEOS_ENABLED, catalogMediaAspectRatio } from '~/utils/catalogVideo'
+import { en, sk } from '~/i18n/messages/catalogMedia'
 
 const props = defineProps<{
   videoUrl: string | null
   poster: string | null
   name: string
 }>()
+
+const { locale } = useSiteLocale()
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+const language = useVideoLanguage(locale)
 
 const enabledVideoUrl = computed(() => (CATALOG_VIDEOS_ENABLED ? props.videoUrl : null))
 
@@ -23,6 +28,7 @@ const emit = defineEmits<{
 
 const rootRef = ref<HTMLElement | null>(null)
 const playing = ref(false)
+const playbackFailed = ref(false)
 const ended = ref(false)
 const posterFailed = ref(false)
 const posterRatio = shallowRef<number | null>(null)
@@ -104,6 +110,7 @@ function stopPreview() {
   previewVisible.value = false
 
   const video = previewRef.value
+  if (video) language.unbind(video)
   video?.pause()
   previewHls?.destroy()
   previewHls = null
@@ -134,6 +141,7 @@ function stop() {
   stopPreview()
   const video = videoRef.value
 
+  if (video) language.unbind(video)
   video?.pause()
   hls?.destroy()
   hls = null
@@ -192,9 +200,11 @@ async function startPreview() {
     previewHls = new HlsCtor()
     previewHls.loadSource(source)
     previewHls.attachMedia(video)
+    language.bind(video, previewHls)
   }
   else {
     video.src = source
+    language.bind(video)
   }
 
   video.play().catch(() => stopPreview())
@@ -238,10 +248,17 @@ function onRootClick(event: MouseEvent) {
   play()
 }
 
+function failPlayback() {
+  if (!playing.value) return
+  stop()
+  playbackFailed.value = true
+}
+
 async function play() {
   const source = enabledVideoUrl.value
   if (!source || playing.value) return
   stopPreview()
+  playbackFailed.value = false
   const request = ++playbackRequest
   playing.value = true
   emit('playing', true)
@@ -250,19 +267,26 @@ async function play() {
   const video = videoRef.value
   if (!video || request !== playbackRequest || !playing.value) return
 
-  if (isHlsSource.value && !video.canPlayType('application/vnd.apple.mpegurl')) {
-    const HlsCtor = (await import('hls.js')).default
-    if (request !== playbackRequest || !playing.value) return
-    if (HlsCtor.isSupported()) {
+  try {
+    if (isHlsSource.value && !video.canPlayType('application/vnd.apple.mpegurl')) {
+      const HlsCtor = (await import('hls.js')).default
+      if (request !== playbackRequest || !playing.value) return
+      if (!HlsCtor.isSupported()) { failPlayback(); return }
       hls = new HlsCtor()
+      hls.on(HlsCtor.Events.ERROR, (_, data) => {
+        if (data.fatal && request === playbackRequest) failPlayback()
+      })
       hls.loadSource(source)
       hls.attachMedia(video)
+      language.bind(video, hls)
+    } else {
+      video.src = source
+      language.bind(video)
     }
-  }
-  else {
-    video.src = source
-  }
-  video.play().catch(() => {})
+    video.play().catch(error => {
+      if (request === playbackRequest && error.name === 'NotSupportedError') failPlayback()
+    })
+  } catch { if (request === playbackRequest) failPlayback() }
 }
 
 function onEnded() {
@@ -286,9 +310,12 @@ function replay() {
   video.play().catch(() => {})
 }
 
-watch(enabledVideoUrl, () => {
+watch(enabledVideoUrl, async () => {
+  playbackFailed.value = false
+  const resume = playing.value
   stop()
   syncHoverCapability()
+  if (resume && enabledVideoUrl.value) await play()
 })
 
 onMounted(() => {
@@ -316,6 +343,7 @@ onBeforeUnmount(() => {
   setCinemaLock(false)
   clearPreviewLeaveTimer()
   stopPreview()
+  if (videoRef.value) language.unbind(videoRef.value)
   hls?.destroy()
   hls = null
 })
@@ -345,7 +373,7 @@ onBeforeUnmount(() => {
         v-if="youTubeId"
         class="cat-player__frame"
         :src="`https://www.youtube-nocookie.com/embed/${youTubeId}?autoplay=1&rel=0`"
-        :title="`${name} instruction video`"
+          :title="t('instructions', { name })"
         allow="autoplay; encrypted-media; picture-in-picture"
         allowfullscreen
       />
@@ -357,6 +385,8 @@ onBeforeUnmount(() => {
         :controls="!ended"
         playsinline
         preload="auto"
+        :aria-label="t('instructions', { name })"
+        @error="failPlayback"
         @ended="onEnded"
         @play="onPlaybackResume"
       />
@@ -364,7 +394,7 @@ onBeforeUnmount(() => {
         v-if="ended && !youTubeId"
         type="button"
         class="cat-player__cta"
-        :aria-label="`Replay ${name} instructions`"
+        :aria-label="t('replay', { name })"
         @click="replay"
       >
         <span class="cat-player__cta-ring cat-player__cta-ring--replay">
@@ -372,7 +402,7 @@ onBeforeUnmount(() => {
             <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />
           </svg>
         </span>
-        <span class="cat-player__cta-label">Replay</span>
+        <span class="cat-player__cta-label">{{ t('replayLabel') }}</span>
       </button>
     </template>
 
@@ -394,7 +424,7 @@ onBeforeUnmount(() => {
           v-if="youTubeId"
           class="cat-player__preview"
           :src="`https://www.youtube-nocookie.com/embed/${youTubeId}?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=${youTubeId}&rel=0`"
-          :title="`${name} video preview`"
+          :title="t('instructions', { name })"
           tabindex="-1"
           allow="autoplay; encrypted-media"
           @load="markPreviewVisible(previewRequest)"
@@ -432,16 +462,15 @@ onBeforeUnmount(() => {
             <path fill="currentColor" d="M3 9.2v5.6h3.3L12 19.5V4.5L6.3 9.2H3Z" />
             <path fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" d="M16.2 9.2 21 14M21 9.2l-4.8 4.8" />
           </svg>
-          Muted preview
+          {{ t('mutedPreview') }}
         </p>
       </Transition>
+      <p v-if="playbackFailed" class="cat-player__failure" role="status">{{ t('unavailable') }}</p>
       <button
         v-if="enabledVideoUrl"
         type="button"
         class="cat-player__cta"
-        :aria-label="showMuteHint
-          ? 'Preview is muted. Click to watch with sound.'
-          : `Watch ${name} instructions`"
+        :aria-label="playbackFailed ? t('retry') : showMuteHint ? t('mutedHint') : t('watch', { name })"
         @click="play"
       >
         <span class="cat-player__cta-ring">
@@ -449,7 +478,7 @@ onBeforeUnmount(() => {
             <path d="M0 0.9c0-.7.8-1.2 1.4-.8l8 5.1c.6.4.6 1.2 0 1.6l-8 5.1c-.6.4-1.4-.1-1.4-.8V.9Z" />
           </svg>
         </span>
-        <span class="cat-player__cta-label">Watch instructions</span>
+        <span class="cat-player__cta-label">{{ t(playbackFailed ? 'retry' : 'watchLabel') }}</span>
       </button>
     </template>
 
@@ -457,7 +486,7 @@ onBeforeUnmount(() => {
       v-if="playing"
       type="button"
       class="cat-player__close"
-      aria-label="Close video and show exercise image"
+      :aria-label="t('close')"
       @click="stop"
     >
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
@@ -468,6 +497,20 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.cat-player__failure {
+  position: absolute;
+  z-index: 4;
+  inset: 16px 16px auto;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+}
+
 .cat-player {
   --still-x: 0.5;
   --still-y: 0.5;

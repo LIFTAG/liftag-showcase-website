@@ -1,14 +1,17 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/gymDemo';
 defineProps<{ reduced: boolean }>();
 const emit = defineEmits<{ motion: []; kit: [] }>();
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } });
+const { href } = useSiteLocale();
 
-const destinations = [
-  { to: "#lifters", label: "Try LIFTAG", idx: "01" },
-  { to: "#gyms", label: "For gym owners", idx: "02" },
-  { to: "/for-trainers", label: "For coaches", idx: "03" },
-  { to: "/pricing", label: "Pricing", idx: "04" },
-  { to: "/exercises", label: "Exercise library", idx: "05" },
-] as const;
+const destinations = computed(() => [
+  { to: '#lifters', label: t('chapters.members'), idx: '01' },
+  { to: '#gyms', label: t('nav.gyms'), idx: '02' },
+  { to: href('/for-trainers'), label: t('nav.coaches'), idx: '03' },
+  { to: href('/pricing'), label: t('nav.pricing'), idx: '04' },
+  { to: href('/exercises'), label: t('nav.library'), idx: '05' },
+]);
 
 const open = shallowRef(false);
 const root = useTemplateRef<HTMLElement>("root");
@@ -122,23 +125,23 @@ onBeforeUnmount(() => {
     @click="closeAfterNavigation"
   >
     <header class="gx-nav" :class="{ 'is-open': open }">
-      <a class="gx-skip" href="#experience">Skip to content</a>
-      <NuxtLink class="gx-logo" to="/" aria-label="LIFTAG home">
+      <a class="gx-skip" href="#experience">{{ t('nav.skip') }}</a>
+      <NuxtLink class="gx-logo" :to="href('/')" :aria-label="t('nav.home')">
         <img src="/assets/logo.svg" width="25" height="25" alt="" />
         <GymLockupWord />
       </NuxtLink>
-      <nav class="gx-nav__links" aria-label="Main navigation">
-        <a href="#experience">Experience</a><a href="#gyms">For gyms</a
-        ><NuxtLink to="/get">Get the app ↗</NuxtLink>
+      <nav class="gx-nav__links" :aria-label="t('nav.main')">
+        <a href="#experience">{{ t('nav.experience') }}</a><a href="#gyms">{{ t('nav.gyms') }}</a
+        ><NuxtLink :to="href('/get')">{{ t('nav.app') }} ↗</NuxtLink>
       </nav>
       <a class="btn-primary gx-nav__kit" href="#kit" @click="emit('kit')"
-        ><span>Become a </span><span class="gx-nav__kit-label">partner gym</span></a
+        ><span>{{ t('nav.partnerPrefix') }}</span><span class="gx-nav__kit-label">{{ t('nav.partner') }}</span></a
       >
       <button
         ref="menuToggle"
         type="button"
         class="gx-nav-toggle"
-        :aria-label="open ? 'Close menu' : 'Open menu'"
+        :aria-label="open ? t('nav.closeMenu') : t('nav.openMenu')"
         :aria-expanded="open"
         aria-controls="gx-mobile-navigation"
         aria-haspopup="true"
@@ -161,10 +164,10 @@ onBeforeUnmount(() => {
     >
       <div class="gx-nav-drawer__plate">
         <div class="gx-nav-drawer__head gx-nav-drawer__in" aria-hidden="true" style="--i: 0">
-          <span class="gx-protocol">More</span>
+          <span class="gx-protocol">{{ t('nav.more') }}</span>
           <span class="gx-protocol">05</span>
         </div>
-        <nav aria-label="More navigation">
+        <nav :aria-label="t('nav.moreNavigation')">
           <NuxtLink
             v-for="(item, i) in destinations"
             :key="item.idx"
@@ -177,30 +180,30 @@ onBeforeUnmount(() => {
           </NuxtLink>
         </nav>
         <NuxtLink
-          to="/get"
+          :to="href('/get')"
           class="gx-nav-drawer__app gx-nav-drawer__in"
           :style="{ '--i': destinations.length + 1 }"
         >
-          Get the app
+          {{ t('nav.app') }}
         </NuxtLink>
         <div
           class="gx-nav-drawer__store gx-nav-drawer__in"
           :style="{ '--i': destinations.length + 1 }"
         >
-          <GetAppBtn compact label="Get the app" />
+          <GetAppBtn compact :label="t('nav.app')" />
         </div>
         <button
           type="button"
           class="gx-nav-drawer__motion gx-nav-drawer__in"
           :style="{ '--i': destinations.length + 2 }"
           :aria-pressed="reduced"
-          :aria-label="reduced ? 'Use full motion' : 'Reduce motion'"
+          :aria-label="reduced ? t('nav.useFull') : t('nav.reduce')"
           @click.stop="emit('motion')"
         >
           <span class="gx-nav-drawer__motion-copy">
-            <span class="gx-protocol">Motion</span>
+            <span class="gx-protocol">{{ t('nav.motion') }}</span>
             <span class="gx-nav-drawer__motion-state">{{
-              reduced ? "Reduced" : "Full"
+              reduced ? t('nav.reduced') : t('nav.full')
             }}</span>
           </span>
           <span

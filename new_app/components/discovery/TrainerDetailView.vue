@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import TrainerPublicContent from '~/components/discovery/TrainerPublicContent.vue'
 import type { PublicTrainer } from '~/types/discovery'
-import { discoveryLabel } from '~/utils/discoveryCopy'
+import { discoveryCount, discoveryLabel } from '~/utils/discoveryCopy'
 const props = defineProps<{ id: string }>()
 const { locale, copy, href } = useDiscoveryLocale()
 const {
@@ -64,7 +64,7 @@ useDiscoverySeo({
             </span>
           </div>
           <div class="d-row d-muted d-small">
-            <span v-if="trainer.experience !== null">{{ trainer.experience }} {{ copy.experience }}</span>
+            <span v-if="trainer.experience !== null">{{ discoveryCount(trainer.experience, 'experience', locale) }}</span>
             <span v-if="trainer.online" class="d-link">
               <DiscoveryIcon name="globe" :size="16" />
               {{ copy.online }}

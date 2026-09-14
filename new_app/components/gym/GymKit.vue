@@ -1,43 +1,42 @@
 <script setup lang="ts">
-import { gymFaqs } from "~/utils/gymscan/content";
+import { gymFaqsForLocale } from "~/utils/gymscan/content";
+import { en, sk } from '~/i18n/messages/gymDemo';
 withDefaults(defineProps<{ source?: "experience" | "partner" }>(), {
   source: "experience",
 });
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } });
+const { locale, href } = useSiteLocale();
+const faqs = computed(() => gymFaqsForLocale(locale.value).slice(1));
 </script>
 <template>
   <section id="kit" class="gx-kit" aria-labelledby="gx-kit-title" tabindex="-1">
     <div class="gx-kit__intro">
-      <p class="gx-protocol"><GymHeroEntry row><span class="gx-dot" /> START WITH YOUR GYM</GymHeroEntry></p>
+      <p class="gx-protocol"><GymHeroEntry row><span class="gx-dot" /> {{ t('kit.eyebrow') }}</GymHeroEntry></p>
       <h2 id="gx-kit-title">
-        <GymHeroEntry row>Put your gym </GymHeroEntry><br /><GymHeroEntry :delay="90"><em>in their workout.</em></GymHeroEntry>
+        <GymHeroEntry row>{{ t('kit.titleA') }}</GymHeroEntry><br /><GymHeroEntry :delay="90"><em>{{ t('kit.titleB') }}</em></GymHeroEntry>
       </h2>
-      <p><GymHeroEntry :delay="180">Create NFC and QR codes in the dashboard. Your equipment, connected.</GymHeroEntry></p>
+      <p><GymHeroEntry :delay="180">{{ t('kit.body') }}</GymHeroEntry></p>
       <div class="gx-kit__tag">
         <img
           src="/assets/gym3d/qr-sticker.webp"
           width="827"
           height="874"
-          alt="The LIFTAG QR and NFC equipment tag"
+          :alt="t('kit.tagAlt')"
           loading="lazy"
-        /><span class="gx-protocol"><GymHeroEntry :delay="240">QR + NFC<br />READY FOR YOUR FLOOR</GymHeroEntry></span>
+        /><span class="gx-protocol"><GymHeroEntry :delay="240">{{ t('kit.tagLabel') }}<br />{{ t('kit.tagSub') }}</GymHeroEntry></span>
       </div>
       <details class="gx-included">
-        <summary>What’s free? <span aria-hidden="true">+</span></summary>
-        <p>
-          The dashboard to create and manage NFC tags and QR codes, your gym
-          listing, equipment setup, and the full member app. Physical NFC tags
-          and QR stickers are not included: you buy those yourself. Advanced
-          business tools are optional.
-        </p>
-        <NuxtLink to="/pricing">See what’s included ↗</NuxtLink>
+        <summary>{{ t('kit.free') }} <span aria-hidden="true">+</span></summary>
+        <p>{{ t('kit.freeBody') }}</p>
+        <NuxtLink :to="href('/pricing')">{{ t('kit.included') }}</NuxtLink>
       </details>
     </div>
     <div class="gx-kit__form">
-      <h3><GymHeroEntry :delay="80">Become a partner gym.</GymHeroEntry></h3>
+      <h3><GymHeroEntry :delay="80">{{ t('kit.partnerTitle') }}</GymHeroEntry></h3>
       <GymKitForm :source="source" theme="dark" />
     </div>
     <div class="gx-faqs">
-      <details v-for="faq in gymFaqs.slice(1)" :key="faq.question">
+      <details v-for="faq in faqs" :key="faq.question">
         <summary>{{ faq.question }}<span aria-hidden="true">+</span></summary>
         <p>{{ faq.answer }}</p>
       </details>

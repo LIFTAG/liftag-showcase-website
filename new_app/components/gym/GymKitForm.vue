@@ -6,6 +6,8 @@ import {
   type KitFields,
   type KitErrors,
 } from "~/utils/gymscan/kit";
+import { en, sk } from '~/i18n/messages/gymDemo';
+import { useSiteLocale } from '~/composables/useSiteLocale';
 const props = withDefaults(
   defineProps<{
     source?: "experience" | "partner";
@@ -13,6 +15,8 @@ const props = withDefaults(
   }>(),
   { source: "experience", theme: "light" },
 );
+const { locale, href } = useSiteLocale();
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } });
 const fields = reactive<KitFields>({
   name: "",
   email: "",
@@ -25,7 +29,7 @@ const errors = ref<KitErrors>({});
 const token = ref(""),
   verificationMessage = ref(""),
   challengeReady = ref(false);
-const { status, errorMessage, submit } = useContactSubmit();
+const { status, errorCode, submit } = useContactSubmit();
 const hydrated = ref(false);
 const pending = computed(() => status.value === "submitting");
 const succeeded = computed(() => status.value === "success");
@@ -44,22 +48,22 @@ const turnstileOptions = computed(() => ({
   "error-callback": () => {
     token.value = "";
     verificationMessage.value =
-      "Verification is unavailable right now. Please try again, or email support@liftag.fit to partner with us.";
+      t('kit.verifyUnavailable');
     return true;
   },
 }));
 const id = useId();
 let observer: IntersectionObserver | null = null;
 let resize: ResizeObserver | null = null;
-const inputs = [
-  { key: "name", label: "Your name", autocomplete: "name", type: "text" },
-  { key: "email", label: "Email", autocomplete: "email", type: "email" },
-  { key: "gym", label: "Gym name", autocomplete: "organization", type: "text" },
-  { key: "city", label: "City", autocomplete: "address-level2", type: "text" },
-] as const;
+const inputs = computed(() => [
+  { key: "name", label: t('kit.yourName'), autocomplete: "name", type: "text" },
+  { key: "email", label: t('kit.email'), autocomplete: "email", type: "email" },
+  { key: "gym", label: t('kit.gymName'), autocomplete: "organization", type: "text" },
+  { key: "city", label: t('kit.city'), autocomplete: "address-level2", type: "text" },
+] as const);
 async function send() {
   if (pending.value || succeeded.value) return;
-  errors.value = validateKit(fields);
+  errors.value = validateKit(fields, locale.value);
   const first = Object.keys(errors.value)[0];
   if (first) {
     await nextTick();
@@ -69,7 +73,7 @@ async function send() {
   challengeReady.value = true;
   if (!token.value) {
     verificationMessage.value =
-      "Please complete the verification below, then send your request.";
+      t('kit.verifyPrompt');
     await nextTick();
     formError.value?.focus();
     return;
@@ -126,14 +130,10 @@ onBeforeUnmount(() => {
       role="status"
     >
       <span class="gx-form-confirmation__mark" aria-hidden="true">↗</span>
-      <h3>YOUR GYM.<br />OUR NEXT CONVERSATION.</h3>
-      <p>
-        Request received. LIFTAG will contact you by email about dashboard
-        access and setup. Physical NFC tags and QR stickers are not included;
-        gyms buy those themselves.
-      </p>
-      <NuxtLink class="btn-ghost" to="/for-gyms"
-        ><HoloPill />Explore LIFTAG for gyms</NuxtLink
+      <h3>{{ t('kit.formHeading') }}</h3>
+      <p>{{ t('kit.confirmation') }}</p>
+      <NuxtLink class="btn-ghost" :to="href('/for-gyms')"
+        ><HoloPill />{{ t('kit.explore') }}</NuxtLink
       >
     </div>
     <form
@@ -173,7 +173,7 @@ onBeforeUnmount(() => {
         </div>
         <div class="gx-form-field gx-form-field--full">
           <label :for="`${id}-equipment`"
-            >Equipment count <span>(optional)</span></label
+            >{{ t('kit.equipmentCount') }} <span>{{ t('kit.optional') }}</span></label
           ><input
             :id="`${id}-equipment`"
             v-model="fields.equipment"
@@ -197,7 +197,7 @@ onBeforeUnmount(() => {
         </div>
         <div class="gx-form-field gx-form-field--full">
           <label :for="`${id}-notes`"
-            >Anything else? <span>(optional)</span></label
+            >{{ t('kit.anythingElse') }} <span>{{ t('kit.optional') }}</span></label
           ><textarea
             :id="`${id}-notes`"
             v-model="fields.notes"
@@ -219,13 +219,13 @@ onBeforeUnmount(() => {
         </div>
       </div>
       <p
-        v-if="verificationMessage || errorMessage"
+        v-if="verificationMessage || errorCode"
         ref="formError"
         class="gx-form-form-error"
         role="alert"
         tabindex="-1"
       >
-        {{ verificationMessage || errorMessage }}
+        {{ verificationMessage || t('kit.submitError') }}
       </p>
       <div
         class="gx-form-verification"
@@ -245,14 +245,14 @@ onBeforeUnmount(() => {
         type="submit"
         :disabled="pending || !hydrated"
       >
-        {{ pending ? "Sending your request…" : "Become a partner gym" }}
+        {{ pending ? t('kit.send') : t('kit.submit') }}
       </button>
       <p class="gx-form-form-note">
-        We’ll contact you about partnering your gym. By submitting, you agree to our
-        <NuxtLink to="/privacy-policy">Privacy Policy</NuxtLink>.
+        {{ t('kit.privacyNote') }}
+        <NuxtLink :to="href('/privacy-policy')">{{ t('kit.privacy') }}</NuxtLink>.
       </p>
       <p class="gx-form-form-note">
-        Prefer email? <a href="mailto:support@liftag.fit">support@liftag.fit</a>
+        {{ t('kit.preferEmail') }} <a href="mailto:support@liftag.fit">support@liftag.fit</a>
       </p>
     </form>
   </div>

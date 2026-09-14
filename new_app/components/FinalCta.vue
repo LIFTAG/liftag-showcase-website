@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/marketing'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 const sectionRef = ref<HTMLElement | null>(null)
 const chargeAnchor = ref<HTMLElement | null>(null)
 const chargeP = ref(0)
@@ -15,8 +17,8 @@ let latched = false
 const chargeLabel = computed(() => {
   const n = Math.round(chargeP.value * 100)
   return latched || charged.value
-    ? 'CHARGE ▸ 100% · READY'
-    : `CHARGE ▸ ${n}%`
+    ? t('marketing.final.ready')
+    : t('marketing.final.charge', { n })
 })
 
 function updateCharge() {
@@ -172,7 +174,7 @@ onBeforeUnmount(() => {
           :style="{
             filter: 'drop-shadow(0 0 40px rgba(204,255,0,0.7))',
           }"
-          alt="LIFTAG logo"
+          :alt="t('marketing.final.logoAlt')"
         />
       </div>
 
@@ -184,8 +186,8 @@ onBeforeUnmount(() => {
           color: '#fff',
         }"
       >
-        <span class="plate-wipe">STOP <span class="lime">GUESSING</span>.<br />
-        START <span class="lime">LIFTING</span>.</span>
+        <span class="plate-wipe">{{ t('marketing.final.titleTop') }} <span class="lime">{{ t('marketing.final.titleTopAccent') }}</span>.<br />
+        {{ t('marketing.final.titleBottom') }} <span class="lime">{{ t('marketing.final.titleBottomAccent') }}</span>.</span>
       </h2>
 
       <p
@@ -199,8 +201,8 @@ onBeforeUnmount(() => {
           lineHeight: 1.55,
         }"
       >
-        Track real progress. Tap or scan real machines. Skip the spreadsheet.<br />
-        Free to download. Open now on iOS and Android.
+        {{ t('marketing.final.lead') }}<br />
+        {{ t('marketing.final.free') }}
       </p>
 
       <div class="final-charge" aria-hidden="true">

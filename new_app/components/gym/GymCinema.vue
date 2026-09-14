@@ -7,6 +7,8 @@ import {
   type GymProductView,
 } from "~/utils/gymscan/journey";
 import type { GymScanStage, FrameInfo } from "~/utils/gymscan/stage";
+import { gymDemoMessages } from '~/i18n/messages/gymDemo';
+import { useSiteLocale } from '~/composables/useSiteLocale';
 import { gymJourneyKey } from "~/composables/useGymJourney";
 import { gymCoachingKey } from "~/composables/useCoachingScroll";
 const props = defineProps<{
@@ -14,6 +16,7 @@ const props = defineProps<{
   reduced: boolean;
   productView: GymProductView;
 }>();
+const { locale } = useSiteLocale();
 function requireFilm<T>(value: T | undefined): T {
   if (!value) throw new Error("GymCinema must render inside GymExperience");
   return value;
@@ -27,7 +30,7 @@ const sticker = useTemplateRef<HTMLCanvasElement>("sticker");
 const video = useTemplateRef<HTMLVideoElement>('video');
 const customVideo = useTemplateRef<HTMLVideoElement>('customVideo');
 const mediaActive = shallowRef(false);
-const { failed: mediaFailed } = useGymInstructionPreview(video, () => mediaActive.value, () => props.reduced, true);
+const { failed: mediaFailed } = useGymInstructionPreview(video, () => mediaActive.value, () => props.reduced, true, locale);
 watch(mediaFailed, value => emit('mediaFailed', value));
 const ready = shallowRef(false);
 const fallback = shallowRef(false);
@@ -191,6 +194,7 @@ async function start() {
       onFrame: frame,
       readPointer: () => mouse.latest,
       readCoaching: () => ({ frame: coaching.value.frame, video: video.value, customVideo: customVideo.value, replay: coaching.value.replay }),
+      copy: gymDemoMessages(locale.value),
     });
     resize();
     await stage.load();
@@ -218,6 +222,7 @@ async function scheduleStart() {
   });
 }
 watch(journey, () => { sync(); activity(); });
+watch(locale, (value) => stage?.setCopy(gymDemoMessages(value)));
 watch(() => [coaching.value.paused, coaching.value.customSrc, coaching.value.frame.isOwner], () => nextTick(activity));
 watch(() => [props.paused, journey.value.chapter], activity);
 watch(

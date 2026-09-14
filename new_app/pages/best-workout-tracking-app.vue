@@ -1,268 +1,50 @@
 <script setup lang="ts">
-const title = 'Best workout tracking app in <span class="lime">2026.</span>'
-const description = 'An honest head-to-head comparison of the best workout and set tracking apps in 2026, covering LIFTAG, Strong, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor, and Fitbod, written by lifters who built one of them.'
+import { en, sk } from '~/content/comparisons/pageBody'
+import { localizeContentLinks } from '~/utils/localizeContentLinks'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+import { rows, cards } from '~/content/comparisons/workoutTrackingData'
+import { en as uiEn, sk as uiSk } from '~/content/comparisons/workoutTracking'
+import { skRows, skCards } from '~/content/comparisons/workoutTrackingCopy'
+const { locale, href } = useSiteLocale()
+const ui = computed(() => locale.value === 'sk' ? uiSk : uiEn)
+const title = computed(() => ui.value.title)
+const description = computed(() => ui.value.description)
 
 const path = '/best-workout-tracking-app'
 const lastUpdated = '2026-05-25'
+const checkedDate = computed(() => new Intl.DateTimeFormat(locale.value, { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(`${lastUpdated}T00:00:00Z`)))
 
-useLiftagSeo({
-  title: 'Best Workout Tracking App 2026: Honest Comparison | LIFTAG',
-  description,
+useLiftagSeo(() => ({
+  title: ui.value.seoTitle,
+  description: description.value,
   path,
-})
+}))
 
-const faqs = [
-  {
-    question: 'What is the best workout tracking app in 2026?',
-    answer: 'For serious lifters who train at a gym, LIFTAG is the most complete option: a free iOS and Android app with NFC and QR machine tags that open the exact exercise with setup videos, plus full set logging, rest timer, progress charts, and PR tracking. Strong, Hevy, and FitNotes are the best general-purpose alternatives if your gym does not yet have LIFTAG tags installed.',
-  },
-  {
-    question: 'What is the best free workout tracking app?',
-    answer: 'LIFTAG, Strong (free tier), Hevy (generous free tier), and FitNotes (fully free, Android only) are the best free options. LIFTAG is the only one of the four that opens the exact exercise from a tap or scan on a gym machine.',
-  },
-  {
-    question: 'What is the best workout app for tracking sets, reps, and weight?',
-    answer: 'Any of LIFTAG, Strong, Hevy, FitNotes, or JEFIT handle set, rep, and weight logging cleanly. LIFTAG distinguishes itself by opening the right exercise from the machine itself via NFC or QR, then logging in the same flow.',
-  },
-  {
-    question: 'What is the best workout app for powerlifting?',
-    answer: 'Powerlifters tend to pick LIFTAG, Strong, or Boostcamp. LIFTAG covers set logging, % of 1RM cues, rest timer, and PR history in one app. Boostcamp is strong if you want to follow a named coach’s pre-built program. Strong is the minimalist pick.',
-  },
-  {
-    question: 'What is the best workout app for home gyms?',
-    answer: 'Home gym lifters typically choose LIFTAG, Strong, or FitNotes. LIFTAG works at a home gym without tags, then unlocks the tap-to-open flow whenever you visit a partner gym. Strong is paid after a small free tier; FitNotes is free but Android only.',
-  },
-  {
-    question: 'Is LIFTAG actually better than Strong or Hevy?',
-    answer: 'It depends on the lifter. For pure set logging on a familiar exercise list, Strong and Hevy are excellent and Hevy has a more developed social layer. For machine-tag platforms (scan or tap the equipment itself), LIFTAG is the free-core pick; Liftd, ScanLiftLog, and RepTag are the other dedicated options. That comparison lives on the QR and NFC gym tracking page. The honest call: pick the one that fits how you actually train.',
-  },
-  {
-    question: 'Why should I trust this comparison if LIFTAG wrote it?',
-    answer: 'The page is written by the team behind LIFTAG, which is a conflict of interest by definition. Where LIFTAG genuinely loses to a competitor, we say so on the same page. The intent is a comparison you would actually share with a training partner, not marketing copy.',
-  },
-]
+const localizedFaqs = computed(() => ui.value.faq)
 
-useLiftagStructuredData([
+useLiftagStructuredData(() => [
   liftagOrganization,
   liftagSoftwareApplication,
   liftagWebPage({
     path,
-    name: 'Best workout tracking app in 2026',
-    description,
+    name: t('workoutName'),
+    description: description.value,
   }),
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
-    { name: 'Best workout tracking app', path },
+    { name: t('workoutCrumb'), path },
   ]),
   liftagArticle({
-    headline: 'Best workout tracking app in 2026: honest head-to-head',
-    description,
+    headline: t('workoutHeadline'),
+    description: description.value,
     path,
     datePublished: lastUpdated,
   }),
-  liftagFAQPage(faqs),
+  liftagFAQPage(localizedFaqs.value),
 ])
 
-interface AppRow {
-  name: string
-  platforms: string
-  free: string
-  bestFor: string
-  weakSpot: string
-  unique: string
-}
-
-const rows: AppRow[] = [
-  {
-    name: 'LIFTAG',
-    platforms: 'iOS, Android',
-    free: 'Core tracking free forever; optional premium intelligence',
-    bestFor: 'Serious lifters at a gym with NFC/QR machine tags',
-    weakSpot: 'Partner-gym network is still expanding',
-    unique: 'Tap or scan a machine to open the exact exercise with setup videos',
-  },
-  {
-    name: 'Strong',
-    platforms: 'iOS, Android',
-    free: 'Free tier (3 routines), paid Pro',
-    bestFor: 'Minimalist, fast, free-form set logging',
-    weakSpot: 'No gym integration, paid wall on multiple routines',
-    unique: 'Cleanest single-screen set logger',
-  },
-  {
-    name: 'Hevy',
-    platforms: 'iOS, Android',
-    free: 'Generous free tier, paid Pro',
-    bestFor: 'Social feed plus general-purpose logging',
-    weakSpot: 'Not gym-aware, paid analytics behind subscription',
-    unique: 'Built-in community and program sharing',
-  },
-  {
-    name: 'FitNotes',
-    platforms: 'Android only',
-    free: 'Fully free',
-    bestFor: 'Lifters who want no-frills logging on Android',
-    weakSpot: 'No iOS, no machine integration, dated UI',
-    unique: 'Truly free with no ads or paywalls',
-  },
-  {
-    name: 'JEFIT',
-    platforms: 'iOS, Android',
-    free: 'Free with ads, paid Elite',
-    bestFor: 'Massive exercise library',
-    weakSpot: 'Ad-heavy free tier, aging UX',
-    unique: 'One of the largest exercise databases in the category',
-  },
-  {
-    name: 'Boostcamp',
-    platforms: 'iOS, Android',
-    free: 'Most programs free, paid premium',
-    bestFor: 'Following named-coach programs',
-    weakSpot: 'Set-logging UX is secondary to programming',
-    unique: 'Hosts free programs from major lifting coaches',
-  },
-  {
-    name: 'MacroFactor',
-    platforms: 'iOS, Android',
-    free: 'Paid (subscription)',
-    bestFor: 'Lifters who want nutrition and workout in one app',
-    weakSpot: 'Workout tracking is newer than competitors’',
-    unique: 'Research-credibility positioning and adaptive macro tracking',
-  },
-  {
-    name: 'Fitbod',
-    platforms: 'iOS, Android',
-    free: 'Limited trial, paid subscription',
-    bestFor: 'Lifters who want the app to design the workout',
-    weakSpot: 'Algorithmic plans do not always match serious programming',
-    unique: 'Generates next-workout suggestions from prior sessions',
-  },
-]
-
-interface AppCard {
-  name: string
-  oneLine: string
-  goodAt: string[]
-  notGoodAt: string[]
-  pickWhen: string
-}
-
-const cards: AppCard[] = [
-  {
-    name: 'LIFTAG',
-    oneLine: 'The workout tracker built around the gym itself.',
-    goodAt: [
-      'Tap an NFC tag or scan a QR code on a machine to open the exact exercise',
-      'Set logging: weight, reps, rest time, optional RPE, timestamped permanently',
-      'Rest timer that auto-starts after a logged set',
-      'Personal records and estimated 1RM per exercise',
-      'Volume, frequency, and progress charts per exercise and per muscle group',
-      'Trainer profiles, plan sharing, partner-gym map discovery',
-      'Free on iOS and Android with no required subscription',
-    ],
-    notGoodAt: [
-      'The partner-gym network is still expanding, so the NFC/QR layer only triggers at gyms that have installed LIFTAG tags',
-      'Social feed is not the focus; Hevy is stronger if a public feed is what you want',
-    ],
-    pickWhen: 'You train at a gym and want a tracker that treats every machine as the entry point. Also pick LIFTAG if you want a free app that does not paywall progress analytics.',
-  },
-  {
-    name: 'Strong',
-    oneLine: 'The original minimalist set logger.',
-    goodAt: [
-      'Fast, single-screen set logging',
-      'Clean, distraction-free UI',
-      'Apple Watch and Wear OS integration',
-    ],
-    notGoodAt: [
-      'Free tier is limited to a handful of routines',
-      'No gym-machine integration',
-      'No partner-gym or coaching layer',
-    ],
-    pickWhen: 'You want the fastest possible manual set logger and nothing else, and you are happy on the paid tier once you outgrow the free routine limit.',
-  },
-  {
-    name: 'Hevy',
-    oneLine: 'Set logger with a social layer.',
-    goodAt: [
-      'Generous free tier compared to Strong',
-      'Social feed and program sharing built in',
-      'Reached millions of downloads through organic growth',
-    ],
-    notGoodAt: [
-      'No machine-level gym integration',
-      'Advanced analytics gated behind paid Hevy Pro',
-    ],
-    pickWhen: 'You want logging plus a community feel, and you do not need gym-machine integration.',
-  },
-  {
-    name: 'FitNotes',
-    oneLine: 'The cult-favorite free Android logger.',
-    goodAt: [
-      'Truly free, no ads, no subscription, no account required',
-      'Reliable basic set/rep/weight logging',
-      'Calendar history view',
-    ],
-    notGoodAt: [
-      'Android only',
-      'No iOS, no cross-device sync, no gym integration',
-      'Visual design is dated',
-    ],
-    pickWhen: 'You are on Android, you want zero cost or friction, and you do not need anything beyond basic logging and history.',
-  },
-  {
-    name: 'JEFIT',
-    oneLine: 'Big exercise library, old-school UX.',
-    goodAt: [
-      'Very large exercise database',
-      'Community programs and templates',
-    ],
-    notGoodAt: [
-      'Ad-heavy free tier',
-      'Aging UX compared to newer competitors',
-    ],
-    pickWhen: 'You want a deep exercise library and do not mind upgrading to remove ads.',
-  },
-  {
-    name: 'Boostcamp',
-    oneLine: 'Free programs from real coaches, in one app.',
-    goodAt: [
-      'Hosts free programs from named lifting coaches',
-      'Strong for "follow this program" rather than "build my own"',
-    ],
-    notGoodAt: [
-      'Logging UX is secondary to programming',
-      'No gym-machine integration',
-    ],
-    pickWhen: 'You want to follow a specific named coach’s program and treat logging as a side effect of it.',
-  },
-  {
-    name: 'MacroFactor',
-    oneLine: 'Nutrition-first app with a growing workout module.',
-    goodAt: [
-      'Research-credibility brand association',
-      'Strong nutrition + macro tracking',
-    ],
-    notGoodAt: [
-      'Workout tracking is newer than competitors’',
-      'Subscription pricing',
-    ],
-    pickWhen: 'You care about nutrition and workouts in one paid app and want the research-credibility positioning.',
-  },
-  {
-    name: 'Fitbod',
-    oneLine: 'The app that picks your workout for you.',
-    goodAt: [
-      'Algorithmic next-workout generation',
-      'Useful when you do not want to plan',
-    ],
-    notGoodAt: [
-      'Auto-generated plans rarely match serious programming',
-      'Subscription priced',
-    ],
-    pickWhen: 'You want the app to plan for you, not the other way around.',
-  },
-]
+const localizedRows = computed(() => locale.value === 'sk' ? rows.map(row => ({ ...row, ...(skRows[row.name] ?? {}) })) : rows)
+const localizedCards = computed(() => locale.value === 'sk' ? cards.map(card => ({ ...card, ...(skCards[card.name] ?? {}) })) : cards)
 </script>
 
 <template>
@@ -270,50 +52,41 @@ const cards: AppCard[] = [
     <main>
       <section class="bwt-hero">
         <div class="container">
-          <p class="protocol bwt-eyebrow">COMPARISON · UPDATED MAY 2026</p>
+          <p class="protocol bwt-eyebrow">{{ ui.eyebrow }}</p>
           <h1 class="display bwt-title" v-html="title"></h1>
           <p class="bwt-lead">{{ description }}</p>
           <div class="bwt-actions">
-            <a href="/" class="btn-primary">See LIFTAG</a>
-            <a href="#table" class="btn-ghost"><HoloPill />Jump to comparison</a>
-            <a href="/best-gym-qr-nfc-app" class="btn-ghost"><HoloPill />Gym QR + NFC platforms</a>
+            <a :href="href('/')" class="btn-primary">{{ ui.see }}</a>
+            <a href="#table" class="btn-ghost"><HoloPill />{{ ui.jump }}</a>
+            <a :href="href('/best-gym-qr-nfc-app')" class="btn-ghost"><HoloPill />{{ ui.gymPlatforms }}</a>
           </div>
 
           <div class="bwt-tldr">
-            <p class="protocol">TL;DR</p>
-            <p>
-              For serious lifters who train at a gym,
-              <strong class="lime">LIFTAG</strong>
-              is the most complete pick in 2026 because it opens the exact exercise from a tap or scan on the machine and is free on iOS and Android.
-              <strong>Strong</strong> and <strong>Hevy</strong> remain the strongest general-purpose set loggers.
-              <strong>FitNotes</strong> is the best truly free option on Android.
-              <strong>Boostcamp</strong> wins for following coach programs. Pick the one that matches how you actually train.
-            </p>
+            <p class="protocol">{{ ui.tldr }}</p>
+            <p v-html="ui.tldrBody"></p>
           </div>
         </div>
       </section>
 
       <section id="table" class="bwt-table-section">
         <div class="container">
-          <h2 class="bwt-section-title">At-a-glance comparison</h2>
-          <p class="bwt-section-lead">
-            Eight workout trackers, the niche each one owns, and where each one falls short. Sorted with LIFTAG first because we are LIFTAG.
-          </p>
+          <h2 class="bwt-section-title">{{ ui.intro }}</h2>
+          <p class="bwt-section-lead" v-html="localizeContentLinks(t('workoutTable', { date: checkedDate }), href)"></p>
 
-          <div class="bwt-table-wrap" role="region" aria-label="Workout tracking app comparison">
+          <div class="bwt-table-wrap" role="region" :aria-label="ui.table.label">
             <table class="bwt-table">
               <thead>
                 <tr>
-                  <th scope="col">App</th>
-                  <th scope="col">Platforms</th>
-                  <th scope="col">Pricing</th>
-                  <th scope="col">Best for</th>
-                  <th scope="col">Weak spot</th>
-                  <th scope="col">Unique strength</th>
+                  <th scope="col">{{ ui.table.app }}</th>
+                  <th scope="col">{{ ui.table.platforms }}</th>
+                  <th scope="col">{{ ui.table.pricing }}</th>
+                  <th scope="col">{{ ui.table.bestFor }}</th>
+                  <th scope="col">{{ ui.table.weakSpot }}</th>
+                  <th scope="col">{{ ui.table.unique }}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="row in rows" :key="row.name" :class="{ 'bwt-row-self': row.name === 'LIFTAG' }">
+                <tr v-for="row in localizedRows" :key="row.name" :class="{ 'bwt-row-self': row.name === 'LIFTAG' }">
                   <th scope="row">{{ row.name }}</th>
                   <td>{{ row.platforms }}</td>
                   <td>{{ row.free }}</td>
@@ -329,14 +102,12 @@ const cards: AppCard[] = [
 
       <section class="bwt-cards-section">
         <div class="container">
-          <h2 class="bwt-section-title">Honest breakdown, app by app</h2>
-          <p class="bwt-section-lead">
-            What each one is genuinely good at, where each one loses, and the lifter we would actually send to it. Including the parts where LIFTAG is not the right answer.
-          </p>
+          <h2 class="bwt-section-title">{{ ui.breakdown }}</h2>
+          <p class="bwt-section-lead" v-html="localizeContentLinks(t('workoutCards', { date: checkedDate }), href)"></p>
 
           <div class="bwt-cards">
             <article
-              v-for="card in cards"
+              v-for="card in localizedCards"
               :key="card.name"
               class="bwt-card"
               :class="{ 'bwt-card-self': card.name === 'LIFTAG' }"
@@ -348,13 +119,13 @@ const cards: AppCard[] = [
 
               <div class="bwt-card-cols">
                 <div>
-                  <p class="protocol bwt-card-h">Good at</p>
+                  <p class="protocol bwt-card-h">{{ ui.goodAt }}</p>
                   <ul>
                     <li v-for="item in card.goodAt" :key="item">{{ item }}</li>
                   </ul>
                 </div>
                 <div>
-                  <p class="protocol bwt-card-h">Not good at</p>
+                  <p class="protocol bwt-card-h">{{ ui.notGoodAt }}</p>
                   <ul>
                     <li v-for="item in card.notGoodAt" :key="item">{{ item }}</li>
                   </ul>
@@ -362,7 +133,7 @@ const cards: AppCard[] = [
               </div>
 
               <p class="bwt-card-pick">
-                <span class="protocol">Pick when</span> {{ card.pickWhen }}
+                <span class="protocol">{{ ui.pickWhen }}</span> {{ card.pickWhen }}
               </p>
             </article>
           </div>
@@ -371,65 +142,38 @@ const cards: AppCard[] = [
 
       <section class="bwt-when">
         <div class="container">
-          <h2 class="bwt-section-title">When LIFTAG is the right answer</h2>
+          <h2 class="bwt-section-title">{{ ui.right }}</h2>
           <ul class="bwt-when-list">
-            <li>You train at a partner gym that has installed NFC and QR machine tags, and you want the right exercise opened the moment you touch the machine.</li>
-            <li>You want a free workout tracker on iOS or Android without an analytics paywall.</li>
-            <li>You want set logging, rest timer, PR history, and progress charts in one focused app instead of a notes-app-plus-spreadsheet workflow.</li>
-            <li>You are a trainer or coach and you want client progress pulled from real set history rather than screenshots.</li>
-            <li>You own or run a gym and you want every machine on the floor to function as a tracking and onboarding entry point.</li>
+            <li v-for="item in ui.rightList" :key="item" v-html="localizeContentLinks(item, href)"></li>
           </ul>
 
-          <h2 class="bwt-section-title bwt-when-title">When you should pick something else</h2>
+          <h2 class="bwt-section-title bwt-when-title">{{ ui.elsewhere }}</h2>
           <ul class="bwt-when-list">
-            <li>You only ever train at a single gym that does not have LIFTAG tags installed and you want a minimalist logger today; Strong or FitNotes will be faster to set up.</li>
-            <li>You care more about a social feed than a gym network; Hevy is the better fit.</li>
-            <li>You want to follow a specific named-coach program out of the box: Boostcamp.</li>
-            <li>You want the app to design the workout for you: Fitbod.</li>
+            <li v-for="item in ui.elsewhereList" :key="item" v-html="localizeContentLinks(item, href)"></li>
           </ul>
         </div>
       </section>
 
       <section class="bwt-library">
         <div class="container">
-          <p class="protocol bwt-eyebrow">Exercise library</p>
-          <h2 class="bwt-section-title">The lifts you will actually log</h2>
-          <p class="bwt-section-lead">
-            LIFTAG’s public library is the same catalog the app logs against. Start with the big three, or browse by muscle.
-          </p>
+          <p class="protocol bwt-eyebrow">{{ ui.library }}</p>
+          <h2 class="bwt-section-title">{{ ui.lifts }}</h2>
+          <p class="bwt-section-lead" v-html="localizeContentLinks(t('workoutLibrary', { date: checkedDate }), href)"></p>
           <ul class="bwt-library-list">
-            <li><a href="/exercises/barbell-bench-press">Barbell bench press</a></li>
-            <li><a href="/exercises/barbell-back-squat">Barbell back squat</a></li>
-            <li><a href="/exercises/conventional-deadlift">Conventional deadlift</a></li>
-            <li><a href="/exercises/pull-up">Pull-up</a></li>
-            <li><a href="/exercises/barbell-romanian-deadlift-rdl">Barbell Romanian deadlift</a></li>
-            <li><a href="/exercises/barbell-bent-over-row">Barbell bent-over row</a></li>
-            <li><a href="/exercises/barbell-front-squat">Barbell front squat</a></li>
-            <li><a href="/muscles/chest">Chest exercises</a></li>
-            <li><a href="/muscles">All muscle groups</a></li>
+            <li v-for="item in ui.libraryLinks" :key="item.path"><a :href="href(item.path)">{{ item.label }}</a></li>
           </ul>
-          <p class="bwt-section-lead">
-            Also: <a href="/journal/best-workout-logger">best workout logger</a>,
-            <a href="/journal/best-free-workout-tracker">best free workout tracker</a>,
-            <a href="/journal/strong-vs-hevy-vs-liftag">Strong vs Hevy vs LIFTAG</a>,
-            and <a href="/journal/workout-logger">workout logger vs tracker</a>.
-          </p>
-          <p class="bwt-section-lead">
-            Two apps get their own head-to-head with store-sourced, dated pricing:
-            <a href="/alternatives/hevy">LIFTAG vs Hevy</a> and
-            <a href="/vs/strong">LIFTAG vs Strong</a>. What LIFTAG itself costs is on
-            <a href="/pricing">pricing</a>.
-          </p>
+          <p class="bwt-section-lead" v-html="localizeContentLinks(t('workoutAlso', { date: checkedDate }), href)"></p>
+          <p class="bwt-section-lead" v-html="localizeContentLinks(t('workoutPairs', { date: checkedDate }), href)"></p>
         </div>
       </section>
 
       <section class="bwt-faq">
         <div class="container">
-          <p class="protocol bwt-eyebrow">Common questions</p>
-          <h2 class="bwt-section-title">Common questions</h2>
+          <p class="protocol bwt-eyebrow">{{ ui.questions }}</p>
+          <h2 class="bwt-section-title">{{ ui.questions }}</h2>
           <FaqAccordion
             class="bwt-faq-list"
-            :items="faqs"
+            :items="localizedFaqs"
             id-prefix="bwt-faq"
           />
         </div>
@@ -437,13 +181,9 @@ const cards: AppCard[] = [
 
       <section class="bwt-method">
         <div class="container">
-          <p class="protocol bwt-eyebrow">Methodology</p>
-          <p class="bwt-method-body">
-            This comparison is written and maintained by the team behind LIFTAG. App descriptions are based on public product pages and current store listings as of {{ lastUpdated }}. Pricing and feature gating change frequently, so verify on each app’s store listing before deciding. Where LIFTAG is not the best pick, we point at the competitor that actually is. The page is updated quarterly.
-          </p>
-          <p class="bwt-method-body">
-            Conflict of interest: LIFTAG benefits when readers download LIFTAG. We do not benefit when readers download Strong, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor, or Fitbod. Read accordingly.
-          </p>
+          <p class="protocol bwt-eyebrow">{{ ui.methodology }}</p>
+          <p class="bwt-method-body" v-html="localizeContentLinks(t('workoutMethod', { date: checkedDate }), href)"></p>
+          <p class="bwt-method-body" v-html="localizeContentLinks(t('workoutConflict', { date: checkedDate }), href)"></p>
         </div>
       </section>
     </main>

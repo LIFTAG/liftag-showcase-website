@@ -1,3 +1,25 @@
+import type { SiteLocale } from '../types/locale.ts'
+import { createMessageTranslator } from './messageTranslator.ts'
+import { en, sk } from '../i18n/messages/appPricing.ts'
+
+/** Numeric source values stay shared across translated price descriptions. */
+const publishedPrices = {
+  Hevy: { month: 2.99, year: 23.99, lifetime: 74.99 },
+  Strong: { month: 4.99, year: 29.99 },
+}
+function publishedPrice(name: keyof typeof publishedPrices, locale: SiteLocale): string {
+  const { t } = createMessageTranslator(locale, { en, sk })
+  const format = new Intl.NumberFormat(locale === 'sk' ? 'sk-SK' : 'en-US', {
+    style: 'currency',
+    currency: 'USD',
+    currencyDisplay: locale === 'sk' ? 'code' : 'symbol',
+  })
+  const values = Object.fromEntries(
+    Object.entries(publishedPrices[name]).map(([period, amount]) => [period, format.format(amount)]),
+  )
+  return t(name === 'Hevy' ? 'hevyPrice' : 'strongPrice', values)
+}
+
 /**
  * Every competitor price quoted on this site comes from here.
  *
@@ -12,8 +34,6 @@
  *   "paid tier".
  */
 export const PRICING_CHECKED_ON = '2026-08-27'
-export const PRICING_CHECKED_LABEL = '27 August 2026'
-export const PRICING_UPDATED_EYEBROW = 'UPDATED AUG 2026'
 
 export const LIFTAG_APP_STORE_URL = 'https://apps.apple.com/app/id6761140080'
 export const LIFTAG_PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.liftag.app'
@@ -37,11 +57,12 @@ export interface AppPricing {
 export const liftagPricing: AppPricing = {
   name: 'LIFTAG',
   platforms: 'iOS and Android',
-  freeTier: 'Core tracking: set logging, rest timer, PRs, estimated 1RM, history, exercise library, gym and trainer discovery.',
+  freeTier:
+    'Core tracking: set logging, rest timer, PRs, estimated 1RM, history, exercise library, gym and trainer discovery.',
   paidTier: 'Premium intelligence, optional',
   paidPrice: null,
-  caveat: 'Both store listings show LIFTAG as free with no in-app purchases, so there is no paid tier to price yet. When one ships, the number lands on this page with the date it was set.',
-  sourceLabel: 'LIFTAG on the App Store',
+  caveat: en.liftagCaveat,
+  sourceLabel: en.liftagSource,
   sourceUrl: LIFTAG_APP_STORE_URL,
 }
 
@@ -50,9 +71,9 @@ export const strongPricing: AppPricing = {
   platforms: 'iOS and Android',
   freeTier: 'Unlimited saved workouts, capped at 3 custom routines.',
   paidTier: 'Strong PRO',
-  paidPrice: '$4.99 / month or $29.99 / year',
-  caveat: 'Those are the two figures Strong markets in its US App Store description. The in-app purchase list on the same page also shows a $99.99 "Strong PRO Forever" and several other price points, and Strong states the prices are for US customers and vary by account. Treat the store, not this table, as final.',
-  sourceLabel: 'Strong on the US App Store',
+  paidPrice: publishedPrice('Strong', 'en'),
+  caveat: en.strongCaveat,
+  sourceLabel: en.strongSource,
   sourceUrl: 'https://apps.apple.com/us/app/strong-workout-tracker-gym-log/id464254577',
 }
 
@@ -61,13 +82,26 @@ export const hevyPricing: AppPricing = {
   platforms: 'iOS and Android',
   freeTier: 'Free logging with a cap on saved routines, custom exercises, and graph history.',
   paidTier: 'Hevy Pro',
-  paidPrice: '$2.99 / month, $23.99 / year, or $74.99 lifetime',
-  caveat: 'Read off the in-app purchase list on Hevy\'s US App Store page, which also carries a second $3.99 monthly SKU. Hevy Pro is what removes the routine, custom-exercise, and graph-history caps, per Hevy\'s own listing text.',
-  sourceLabel: 'Hevy on the US App Store',
+  paidPrice: publishedPrice('Hevy', 'en'),
+  caveat: en.hevyCaveat,
+  sourceLabel: en.hevySource,
   sourceUrl: 'https://apps.apple.com/us/app/hevy-workout-tracker-gym-log/id1458862350',
 }
 
 /** Rendered price cell for a comparison table row. */
-export function priceCell(app: AppPricing): string {
-  return app.paidPrice ?? 'No paid tier published'
+export function priceCell(app: AppPricing, locale: SiteLocale = 'en'): string {
+  if (app.name === 'Hevy' || app.name === 'Strong') return publishedPrice(app.name, locale)
+  return app.paidPrice ?? createMessageTranslator(locale, { en, sk }).t('noPaid')
+}
+
+export function localizedAppPricing(app: AppPricing, locale: SiteLocale): AppPricing {
+  const key = ({ Hevy: 'hevy', Strong: 'strong', LIFTAG: 'liftag' } as Record<string, string>)[app.name]
+  if (!key) return app
+  const { t } = createMessageTranslator(locale, { en, sk })
+  return {
+    ...app,
+    paidPrice: app.paidPrice === null ? null : priceCell(app, locale),
+    caveat: t(`${key}Caveat`),
+    sourceLabel: t(`${key}Source`),
+  }
 }

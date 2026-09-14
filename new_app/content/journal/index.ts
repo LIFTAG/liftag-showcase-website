@@ -1,0 +1,211 @@
+import type { JournalSummary } from './types'
+
+export const en = [
+  {
+    href: '/tools/1rm-calculator',
+    eyebrow: 'TOOL',
+    title: '1RM calculator',
+    body: 'Estimate a one-rep max from any set. Epley, same formula as the app, plus Brzycki and the rest of the family.',
+  },
+  {
+    href: '/journal/how-to-track-workouts',
+    eyebrow: 'LIFTING',
+    title: 'How to track workouts properly',
+    body: 'What to log, what to ignore, how to read progress, and which workout tracking app actually helps.',
+  },
+  {
+    href: '/journal/best-workout-app-for-powerlifting',
+    eyebrow: 'POWERLIFTING',
+    title: 'Best workout app for powerlifting',
+    body: 'Set tracking, % of 1RM programming, and PR history compared across LIFTAG, Strong, Boostcamp, and Hevy.',
+  },
+  {
+    href: '/journal/qr-nfc-gym-tracking',
+    eyebrow: 'GYM TECH',
+    title: 'QR and NFC gym tracking',
+    body: 'How tap-and-scan machine tags change logging, and which apps actually support the flow.',
+  },
+  {
+    href: '/best-workout-tracking-app',
+    eyebrow: 'COMPARISON',
+    title: 'Best workout tracking app',
+    body: 'An honest head-to-head of LIFTAG against Strong, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor, and Fitbod.',
+  },
+  {
+    href: '/best-gym-qr-nfc-app',
+    eyebrow: 'COMPARISON',
+    title: 'Best gym QR and NFC app',
+    body: 'LIFTAG versus Liftd, ScanLiftLog, and RepTag: free dashboard, gym cost, NFC, and who wins each row.',
+  },
+  {
+    href: '/journal/best-workout-logger',
+    eyebrow: 'COMPARISON',
+    title: 'Best workout logger',
+    body: 'Logger vs tracker vs paper logbook. Which apps actually write the set down in 2026: LIFTAG, Strong, Hevy, FitNotes.',
+  },
+  {
+    href: '/journal/best-free-workout-tracker',
+    eyebrow: 'COMPARISON',
+    title: 'Best free workout tracker',
+    body: 'What you get without paying on LIFTAG, Strong, Hevy, and FitNotes — and where each free tier stops.',
+  },
+  {
+    href: '/alternatives/hevy',
+    eyebrow: 'COMPARISON',
+    title: 'LIFTAG vs Hevy',
+    body: 'Hevy features and pricing in 2026 next to a tracker with no free-tier caps and no paid tier.',
+  },
+  {
+    href: '/vs/strong',
+    eyebrow: 'COMPARISON',
+    title: 'LIFTAG vs Strong',
+    body: 'Strong caps the free tier at three routines and sells PRO. Where that matters, and where Strong still wins.',
+  },
+  {
+    href: '/pricing',
+    eyebrow: 'PRICING',
+    title: 'LIFTAG pricing',
+    body: 'A dated fact sheet: what is free forever, what has no published price, and what a partner gym pays.',
+  },
+  {
+    href: '/journal/strong-vs-hevy-vs-liftag',
+    eyebrow: 'COMPARISON',
+    title: 'Strong vs Hevy vs LIFTAG',
+    body: 'The comparison people type: logging speed, free tiers, social features, and gym machine tags.',
+  },
+  {
+    href: '/journal/workout-logger',
+    eyebrow: 'COMPARISON',
+    title: 'Workout logger vs tracker',
+    body: 'What a workout logger is, how it differs from a tracker and a paper logbook, and which one to pick.',
+  },
+  {
+    href: '/journal/nfc-tags-for-gym-equipment',
+    eyebrow: 'GYM TECH',
+    title: 'NFC tags for gym equipment',
+    body: 'What to put on each machine, where to stick it, and why a dual NFC + QR plate beats QR alone.',
+  },
+  {
+    href: '/journal/what-is-rpe-lifting',
+    eyebrow: 'LIFTING',
+    title: 'What is RPE in lifting',
+    body: 'How to rate a set, when to log RPE in a workout tracker, and how it pairs with rest and load.',
+  },
+  {
+    href: '/journal/progressive-overload',
+    eyebrow: 'LIFTING',
+    title: 'Progressive overload',
+    body: 'How to add load, reps, or sets without lying to the log — and how a tracker makes the next jump obvious.',
+  },
+  {
+    href: '/journal/gym-nfc-rollout',
+    eyebrow: 'GYMS',
+    title: 'Gym NFC tag rollout',
+    body: 'How a club tags a floor, then 12 locations, without a fake case-study quote. The actual LIFTAG rollout.',
+  },
+] satisfies JournalSummary[]
+
+export const sk = [
+  {
+    href: '/tools/1rm-calculator',
+    eyebrow: 'NÁSTROJ',
+    title: 'Kalkulačka 1RM',
+    body: 'Odhadni maximum na jedno opakovanie z ľubovoľnej série. Epleyho vzorec ako v aplikácii aj ďalšie vzorce.',
+  },
+  {
+    href: '/journal/how-to-track-workouts',
+    eyebrow: 'SILOVÝ TRÉNING',
+    title: 'Ako správne zaznamenávať tréning',
+    body: 'Čo zapisovať, čo vynechať, ako čítať pokrok a ktorá aplikácia naozaj pomáha.',
+  },
+  {
+    href: '/journal/best-workout-app-for-powerlifting',
+    eyebrow: 'POWERLIFTING',
+    title: 'Najlepšia aplikácia na powerlifting',
+    body: 'Zápis sérií, programovanie podľa % z 1RM a história PR v LIFTAGu, Strongu, Boostcampe a Hevy.',
+  },
+  {
+    href: '/journal/qr-nfc-gym-tracking',
+    eyebrow: 'GYM TECH',
+    title: 'QR a NFC sledovanie tréningu',
+    body: 'Ako štítky na strojoch menia zapisovanie a ktoré aplikácie tento tok podporujú.',
+  },
+  {
+    href: '/best-workout-tracking-app',
+    eyebrow: 'POROVNANIE',
+    title: 'Najlepší tréningový tracker',
+    body: 'Poctivé porovnanie LIFTAGu so Strongom, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor a Fitbod.',
+  },
+  {
+    href: '/best-gym-qr-nfc-app',
+    eyebrow: 'POROVNANIE',
+    title: 'Najlepšia QR a NFC aplikácia pre fitko',
+    body: 'LIFTAG oproti Liftd, ScanLiftLog a RepTag: dashboard, náklady fitka, NFC a víťaz v jednotlivých riadkoch.',
+  },
+  {
+    href: '/journal/best-workout-logger',
+    eyebrow: 'POROVNANIE',
+    title: 'Najlepší tréningový denník',
+    body: 'Denník verzus tracker verzus papier. Ktoré aplikácie zapíšu sériu v roku 2026: LIFTAG, Strong, Hevy a FitNotes.',
+  },
+  {
+    href: '/journal/best-free-workout-tracker',
+    eyebrow: 'POROVNANIE',
+    title: 'Najlepší bezplatný tracker',
+    body: 'Čo dostaneš bez platenia v LIFTAGu, Stronge, Hevy a FitNotes a kde sa bezplatná úroveň končí.',
+  },
+  {
+    href: '/alternatives/hevy',
+    eyebrow: 'POROVNANIE',
+    title: 'LIFTAG vs Hevy',
+    body: 'Funkcie a ceny Hevy v roku 2026 vedľa trackera bez limitov bezplatnej úrovne a bez plateného plánu.',
+  },
+  {
+    href: '/vs/strong',
+    eyebrow: 'POROVNANIE',
+    title: 'LIFTAG vs Strong',
+    body: 'Strong obmedzuje bezplatnú úroveň na tri zostavy a predáva PRO. Kedy to zaváži a kedy Strong stále vyhrá.',
+  },
+  {
+    href: '/pricing',
+    eyebrow: 'CENY',
+    title: 'Ceny LIFTAG',
+    body: 'Aktuálny prehľad: čo je navždy zdarma, čo nemá zverejnenú cenu a čo platí partnerské fitko.',
+  },
+  {
+    href: '/journal/strong-vs-hevy-vs-liftag',
+    eyebrow: 'POROVNANIE',
+    title: 'Strong vs Hevy vs LIFTAG',
+    body: 'Rýchlosť zápisu, bezplatné úrovne, sociálne funkcie a štítky na strojoch.',
+  },
+  {
+    href: '/journal/workout-logger',
+    eyebrow: 'POROVNANIE',
+    title: 'Tréningový denník verzus tracker',
+    body: 'Čo denník robí, ako sa líši od trackera a papierového zápisníka a čo si vybrať.',
+  },
+  {
+    href: '/journal/nfc-tags-for-gym-equipment',
+    eyebrow: 'GYM TECH',
+    title: 'NFC štítky pre vybavenie fitka',
+    body: 'Čo nalepiť na každý stroj, kam štítok umiestniť a prečo je NFC + QR platňa lepšia než samotné QR.',
+  },
+  {
+    href: '/journal/what-is-rpe-lifting',
+    eyebrow: 'SILOVÝ TRÉNING',
+    title: 'Čo je RPE pri silovom tréningu',
+    body: 'Ako ohodnotiť sériu, kedy RPE zapísať a ako ho spojiť s oddychom a záťažou.',
+  },
+  {
+    href: '/journal/progressive-overload',
+    eyebrow: 'SILOVÝ TRÉNING',
+    title: 'Progresívne preťaženie',
+    body: 'Ako pridať záťaž, opakovania alebo série bez klamania v denníku a ako uvidieť ďalší krok.',
+  },
+  {
+    href: '/journal/gym-nfc-rollout',
+    eyebrow: 'FITKÁ',
+    title: 'Nasadenie NFC štítkov vo fitku',
+    body: 'Ako klub označí jednu podlahu a potom 12 lokalít bez vymyslenej prípadovej štúdie.',
+  },
+] satisfies typeof en

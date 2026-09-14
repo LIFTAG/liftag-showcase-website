@@ -62,6 +62,7 @@ import {
 import { disposeTree } from "./dispose";
 import { createRoundedPlate } from "./roundedPlate";
 import { clamp01, damp, lerp, smoothstep } from "./timeline";
+import type { GymDemoMessages } from '~/i18n/messages/gymDemo';
 
 const PHONE_BOX_CORNERS = [
   [-1, -1],
@@ -82,7 +83,8 @@ function fadeMaterial(
 }
 
 /** Globe → gym floor → overhead inventory, all rendered by one lazy canvas. */
-export function createDiscoveryStage(canvas: HTMLCanvasElement) {
+export function createDiscoveryStage(canvas: HTMLCanvasElement, opts: { copy: GymDemoMessages }) {
+  let copy = opts.copy;
   const renderer = new THREE.WebGLRenderer({
     canvas,
     alpha: true,
@@ -137,7 +139,7 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
   device.add(standIn.mesh);
   const seams = createDiscoverySeams();
   device.add(seams.mesh);
-  const title = createDiscoveryTitle();
+  const title = createDiscoveryTitle(copy.discovery);
   tilt.add(title.root);
   const appImage = document.createElement("canvas");
   appImage.width = DISCOVERY_APP_CANVAS.w;
@@ -147,6 +149,8 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
     dividers: false,
     numbers: false,
     title: false,
+    copy: copy.canvas,
+    discovery: copy.discovery,
   });
   const appTexture = new THREE.CanvasTexture(appImage);
   appTexture.colorSpace = THREE.SRGBColorSpace;
@@ -285,11 +289,13 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
     document.fonts.load('600 18px "JetBrains Mono"'),
   ]).then(() => {
     if (disposed) return;
-    title.paintClean();
+    title.paintClean(copy.discovery);
     drawDiscoveryAppScreen(appCtx, appImage.width, appImage.height, {
       dividers: false,
       numbers: paintedNumbers,
       title: paintedTitle,
+      copy: copy.canvas,
+      discovery: copy.discovery,
     });
     appTexture.needsUpdate = true;
   });
@@ -511,6 +517,8 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
         dividers: false,
         numbers: landed,
         title: landedTitle,
+        copy: copy.canvas,
+        discovery: copy.discovery,
       });
       appTexture.needsUpdate = true;
     }
@@ -600,6 +608,18 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement) {
     ready,
     resize,
     draw,
+    setCopy(next: GymDemoMessages) {
+      copy = next;
+      title.paintClean(copy.discovery);
+      drawDiscoveryAppScreen(appCtx, appImage.width, appImage.height, {
+        dividers: false,
+        numbers: paintedNumbers,
+        title: paintedTitle,
+        copy: copy.canvas,
+        discovery: copy.discovery,
+      });
+      appTexture.needsUpdate = true;
+    },
     dispose() {
       disposed = true;
       decoder.dispose();

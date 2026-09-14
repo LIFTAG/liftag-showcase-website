@@ -1,15 +1,21 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/muscles'
 import type { CatalogIndexExercise } from '~/types/catalog'
+import { catalogChrome } from '~/utils/catalogCopy'
+import { muscleDisplayName } from '~/utils/catalogLocale'
 
 const route = useRoute()
 const param = String(route.params.slug)
-const hub = muscleHub(param)
+const { locale, href } = useSiteLocale()
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+const hub = muscleHubForLocale(param, locale.value)
 
 if (!hub) {
   throw createError({ statusCode: 404, statusMessage: 'Muscle group not found', fatal: true })
 }
 
-const { data: index, error, refresh } = await useCatalogIndex()
+const chrome = catalogChrome(locale.value)
+const { data: index, error, refresh } = await useCatalogIndex(locale)
 
 const query = ref(typeof route.query.q === 'string' ? route.query.q : '')
 
@@ -138,7 +144,7 @@ const visibleCount = ref(PAGE_SIZE)
 const categories = computed(() => index.value?.categories ?? [])
 const categoryNames = computed(() => {
   const names = new Map<string, string>()
-  for (const category of categories.value) names.set(category.slug, category.name)
+  for (const category of categories.value) names.set(category.slug, muscleDisplayName(category.slug, category.name, locale.value))
   return names
 })
 
@@ -152,8 +158,6 @@ const categoryCounts = computed(() => {
   }
   return counts
 })
-
-const chrome = catalogChrome('en')
 
 const allForMuscle = computed(() =>
   partitionExercisesByMuscle(index.value?.exercises ?? [], hub.slug),
@@ -179,7 +183,7 @@ const sliced = computed(() =>
 )
 const listForSchema = computed(() => exercises.value.slice(0, 30))
 
-const otherHubs = MUSCLE_HUBS.filter(item => item.slug !== hub.slug)
+const otherHubs = muscleHubsForLocale(locale.value).filter(item => item.slug !== hub.slug)
 
 const path = musclePath(hub.slug)
 
@@ -196,11 +200,11 @@ watch(query, (q) => {
   window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`)
 })
 
-useLiftagSeo({
-  title: `${hub.name} Exercises: How to Log Them | LIFTAG`,
+useLiftagSeo(() => ({
+  title: `${hub.name} ${t('hubSeoSuffix')} | LIFTAG`,
   description: hub.description,
   path,
-})
+}))
 
 const cdnOrigin = computed(() => {
   const first = exercises.value.find(exercise => exercise.imageUrl)?.imageUrl
@@ -218,7 +222,7 @@ useHead(() => ({
     : [],
 }))
 
-useLiftagStructuredData([
+useLiftagStructuredData(() => [
   liftagOrganization,
   liftagSoftwareApplication,
   liftagWebPage({
@@ -229,8 +233,8 @@ useLiftagStructuredData([
   }),
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
-    { name: 'Exercise Library', path: '/exercises' },
-    { name: 'Muscles', path: '/muscles' },
+    { name: chrome.libraryCrumb, path: href('/exercises') },
+    { name: t('muscles'), path: href('/muscles') },
     { name: hub.name, path },
   ]),
   liftagItemList({
@@ -246,22 +250,22 @@ useLiftagStructuredData([
 <template>
   <div ref="rootEl" class="mu-hub" :class="{ 'is-search-open': searchOpen }">
     <main>
-      <nav class="container mu-breadcrumb" aria-label="Breadcrumb">
-        <NuxtLink to="/exercises" class="protocol mu-crumb">EXERCISES</NuxtLink>
+      <nav class="container mu-breadcrumb" :aria-label="t('breadcrumbAria')">
+        <NuxtLink :to="href('/exercises')" class="protocol mu-crumb">{{ chrome.breadcrumbExercises }}</NuxtLink>
         <span class="mu-crumb-sep" aria-hidden="true">/</span>
-        <NuxtLink to="/muscles" class="protocol mu-crumb">MUSCLES</NuxtLink>
+        <NuxtLink :to="href('/muscles')" class="protocol mu-crumb">{{ t('muscles') }}</NuxtLink>
       </nav>
 
       <header class="mu-hero container">
-        <p class="protocol mu-eyebrow">{{ hub.name.toUpperCase() }} · LIFTAG LIBRARY</p>
-        <h1 class="display mu-title">{{ hub.headline.replace('.', '') }}. <span class="lime">Log them.</span></h1>
+        <p class="protocol mu-eyebrow">{{ hub.name.toLocaleUpperCase(locale) }} · {{ chrome.libraryCrumb.toLocaleUpperCase(locale) }}</p>
+        <h1 class="display mu-title">{{ hub.headline }} <span class="lime">{{ t('logThem') }}</span></h1>
         <p class="mu-lead">{{ hub.intro }}</p>
         <p class="mu-stats">
-          <span>{{ exercises.length }} exercises</span>
+          <span>{{ chrome.statExercises(exercises.length) }}</span>
           <span class="mu-stats-dot" aria-hidden="true">·</span>
-          <NuxtLink to="/exercises" class="mu-stats-link">Full library</NuxtLink>
+          <NuxtLink :to="href('/exercises')" class="mu-stats-link">{{ chrome.libraryCrumb }}</NuxtLink>
           <span class="mu-stats-dot" aria-hidden="true">·</span>
-          <NuxtLink to="/machines" class="mu-stats-link">Machines</NuxtLink>
+          <NuxtLink :to="href('/machines')" class="mu-stats-link">{{ t('machines') }}</NuxtLink>
         </p>
       </header>
 
@@ -271,7 +275,9 @@ useLiftagStructuredData([
             <div class="mu-search-row">
               <CatalogSearch
                 v-model="query"
-                placeholder="Search exercises…"
+                :placeholder="chrome.searchPlaceholder"
+                :ariaLabel="chrome.searchAria"
+                :clear-aria-label="chrome.clearSearchAria"
                 class="mu-search"
                 @focus="activateSearch"
                 @blur="deactivateSearch"
@@ -282,26 +288,26 @@ useLiftagStructuredData([
                 class="mu-search-cancel"
                 @click="closeSearch"
               >
-                Cancel
+                {{ chrome.cancel }}
               </button>
             </div>
 
-            <nav v-if="categories.length" class="mu-filters" aria-label="Browse by muscle group">
+            <nav v-if="categories.length" class="mu-filters" :aria-label="chrome.browseMusclesAria">
               <NuxtLink
-                to="/exercises"
+                :to="href('/exercises')"
                 class="mu-filter"
               >
-                All
+                {{ chrome.all }}
               </NuxtLink>
               <NuxtLink
                 v-for="category in categories"
                 :key="category.slug"
-                :to="musclePath(category.slug)"
+                :to="href(musclePath(category.slug))"
                 class="mu-filter"
                 :class="{ 'is-active': category.slug === hub.slug }"
                 :aria-current="category.slug === hub.slug ? 'page' : undefined"
               >
-                {{ category.name }}
+                {{ muscleDisplayName(category.slug, category.name, locale) }}
                 <span class="mu-filter__count">{{ categoryCounts.get(category.slug) ?? 0 }}</span>
               </NuxtLink>
             </nav>
@@ -311,22 +317,22 @@ useLiftagStructuredData([
 
       <section
         class="container mu-results"
-        :aria-label="`${hub.name} exercises`"
+        :aria-label="`${hub.name} ${chrome.resultsAria.toLocaleLowerCase(locale)}`"
         @touchmove.passive="onResultsTouchMove"
       >
         <div v-if="error" class="mu-empty">
-          <p>The exercise library did not load.</p>
-          <button type="button" class="btn-ghost" @click="() => refresh()"><HoloPill />Try again</button>
+          <p>{{ chrome.loadError }}</p>
+          <button type="button" class="btn-ghost" @click="() => refresh()"><HoloPill />{{ chrome.tryAgain }}</button>
         </div>
 
         <div v-else-if="index && exercises.length === 0" class="mu-empty">
-          <p>No {{ hub.name.toLowerCase() }} exercises in the catalog yet.</p>
-          <NuxtLink to="/exercises" class="btn-ghost"><HoloPill />Browse all exercises</NuxtLink>
+          <p>{{ chrome.noMatchLead }} {{ hub.name.toLocaleLowerCase(locale) }}.</p>
+          <NuxtLink :to="href('/exercises')" class="btn-ghost"><HoloPill />{{ chrome.browseExercises }}</NuxtLink>
         </div>
 
         <div v-else-if="index && filtered.length === 0" class="mu-empty">
-          <p>No exercises match <strong v-if="query">“{{ query }}”</strong><template v-else>this filter</template>.</p>
-          <button type="button" class="btn-ghost" @click="query = ''"><HoloPill />Clear search</button>
+          <p>{{ chrome.noMatchLead }} <strong v-if="query">“{{ query }}”</strong><template v-else>{{ chrome.thisFilter }}</template>.</p>
+          <button type="button" class="btn-ghost" @click="query = ''"><HoloPill />{{ chrome.clearSearch }}</button>
         </div>
 
         <template v-else>
@@ -334,7 +340,7 @@ useLiftagStructuredData([
             <CatalogExerciseTile
               v-for="exercise in sliced.visiblePrimary"
               :key="exercise.id"
-              :to="`/exercises/${exercise.slug}`"
+              :to="href(`/exercises/${exercise.slug}`)"
               :name="exercise.name"
               :image-url="exercise.imageUrl"
               :label="exercise.primaryCategory ? categoryNames.get(exercise.primaryCategory) : null"
@@ -350,7 +356,7 @@ useLiftagStructuredData([
             <CatalogExerciseTile
               v-for="exercise in sliced.visibleSecondary"
               :key="exercise.id"
-              :to="`/exercises/${exercise.slug}`"
+              :to="href(`/exercises/${exercise.slug}`)"
               :name="exercise.name"
               :image-url="exercise.imageUrl"
               :label="exercise.primaryCategory ? categoryNames.get(exercise.primaryCategory) : null"
@@ -360,19 +366,19 @@ useLiftagStructuredData([
           </div>
           <div v-if="filtered.length > visibleCount" class="mu-more">
             <button type="button" class="btn-ghost" @click="visibleCount += PAGE_SIZE">
-              <HoloPill />Show more ({{ filtered.length - visibleCount }} left)
+              <HoloPill />{{ chrome.showMore(filtered.length - visibleCount) }}
             </button>
           </div>
         </template>
       </section>
 
-      <section class="container mu-others" aria-label="Other muscle groups">
-        <h2 class="protocol mu-section-title">OTHER MUSCLE GROUPS</h2>
+      <section class="container mu-others" :aria-label="t('otherAria')">
+        <h2 class="protocol mu-section-title">{{ t('otherHeading') }}</h2>
         <div class="mu-chips">
           <NuxtLink
             v-for="item in otherHubs"
             :key="item.slug"
-            :to="musclePath(item.slug)"
+            :to="href(musclePath(item.slug))"
             class="mu-chip"
           >
             {{ item.name }}
@@ -381,7 +387,7 @@ useLiftagStructuredData([
       </section>
     </main>
 
-    <AppCtaBar :message="`Track ${hub.name.toLowerCase()} work`" />
+    <AppCtaBar :message="t('cta', { name: hub.name.toLocaleLowerCase(locale) })" />
   </div>
 </template>
 

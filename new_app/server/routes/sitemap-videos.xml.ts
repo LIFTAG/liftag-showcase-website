@@ -1,3 +1,6 @@
+import { en, sk } from '../../i18n/messages/seoMedia'
+import { createMessageTranslator } from '../../utils/messageTranslator'
+import { exercisePath } from '../../utils/catalogLocale'
 import { catalogHasVideo, preferredCatalogVideoUrl } from '../../utils/catalogVideo'
 import { sitemapXml, videoUrlEntry, xmlHeaders } from '../../utils/sitemapXml'
 
@@ -8,25 +11,26 @@ export default defineEventHandler(async (event) => {
   setHeader(event, 'content-type', headers['content-type'])
   setHeader(event, 'cache-control', headers['cache-control'])
 
-  const snapshot = await getCatalogSnapshotOrNull()
-  if (!snapshot) return sitemapXml('', VIDEO_SITEMAP_NS)
-
-  const entries = snapshot.exercises
-    .filter(exercise => exercise.slug && catalogHasVideo(exercise.videos) && exercise.imageUrl)
-    .map((exercise) => {
-      const contentUrl = preferredCatalogVideoUrl(exercise.videos)
-      if (!contentUrl || !exercise.imageUrl) return null
-      return videoUrlEntry({
-        path: `/exercises/${exercise.slug}`,
-        contentUrl,
-        thumbnailUrl: exercise.imageUrl,
-        title: `${exercise.name} instructions`,
-        description: exercise.description
-          ?? `${exercise.name} setup and instruction video from the LIFTAG exercise library.`,
-        lastmod: exercise.updatedAt ?? exercise.createdAt,
+  const localized = await Promise.all((['en', 'sk'] as const).map(async (locale) => {
+    const snapshot = await getCatalogSnapshotOrNull(locale)
+    if (!snapshot) return []
+    const { t } = createMessageTranslator(locale, { en, sk })
+    return snapshot.exercises
+      .filter(exercise => exercise.slug && catalogHasVideo(exercise.videos) && exercise.imageUrl)
+      .flatMap((exercise) => {
+        const contentUrl = preferredCatalogVideoUrl(exercise.videos, locale)
+        if (!contentUrl || !exercise.imageUrl) return []
+        return [videoUrlEntry({
+          path: exercisePath(exercise.slug!, locale),
+          contentUrl,
+          thumbnailUrl: exercise.imageUrl,
+          title: t('videoTitle', { name: exercise.name }),
+          description: exercise.description ?? t('videoDescription', { name: exercise.name }),
+          lastmod: exercise.updatedAt ?? exercise.createdAt,
+        })]
       })
-    })
-    .filter((entry): entry is string => Boolean(entry))
+  }))
+  const entries = localized.flat()
 
   return sitemapXml(entries.join('\n'), VIDEO_SITEMAP_NS)
 })

@@ -1,17 +1,21 @@
 <script setup lang="ts">
 import type { CatalogIndexMachine } from '~/types/catalog'
+import { catalogChrome } from '~/utils/catalogCopy'
+import { muscleDisplayName } from '~/utils/catalogLocale'
 
-const description = 'Browse gym machines in the LIFTAG catalog. Every machine lists the exercises you can do on it, with photos and instruction videos, exactly like scanning its QR tag in the app.'
+const { locale, href } = useSiteLocale()
+const chrome = catalogChrome(locale.value)
+const description = chrome.machineSeoDescription
 
-useLiftagSeo({
-  title: 'Gym Machine Catalog | Exercises by Machine | LIFTAG',
+useLiftagSeo(() => ({
+  title: chrome.machineSeoTitle,
   description,
   path: '/machines',
-})
+}))
 
 const route = useRoute()
 
-const { data: index, error, refresh } = await useCatalogIndex()
+const { data: index, error, refresh } = await useCatalogIndex(locale)
 
 const query = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const muscle = ref(typeof route.query.muscle === 'string' ? route.query.muscle : '')
@@ -136,7 +140,7 @@ const visibleCount = ref(PAGE_SIZE)
 const categories = computed(() => index.value?.categories ?? [])
 const categoryNames = computed(() => {
   const names = new Map<string, string>()
-  for (const category of categories.value) names.set(category.slug, category.name)
+  for (const category of categories.value) names.set(category.slug, muscleDisplayName(category.slug, category.name, locale.value))
   return names
 })
 
@@ -204,18 +208,18 @@ useHead(() => ({
     : [],
 }))
 
-useLiftagStructuredData([
+useLiftagStructuredData(() => [
   liftagOrganization,
   liftagSoftwareApplication,
   liftagWebPage({
-    path: '/machines',
-    name: 'LIFTAG Machine Catalog',
+    path: href('/machines'),
+    name: chrome.machineWebPageName,
     description,
     type: 'CollectionPage',
   }),
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
-    { name: 'Machines', path: '/machines' },
+    { name: chrome.breadcrumbMachines, path: href('/machines') },
   ]),
 ])
 </script>
@@ -224,17 +228,14 @@ useLiftagStructuredData([
   <div ref="rootEl" class="ma-index" :class="{ 'is-search-open': searchOpen }">
     <main>
       <header class="ma-hero container">
-        <p class="protocol ma-eyebrow">MACHINE CATALOG · LIFTAG</p>
-        <h1 class="display ma-title">Pick the machine.<br><span class="lime">Get the lifts.</span></h1>
-        <p class="ma-lead">
-          Every machine here lists the exercises you can do on it, the same
-          screen the app opens when you scan a machine's QR tag.
-        </p>
+        <p class="protocol ma-eyebrow">{{ chrome.machineIndexEyebrow }}</p>
+        <h1 class="display ma-title">{{ chrome.machineTitleLine1 }}<br><span class="lime">{{ chrome.machineTitleLime }}</span></h1>
+        <p class="ma-lead">{{ chrome.machineIndexLead }}</p>
 
         <p v-if="index" class="ma-stats">
-          <span>{{ index.machines.length }} machines</span>
+          <span>{{ chrome.statMachines(index.machines.length) }}</span>
           <span class="ma-stats-dot" aria-hidden="true">·</span>
-          <NuxtLink to="/exercises" class="ma-stats-link">{{ index.exercises.length }} exercises</NuxtLink>
+          <NuxtLink :to="href('/exercises')" class="ma-stats-link">{{ chrome.statExercises(index.exercises.length) }}</NuxtLink>
         </p>
       </header>
 
@@ -244,7 +245,9 @@ useLiftagStructuredData([
             <div class="ma-search-row">
               <CatalogSearch
                 v-model="query"
-                placeholder="Search machines… leg press, cable tower, pec deck"
+                :placeholder="chrome.machineSearchPlaceholder"
+                :ariaLabel="chrome.machineSearchAria"
+                :clear-aria-label="chrome.clearSearchAria"
                 class="ma-search"
                 @focus="activateSearch"
                 @blur="deactivateSearch"
@@ -255,18 +258,18 @@ useLiftagStructuredData([
                 class="ma-search-cancel"
                 @click="closeSearch"
               >
-                Cancel
+                {{ chrome.cancel }}
               </button>
             </div>
 
-            <nav v-if="categories.length" class="ma-chips" aria-label="Filter by muscle group">
+            <nav v-if="categories.length" class="ma-chips" :aria-label="chrome.browseMusclesAria">
               <button
                 type="button"
                 class="ma-chip"
                 :class="{ 'is-active': muscle === '' }"
                 @click="muscle = ''"
               >
-                All
+                {{ chrome.all }}
               </button>
               <button
                 v-for="category in categories"
@@ -286,17 +289,17 @@ useLiftagStructuredData([
 
       <section
         class="container ma-results"
-        aria-label="Machines"
+        :aria-label="chrome.machinesAria"
         @touchmove.passive="onResultsTouchMove"
       >
         <div v-if="error" class="ma-empty">
-          <p>The machine catalog did not load.</p>
-          <button type="button" class="btn-ghost" @click="() => refresh()"><HoloPill />Try again</button>
+          <p>{{ chrome.loadError }}</p>
+          <button type="button" class="btn-ghost" @click="() => refresh()"><HoloPill />{{ chrome.tryAgain }}</button>
         </div>
 
         <div v-else-if="index && filtered.length === 0" class="ma-empty">
-          <p>No machines match <strong v-if="query">“{{ query }}”</strong><template v-else>this filter</template>.</p>
-          <button type="button" class="btn-ghost" @click="query = ''; muscle = ''"><HoloPill />Clear search</button>
+          <p>{{ chrome.noMatchLead }} <strong v-if="query">“{{ query }}”</strong><template v-else>{{ chrome.thisFilter }}</template>.</p>
+          <button type="button" class="btn-ghost" @click="query = ''; muscle = ''"><HoloPill />{{ chrome.clearSearch }}</button>
         </div>
 
         <template v-else>
@@ -304,7 +307,7 @@ useLiftagStructuredData([
             <CatalogExerciseTile
               v-for="machine in visible"
               :key="machine.id"
-              :to="machinePath(machine)"
+              :to="href(machinePath(machine))"
               :name="machine.name"
               :image-url="machine.photoUrl"
               :label="machine.categories[0] ? categoryNames.get(machine.categories[0]) : null"
@@ -312,7 +315,7 @@ useLiftagStructuredData([
           </div>
           <div v-if="filtered.length > visibleCount" class="ma-more">
             <button type="button" class="btn-ghost" @click="visibleCount += PAGE_SIZE">
-              <HoloPill />Show more ({{ filtered.length - visibleCount }} left)
+              <HoloPill />{{ chrome.showMore(filtered.length - visibleCount) }}
             </button>
           </div>
         </template>
@@ -321,19 +324,16 @@ useLiftagStructuredData([
       <section class="container ma-exercises-band">
         <div class="ma-exercises-band__inner">
           <div>
-            <p class="protocol ma-exercises-band__eyebrow">BROWSE BY EXERCISE</p>
-            <h2 class="display ma-exercises-band__title">Know the lift, <span class="lime">not the machine?</span></h2>
-            <p class="ma-exercises-band__copy">
-              Every exercise lists the machines it runs on — pick the lift and
-              we'll show you where to find it.
-            </p>
+            <p class="protocol ma-exercises-band__eyebrow">{{ chrome.machineBrowseEyebrow }}</p>
+            <h2 class="display ma-exercises-band__title">{{ chrome.machineBandLead }}<span class="lime">{{ chrome.machineBandLime }}</span></h2>
+            <p class="ma-exercises-band__copy">{{ chrome.machineBandCopy }}</p>
           </div>
-          <NuxtLink to="/exercises" class="btn-primary ma-exercises-band__cta">Browse exercises</NuxtLink>
+          <NuxtLink :to="href('/exercises')" class="btn-primary ma-exercises-band__cta">{{ chrome.browseExercises }}</NuxtLink>
         </div>
       </section>
     </main>
 
-    <AppCtaBar message="Scan machines, skip the search" />
+    <AppCtaBar :message="chrome.scanCta" />
   </div>
 </template>
 

@@ -8,6 +8,8 @@ import {
   resetRoadmapParticleField,
 } from '../composables/useRoadmapParticleField'
 import { PRISM_LIME_AT, prismStroke } from '../composables/usePrismSpectrum'
+import { en, sk } from '~/i18n/messages/marketing'
+const { t, tm, rt } = useI18n({ useScope: 'local', messages: { en, sk } })
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -73,6 +75,16 @@ const rmData: RmItem[] = [
     ],
   },
 ]
+
+const localizedRmData = computed(() => {
+  const copy = tm('marketing.roadmap.items') as Array<{ version: string, title: string, branches: string[] }>
+  return rmData.map((item, i) => ({
+    ...item,
+    version: rt(copy[i].version),
+    title: rt(copy[i].title),
+    branches: item.branches.map((branch, branchIndex) => ({ ...branch, label: rt(copy[i].branches[branchIndex]) })),
+  }))
+})
 
 // ── Refs ─────────────────────────────────────────────────────────────────────
 
@@ -685,12 +697,12 @@ onBeforeUnmount(() => {
       :dpr-cap="isMobileParticles ? 1.1 : 1.2"
     />
     <div class="section-inner">
-      <div class="section-label reveal" style="text-align: center">Roadmap</div>
+      <div class="section-label reveal" style="text-align: center">{{ t('marketing.roadmap.title') }}</div>
       <h2 class="display reveal plate-title" style="text-align: center; margin: 0 auto 20px; font-size: clamp(2.4rem, 6vw, 4.5rem)">
-        <span class="plate-wipe">We're<br />just getting started.</span>
+        <span class="plate-wipe">{{ t('marketing.roadmap.lead') }}</span>
       </h2>
       <p class="rm-subtitle reveal" style="text-align: center; margin: 0 auto 80px">
-        Built in public. Shipping fast. Here's what's coming next.
+        {{ t('marketing.roadmap.body') }}
       </p>
 
       <!-- Timeline container - canvas/ghost/active are children 1/2/3,
@@ -701,7 +713,7 @@ onBeforeUnmount(() => {
         <div ref="lineActiveRef" class="roadmap-line-active"></div>
 
         <div
-          v-for="(item, idx) in rmData"
+          v-for="(item, idx) in localizedRmData"
           :key="item.version"
           class="rm-item"
           :class="{ future: item.isFuture }"
@@ -711,7 +723,7 @@ onBeforeUnmount(() => {
           <div>
             <div v-if="item.isLive" class="rm-live-badge">
               <div class="rm-live-dot"></div>
-              LIVE
+              {{ t('marketing.roadmap.live') }}
             </div>
             <div class="rm-version">{{ item.version }}</div>
             <!-- `.visible` is set from the rAF loop rather than from Vue state,

@@ -1,8 +1,11 @@
+import { siteBasePath } from '../siteLocale.ts'
+
 /** Public URL for the gym-machine experience (the former `/gym-scan` demo). */
 export const GYM_DEMO_PATH = "/demo";
 
 export function isGymDemoPath(path: string): boolean {
-  return path === GYM_DEMO_PATH || path === `${GYM_DEMO_PATH}/`;
+  const base = siteBasePath(path)
+  return base === GYM_DEMO_PATH || base === `${GYM_DEMO_PATH}/`;
 }
 
 /** Resolve public and historic demo anchors without interpreting arbitrary selectors. */

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/handoff'
+import { siteLocale } from '~/utils/siteLocale'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 /**
  * Single install endpoint — the URL that goes in an Instagram bio, a printed
  * flyer, or a DM. One link, four outcomes, decided from the User-Agent:
@@ -24,7 +27,11 @@
  * whereas the https listing is claimed by the Play Store app via App Links and
  * resolves from inside a WebView.
  */
-definePageMeta({ layout: false })
+definePageMeta({ i18n: false, layout: false })
+const route = useRoute()
+const { locale } = useSiteLocale()
+const htmlLang = computed(() => siteLocale(route.query.lang) ?? locale.value)
+useHead(() => ({ htmlAttrs: { lang: htmlLang.value } }))
 
 const SHARE_URL = 'https://liftag.fit/get'
 
@@ -45,12 +52,12 @@ if (import.meta.server && (view.value === 'ios' || view.value === 'android')) {
   await navigateTo(storeUrl[view.value], { external: true, redirectCode: 302 })
 }
 
-useLiftagSeo({
-  title: 'Get LIFTAG',
-  description: 'Install LIFTAG. Scan gym machines, load the right exercise, and track every set.',
+useLiftagSeo(() => ({
+  title: t('handoff.getSeoTitle'),
+  description: t('handoff.getSeoDescription'),
   path: '/get',
   noindex: true,
-})
+}))
 
 onMounted(() => {
   // Two cases SSR cannot resolve: an iPad in desktop-mode Safari (reports as
@@ -81,13 +88,12 @@ onMounted(() => {
     -->
     <div class="get__inner">
       <div class="get__copy">
-        <p class="protocol get__kicker">Install · iOS and Android</p>
+        <p class="protocol get__kicker">{{ t('handoff.getKicker') }}</p>
         <h1 class="display get__title">
-          POINT YOUR<br /><span class="lime">PHONE</span> HERE.
+          {{ t('handoff.getTitle') }}
         </h1>
         <p class="get__body">
-          LIFTAG lives on the phone you train with. Scan the code and your store
-          opens on your device.
+          {{ t('handoff.getBody') }}
         </p>
         <div class="get__stores">
           <AppStoreBtn store="apple" :href="APP_STORE_URL" />

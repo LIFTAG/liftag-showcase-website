@@ -1,10 +1,13 @@
 <script setup lang="ts">
-const features = [
+import { en, sk } from '~/i18n/messages/marketing'
+const { tm, rt } = useI18n({ useScope: 'local', messages: { en, sk } })
+const features = computed(() => (tm('marketing.partner.features') as string[]).map(item => rt(item)))
+/*
   'NFC + QR · MACHINE SYNC', 'AUTO · 1RM', '400+ · EXERCISES',
   '12 · MUSCLE GROUPS', 'COACH · DIRECTORY', 'GYM · MAP',
   'ROUTINES · SUPERSETS', 'WORKOUT · HISTORY', 'PRs · AUTO-DETECTED',
   'EN · SK',
-]
+*/
 
 const sectionRef = ref<HTMLElement | null>(null)
 const trackRef = ref<HTMLElement | null>(null)

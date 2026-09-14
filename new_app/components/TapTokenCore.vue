@@ -20,6 +20,9 @@
 //   • pause while the document is hidden
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { TOKEN_DESKTOP_DPR_CAP, tokenBufferScale } from '../utils/tapToken'
+import { en, sk } from '~/i18n/messages/gymDemo'
+
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 
 const props = withDefaults(defineProps<{
   dprCap?: number
@@ -935,7 +938,7 @@ onBeforeUnmount(() => {
       v-if="reduceMotion && stillUrl"
       class="tap-token-still"
       :src="stillUrl"
-      alt="LIFTAG gym tag"
+      :alt="t('canvas.tapTokenAlt')"
       width="640"
       height="640"
       aria-hidden="true"
@@ -944,7 +947,7 @@ onBeforeUnmount(() => {
       v-if="!reduceMotion && !hintGone"
       class="tap-token-hint protocol"
     >
-      {{ coarsePointer ? 'DRAG TO TILT' : 'MOVE TO TILT' }}
+      {{ coarsePointer ? t('canvas.dragToTilt') : t('canvas.moveToTilt') }}
     </p>
   </div>
 </template>

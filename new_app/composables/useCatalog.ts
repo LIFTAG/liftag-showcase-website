@@ -1,3 +1,4 @@
+import type { MaybeRefOrGetter } from 'vue'
 import type {
   CatalogExercise,
   CatalogIndexPayload,
@@ -6,15 +7,14 @@ import type {
 import type { CatalogLocale } from '~/utils/catalogLocale'
 
 /** Shared search index; one fetch per render, deduped across pages. */
-export function useCatalogIndex(locale: CatalogLocale = 'en') {
+export function useCatalogIndex(locale: MaybeRefOrGetter<CatalogLocale> = 'en') {
   const requestFetch = useRequestFetch()
-  const key = locale === 'sk' ? 'catalog-index-sk' : 'catalog-index'
   return useAsyncData<CatalogIndexPayload>(
-    key,
-    () => locale === 'sk'
-      ? requestFetch<CatalogIndexPayload>('/api/catalog/search-index', { query: { locale: 'sk' } })
-      : requestFetch<CatalogIndexPayload>('/api/catalog/search-index'),
-    { dedupe: 'defer' },
+    computed(() => `catalog-index:${toValue(locale)}`),
+    (_app, { signal }) => requestFetch<CatalogIndexPayload>('/api/catalog/search-index', {
+      query: { locale: toValue(locale) }, signal,
+    }),
+    { dedupe: 'cancel' },
   )
 }
 
@@ -30,13 +30,12 @@ export function useCatalogIndex(locale: CatalogLocale = 'en') {
 export async function resolveCatalogExercise(
   param: string,
   locale: CatalogLocale = 'en',
+  signal?: AbortSignal,
 ): Promise<CatalogExercise | null> {
   const requestFetch = useRequestFetch()
   try {
     const path = `/api/catalog/exercises/${encodeURIComponent(param)}`
-    return locale === 'sk'
-      ? await requestFetch<CatalogExercise>(path, { query: { locale: 'sk' } })
-      : await requestFetch<CatalogExercise>(path)
+    return await requestFetch<CatalogExercise>(path, { query: { locale }, signal })
   }
   catch {
     return null
@@ -44,11 +43,12 @@ export async function resolveCatalogExercise(
 }
 
 /** Machine counterpart of resolveCatalogExercise. */
-export async function resolveCatalogMachine(param: string): Promise<CatalogMachine | null> {
+export async function resolveCatalogMachine(param: string, locale: CatalogLocale = 'en', signal?: AbortSignal): Promise<CatalogMachine | null> {
   const requestFetch = useRequestFetch()
   try {
     return await requestFetch<CatalogMachine>(
       `/api/catalog/machines/${encodeURIComponent(param)}`,
+      { query: { locale }, signal },
     )
   }
   catch {

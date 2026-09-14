@@ -1,6 +1,10 @@
 import { createServer } from 'node:http'
 import {
   discoveryIds as ids,
+  catalogFixtureIds,
+  fixtureCatalogCategory,
+  fixtureCatalogExercise,
+  fixtureCatalogMachine,
   fixtureEquipment,
   fixtureGym,
   fixtureMachine,
@@ -16,7 +20,7 @@ const entityId = (base, index) => `${base.slice(0, -4)}${index.toString(16).padS
 const server = createServer(async (request, response) => {
   const url = new URL(request.url, 'http://127.0.0.1')
   const path = url.pathname
-  const lang = url.searchParams.get('lang') ?? 'en'
+  const lang = url.searchParams.get('lang') ?? request.headers['accept-language']?.split(/[-,;]/)[0] ?? 'en'
   const page = Number(url.searchParams.get('page') ?? 1)
   const limit = Number(url.searchParams.get('limit') ?? 24)
   const send = (data, status = 200) => {
@@ -36,7 +40,11 @@ const server = createServer(async (request, response) => {
       ],
     })
   if (path === '/v1/catalog/exercise-categories')
-    return send(fixturePage([{ id: ids.exercise, slug: 'back', name: 'Back' }], page, limit))
+    return send(fixturePage([fixtureCatalogCategory(lang)], page, limit))
+  if (path === '/v1/catalog/exercise-templates') return send(fixturePage([fixtureCatalogExercise(lang)], page, limit))
+  if (path === '/v1/catalog/machine-templates') return send(fixturePage([fixtureCatalogMachine(lang)], page, limit))
+  if (path === `/v1/catalog/exercise-templates/${catalogFixtureIds.exercise}`) return send({ data: fixtureCatalogExercise(lang) })
+  if (path === `/v1/catalog/machine-templates/${catalogFixtureIds.machine}`) return send({ data: fixtureCatalogMachine(lang) })
   const gym = {
     ...fixtureGym(lang),
     media: [

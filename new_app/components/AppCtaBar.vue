@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/shell'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+const { href } = useSiteLocale()
 /**
  * Persistent, dismissible "get the app" surface for catalog pages. On phones
  * it is a bottom pill deep-linking to /get; on desktop it becomes a corner
@@ -7,7 +10,7 @@
  * has scrolled into the content, and stays dismissed for the session.
  */
 const props = withDefaults(defineProps<{ message?: string }>(), {
-  message: 'Log sets, PRs and progress',
+  message: '',
 })
 
 const SCROLL_THRESHOLD = 480
@@ -48,17 +51,17 @@ function dismiss() {
     <aside
       v-if="visible && !dismissed"
       class="app-cta"
-      aria-label="Get the LIFTAG app"
+      :aria-label="t('shell.cta.aria')"
     >
       <!-- Phone pill -->
       <div class="app-cta__pill">
-        <img src="/assets/qr/app-icon.png" width="34" height="34" alt="LIFTAG" class="app-cta__icon">
+        <img src="/assets/qr/app-icon.png" width="34" height="34" :alt="t('shell.nav.logoAlt')" class="app-cta__icon">
         <span class="app-cta__copy">
-          <span class="app-cta__title">Log it in the app</span>
-          <span class="app-cta__sub">Free on iOS &amp; Android</span>
+          <span class="app-cta__title">{{ t('shell.cta.title') }}</span>
+          <span class="app-cta__sub">{{ t('shell.cta.free') }}</span>
         </span>
-        <NuxtLink to="/get" class="app-cta__btn">Get</NuxtLink>
-        <button type="button" class="app-cta__close" aria-label="Dismiss" @click="dismiss">
+        <NuxtLink :to="href('/get')" class="app-cta__btn">{{ t('shell.cta.get') }}</NuxtLink>
+        <button type="button" class="app-cta__close" :aria-label="t('shell.cta.dismiss')" @click="dismiss">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true">
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
@@ -67,7 +70,7 @@ function dismiss() {
 
       <!-- Desktop corner card -->
       <div class="app-cta__card">
-        <button type="button" class="app-cta__close app-cta__close--card" aria-label="Dismiss" @click="dismiss">
+        <button type="button" class="app-cta__close app-cta__close--card" :aria-label="t('shell.cta.dismiss')" @click="dismiss">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true">
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
@@ -79,8 +82,8 @@ function dismiss() {
           radius="10px"
         />
         <div class="app-cta__card-copy">
-          <p class="app-cta__title">{{ props.message }} in the app</p>
-          <p class="app-cta__sub">Point your phone camera at the code</p>
+          <p class="app-cta__title">{{ props.message ? t('shell.cta.customMessage', { message: props.message }) : t('shell.cta.fullMessage') }}</p>
+          <p class="app-cta__sub">{{ t('shell.cta.camera') }}</p>
           <p class="protocol app-cta__url">liftag.fit/get</p>
         </div>
       </div>

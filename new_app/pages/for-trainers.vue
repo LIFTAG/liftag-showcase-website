@@ -1,74 +1,43 @@
 <script setup lang="ts">
-const title = 'Client progress tracking for <span class="lime">trainers.</span>'
-const description = 'LIFTAG gives trainers a profile, discovery surface, shared plans, and client workout progress tracking tied to real set history.'
-
-useLiftagSeo({
-  title: 'Trainer Client Progress Tracking | LIFTAG',
-  description,
-  path: '/for-trainers',
+import { en, sk } from '~/i18n/messages/marketingPages'
+const { t, tm, rt } = useI18n({ useScope: 'local', messages: { en, sk } })
+const pageCopy = computed(() => {
+  const copy = tm('trainers') as typeof en.trainers
+  return {
+    ...copy,
+    metrics: copy.metrics.map((item) => ({ value: rt(item.value), label: rt(item.label) })),
+    sections: copy.sections.map((item) => ({ title: rt(item.title), body: rt(item.body) })),
+    faqs: copy.faqs.map((item) => ({ question: rt(item.question), answer: rt(item.answer) })),
+  }
 })
+const { locale, href } = useSiteLocale()
 
-useLiftagStructuredData([
+useLiftagSeo(() => ({
+  title: `${rt(pageCopy.value.title).replace(/<[^>]+>/g, '')} | LIFTAG`,
+  description: rt(pageCopy.value.description),
+  path: '/for-trainers',
+}))
+
+useLiftagStructuredData(() => [
   liftagOrganization,
   liftagMobileApplication,
   liftagBreadcrumbs([
-    { name: 'LIFTAG', path: '/' },
-    { name: 'For Trainers', path: '/for-trainers' },
+    { name: 'LIFTAG', path: href('/') },
+    { name: t('trainersBreadcrumb'), path: href('/for-trainers') },
   ]),
-  liftagFAQPage([
-    {
-      question: 'Is LIFTAG only a trainer directory?',
-      answer: 'No. The trainer surface is part of a broader coaching platform: profile, discovery, plan sharing, and client progress tracking live together.',
-    },
-    {
-      question: 'Can trainers see workout progress over time?',
-      answer: 'Yes. LIFTAG is built around set history, volume, PRs, estimated 1RM, and other progress signals that matter for coaching.',
-    },
-  ]),
+  liftagFAQPage(pageCopy.value.faqs),
 ])
-
-const metrics = [
-  { value: 'PLAN', label: 'share workouts' },
-  { value: 'PRs', label: 'client progress' },
-  { value: 'BIO', label: 'trainer profile' },
-]
-
-const sections = [
-  {
-    title: 'Track clients from real set history',
-    body: 'Instead of chasing screenshots and vague updates, trainers can review workout history, progress signals, PRs, and consistency from the same system clients use to train.',
-  },
-  {
-    title: 'Share plans where clients log',
-    body: 'Build and share workout plans inside the product flow so clients can move from plan to machine to logged set without switching tools.',
-  },
-  {
-    title: 'Be discoverable inside the gym network',
-    body: 'LIFTAG gives trainers a profile and discovery surface connected to the gyms, lifters, and training context where coaching decisions happen.',
-  },
-]
-
-const faqs = [
-  {
-    question: 'Is LIFTAG only a trainer directory?',
-    answer: 'No. The trainer surface is part of a broader coaching platform: profile, discovery, plan sharing, and client progress tracking live together.',
-  },
-  {
-    question: 'Can trainers see workout progress over time?',
-    answer: 'Yes. LIFTAG is built around set history, volume, PRs, estimated 1RM, and other progress signals that matter for coaching.',
-  },
-]
 </script>
 
 <template>
   <SeoLandingPage
-    eyebrow="FOR TRAINERS"
-    :title="title"
-    :lead="description"
-    :metrics="metrics"
-    :sections="sections"
-    :faqs="faqs"
-    cta-label="See trainer flow"
-    cta-href="/#trainers"
+    :eyebrow="rt(pageCopy.eyebrow)"
+    :title="rt(pageCopy.title)"
+    :lead="rt(pageCopy.description)"
+    :metrics="pageCopy.metrics"
+    :sections="pageCopy.sections"
+    :faqs="pageCopy.faqs"
+    :cta-label="rt(pageCopy.cta)"
+    :cta-href="href('/#trainers')"
   />
 </template>

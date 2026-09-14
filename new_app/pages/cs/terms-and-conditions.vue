@@ -1,8 +1,9 @@
 <script setup lang="ts">
+definePageMeta({ i18n: false })
 const path = '/cs/terms-and-conditions'
 const lastUpdated = 'květen 2026'
 
-useLiftagSeo({
+useLiftagSeo(() => ({
   title: 'Obchodní podmínky | LIFTAG',
   description:
     'Podmínky, kterými se řídí vaše používání tréninkové aplikace LIFTAG — způsobilost, odpovědnost za účet, obsah a přijatelné používání.',
@@ -10,9 +11,9 @@ useLiftagSeo({
   lang: 'cs',
   locale: 'cs_CZ',
   alternates: liftagLegalAlternates('terms'),
-})
+}))
 
-useLiftagStructuredData([
+useLiftagStructuredData(() => [
   liftagOrganization,
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },

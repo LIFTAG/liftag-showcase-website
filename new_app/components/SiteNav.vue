@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { scrollToTrainerHandoff } from '~/utils/dashboardScroll'
 import { discoveryHref } from '~/utils/discovery'
+import { en, sk } from '~/i18n/messages/shell'
 
 const props = withDefaults(defineProps<{
   deferred?: boolean
@@ -15,7 +16,8 @@ const open = ref(false)
 const isMobileNav = ref(false)
 const navRoot = ref<HTMLElement | null>(null)
 const route = useRoute()
-const { locale } = useSiteLocale()
+const { locale, basePath, href } = useSiteLocale()
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 const localeReady = ref(false)
 onMounted(() => { localeReady.value = true })
 
@@ -23,7 +25,7 @@ onMounted(() => { localeReady.value = true })
 // animation-timeline: scroll(); the JS fallback then never writes the var.
 let nativeScrollTimeline = false
 
-const isHomeLike = computed(() => route.path === '/')
+const isHomeLike = computed(() => basePath.value === '/')
 const sectionHref = (hash: string) => isHomeLike.value ? hash : `/${hash}`
 
 // Per-character spans for the desktop nav's hover index (see .nav-link__char).
@@ -32,21 +34,21 @@ const sectionHref = (hash: string) => isHomeLike.value ? hash : `/${hash}`
 const navChars = (label: string) => Array.from(label)
 
 const navLinks = computed<[string, string][]>(() => [
-  ['Demo', '/demo'],
-  ['Gyms', localeReady.value ? discoveryHref('/explore', locale.value) : '/explore'],
-  ['Lifters', sectionHref('#lifters')],
-  ['For gym owners', sectionHref('#gyms')],
-  ['Trainers', sectionHref('#trainers')],
-  ['Exercises', exerciseIndexPath(localeReady.value ? locale.value : 'en')],
-  ['Journal', '/journal'],
-  ['Pricing', '/pricing'],
+  [t('shell.nav.demo'), href('/demo')],
+  [t('shell.nav.gyms'), localeReady.value ? discoveryHref('/explore', locale.value) : href('/explore')],
+  [t('shell.nav.lifters'), sectionHref('#lifters')],
+  [t('shell.nav.owners'), sectionHref('#gyms')],
+  [t('shell.nav.trainers'), sectionHref('#trainers')],
+  [t('shell.nav.exercises'), exerciseIndexPath(localeReady.value ? locale.value : 'en')],
+  [t('shell.nav.journal'), href('/journal')],
+  [t('shell.nav.pricing'), href('/pricing')],
 ])
 
 // "Trainers" is the MacBook coach chapter, not TrainersSection. Direct
 // `#trainers` loads are handled in plugins/trainer-hash-scroll.client.ts;
 // this intercepts same-page nav clicks (pushState would not run Vue Router).
 function onNavLinkClick(label: string, href: string, event: MouseEvent) {
-  if (label !== 'Trainers' || !isHomeLike.value) return
+  if (label !== t('shell.nav.trainers') || !isHomeLike.value) return
   if (!document.getElementById('dashboard')) return
 
   event.preventDefault()
@@ -296,14 +298,14 @@ onBeforeUnmount(() => {
     <span class="nav-scroll-progress" aria-hidden="true"></span>
 
     <!-- Logo -->
-    <a href="/" class="nav-logo">
+    <a :href="href('/')" class="nav-logo">
       <span class="nav-logo__mark">
         <img
           src="/assets/logo.svg"
           width="28"
           height="28"
           class="nav-logo__img"
-          alt="LIFTAG logo"
+          :alt="t('shell.nav.logoAlt')"
         />
       </span>
       <span class="nav-logo__wordmark">LIFTAG</span>
@@ -343,16 +345,16 @@ onBeforeUnmount(() => {
         rel="nofollow"
         class="btn-ghost nav-desktop nav-dashboard-cta"
       >
-        <HoloPill />Dashboard
+        <HoloPill />{{ t('shell.nav.dashboard') }}
       </a>
       <span data-magnetic class="nav-desktop" style="display: inline-flex;">
         <NuxtLink
-          to="/get"
+        :to="href('/get')"
           class="btn-primary nav-app-cta"
           style="padding: 10px 20px; font-size: 11px; box-shadow: 0 0 24px rgba(204,255,0,0.4);"
           @click="open = false"
         >
-          Get the app
+          {{ t('shell.nav.getApp') }}
         </NuxtLink>
       </span>
 
@@ -361,7 +363,7 @@ onBeforeUnmount(() => {
         type="button"
         class="nav-mobile-toggle"
         @click="open = !open"
-        aria-label="Toggle menu"
+        :aria-label="t('shell.nav.toggleMenu')"
         :aria-expanded="open"
         aria-controls="mobile-navigation"
       >
@@ -396,10 +398,10 @@ onBeforeUnmount(() => {
       class="nav-dashboard-mobile"
       @click="open = false"
     >
-      Dashboard
+      {{ t('shell.nav.dashboard') }}
     </a>
     <div class="nav-store-buttons">
-      <GetAppBtn label="Get the app" />
+      <GetAppBtn :label="t('shell.nav.getApp')" />
     </div>
   </div>
 </template>

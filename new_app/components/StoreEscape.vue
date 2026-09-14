@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/handoff'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 /**
  * Shown when an automatic App Store redirect would strand the visitor: iOS,
  * inside a social app's embedded browser.
@@ -23,8 +25,8 @@ const props = withDefaults(defineProps<{
   heading?: string
   body?: string
 }>(), {
-  heading: 'ONE MORE STEP.',
-  body: 'Instagram’s browser can’t open the App Store directly. Use the button below to open it outside Instagram.',
+  heading: undefined,
+  body: undefined,
 })
 
 /**
@@ -95,14 +97,14 @@ onBeforeUnmount(() => {
           stroke-linejoin="round"
         />
       </svg>
-      <span class="escape__pointer-label">fallback: ••• is up here</span>
+      <span class="escape__pointer-label">{{ t('handoff.fallback') }}</span>
     </div>
 
     <div class="escape__inner">
       <img src="/assets/qr/app-icon.png" width="72" height="72" alt="LIFTAG" class="escape__icon">
 
-      <h1 class="display escape__title">{{ heading }}</h1>
-      <p class="escape__body">{{ body }}</p>
+      <h1 class="display escape__title">{{ heading ?? t('handoff.defaultHeading') }}</h1>
+      <p class="escape__body">{{ body ?? t('handoff.defaultBody') }}</p>
 
       <button
         v-if="isInstagram"
@@ -110,34 +112,34 @@ onBeforeUnmount(() => {
         class="escape__primary"
         @click="openInstagramExternalBrowser"
       >
-        Open LIFTAG in App Store
+        {{ t('handoff.openStore') }}
       </button>
 
       <template v-if="isInstagram">
-        <p class="escape__hint">Opens the App Store through your external browser.</p>
-        <p class="escape__or">if that doesn’t work</p>
+        <p class="escape__hint">{{ t('handoff.openHint') }}</p>
+        <p class="escape__or">{{ t('handoff.ifNot') }}</p>
       </template>
 
       <ol class="escape__steps">
         <li>
           <span class="escape__step-no">1</span>
-          <span v-if="isInstagram">Tap the <strong>•••</strong> at the top right.</span>
-          <span v-else>Tap the <strong>•••</strong> in this browser.</span>
+          <span v-if="isInstagram">{{ t('handoff.tapTop') }}</span>
+          <span v-else>{{ t('handoff.tapBrowser') }}</span>
         </li>
         <li>
           <span class="escape__step-no">2</span>
-          <span>Choose <strong>Open in external browser</strong>.</span>
+          <span>{{ t('handoff.chooseExternal') }}</span>
         </li>
       </ol>
 
-      <p class="escape__or">or</p>
+      <p class="escape__or">{{ t('handoff.or') }}</p>
 
       <button type="button" class="escape__secondary" @click="copyLink">
-        {{ copied ? 'Copied. Paste it in Safari' : 'Copy link' }}
+        {{ copied ? t('handoff.copied') : t('handoff.copy') }}
       </button>
       <p class="protocol escape__url">{{ shareUrl.replace(/^https:\/\//, '') }}</p>
 
-      <a :href="APP_STORE_URL" class="escape__last">Try the App Store link anyway</a>
+      <a :href="APP_STORE_URL" class="escape__last">{{ t('handoff.tryStore') }}</a>
     </div>
   </main>
 </template>

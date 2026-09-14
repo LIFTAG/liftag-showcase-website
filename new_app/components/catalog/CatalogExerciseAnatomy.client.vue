@@ -27,6 +27,7 @@ const props = withDefaults(defineProps<{
   secondary?: Array<{ slug: string, name: string }>
   toFor?: (slug: string) => string
   nameFor?: (slug: string, fallback: string) => string
+  ariaLabel?: string
 }>(), {
   primarySlug: null,
   primaryName: null,
@@ -263,7 +264,7 @@ onBeforeUnmount(destroyInstances)
     class="anatomy-grid"
     :class="{ 'is-on': assembled, 'is-static': staticMotion }"
     role="group"
-    aria-label="Muscle map"
+    :aria-label="props.ariaLabel"
     @pointermove="onPointerMove"
     @pointerleave="onPointerLeave"
     @click="onGridClick"

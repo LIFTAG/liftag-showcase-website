@@ -1,7 +1,13 @@
 <script setup lang="ts">
-definePageMeta({ layout: false })
+import { en, sk } from '~/i18n/messages/handoff'
+import { siteLocale } from '~/utils/siteLocale'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+definePageMeta({ i18n: false, layout: false })
 
 const route = useRoute()
+const { locale } = useSiteLocale()
+const htmlLang = computed(() => siteLocale(route.query.lang) ?? locale.value)
+useHead(() => ({ htmlAttrs: { lang: htmlLang.value } }))
 const id = String(route.params.id ?? '')
 
 const APP_STORE_APP_ID = '6761140080'
@@ -32,15 +38,15 @@ const { data: plan } = await useAsyncData(`plan-share-${id}`, async () => {
 // Share links are sent URL-only on iOS, so messaging apps build their preview
 // card from these OG tags. The image endpoint renders the plan's routine grid
 // and falls back to the default og-image for non-public plans.
-useLiftagSeo({
-  title: plan.value ? `${plan.value.name} on LIFTAG` : 'Check out this training plan on LIFTAG',
-  description: 'Someone shared a training plan with you. Open the link on your phone to view it in the LIFTAG app.',
+useLiftagSeo(() => ({
+  title: plan.value ? `${plan.value.name} on LIFTAG` : t('handoff.planHeading'),
+  description: t('handoff.body'),
   path: `/plans/${id}`,
   image: `https://liftag.fit/api/og/plans/${id}${variantQuery}`,
   noindex: true,
-})
+}))
 
-useHead({
+useHead(() => ({
   meta: [
     { charset: 'utf-8' },
     { name: 'viewport', content: 'width=device-width,initial-scale=1' },
@@ -49,7 +55,7 @@ useHead({
       content: `app-id=${APP_STORE_APP_ID}, app-argument=https://liftag.fit/plans/${id}`,
     },
   ],
-})
+}))
 
 // iOS inside a social app's webview cannot complete Apple's
 // `301 -> itms-appss://` hand-off, so redirecting there hangs on a blank page.
@@ -86,12 +92,12 @@ onMounted(() => {
   <StoreEscape
     v-if="showEscape"
     :share-url="`https://liftag.fit/plans/${id}`"
-    heading="OPEN THIS PLAN."
-    body="Instagram’s browser can’t open LIFTAG. Two seconds to get around it:"
+    :heading="t('handoff.planHeading')"
+    :body="t('handoff.body')"
   />
 
   <main v-else class="plan-redirect">
-    <p>Opening LIFTAG training plan...</p>
+    <p>{{ t('handoff.openingPlan') }}</p>
   </main>
 </template>
 

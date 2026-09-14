@@ -11,6 +11,7 @@
  * writes --holo-tilt-x / --holo-tilt-y and CSS does the rest.
  */
 import { onMouseEvent, useSharedMouse } from '../composables/useSharedMouse'
+import { en, sk } from '~/i18n/messages/gymDemo'
 import {
   HOLO_AX_WEIGHT,
   HOLO_AY_WEIGHT,
@@ -33,7 +34,7 @@ const props = withDefaults(defineProps<{
   anglePrefix?: string
   qrSrc?: string
 }>(), {
-  label: 'Cable Lat Pulldown',
+  label: '',
   serial: '#042',
   anglePrefix: 'gym',
   qrSrc: '/uploads/qr-code-160.webp',
@@ -41,6 +42,9 @@ const props = withDefaults(defineProps<{
 
 const root = ref<HTMLElement | null>(null)
 const near = useNearViewport(root, '160px 0px')
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+
+const displayLabel = computed(() => t('canvas.cableLatPulldown'))
 
 const qrLayerStyle = computed(() => ({
   backgroundImage: `url("${props.qrSrc}")`,
@@ -60,7 +64,7 @@ const plateStyle = computed(() => ({
   '--holo-rest-ry': String(HOLO_REST_RY_DEG),
 }))
 
-const faceName = computed(() => props.label.toUpperCase())
+const faceName = computed(() => displayLabel.value.toUpperCase())
 
 const CONVERGE = 0.005
 const LERP = 0.06
@@ -177,7 +181,7 @@ onBeforeUnmount(() => {
     ref="root"
     class="holo"
     :style="plateStyle"
-    :aria-label="`LIFTAG foil machine tag. ${label} appears when the plate is tilted.`"
+    :aria-label="t('canvas.hologramAria', { label: displayLabel })"
   >
     <div class="holo-shadow" aria-hidden="true" />
     <div class="holo-body">
@@ -208,7 +212,7 @@ onBeforeUnmount(() => {
           <span class="holo-brand">LIFTAG</span>
           <span class="holo-serial">{{ serial }}</span>
         </div>
-        <div class="holo-foot">TAP OR SCAN</div>
+        <div class="holo-foot">{{ t('canvas.hologramFoot') }}</div>
       </div>
       <div class="holo-name" aria-hidden="true">
         <span class="holo-name-layer holo-name-layer--back">{{ faceName }}</span>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/marketing'
+const { t, tm, rt } = useI18n({ useScope: 'local', messages: { en, sk } })
 import {
   DASHBOARD_CHAPTERS,
   DASHBOARD_COACH_CHAPTER,
@@ -92,8 +94,12 @@ const coachVideoSegment = computed(() => ({
   key: replayKey.value,
 }))
 
-const gymChapters = DASHBOARD_CHAPTERS.filter((chapter) => chapter.act === 'gym')
-const coachChapters = DASHBOARD_CHAPTERS.filter((chapter) => chapter.act === 'coach')
+const localizedChapters = computed(() => {
+  const copy = tm('marketing.dashboard.chapters') as Array<{ tag: string, title: string }>
+  return DASHBOARD_CHAPTERS.map((chapter, i) => ({ ...chapter, tag: rt(copy[i].tag), title: rt(copy[i].title) }))
+})
+const localizedGymChapters = computed(() => localizedChapters.value.filter(chapter => chapter.act === 'gym'))
+const localizedCoachChapters = computed(() => localizedChapters.value.filter(chapter => chapter.act === 'coach'))
 
 const dashboardMetricChartSvg = ref<SVGSVGElement | null>(null)
 const dashboardMetricChartTargetP = ref(1)
@@ -478,6 +484,9 @@ const coachFeatures = [
   },
 ]
 
+const localizedDashboardFeatures = computed(() => (tm('marketing.dashboardFeatures') as Array<{ tag: string, title: string, body: string }>).map(item => ({ tag: rt(item.tag), title: rt(item.title), body: rt(item.body) })))
+const localizedCoachFeatures = computed(() => (tm('marketing.dashboardCoachFeatures') as Array<{ tag: string, title: string, body: string }>).map(item => ({ tag: rt(item.tag), title: rt(item.title), body: rt(item.body) })))
+
 onMounted(() => {
   reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   staticMode.value = reduceMotion
@@ -587,18 +596,18 @@ onBeforeUnmount(() => {
       <div class="container dashboard-layout">
         <div class="dashboard-copy">
           <div class="dashboard-copy-head">
-            <Eyebrow>▸ FOR GYM OWNERS</Eyebrow>
+            <Eyebrow>{{ t('marketing.dashboard.eyebrow') }}</Eyebrow>
             <SectionTitle :max="560">
-              Run your gyms from <span class="lime">one dashboard.</span>
+              {{ t('marketing.dashboard.title') }}
             </SectionTitle>
             <p class="dashboard-lede reveal">
-              Locations, machines, and managers. The core dashboard is free forever; advanced business tools are optional.
+              {{ t('marketing.dashboard.lead') }}
             </p>
           </div>
 
           <ul class="dashboard-features">
             <li
-              v-for="(f, i) in features"
+              v-for="(f, i) in localizedDashboardFeatures"
               :key="f.tag"
               class="dashboard-feature reveal"
               :style="{ '--i': i }"
@@ -611,10 +620,10 @@ onBeforeUnmount(() => {
           </ul>
         </div>
 
-        <div ref="stageRef" class="dashboard-stage" aria-label="Liftag web dashboard mockup">
+        <div ref="stageRef" class="dashboard-stage" :aria-label="t('marketing.dashboard.stageAria')">
           <div class="dashboard-stage-glow" aria-hidden="true"></div>
           <div class="dashboard-hint">
-            <span class="protocol">SCROLL TO OPEN ↓</span>
+            <span class="protocol">{{ t('marketing.dashboard.scroll') }}</span>
           </div>
           <div ref="mountRef" class="dashboard-macbook-mount">
             <ClientOnly>
@@ -623,7 +632,7 @@ onBeforeUnmount(() => {
                 src="/assets/screens/dashboard-web.webp"
                 srcset="/assets/screens/dashboard-web-360.webp 360w, /assets/screens/dashboard-web-560.webp 560w, /assets/screens/dashboard-web-640.webp 640w, /assets/screens/dashboard-web.webp 1440w"
                 sizes="(max-width: 768px) 92vw, 980px"
-                alt="Liftag dashboard"
+                :alt="t('marketing.dashboard.alt')"
                 width="1440"
                 height="904"
                 loading="lazy"
@@ -635,7 +644,7 @@ onBeforeUnmount(() => {
                   src="/assets/screens/dashboard-web.webp"
                   srcset="/assets/screens/dashboard-web-360.webp 360w, /assets/screens/dashboard-web-560.webp 560w, /assets/screens/dashboard-web-640.webp 640w, /assets/screens/dashboard-web.webp 1440w"
                   sizes="(max-width: 768px) 92vw, 980px"
-                  alt="Liftag dashboard"
+                  :alt="t('marketing.dashboard.alt')"
                   width="1440"
                   height="904"
                   loading="lazy"
@@ -659,8 +668,8 @@ onBeforeUnmount(() => {
               <span class="dash-chip-pulse"></span>
             </div>
             <div>
-              <div class="protocol dash-chip-tag">CATALOG · SYNC</div>
-              <div class="dash-chip-title">1 → 12 GYMS</div>
+              <div class="protocol dash-chip-tag">{{ t('marketing.dashboard.catalog') }}</div>
+              <div class="dash-chip-title">{{ t('marketing.dashboard.gymsCount') }}</div>
             </div>
           </div>
 
@@ -676,12 +685,12 @@ onBeforeUnmount(() => {
             @pointerleave="resetDashboardMetricChartHover"
             @pointercancel="resetDashboardMetricChartHover"
           >
-            <div class="protocol dash-chip-mtag">MACHINES · LIVE</div>
+            <div class="protocol dash-chip-mtag">{{ t('marketing.dashboard.machinesLive') }}</div>
             <div class="dash-chip-mvalue">
-              {{ dashboardMetricUnits }}<span class="dash-chip-munit"> units</span>
+              {{ dashboardMetricUnits }}<span class="dash-chip-munit"> {{ t('marketing.dashboard.units') }}</span>
             </div>
             <div class="dash-chip-delta">
-              <span>↑</span> +{{ dashboardMetricDelta }} this month
+              <span>↑</span> +{{ dashboardMetricDelta }} {{ t('marketing.dashboard.thisMonth') }}
             </div>
             <svg ref="dashboardMetricChartSvg" viewBox="-3 -3 86 26" class="dash-chip-spark">
               <defs>
@@ -728,22 +737,22 @@ onBeforeUnmount(() => {
             }"
             aria-hidden="true"
           >
-            <div class="dash-chip-deploy-tag">⚡ DEPLOYED</div>
-            <div class="dash-chip-deploy-title">Bratislava · Slovakia</div>
+            <div class="dash-chip-deploy-tag">{{ t('marketing.dashboard.deployed') }}</div>
+            <div class="dash-chip-deploy-title">{{ t('marketing.dashboard.cityCountry') }}</div>
           </div>
         </div>
       </div>
 
       <!-- ── Act 2: the same laptop, re-framed around the coach dashboard ── -->
       <div id="coach-dashboard" class="container coach-layout">
-        <div ref="coachMountRef" class="coach-stage" aria-label="Liftag coach dashboard mockup">
+        <div ref="coachMountRef" class="coach-stage" :aria-label="t('marketing.dashboard.coachAlt')">
           <ClientOnly>
             <img
               v-if="staticMode"
               :src="COACH_POSTER"
               srcset="/assets/screens/coach-dashboard-web-360.webp 360w, /assets/screens/coach-dashboard-web-560.webp 560w, /assets/screens/coach-dashboard-web-640.webp 640w, /assets/screens/coach-dashboard-web.webp 1440w"
               sizes="(max-width: 768px) 92vw, 980px"
-              alt="Liftag coach dashboard"
+              :alt="t('marketing.dashboard.coachAlt')"
               width="1440"
               height="904"
               loading="lazy"
@@ -755,7 +764,7 @@ onBeforeUnmount(() => {
                 :src="COACH_POSTER"
                 srcset="/assets/screens/coach-dashboard-web-360.webp 360w, /assets/screens/coach-dashboard-web-560.webp 560w, /assets/screens/coach-dashboard-web-640.webp 640w, /assets/screens/coach-dashboard-web.webp 1440w"
                 sizes="(max-width: 768px) 92vw, 980px"
-                alt="Liftag coach dashboard"
+                :alt="t('marketing.dashboard.coachAlt')"
                 width="1440"
                 height="904"
                 loading="lazy"
@@ -773,8 +782,8 @@ onBeforeUnmount(() => {
             }"
             aria-hidden="true"
           >
-            <div class="protocol coach-chip-tag">COACHING · ACTIVE</div>
-            <div class="coach-chip-value">4<span class="coach-chip-unit"> clients</span></div>
+            <div class="protocol coach-chip-tag">{{ t('marketing.dashboard.coachingActive') }}</div>
+            <div class="coach-chip-value">4<span class="coach-chip-unit"> {{ t('marketing.dashboard.clients') }}</span></div>
           </div>
 
           <div
@@ -785,11 +794,11 @@ onBeforeUnmount(() => {
             }"
             aria-hidden="true"
           >
-            <div class="protocol coach-chip-tag">MONTH AT A GLANCE</div>
+            <div class="protocol coach-chip-tag">{{ t('marketing.dashboard.monthAtGlance') }}</div>
             <div class="coach-chip-row">
-              <span><b>5</b> workouts</span>
-              <span><b>70</b> sets</span>
-              <span><b>13,060</b> kg</span>
+              <span><b>5</b> {{ t('marketing.dashboard.workouts') }}</span>
+              <span><b>70</b> {{ t('marketing.dashboard.sets') }}</span>
+              <span><b>13,060</b> {{ t('marketing.dashboard.kg') }}</span>
             </div>
           </div>
 
@@ -801,27 +810,25 @@ onBeforeUnmount(() => {
             }"
             aria-hidden="true"
           >
-            <div class="protocol coach-chip-tag">BODY FOCUS</div>
-            <div class="coach-chip-focus-name">Quadriceps</div>
+            <div class="protocol coach-chip-tag">{{ t('marketing.dashboard.bodyFocus') }}</div>
+            <div class="coach-chip-focus-name">{{ t('marketing.dashboard.focusQuadriceps') }}</div>
             <div class="coach-chip-bar"><span></span></div>
-            <div class="coach-chip-focus-meta">13.3% of volume · 30 sets</div>
+            <div class="coach-chip-focus-meta">{{ t('marketing.dashboard.volumeSets', { percent: '13.3', count: '30' }) }}</div>
           </div>
         </div>
 
         <div class="coach-copy">
           <div class="coach-copy-head">
-            <Eyebrow color="#FF2D55">▸ COACHING · DESKTOP</Eyebrow>
-            <SectionTitle :max="560">
-              Coaching, on a <span class="coach-accent">big screen.</span>
-            </SectionTitle>
+            <Eyebrow color="#FF2D55">{{ t('marketing.dashboard.coachingDesktop') }}</Eyebrow>
+            <SectionTitle :max="560">{{ t('marketing.dashboard.coachTitle') }}</SectionTitle>
             <p class="coach-lede reveal">
-              Your clients' training opened up on desktop. Every logged session, every trend, everything you shared - without leaving the browser.
+              {{ t('marketing.dashboard.coachLead') }}
             </p>
           </div>
 
           <ul class="dashboard-features coach-features">
             <li
-              v-for="(f, i) in coachFeatures"
+              v-for="(f, i) in localizedCoachFeatures"
               :key="f.tag"
               class="dashboard-feature coach-feature reveal"
               :style="{
@@ -840,7 +847,7 @@ onBeforeUnmount(() => {
       </div>
 
       <p class="dash-switch-line">
-        Even coaches get a <span>dashboard.</span>
+        {{ t('marketing.dashboard.switchLine') }}
       </p>
 
       <div class="dash-switch-sweep" aria-hidden="true"></div>
@@ -853,14 +860,14 @@ onBeforeUnmount(() => {
         <span class="dash-screen-pause-bars"></span>
       </div>
 
-      <nav class="dash-spine" aria-label="Dashboard demo chapters">
+      <nav class="dash-spine" :aria-label="t('marketing.dashboard.demoChapters')">
         <div
           class="dash-spine-act is-gym"
           :class="{ 'is-current': chapterIndex < DASHBOARD_COACH_CHAPTER }"
         >
-          <span class="protocol dash-spine-kicker">GYM DASHBOARD</span>
+          <span class="protocol dash-spine-kicker">{{ t('marketing.dashboard.gymDashboard') }}</span>
           <ol class="dash-spine-list">
-            <li v-for="ch in gymChapters" :key="ch.index">
+            <li v-for="ch in localizedGymChapters" :key="ch.index">
               <button
                 type="button"
                 class="dash-spine-row"
@@ -894,9 +901,9 @@ onBeforeUnmount(() => {
           class="dash-spine-act is-coach"
           :class="{ 'is-current': chapterIndex >= DASHBOARD_COACH_CHAPTER }"
         >
-          <span class="protocol dash-spine-kicker">COACH DASHBOARD</span>
+          <span class="protocol dash-spine-kicker">{{ t('marketing.dashboard.coachDashboard') }}</span>
           <ol class="dash-spine-list">
-            <li v-for="ch in coachChapters" :key="ch.index">
+            <li v-for="ch in localizedCoachChapters" :key="ch.index">
               <button
                 type="button"
                 class="dash-spine-row"
@@ -928,10 +935,10 @@ onBeforeUnmount(() => {
 
         <div class="dash-spine-compact" aria-hidden="true">
           <span class="protocol dash-spine-compact-kicker">
-            {{ chapterIndex < DASHBOARD_COACH_CHAPTER ? 'GYM' : 'COACH' }}
+            {{ chapterIndex < DASHBOARD_COACH_CHAPTER ? t('marketing.dashboard.gym') : t('marketing.dashboard.coach') }}
             · {{ DASHBOARD_CHAPTERS[chapterIndex].n }} / 06
           </span>
-          <span class="dash-spine-compact-title">{{ DASHBOARD_CHAPTERS[chapterIndex].tag }}</span>
+          <span class="dash-spine-compact-title">{{ localizedChapters[chapterIndex].tag }}</span>
           <span class="dash-spine-meter is-compact" aria-hidden="true">
             <span class="dash-spine-clip"></span>
             <span class="dash-spine-fill"></span>
@@ -939,7 +946,7 @@ onBeforeUnmount(() => {
           <span class="protocol dash-spine-time">{{ remainLabel }}</span>
           <ol class="dash-spine-ticks">
             <li
-              v-for="ch in DASHBOARD_CHAPTERS"
+              v-for="ch in localizedChapters"
               :key="ch.index"
               :class="{
                 'is-active': chapterIndex === ch.index,
@@ -950,7 +957,7 @@ onBeforeUnmount(() => {
           </ol>
         </div>
 
-        <span class="protocol dash-spine-hint">HOLD TO WATCH · SCROLL TO SKIP</span>
+        <span class="protocol dash-spine-hint">{{ t('marketing.dashboard.hold') }}</span>
       </nav>
     </div>
   </section>
@@ -1089,6 +1096,8 @@ onBeforeUnmount(() => {
 }
 
 .dashboard-bg {
+  /* Contain the perspective grid when reduced motion releases the sticky layout. */
+  overflow: hidden;
   position: absolute;
   inset: 0;
   pointer-events: none;

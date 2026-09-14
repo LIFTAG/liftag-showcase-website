@@ -1,26 +1,32 @@
 <script setup lang="ts">
-definePageMeta({ layout: false })
+import { en, sk } from '~/i18n/messages/handoff'
+import { siteLocale } from '~/utils/siteLocale'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+definePageMeta({ i18n: false, layout: false })
 
 const route = useRoute()
+const { locale } = useSiteLocale()
+const htmlLang = computed(() => siteLocale(route.query.lang) ?? locale.value)
+useHead(() => ({ htmlAttrs: { lang: htmlLang.value } }))
 const id = String(route.params.id ?? '')
 
 const APP_STORE_APP_ID = '6761140080'
 const APP_STORE = `https://apps.apple.com/app/id${APP_STORE_APP_ID}`
 const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.liftag.app'
 
-useHead({
-  title: 'Open LIFTAG invite',
+useHead(() => ({
+  title: t('handoff.inviteHeading'),
   meta: [
     { charset: 'utf-8' },
     { name: 'viewport', content: 'width=device-width,initial-scale=1' },
-    { name: 'description', content: 'You have a trainer invite on LIFTAG. Open it in the app to connect with your coach.' },
+    { name: 'description', content: t('handoff.body') },
     { name: 'robots', content: 'noindex,nofollow' },
     {
       name: 'apple-itunes-app',
       content: `app-id=${APP_STORE_APP_ID}, app-argument=https://liftag.fit/trainer-invites/${id}`,
     },
   ],
-})
+}))
 
 // iOS inside a social app's webview cannot complete Apple's
 // `301 -> itms-appss://` hand-off, so redirecting there hangs on a blank page.
@@ -57,12 +63,12 @@ onMounted(() => {
   <StoreEscape
     v-if="showEscape"
     :share-url="`https://liftag.fit/trainer-invites/${id}`"
-    heading="OPEN YOUR INVITE."
-    body="Instagram’s browser can’t open LIFTAG. Two seconds to get around it:"
+    :heading="t('handoff.inviteHeading')"
+    :body="t('handoff.body')"
   />
 
   <main v-else class="invite-redirect">
-    <p>Opening LIFTAG invite...</p>
+    <p>{{ t('handoff.openingInvite') }}</p>
   </main>
 </template>
 

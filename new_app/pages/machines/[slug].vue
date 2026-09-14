@@ -6,7 +6,8 @@ const GymMachineView = defineAsyncComponent(
   () => import('~/components/discovery/GymMachineView.vue'),
 )
 const route = useRoute()
-definePageMeta({ key: (route) => `${route.params.slug}:${route.query.gym ?? ''}` })
+const { locale } = useSiteLocale()
+definePageMeta({ key: (route) => `${route.path}:${route.query.gym ?? ''}` })
 const context = (() => {
   try {
     return gymCatalogContext(route.query, String(route.params.slug))
@@ -22,5 +23,5 @@ const context = (() => {
     :gym-id="context.gymId"
     :machine-id="context.machineId"
   />
-  <CatalogMachineDetail v-else :key="String(route.params.slug)" :param="String(route.params.slug)" />
+  <CatalogMachineDetail v-else :key="`${locale}:${route.params.slug}`" :param="String(route.params.slug)" />
 </template>

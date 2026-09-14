@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import {
-  HERO_WORDS,
   heroLaserClass,
   isHeroLimeWord,
   useHeroLaser,
 } from '../composables/useHeroLaser'
+import { en, sk } from '~/i18n/messages/marketing'
+
+const { t, n } = useI18n({ useScope: 'local', messages: { en, sk } })
+const { locale } = useSiteLocale()
+const heroWords = computed(() => [0, 1, 2, 3].map(i => t(`marketing.heroTitle.${i}`)))
 
 const entered = ref(false)
 const showHeroParticles = ref(false)
@@ -113,7 +117,7 @@ function resetHeroVolumeChartHover() {
 
 function formatHeroStat(target: number, suffix: string) {
   return (val: number) => {
-    if (target >= 1000) return `${(val / 1000).toFixed(1)}k${suffix}`
+    if (target >= 1000) return `${n(val / 1000, { maximumFractionDigits: 1, minimumFractionDigits: 1 })}k${suffix}`
     return `${val}${suffix}`
   }
 }
@@ -213,21 +217,21 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
           }"
         >
           <span
-            v-for="(word, i) in HERO_WORDS"
+            v-for="(word, i) in heroWords"
             :key="i"
             class="hero-title-line"
           >
             <span
               :ref="(el) => setTitleEl(el as Element | null, i)"
-              :class="heroLaserClass(word, i)"
+              :class="[heroLaserClass(word, i), { 'hero-laser-green': i === 1 || i === 3 }]"
               :style="{
-                color: isHeroLimeWord(word) ? '#CCFF00' : '#fff',
+                color: i === 1 || i === 3 ? '#CCFF00' : '#fff',
               }"
             >
               {{ word }}
             </span>
             <span
-              v-if="isHeroLimeWord(word)"
+              v-if="i === 1 || i === 3"
               class="hero-title-glow"
               aria-hidden="true"
               :data-word="word"
@@ -248,8 +252,8 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
             transition: 'opacity 900ms 500ms cubic-bezier(0.16,1,0.3,1), transform 900ms 500ms cubic-bezier(0.16,1,0.3,1)',
           }"
         >
-          Tap or scan any machine. Track every set. Watch your numbers compound.<br />
-          <span :style="{ color: 'rgba(255,255,255,0.4)' }">Core workout tracking is free forever. Premium intelligence is optional.</span>
+          {{ t('marketing.hero.lead') }}<br />
+          <span :style="{ color: 'rgba(255,255,255,0.4)' }">{{ t('marketing.hero.free') }}</span>
         </p>
 
         <div
@@ -265,7 +269,7 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
           }"
         >
           <div data-magnetic="18" style="display: inline-flex;">
-            <GetAppBtn hero label="Get LIFTAG" />
+            <GetAppBtn hero />
           </div>
         </div>
 
@@ -294,7 +298,7 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
                 lineHeight: 1,
               }"
             >0+</div>
-            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">Exercises in library</div>
+            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">{{ t('marketing.hero.exercises') }}</div>
           </div>
 
           <div>
@@ -309,7 +313,7 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
                 lineHeight: 1,
               }"
             >0</div>
-            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">Muscle groups</div>
+            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">{{ t('marketing.hero.muscles') }}</div>
           </div>
 
           <div>
@@ -324,7 +328,7 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
                 lineHeight: 1,
               }"
             >0%</div>
-            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">Core tracking · free forever</div>
+            <div class="protocol" :style="{ color: '#555', marginTop: '8px', fontSize: '9px' }">{{ t('marketing.hero.freeForever') }}</div>
           </div>
         </div>
       </div>
@@ -441,14 +445,14 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
               src="/uploads/qr-code-112.webp"
               srcset="/uploads/qr-code-112.webp 112w, /uploads/qr-code-160.webp 160w, /uploads/qr-code-224.webp 224w, /uploads/qr-code.webp 400w"
               sizes="44px"
-              alt="LIFTAG QR Code"
+              :alt="t('marketing.hero.qrAlt')"
               width="44"
               height="44"
               :style="{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }"
             />
           </div>
           <div>
-            <div class="protocol" :style="{ color: '#CCFF00', fontSize: '9px' }">NFC + QR · MACHINE SYNC</div>
+            <div class="protocol" :style="{ color: '#CCFF00', fontSize: '9px' }">{{ t('marketing.hero.machineSync') }}</div>
             <div
               :style="{
                 fontFamily: 'var(--liftag-font-headline)',
@@ -457,7 +461,7 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
                 letterSpacing: '-0.02em', marginTop: '2px',
               }"
             >
-              TAP / SCAN → TRACK
+              {{ t('marketing.hero.tapScan') }}
             </div>
           </div>
         </div>
@@ -497,7 +501,7 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
           @pointerleave="resetHeroVolumeChartHover"
           @pointercancel="resetHeroVolumeChartHover"
         >
-          <div class="protocol" :style="{ color: 'rgba(255,255,255,0.35)', fontSize: '9px' }">VOLUME · TODAY</div>
+          <div class="protocol" :style="{ color: 'rgba(255,255,255,0.35)', fontSize: '9px' }">{{ t('marketing.hero.volume') }}</div>
           <div
             :style="{
               fontFamily: 'var(--liftag-font-mono)',
@@ -505,7 +509,7 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
               color: '#CCFF00', letterSpacing: '-0.02em', marginTop: '4px',
             }"
           >
-            3.2<span :style="{ fontSize: '14px', fontWeight: 400, color: 'rgba(255,255,255,0.4)' }"> t</span>
+            {{ n(3.2) }}<span :style="{ fontSize: '14px', fontWeight: 400, color: 'rgba(255,255,255,0.4)' }"> t</span>
           </div>
           <div
             :style="{
@@ -515,7 +519,7 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
               display: 'flex', alignItems: 'center', gap: '4px',
             }"
           >
-            <span :style="{ color: '#22C55E' }">↑</span> +18% vs last week
+            <span :style="{ color: '#22C55E' }">↑</span> +18% {{ t('marketing.hero.vsLastWeek') }}
           </div>
           <svg
             ref="heroVolumeChartSvg"
@@ -608,7 +612,7 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
                 stroke-linecap="round"
               />
             </svg>
-            NEW PR
+            {{ t('marketing.hero.pr') }}
           </div>
           <div
             :style="{
@@ -618,7 +622,7 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
               letterSpacing: '-0.03em', textTransform: 'uppercase', marginTop: '2px',
             }"
           >
-            140kg Bench
+            {{ t('marketing.hero.benchRecord', { load: n(140) }) }}
           </div>
         </div>
       </div>

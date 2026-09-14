@@ -1,3 +1,6 @@
+import type { SiteLocale } from '../../types/locale'
+import { en, sk } from '../../i18n/messages/seoMedia'
+import { createMessageTranslator } from '../../utils/messageTranslator'
 import { Buffer } from 'node:buffer'
 import satori from 'satori'
 import { Resvg } from '@resvg/resvg-js'
@@ -48,8 +51,9 @@ async function loadFonts() {
   return fontsPromise
 }
 
-export async function renderOneRmOgCard(): Promise<Buffer> {
+export async function renderOneRmOgCard(locale: SiteLocale = 'en'): Promise<Buffer> {
   const fonts = await loadFonts()
+  const { t } = createMessageTranslator(locale, { en, sk })
   const root = el('div', {
     display: 'flex',
     width: CARD_WIDTH,
@@ -73,9 +77,9 @@ export async function renderOneRmOgCard(): Promise<Buffer> {
       color: COLORS.text,
       fontFamily: 'Space Grotesk',
       fontWeight: 700,
-      fontSize: 72,
+      fontSize: locale === 'sk' ? 62 : 72,
       lineHeight: 1.05,
-    }, 'One-rep max calculator'),
+    }, t('calculator')),
     el('div', {
       display: 'flex',
       marginTop: 28,
@@ -84,7 +88,7 @@ export async function renderOneRmOgCard(): Promise<Buffer> {
       fontWeight: 400,
       fontSize: 28,
       lineHeight: 1.35,
-    }, '100 kg × 5  →  116.7 kg'),
+    }, t('calculatorExample')),
     el('div', {
       display: 'flex',
       marginTop: 18,
@@ -93,7 +97,7 @@ export async function renderOneRmOgCard(): Promise<Buffer> {
       fontWeight: 600,
       fontSize: 22,
       letterSpacing: 2,
-    }, 'Same formula the app stores per exercise'),
+    }, t('calculatorNote')),
   ])
 
   const svg = await satori(root as never, { width: CARD_WIDTH, height: CARD_HEIGHT, fonts })

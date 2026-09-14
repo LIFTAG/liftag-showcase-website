@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { discoveryLocation } from "~/utils/gymscan/discoveryEquipment";
+import { en, sk } from '~/i18n/messages/gymDemo';
 const props = defineProps<{ reduced: boolean }>();
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } });
+const { href } = useSiteLocale();
 const root = useTemplateRef<HTMLElement>("root");
 const unavailable = shallowRef(false);
 const simple = computed(() => props.reduced || unavailable.value);
@@ -8,40 +10,19 @@ const { film, phase, replay, go } = useDiscoveryScroll(
   root,
   () => simple.value,
 );
-const beats = [
-  {
-    protocol: "08 GYMS · ONE NETWORK",
-    title: "Every gym.\nOne place.",
-    caption: "Find your next place to train. Eight gyms across Slovakia.",
-    step: "The network",
-  },
-  {
-    protocol: "YOUR PLACE ON THE MAP",
-    title: "Let your members\nspeak for you.",
-    caption: "Your place. Your community. Their reviews.",
-    step: "Member reviews",
-  },
-  {
-    protocol: "YOUR GYM, MACHINE BY MACHINE",
-    title: "Your floor.\nMade discoverable.",
-    caption: "A clear view of what your gym has to offer.",
-    step: "The gym floor",
-  },
-  {
-    protocol: "YOUR GYM, IN THE APP",
-    title: "Your floor.\nOn their phone.",
-    caption:
-      "The same machines, listed in LIFTAG, ready for a lifter to train.",
-    step: "In the app",
-  },
-] as const;
-const beat = computed(() => beats[simple.value ? 3 : phase.value] ?? beats[0]);
+const beats = computed(() => [
+  { protocol: t('discovery.protocolNetwork'), title: t('discovery.titleNetwork'), caption: t('discovery.captionNetwork'), step: t('discovery.stepNetwork') },
+  { protocol: t('discovery.protocolReviews'), title: t('discovery.titleReviews'), caption: t('discovery.captionReviews'), step: t('discovery.stepReviews') },
+  { protocol: t('discovery.protocolFloor'), title: t('discovery.titleFloor'), caption: t('discovery.captionFloor'), step: t('discovery.stepFloor') },
+  { protocol: t('discovery.protocolApp'), title: t('discovery.titleApp'), caption: t('discovery.captionApp'), step: t('discovery.stepApp') },
+]);
+const beat = computed(() => beats.value[simple.value ? 3 : phase.value] ?? beats.value[0]);
 const headline = computed(() =>
-  simple.value ? "Every gym.\nOne place." : beat.value.title,
+  simple.value ? t('discovery.titleNetwork') : beat.value.title,
 );
 const caption = computed(() =>
   simple.value
-    ? "Eight gyms in Slovakia. Member reviews and every machine, in one place."
+    ? t('discovery.simpleCaption')
     : beat.value.caption,
 );
 </script>
@@ -85,7 +66,7 @@ const caption = computed(() =>
             </div>
           </template>
         </div>
-        <div v-if="!simple" class="gd-steps" aria-label="Explore gym discovery">
+        <div v-if="!simple" class="gd-steps" :aria-label="t('discovery.explore')">
           <button
             v-for="(item, index) in beats"
             :key="item.step"
@@ -98,8 +79,8 @@ const caption = computed(() =>
         <NuxtLink
           v-if="phase === 3 || simple"
           class="btn-primary gd-link"
-          to="/contact/partner"
-          >Put your gym on LIFTAG</NuxtLink
+          :to="href('/contact/partner')"
+          >{{ t('discovery.partner') }}</NuxtLink
         >
       </div>
       <div
@@ -113,27 +94,27 @@ const caption = computed(() =>
             src="/assets/screens/gym-detail-560.webp"
             width="560"
             height="1212"
-            alt="Example gym with free weights and strength machines"
+            :alt="t('discovery.profileAlt')"
             loading="lazy"
           />
         </div>
         <div class="gd-profile-info">
-          <p class="gx-protocol">YOUR PLACE ON THE MAP</p>
-          <h3>Your gym</h3>
+          <p class="gx-protocol">{{ t('discovery.place') }}</p>
+          <h3>{{ t('discovery.profileTitle') }}</h3>
           <p>
-            {{ discoveryLocation.city }}, {{ discoveryLocation.country }}
+            {{ t('discovery.city') }}, {{ t('discovery.country') }}
             <span aria-hidden="true">↗</span>
           </p>
         </div>
         <div class="gd-review">
           <span class="gd-stars" aria-hidden="true">☆ ☆ ☆ ☆ ☆</span
-          ><strong>Member reviews</strong>
-          <p>No reviews yet. Yours could be the first.</p>
+          ><strong>{{ t('discovery.reviews') }}</strong>
+          <p>{{ t('discovery.noReviews') }}</p>
         </div>
         <button v-if="!simple" class="btn-ghost gd-profile-machines" @click="go(2)">
-          <HoloPill />Explore the gym floor
+          <HoloPill />{{ t('discovery.exploreFloor') }}
         </button>
-        <small>Example gym listing</small>
+        <small>{{ t('discovery.listing') }}</small>
       </div>
       <GymEquipmentInventory v-if="simple" />
       <button
@@ -141,14 +122,14 @@ const caption = computed(() =>
         class="gd-replay gx-protocol"
         @click="go(0)"
       >
-        ↻ Replay the journey
+        ↻ {{ t('discovery.replay') }}
       </button>
       <button
         v-if="!simple && phase === 2"
         class="gd-floor-next gx-protocol"
         @click="go(3)"
       >
-        FROM FLOOR TO THE APP <span aria-hidden="true">↓</span>
+        {{ t('discovery.floorToApp') }} <span aria-hidden="true">↓</span>
       </button>
     </div>
   </section>

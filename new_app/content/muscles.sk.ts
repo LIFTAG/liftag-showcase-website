@@ -1,0 +1,96 @@
+import type { MuscleHubCopy } from '../types/muscleHub.ts'
+
+/** Editorial Slovak counterparts; slugs remain the API and URL identity. */
+export const MUSCLE_HUBS_SK: MuscleHubCopy[] = [
+  [
+    'chest',
+    'Hrudník',
+    'Cviky na hrudník.',
+    'Cviky na hrudník v knižnici LIFTAG: bench press, rozpažovanie, dipy a tlaky na strojoch, s nastavením, zapojenými svalmi a záznamom každej série.',
+    'Tlaky v horizontále, rozpažovanie a dipy. LIFTAG priraďuje každý cvik k strojom, na ktorých sa skutočne cvičí, aby sken otvoril správny pohyb, nie všeobecný „tlak na hrudník“.',
+  ],
+  [
+    'back',
+    'Chrbát',
+    'Cviky na chrbát.',
+    'Cviky na chrbát v knižnici LIFTAG: príťahy, sťahovanie kladky, zhyby a varianty mŕtveho ťahu, s nastavením a návodom na zaznamenanie.',
+    'Ťahy zhora, príťahy v predklone a pohyby s ohybom v bedrách. V katalógu nájdeš zhyby vedľa sťahovania kladky a príťahy s oporou hrudníka vedľa príťahov s veľkou činkou. Môžeš tak meniť vybavenie a ďalej sledovať svoje záznamy.',
+  ],
+  [
+    'shoulders',
+    'Ramená',
+    'Cviky na ramená.',
+    'Cviky na ramená v knižnici LIFTAG: tlaky nad hlavu, upažovanie a zadné delty, s nastavením a návodom na zaznamenanie.',
+    'Tlaky pre predné delty, upažovanie pre bočné a face pull či obrátené rozpažovanie pre zadné. Zaznamenávaj ich oddelene, aby sa objem jednotlivých hláv nestratil v jednej kategórii.',
+  ],
+  [
+    'biceps',
+    'Biceps',
+    'Cviky na biceps.',
+    'Cviky na biceps v knižnici LIFTAG: zdvihy, kladivové zdvihy a varianty na Scottovej lavičke, s nastavením a návodom na zaznamenanie.',
+    'Zdvihy s rôznym úchopom a uhlom lavičky. LIFTAG ich vedie ako samostatné cviky, aby si videl, či sa zdvih s osou zastavil, aj keď kladivové zdvihy napredujú.',
+  ],
+  [
+    'triceps',
+    'Triceps',
+    'Cviky na triceps.',
+    'Cviky na triceps v knižnici LIFTAG: stláčanie kladky, francúzske tlaky, úzky bench press a dipy, s nastavením a návodom na zaznamenanie.',
+    'Extenzie, stláčanie kladky a tlaky úzkym úchopom. Knižnica ich delí, aby sa úzky bench press nestratil pod všeobecným bench pressom pri hodnotení objemu tricepsov.',
+  ],
+  [
+    'forearms',
+    'Predlaktia',
+    'Cviky na predlaktia.',
+    'Cviky na predlaktia a úchop v knižnici LIFTAG: zápästné zdvihy, chôdza s jednoručkami a visy, s nastavením a návodom na zaznamenanie.',
+    'Priama práca s úchopom a zápästím. Ťahy už predlaktia zaťažujú; tieto cviky pridávajú cielený objem bez odhadovania zo záznamov zhybov.',
+  ],
+  [
+    'quadriceps',
+    'Kvadricepsy',
+    'Cviky na kvadricepsy.',
+    'Cviky na kvadricepsy v knižnici LIFTAG: drepy, výpady, leg press a predkopávanie, s nastavením a návodom na zaznamenanie.',
+    'Drepy, drepy v rozkročnom postoji, tlaky a predkopávanie. LIFTAG eviduje drep s veľkou činkou samostatne od hacken drepov a leg pressu, aby záznam zodpovedal stroju, ktorý si použil.',
+  ],
+  [
+    'hamstrings',
+    'Hamstringy',
+    'Cviky na hamstringy.',
+    'Cviky na hamstringy v knižnici LIFTAG: rumunský mŕtvy ťah, zakopávanie a good morning, s nastavením a návodom na zaznamenanie.',
+    'Predklony a zakopávania. Rumunský mŕtvy ťah, zakopávanie v ľahu a v sede sú dosť odlišné na to, aby mali v zázname vlastné riadky.',
+  ],
+  [
+    'adductors',
+    'Adduktory',
+    'Cviky na adduktory.',
+    'Cviky na adduktory v knižnici LIFTAG: strojové priťahovanie nôh, Copenhagen plank a príťahy kladky, s nastavením a návodom na zaznamenanie.',
+    'Strojové priťahovanie, kladky a Copenhagen plank. Drepy adduktory tiež zaťažujú; tieto cviky pridávajú cielený objem bez skrývania v drepoch či výpadoch.',
+  ],
+  [
+    'calves',
+    'Lýtka',
+    'Cviky na lýtka.',
+    'Cviky na lýtka v knižnici LIFTAG: výpony v stoji aj v sede, s nastavením a návodom na zaznamenanie.',
+    'Výpony v stoji zapájajú gastrocnemius, v sede viac soleus. Knižnica ich eviduje samostatne, aby si mohol presne sledovať pokrok pri každom cviku.',
+  ],
+  [
+    'glutes',
+    'Sedacie svaly',
+    'Cviky na sedacie svaly.',
+    'Cviky na sedacie svaly v knižnici LIFTAG: hip thrust, zanožovanie a mostíky, s nastavením a návodom na zaznamenanie.',
+    'Hip thrust, mostíky a abdukcia. Drepy a mŕtve ťahy už sedacie svaly trénujú; tieto cviky sú pre samostatný tréning sedacích svalov, ktorý si môžeš spätne pozrieť.',
+  ],
+  [
+    'abs',
+    'Brucho',
+    'Cviky na brucho.',
+    'Cviky na brucho a stred tela v knižnici LIFTAG: skracovačky, zdvihy, planky a Pallof press, s nastavením a návodom na zaznamenanie.',
+    'Flexia, antirotácia a prenášanie záťaže. Výdrže na čas a zdvihy na opakovania sa v LIFTAG zaznamenávajú odlišne, preto nemajú spoločný riadok.',
+  ],
+  [
+    'cardio',
+    'Kardio',
+    'Kardio stroje.',
+    'Kardio v knižnici LIFTAG: bežecký pás, bicykel, veslovací trenažér, SkiErg a skoky, s nastavením a záznamom času alebo kalórií.',
+    'Stroje a kondičné cviky s vlastnou váhou. LIFTAG ich zaznamenáva ako čas alebo kalórie namiesto váhy × opakovaní, aby veslovanie nevyzeralo ako vynechaný bench.',
+  ],
+].map(([slug, name, headline, description, intro]) => ({ slug, name, headline, description, intro }))

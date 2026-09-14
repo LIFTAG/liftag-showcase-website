@@ -1,3 +1,4 @@
+import { siteLocalePath, siteLocaleAlternates } from './siteLocale.ts'
 import type { SiteLocale } from '../types/locale.ts'
 
 export type CatalogLocale = SiteLocale
@@ -9,7 +10,7 @@ export function parseCatalogLocale(value: unknown): CatalogLocale {
 }
 
 export function exerciseIndexPath(locale: CatalogLocale = 'en'): string {
-  return locale === 'sk' ? '/sk/exercises' : '/exercises'
+  return siteLocalePath('/exercises', locale)
 }
 
 export function exercisePath(slug: string, locale: CatalogLocale = 'en'): string {
@@ -21,20 +22,14 @@ export function exercisePath(slug: string, locale: CatalogLocale = 'en'): string
  * returns English catalog copy, so there are no `/cs/exercises` routes.
  */
 export function exerciseHreflangAlternates(slug?: string): Array<{ hreflang: string, path: string }> {
-  const en = slug ? `/exercises/${slug}` : '/exercises'
-  const sk = slug ? `/sk/exercises/${slug}` : '/sk/exercises'
-  return [
-    { hreflang: 'en', path: en },
-    { hreflang: 'sk', path: sk },
-    { hreflang: 'x-default', path: en },
-  ]
+  return siteLocaleAlternates(slug ? `/exercises/${slug}` : '/exercises')
 }
 
 /** API category `name` stays English; SK chips use this map. */
 export const SK_MUSCLE_NAMES: Record<string, string> = {
   chest: 'Hrudník',
   back: 'Chrbát',
-  shoulders: 'Ramena',
+  shoulders: 'Ramená',
   biceps: 'Biceps',
   triceps: 'Triceps',
   forearms: 'Predlaktia',
@@ -42,7 +37,7 @@ export const SK_MUSCLE_NAMES: Record<string, string> = {
   hamstrings: 'Hamstringy',
   adductors: 'Adduktory',
   calves: 'Lýtka',
-  glutes: 'Gluteus',
+  glutes: 'Sedacie svaly',
   abs: 'Brucho',
   cardio: 'Kardio',
 }
@@ -52,12 +47,13 @@ export function muscleDisplayName(
   fallback: string,
   locale: CatalogLocale = 'en',
 ): string {
-  if (locale === 'sk') return SK_MUSCLE_NAMES[slug] ?? fallback
+  // A translated API label stays authoritative. Only replace known English
+  // fallback names from the legacy category contract.
+  if (locale === 'sk' && fallback.trim().toLowerCase() === slug) return SK_MUSCLE_NAMES[slug] ?? fallback
   return fallback
 }
 
-/** SK has no muscle-hub routes; chips stay on the SK library with a filter. */
+/** Shared muscle hub slugs are identical in both languages. */
 export function muscleChipPath(slug: string, locale: CatalogLocale = 'en'): string {
-  if (locale === 'sk') return `${exerciseIndexPath('sk')}?muscle=${slug}`
-  return `/muscles/${slug}`
+  return siteLocalePath(`/muscles/${slug}`, locale)
 }

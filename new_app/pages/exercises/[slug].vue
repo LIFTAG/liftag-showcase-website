@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const route = useRoute()
-const contextLocale = computed(() => route.query.lang === 'en' || route.query.lang === 'sk' ? route.query.lang : 'en')
+const { locale: contextLocale } = useSiteLocale()
 </script>
 
 <template>

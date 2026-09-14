@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/shell'
 const props = defineProps<{
   store: 'apple' | 'google'
   href?: string
@@ -7,16 +8,15 @@ const props = defineProps<{
 }>()
 
 const isApple = computed(() => props.store === 'apple')
-const name = computed(() => isApple.value ? 'App Store' : 'Google Play')
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+const name = computed(() => isApple.value ? t('shell.app.appStore') : t('shell.app.googlePlay'))
 const kicker = computed(() => {
-  if (props.comingSoon) return 'Coming soon'
-  if (props.locale === 'sk') return isApple.value ? 'Stiahnuť v' : 'Získať na'
-  return isApple.value ? 'Download on the' : 'Get it on'
+  if (props.comingSoon) return t('shell.app.comingSoon')
+  return isApple.value ? t('shell.app.downloadOn') : t('shell.app.getItOn')
 })
 const label = computed(() => props.comingSoon
-  ? `${name.value} — coming soon`
-  : props.locale === 'sk' ? `Stiahnuť v ${name.value}`
-  : (isApple.value ? 'Download on the App Store' : 'Get it on Google Play'))
+  ? `${name.value} — ${t('shell.app.comingSoon')}`
+  : `${isApple.value ? t('shell.app.downloadOn') : t('shell.app.getItOn')} ${name.value}`)
 
 const resolvedHref = computed(() => props.href ?? '#')
 const isExternal = computed(() => /^https?:\/\//.test(resolvedHref.value))

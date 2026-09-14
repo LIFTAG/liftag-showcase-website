@@ -13,13 +13,13 @@ const isSk = locale === 'sk'
 const chrome = catalogChrome(locale)
 const indexPath = exerciseIndexPath(locale)
 
-useLiftagSeo({
+useLiftagSeo(() => ({
   title: chrome.indexSeoTitle,
   description: chrome.indexSeoDescription,
   path: indexPath,
   alternates: liftagExerciseAlternates(),
   ...(isSk ? { lang: 'sk', locale: 'sk_SK' } : {}),
-})
+}))
 
 const route = useRoute()
 
@@ -247,7 +247,7 @@ useHead(() => ({
     : [],
 }))
 
-useLiftagStructuredData([
+useLiftagStructuredData(() => [
   liftagOrganization,
   liftagSoftwareApplication,
   liftagWebPage({
@@ -262,7 +262,7 @@ useLiftagStructuredData([
     { name: chrome.libraryCrumb, path: indexPath },
   ]),
   liftagItemList({
-    name: isSk ? 'Svalové partie' : 'Exercise muscle groups',
+    name: chrome.muscleGroupsName,
     items: MUSCLE_HUBS.map(hub => ({
       name: muscleDisplayName(hub.slug, hub.name, locale),
       url: `https://liftag.fit${isSk ? muscleChipPath(hub.slug, 'sk') : musclePath(hub.slug)}`,
@@ -284,7 +284,7 @@ useLiftagStructuredData([
         <p v-if="index" class="ex-stats">
           <span>{{ chrome.statExercises(index.exercises.length) }}</span>
           <span class="ex-stats-dot" aria-hidden="true">·</span>
-          <NuxtLink v-if="!isSk" to="/machines" class="ex-stats-link">{{ chrome.statMachines(index.machines.length) }}</NuxtLink>
+          <NuxtLink v-if="!isSk" :to="siteLocalePath('/machines', locale)" class="ex-stats-link">{{ chrome.statMachines(index.machines.length) }}</NuxtLink>
           <span v-else>{{ chrome.statMachines(index.machines.length) }}</span>
           <span class="ex-stats-dot" aria-hidden="true">·</span>
           <span>{{ chrome.statMuscles(index.categories.filter(c => c.slug !== 'cardio').length) }}</span>
@@ -299,7 +299,7 @@ useLiftagStructuredData([
               <CatalogSearch
                 v-model="query"
                 :placeholder="chrome.searchPlaceholder"
-                :aria-label="chrome.searchAria"
+                :ariaLabel="chrome.searchAria"
                 :clear-aria-label="chrome.clearSearchAria"
                 class="ex-search"
                 @focus="activateSearch"
@@ -390,17 +390,14 @@ useLiftagStructuredData([
         </template>
       </section>
 
-      <section v-if="!isSk" class="container ex-machines-band">
+      <section class="container ex-machines-band">
         <div class="ex-machines-band__inner">
           <div>
-            <p class="protocol ex-machines-band__eyebrow">BROWSE BY MACHINE</p>
-            <h2 class="display ex-machines-band__title">Know the machine, <span class="lime">not the name?</span></h2>
-            <p class="ex-machines-band__copy">
-              Every partner-gym machine lists its exercises, exactly like scanning
-              its QR tag in the app.
-            </p>
+            <p class="protocol ex-machines-band__eyebrow">{{ chrome.exerciseBandEyebrow }}</p>
+            <h2 class="display ex-machines-band__title">{{ chrome.exerciseBandLead }}<span class="lime">{{ chrome.exerciseBandLime }}</span></h2>
+            <p class="ex-machines-band__copy">{{ chrome.exerciseBandCopy }}</p>
           </div>
-          <NuxtLink to="/machines" class="btn-primary ex-machines-band__cta">Browse machines</NuxtLink>
+          <NuxtLink :to="siteLocalePath('/machines', locale)" class="btn-primary ex-machines-band__cta">{{ chrome.exerciseBandCta }}</NuxtLink>
         </div>
       </section>
     </main>

@@ -142,7 +142,7 @@ const TOKEN_ALIASES: Record<string, string> = {
 }
 
 function fold(value: string) {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
 }
 
 function unique(values: string[]) {
@@ -200,26 +200,6 @@ function matchesExpansion(keys: string[], expansion: string) {
   return fold(expansion).split(/\s+/).filter(Boolean).every(token => keys.includes(token))
 }
 
-const SEARCH_INDEX: IndexedExercise[] = ONE_RM_EXERCISES.map((exercise) => {
-  const label = fold(exercise.label)
-  const id = fold(exercise.id)
-  const group = fold(exercise.group)
-  const words = `${label} ${id} ${group}`.split(/\s+/).filter(Boolean)
-  const keys = unique([
-    ...words,
-    ...acronymOf(label),
-    compactOf(label),
-    compactOf(id),
-  ].filter(Boolean))
-  return { exercise, label, id, words, keys }
-})
-
-for (const [alias, expansion] of Object.entries(TOKEN_ALIASES)) {
-  for (const row of SEARCH_INDEX) {
-    if (matchesExpansion(row.keys, expansion) && !row.keys.includes(alias)) row.keys.push(alias)
-  }
-}
-
 function hitRank(key: string, token: string, allowContains: boolean): number {
   for (const form of formsOf(token)) {
     if (key === form || formsOf(key).includes(form)) return 80
@@ -257,18 +237,43 @@ function scoreExercise(row: IndexedExercise, needle: string, tokens: string[], r
   return tokenScore
 }
 
-/** Ranked matches for the strength-comparison picker. Empty query returns no rows; the picker shows featured lifts instead. */
-export function searchExercises(query: string): OneRmExercise[] {
-  const raw = query.trim()
-  const needle = expandQuery(raw)
-  if (!needle) return []
-  const tokens = needle.split(/\s+/).filter(Boolean)
-  return SEARCH_INDEX
-    .map(row => ({ exercise: row.exercise, score: scoreExercise(row, needle, tokens, raw) }))
-    .filter(row => row.score > 0)
-    .sort((a, b) => b.score - a.score || a.exercise.label.length - b.exercise.label.length)
-    .map(row => row.exercise)
+/** Build once per language; English names and stable IDs remain searchable aliases. */
+export function createExerciseSearch(labelFor: (exercise: OneRmExercise) => string = exercise => exercise.label) {
+  const searchIndex: IndexedExercise[] = ONE_RM_EXERCISES.map((exercise) => {
+    const label = fold(labelFor(exercise))
+    const id = fold(exercise.id)
+    const group = fold(exercise.group)
+    const words = `${label} ${fold(exercise.label)} ${id} ${group}`.split(/\s+/).filter(Boolean)
+    const keys = unique([
+      ...words,
+      ...acronymOf(label),
+      compactOf(label),
+      compactOf(id),
+    ].filter(Boolean))
+    return { exercise, label, id, words, keys }
+  })
+
+  for (const [alias, expansion] of Object.entries(TOKEN_ALIASES)) {
+    for (const row of searchIndex) {
+      if (matchesExpansion(row.keys, expansion) && !row.keys.includes(alias)) row.keys.push(alias)
+    }
+  }
+
+  /** Ranked matches for the strength-comparison picker. Empty query returns no rows; the picker shows featured lifts instead. */
+  return function searchExercises(query: string): OneRmExercise[] {
+    const raw = query.trim()
+    const needle = expandQuery(raw)
+    if (!needle) return []
+    const tokens = needle.split(/\s+/).filter(Boolean)
+    return searchIndex
+      .map(row => ({ exercise: row.exercise, score: scoreExercise(row, needle, tokens, raw) }))
+      .filter(row => row.score > 0)
+      .sort((a, b) => b.score - a.score || a.exercise.label.length - b.exercise.label.length)
+      .map(row => row.exercise)
+  }
 }
+
+export const searchExercises = createExerciseSearch()
 
 export function exerciseFor(lift: OneRmExerciseId) {
   return ONE_RM_EXERCISES.find(exercise => exercise.id === lift)!
@@ -281,13 +286,13 @@ export function loadQualifier(lift: OneRmExerciseId): string {
   return ''
 }
 
-export function exerciseHint(lift: OneRmExerciseId): string {
+export function exerciseHintKey(lift: OneRmExerciseId): 'barbell' | 'dumbbell' | 'single' | 'machine' | 'bodyweight' | 'default' {
   switch (exerciseFor(lift).basis) {
-    case 'barbell': return 'Include the bar. Use clean reps close to failure.'
-    case 'dumbbell': return 'Enter one dumbbell’s weight, including its handle.'
-    case 'single': return 'Enter the weight of the single dumbbell or kettlebell.'
-    case 'machine': return 'Use the machine’s indicated load. Equipment varies.'
-    case 'bodyweight': return 'Enter bodyweight + added weight. Unassisted reps only.'
-    default: return 'Use clean reps close to failure. Estimate only.'
+    case 'barbell': return 'barbell'
+    case 'dumbbell': return 'dumbbell'
+    case 'single': return 'single'
+    case 'machine': return 'machine'
+    case 'bodyweight': return 'bodyweight'
+    default: return 'default'
   }
 }

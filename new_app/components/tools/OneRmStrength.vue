@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { exerciseFor, loadQualifier } from '~/utils/oneRepMaxExercises'
+import { exerciseFor } from '~/utils/oneRepMaxExercises'
 import type { LiftId, WeightUnit } from '~/utils/oneRepMax'
 import { strengthSource, strongerThanShare, type ComparisonSex, type StrengthComparison } from '~/utils/strengthStandards'
 import OneRmExercisePicker from './OneRmExercisePicker.vue'
 import OneRmMorphSwitch from './OneRmMorphSwitch.vue'
 import OneRmStrengthGraph from './OneRmStrengthGraph.vue'
 import OneRmStrengthProgression from './OneRmStrengthProgression.vue'
+import { en, sk } from '~/i18n/messages/tools'
+import { strengthLevelKey } from '~/content/tools/oneRmExercises'
+const { t, n } = useI18n({ useScope: 'local', messages: { en, sk } })
 
-const sexOptions = [{ value: 'male', label: 'Male' }, { value: 'female', label: 'Female' }] as const
+const sexOptions = computed(() => [{ value: 'male', label: t('tools.strength.male') }, { value: 'female', label: t('tools.strength.female') }] as const)
 const bodyweight = defineModel<string>('bodyweight', { required: true })
 const sex = defineModel<ComparisonSex | ''>('sex', { required: true })
 const lift = defineModel<LiftId>('lift', { required: true })
@@ -20,19 +23,32 @@ const props = defineProps<{
 }>()
 const source = computed(() => strengthSource(lift.value))
 const exercise = computed(() => exerciseFor(lift.value))
-const qualifier = computed(() => loadQualifier(lift.value))
+const qualifier = computed(() => exercise.value.basis === 'dumbbell' ? t('tools.calculatorUi.qualifierDumbbell') : exercise.value.basis === 'bodyweight' ? t('tools.calculatorUi.qualifierBodyweight') : '')
+const displayLevel = computed(() => {
+  const key = strengthLevelKey(props.comparison?.level ?? '')
+  return key ? t(`tools.progression.${key}`) : props.comparison?.level === 'World record' ? t('tools.progression.worldRecord') : props.comparison?.level ?? ''
+})
+const localizedBodyweightError = computed(() => {
+  if (!props.bodyweightError) return null
+  const error = props.bodyweightError
+  if (error.includes('scientific')) return t('tools.form.scientific')
+  if (error.includes('has to be a number')) return t('tools.form.weightNumber')
+  if (error.includes('greater than 0')) return t('tools.form.weightPositive')
+  if (error.includes('between 30 and 300')) return t('tools.strength.weightRange')
+  return error
+})
 const share = computed(() => props.comparison ? strongerThanShare(props.comparison) : '')
 const noteOpen = shallowRef(false)
 const note = useTemplateRef<HTMLElement>('chart-note')
 const emptyMessage = computed(() => {
   if (!source.value) return exercise.value.basis === 'bodyweight'
-    ? 'This lift has a total-load estimate, but no compatible bodyweight-ratio ranking.'
-    : 'Choose your exercise, then add your bodyweight and comparison group.'
-  if (!props.validSet) return 'Enter a valid set above, then add your bodyweight and comparison group.'
-  if (props.bodyweightError) return 'Check your bodyweight to reveal your comparison.'
-  if (props.bodyweightKg == null && !sex.value) return 'Add your bodyweight and comparison group to find your place.'
-  if (!sex.value) return 'Choose Male or Female to use the matching strength standards.'
-  return 'Add your bodyweight to find your place.'
+    ? t('tools.strength.unsupported')
+    : t('tools.strength.choose')
+  if (!props.validSet) return t('tools.strength.validSet')
+  if (props.bodyweightError) return t('tools.strength.checkWeight')
+  if (props.bodyweightKg == null && !sex.value) return t('tools.strength.addBoth')
+  if (!sex.value) return t('tools.strength.chooseSex')
+  return t('tools.strength.addWeight')
 })
 
 function toggleNote() {
@@ -68,8 +84,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer))
 <template>
   <section id="strength-comparison" class="strength" aria-labelledby="strength-title">
     <header class="strength-heading">
-      <div><p class="eyebrow">PUT YOUR STRENGTH IN PERSPECTIVE</p><h2 id="strength-title">See where you stand.</h2></div>
-      <p class="section-intro">One lift. A bigger picture.<br>Find your level and what comes next.</p>
+      <div><p class="eyebrow">{{ t('tools.strength.eyebrow') }}</p><h2 id="strength-title">{{ t('tools.strength.title') }}</h2></div>
+      <p class="section-intro">{{ t('tools.strength.intro') }}</p>
     </header>
 
     <div class="comparison-stage">
@@ -77,17 +93,17 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer))
         <OneRmExercisePicker v-model="lift" />
         <div class="comparison-fields">
           <div>
-            <label for="orm-bodyweight">Your bodyweight <span>{{ unit }}</span></label>
-            <input id="orm-bodyweight" v-model="bodyweight" type="text" inputmode="decimal" autocomplete="off" :placeholder="unit === 'kg' ? 'e.g. 80' : 'e.g. 175'" :aria-invalid="Boolean(bodyweightError)" :aria-describedby="bodyweightError ? 'orm-bodyweight-error' : 'strength-method-note'">
+            <label for="orm-bodyweight">{{ t('tools.strength.bodyweight') }} <span>{{ unit }}</span></label>
+            <input id="orm-bodyweight" v-model="bodyweight" type="text" inputmode="decimal" autocomplete="off" :placeholder="unit === 'kg' ? t('tools.strength.bodyweightPlaceholderKg') : t('tools.strength.bodyweightPlaceholderLb')" :aria-invalid="Boolean(bodyweightError)" :aria-describedby="bodyweightError ? 'orm-bodyweight-error' : 'strength-method-note'">
           </div>
           <div>
-            <span id="orm-sex-label">Compare with</span>
+            <span id="orm-sex-label">{{ t('tools.strength.compare') }}</span>
             <OneRmMorphSwitch v-model="sex" class="sex-switch" :options="sexOptions" aria-labelledby="orm-sex-label" />
           </div>
         </div>
-        <p v-if="bodyweightError" id="orm-bodyweight-error" class="strength-error">{{ bodyweightError }}</p>
-        <p class="setup-note">Strength relative to bodyweight.<br> For this exercise, in your selected group.</p>
-        <p v-if="comparison" class="relative-strength"><strong>{{ comparison.ratio.toFixed(2) }}<span>×</span></strong><span>your bodyweight<br><small>estimated 1RM<span v-if="qualifier">, {{ qualifier }}</span></small></span></p>
+        <p v-if="localizedBodyweightError" id="orm-bodyweight-error" class="strength-error">{{ localizedBodyweightError }}</p>
+        <p class="setup-note">{{ t('tools.strength.setup') }}</p>
+        <p v-if="comparison" class="relative-strength"><strong>{{ n(comparison.ratio, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}<span>×</span></strong><span>{{ t('tools.strength.bodyweight').toLowerCase() }}<br><small>{{ t('tools.strength.estimated') }}<span v-if="qualifier">, {{ qualifier }}</span></small></span></p>
       </div>
 
       <div class="comparison-result">
@@ -95,11 +111,11 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer))
           <template v-if="comparison">
             <div ref="chart-note" class="chart-note-wrap" :class="{ open: noteOpen }" @keydown="onNoteKey">
               <span class="rank-context">
-                {{ comparison.level }} <i /> {{ sex === 'male' ? 'Male' : 'Female' }} lifters
+                {{ displayLevel }} <i /> {{ sex === 'male' ? t('tools.strength.maleLifters') : t('tools.strength.femaleLifters') }}
                 <button
                   type="button"
                   class="chart-info"
-                  aria-label="About this comparison"
+                  :aria-label="t('tools.strength.about')"
                   :aria-expanded="noteOpen"
                   aria-controls="orm-chart-note"
                   @click="toggleNote"
@@ -108,16 +124,16 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer))
                 </button>
               </span>
               <div class="chart-note" :aria-hidden="noteOpen ? undefined : 'true'">
-                <p id="orm-chart-note">Approximate comparison with lifters who log on <a v-if="source" :href="source" :tabindex="noteOpen ? 0 : -1" rel="noopener">Strength Level</a><span v-else>Strength Level</span>. The chart is the density implied by those published percentiles<span v-if="comparison.level === 'World record' || comparison.next?.label === 'World record'">, stretched to the all-time raw world-record ratio as 100%</span>, not a measured histogram.</p>
+                <p id="orm-chart-note">{{ t('tools.strength.approx', { record: comparison.level === 'World record' || comparison.next?.label === 'World record' ? t('tools.strength.recordStretch') : '' }) }}</p>
               </div>
             </div>
-            <p v-if="comparison.level === 'World record' && comparison.boundary === 'above'" class="rank-statement" role="status" aria-atomic="true">You’re past the<br><strong>world record</strong> <span>ratio for {{ sex }} lifters.</span></p>
-            <p v-else-if="comparison.level === 'World record'" class="rank-statement" role="status" aria-atomic="true">You’re at the<br><strong>world record</strong> <span>ratio for {{ sex }} lifters.</span></p>
-            <p v-else class="rank-statement" role="status" aria-atomic="true">You’re stronger than<br><strong>{{ share }}</strong> <span>of {{ sex }} lifters.</span></p>
+            <p v-if="comparison.level === 'World record' && comparison.boundary === 'above'" class="rank-statement" role="status" aria-atomic="true">{{ t('tools.strength.pastRecord', { sex: sex === 'male' ? t('tools.strength.maleGroup') : t('tools.strength.femaleGroup') }) }}</p>
+            <p v-else-if="comparison.level === 'World record'" class="rank-statement" role="status" aria-atomic="true">{{ t('tools.strength.atRecord', { sex: sex === 'male' ? t('tools.strength.maleGroup') : t('tools.strength.femaleGroup') }) }}</p>
+            <p v-else class="rank-statement" role="status" aria-atomic="true">{{ t('tools.strength.stronger', { share, sex: sex === 'male' ? t('tools.strength.maleGroup') : t('tools.strength.femaleGroup') }) }}</p>
           </template>
           <template v-else>
-            <span class="rank-context">YOUR STRENGTH, IN CONTEXT</span>
-            <p class="rank-statement empty-statement">Every lifter has<br>a place to start.</p>
+            <span class="rank-context">{{ t('tools.strength.context') }}</span>
+            <p class="rank-statement empty-statement">{{ t('tools.strength.empty') }}</p>
           </template>
         </div>
         <OneRmStrengthGraph :comparison="comparison" :lift="lift" :sex="sex" :unit="unit" :bodyweight-kg="bodyweightError ? null : bodyweightKg" />

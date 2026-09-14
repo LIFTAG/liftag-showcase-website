@@ -1,3 +1,4 @@
+import { parseCatalogLocale } from '../../../../utils/catalogLocale'
 import { resolveMachineFromCatalog } from '../../../utils/catalogResolve'
 
 export default defineEventHandler(async (event) => {
@@ -6,7 +7,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Missing machine' })
   }
 
-  const machine = await resolveMachineFromCatalog(param)
+  const machine = await resolveMachineFromCatalog(param, parseCatalogLocale(getQuery(event).locale))
   if (!machine) {
     throw createError({ statusCode: 404, statusMessage: 'Machine not found' })
   }

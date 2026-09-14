@@ -1,19 +1,16 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import {
-  clipMetaDescription,
-  defaultExerciseFaqs,
-  defaultExerciseFaqsSk,
-  descriptionToHowToSteps,
-  exerciseImageAlt,
-  exerciseMetaDescription,
-  exerciseMetaDescriptionSk,
-  exerciseTitle,
-  exerciseTitleSk,
-  splitSentences,
-} from '../utils/seoCopy.ts'
+import { clipMetaDescription, descriptionToHowToSteps, splitSentences, catalogSeo } from '../utils/seoCopy.ts'
+const { defaultExerciseFaqs, exerciseImageAlt, exerciseMetaDescription, exerciseTitle } = catalogSeo('en')
+const {
+  defaultExerciseFaqs: defaultExerciseFaqsSk,
+  exerciseMetaDescription: exerciseMetaDescriptionSk,
+  exerciseTitle: exerciseTitleSk,
+  machineMetaDescription: machineMetaDescriptionSk,
+} = catalogSeo('sk')
 
-const BENCH = 'Lie on a flat bench with eyes under the bar, feet planted, and head, upper back, and hips supported. Take an even closed grip, retract and depress the shoulder blades, and unrack with a spotter when appropriate. Lower the bar under control toward the mid-to-lower chest with wrists over forearms, touch without bouncing, and press upward and slightly back to stable lockout. The bench press trains the pectorals, triceps, and anterior deltoids and is a standard test of horizontal pressing strength, but not universally the “best” exercise. Set rack safeties, use collars and a trained spotter, and choose a grip and range that keep the shoulders comfortable.'
+const BENCH =
+  'Lie on a flat bench with eyes under the bar, feet planted, and head, upper back, and hips supported. Take an even closed grip, retract and depress the shoulder blades, and unrack with a spotter when appropriate. Lower the bar under control toward the mid-to-lower chest with wrists over forearms, touch without bouncing, and press upward and slightly back to stable lockout. The bench press trains the pectorals, triceps, and anterior deltoids and is a standard test of horizontal pressing strength, but not universally the “best” exercise. Set rack safeties, use collars and a trained spotter, and choose a grip and range that keep the shoulders comfortable.'
 
 test('splits catalog copy on sentence boundaries', () => {
   assert.equal(splitSentences(BENCH).length, 5)
@@ -22,19 +19,19 @@ test('splits catalog copy on sentence boundaries', () => {
 test('drops commentary sentences from HowTo steps', () => {
   const steps = descriptionToHowToSteps(BENCH)
   assert.ok(steps.length >= 3)
-  assert.ok(steps.every(step => !/trains the/.test(step)))
+  assert.ok(steps.every((step) => !/trains the/.test(step)))
   assert.match(steps[0] ?? '', /^Lie on a flat bench/)
 })
 
 test('keeps a single-sentence description as one step', () => {
-  assert.deepEqual(
-    descriptionToHowToSteps('Hold a plank with elbows under shoulders.'),
-    ['Hold a plank with elbows under shoulders.'],
-  )
+  assert.deepEqual(descriptionToHowToSteps('Hold a plank with elbows under shoulders.'), [
+    'Hold a plank with elbows under shoulders.',
+  ])
 })
 
 test('does not cut a meta description mid-word', () => {
-  const long = 'A'.repeat(80) + ' leftoverwords that should not be sliced through the middle of anything important'
+  const long =
+    'A'.repeat(80) + ' leftoverwords that should not be sliced through the middle of anything important'
   const clipped = clipMetaDescription(long, 90)
   assert.ok(clipped.endsWith('…'))
   assert.ok(!clipped.includes('leftoverw'))
@@ -42,10 +39,7 @@ test('does not cut a meta description mid-word', () => {
 
 test('prefers overlay copy for exercise meta descriptions', () => {
   const overlay = 'Barbell bench press: setup, common mistakes, and how to log every set in LIFTAG.'
-  assert.equal(
-    exerciseMetaDescription({ name: 'Barbell Bench Press', overlay }),
-    overlay,
-  )
+  assert.equal(exerciseMetaDescription({ name: 'Barbell Bench Press', overlay }), overlay)
 })
 
 test('builds a template meta description when no overlay exists', () => {
@@ -72,10 +66,11 @@ test('writes image alts that name the muscle and movement type', () => {
 })
 
 test('splits Slovak sentences that start with a non-ASCII capital', () => {
-  assert.deepEqual(
-    splitSentences('Prvá veta. Úchop je široký. Ďalšia veta.'),
-    ['Prvá veta.', 'Úchop je široký.', 'Ďalšia veta.'],
-  )
+  assert.deepEqual(splitSentences('Prvá veta. Úchop je široký. Ďalšia veta.'), [
+    'Prvá veta.',
+    'Úchop je široký.',
+    'Ďalšia veta.',
+  ])
 })
 
 test('Slovak FAQs stay in Slovak and join lists with a', () => {
@@ -87,8 +82,11 @@ test('Slovak FAQs stay in Slovak and join lists with a', () => {
     loggingLabel: 'Váha × opakovania',
   })
   assert.equal(faqs.length, 3)
-  assert.equal(faqs.some(item => /How do I log|What muscles does|Which gym machines/.test(item.question)), false)
-  assert.match(faqs[0]?.question ?? '', /Ako zalogujem Tlaky na lavičke/)
+  assert.equal(
+    faqs.some((item) => /How do I log|What muscles does|Which gym machines/.test(item.question)),
+    false,
+  )
+  assert.match(faqs[0]?.question ?? '', /Ako zaznamenám Tlaky na lavičke/)
   assert.match(faqs[1]?.answer ?? '', /Hrudník, Triceps a Ramena/)
   assert.match(faqs[2]?.question ?? '', /Na ktorých strojoch/)
 })
@@ -105,4 +103,10 @@ test('Slovak titles and meta descriptions clip API copy', () => {
     exerciseMetaDescriptionSk({ name: 'Tlaky', description: 'Sadni na lavičku a tlač.' }),
     'Sadni na lavičku a tlač.',
   )
+})
+
+test('localized machine metadata keeps the machine name and Slovak plural', () => {
+  const copy = machineMetaDescriptionSk({ name: 'Leg press', exerciseCount: 5 })
+  assert.match(copy, /^Leg press:/)
+  assert.match(copy, /5 cvikov/)
 })

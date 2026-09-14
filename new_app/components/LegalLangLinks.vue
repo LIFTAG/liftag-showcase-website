@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/shell'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 const props = defineProps<{
   kind: 'privacy' | 'terms'
 }>()
@@ -16,7 +18,7 @@ const route = useRoute()
 </script>
 
 <template>
-  <nav class="legal-langs" aria-label="Language">
+  <nav class="legal-langs" :aria-label="t('shell.nav.language')">
     <a
       v-for="item in links"
       :key="item.lang"

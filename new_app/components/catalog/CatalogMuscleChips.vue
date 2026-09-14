@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { CatalogCategoryRef } from '~/types/catalog'
+import type { CatalogLocale } from '~/utils/catalogLocale'
+import { catalogChrome } from '~/utils/catalogCopy'
 
 /**
  * Muscle chips with the app's treatment: primary muscle lime-tinted,
  * secondaries muted. Default links go to the muscle hub; SK pages pass toFor.
  */
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   primary?: Pick<CatalogCategoryRef, 'slug' | 'name'> | null
   secondary?: Pick<CatalogCategoryRef, 'slug' | 'name'>[]
   /** App Focus-header chips: smaller, no uppercase mono. */
@@ -13,7 +15,9 @@ const props = defineProps<{
   ariaLabel?: string
   nameFor?: (slug: string, fallback: string) => string
   toFor?: (slug: string) => string
-}>()
+  locale?: CatalogLocale
+}>(), { locale: 'en' })
+const chrome = computed(() => catalogChrome(props.locale))
 
 function chipName(slug: string, fallback: string): string {
   return props.nameFor?.(slug, fallback) ?? fallback
@@ -28,7 +32,7 @@ function chipTo(slug: string): string {
   <ul
     class="muscle-chips"
     :class="{ 'muscle-chips--compact': props.compact }"
-    :aria-label="props.ariaLabel ?? 'Muscles worked'"
+    :aria-label="props.ariaLabel ?? chrome.musclesAria"
   >
     <li v-if="primary">
       <NuxtLink :to="chipTo(primary.slug)" class="muscle-chip muscle-chip--primary">

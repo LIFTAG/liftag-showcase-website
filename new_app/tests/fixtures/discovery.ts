@@ -153,3 +153,38 @@ export function fixturePage<T>(items: T[], page = 1, limit = 24) {
     },
   }
 }
+
+// Synthetic catalog rows exercise locale-aware requests without depending on deployed API availability.
+export const catalogFixtureIds = {
+  exercise: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  machine: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+  category: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+}
+export function fixtureCatalogCategory(lang = 'en') {
+  return { id: catalogFixtureIds.category, slug: 'chest', name: lang === 'sk' ? 'Hrudník' : 'Chest',
+    sortOrder: 0, i18nKey: 'chest', imageUrl: null, isActive: true, isSystem: true }
+}
+export function fixtureCatalogExercise(lang = 'en') {
+  return {
+    id: catalogFixtureIds.exercise, slug: 'barbell-bench-press',
+    name: lang === 'sk' ? 'Tlaky s veľkou činkou na rovnej lavičke' : 'Barbell Bench Press',
+    description: lang === 'sk' ? 'Testovací popis cviku z API.' : 'Fixture exercise description from the API.',
+    imageUrl: null,
+    videos: [
+      { locale: 'en', url: 'https://example.com/fixture-en.m3u8', displayOrder: 0, uploadedByUserId: null },
+      { locale: 'sk', url: 'https://example.com/fixture-sk.m3u8', displayOrder: 2, uploadedByUserId: null },
+    ],
+    aliases: null, localeName: lang, isCompound: true, loggingTypes: ['weight_reps'],
+    primaryCategory: fixtureCatalogCategory(lang), categories: [fixtureCatalogCategory(lang)], machines: [],
+    createdAt: '2026-09-01T00:00:00.000Z', updatedAt: null,
+  }
+}
+export function fixtureCatalogMachine(lang = 'en') {
+  return {
+    id: catalogFixtureIds.machine, slug: 'fixture-bench',
+    name: lang === 'sk' ? 'Testovacia lavička' : 'Fixture Bench',
+    description: lang === 'sk' ? 'Testovací popis stroja z API.' : 'Fixture machine description from the API.',
+    photoUrl: null, photoUrls: [], videoUrls: [], category: 'chest', categories: [fixtureCatalogCategory(lang)],
+    exercises: [fixtureCatalogExercise(lang)], createdAt: '2026-09-01T00:00:00.000Z', updatedAt: null,
+  }
+}

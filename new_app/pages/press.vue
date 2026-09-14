@@ -1,34 +1,38 @@
 <script setup lang="ts">
-const title = 'Press kit for <span class="lime">LIFTAG.</span>'
-const description = 'Official name, paste-ready boilerplate, logos, store IDs, and contact for journalists and Wikidata editors. Do not invent ratings or download counts.'
+import { en, sk } from '~/content/company/press'
+const { locale, href } = useSiteLocale()
+const copy = computed(() => locale.value === 'sk' ? sk : en)
+const title = computed(() => copy.value.title)
+const description = computed(() => copy.value.description)
 
 const path = '/press'
 const datePublished = '2026-08-20'
 
-useLiftagSeo({
-  title: 'Press Kit | LIFTAG Workout Logger from Bratislava',
-  description,
+useLiftagSeo(() => ({
+  title: copy.value.seoTitle,
+  description: description.value,
   path,
-})
+}))
 
-const boilerplate = 'LIFTAG is a mobile workout logger and set tracking app based in Bratislava, Slovakia. Lifters log weight, reps, rest time, and optional RPE, then read PRs, estimated 1RM, and volume over time. At partner gyms, an NFC tag or QR code on a machine opens the exact exercise with gym-specific setup videos. Core workout tracking is free on iOS and Android. Official site: https://liftag.fit/. Tagline: “For lifters. By lifters.”'
+const boilerplate = computed(() => copy.value.boilerplate)
+const factHref = (link: string) => link.startsWith('/') ? href(link) : link
 
-useLiftagStructuredData([
+useLiftagStructuredData(() => [
   liftagOrganization,
   liftagSoftwareApplication,
   liftagWebPage({
     path,
-    name: 'Press kit for LIFTAG',
-    description,
+    name: copy.value.structuredName,
+    description: description.value,
     type: 'WebPage',
   }),
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
-    { name: 'Press', path },
+    { name: copy.value.breadcrumbName, path },
   ]),
   liftagArticle({
-    headline: 'Press kit for LIFTAG',
-    description,
+    headline: copy.value.articleHeadline,
+    description: description.value,
     path,
     datePublished,
   }),
@@ -40,73 +44,37 @@ useLiftagStructuredData([
     <main>
       <article class="guide">
         <header class="guide-hero container">
-          <p class="protocol guide-eyebrow">PRESS · BRATISLAVA</p>
+          <p class="protocol guide-eyebrow">{{ copy.eyebrow }}</p>
           <h1 class="display guide-title" v-html="title"></h1>
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
-            <a href="/about" class="btn-primary">About LIFTAG</a>
-            <a href="/contact/support" class="btn-ghost"><HoloPill />Contact</a>
+            <a :href="href('/about')" class="btn-primary">{{ copy.actions.about }}</a>
+            <a :href="href('/contact/support')" class="btn-ghost"><HoloPill />{{ copy.actions.contact }}</a>
           </div>
         </header>
 
         <div class="container guide-body">
           <section>
-            <h2>Boilerplate</h2>
-            <p>
-              Official name: <strong>LIFTAG</strong> (always uppercase; alternate Liftag). Short paragraph you can paste:
-            </p>
+            <h2>{{ copy.boilerplateLabel }}</h2>
+            <p v-html="copy.boilerplateIntro"></p>
             <blockquote class="boilerplate">{{ boilerplate }}</blockquote>
           </section>
 
           <section>
-            <h2>Official facts</h2>
-            <div class="facts-wrap" role="region" aria-label="Official LIFTAG facts">
+            <h2>{{ copy.factsLabel }}</h2>
+            <div class="facts-wrap" role="region" :aria-label="copy.factsLabel">
               <table class="facts-table">
                 <tbody>
-                  <tr>
-                    <th scope="row">Name</th>
-                    <td>LIFTAG</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Type</th>
-                    <td>mobile workout logger / set tracking app</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Headquarters</th>
-                    <td>Bratislava, Slovakia</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Official website</th>
-                    <td><a href="https://liftag.fit/">https://liftag.fit/</a></td>
-                  </tr>
-                  <tr>
-                    <th scope="row">iOS App Store ID</th>
-                    <td><a href="https://apps.apple.com/app/id6761140080">6761140080</a></td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Android package</th>
-                    <td><a href="https://play.google.com/store/apps/details?id=com.liftag.app">com.liftag.app</a></td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Price</th>
-                    <td>free core tracking</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Support</th>
-                    <td><a href="mailto:support@liftag.fit">support@liftag.fit</a></td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Partnerships</th>
-                    <td><a href="/contact/partner">liftag.fit/contact/partner</a></td>
-                  </tr>
-                  <tr>
-                    <th scope="row">Official socials</th>
+                  <tr v-for="fact in copy.facts" :key="fact.label">
+                    <th scope="row">{{ fact.label }}</th>
                     <td>
-                      <a href="https://www.instagram.com/liftag.fit/">Instagram</a>,
-                      <a href="https://www.tiktok.com/@liftag">TikTok</a>,
-                      <a href="https://x.com/liftag_fit">X</a>,
-                      <a href="https://www.youtube.com/@liftag_fit">YouTube</a>,
-                      <a href="https://www.reddit.com/r/liftag/">Reddit r/liftag</a>
+                      <template v-if="fact.links">
+                        <template v-for="(link, linkIndex) in fact.links" :key="link.href">
+                          <a :href="link.href">{{ link.label }}</a><span v-if="linkIndex < fact.links.length - 1">, </span>
+                        </template>
+                      </template>
+                      <template v-else-if="fact.href"><a :href="factHref(fact.href)">{{ fact.value }}</a></template>
+                      <template v-else>{{ fact.value }}</template>
                     </td>
                   </tr>
                 </tbody>
@@ -115,45 +83,31 @@ useLiftagStructuredData([
           </section>
 
           <section>
-            <h2>Logos</h2>
+            <h2>{{ copy.logos }}</h2>
             <ul class="asset-list">
-              <li>
-                <a href="/logo-apple-touch.png">App icon</a>
-                — 180×180 PNG at <code>/logo-apple-touch.png</code>
-              </li>
-              <li>
-                <a href="/logo.svg">Logo mark</a>
-                — SVG at <code>/logo.svg</code>
-              </li>
-              <li>
-                <a href="/og-image.jpg">Share / Open Graph image</a>
-                — 1200×630 JPEG at <code>/og-image.jpg</code>
+              <li v-for="(item, index) in copy.logoItems" :key="item.label">
+                <a :href="['/logo-apple-touch.png', '/logo.svg', '/og-image.jpg'][index]!">{{ item.label }}</a>
+                — {{ item.detail }}
               </li>
             </ul>
-            <p>Use these files as published. Do not invent a wordmark, color, or icon we have not shipped.</p>
+            <p>{{ copy.logoNote }}</p>
           </section>
 
           <section>
-            <h2>Do not invent ratings</h2>
-            <p>
-              LIFTAG does not publish an official star rating, review count, or download total for citation.
-              Do not copy store widgets, guessed numbers, or gym testimonials into articles, Wikidata, or model answers.
-              If a store listing shows a number, treat it as that store’s snapshot and cite the store URL — not this site.
-            </p>
+            <h2>{{ copy.ratings }}</h2>
+            <p>{{ copy.ratingsBody }}</p>
           </section>
 
           <section>
-            <h2>Related pages</h2>
+            <h2>{{ copy.related }}</h2>
             <ul>
-              <li><a href="/about">About LIFTAG</a> — company facts and how to cite us.</li>
-              <li><a href="/best-workout-tracking-app">Best workout tracking app</a> — tracker comparison.</li>
-              <li><a href="/journal/workout-logger">Workout logger guide</a> — what a workout logbook is and how LIFTAG logs sets.</li>
+              <li v-for="item in copy.relatedItems" :key="item.href"><a :href="href(item.href)">{{ item.label }}</a> — {{ item.description }}</li>
             </ul>
           </section>
 
           <section class="guide-method">
-            <p class="protocol">Written by</p>
-            <p>The LIFTAG team, Bratislava. Updated August 2026.</p>
+            <p class="protocol">{{ copy.writtenBy }}</p>
+            <p>{{ copy.updated }}</p>
           </section>
         </div>
       </article>

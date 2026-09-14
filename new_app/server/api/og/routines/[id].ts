@@ -1,5 +1,8 @@
+import type { SiteLocale } from '../../../../types/locale'
+import { en, sk } from '../../../../i18n/messages/seoMedia'
+import { createMessageTranslator } from '../../../../utils/messageTranslator'
 import type { OgCardModel } from '../../../utils/ogCard'
-import { serveOgCard, formatCount, capitalize, tileImageCandidates } from '../../../utils/ogShare'
+import { serveOgCard, tileImageCandidates } from '../../../utils/ogShare'
 
 interface RoutineDetailResponse {
   data: {
@@ -15,23 +18,26 @@ interface RoutineDetailResponse {
   }
 }
 
-async function fetchRoutineModel(apiBaseUrl: string, id: string, femaleVariant: boolean): Promise<OgCardModel> {
+async function fetchRoutineModel(apiBaseUrl: string, id: string, femaleVariant: boolean, locale: SiteLocale): Promise<OgCardModel> {
+  const { t } = createMessageTranslator(locale, { en, sk })
   const res = await $fetch<RoutineDetailResponse>(`/v1/routines/${id}`, {
     baseURL: apiBaseUrl,
     timeout: 6000,
+    query: { lang: locale },
+    headers: { 'Accept-Language': locale },
   })
   const routine = res.data
-  const chips: string[] = [formatCount(routine.items.length, 'exercise', 'exercises')]
+  const chips: string[] = [t('exerciseCount', routine.items.length)]
   if (routine.estimatedDurationMin) chips.push(`${routine.estimatedDurationMin} min`)
-  if (routine.difficulty) chips.push(capitalize(routine.difficulty))
-  if (routine.creator?.fullName) chips.push(`by ${routine.creator.fullName}`)
+  if (routine.difficulty) chips.push(['beginner', 'intermediate', 'advanced'].includes(routine.difficulty) ? t(routine.difficulty) : routine.difficulty)
+  if (routine.creator?.fullName) chips.push(t('byAuthor', { name: routine.creator.fullName }))
   return {
-    caption: 'Workout routine',
+    caption: t('routine'),
     name: routine.name,
     chips,
     backdropImageUrl: routine.thumbnailUrl,
     tiles: routine.items.map(item => ({
-      label: item.exerciseName ?? 'Exercise',
+      label: item.exerciseName ?? t('exercise'),
       imageUrls: tileImageCandidates(item.exerciseImageUrl, femaleVariant),
     })),
   }

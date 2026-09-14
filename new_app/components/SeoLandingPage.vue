@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/comparisons'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+const { href } = useSiteLocale()
 interface SeoMetric {
   value: string
   label: string
@@ -36,12 +39,12 @@ defineProps<{
             <h1 class="display seo-title" v-html="title"></h1>
             <p class="seo-lead">{{ lead }}</p>
             <div class="seo-actions">
-              <a :href="ctaHref ?? '/#scan'" class="btn-primary">{{ ctaLabel ?? 'See the flow' }}</a>
-              <a href="/" class="btn-ghost"><HoloPill />Back to showcase</a>
+            <a :href="href(ctaHref ?? '/#scan')" class="btn-primary">{{ ctaLabel ?? t('comparisons.seeFlow') }}</a>
+              <a :href="href('/')" class="btn-ghost"><HoloPill />{{ t('comparisons.backToShowcase') }}</a>
             </div>
           </div>
 
-          <div class="seo-metrics" aria-label="LIFTAG product facts">
+          <div class="seo-metrics" :aria-label="t('comparisons.productFacts')">
             <div
               v-for="metric in metrics"
               :key="metric.label"
@@ -73,8 +76,8 @@ defineProps<{
 
       <section class="seo-faq">
         <div class="container">
-          <p class="protocol seo-eyebrow">Common questions</p>
-          <h2 class="display seo-faq-title">Common <span class="lime">questions.</span></h2>
+          <p class="protocol seo-eyebrow">{{ t('comparisons.commonQuestions') }}</p>
+          <h2 class="display seo-faq-title" v-html="t('comparisons.commonQuestionsTitle')"></h2>
           <FaqAccordion
             class="seo-faq-list"
             :items="faqs"

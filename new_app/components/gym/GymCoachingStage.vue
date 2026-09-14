@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/gymDemo';
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } });
 const props = defineProps<{ gymVideo: boolean; customSrc?: string; paused?: boolean; reduced?: boolean }>();
 const emit = defineEmits<{ customError: [] }>();
 const video = useTemplateRef<HTMLVideoElement>('video');
@@ -15,7 +17,7 @@ onBeforeUnmount(() => {
 </script>
 <template>
   <div class="gc-stage">
-    <div class="gc-fallback-phone" aria-label="LIFTAG logger with the exercise video on the workout screen">
+    <div class="gc-fallback-phone" :aria-label="t('coaching.fallbackLabel')">
       <span class="gc-fallback-island" />
       <video
         v-if="customSrc && gymVideo"
@@ -37,16 +39,16 @@ onBeforeUnmount(() => {
         src="/assets/gym3d/bench-instruction.webp"
         width="1080"
         height="603"
-        alt="EZ-Bar Skullcrusher video guide inside the workout"
+        :alt="t('coaching.fallbackAlt')"
       />
-      <h3>EZ-Bar Skullcrusher</h3>
-      <p>Flat bench · EZ bar</p>
-      <strong>{{ gymVideo ? (customSrc ? 'Your gym’s video' : 'Your gym · preview') : 'Included LIFTAG guide' }}</strong>
+      <h3>{{ t('canvas.exercise') }}</h3>
+      <p>{{ t('member.equipment') }}</p>
+      <strong>{{ gymVideo ? (customSrc ? t('coaching.gymVideo') : t('coaching.gymPreview')) : t('coaching.included') }}</strong>
       <div class="gc-fallback-sets">
-        <b><span>WEIGHT</span>20 kg</b>
-        <b><span>REPS</span>12</b>
+        <b><span>{{ t('canvas.weight') }}</span>20 kg</b>
+        <b><span>{{ t('canvas.reps') }}</span>12</b>
       </div>
-      <span class="gc-fallback-log">Log set</span>
+      <span class="gc-fallback-log">{{ t('coaching.log') }}</span>
     </div>
   </div>
 </template>

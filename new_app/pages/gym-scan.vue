@@ -2,8 +2,9 @@
 import { GYM_DEMO_PATH } from "~/utils/gymscan/navigation";
 
 const route = useRoute();
+const { href } = useSiteLocale();
 await navigateTo(
-  { path: GYM_DEMO_PATH, query: route.query, hash: route.hash },
+  { path: href(GYM_DEMO_PATH), query: route.query, hash: route.hash },
   { redirectCode: 308, replace: true },
 );
 </script>

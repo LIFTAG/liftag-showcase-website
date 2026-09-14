@@ -1,38 +1,19 @@
 <script setup lang="ts">
 import { STRENGTH_COMPARISON_COUNT } from '~/utils/strengthStandards'
+import { en, sk } from '~/i18n/messages/tools'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 
-const reasons = [
-  {
-    n: '01',
-    title: 'Seven named formulas, live',
-    body: 'Epley is the default so the website and the app agree. Switch to Brzycki, Lombardi, Mayhew, O’Connor, Wathen, or Lander on the same set. The spread is disagreement between equations, not a confidence interval.',
-  },
-  {
-    n: '02',
-    title: 'Confidence that follows the set',
-    body: 'A hard 5 is high confidence. A 12 is rough. A 20 is labeled endurance, not a max. Reynolds, Gordon, and Robergs 2006 found 5RM beat 10RM beat 20RM. This page says so before you program from a burnout.',
-  },
-  {
-    n: '03',
-    title: `${STRENGTH_COMPARISON_COUNT} lifts, ranked with receipts`,
-    body: 'Pick the exercise, enter bodyweight, choose a comparison group. You get “stronger than X% of lifters” from published Strength Level ratios, interpolated between the 5th and 95th. Past elite, a sourced world-record ratio is 100% when we have one.',
-  },
-  {
-    n: '04',
-    title: 'The website and the log agree',
-    body: 'Same Epley estimator the LIFTAG app stores per exercise. Training loads round to 2.5 kg or 5 lb. Calculated on your device. No signup. The worked example, 100 kg × 5 = 116.7 kg, is true with JavaScript off.',
-  },
-]
+const reasons = computed(() => [0, 1, 2, 3].map(index => ({ n: String(index + 1).padStart(2, '0'), title: t(`tools.why.reasons.${index}.title`, { count: STRENGTH_COMPARISON_COUNT }), body: t(`tools.why.reasons.${index}.body`, { count: STRENGTH_COMPARISON_COUNT }) })))
 </script>
 
 <template>
   <section id="why" class="why" aria-labelledby="why-title">
     <div class="why-claim">
-      <p class="why-eyebrow">Why this calculator</p>
-      <h2 id="why-title" class="why-title">Why this is the best 1RM calculator<span class="why-dot" aria-hidden="true">.</span></h2>
-      <p class="why-lead">Most 1RM calculators hide the equation and sell you a number. This is the best 1RM calculator we have ever used.</p>
-      <p class="why-lead">It names seven published formulas, tells you when the estimate is junk, ranks {{ STRENGTH_COMPARISON_COUNT }} lifts against published standards, and uses the same math the LIFTAG log will keep using next week.</p>
-      <p class="why-close">If another calculator does all of that, use it. We have not found one.</p>
+      <p class="why-eyebrow">{{ t('tools.why.eyebrow') }}</p>
+      <h2 id="why-title" class="why-title">{{ t('tools.why.title') }}<span class="why-dot" aria-hidden="true">.</span></h2>
+      <p class="why-lead">{{ t('tools.why.lead1') }}</p>
+      <p class="why-lead">{{ t('tools.why.lead2', { count: STRENGTH_COMPARISON_COUNT }) }}</p>
+      <p class="why-close">{{ t('tools.why.close') }}</p>
     </div>
     <ol class="why-list">
       <li v-for="reason in reasons" :key="reason.n" class="why-item">
