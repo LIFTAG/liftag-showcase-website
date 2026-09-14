@@ -54,11 +54,16 @@ function clearFilters() {
   categories.value = []
 }
 watch(
-  () => route.query,
-  (query) => {
-    search.value = typeof query.q === 'string' ? query.q : ''
-    manufacturers.value = normalizedIds(query.manufacturers, MANUFACTURER_CAP)
-    categories.value = normalizedIds(query.categories, CATEGORY_CAP)
+  () => [
+    typeof route.query.q === 'string' ? route.query.q : '',
+    normalizedIds(route.query.manufacturers, MANUFACTURER_CAP).join(','),
+    normalizedIds(route.query.categories, CATEGORY_CAP).join(','),
+  ] as const,
+  ([q, brands, muscles], [previousQ, previousBrands, previousMuscles]) => {
+    // Language-only navigation must not replace edits awaiting the URL write.
+    if (q !== previousQ) search.value = q
+    if (brands !== previousBrands) manufacturers.value = normalizedIds(brands, MANUFACTURER_CAP)
+    if (muscles !== previousMuscles) categories.value = normalizedIds(muscles, CATEGORY_CAP)
   },
 )
 watch(

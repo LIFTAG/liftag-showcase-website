@@ -300,7 +300,8 @@ export function normalizeRoutine(value: unknown): PublicRoutine {
           name: text(e.exerciseName) ?? text(template.name) ?? '',
           description:
             e.exerciseDescription !== undefined ? text(e.exerciseDescription) : text(template.description),
-          instructions: text(e.exerciseInstructions) ?? text(template.instructions),
+          instructions:
+            e.exerciseInstructions !== undefined ? text(e.exerciseInstructions) : text(template.instructions),
           image: safeDiscoveryUrl(
             e.exerciseImageUrl !== undefined
               ? e.exerciseImageUrl

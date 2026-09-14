@@ -31,6 +31,7 @@ interface ExploreSession {
   meta: { truncated: boolean; tooLarge: boolean }
   locale: DiscoveryLocale
   timezone: string | null | undefined
+  fetchedKey: string | null
   fetchedAt: number
 }
 const querySignature = (query: Record<string, unknown>) =>
@@ -58,7 +59,7 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
       ? saved.value
       : null
   const search = shallowRef(initial.search),
-    settledSearch = shallowRef(initial.search)
+    settledSearch = shallowRef(initial.search.trim())
   const filters = ref<DiscoveryFilters>({
     ...initial.filters,
     manufacturers: [...initial.filters.manufacturers],
@@ -67,12 +68,6 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
   const selectedId = shallowRef<string | null>(initial.selectedId)
   const scroll = shallowRef(restored?.scroll ?? 0)
   const { location, locating, denied, locate } = useDiscoveryLocation()
-  const items = shallowRef<ExploreGym[]>(restored?.items ?? [])
-  const loading = shallowRef(!restored),
-    error = shallowRef(false)
-  const meta = shallowRef(restored?.meta ?? { truncated: false, tooLarge: false })
-  const page = shallowRef(restored?.page ?? 0),
-    lastPage = shallowRef(restored?.lastPage ?? 1)
   const contextTimezone = shallowRef<string | null | undefined>(restored?.timezone)
   const camera = shallowRef({
     point: { lat: viewport.value.lat, lng: viewport.value.lng },
@@ -80,9 +75,6 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
     revision: 0,
   })
   const mode = computed(() => discoveryMode(settledSearch.value, filters.value, location.value))
-  const visible = computed(() =>
-    filterDiscoveryGyms(items.value, filters.value, settledSearch.value, location.value),
-  )
   // Everything but the camera: while this is unchanged a map request is just a
   // pan, so the previous results stay on screen instead of being cleared.
   const queryBase = computed(() =>
@@ -102,13 +94,26 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
           : null,
     ]),
   )
+  // Saved input may be newer than the response. Restore data only for the
+  // request that actually produced it, independently of the browsing state.
+  const restoredResults = restored?.fetchedKey === queryKey.value ? restored : null
+  const items = shallowRef<ExploreGym[]>(restoredResults?.items ?? [])
+  const loading = shallowRef(!restoredResults),
+    error = shallowRef(false)
+  const meta = shallowRef(restoredResults?.meta ?? { truncated: false, tooLarge: false })
+  const page = shallowRef(restoredResults?.page ?? 0),
+    lastPage = shallowRef(restoredResults?.lastPage ?? 1)
+  const visible = computed(() =>
+    filterDiscoveryGyms(items.value, filters.value, settledSearch.value, location.value),
+  )
   let controller: AbortController | undefined, contextController: AbortController | undefined
   let timer: ReturnType<typeof setTimeout> | undefined, urlTimer: ReturnType<typeof setTimeout> | undefined
   let request = 0,
     disposed = false,
     mounted = false,
     lastWritten = ''
-  let fetchedAt = restored?.fetchedAt ?? 0
+  let fetchedKey = restoredResults?.fetchedKey ?? null
+  let fetchedAt = restoredResults?.fetchedAt ?? 0
 
   function persist() {
     saved.value = {
@@ -125,6 +130,7 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
       meta: { ...meta.value },
       locale: locale.value,
       timezone: contextTimezone.value,
+      fetchedKey,
       fetchedAt,
     }
   }
@@ -148,7 +154,9 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
     controller?.abort()
     controller = new AbortController()
     const current = ++request,
-      signal = controller.signal
+      signal = controller.signal,
+      key = queryKey.value
+    if (!more) fetchedKey = null
     loading.value = true
     error.value = false
     try {
@@ -198,6 +206,7 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
         lastPage.value = result.meta.lastPage
         meta.value = { truncated: false, tooLarge: false }
       }
+      fetchedKey = key
       fetchedAt = Date.now()
       persist()
     } catch {
@@ -226,6 +235,7 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
     controller?.abort()
     request++
     clearTimeout(timer)
+    fetchedKey = null
     // Keep the same marker/card instances while the next viewport is loading,
     // just like the app's keepPreviousData. Mode/filter changes reset the list.
     if (!keepPrevious) items.value = []
@@ -237,7 +247,7 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
       void load()
     }, 250)
   }
-  watch(search, (value, _, cleanup) => {
+  watch(() => search.value.trim(), (value, _, cleanup) => {
     controller?.abort()
     request++
     clearTimeout(timer)
@@ -306,7 +316,7 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
     }
     if (disposed) return
     mounted = true
-    if (!restored || Date.now() - fetchedAt > 60000) void load()
+    if (fetchedKey !== queryKey.value || Date.now() - fetchedAt > 60000) void load()
     saveQuery()
   })
   onBeforeUnmount(persist)

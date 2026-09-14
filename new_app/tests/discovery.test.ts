@@ -210,6 +210,22 @@ test('routine order, supersets, varying set targets, zero rest and explicit null
   assert.deepEqual(routine.exercises[2]?.sets, [{ durationSeconds: 60, calories: 12, restSeconds: 45 }])
 })
 
+test('routine instruction fallback distinguishes absent, cleared, and overridden text', () => {
+  for (const [override, expected] of [
+    [{}, 'Catalog instructions'],
+    [{ exerciseInstructions: null }, null],
+    [{ exerciseInstructions: '' }, null],
+    [{ exerciseInstructions: 'Routine instructions' }, 'Routine instructions'],
+  ] as const) {
+    const routine = normalizeRoutine({
+      id: ids.routine,
+      name: 'Routine',
+      items: [{ id: 'item', exerciseTemplate: { instructions: 'Catalog instructions' }, ...override }],
+    })
+    assert.equal(routine.exercises[0]?.instructions, expected)
+  }
+})
+
 test('public trainer contacts are filtered and pagination metadata is required', () => {
   const trainer = normalizeTrainer({
     ...fixtureTrainer(),
