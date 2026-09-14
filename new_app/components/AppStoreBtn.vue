@@ -3,16 +3,19 @@ const props = defineProps<{
   store: 'apple' | 'google'
   href?: string
   comingSoon?: boolean
+  locale?: 'en' | 'sk'
 }>()
 
 const isApple = computed(() => props.store === 'apple')
 const name = computed(() => isApple.value ? 'App Store' : 'Google Play')
 const kicker = computed(() => {
   if (props.comingSoon) return 'Coming soon'
+  if (props.locale === 'sk') return isApple.value ? 'Stiahnuť v' : 'Získať na'
   return isApple.value ? 'Download on the' : 'Get it on'
 })
 const label = computed(() => props.comingSoon
   ? `${name.value} — coming soon`
+  : props.locale === 'sk' ? `Stiahnuť v ${name.value}`
   : (isApple.value ? 'Download on the App Store' : 'Get it on Google Play'))
 
 const resolvedHref = computed(() => props.href ?? '#')

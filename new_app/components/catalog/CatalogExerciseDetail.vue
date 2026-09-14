@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { gymCatalogContext, gymExerciseHref, gymMachineHref } from '~/utils/gymCatalog'
 import type { CatalogLocale } from '~/utils/catalogLocale'
 
 const props = withDefaults(defineProps<{
@@ -13,24 +14,37 @@ const param = props.param
 const chrome = catalogChrome(locale)
 const isSk = locale === 'sk'
 
-const { data: exercise } = await useAsyncData(
-  isSk ? `catalog-exercise-sk-${param}` : `catalog-exercise-${param}`,
-  () => resolveCatalogExercise(param, locale),
-)
-
-if (!exercise.value) {
-  throw createError({ statusCode: 404, statusMessage: 'Exercise not found', fatal: true })
+const route = useRoute()
+const context = (() => {
+  try { return gymCatalogContext(route.query) }
+  catch { throw createError({ statusCode: 400, statusMessage: 'Invalid gym equipment context' }) }
+})()
+const { data: resolved, error: loadError } = await useCatalogExerciseResource(param, locale, context)
+const exercise = computed(() => resolved.value?.exercise)
+const gymMachine = computed(() => resolved.value?.machine)
+if (loadError.value) {
+  const missing = loadError.value.statusCode === 404
+  throw createError({
+    statusCode: missing ? 404 : 502,
+    statusMessage: missing ? 'Exercise not found' : 'Exercise temporarily unavailable',
+    fatal: true,
+  })
 }
-
-// UUID (or stale-slug) hits move to the canonical slug URL.
+if (!exercise.value) throw createError({ statusCode: 404, statusMessage: 'Exercise not found', fatal: true })
+function detailPath(slug: string, language = locale) {
+  return resolved.value?.machine && resolved.value.gymExercise
+    ? gymExerciseHref(resolved.value.machine, resolved.value.gymExercise, language, slug)
+    : exercisePath(slug, language)
+}
+// Keep resolved gym context when canonicalizing UUID links to catalog slugs.
 if (exercise.value.slug && exercise.value.slug !== param) {
-  await navigateTo(exercisePath(exercise.value.slug, locale), { redirectCode: 301, replace: true })
+  await navigateTo(detailPath(exercise.value.slug), { redirectCode: 301, replace: true })
 }
 
 const name = computed(() => exercise.value?.name ?? '')
 const canonicalSlug = computed(() => exercise.value?.slug ?? param)
-const overlay = computed(() => (isSk ? null : exerciseOverlay(canonicalSlug.value)))
-const path = computed(() => exercisePath(canonicalSlug.value, locale))
+const overlay = computed(() => (isSk || context ? null : exerciseOverlay(canonicalSlug.value)))
+const path = computed(() => detailPath(canonicalSlug.value))
 const indexPath = computed(() => exerciseIndexPath(locale))
 
 const videoUrl = computed(() => preferredCatalogVideoUrl(exercise.value?.videos ?? []))
@@ -79,9 +93,13 @@ const loggingLabel = computed(() => {
     .join(' · ')
 })
 
-const machines = computed(() => exercise.value?.machines ?? [])
+const machines = computed(() => gymMachine.value
+  ? [{ id: gymMachine.value.id, slug: null, name: gymMachine.value.name, photoUrl: gymMachine.value.media.find(item => item.type === 'image')?.url ?? null }]
+  : exercise.value?.machines ?? [])
 
 const steps = computed(() => {
+  const instructions = resolved.value?.gymExercise?.instructions
+  if (instructions) return instructions.split(/\n+/).map(line => line.replace(/^\s*(?:\d+[.)]|[-•])\s*/, '').trim()).filter(Boolean)
   if (overlay.value?.steps?.length) return overlay.value.steps
   return descriptionToHowToSteps(exercise.value?.description)
 })
@@ -89,12 +107,13 @@ const steps = computed(() => {
 const overview = computed(() => {
   const description = exercise.value?.description?.trim()
   if (!description) return null
-  if (overlay.value?.steps?.length) return description
+  if (overlay.value?.steps?.length || resolved.value?.gymExercise?.instructions) return description
   const leftover = splitSentences(description).filter(sentence => !steps.value.includes(sentence))
   return leftover.length ? leftover.join(' ') : null
 })
 
 const faqs = computed(() => {
+  if (context) return []
   const primaryName = exercise.value?.primaryCategory
     ? muscleName(exercise.value.primaryCategory.slug, exercise.value.primaryCategory.name)
     : null
@@ -122,7 +141,7 @@ const faqs = computed(() => {
 })
 
 // Related lifts: overlay order first (English only), then same primary muscle.
-const { data: index } = await useCatalogIndex(locale)
+const index = context ? shallowRef(null) : (await useCatalogIndex(locale)).data
 const related = computed(() => {
   const rows = index.value?.exercises ?? []
   const currentId = exercise.value?.id
@@ -204,7 +223,9 @@ useLiftagSeo({
   title: seoTitle.value,
   description: pageDescription.value,
   path: path.value,
-  alternates: liftagExerciseAlternates(canonicalSlug.value),
+  alternates: context
+    ? (['en', 'sk'] as const).map(lang => ({ hreflang: lang, path: detailPath(canonicalSlug.value, lang) }))
+    : liftagExerciseAlternates(canonicalSlug.value),
   ...(isSk ? { lang: 'sk', locale: 'sk_SK' } : {}),
   ...(exercise.value?.imageUrl ? { image: exercise.value.imageUrl } : {}),
 })
@@ -256,7 +277,7 @@ const structuredData = computed(() => {
 
   if (imageObject.value) graph.push(imageObject.value)
 
-  if (videoUrl.value && exercise.value) {
+  if (videoUrl.value && exercise.value?.createdAt) {
     graph.push(liftagVideoObject({
       name: chrome.videoName(name.value),
       description: pageDescription.value,
@@ -307,7 +328,8 @@ useStickyMomentum(mediaRef)
   <div v-if="exercise" class="ex-detail">
     <main class="ex-main">
       <nav class="container ex-breadcrumb" aria-label="Breadcrumb">
-        <NuxtLink :to="indexPath" class="protocol ex-crumb">{{ chrome.breadcrumbExercises }}</NuxtLink>
+        <NuxtLink v-if="gymMachine" :to="gymMachineHref(gymMachine.gym.id, gymMachine.id, locale)" class="protocol ex-crumb">{{ gymMachine.name }}</NuxtLink>
+        <NuxtLink v-else :to="indexPath" class="protocol ex-crumb">{{ chrome.breadcrumbExercises }}</NuxtLink>
         <span class="ex-crumb-sep" aria-hidden="true">/</span>
         <NuxtLink
           v-if="exercise.primaryCategory"
@@ -406,7 +428,7 @@ useStickyMomentum(mediaRef)
             <p class="protocol ex-log-panel__eyebrow">{{ chrome.inTheApp }}</p>
             <GetAppBtn :label="chrome.getLiftag" />
             <p class="ex-log-panel__copy">
-              {{ chrome.logCopy(name) }}
+              {{ context ? (isSk ? 'Zaznamenaj si série, sleduj svoj pokrok a trénuj s LIFTAG.' : 'Log your sets, follow your progress, and train with LIFTAG.') : chrome.logCopy(name) }}
             </p>
           </div>
 
@@ -414,7 +436,7 @@ useStickyMomentum(mediaRef)
             <h2 class="protocol ex-section-title">{{ chrome.machinesHeading }}</h2>
             <ul class="ex-machine-list">
               <li v-for="machine in machines" :key="machine.id">
-                <NuxtLink :to="machinePath(machine)" class="ex-machine-link">
+                <NuxtLink :to="gymMachine ? gymMachineHref(gymMachine.gym.id, gymMachine.id, locale) : machinePath(machine)" class="ex-machine-link">
                   <img
                     v-if="machine.photoUrl"
                     :src="machine.photoUrl"

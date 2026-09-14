@@ -35,6 +35,8 @@ export default defineNuxtConfig({
       googleSiteVerification: '',
       bingSiteVerification: '',
       apiBaseUrl: 'https://api.liftag.fit',
+      googleMapsApiKey: '',
+      googleMapsMapId: '',
     },
   },
   app: {
@@ -182,13 +184,19 @@ export default defineNuxtConfig({
     // More specific than `/sk/**` so 434 SK exercises are not prerendered at
     // build. Legal pages under /sk/privacy-policy still prerender.
     '/sk/exercises': { isr: 3600 },
-    '/sk/exercises/**': { isr: 3600 },
+    '/sk/exercises/**': { prerender: false, headers: { 'cache-control': 'no-store' } },
     // Catalog pages regenerate on Vercel at most hourly: new exercises appear
     // without a redeploy, and a build never has to prerender the whole catalog.
     '/exercises': { isr: 3600 },
-    '/exercises/**': { isr: 3600 },
+    // Detail routes also resolve gym-specific equipment via query context.
+    // Render them per request so an ISR entry cannot erase that context or language.
+    // The catalog data/index cache remains shared by ordinary catalog requests.
+    '/exercises/**': { headers: { 'cache-control': 'no-store' } },
     '/machines': { isr: 3600 },
-    '/machines/**': { isr: 3600 },
+    '/machines/**': { headers: { 'cache-control': 'no-store' } },
+    '/explore': { headers: { 'cache-control': 'no-store' } },
+    '/explore/**': { headers: { 'cache-control': 'no-store' } },
+    '/gyms/**': { headers: { 'cache-control': 'no-store' } },
     '/muscles': { isr: 3600 },
     '/muscles/**': { isr: 3600 },
     // Index and marketing URLs are static. Catalog sitemaps stay ISR so a

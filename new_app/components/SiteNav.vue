@@ -14,6 +14,9 @@ const open = ref(false)
 const isMobileNav = ref(false)
 const navRoot = ref<HTMLElement | null>(null)
 const route = useRoute()
+const { locale } = useSiteLocale()
+const localeReady = ref(false)
+onMounted(() => { localeReady.value = true })
 
 // True when the browser drives the progress hairline natively via
 // animation-timeline: scroll(); the JS fallback then never writes the var.
@@ -29,10 +32,11 @@ const navChars = (label: string) => Array.from(label)
 
 const navLinks = computed<[string, string][]>(() => [
   ['Demo', '/demo'],
+  ['Gyms', localeReady.value ? `/explore?lang=${locale.value}` : '/explore'],
   ['Lifters', sectionHref('#lifters')],
-  ['Gyms', sectionHref('#gyms')],
+  ['For gym owners', sectionHref('#gyms')],
   ['Trainers', sectionHref('#trainers')],
-  ['Exercises', '/exercises'],
+  ['Exercises', exerciseIndexPath(localeReady.value ? locale.value : 'en')],
   ['Journal', '/journal'],
   ['Pricing', '/pricing'],
 ])
@@ -327,6 +331,11 @@ onBeforeUnmount(() => {
 
     <!-- Right side: CTA + hamburger -->
     <div class="nav-actions" style="display: flex; align-items: center; gap: 12px;">
+      <!-- Personalized UI hydrates separately from cached marketing pages. -->
+      <ClientOnly>
+        <SiteLanguageSelect @select="open = false" />
+        <template #fallback><span class="nav-language-placeholder" aria-hidden="true" /></template>
+      </ClientOnly>
       <!-- Desktop CTA -->
       <a
         href="https://app.liftag.fit/login"
@@ -796,15 +805,13 @@ onBeforeUnmount(() => {
 
 .nav-mobile-drawer {
   position: fixed;
-  top: calc(60px + var(--liftag-safe-top) + var(--liftag-vv-top));
+  top: var(--liftag-nav-h, calc(60px + var(--liftag-safe-top) + var(--liftag-vv-top)));
   left: 0;
   right: 0;
   z-index: 99;
   box-sizing: border-box;
-  /* 60px is the nav's own height; both it and this offset grow by the top
-     inset and by the visible-area offset the bar's padding carries, so the
-     drawer still hangs off the bar's bottom edge. */
-  max-height: calc(var(--liftag-stable-vh) - 60px - var(--liftag-safe-top) - var(--liftag-vv-top));
+  /* Follow the measured bar, including language controls and safe-area insets. */
+  max-height: calc(var(--liftag-stable-vh) - var(--liftag-nav-h, 60px));
   padding:
     20px
     max(24px, var(--liftag-safe-right))
@@ -992,7 +999,7 @@ onBeforeUnmount(() => {
   }
 }
 
-@media (max-width: 1240px) {
+@media (max-width: 1600px) {
   .nav-logo,
   .nav-actions {
     flex: 0 0 auto;
@@ -1003,13 +1010,19 @@ onBeforeUnmount(() => {
     flex: 1 1 auto;
     justify-content: center;
     min-width: 0;
-    margin: 0 clamp(18px, 3vw, 34px);
-    gap: clamp(18px, 2.3vw, 30px);
+    margin: 0 clamp(18px, 2vw, 30px);
+    gap: clamp(18px, 1.5vw, 24px);
     transform: none;
   }
 }
 
-@media (max-width: 980px) {
+.nav-language-placeholder {
+  display: block;
+  flex: 0 0 88px;
+  height: 44px;
+}
+
+@media (max-width: 1280px) {
   .nav-center-links {
     display: none;
   }
@@ -1043,6 +1056,11 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 390px) {
+  .site-nav {
+    padding-left: max(20px, var(--liftag-safe-left));
+    padding-right: max(20px, var(--liftag-safe-right));
+  }
+
   .nav-store-buttons {
     gap: 8px;
   }

@@ -7,6 +7,7 @@ interface FooterLink {
 }
 
 const productLinks: FooterLink[] = [
+  { label: 'Gyms', href: '/explore' },
   { label: 'Demo', href: '/demo' },
   { label: '1RM Calculator', href: '/tools/1rm-calculator' },
   { label: 'Exercise Library', href: '/exercises' },
@@ -14,7 +15,7 @@ const productLinks: FooterLink[] = [
   { label: 'For Lifters', href: '/for-lifters' },
   { label: 'For Trainers', href: '/for-trainers' },
   { label: 'Become a Coach', href: '/become-a-coach' },
-  { label: 'For Gyms', href: '/for-gyms' },
+  { label: 'For gym owners', href: '/for-gyms' },
   { label: 'NFC + QR Tags', href: '/qr-nfc-gym-tags' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'About', href: '/about' },

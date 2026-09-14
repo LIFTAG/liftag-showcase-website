@@ -1,4 +1,6 @@
-export type CatalogLocale = 'en' | 'sk'
+import type { SiteLocale } from '../types/locale.ts'
+
+export type CatalogLocale = SiteLocale
 
 /** Accept-Language / query values we actually fetch. `cs` is rejected: the API still returns English. */
 export function parseCatalogLocale(value: unknown): CatalogLocale {
