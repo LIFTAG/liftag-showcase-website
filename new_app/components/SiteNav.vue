@@ -34,12 +34,12 @@ const sectionHref = (hash: string) => isHomeLike.value ? hash : `/${hash}`
 const navChars = (label: string) => Array.from(label)
 
 const navLinks = computed<[string, string][]>(() => [
-  [t('shell.nav.demo'), href('/demo')],
+  [t('shell.nav.exercises'), exerciseIndexPath(localeReady.value ? locale.value : 'en')],
   [t('shell.nav.gyms'), localeReady.value ? discoveryHref('/explore', locale.value) : href('/explore')],
   [t('shell.nav.lifters'), sectionHref('#lifters')],
   [t('shell.nav.owners'), sectionHref('#gyms')],
   [t('shell.nav.trainers'), sectionHref('#trainers')],
-  [t('shell.nav.exercises'), exerciseIndexPath(localeReady.value ? locale.value : 'en')],
+  [t('shell.nav.demo'), href('/demo')],
   [t('shell.nav.journal'), href('/journal')],
   [t('shell.nav.pricing'), href('/pricing')],
 ])
@@ -682,28 +682,27 @@ onBeforeUnmount(() => {
   top: 0;
   color: var(--liftag-primary);
   pointer-events: none;
+  /* Font metrics and fractional pixels can paint an accent past the parked
+     copy's box. Hide it after the return slide, independently of clipping. */
+  visibility: hidden;
   transform: translate3d(0, 100%, 0);
+  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 300ms;
 }
 
+/* Stagger only the entry; leaving returns every character together. */
 .nav-link:hover .nav-link__glyph,
 .nav-link:focus-visible .nav-link__glyph {
   transform: translate3d(0, -100%, 0);
+  transition-duration: 500ms;
+  transition-delay: calc(var(--i) * 12ms);
 }
 
 .nav-link:hover .nav-link__char::after,
 .nav-link:focus-visible .nav-link__char::after {
   transform: translate3d(0, 0, 0);
-}
-
-/* Stagger and the slower expo travel belong to the entry only. The rest state
-   above keeps a flat 300ms with no delay, so pulling the pointer away returns
-   every character at once instead of unwinding the stagger back at the reader. */
-.nav-link:hover .nav-link__glyph,
-.nav-link:focus-visible .nav-link__glyph,
-.nav-link:hover .nav-link__char::after,
-.nav-link:focus-visible .nav-link__char::after {
-  transition-duration: 500ms;
-  transition-delay: calc(var(--i) * 12ms);
+  visibility: visible;
+  transition-duration: 500ms, 0s;
+  transition-delay: calc(var(--i) * 12ms), 0s;
 }
 
 .nav-center-links {
