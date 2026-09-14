@@ -10,6 +10,28 @@ async function switchLanguage(page: Page, language: 'English' | 'Slovenčina') {
   await page.getByRole('option', { name: language, exact: true }).click()
 }
 
+test('the logo returns to the Slovak homepage after switching language without a redirect loop', async ({
+  page,
+  context,
+}) => {
+  await page.goto('/contact/support', { waitUntil: 'domcontentloaded' })
+  await switchLanguage(page, 'Slovenčina')
+  await expect(page).toHaveURL(/\/sk\/contact\/support$/)
+  await expect(page.locator('.nav-logo')).toHaveAttribute('href', '/sk')
+  await page.locator('.nav-logo').click()
+  await expect(page).toHaveURL(/\/sk$/)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'sk')
+  await expect(page.getByRole('button', { name: 'Jazyk: Slovenčina', exact: true })).toBeVisible()
+  expect((await context.cookies()).find((cookie) => cookie.name === 'liftag-language')?.value).toBe('sk')
+
+  // Also accept the slash URL left by a previously cached directory redirect.
+  const response = await page.goto('/sk/?source=logo#lifters', { waitUntil: 'domcontentloaded' })
+  expect(response?.status()).toBe(200)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'sk')
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://liftag.fit/sk')
+  await expect(page).toHaveURL((url) => url.searchParams.get('source') === 'logo' && url.hash === '#lifters')
+})
+
 test('switching preserves query and anchor, and saves only a manual preference', async ({
   page,
   context,

@@ -242,7 +242,7 @@ export default defineNuxtConfig({
     compressPublicAssets: true,
     prerender: {
       // Not linked from HTML, so the crawler would skip them without this list.
-      routes: ['/sitemap.xml', '/sitemap-pages.xml'],
+      routes: ['/sitemap.xml', '/sitemap-pages.xml', '/sk/tools/1rm-calculator.md'],
     },
   },
   typescript: {

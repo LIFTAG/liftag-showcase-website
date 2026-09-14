@@ -1,10 +1,30 @@
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 
 const origin = process.env.DISCOVERY_TEST_ORIGIN ?? 'http://127.0.0.1:3002'
 const read = async (path, options) => {
   const response = await fetch(new URL(path, origin), options)
   return { response, html: await response.text() }
 }
+// Run these against dev as well as production: the dev static-file server can
+// redirect directories before the application's locale middleware is reached.
+for (const path of ['/sk', '/sk/', '/sk/?lang=sk&source=logo']) {
+  for (const cookie of ['', 'liftag-language=en', 'liftag-language=sk']) {
+    const { response, html } = await read(path, { headers: { cookie, accept: 'text/html' } })
+    assert.equal(response.status, 200, `${path}: homepage must terminate without a redirect loop`)
+    assert.match(html, /<html[^>]*lang="sk"/, `${path}: initial language`)
+    assert.match(html, /rel="canonical"[^>]*href="https:\/\/liftag\.fit\/sk"/, `${path}: canonical`)
+  }
+}
+const markdownPath = '/sk/tools/1rm-calculator.md'
+const { response: markdownResponse, html: markdown } = await read(markdownPath)
+assert.equal(markdownResponse.status, 200, markdownPath)
+assert.match(markdownResponse.headers.get('content-type') ?? '', /text\/markdown/)
+assert.equal(
+  markdown,
+  await readFile(new URL('../server/assets/markdown/1rm-calculator.sk.md', import.meta.url), 'utf8'),
+  'the localized Markdown URL must retain its complete content',
+)
 const { html: sitemap } = await read('/sitemap-pages.xml')
 const publicPaths = [...sitemap.matchAll(/<loc>https:\/\/liftag\.fit([^<]*)<\/loc>/g)]
   .map((match) => match[1] || '/')

@@ -23,9 +23,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
     explicit ??
     (pathLocale === 'sk' ? 'sk' : undefined) ??
     (discovery || !pathLocale ? (saved ?? automatic) : 'en')
-  if (isLocalizedSitePath(to.path)) {
-    const target = siteLocaleLocation(to, desired)
-    if (target.path !== to.path) return navigateTo(target, { replace: true, redirectCode: 302 })
+  // Only redirect language changes. /sk and /sk/ are the same router location;
+  // slash normalization here can loop against a static server's directory redirect.
+  if (isLocalizedSitePath(to.path) && pathLocale !== desired) {
+    return navigateTo(siteLocaleLocation(to, desired), { replace: true, redirectCode: 302 })
   }
   // Nuxt i18n owns language changes for its generated routes, including internal
   // resolved-locale state and hooks. Stable handoff routes deliberately opt out

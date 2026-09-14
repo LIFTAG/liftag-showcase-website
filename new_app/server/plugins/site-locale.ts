@@ -1,4 +1,4 @@
-import { isLocalizedSitePath, siteLocale, siteLocalePath } from '../../utils/siteLocale'
+import { isLocalizedSitePath, siteLocale, siteLocalePath, sitePathLocale } from '../../utils/siteLocale'
 
 export default defineNitroPlugin((nitroApp) => {
   // Nitro 2 serves prerendered files before server/middleware. Wrap the public
@@ -8,12 +8,10 @@ export default defineNitroPlugin((nitroApp) => {
   nitroApp.h3App.handler = (event) => {
     const url = getRequestURL(event)
     const locale = siteLocale(url.searchParams.get('lang'))
-    if (locale && isLocalizedSitePath(url.pathname)) {
+    if (locale && isLocalizedSitePath(url.pathname) && sitePathLocale(url.pathname) !== locale) {
       const path = siteLocalePath(url.pathname, locale)
-      if (path !== url.pathname) {
-        setResponseHeader(event, 'cache-control', 'no-store')
-        return sendRedirect(event, `${path}${url.search}`, 302)
-      }
+      setResponseHeader(event, 'cache-control', 'no-store')
+      return sendRedirect(event, `${path}${url.search}`, 302)
     }
     return handleRequest(event)
   }
