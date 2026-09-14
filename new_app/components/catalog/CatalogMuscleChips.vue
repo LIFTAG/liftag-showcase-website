@@ -6,8 +6,8 @@ import type { CatalogCategoryRef } from '~/types/catalog'
  * secondaries muted. Default links go to the muscle hub; SK pages pass toFor.
  */
 const props = defineProps<{
-  primary?: CatalogCategoryRef | null
-  secondary?: CatalogCategoryRef[]
+  primary?: Pick<CatalogCategoryRef, 'slug' | 'name'> | null
+  secondary?: Pick<CatalogCategoryRef, 'slug' | 'name'>[]
   /** App Focus-header chips: smaller, no uppercase mono. */
   compact?: boolean
   ariaLabel?: string

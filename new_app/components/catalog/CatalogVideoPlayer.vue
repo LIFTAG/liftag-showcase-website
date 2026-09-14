@@ -287,7 +287,7 @@ function replay() {
 }
 
 watch(enabledVideoUrl, () => {
-  stopPreview()
+  stop()
   syncHoverCapability()
 })
 

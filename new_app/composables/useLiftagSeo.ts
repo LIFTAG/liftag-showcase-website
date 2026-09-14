@@ -95,7 +95,7 @@ export function useLiftagSeo(options: LiftagSeoOptions) {
     : []
 
   useHead({
-    ...(options.lang ? { htmlAttrs: { lang: options.lang } } : {}),
+    htmlAttrs: { lang: options.lang ?? 'en' },
     link: [
       { rel: 'canonical', href: url },
       ...latinExtFontLinks,
