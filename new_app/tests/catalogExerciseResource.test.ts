@@ -15,6 +15,7 @@ function setupResource(t: TestContext) {
   const resolveCatalog = t.mock.fn(async () => catalog)
   const globals = {
     useRequestFetch: () => request,
+    useSiteLocale: () => ({ preference: { value: 'en' } }),
     useAsyncData: (_key: string, handler: (app: null, options: { signal: AbortSignal }) => unknown) =>
       handler(null, { signal: controller.signal }),
     createError: (options: { statusCode: number; statusMessage: string }) =>
@@ -101,8 +102,8 @@ test('canceled catalog requests propagate cancellation even for verified templat
 })
 
 test('ordinary catalog routes retain their existing resolver', async (t) => {
-  const { resolveCatalog, request } = setupResource(t)
+  const { resolveCatalog, request, controller } = setupResource(t)
   await useCatalogExerciseResource('catalog-row', 'sk', null)
   assert.equal(request.mock.callCount(), 0)
-  assert.deepEqual(resolveCatalog.mock.calls[0]!.arguments, ['catalog-row', 'sk'])
+  assert.deepEqual(resolveCatalog.mock.calls[0]!.arguments, ['catalog-row', 'sk', controller.signal])
 })
