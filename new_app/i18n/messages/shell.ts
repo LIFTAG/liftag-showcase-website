@@ -117,7 +117,7 @@ export const sk = {
       exercises: 'Cviky',
       journal: 'Články',
       pricing: 'Cenník',
-      dashboard: 'Prehľad',
+      dashboard: 'Dashboard',
       getApp: 'Získať aplikáciu',
       toggleMenu: 'Otvoriť menu',
       logoAlt: 'Logo LIFTAG',
