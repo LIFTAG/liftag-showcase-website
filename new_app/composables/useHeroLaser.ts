@@ -10,16 +10,6 @@ import {
   sweepWallVelocity,
 } from './useHeroParticleField'
 
-export const HERO_WORDS = ['FOR', 'LIFTERS.', 'BY', 'LIFTERS.'] as const
-export const HERO_MOBILE_TITLE_LINES: [string, string][] = [
-  [HERO_WORDS[0], HERO_WORDS[1]],
-  [HERO_WORDS[2], HERO_WORDS[3]],
-]
-
-export function isHeroLimeWord(word: string) {
-  return word === 'LIFTERS.'
-}
-
 const HERO_LASER_SEQUENCE = [0, 1, 2, 3]
 const HERO_LASER_CHARGE_MS = 140
 const HERO_LASER_SWEEP_MS = 390
@@ -28,12 +18,13 @@ const HERO_LASER_START_MS = 280
 
 type HeroLaserWallTrack = { progress: number; now: number }
 
-export function heroLaserClass(word: string, index: number) {
+export function heroLaserClass(index: number) {
+  const accent = index % 2 === 1
   return {
     'hero-laser-reveal': true,
-    'hero-laser-green': isHeroLimeWord(word),
-    'hero-laser-red': !isHeroLimeWord(word),
-    'from-right': index % 2 === 1,
+    'hero-laser-green': accent,
+    'hero-laser-red': !accent,
+    'from-right': accent,
   }
 }
 

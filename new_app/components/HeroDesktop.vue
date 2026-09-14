@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import {
   heroLaserClass,
-  isHeroLimeWord,
   useHeroLaser,
 } from '../composables/useHeroLaser'
 import { en, sk } from '~/i18n/messages/marketing'
 
 const { t, n } = useI18n({ useScope: 'local', messages: { en, sk } })
-const { locale } = useSiteLocale()
 const heroWords = computed(() => [0, 1, 2, 3].map(i => t(`marketing.heroTitle.${i}`)))
 
 const entered = ref(false)
@@ -223,7 +221,7 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
           >
             <span
               :ref="(el) => setTitleEl(el as Element | null, i)"
-              :class="[heroLaserClass(word, i), { 'hero-laser-green': i === 1 || i === 3 }]"
+              :class="heroLaserClass(i)"
               :style="{
                 color: i === 1 || i === 3 ? '#CCFF00' : '#fff',
               }"

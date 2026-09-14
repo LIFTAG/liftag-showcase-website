@@ -1,4 +1,4 @@
-import { en, sk } from '~/i18n/messages/calculatorLogic'
+import { en } from '~/i18n/messages/calculatorLogic'
 import { localizedExerciseLabel } from '~/content/tools/oneRmExercises'
 import { exerciseFor } from '~/utils/oneRepMaxExercises'
 import {
@@ -75,10 +75,9 @@ function createConvertibleLoad(initialText: string, unit: Ref<WeightUnit>) {
   return { text, kg, relabel }
 }
 
-export function useOneRepMaxCalculator() {
+export function useOneRepMaxCalculator(t: (key: string, values?: Record<string, string | number>) => string) {
   const route = useRoute()
   const { locale, switching } = useSiteLocale()
-  const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
   const formatLoad = useLoadFormatter()
   const formatLoadWithUnit = (kg: number, unit: WeightUnit) => `${formatLoad(kg, unit)} ${unit}`
   const qualifier = computed(() => exerciseFor(lift.value).basis === 'dumbbell' ? t('qualifierDumbbell')
@@ -103,10 +102,19 @@ export function useOneRepMaxCalculator() {
 
   let disposed = false
   let initialized = false
+  let editedBeforeReady = false
   // Nuxt temporarily replaces a prerendered URL during hydration and restores its
   // query at app:suspense:resolve. Wait for that before reading or syncing inputs.
   onNuxtReady(() => {
     if (disposed) return
+    canShare.value = typeof navigator.share === 'function'
+    // onNuxtReady runs at browser idle; an already interactive form may have
+    // received input before it fires. Never overwrite that newer draft.
+    if (editedBeforeReady) {
+      initialized = true
+      syncUrl()
+      return
+    }
     const query = new URLSearchParams(window.location.search)
     const initialUnit = query.get('u') ?? ''
     const initialFormula = query.get('f') ?? ''
@@ -117,7 +125,6 @@ export function useOneRepMaxCalculator() {
     if (isFormulaId(initialFormula)) formulaId.value = initialFormula
     weightText.value = query.get('w') || '100'
     repsText.value = query.get('r') || '5'
-    canShare.value = typeof navigator.share === 'function'
     if (!queryHadUnit) {
       const stored = readStoredUnit()
       if (stored) setUnit(stored)
@@ -222,10 +229,20 @@ export function useOneRepMaxCalculator() {
   }
 
   watch([weightText, repsText, unit, lift, formulaId], () => {
-    if (!initialized || !import.meta.client) return
+    if (!import.meta.client) return
+    if (!initialized) {
+      editedBeforeReady = true
+      return
+    }
     persistUnit(unit.value)
     window.clearTimeout(urlTimer)
     urlTimer = window.setTimeout(syncUrl, 150)
+  })
+
+  // A language navigation can overtake the debounced URL write. Keep the draft
+  // in this page instance, then restore its share parameters on the new URL.
+  watch(switching, active => {
+    if (!active && initialized) syncUrl()
   })
 
   onBeforeUnmount(() => {

@@ -5,7 +5,7 @@ import type { SiteLocale } from '~/types/locale'
 import { SITE_LANGUAGES } from '~/utils/siteLocale'
 
 const emit = defineEmits<{ select: [] }>()
-const { locale, setLocale } = useSiteLocale()
+const { locale, setLocale, switching } = useSiteLocale()
 const route = useRoute()
 const menuId = useId()
 const trigger = useTemplateRef<HTMLButtonElement>('trigger')
@@ -119,6 +119,7 @@ watch(open, (visible, _, cleanup) => {
       ref="trigger"
       type="button"
       class="site-language-trigger"
+      :disabled="switching"
       :aria-label="`${label}: ${currentLanguage.label}`"
       aria-haspopup="listbox"
       :aria-expanded="open"

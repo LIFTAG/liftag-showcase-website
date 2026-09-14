@@ -1,4 +1,5 @@
 <script setup lang="ts">
+definePageMeta({ key: 'one-rm-calculator' })
 import { ONE_RM_MARKDOWN_PATH, ONE_RM_PATH } from '~/utils/oneRepMaxPage'
 import OneRmCalculator from '~/components/tools/OneRmCalculator.vue'
 import OneRmWhy from '~/components/tools/OneRmWhy.vue'

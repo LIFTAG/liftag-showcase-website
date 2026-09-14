@@ -10,16 +10,20 @@ import { exerciseFor } from '~/utils/oneRepMaxExercises'
 import { FORMULAS } from '~/utils/oneRepMax'
 import { strengthSource } from '~/utils/strengthStandards'
 import { en, sk } from '~/i18n/messages/tools'
+import { en as calculatorEn, sk as calculatorSk } from '~/i18n/messages/calculatorLogic'
 import { caveatMessageKey } from '~/content/tools/oneRmExercises'
 
-const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+const { t } = useI18n({
+  useScope: 'local',
+  messages: { en: { ...en, calculator: calculatorEn }, sk: { ...sk, calculator: calculatorSk } },
+})
 
 const {
   weightText, repsText, unit, lift, formulaId, copied, copyError, weightError, repsError,
   reps, weightKg, oneRmKg, estimates, cluster, confidence, percentRows, nrmRows, trainingMax,
   liveSummary, caveat, canShare, setUnit, setFormula, copyLink, copyResult, share,
   formatLoad, bodyweightText, bodyweightKg, comparisonSex, bodyweightError, comparison, stepWeight,
-} = useOneRepMaxCalculator()
+} = useOneRepMaxCalculator((key, values) => t(`calculator.${key}`, values ?? {}))
 const formulaName = computed(() => FORMULAS.find(item => item.id === formulaId.value)?.name ?? 'Epley')
 const sourceHref = computed(() => strengthSource(lift.value))
 const qualifier = computed(() => exerciseFor(lift.value).basis === 'dumbbell' ? t('tools.calculatorUi.qualifierDumbbell') : exerciseFor(lift.value).basis === 'bodyweight' ? t('tools.calculatorUi.qualifierBodyweight') : '')

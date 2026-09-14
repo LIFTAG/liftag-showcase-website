@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import {
   heroLaserClass,
-  isHeroLimeWord,
   useHeroLaser,
 } from '../composables/useHeroLaser'
 import { en, sk } from '~/i18n/messages/marketing'
 
 const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
-const { locale } = useSiteLocale()
 const heroMobileTitle = computed(() => [[t('marketing.heroMobileTitle.0.0'), t('marketing.heroMobileTitle.0.1')], [t('marketing.heroMobileTitle.1.0'), t('marketing.heroMobileTitle.1.1')]])
 
 const props = withDefaults(defineProps<{
@@ -107,10 +105,10 @@ onBeforeUnmount(() => {
           >
             <template v-for="(word, wordIndex) in line" :key="wordIndex">
               <span v-if="wordIndex > 0">{{ ' ' }}</span>
-              <span v-if="isHeroLimeWord(word)" class="hero-mobile-lime-word">
+              <span v-if="wordIndex === 1" class="hero-mobile-lime-word">
                 <span
                   :ref="(el) => setTitleEl(el as Element | null, lineIndex * 2 + wordIndex)"
-                  :class="[heroLaserClass(word, lineIndex * 2 + wordIndex), { 'hero-laser-green': wordIndex === 1 }]"
+                  :class="heroLaserClass(lineIndex * 2 + wordIndex)"
                   :style="{ color: '#CCFF00' }"
                 >{{ word }}</span>
                 <span
@@ -122,7 +120,7 @@ onBeforeUnmount(() => {
               <span
                 v-else
                 :ref="(el) => setTitleEl(el as Element | null, lineIndex * 2 + wordIndex)"
-                :class="[heroLaserClass(word, lineIndex * 2 + wordIndex), { 'hero-laser-green': wordIndex === 1 }]"
+                :class="heroLaserClass(lineIndex * 2 + wordIndex)"
                 :style="{ color: '#fff' }"
               >{{ word }}</span>
             </template>
@@ -876,6 +874,19 @@ onBeforeUnmount(() => {
 
   .hero-mobile-actions {
     gap: 10px;
+  }
+}
+
+/* The longer Slovak title must fit both phone and split tablet columns. */
+@media (max-width: 699px) {
+  :global(html[lang="sk"] .hero-mobile-title) {
+    font-size: clamp(32px, 11vw, 54px);
+  }
+}
+
+@media (min-width: 700px) and (max-width: 768px) {
+  :global(html[lang="sk"] .hero-mobile-title) {
+    font-size: clamp(30px, 4.7vw, 36px);
   }
 }
 

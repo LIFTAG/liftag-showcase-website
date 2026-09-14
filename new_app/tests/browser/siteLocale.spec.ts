@@ -128,7 +128,8 @@ test('Slovak editorial pages and calculator render readable content without page
   test.setTimeout(120000)
   const hydrationWarnings: string[] = []
   page.on('console', (message) => {
-    if (/hydration.*mismatch/i.test(message.text())) hydrationWarnings.push(message.text())
+    if (/hydration.*mismatch|Duplicate useI18n|not found.*(?:locale|message)/i.test(message.text()))
+      hydrationWarnings.push(message.text())
   })
   for (const path of [
     '/sk/pricing',
@@ -143,7 +144,20 @@ test('Slovak editorial pages and calculator render readable content without page
   }
   await expect(page.getByText('ČASTÉ CHYBY', { exact: true })).toBeVisible()
   await page.goto('/sk/tools/1rm-calculator')
+  await page.getByRole('button', { name: /^Jazyk:/ }).click()
+  await expect(page.getByRole('option', { name: 'Slovenčina', exact: true })).toBeVisible()
+  await page.keyboard.press('Escape')
   const weight = page.locator('#orm-weight')
+  await weight.fill('0')
+  await expect(page.locator('#orm-weight-error')).toHaveText('Záťaž musí byť väčšia ako 0.')
+  await switchLanguage(page, 'English')
+  await expect(page).toHaveURL(/\/tools\/1rm-calculator\?w=0(?:&|$)/)
+  await expect(weight).toHaveValue('0')
+  await expect(page.locator('#orm-weight-error')).toHaveText('Weight has to be greater than 0.')
+  await switchLanguage(page, 'Slovenčina')
+  await expect(page).toHaveURL(/\/sk\/tools\/1rm-calculator\?w=0(?:&|$)/)
+  await expect(weight).toHaveValue('0')
+  await expect(page.locator('#orm-weight-error')).toHaveText('Záťaž musí byť väčšia ako 0.')
   await weight.fill('62.5')
   await weight.blur()
   await expect(page.getByText('Opakovania', { exact: true }).first()).toBeVisible()
@@ -174,7 +188,10 @@ test('gym demo initializes in Slovak with normal motion enabled', async ({ page 
   await expect(page.locator('canvas').first()).toBeAttached()
 })
 
-test('Slovak marketing and comparison pages fit desktop and mobile', async ({ page }, testInfo) => {
+test('localized marketing and comparison pages fit desktop and mobile', async ({
+  page,
+  isMobile,
+}, testInfo) => {
   test.setTimeout(120000)
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
@@ -182,6 +199,7 @@ test('Slovak marketing and comparison pages fit desktop and mobile', async ({ pa
     if (/hydration.*mismatch|not found.*(?:locale|message)/i.test(message.text())) errors.push(message.text())
   })
   for (const path of [
+    '/',
     '/sk',
     '/sk/for-gyms',
     '/sk/best-workout-tracking-app',
@@ -190,15 +208,40 @@ test('Slovak marketing and comparison pages fit desktop and mobile', async ({ pa
     '/sk/vs/strong',
   ]) {
     await page.goto(path, { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('html')).toHaveAttribute('lang', 'sk')
+    const language = path === '/' ? 'en' : 'sk'
+    await expect(page.locator('html')).toHaveAttribute('lang', language)
     await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible()
-    await page.getByRole('button', { name: /^Jazyk:/ }).click()
-    await expect(page.getByRole('option', { name: 'Slovenčina', exact: true })).toBeVisible()
+    await page.getByRole('button', { name: /^(?:Jazyk|Language):/ }).click()
+    await expect(
+      page.getByRole('option', { name: language === 'sk' ? 'Slovenčina' : 'English', exact: true }),
+    ).toBeVisible()
     await page.keyboard.press('Escape')
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), path).toBe(true)
     expect(await page.locator('body').innerText()).not.toMatch(/\[object Object\]|"type":\s*0/)
-    if (path === '/sk' || path === '/sk/alternatives/hevy') {
-      await page.screenshot({ path: testInfo.outputPath(`${path === '/sk' ? 'home' : 'comparison'}.png`) })
+    if (path === '/' || path === '/sk') {
+      const accentWords = page.locator('.hero-laser-green:visible')
+      await expect(accentWords).toHaveCount(2)
+      for (const word of await accentWords.all()) {
+        await expect(word).toHaveCSS('color', 'rgb(204, 255, 0)')
+        await expect(word).not.toHaveClass(/hero-laser-red/)
+      }
+      await expect(page.locator(isMobile ? '.hero-mobile-details' : '.hero-badges')).toHaveCSS('opacity', '1')
+      await page.evaluate(() => document.fonts.ready)
+      if (isMobile) {
+        const wordBounds = await page
+          .locator('.hero-mobile-title .hero-laser-reveal')
+          .evaluateAll((words) =>
+            words.map((word) => ({
+              left: word.getBoundingClientRect().left,
+              right: word.getBoundingClientRect().right,
+              viewport: innerWidth,
+            })),
+          )
+        expect(wordBounds.every((word) => word.left >= 0 && word.right <= word.viewport)).toBe(true)
+      }
+      await page.screenshot({ path: testInfo.outputPath(`home-${language}.png`) })
+    } else if (path === '/sk/alternatives/hevy') {
+      await page.screenshot({ path: testInfo.outputPath('comparison.png') })
     }
   }
   expect(errors).toEqual([])

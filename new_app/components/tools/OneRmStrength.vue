@@ -28,15 +28,6 @@ const displayLevel = computed(() => {
   const key = strengthLevelKey(props.comparison?.level ?? '')
   return key ? t(`tools.progression.${key}`) : props.comparison?.level === 'World record' ? t('tools.progression.worldRecord') : props.comparison?.level ?? ''
 })
-const localizedBodyweightError = computed(() => {
-  if (!props.bodyweightError) return null
-  const error = props.bodyweightError
-  if (error.includes('scientific')) return t('tools.form.scientific')
-  if (error.includes('has to be a number')) return t('tools.form.weightNumber')
-  if (error.includes('greater than 0')) return t('tools.form.weightPositive')
-  if (error.includes('between 30 and 300')) return t('tools.strength.weightRange')
-  return error
-})
 const share = computed(() => props.comparison ? strongerThanShare(props.comparison) : '')
 const noteOpen = shallowRef(false)
 const note = useTemplateRef<HTMLElement>('chart-note')
@@ -101,7 +92,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer))
             <OneRmMorphSwitch v-model="sex" class="sex-switch" :options="sexOptions" aria-labelledby="orm-sex-label" />
           </div>
         </div>
-        <p v-if="localizedBodyweightError" id="orm-bodyweight-error" class="strength-error">{{ localizedBodyweightError }}</p>
+        <p v-if="bodyweightError" id="orm-bodyweight-error" class="strength-error">{{ bodyweightError }}</p>
         <p class="setup-note">{{ t('tools.strength.setup') }}</p>
         <p v-if="comparison" class="relative-strength"><strong>{{ n(comparison.ratio, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}<span>×</span></strong><span>{{ t('tools.strength.bodyweight').toLowerCase() }}<br><small>{{ t('tools.strength.estimated') }}<span v-if="qualifier">, {{ qualifier }}</span></small></span></p>
       </div>

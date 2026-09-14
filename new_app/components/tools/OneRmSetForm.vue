@@ -27,16 +27,6 @@ const repsInput = useTemplateRef<HTMLInputElement>('reps-input')
 // stacking CSS rolls (and a blur) on every keystroke.
 const showWeightDial = computed(() => weight.value.length > 0 && !weightFocused.value)
 const showRepsDial = computed(() => reps.value.length > 0 && !repsFocused.value)
-const localizedError = (error: string | null) => {
-  if (!error) return ''
-  if (error === 'Need a weight and the reps you actually did.') return t('tools.form.weightRequired')
-  if (error === 'Enter a gym load, not scientific notation.') return t('tools.form.scientific')
-  if (error === 'Weight has to be a number.') return t('tools.form.weightNumber')
-  if (error === 'Weight has to be greater than 0.') return t('tools.form.weightPositive')
-  if (error.includes('whole numbers')) return t('tools.form.repsWhole')
-  if (error.startsWith('Reps:')) return t('tools.form.repsRange')
-  return error
-}
 
 function stepReps(steps: number) {
   reps.value = String(Math.min(MAX_REPS, Math.max(MIN_REPS, (selectedReps.value ?? 0) + steps)))
@@ -99,8 +89,8 @@ useNumberScrub(repsControl, { step: stepReps, onActivate: () => repsInput.value?
         </div>
       </div>
     </div>
-    <p v-if="weightError" id="orm-weight-error" class="field-error">{{ localizedError(weightError) }}</p>
-    <p v-if="repsError" id="orm-reps-error" class="field-error">{{ localizedError(repsError) }}</p>
+    <p v-if="weightError" id="orm-weight-error" class="field-error">{{ weightError }}</p>
+    <p v-if="repsError" id="orm-reps-error" class="field-error">{{ repsError }}</p>
     <div class="rep-shortcuts" role="group" aria-labelledby="quick-reps-label" aria-describedby="quick-reps-hint">
       <div class="shortcut-heading"><span id="quick-reps-label">{{ t('tools.form.quickReps') }}</span><span id="quick-reps-hint">1–12</span></div>
       <div class="shortcut-options">
