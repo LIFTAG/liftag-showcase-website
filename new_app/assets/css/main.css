@@ -729,7 +729,7 @@ section {
    inherits the host's, so no line height, list gap or grid row moves.
 
    Which is also why the travel cannot simply be one line box. SiteNav gives its
-   window `line-height: 1.15` and exits the glyph through the leading that buys.
+   window `line-height: 1.5` and exits the glyph through the leading that buys.
    Inheriting instead means inheriting the host's leading, and a display headline
    sets `line-height: 1` - no leading at all. Measured on the scan title (Space
    Grotesk italic 700, 72px, line-height 1): the window is 72px tall with the

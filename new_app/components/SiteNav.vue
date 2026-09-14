@@ -662,10 +662,10 @@ onBeforeUnmount(() => {
   position: relative;
   display: inline-block;
   overflow: hidden;
-  /* Every label is uppercased, so the window only ever has to clear cap height;
-     the leading this leaves is what the glyph exits through. `pre` keeps a
-     space-bearing label from collapsing to a zero-width window. */
-  line-height: 1.15;
+  /* Include accented capitals in both copies' line boxes. Otherwise the parked
+     lime copy's accents can protrude into this window from below. `pre` keeps
+     spaces from collapsing to zero-width windows. */
+  line-height: 1.5;
   white-space: pre;
 }
 
