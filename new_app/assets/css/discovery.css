@@ -168,29 +168,6 @@
   border: 0;
   padding: 6px 0;
 }
-.d-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  border: 1px solid var(--d-border);
-  background: var(--d-panel);
-  color: var(--d-text);
-  border-radius: 24px;
-  padding: 8px 14px;
-  min-height: 40px;
-  font-size: 0.8125rem;
-  white-space: nowrap;
-}
-button.d-chip {
-  min-height: 44px;
-}
-.d-chip[aria-pressed='true'],
-.d-chip.is-active {
-  background: var(--d-accent);
-  border-color: var(--d-accent);
-  color: #171b02;
-}
 .d-chips {
   display: flex;
   gap: 8px;

@@ -74,7 +74,7 @@ useDiscoverySeo({
               ({{ discoveryCount(gym.reviewCount, 'reviews', locale) }})
             </span>
           </span>
-          <span v-if="distance" class="d-chip">{{ distance }} {{ copy.away }}</span>
+          <PillChip v-if="distance" plain>{{ distance }} {{ copy.away }}</PillChip>
         </div>
         <div v-if="gym.temporarilyClosed" class="d-closure" role="status">
           <strong>{{ copy.closedTemporarily }}</strong>
@@ -105,13 +105,11 @@ useDiscoverySeo({
             {{ copy.showOnMap }}
           </NuxtLink>
         </div>
-      </aside>
-      <div class="d-gym-content">
-        <p v-if="gym.description" class="d-copy d-muted">{{ gym.description }}</p>
-        <GymEquipmentPreview :detail="data" :locale="locale" @retry="refresh()" />
-        <section v-if="gym.supported" class="d-section">
+        <!-- App teaser next to the primary actions. Generation builds on this gym's equipment in LIFTAG,
+             so it shows for supported gyms and for any gym whose equipment is already set up. -->
+        <template v-if="gym.supported || Boolean(data.equipment?.totalEntries)">
           <button class="d-ai-action" @click="gate = true">
-            <DiscoveryIcon name="spark" :size="28" />
+            <DiscoveryIcon name="gym" :size="28" />
             <span>
               <strong>{{ copy.generate }}</strong>
               <span>{{ copy.generateHint }}</span>
@@ -119,7 +117,11 @@ useDiscoverySeo({
             <DiscoveryIcon name="arrow" />
           </button>
           <DiscoveryAppGate v-if="gate" kind="generate" :locale="locale" @close="gate = false" />
-        </section>
+        </template>
+      </aside>
+      <div class="d-gym-content">
+        <p v-if="gym.description" class="d-copy d-muted">{{ gym.description }}</p>
+        <GymEquipmentPreview :detail="data" :locale="locale" @retry="refresh()" />
         <section v-if="data.trainers.length" class="d-section">
           <h2 class="d-subtitle">{{ copy.trainers }}</h2>
           <DiscoveryTrainerCard

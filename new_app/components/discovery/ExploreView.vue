@@ -44,6 +44,21 @@ onMounted(() => {
   window.visualViewport?.addEventListener('resize', resizeViewport)
 })
 onBeforeUnmount(() => window.visualViewport?.removeEventListener('resize', resizeViewport))
+/** Phones float the locate button above the card row, which grows when a card expands. */
+const resultsHeight = shallowRef<number>()
+let resultsObserver: ResizeObserver | undefined
+onMounted(() => {
+  if (!results.value || typeof ResizeObserver === 'undefined') return
+  resultsObserver = new ResizeObserver(([entry]) => {
+    resultsHeight.value = entry?.target.getBoundingClientRect().height
+  })
+  resultsObserver.observe(results.value)
+})
+onBeforeUnmount(() => resultsObserver?.disconnect())
+const exploreStyle = computed(() => ({
+  ...(viewportHeight.value ? { '--d-viewport-height': `${viewportHeight.value}px` } : {}),
+  ...(resultsHeight.value ? { '--d-results-height': `${resultsHeight.value}px` } : {}),
+}))
 let scrollRestored = false
 let selectionToReveal: string | null = null
 async function restoreScroll() {
@@ -101,7 +116,7 @@ useDiscoverySeo({
   <main
     id="discovery-content"
     class="d-explore"
-    :style="viewportHeight ? { '--d-viewport-height': `${viewportHeight}px` } : undefined"
+    :style="exploreStyle"
   >
     <section class="d-explore-map" :aria-label="copy.map">
       <ClientOnly>
@@ -148,31 +163,31 @@ useDiscoverySeo({
         </DiscoverySearch>
         <p v-if="settledSearch.trim()" class="d-search-note">{{ copy.globalSearch }}</p>
         <div v-else-if="filterCount" class="d-active-filters">
-          <button v-if="filters.distance !== null" class="d-chip is-active" @click="filters.distance = null">
+          <PillChip v-if="filters.distance !== null" active @click="filters.distance = null">
             {{ filters.distance }} km
             <DiscoveryIcon name="close" :size="13" />
-          </button>
-          <button v-if="filters.rating !== null" class="d-chip is-active" @click="filters.rating = null">
+          </PillChip>
+          <PillChip v-if="filters.rating !== null" active @click="filters.rating = null">
             {{ filters.rating }}{{ filters.rating < 5 ? '+' : '' }}
             <DiscoveryIcon name="star" :size="13" />
             <DiscoveryIcon name="close" :size="13" />
-          </button>
-          <button v-if="filters.open" class="d-chip is-active" @click="filters.open = false">
+          </PillChip>
+          <PillChip v-if="filters.open" active @click="filters.open = false">
             {{ copy.openNow }}
             <DiscoveryIcon name="close" :size="13" />
-          </button>
-          <button v-if="filters.supported" class="d-chip is-active" @click="filters.supported = false">
+          </PillChip>
+          <PillChip v-if="filters.supported" active @click="filters.supported = false">
             LIFTAG
             <DiscoveryIcon name="close" :size="13" />
-          </button>
-          <button
+          </PillChip>
+          <PillChip
             v-if="filters.manufacturers.length"
-            class="d-chip is-active"
+            active
             @click="filters.manufacturers = []"
           >
             {{ copy.brands }} ({{ filters.manufacturers.length }})
             <DiscoveryIcon name="close" :size="13" />
-          </button>
+          </PillChip>
         </div>
         <p v-if="denied" class="d-search-note" role="status">{{ copy.locationDenied }}</p>
         <div class="d-results-count">
@@ -194,6 +209,7 @@ useDiscoverySeo({
             :locale="locale"
             :selected="selectedId === gym.id"
             :location="location"
+            :detail-href="gymHref(gym.id)"
             @activate="activateGym"
           />
         </template>
@@ -293,10 +309,10 @@ useDiscoverySeo({
   gap: 6px;
   padding-top: 12px;
 }
-.d-active-filters .d-chip {
-  padding: 6px 10px;
-  min-height: 36px;
-  font-size: 0.75rem;
+/* These float over the map on phones: the same lime tint as an active pill,
+   pre-composited over --d-panel (#1a1a1a) so the map never shows through. */
+.d-active-filters .pill-chip.is-active {
+  background: #353c16;
 }
 .d-search-note,
 .d-map-notice {
@@ -367,9 +383,6 @@ useDiscoverySeo({
     overflow-x: auto;
     padding-bottom: 5px;
   }
-  .d-active-filters .d-chip {
-    flex-shrink: 0;
-  }
   .d-search-note {
     display: table;
     background: var(--d-panel);
@@ -380,7 +393,8 @@ useDiscoverySeo({
   .d-explore-results {
     margin-top: auto;
     flex-direction: row;
-    align-items: stretch;
+    /* Bottom-aligned so only the selected card grows when it expands. */
+    align-items: flex-end;
     gap: 12px;
     overflow-x: auto;
     overflow-y: hidden;
@@ -420,7 +434,11 @@ useDiscoverySeo({
     font-size: 1rem;
   }
   .d-locate {
-    bottom: calc(172px + env(safe-area-inset-bottom, 0px));
+    bottom: max(
+      calc(172px + env(safe-area-inset-bottom, 0px)),
+      calc(var(--d-results-height, 0px) + 28px)
+    );
+    transition: bottom 200ms ease;
   }
   .d-map-notice {
     width: 180px;

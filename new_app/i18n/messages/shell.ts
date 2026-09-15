@@ -118,7 +118,7 @@ export const sk = {
       journal: 'Články',
       pricing: 'Cenník',
       dashboard: 'Dashboard',
-      getApp: 'Získať aplikáciu',
+      getApp: 'Stiahnuť aplikáciu',
       toggleMenu: 'Otvoriť menu',
       logoAlt: 'Logo LIFTAG',
     },
@@ -199,7 +199,7 @@ export const sk = {
       screenAlt: 'Obrazovka aplikácie LIFTAG',
     },
     cta: {
-      aria: 'Získať aplikáciu LIFTAG',
+      aria: 'Stiahnuť aplikáciu LIFTAG',
       title: 'Zaznamenaj to v aplikácii',
       free: 'Zadarmo pre iOS a Android',
       get: 'Získať',

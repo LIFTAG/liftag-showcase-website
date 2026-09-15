@@ -33,19 +33,18 @@ function toggleBrand(id: string) {
       <fieldset class="d-filter-group">
         <legend>{{ copy.distance }}</legend>
         <div class="d-chips">
-          <button class="d-chip" :aria-pressed="filters.distance === null" @click="set('distance', null)">
+          <PillChip :active="filters.distance === null" @click="set('distance', null)">
             {{ copy.any }}
-          </button>
-          <button
+          </PillChip>
+          <PillChip
             v-for="value in DISTANCE_OPTIONS"
             :key="value"
-            class="d-chip"
             :disabled="!hasLocation"
-            :aria-pressed="filters.distance === value"
+            :active="filters.distance === value"
             @click="set('distance', value)"
           >
             {{ value }} km
-          </button>
+          </PillChip>
         </div>
         <button v-if="!hasLocation" class="d-link d-small" @click="$emit('locate')">
           <DiscoveryIcon name="locate" />
@@ -55,19 +54,18 @@ function toggleBrand(id: string) {
       <fieldset class="d-filter-group">
         <legend>{{ copy.rating }}</legend>
         <div class="d-chips">
-          <button class="d-chip" :aria-pressed="filters.rating === null" @click="set('rating', null)">
+          <PillChip :active="filters.rating === null" @click="set('rating', null)">
             {{ copy.any }}
-          </button>
-          <button
+          </PillChip>
+          <PillChip
             v-for="value in 5"
             :key="value"
-            class="d-chip"
-            :aria-pressed="filters.rating === value"
+            :active="filters.rating === value"
             @click="set('rating', value)"
           >
             {{ value }}{{ value < 5 ? '+' : '' }}
             <DiscoveryIcon name="star" :size="14" />
-          </button>
+          </PillChip>
         </div>
       </fieldset>
       <button class="d-toggle" role="switch" :aria-checked="filters.open" @click="set('open', !filters.open)">
@@ -81,15 +79,14 @@ function toggleBrand(id: string) {
           <DiscoveryState v-if="error" :locale="locale" error @retry="refresh()" />
           <p v-else-if="status === 'pending'" role="status">{{ copy.loading }}</p>
           <div v-else class="d-chips">
-            <button
+            <PillChip
               v-for="brand in visibleBrands"
               :key="brand.id"
-              class="d-chip"
-              :aria-pressed="filters.manufacturers.includes(brand.id)"
+              :active="filters.manufacturers.includes(brand.id)"
               @click="toggleBrand(brand.id)"
             >
               {{ brand.name }}
-            </button>
+            </PillChip>
             <span v-if="!visibleBrands.length" class="d-muted">{{ copy.noEquipmentMatch }}</span>
           </div>
         </div>

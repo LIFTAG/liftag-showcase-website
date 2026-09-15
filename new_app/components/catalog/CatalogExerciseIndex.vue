@@ -316,23 +316,23 @@ useLiftagStructuredData(() => [
             </div>
 
             <nav v-if="categories.length" class="ex-chips" :aria-label="chrome.browseMusclesAria">
-              <NuxtLink
+              <PillChip
                 :to="chipTo()"
                 class="ex-chip"
-                :class="{ 'is-active': !isSk || !muscleFilter }"
+                :active="!isSk || !muscleFilter"
               >
                 {{ chrome.all }}
-              </NuxtLink>
-              <NuxtLink
+              </PillChip>
+              <PillChip
                 v-for="category in categories"
                 :key="category.slug"
                 :to="chipTo(category.slug)"
                 class="ex-chip"
-                :class="{ 'is-active': isSk && muscleFilter === category.slug }"
+                :active="isSk && muscleFilter === category.slug"
               >
                 {{ categoryNames.get(category.slug) }}
                 <span class="ex-chip__count">{{ categoryCounts.get(category.slug) ?? 0 }}</span>
-              </NuxtLink>
+              </PillChip>
             </nav>
           </div>
         </div>
@@ -524,36 +524,9 @@ useLiftagStructuredData(() => [
   display: none;
 }
 
-.ex-chip {
-  display: inline-flex;
-  flex: 1 0 auto;
+/* Tighter than PillChip's icon gap: the count reads as part of the label. */
+.ex-chips .ex-chip {
   gap: 3px;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 7px;
-  border: 1px solid var(--liftag-border);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--liftag-fg-muted);
-  font-family: var(--liftag-font-mono);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-decoration: none;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: border-color 200ms ease, color 200ms ease, background-color 200ms ease;
-}
-
-.ex-chip:hover {
-  border-color: rgba(255, 255, 255, 0.32);
-  color: #fff;
-}
-
-.ex-chip.is-active {
-  border-color: rgba(204, 255, 0, 0.55);
-  background: var(--liftag-primary-dim);
-  color: var(--liftag-primary);
 }
 
 .ex-chip__count {
@@ -656,14 +629,6 @@ useLiftagStructuredData(() => [
     flex-wrap: wrap;
     gap: 8px;
     overflow-x: visible;
-  }
-
-  .ex-chip {
-    flex: 0 0 auto;
-    padding: 9px 16px;
-    font-size: 13px;
-    letter-spacing: 0.02em;
-    white-space: nowrap;
   }
 
   .ex-chip__count {
@@ -835,13 +800,6 @@ useLiftagStructuredData(() => [
     padding: 7px 1px 0;
     overflow-x: auto;
     overscroll-behavior-inline: contain;
-  }
-
-  .ex-chip {
-    flex: 0 0 auto;
-    min-height: 32px;
-    padding: 7px 12px;
-    font-size: 10px;
   }
 
   .ex-results {

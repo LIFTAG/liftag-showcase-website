@@ -136,29 +136,27 @@ useDiscoverySeo({
           <details v-if="detail?.equipment?.manufacturers.length" open>
             <summary>{{ copy.manufacturers }}</summary>
             <div class="d-chips">
-              <button
+              <PillChip
                 v-for="brand in detail.equipment!.manufacturers"
                 :key="brand.id"
-                class="d-chip"
-                :aria-pressed="manufacturers.includes(brand.id)"
+                :active="manufacturers.includes(brand.id)"
                 @click="manufacturers = toggleDiscoveryId(manufacturers, brand.id)"
               >
                 {{ brand.name }}
-              </button>
+              </PillChip>
             </div>
           </details>
           <details v-if="muscleGroups?.length" open>
             <summary>{{ copy.muscles }}</summary>
             <div class="d-chips">
-              <button
+              <PillChip
                 v-for="group in muscleGroups"
                 :key="group.id"
-                class="d-chip"
-                :aria-pressed="categories.includes(group.id)"
+                :active="categories.includes(group.id)"
                 @click="categories = toggleDiscoveryId(categories, group.id)"
               >
                 {{ muscleDisplayName(group.slug, group.name, locale) }}
-              </button>
+              </PillChip>
             </div>
           </details>
         </aside>
@@ -216,10 +214,6 @@ useDiscoverySeo({
   cursor: pointer;
   margin-bottom: 12px;
 }
-.d-equipment-filters .d-chip {
-  font-size: 0.75rem;
-  padding: 6px 12px;
-}
 @media (max-width: 767px) {
   .d-equipment-layout {
     grid-template-columns: minmax(0, 1fr);
@@ -237,9 +231,6 @@ useDiscoverySeo({
     flex-wrap: nowrap;
     overflow-x: auto;
     padding: 4px;
-  }
-  .d-equipment-filters .d-chip {
-    flex-shrink: 0;
   }
   .d-equipment-header {
     margin-bottom: 24px;

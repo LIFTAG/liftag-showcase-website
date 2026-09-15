@@ -29,7 +29,7 @@ export const sk = {
   journal: {
     label: 'ČLÁNKY',
     updated: 'AKTUALIZOVANÉ {date}',
-    getLifTag: 'Získať LIFTAG zdarma',
+    getLifTag: 'Stiahnuť LIFTAG zadarmo',
     compareTrackers: 'Porovnať tréningové trackery',
     questions: 'Často kladené otázky',
     writtenBy: 'Autor',

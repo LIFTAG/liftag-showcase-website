@@ -34,7 +34,9 @@ export function discoveryListQuery(
   if (typeof q.search === 'string' && q.search.trim()) result.search = q.search.trim().slice(0, 200)
   for (const [queryKey, wireKey, cap] of [
     ['manufacturers', 'machineManufacturerIds[]', equipment ? 100 : 200],
-    ...(equipment ? [['categories', 'categoryIds[]', 32] as const] : []),
+    // Muscle-group filters match a machine's primary categories only; `categoryIds[]`
+    // would also match secondary ones and surface loosely related machines.
+    ...(equipment ? [['categories', 'primaryCategoryIds[]', 32] as const] : []),
   ] as const) {
     const ids = normalizedIds(q[queryKey], cap)
     if (ids.length) result[wireKey] = ids

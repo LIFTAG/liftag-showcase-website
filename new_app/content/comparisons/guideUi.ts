@@ -60,7 +60,7 @@ export const en: ComparisonGuideUi = {
 }
 export const sk: ComparisonGuideUi = {
   eyebrow: 'ALTERNATÍVY',
-  cta: 'Získať LIFTAG zadarmo',
+  cta: 'Stiahnuť LIFTAG zadarmo',
   other: 'LIFTAG verzus ďalšia možnosť',
   short: 'Krátka verzia',
   pricing: 'Uvedené ceny',

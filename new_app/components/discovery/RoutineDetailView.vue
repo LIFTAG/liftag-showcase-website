@@ -65,21 +65,21 @@ useDiscoverySeo({
             <span>{{ routine.author }}</span>
           </div>
           <div class="d-chips">
-            <span v-if="routine.duration !== null" class="d-chip">
+            <PillChip v-if="routine.duration !== null" plain>
               <DiscoveryIcon name="clock" :size="15" />
               {{ routine.duration }} {{ copy.minutes }}
-            </span>
-            <span v-if="routine.difficulty" class="d-chip">
+            </PillChip>
+            <PillChip v-if="routine.difficulty" plain>
               {{ discoveryLabel(routine.difficulty, locale) }}
-            </span>
-            <span v-if="routine.rating !== null" class="d-chip d-stars">
+            </PillChip>
+            <PillChip v-if="routine.rating !== null" plain class="d-stars">
               <DiscoveryIcon name="star" :size="15" />
               {{ discoveryRating(routine.rating, locale) }}
               <span v-if="routine.ratingCount !== null" class="d-muted">({{ routine.ratingCount }})</span>
-            </span>
-            <span v-if="routine.copyCount !== null" class="d-chip">
+            </PillChip>
+            <PillChip v-if="routine.copyCount !== null" plain>
               {{ discoveryCount(routine.copyCount, 'copies', locale) }}
-            </span>
+            </PillChip>
           </div>
         </div>
       </header>
@@ -106,9 +106,9 @@ useDiscoverySeo({
         <div v-if="routine.muscles.length" class="d-section">
           <h2 class="d-subtitle">{{ copy.muscles }}</h2>
           <div class="d-chips">
-            <span v-for="muscle in routine.muscles" :key="muscle" class="d-chip">
+            <PillChip v-for="muscle in routine.muscles" :key="muscle" plain>
               {{ discoveryMuscleName(muscle, locale) }}
-            </span>
+            </PillChip>
           </div>
         </div>
       </aside>
