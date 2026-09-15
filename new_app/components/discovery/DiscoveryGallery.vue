@@ -4,7 +4,9 @@ import { discoveryCopy } from '~/utils/discoveryCopy'
 const props = defineProps<{ media: DiscoveryMedia[]; name: string; locale: DiscoveryLocale }>()
 const index = shallowRef(0),
   expanded = shallowRef(false)
-const failed = ref(new Set<string>())
+const animate = shallowRef(true)
+const direction = shallowRef(1)
+const expandButton = useTemplateRef<HTMLButtonElement>('expandButton')
 const current = computed(() => props.media[index.value])
 const copy = computed(() => discoveryCopy(props.locale))
 const zoomed = shallowRef(false)
@@ -18,59 +20,28 @@ onMounted(() => {
   viewport?.addEventListener('resize', updateZoom)
 })
 onBeforeUnmount(() => viewport?.removeEventListener('resize', updateZoom))
-let swipeStart: Touch | null = null
 watch(
   () => props.media,
   () => {
     index.value = 0
     expanded.value = false
-    swipeStart = null
   },
 )
-function step(delta: number) {
+function select(next: number, smooth = true) {
+  animate.value = smooth
+  direction.value = Math.sign(next - index.value) || 1
+  index.value = next
+}
+function step(delta: number, smooth = true) {
   if (props.media.length < 2) return
-  index.value = (index.value + delta + props.media.length) % props.media.length
+  select((index.value + delta + props.media.length) % props.media.length, smooth)
+  direction.value = Math.sign(delta)
 }
-function startSwipe(event: TouchEvent) {
-  swipeStart = null
-  // Leave navigation buttons, links and native/embedded video controls in charge of their gestures.
-  if (
-    props.media.length < 2 ||
-    event.touches.length !== 1 ||
-    (window.visualViewport?.scale ?? 1) > 1 ||
-    (event.target instanceof Element &&
-      event.target.closest('video, iframe, a, button:not(.d-gallery-image)'))
-  )
-    return
-  swipeStart = event.touches[0] ?? null
-}
-function cancelSwipe() {
-  swipeStart = null
-}
-function moveSwipe(event: TouchEvent) {
-  if (!swipeStart) return
-  const touch = event.touches[0]
-  if (!touch || event.touches.length !== 1 || touch.identifier !== swipeStart.identifier) {
-    cancelSwipe()
-    return
-  }
-  const dx = touch.clientX - swipeStart.clientX
-  const dy = touch.clientY - swipeStart.clientY
-  // Once a gesture becomes a vertical scroll, it cannot turn into a gallery swipe.
-  if (Math.abs(dy) > 10 && Math.abs(dy) >= Math.abs(dx)) cancelSwipe()
-}
-function endSwipe(event: TouchEvent) {
-  const start = swipeStart
-  cancelSwipe()
-  if (!start || event.touches.length) return
-  const touch = Array.from(event.changedTouches).find(item => item.identifier === start.identifier)
-  if (!touch) return
-  const dx = touch.clientX - start.clientX
-  const dy = touch.clientY - start.clientY
-  if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return
-  // A swipe must not also trigger the photo button's fullscreen click.
-  if (event.cancelable) event.preventDefault()
-  step(dx < 0 ? 1 : -1)
+async function closeViewer() {
+  expanded.value = false
+  await nextTick()
+  // The originally opened photo may now be an inert, offscreen slide.
+  expandButton.value?.focus({ preventScroll: true })
 }
 function viewerKeydown(event: KeyboardEvent) {
   if (
@@ -84,46 +55,31 @@ function viewerKeydown(event: KeyboardEvent) {
   )
     return
   event.preventDefault()
-  step(event.key === 'ArrowLeft' ? -1 : 1)
+  step(event.key === 'ArrowLeft' ? -1 : 1, false)
 }
 </script>
 <template>
   <section class="d-gallery" :aria-label="copy.gallery">
-    <div
-      v-if="current"
-      class="d-gallery-stage"
-      @touchstart.passive="startSwipe"
-      @touchmove.passive="moveSwipe"
-      @touchend="endSwipe"
-      @touchcancel.passive="cancelSwipe"
-    >
-      <DiscoveryVideo
-        v-if="current.type === 'video'"
-        :key="current.url"
-        :src="current.url"
-        :poster="current.posterUrl"
-        :title="name"
+    <div v-if="current" class="d-gallery-stage">
+      <DiscoveryGalleryCarousel
+        :media="media"
+        :index="index"
+        :name="name"
         :locale="locale"
+        :active="!expanded"
+        :animate="animate"
+        :direction="direction"
+        :zoomed="zoomed"
+        @select="select"
+        @open="expanded = true"
       />
-      <button
-        v-else
-        class="d-gallery-image"
-        :style="{ touchAction: zoomed ? 'auto' : 'pan-y pinch-zoom' }"
-        :aria-label="`${copy.photos}: ${name}`"
-        @click="expanded = true"
-      >
-        <img
-          v-if="!failed.has(current.url)"
-          :src="current.url"
-          :alt="`${name}, ${index + 1}`"
-          fetchpriority="high"
-          @error="failed.add(current.url)"
-        />
-        <span v-else class="d-gallery-empty"><DiscoveryIcon name="image" :size="40" /></span>
+      <button ref="expandButton" class="d-gallery-expand d-icon-button" :aria-label="copy.openGallery" @click="expanded = true">
+        <DiscoveryIcon name="expand" />
       </button>
       <DiscoveryGalleryNav
         v-if="media.length > 1"
         class="d-gallery-controls"
+        :class="{ 'd-gallery-controls--video': current.type === 'video' }"
         :index="index"
         :total="media.length"
         :locale="locale"
@@ -140,7 +96,7 @@ function viewerKeydown(event: KeyboardEvent) {
         :key="item.url"
         :aria-label="`${item.type === 'video' ? copy.video : copy.photos} ${i + 1}`"
         :aria-pressed="i === index"
-        @click="index = i"
+        @click="select(i)"
       >
         <img
           v-if="item.type === 'image' || item.posterUrl"
@@ -159,38 +115,20 @@ function viewerKeydown(event: KeyboardEvent) {
       :title="name"
       :locale="locale"
       fullscreen
-      @close="expanded = false"
+      @close="closeViewer"
       @keydown="viewerKeydown"
     >
-      <div
-        class="d-expanded-media"
-        @touchstart.passive="startSwipe"
-        @touchmove.passive="moveSwipe"
-        @touchend="endSwipe"
-        @touchcancel.passive="cancelSwipe"
-      >
-        <DiscoveryVideo
-          v-if="current.type === 'video'"
-          :key="current.url"
-          :src="current.url"
-          :poster="current.posterUrl"
-          :title="name"
-          :locale="locale"
-        />
-        <img
-          v-else-if="!failed.has(current.url)"
-          :key="current.url"
-          :src="current.url"
-          :alt="`${name}, ${index + 1}`"
-          class="d-expanded-image"
-          :style="{ touchAction: zoomed ? 'auto' : 'pan-y pinch-zoom' }"
-          @error="failed.add(current.url)"
-        />
-        <div v-else class="d-empty" role="status">
-          <DiscoveryIcon name="image" :size="40" />
-          <p>{{ copy.loadError }}</p>
-        </div>
-      </div>
+      <DiscoveryGalleryCarousel
+        :media="media"
+        :index="index"
+        :name="name"
+        :locale="locale"
+        :animate="animate"
+        :direction="direction"
+        :zoomed="zoomed"
+        fullscreen
+        @select="select"
+      />
       <DiscoveryGalleryNav
         v-if="media.length > 1"
         class="d-expanded-controls"
@@ -211,20 +149,6 @@ function viewerKeydown(event: KeyboardEvent) {
   position: relative;
   overflow: hidden;
   border-radius: 20px;
-}
-.d-gallery-image {
-  display: block;
-  border: 0;
-  padding: 0;
-  width: 100%;
-  background: var(--d-panel);
-  cursor: zoom-in;
-}
-.d-gallery-image img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16/10;
-  object-fit: cover;
 }
 .d-gallery-empty {
   display: flex;
@@ -247,6 +171,17 @@ function viewerKeydown(event: KeyboardEvent) {
   background: #111e;
   color: #f5f5f3;
   border-radius: 24px;
+}
+.d-gallery-controls--video {
+  top: 12px;
+  bottom: auto;
+}
+.d-gallery-expand {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  color: #f5f5f3;
+  background: #111e;
 }
 .d-gallery-thumbs {
   scrollbar-width: none;
@@ -284,27 +219,6 @@ function viewerKeydown(event: KeyboardEvent) {
   background: #0003;
   color: #f5f5f3;
 }
-.d-expanded-media {
-  display: grid;
-  place-items: center;
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
-  padding: 12px max(12px, env(safe-area-inset-right, 0px))
-    max(12px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
-}
-.d-expanded-image,
-.d-expanded-media :deep(.d-video) {
-  display: block;
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
-  max-height: none;
-  aspect-ratio: auto;
-  object-fit: contain;
-  border-radius: 0;
-}
 .d-expanded-controls {
   display: flex;
   flex-shrink: 0;
@@ -323,12 +237,8 @@ function viewerKeydown(event: KeyboardEvent) {
   font-variant-numeric: tabular-nums;
 }
 @media (max-width: 767px) {
-  .d-gallery-stage,
-  .d-gallery-image {
+  .d-gallery-stage {
     border-radius: 16px;
-  }
-  .d-gallery-image img {
-    aspect-ratio: 1.75;
   }
 }
 </style>

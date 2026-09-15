@@ -5,6 +5,7 @@ const paths: Record<string, string> = {
   arrow: 'm9 5 7 7-7 7',
   back: 'm14 5-7 7 7 7 M7 12h14',
   close: 'm6 6 12 12 M6 18 18 6',
+  expand: 'M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5',
   filter: 'M4 6h5m4 0h7 M4 12h10m4 0h2 M4 18h2m4 0h10 M9 3v6m5 0v6M6 15v6',
   pin: 'M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0ZM15 10a3 3 0 1 1-6 0 3 3 0 0 1 6 0',
   locate: 'M12 2v3m0 14v3M2 12h3m14 0h3 M19 12a7 7 0 1 1-14 0 7 7 0 0 1 14 0',

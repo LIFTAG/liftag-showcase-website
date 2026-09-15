@@ -11,7 +11,7 @@ import * as discoveryCopy from '../utils/discoveryCopy.ts'
 // Exercise the real setup handlers, following the existing media-player test harness.
 const { descriptor } = parse(readFileSync(new URL('../components/discovery/DiscoveryGallery.vue', import.meta.url), 'utf8'))
 const script = ts.transpileModule(
-  descriptor.scriptSetup!.content + '\nexports.gallery = { index, expanded, zoomed, startSwipe, moveSwipe, endSwipe, cancelSwipe, step };',
+  descriptor.scriptSetup!.content + '\nexports.gallery = { index, expanded, zoomed, animate, direction, select, viewerKeydown, step };',
   { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } },
 ).outputText
 
@@ -32,14 +32,14 @@ function setupGallery(t: TestContext, count = 3) {
   const mounted: (() => void)[] = []
   const cleanup: (() => void)[] = []
   const exports = {} as { gallery: {
-    index: Ref<number>; expanded: Ref<boolean>; zoomed: Ref<boolean>
-    startSwipe: (event: TouchEvent) => void; moveSwipe: (event: TouchEvent) => void
-    endSwipe: (event: TouchEvent) => void; cancelSwipe: () => void; step: (delta: number) => void
+    index: Ref<number>; expanded: Ref<boolean>; zoomed: Ref<boolean>; animate: Ref<boolean>; direction: Ref<number>
+    select: (index: number) => void; viewerKeydown: (event: KeyboardEvent) => void; step: (delta: number) => void
   } }
   const scope = effectScope()
   t.after(() => { cleanup.forEach(fn => fn()); scope.stop() })
   scope.run(() => runInNewContext(script, {
-    exports, computed, ref, shallowRef, watch, Element,
+    exports, computed, ref, shallowRef, watch, nextTick, HTMLElement: Element,
+    useTemplateRef: () => shallowRef(null),
     window: { visualViewport: viewport },
     onMounted: (fn: () => void) => mounted.push(fn),
     onBeforeUnmount: (fn: () => void) => cleanup.push(fn),
@@ -53,97 +53,31 @@ function setupGallery(t: TestContext, count = 3) {
   return { gallery: exports.gallery, props, viewport, cleanup }
 }
 
-const touch = (x: number, y = 100, identifier = 1) => ({ clientX: x, clientY: y, identifier }) as Touch
-function event(touches: Touch[], changedTouches = touches, target = new Element()) {
-  return {
-    touches, changedTouches, target, cancelable: true, defaultPrevented: false,
-    preventDefault() { this.defaultPrevented = true },
-  } as unknown as TouchEvent
-}
-
-for (const fullscreen of [false, true]) {
-  test(`horizontal swipes navigate once and wrap in ${fullscreen ? 'fullscreen' : 'inline'} view`, t => {
-    const { gallery } = setupGallery(t)
-    gallery.expanded.value = fullscreen
-    gallery.startSwipe(event([touch(200)]))
-    gallery.moveSwipe(event([touch(120)]))
-    assert.equal(gallery.index.value, 0)
-    const end = event([], [touch(100)])
-    gallery.endSwipe(end)
-    assert.equal(gallery.index.value, 1)
-    assert.equal(gallery.expanded.value, fullscreen)
-    assert.equal(end.defaultPrevented, true)
-    gallery.endSwipe(end)
-    assert.equal(gallery.index.value, 1)
-    gallery.step(-1)
-    gallery.startSwipe(event([touch(100)]))
-    gallery.endSwipe(event([], [touch(200)]))
-    assert.equal(gallery.index.value, 2)
-    gallery.startSwipe(event([touch(200)]))
-    gallery.endSwipe(event([], [touch(100)]))
-    assert.equal(gallery.index.value, 0)
-  })
-}
-
-test('taps, short drags and diagonal gestures retain native behavior', t => {
+test('arrows wrap in their direction while direct selection follows its target', t => {
   const { gallery } = setupGallery(t)
-  for (const endPoint of [touch(200), touch(151), touch(140, 150)]) {
-    gallery.startSwipe(event([touch(200)]))
-    const end = event([], [endPoint])
-    gallery.endSwipe(end)
-    assert.equal(gallery.index.value, 0)
-    assert.equal(end.defaultPrevented, false)
-  }
-})
-
-test('vertical scrolling cannot become a swipe even if it ends horizontally', t => {
-  const { gallery } = setupGallery(t)
-  gallery.startSwipe(event([touch(200)]))
-  const move = event([touch(195, 150)])
-  gallery.moveSwipe(move)
-  const end = event([], [touch(50, 150)])
-  gallery.endSwipe(end)
+  gallery.step(-1)
+  assert.equal(gallery.index.value, 2)
+  assert.equal(gallery.direction.value, -1)
+  gallery.step(1)
   assert.equal(gallery.index.value, 0)
-  assert.equal(move.defaultPrevented, false)
-  assert.equal(end.defaultPrevented, false)
+  assert.equal(gallery.direction.value, 1)
+  gallery.select(2)
+  assert.equal(gallery.index.value, 2)
+  assert.equal(gallery.direction.value, 1)
 })
 
-test('multi-touch and cancelled gestures never navigate', t => {
+test('keyboard navigation is immediate and does not take over video controls', t => {
   const { gallery } = setupGallery(t)
-  for (const cancel of [
-    () => gallery.startSwipe(event([touch(200), touch(100, 100, 2)])),
-    () => gallery.moveSwipe(event([touch(150), touch(100, 100, 2)])),
-    () => gallery.cancelSwipe(),
-  ]) {
-    gallery.startSwipe(event([touch(200)]))
-    cancel()
-    const end = event([], [touch(100)])
-    gallery.endSwipe(end)
-    assert.equal(gallery.index.value, 0)
-    assert.equal(end.defaultPrevented, false)
-  }
-})
-
-test('unrelated touches and partially released gestures never navigate', t => {
-  const { gallery } = setupGallery(t)
-  for (const end of [event([], [touch(100, 100, 2)]), event([touch(100, 100, 2)], [touch(100)])]) {
-    gallery.startSwipe(event([touch(200)]))
-    gallery.endSwipe(end)
-    assert.equal(gallery.index.value, 0)
-    assert.equal(end.defaultPrevented, false)
-  }
-})
-
-test('player controls and zoomed-page gestures retain native behavior', t => {
-  const { gallery, viewport } = setupGallery(t)
-  for (const [scale, interactive] of [[1, true], [2, false]] as const) {
-    viewport.scale = scale
-    gallery.startSwipe(event([touch(200)], undefined, new Element(interactive)))
-    const end = event([], [touch(100)])
-    gallery.endSwipe(end)
-    assert.equal(gallery.index.value, 0)
-    assert.equal(end.defaultPrevented, false)
-  }
+  const key = (interactive = false) => ({
+    key: 'ArrowRight', target: new Element(interactive), preventDefault: t.mock.fn(),
+  }) as unknown as KeyboardEvent
+  gallery.viewerKeydown(key(true))
+  assert.equal(gallery.index.value, 0)
+  gallery.viewerKeydown(key())
+  assert.equal(gallery.index.value, 1)
+  assert.equal(gallery.animate.value, false)
+  gallery.step(1)
+  assert.equal(gallery.animate.value, true)
 })
 
 test('photo touch behavior follows viewport zoom and releases its listener on unmount', t => {
@@ -161,27 +95,20 @@ test('photo touch behavior follows viewport zoom and releases its listener on un
   assert.equal(gallery.zoomed.value, false)
 })
 
-test('empty and single-item galleries do not consume gestures', t => {
+test('empty and single-item galleries do not navigate', t => {
   for (const count of [0, 1]) {
     const { gallery } = setupGallery(t, count)
-    gallery.startSwipe(event([touch(200)]))
-    const end = event([], [touch(100)])
-    gallery.endSwipe(end)
+    gallery.step(1)
     assert.equal(gallery.index.value, 0)
-    assert.equal(end.defaultPrevented, false)
   }
 })
 
-test('changing gyms cancels a pending swipe and resets the viewer', async t => {
+test('changing gyms resets the selected media and closes fullscreen', async t => {
   const { gallery, props } = setupGallery(t)
   gallery.step(1)
   gallery.expanded.value = true
-  gallery.startSwipe(event([touch(200)]))
   props.media = [{ type: 'image', url: '/another-gym.jpg' }]
   await nextTick()
-  const end = event([], [touch(100)])
-  gallery.endSwipe(end)
   assert.equal(gallery.index.value, 0)
   assert.equal(gallery.expanded.value, false)
-  assert.equal(end.defaultPrevented, false)
 })
