@@ -5,7 +5,9 @@
   font-family: 'Inter';
   font-style: normal;
   font-weight: 300 900;
-  font-display: optional;
+  /* swap, not optional: SK/CS carons live here. optional drops the subset
+     if it misses first paint, so š/č/ž fall back to a different face. */
+  font-display: swap;
   src: url('/assets/fonts/inter-latin-ext.woff2') format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -32,9 +34,9 @@
   font-family: 'JetBrains Mono';
   font-style: normal;
   font-weight: 400 800;
-  /* optional: protocol labels live in display:none desktop markup on mobile
-     and were pulling a 31KB file onto the FCP critical path. */
-  font-display: optional;
+  /* swap, not optional: SK/CS carons live here. optional drops the subset
+     if it misses first paint, so š/č/ž fall back to a different mono. */
+  font-display: swap;
   src: url('/assets/fonts/jetbrains-mono-latin-ext.woff2') format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }

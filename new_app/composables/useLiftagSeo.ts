@@ -1,7 +1,7 @@
 import type { SiteLocale } from '~/types/locale'
 import { localizedSharedSchema } from '~/utils/localizedSeoSchema'
 import type { MaybeRefOrGetter } from 'vue'
-import { siteCanonicalPath, siteLocaleAlternates, isLocalizedSitePath } from '~/utils/siteLocale'
+import { siteCanonicalPath, siteLocaleAlternates, siteLocaleFontPreloads, isLocalizedSitePath } from '~/utils/siteLocale'
 import { exerciseHreflangAlternates } from '~/utils/catalogLocale'
 import { DEFAULT_OG_IMAGE, SITE_URL } from '~/utils/seoSchema'
 
@@ -97,15 +97,13 @@ export function useLiftagSeo(input: MaybeRefOrGetter<LiftagSeoOptions>) {
           SITE_URL,
         ).toString(),
       })),
-      ...(['sk', 'cs'].includes(lang.value)
-        ? ['inter', 'space-grotesk'].map((font) => ({
-            rel: 'preload',
-            as: 'font' as const,
-            type: 'font/woff2',
-            crossorigin: '' as const,
-            href: `/assets/fonts/${font}-latin-ext.woff2`,
-          }))
-        : []),
+      ...siteLocaleFontPreloads(lang.value).map((href) => ({
+        rel: 'preload' as const,
+        as: 'font' as const,
+        type: 'font/woff2',
+        crossorigin: '' as const,
+        href,
+      })),
     ],
   }))
 }

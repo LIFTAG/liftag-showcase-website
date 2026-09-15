@@ -83,15 +83,15 @@ watch(
         <NuxtLink
           v-if="gymMachine"
           :to="discoveryHref(`/gyms/${gymMachine.gym.id}/equipment`, locale)"
-          class="protocol ma-crumb"
+          class="ma-crumb"
         >
           {{ gymMachine.gym.name }}
         </NuxtLink>
-        <NuxtLink v-else :to="href('/machines')" class="protocol ma-crumb">
+        <NuxtLink v-else :to="href('/machines')" class="ma-crumb">
           {{ chrome.breadcrumbMachines }}
         </NuxtLink>
         <span class="ma-crumb-sep" aria-hidden="true">/</span>
-        <span class="protocol ma-crumb ma-crumb--current">{{ name }}</span>
+        <span class="ma-crumb ma-crumb--current">{{ name }}</span>
       </nav>
 
       <div class="ma-stage">
@@ -240,7 +240,11 @@ watch(
 
 .ma-crumb {
   color: var(--liftag-fg-tertiary);
-  font-size: 10px;
+  font-family: var(--liftag-font-body);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
   text-decoration: none;
 }
 
@@ -254,7 +258,8 @@ a.ma-crumb:hover {
 
 .ma-crumb-sep {
   color: var(--liftag-fg-dim);
-  font-size: 10px;
+  font-family: var(--liftag-font-body);
+  font-size: 13px;
 }
 
 .ma-stage {
@@ -348,6 +353,8 @@ a.ma-crumb:hover {
 .ma-name {
   margin: 0;
   font-size: clamp(34px, 4.6vw, 60px);
+  /* Space Grotesk italic uppercase synthesizes Š as S + a tiny case caron. */
+  text-transform: none;
 }
 
 .ma-muscles {

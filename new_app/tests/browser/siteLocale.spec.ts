@@ -78,6 +78,16 @@ test('keyboard language selection and longer Slovak form labels fit the viewport
   if (isMobile) await page.screenshot({ path: 'test-results/slovak-form-mobile.png', fullPage: true })
 })
 
+test('gym equipment keeps a manual English switch on a Slovak gym', async ({ page }) => {
+  await page.goto(`/sk/gyms/${ids.gym}/equipment?lang=sk`)
+  await expect(page.locator('html')).toHaveAttribute('lang', 'sk')
+  await switchLanguage(page, 'English')
+  await expect.poll(() => new URL(page.url()).pathname).toBe(`/gyms/${ids.gym}/equipment`)
+  await expect.poll(() => new URL(page.url()).searchParams.get('lang')).toBe('en')
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+  await expect(page.getByRole('button', { name: 'Language: English', exact: true })).toBeVisible()
+})
+
 test('discovery switching preserves pending input and selected gym identities', async ({ page }) => {
   await page.goto(`/explore?lang=en&gym=${ids.gym}&manufacturers=${ids.brand}`)
   // Wait for the client discovery request before typing into SSR markup.

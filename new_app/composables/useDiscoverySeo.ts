@@ -1,7 +1,7 @@
 import type { MaybeRefOrGetter } from 'vue'
 import type { DiscoveryLocale } from '~/types/discovery'
 import { discoveryCopy } from '~/utils/discoveryCopy'
-import { siteBasePath, siteCanonicalPath, siteLocalePath, siteLocaleAlternates, isLocalizedSitePath } from '~/utils/siteLocale'
+import { siteBasePath, siteCanonicalPath, siteLocalePath, siteLocaleAlternates, siteLocaleFontPreloads, isLocalizedSitePath } from '~/utils/siteLocale'
 import { DEFAULT_OG_IMAGE, SITE_URL, liftagBreadcrumbs } from '~/utils/seoSchema'
 
 interface DiscoverySeoOptions {
@@ -73,6 +73,13 @@ export function useDiscoverySeo(options: DiscoverySeoOptions) {
       link: [
         { rel: 'canonical', href: url.value },
         ...alternates.value.map(item => ({ rel: 'alternate', hreflang: item.hreflang, href: `${SITE_URL}${item.path}` })),
+        ...siteLocaleFontPreloads(toValue(locale)).map((href) => ({
+          rel: 'preload' as const,
+          as: 'font' as const,
+          type: 'font/woff2',
+          crossorigin: '' as const,
+          href,
+        })),
       ],
       script: [
         {
