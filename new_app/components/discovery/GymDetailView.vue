@@ -111,7 +111,7 @@ useDiscoverySeo({
           <button type="button" class="d-ai-action" @click="gate = true">
             <DiscoveryIcon name="gym" :size="120" class="d-ai-action__art" aria-hidden="true" />
             <span class="d-ai-action__eyebrow">
-              <DiscoveryIcon name="spark" :size="14" aria-hidden="true" />
+              <img src="/assets/logo.svg" width="16" height="16" alt="" />
               {{ copy.generateEyebrow }}
             </span>
             <strong class="d-ai-action__title">{{ copy.generate }}</strong>
@@ -123,7 +123,7 @@ useDiscoverySeo({
               </span>
               <span class="d-ai-action__cta">
                 {{ copy.generateCta }}
-                <DiscoveryIcon name="arrow" :size="16" aria-hidden="true" />
+                <span class="d-ai-action__cta-icon"><DiscoveryIcon name="arrow" :size="14" aria-hidden="true" /></span>
               </span>
             </span>
           </button>
@@ -253,7 +253,7 @@ useDiscoverySeo({
 .d-ai-action__eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   color: var(--d-accent);
   font-size: 0.6875rem;
   font-weight: 700;
@@ -278,7 +278,9 @@ useDiscoverySeo({
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(204, 255, 0, 0.14);
 }
 .d-ai-action__count {
   display: inline-flex;
@@ -293,18 +295,24 @@ useDiscoverySeo({
 .d-ai-action__cta {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   margin-left: auto;
-  padding: 9px 14px 9px 16px;
-  border-radius: 999px;
-  background: var(--d-accent);
-  color: #131600;
+  color: var(--d-accent);
   font-size: 0.8125rem;
   font-weight: 700;
-  box-shadow: 0 6px 20px rgba(204, 255, 0, 0.22);
+  white-space: nowrap;
+  transition: gap 200ms;
+}
+.d-ai-action__cta-icon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(204, 255, 0, 0.16);
   transition:
-    box-shadow 200ms,
-    gap 200ms;
+    background 200ms,
+    color 200ms;
 }
 @media (hover: hover) {
   .d-ai-action:hover {
@@ -317,8 +325,11 @@ useDiscoverySeo({
     transform: rotate(-12deg) scale(1.06);
   }
   .d-ai-action:hover .d-ai-action__cta {
-    gap: 10px;
-    box-shadow: 0 8px 28px rgba(204, 255, 0, 0.38);
+    gap: 11px;
+  }
+  .d-ai-action:hover .d-ai-action__cta-icon {
+    background: var(--d-accent);
+    color: #131600;
   }
 }
 .d-ai-action:active {
@@ -327,7 +338,8 @@ useDiscoverySeo({
 @media (prefers-reduced-motion: reduce) {
   .d-ai-action,
   .d-ai-action__art,
-  .d-ai-action__cta {
+  .d-ai-action__cta,
+  .d-ai-action__cta-icon {
     transition: none;
   }
   .d-ai-action:hover,
