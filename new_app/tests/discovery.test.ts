@@ -346,10 +346,10 @@ test('gym cards read today\'s closing and opening time in the gym timezone', asy
   assert.equal(gymTodayStatus({ ...gym, isOpen: null }, noon), null)
 })
 
-test('equipment muscle filters send primary and legacy category keys', () => {
+test('equipment muscle filters send primary category ids only', () => {
   const source = readFileSync(new URL('../server/utils/discoveryApi.ts', import.meta.url), 'utf8')
   assert.match(source, /result\['primaryCategoryIds\[\]'\] = categories/)
-  assert.match(source, /result\['categoryIds\[\]'\] = categories/)
+  assert.doesNotMatch(source, /result\['categoryIds\[\]'\]/)
 })
 
 test('discovery URL state round-trips through write and read', () => {
