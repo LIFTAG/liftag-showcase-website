@@ -11,7 +11,7 @@ import * as discoveryCopy from '../utils/discoveryCopy.ts'
 // Exercise the real setup handlers, following the existing media-player test harness.
 const { descriptor } = parse(readFileSync(new URL('../components/discovery/DiscoveryGallery.vue', import.meta.url), 'utf8'))
 const script = ts.transpileModule(
-  descriptor.scriptSetup!.content + '\nexports.gallery = { index, expanded, startSwipe, moveSwipe, endSwipe, cancelSwipe, step };',
+  descriptor.scriptSetup!.content + '\nexports.gallery = { index, expanded, zoomed, startSwipe, moveSwipe, endSwipe, cancelSwipe, step };',
   { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } },
 ).outputText
 
@@ -28,24 +28,29 @@ function setupGallery(t: TestContext, count = 3) {
       : { type: 'image', url: `/photo-${i}.jpg` }),
     name: 'Gym', locale: 'sk',
   })
-  const viewport = { scale: 1 }
+  const viewport = Object.assign(new EventTarget(), { scale: 1 })
+  const mounted: (() => void)[] = []
+  const cleanup: (() => void)[] = []
   const exports = {} as { gallery: {
-    index: Ref<number>; expanded: Ref<boolean>
+    index: Ref<number>; expanded: Ref<boolean>; zoomed: Ref<boolean>
     startSwipe: (event: TouchEvent) => void; moveSwipe: (event: TouchEvent) => void
     endSwipe: (event: TouchEvent) => void; cancelSwipe: () => void; step: (delta: number) => void
   } }
   const scope = effectScope()
-  t.after(() => scope.stop())
+  t.after(() => { cleanup.forEach(fn => fn()); scope.stop() })
   scope.run(() => runInNewContext(script, {
     exports, computed, ref, shallowRef, watch, Element,
     window: { visualViewport: viewport },
+    onMounted: (fn: () => void) => mounted.push(fn),
+    onBeforeUnmount: (fn: () => void) => cleanup.push(fn),
     defineProps: () => props,
     require: (id: string) => {
       assert.equal(id, '~/utils/discoveryCopy')
       return discoveryCopy
     },
   }))
-  return { gallery: exports.gallery, props, viewport }
+  mounted.forEach(fn => fn())
+  return { gallery: exports.gallery, props, viewport, cleanup }
 }
 
 const touch = (x: number, y = 100, identifier = 1) => ({ clientX: x, clientY: y, identifier }) as Touch
@@ -139,6 +144,21 @@ test('player controls and zoomed-page gestures retain native behavior', t => {
     assert.equal(gallery.index.value, 0)
     assert.equal(end.defaultPrevented, false)
   }
+})
+
+test('photo touch behavior follows viewport zoom and releases its listener on unmount', t => {
+  const { gallery, viewport, cleanup } = setupGallery(t)
+  assert.equal(gallery.zoomed.value, false)
+  viewport.scale = 2
+  viewport.dispatchEvent(new Event('resize'))
+  assert.equal(gallery.zoomed.value, true)
+  viewport.scale = 1
+  viewport.dispatchEvent(new Event('resize'))
+  assert.equal(gallery.zoomed.value, false)
+  cleanup.forEach(fn => fn())
+  viewport.scale = 2
+  viewport.dispatchEvent(new Event('resize'))
+  assert.equal(gallery.zoomed.value, false)
 })
 
 test('empty and single-item galleries do not consume gestures', t => {

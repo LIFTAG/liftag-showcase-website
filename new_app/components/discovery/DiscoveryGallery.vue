@@ -7,6 +7,17 @@ const index = shallowRef(0),
 const failed = ref(new Set<string>())
 const current = computed(() => props.media[index.value])
 const copy = computed(() => discoveryCopy(props.locale))
+const zoomed = shallowRef(false)
+let viewport: VisualViewport | null = null
+function updateZoom() {
+  zoomed.value = (viewport?.scale ?? 1) > 1
+}
+onMounted(() => {
+  viewport = window.visualViewport
+  updateZoom()
+  viewport?.addEventListener('resize', updateZoom)
+})
+onBeforeUnmount(() => viewport?.removeEventListener('resize', updateZoom))
 let swipeStart: Touch | null = null
 watch(
   () => props.media,
@@ -94,7 +105,13 @@ function viewerKeydown(event: KeyboardEvent) {
         :title="name"
         :locale="locale"
       />
-      <button v-else class="d-gallery-image" :aria-label="`${copy.photos}: ${name}`" @click="expanded = true">
+      <button
+        v-else
+        class="d-gallery-image"
+        :style="{ touchAction: zoomed ? 'auto' : 'pan-y pinch-zoom' }"
+        :aria-label="`${copy.photos}: ${name}`"
+        @click="expanded = true"
+      >
         <img
           v-if="!failed.has(current.url)"
           :src="current.url"
@@ -166,6 +183,7 @@ function viewerKeydown(event: KeyboardEvent) {
           :src="current.url"
           :alt="`${name}, ${index + 1}`"
           class="d-expanded-image"
+          :style="{ touchAction: zoomed ? 'auto' : 'pan-y pinch-zoom' }"
           @error="failed.add(current.url)"
         />
         <div v-else class="d-empty" role="status">
@@ -188,10 +206,6 @@ function viewerKeydown(event: KeyboardEvent) {
 <style scoped>
 .d-gallery {
   min-width: 0;
-}
-.d-gallery-image,
-.d-expanded-image {
-  touch-action: pan-y pinch-zoom;
 }
 .d-gallery-stage {
   position: relative;
