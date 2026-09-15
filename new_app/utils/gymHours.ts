@@ -11,10 +11,11 @@ function minutes(value: string): number | null {
 }
 
 function localClock(now: Date, timeZone: string | null | undefined): { day: number; current: number } | null {
+  if (!timeZone) return null
   try {
     const parts = Object.fromEntries(
       new Intl.DateTimeFormat('en-GB', {
-        timeZone: timeZone ?? undefined,
+        timeZone,
         weekday: 'long',
         hour: '2-digit',
         minute: '2-digit',
@@ -36,8 +37,8 @@ function localClock(now: Date, timeZone: string | null | undefined): { day: numb
  * Today's time for a selected gym card: when an open gym closes, or when a
  * closed gym opens later today. The API's `isOpen` stays authoritative; the
  * weekly hours, read in the gym's own timezone, only supply the time. Null
- * when the hours cannot back that status (unknown hours, an invalid zone, a
- * 24-hour day, or no later opening today), so the card falls back to the plain label.
+ * when the hours cannot back that status (unknown hours, a missing or invalid
+ * zone, a 24-hour day, or no later opening today), so the card falls back to the plain label.
  */
 export function gymTodayStatus(
   gym: Pick<ExploreGym, 'hours' | 'timezone' | 'isOpen'>,

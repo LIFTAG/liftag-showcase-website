@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import {
   defaultDiscoveryLocale,
@@ -327,8 +328,15 @@ test('gym cards read today\'s closing and opening time in the gym timezone', asy
   assert.deepEqual(gymTodayStatus(overnight, new Date('2026-09-14T23:30:00Z')), { kind: 'openUntil', time: '02:00' })
   assert.equal(gymTodayStatus({ ...gym, hours: week('00:00', '24:00') }, noon), null)
   assert.equal(gymTodayStatus({ ...gym, timezone: 'Not/AZone' }, noon), null)
+  assert.equal(gymTodayStatus({ ...gym, timezone: null }, noon), null)
   assert.equal(gymTodayStatus({ ...gym, hours: [] }, noon), null)
   assert.equal(gymTodayStatus({ ...gym, isOpen: null }, noon), null)
+})
+
+test('equipment muscle filters send primary and legacy category keys', () => {
+  const source = readFileSync(new URL('../server/utils/discoveryApi.ts', import.meta.url), 'utf8')
+  assert.match(source, /result\['primaryCategoryIds\[\]'\] = categories/)
+  assert.match(source, /result\['categoryIds\[\]'\] = categories/)
 })
 
 test('discovery URL state round-trips through write and read', () => {

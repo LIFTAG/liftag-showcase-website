@@ -310,7 +310,7 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
       contextController = new AbortController()
       try {
         const gym = await $fetch<GymDetail>(`/api/explore/gyms/${contextId}`, {
-          query: { lang: route.query.lang },
+          query: { lang: route.query.lang, equipment: '0' },
           signal: contextController.signal,
           retry: 0,
         })

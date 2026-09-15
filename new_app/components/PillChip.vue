@@ -1,23 +1,25 @@
 <script setup lang="ts">
 import type { RouteLocationRaw } from 'vue-router'
 
-/**
- * Outline pill shared by the exercise catalog and discovery: white on hover,
- * lime-tinted when active. With `to` it is a link; with `plain` a plain tag
- * with no hover; otherwise a toggle button exposing its state as aria-pressed.
- * Extra slot content (icons, counts) belongs to the caller and its styles.
- */
+defineOptions({ inheritAttrs: false })
 defineProps<{ to?: RouteLocationRaw; active?: boolean; plain?: boolean }>()
 </script>
 
 <template>
-  <NuxtLink v-if="to" :to="to" class="pill-chip" :class="{ 'is-active': active }">
+  <NuxtLink v-if="to" v-bind="$attrs" :to="to" class="pill-chip" :class="{ 'is-active': active }">
     <slot />
   </NuxtLink>
-  <span v-else-if="plain" class="pill-chip pill-chip--plain" :class="{ 'is-active': active }">
+  <span v-else-if="plain" v-bind="$attrs" class="pill-chip pill-chip--plain" :class="{ 'is-active': active }">
     <slot />
   </span>
-  <button v-else type="button" class="pill-chip" :class="{ 'is-active': active }" :aria-pressed="active">
+  <button
+    v-else
+    v-bind="$attrs"
+    type="button"
+    class="pill-chip"
+    :class="{ 'is-active': active }"
+    :aria-pressed="active"
+  >
     <slot />
   </button>
 </template>
@@ -63,6 +65,10 @@ defineProps<{ to?: RouteLocationRaw; active?: boolean; plain?: boolean }>()
   border-color: rgba(204, 255, 0, 0.55);
   background: var(--liftag-primary-dim);
   color: var(--liftag-primary);
+}
+
+button.pill-chip {
+  min-height: 44px;
 }
 
 @media (max-width: 768px) {

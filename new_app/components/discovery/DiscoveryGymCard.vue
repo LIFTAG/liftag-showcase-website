@@ -2,17 +2,17 @@
 import type { DiscoveryLocale, ExploreGym, GymDetail } from '~/types/discovery'
 
 type GymHoursSource = Pick<ExploreGym, 'hours' | 'timezone' | 'temporarilyClosed'>
-/** Shared by every card: each gym's full record is requested at most once per page. */
+/** Shared by every card: each gym is requested at most once per page. */
 const hoursCache = new Map<string, Promise<GymHoursSource | null>>()
 
-/**
- * Map rows (`/v1/gyms/map`) carry no opening hours or timezone, so a selected
- * card borrows them from the gym's full record. A failure only drops the time.
- */
+/** Map rows omit hours; a selected card loads them. Failure keeps the plain open/closed label. */
 function loadGymHours(id: string, locale: DiscoveryLocale): Promise<GymHoursSource | null> {
   const cached = hoursCache.get(id)
   if (cached) return cached
-  const pending = $fetch<GymDetail>(`/api/explore/gyms/${id}`, { query: { lang: locale }, retry: 0 })
+  const pending = $fetch<GymDetail>(`/api/explore/gyms/${id}`, {
+    query: { lang: locale, equipment: '0' },
+    retry: 0,
+  })
     .then(({ gym }) => ({
       hours: gym.hours,
       timezone: gym.timezone,
