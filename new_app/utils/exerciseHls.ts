@@ -15,7 +15,9 @@ export function exerciseHlsRequestUrl(source: string): string {
     const cdnOrigin = catalogMediaOrigins.get(url.origin)
     if (!cdnOrigin || !/^\/catalog\/exercise-templates\/[^/]+\/videos\//.test(url.pathname)) return source
     // Preserve signed URLs and any externally supplied query semantics.
-    if ([...url.searchParams.keys()].some(key => key !== 'liftag_hls')) return source
+    for (const key of url.searchParams.keys()) {
+      if (key !== 'liftag_hls') return source
+    }
     return `${cdnOrigin}${url.pathname.slice(catalogPrefix.length)}${url.hash}`
   } catch {
     return source

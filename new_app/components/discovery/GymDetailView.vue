@@ -20,6 +20,7 @@ const distance = computed(() =>
   location.value && gym.value ? discoveryDistance(distanceKm(location.value, gym.value), locale.value) : null,
 )
 const gate = shallowRef(false)
+const showWorkoutTeaser = computed(() => Boolean(gym.value?.supported || data.value?.equipment?.totalEntries))
 useDiscoverySeo({
   name: () => gym.value?.name ?? copy.value.gym,
   description: () => gym.value?.description ?? gym.value?.address ?? copy.value.intro,
@@ -107,23 +108,23 @@ useDiscoverySeo({
         </div>
         <!-- App teaser next to the primary actions. Generation builds on this gym's equipment in LIFTAG,
              so it shows for supported gyms and for any gym whose equipment is already set up. -->
-        <template v-if="gym.supported || Boolean(data.equipment?.totalEntries)">
-          <button type="button" class="d-ai-action" @click="gate = true">
-            <DiscoveryIcon name="gym" :size="120" class="d-ai-action__art" aria-hidden="true" />
-            <span class="d-ai-action__eyebrow">
+        <template v-if="showWorkoutTeaser">
+          <button type="button" class="d-app-teaser" @click="gate = true">
+            <DiscoveryIcon name="gym" :size="120" class="d-app-teaser__art" aria-hidden="true" />
+            <span class="d-app-teaser__eyebrow">
               <img src="/assets/logo.svg" width="16" height="16" alt="" />
               {{ copy.generateEyebrow }}
             </span>
-            <strong class="d-ai-action__title">{{ copy.generate }}</strong>
-            <span class="d-ai-action__hint">{{ copy.generateHint }}</span>
-            <span class="d-ai-action__footer">
-              <span v-if="data.equipment?.totalEntries" class="d-ai-action__count">
+            <strong class="d-app-teaser__title">{{ copy.generate }}</strong>
+            <span class="d-app-teaser__hint">{{ copy.generateHint }}</span>
+            <span class="d-app-teaser__footer">
+              <span v-if="data.equipment?.totalEntries" class="d-app-teaser__count">
                 <DiscoveryIcon name="gym" :size="15" aria-hidden="true" />
                 {{ discoveryCount(data.equipment.totalEntries, 'machines', locale) }}
               </span>
-              <span class="d-ai-action__cta">
+              <span class="d-app-teaser__cta">
                 {{ copy.generateCta }}
-                <span class="d-ai-action__cta-icon"><DiscoveryIcon name="arrow" :size="14" aria-hidden="true" /></span>
+                <span class="d-app-teaser__cta-icon"><DiscoveryIcon name="arrow" :size="14" aria-hidden="true" /></span>
               </span>
             </span>
           </button>
@@ -217,7 +218,7 @@ useDiscoverySeo({
   font-size: 0.875rem;
 }
 /* App teaser: a small feature card with room for a one-line title and a clear lime CTA. */
-.d-ai-action {
+.d-app-teaser {
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -238,7 +239,7 @@ useDiscoverySeo({
     box-shadow 200ms,
     transform 200ms;
 }
-.d-ai-action__art {
+.d-app-teaser__art {
   position: absolute;
   z-index: -1;
   top: -22px;
@@ -250,7 +251,7 @@ useDiscoverySeo({
     opacity 300ms,
     transform 300ms;
 }
-.d-ai-action__eyebrow {
+.d-app-teaser__eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -260,7 +261,7 @@ useDiscoverySeo({
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.d-ai-action__title {
+.d-app-teaser__title {
   margin-top: 2px;
   font-size: 1.0625rem;
   font-weight: 700;
@@ -268,12 +269,12 @@ useDiscoverySeo({
   letter-spacing: -0.01em;
   text-wrap: balance;
 }
-.d-ai-action__hint {
+.d-app-teaser__hint {
   color: #b4bba6;
   font-size: 0.8125rem;
   line-height: 1.4;
 }
-.d-ai-action__footer {
+.d-app-teaser__footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -282,7 +283,7 @@ useDiscoverySeo({
   padding-top: 12px;
   border-top: 1px solid rgba(204, 255, 0, 0.14);
 }
-.d-ai-action__count {
+.d-app-teaser__count {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -292,7 +293,7 @@ useDiscoverySeo({
   font-weight: 600;
   white-space: nowrap;
 }
-.d-ai-action__cta {
+.d-app-teaser__cta {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -303,7 +304,7 @@ useDiscoverySeo({
   white-space: nowrap;
   transition: gap 200ms;
 }
-.d-ai-action__cta-icon {
+.d-app-teaser__cta-icon {
   display: grid;
   place-items: center;
   width: 26px;
@@ -315,36 +316,36 @@ useDiscoverySeo({
     color 200ms;
 }
 @media (hover: hover) {
-  .d-ai-action:hover {
+  .d-app-teaser:hover {
     border-color: rgba(204, 255, 0, 0.6);
     box-shadow: 0 14px 36px rgba(204, 255, 0, 0.12);
     transform: translateY(-2px);
   }
-  .d-ai-action:hover .d-ai-action__art {
+  .d-app-teaser:hover .d-app-teaser__art {
     opacity: 0.13;
     transform: rotate(-12deg) scale(1.06);
   }
-  .d-ai-action:hover .d-ai-action__cta {
+  .d-app-teaser:hover .d-app-teaser__cta {
     gap: 11px;
   }
-  .d-ai-action:hover .d-ai-action__cta-icon {
+  .d-app-teaser:hover .d-app-teaser__cta-icon {
     background: var(--d-accent);
     color: #131600;
   }
 }
-.d-ai-action:active {
+.d-app-teaser:active {
   transform: scale(0.99);
 }
 @media (prefers-reduced-motion: reduce) {
-  .d-ai-action,
-  .d-ai-action__art,
-  .d-ai-action__cta,
-  .d-ai-action__cta-icon {
+  .d-app-teaser,
+  .d-app-teaser__art,
+  .d-app-teaser__cta,
+  .d-app-teaser__cta-icon {
     transition: none;
   }
-  .d-ai-action:hover,
-  .d-ai-action:active,
-  .d-ai-action:hover .d-ai-action__art {
+  .d-app-teaser:hover,
+  .d-app-teaser:active,
+  .d-app-teaser:hover .d-app-teaser__art {
     transform: none;
   }
 }

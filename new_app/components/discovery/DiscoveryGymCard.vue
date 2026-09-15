@@ -10,19 +10,23 @@ const hoursCache = new Map<string, Promise<GymHoursSource | null>>()
  * card borrows them from the gym's full record. A failure only drops the time.
  */
 function loadGymHours(id: string, locale: DiscoveryLocale): Promise<GymHoursSource | null> {
-  let pending = hoursCache.get(id)
-  if (!pending) {
-    pending = $fetch<GymDetail>(`/api/explore/gyms/${id}`, { query: { lang: locale }, retry: 0 })
-      .then(({ gym }) => ({ hours: gym.hours, timezone: gym.timezone, temporarilyClosed: gym.temporarilyClosed }))
-      .catch(() => {
-        hoursCache.delete(id)
-        return null
-      })
-    hoursCache.set(id, pending)
-  }
+  const cached = hoursCache.get(id)
+  if (cached) return cached
+  const pending = $fetch<GymDetail>(`/api/explore/gyms/${id}`, { query: { lang: locale }, retry: 0 })
+    .then(({ gym }) => ({
+      hours: gym.hours,
+      timezone: gym.timezone,
+      temporarilyClosed: gym.temporarilyClosed,
+    }))
+    .catch(() => {
+      hoursCache.delete(id)
+      return null
+    })
+  hoursCache.set(id, pending)
   return pending
 }
 </script>
+
 <script setup lang="ts">
 import type { Coordinate } from '~/types/discovery'
 import { distanceKm, googleDirections } from '~/utils/discovery'
@@ -60,7 +64,7 @@ const fetchedHours = shallowRef<GymHoursSource | null>(null)
 watch(
   () => [props.selected, props.gym.id] as const,
   ([selected, id]) => {
-    if (!import.meta.client || !selected || props.gym.hours.length || fetchedHours.value) return
+    if (!import.meta.client || !selected || props.gym.hours.length) return
     void loadGymHours(id, props.locale).then((value) => {
       if (props.gym.id === id) fetchedHours.value = value
     })
@@ -70,13 +74,15 @@ watch(
 /** The selected card spells out today's time in place of the plain open/closed label. */
 const status = computed(() => {
   // `isOpen` always comes from the live row; fetched data only fills in hours for map rows.
-  const gym = props.gym.hours.length || !fetchedHours.value ? props.gym : { ...props.gym, ...fetchedHours.value }
+  let gym = props.gym
+  if (!gym.hours.length && fetchedHours.value) gym = { ...gym, ...fetchedHours.value }
   if (props.selected && gym.temporarilyClosed) return { text: copy.value.closedTemporarily, open: false }
   if (gym.isOpen === null) return null
   const today = props.selected && now.value ? gymTodayStatus(gym, now.value) : null
   if (today?.kind === 'openUntil') return { text: `${copy.value.openUntil} ${today.time}`, open: true }
-  if (today?.kind === 'opensAt')
+  if (today?.kind === 'opensAt') {
     return { text: `${copy.value.closed} · ${copy.value.opensAt} ${today.time}`, open: false }
+  }
   return { text: gym.isOpen ? copy.value.openNow : copy.value.closed, open: gym.isOpen }
 })
 </script>

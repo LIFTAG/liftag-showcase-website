@@ -38,23 +38,23 @@ const viewportHeight = shallowRef<number>()
 function resizeViewport() {
   viewportHeight.value = window.visualViewport?.height
 }
-onMounted(() => {
-  wideLayout = window.matchMedia('(min-width: 1024px)')
-  resizeViewport()
-  window.visualViewport?.addEventListener('resize', resizeViewport)
-})
-onBeforeUnmount(() => window.visualViewport?.removeEventListener('resize', resizeViewport))
 /** Phones float the locate button above the card row, which grows when a card expands. */
 const resultsHeight = shallowRef<number>()
 let resultsObserver: ResizeObserver | undefined
 onMounted(() => {
+  wideLayout = window.matchMedia('(min-width: 1024px)')
+  resizeViewport()
+  window.visualViewport?.addEventListener('resize', resizeViewport)
   if (!results.value || typeof ResizeObserver === 'undefined') return
   resultsObserver = new ResizeObserver(([entry]) => {
     resultsHeight.value = entry?.target.getBoundingClientRect().height
   })
   resultsObserver.observe(results.value)
 })
-onBeforeUnmount(() => resultsObserver?.disconnect())
+onBeforeUnmount(() => {
+  window.visualViewport?.removeEventListener('resize', resizeViewport)
+  resultsObserver?.disconnect()
+})
 const exploreStyle = computed(() => ({
   ...(viewportHeight.value ? { '--d-viewport-height': `${viewportHeight.value}px` } : {}),
   ...(resultsHeight.value ? { '--d-results-height': `${resultsHeight.value}px` } : {}),
