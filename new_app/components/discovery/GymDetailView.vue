@@ -109,12 +109,23 @@ useDiscoverySeo({
              so it shows for supported gyms and for any gym whose equipment is already set up. -->
         <template v-if="gym.supported || Boolean(data.equipment?.totalEntries)">
           <button type="button" class="d-ai-action" @click="gate = true">
-            <span class="d-ai-action__icon" aria-hidden="true"><DiscoveryIcon name="gym" :size="24" /></span>
-            <span class="d-ai-action__text">
-              <strong>{{ copy.generate }}</strong>
-              <span>{{ copy.generateHint }}</span>
+            <DiscoveryIcon name="gym" :size="120" class="d-ai-action__art" aria-hidden="true" />
+            <span class="d-ai-action__eyebrow">
+              <DiscoveryIcon name="spark" :size="14" aria-hidden="true" />
+              {{ copy.generateEyebrow }}
             </span>
-            <span class="d-ai-action__arrow" aria-hidden="true"><DiscoveryIcon name="arrow" :size="18" /></span>
+            <strong class="d-ai-action__title">{{ copy.generate }}</strong>
+            <span class="d-ai-action__hint">{{ copy.generateHint }}</span>
+            <span class="d-ai-action__footer">
+              <span v-if="data.equipment?.totalEntries" class="d-ai-action__count">
+                <DiscoveryIcon name="gym" :size="15" aria-hidden="true" />
+                {{ discoveryCount(data.equipment.totalEntries, 'machines', locale) }}
+              </span>
+              <span class="d-ai-action__cta">
+                {{ copy.generateCta }}
+                <DiscoveryIcon name="arrow" :size="16" aria-hidden="true" />
+              </span>
+            </span>
           </button>
           <DiscoveryAppGate v-if="gate" kind="generate" :locale="locale" @close="gate = false" />
         </template>
@@ -205,69 +216,109 @@ useDiscoverySeo({
   margin: 6px 0 0;
   font-size: 0.875rem;
 }
-/* App teaser styled as a call to action: accent tile, filled arrow, and a lift on hover. */
+/* App teaser: a small feature card with room for a one-line title and a clear lime CTA. */
 .d-ai-action {
-  display: flex;
-  align-items: center;
-  gap: 14px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  gap: 6px;
   width: 100%;
-  padding: 16px;
+  padding: 18px 18px 16px;
   text-align: left;
   color: var(--d-text);
-  border: 1px solid rgba(204, 255, 0, 0.3);
-  border-radius: 16px;
-  background: linear-gradient(135deg, #252d13 0%, #171b0e 100%);
+  border: 1px solid rgba(204, 255, 0, 0.28);
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(204, 255, 0, 0.16) 0%, transparent 55%),
+    linear-gradient(160deg, #20260f 0%, #141610 100%);
   cursor: pointer;
   transition:
-    border-color 180ms,
-    box-shadow 180ms,
-    transform 180ms;
+    border-color 200ms,
+    box-shadow 200ms,
+    transform 200ms;
 }
-.d-ai-action__icon {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: rgba(204, 255, 0, 0.14);
+.d-ai-action__art {
+  position: absolute;
+  z-index: -1;
+  top: -22px;
+  right: -18px;
   color: var(--d-accent);
+  opacity: 0.07;
+  transform: rotate(-24deg);
+  transition:
+    opacity 300ms,
+    transform 300ms;
 }
-.d-ai-action__text {
-  flex: 1;
-  min-width: 0;
-  display: grid;
-  gap: 4px;
+.d-ai-action__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--d-accent);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
-.d-ai-action__text strong {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  line-height: 1.3;
+.d-ai-action__title {
+  margin-top: 2px;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
 }
-.d-ai-action__text span {
+.d-ai-action__hint {
   color: #b4bba6;
   font-size: 0.8125rem;
   line-height: 1.4;
 }
-.d-ai-action__arrow {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+.d-ai-action__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+.d-ai-action__count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--d-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.d-ai-action__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding: 9px 14px 9px 16px;
+  border-radius: 999px;
   background: var(--d-accent);
   color: #131600;
-  transition: transform 180ms;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  box-shadow: 0 6px 20px rgba(204, 255, 0, 0.22);
+  transition:
+    box-shadow 200ms,
+    gap 200ms;
 }
 @media (hover: hover) {
   .d-ai-action:hover {
-    border-color: rgba(204, 255, 0, 0.65);
-    box-shadow: 0 10px 30px rgba(204, 255, 0, 0.12);
-    transform: translateY(-1px);
+    border-color: rgba(204, 255, 0, 0.6);
+    box-shadow: 0 14px 36px rgba(204, 255, 0, 0.12);
+    transform: translateY(-2px);
   }
-  .d-ai-action:hover .d-ai-action__arrow {
-    transform: translateX(3px);
+  .d-ai-action:hover .d-ai-action__art {
+    opacity: 0.13;
+    transform: rotate(-12deg) scale(1.06);
+  }
+  .d-ai-action:hover .d-ai-action__cta {
+    gap: 10px;
+    box-shadow: 0 8px 28px rgba(204, 255, 0, 0.38);
   }
 }
 .d-ai-action:active {
@@ -275,12 +326,13 @@ useDiscoverySeo({
 }
 @media (prefers-reduced-motion: reduce) {
   .d-ai-action,
-  .d-ai-action__arrow {
+  .d-ai-action__art,
+  .d-ai-action__cta {
     transition: none;
   }
   .d-ai-action:hover,
   .d-ai-action:active,
-  .d-ai-action:hover .d-ai-action__arrow {
+  .d-ai-action:hover .d-ai-action__art {
     transform: none;
   }
 }
