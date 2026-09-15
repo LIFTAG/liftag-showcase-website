@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import EquipmentCard from '~/components/discovery/EquipmentCard.vue'
 import type { EquipmentItem, GymDetail } from '~/types/discovery'
-import { normalizedIds, toggleDiscoveryId } from '~/utils/discovery'
+import { normalizedIds, toggleDiscoveryId, writeEquipmentListQuery } from '~/utils/discovery'
 import { discoveryCount } from '~/utils/discoveryCopy'
 import { muscleDisplayName } from '~/utils/catalogLocale'
 /** Server caps: the equipment endpoint accepts 100 brands and 32 muscle groups. */
@@ -66,26 +66,25 @@ watch(
     if (muscles !== previousMuscles) categories.value = normalizedIds(muscles, CATEGORY_CAP)
   },
 )
+function saveFilters() {
+  if (switching.value) return
+  void navigateTo(
+    {
+      path: route.path,
+      query: writeEquipmentListQuery(route.query, {
+        search: search.value,
+        manufacturers: manufacturers.value,
+        categories: categories.value,
+      }),
+    },
+    { replace: true },
+  )
+}
 watch(
-  () => JSON.stringify([search.value, manufacturers.value, categories.value, locale.value, switching.value]),
+  () => JSON.stringify([search.value, manufacturers.value, categories.value]),
   (_, __, cleanup) => {
     if (switching.value) return
-    const timeout = setTimeout(
-      () =>
-        void navigateTo(
-          {
-            path: route.path,
-            query: {
-              lang: locale.value,
-              ...(search.value ? { q: search.value } : {}),
-              ...(manufacturers.value.length ? { manufacturers: manufacturers.value.join(',') } : {}),
-              ...(categories.value.length ? { categories: categories.value.join(',') } : {}),
-            },
-          },
-          { replace: true },
-        ),
-      100,
-    )
+    const timeout = setTimeout(saveFilters, 100)
     cleanup(() => clearTimeout(timeout))
   },
 )

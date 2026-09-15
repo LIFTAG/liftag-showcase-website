@@ -1,5 +1,6 @@
-import { siteCanonicalPath, siteLocaleAlternates } from '../utils/siteLocale.ts'
+import { siteCanonicalPath, siteLocaleAlternates, siteLocaleFontPreloads } from '../utils/siteLocale.ts'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { siteLocaleLocation, siteLocalePath, sitePathLocale, siteBasePath } from '../utils/siteLocale.ts'
 import { localizedRouteRules } from '../utils/localizedRouteRules.ts'
@@ -70,4 +71,31 @@ test('unprefixed share URLs retain identity, variants and anchors while replacin
     assert.equal(result.hash, '#section')
     assert.equal(withSiteLocaleQuery(`${route}?lang=sk`, 'en'), `${route}?lang=en`)
   }
+})
+
+test('Slovak and Czech pages preload every latin-ext face used by UI copy', () => {
+  assert.deepEqual(siteLocaleFontPreloads('en'), [])
+  assert.deepEqual(siteLocaleFontPreloads('sk'), [
+    '/assets/fonts/inter-latin-ext.woff2',
+    '/assets/fonts/space-grotesk-latin-ext.woff2',
+    '/assets/fonts/jetbrains-mono-latin-ext.woff2',
+  ])
+  assert.deepEqual(siteLocaleFontPreloads('cs'), siteLocaleFontPreloads('sk'))
+})
+
+test('latin-ext subsets swap in so Slovak carons are not dropped after first paint', () => {
+  const css = readFileSync(new URL('../assets/css/main.css', import.meta.url), 'utf8')
+  const extFaces = css.split('@font-face').filter((block) => block.includes('latin-ext.woff2'))
+  assert.equal(extFaces.length, 3)
+  for (const block of extFaces) {
+    assert.match(block, /font-display:\s*swap/)
+    assert.doesNotMatch(block, /font-display:\s*optional/)
+  }
+})
+
+test('catalog titles keep native casing so Space Grotesk does not synthesize uppercase Š', () => {
+  const machine = readFileSync(new URL('../components/catalog/CatalogMachinePresentation.vue', import.meta.url), 'utf8')
+  const exercise = readFileSync(new URL('../components/catalog/CatalogExerciseDetail.vue', import.meta.url), 'utf8')
+  assert.match(machine, /\.ma-name\s*\{[^}]*text-transform:\s*none/)
+  assert.match(exercise, /\.ex-name\s*\{[^}]*text-transform:\s*none/)
 })

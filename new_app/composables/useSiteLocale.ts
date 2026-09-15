@@ -41,7 +41,9 @@ export function useSiteLocale() {
 export function useSitePageLocale(value: MaybeRefOrGetter<SiteLocale>) {
   const app = useNuxtApp()
   const route = useRoute()
+  const switching = useState('site-locale-switching', () => false)
   watch(() => toValue(value), async resolved => {
+    if (switching.value) return
     if (isDiscoveryLocalePath(route.path, route.query) && sitePathLocale(route.path) !== resolved) {
       await app.runWithContext(() => navigateTo(siteLocaleLocation(route, resolved), { replace: true, redirectCode: 302 }))
     }

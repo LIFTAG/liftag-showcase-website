@@ -1,5 +1,11 @@
 import type { SiteLocale } from '../types/locale.ts'
 
+/** SK/CS carons live in these files; English pages only need the latin subset. */
+export function siteLocaleFontPreloads(locale: string) {
+  if (locale !== 'sk' && locale !== 'cs') return []
+  return ['inter', 'space-grotesk', 'jetbrains-mono'].map((font) => `/assets/fonts/${font}-latin-ext.woff2`)
+}
+
 export const SITE_LANGUAGES = [
   { locale: 'en', label: 'English' },
   { locale: 'sk', label: 'Slovenčina' },

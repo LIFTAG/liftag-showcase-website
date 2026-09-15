@@ -1,4 +1,4 @@
-import { siteLocalePath } from './siteLocale.ts'
+import { siteLocale, siteLocalePath } from './siteLocale.ts'
 import type {
   Coordinate,
   DiscoveryFilters,
@@ -26,6 +26,19 @@ export const DISCOVERY_DEFAULT_VIEW: MapViewport = {
 export const DISTANCE_OPTIONS = [1, 3, 5, 10, 25]
 export function emptyDiscoveryFilters(): DiscoveryFilters {
   return { distance: null, rating: null, open: false, supported: false, manufacturers: [] }
+}
+/** Persist equipment filters without rewriting language from the gym timezone. */
+export function writeEquipmentListQuery(
+  query: Record<string, unknown>,
+  filters: { search?: string; manufacturers?: string[]; categories?: string[] },
+) {
+  const lang = siteLocale(query.lang)
+  return {
+    ...(lang ? { lang } : {}),
+    ...(filters.search ? { q: filters.search } : {}),
+    ...(filters.manufacturers?.length ? { manufacturers: filters.manufacturers.join(',') } : {}),
+    ...(filters.categories?.length ? { categories: filters.categories.join(',') } : {}),
+  }
 }
 export function discoveryHref(
   path: string,

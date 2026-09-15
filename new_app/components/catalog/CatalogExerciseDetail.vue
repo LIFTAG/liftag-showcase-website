@@ -337,15 +337,15 @@ useStickyMomentum(mediaRef)
         <NuxtLink
           v-if="gymMachine"
           :to="gymMachineHref(gymMachine.gym.id, gymMachine.id, locale)"
-          class="protocol ex-crumb"
+          class="ex-crumb"
           >{{ gymMachine.name }}</NuxtLink
         >
-        <NuxtLink v-else :to="indexPath" class="protocol ex-crumb">{{ chrome.breadcrumbExercises }}</NuxtLink>
+        <NuxtLink v-else :to="indexPath" class="ex-crumb">{{ chrome.breadcrumbExercises }}</NuxtLink>
         <span class="ex-crumb-sep" aria-hidden="true">/</span>
         <NuxtLink
           v-if="exercise.primaryCategory"
           :to="muscleTo(exercise.primaryCategory.slug)"
-          class="protocol ex-crumb"
+          class="ex-crumb"
         >
           {{ muscleName(exercise.primaryCategory.slug, exercise.primaryCategory.name) }}
         </NuxtLink>
@@ -577,7 +577,11 @@ useStickyMomentum(mediaRef)
 
 .ex-crumb {
   color: var(--liftag-fg-tertiary);
-  font-size: 10px;
+  font-family: var(--liftag-font-body);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
   text-decoration: none;
 }
 
@@ -587,7 +591,8 @@ useStickyMomentum(mediaRef)
 
 .ex-crumb-sep {
   color: var(--liftag-fg-dim);
-  font-size: 10px;
+  font-family: var(--liftag-font-body);
+  font-size: 13px;
 }
 
 .ex-stage {
@@ -877,6 +882,8 @@ useStickyMomentum(mediaRef)
 .ex-name {
   margin: 0;
   font-size: clamp(34px, 4.6vw, 60px);
+  /* Space Grotesk italic uppercase synthesizes Š as S + a tiny case caron. */
+  text-transform: none;
 }
 
 .ex-meta {

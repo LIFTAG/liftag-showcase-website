@@ -15,6 +15,7 @@ import {
   safeDiscoveryUrl,
   splitMapBounds,
   writeDiscoveryQuery,
+  writeEquipmentListQuery,
 } from '../utils/discovery.ts'
 import {
   normalizeExerciseVideos,
@@ -124,6 +125,18 @@ test('URL restoration retains map bounds, multi-brand OR selections and selected
     discoveryHref('/gyms/a/equipment', 'sk', { manufacturers: ids.brand }),
     `/sk/gyms/a/equipment?lang=sk&manufacturers=${ids.brand}`,
   )
+})
+
+test('equipment filter URLs keep the route language instead of a gym timezone locale', () => {
+  assert.deepEqual(
+    writeEquipmentListQuery({ lang: 'en', extra: 'drop' }, {
+      search: 'bench',
+      manufacturers: [ids.brand],
+      categories: [ids.exercise],
+    }),
+    { lang: 'en', q: 'bench', manufacturers: ids.brand, categories: ids.exercise },
+  )
+  assert.deepEqual(writeEquipmentListQuery({ lang: 'sk' }, {}), { lang: 'sk' })
 })
 
 test('missing gym data remains missing and closure overrides a stale open flag', () => {
