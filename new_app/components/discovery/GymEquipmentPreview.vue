@@ -18,14 +18,13 @@ const copy = computed(() => discoveryCopy(props.locale))
     <DiscoveryState v-if="!detail.equipment" :locale="locale" error @retry="$emit('retry')" />
     <template v-else>
       <div v-if="detail.equipment.manufacturers.length" class="d-chips">
-        <NuxtLink
+        <PillChip
           v-for="brand in detail.equipment.manufacturers"
           :key="brand.id"
           :to="discoveryHref(`/gyms/${detail.gym.id}/equipment`, locale, { manufacturers: brand.id })"
-          class="d-chip"
         >
           {{ brand.name }}
-        </NuxtLink>
+        </PillChip>
       </div>
       <template v-if="detail.equipment.totalEntries">
         <NuxtLink

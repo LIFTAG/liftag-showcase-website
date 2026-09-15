@@ -14,9 +14,9 @@ const copy = computed(() => discoveryCopy(props.locale))
     <div class="d-stack">
       <img v-if="exercise.image" :src="exercise.image" :alt="exercise.name" class="d-exercise-image" />
       <div v-if="exercise.muscles.length" class="d-chips">
-        <span v-for="muscle in exercise.muscles" :key="muscle" class="d-chip">
+        <PillChip v-for="muscle in exercise.muscles" :key="muscle" plain>
           {{ discoveryMuscleName(muscle, locale) }}
-        </span>
+        </PillChip>
       </div>
       <p v-if="exercise.description && exercise.description !== exercise.instructions" class="d-copy d-muted">
         {{ exercise.description }}

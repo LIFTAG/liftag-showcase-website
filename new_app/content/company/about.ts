@@ -98,7 +98,7 @@ export const sk: AboutContent = {
   breadcrumbName: 'O LIFTAG',
   articleHeadline: 'O LIFTAG',
   eyebrow: 'FIRMA · BRATISLAVA',
-  actions: { app: 'Získať aplikáciu', press: 'Press kit', contact: 'Kontakt' },
+  actions: { app: 'Stiahnuť aplikáciu', press: 'Press kit', contact: 'Kontakt' },
   sections: [
     {
       heading: 'Oficiálne fakty',

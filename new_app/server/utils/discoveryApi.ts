@@ -32,12 +32,15 @@ export function discoveryListQuery(
     result[key] = value
   }
   if (typeof q.search === 'string' && q.search.trim()) result.search = q.search.trim().slice(0, 200)
-  for (const [queryKey, wireKey, cap] of [
-    ['manufacturers', 'machineManufacturerIds[]', equipment ? 100 : 200],
-    ...(equipment ? [['categories', 'categoryIds[]', 32] as const] : []),
-  ] as const) {
-    const ids = normalizedIds(q[queryKey], cap)
-    if (ids.length) result[wireKey] = ids
+  const manufacturers = normalizedIds(q.manufacturers, equipment ? 100 : 200)
+  if (manufacturers.length) result['machineManufacturerIds[]'] = manufacturers
+  if (equipment) {
+    const categories = normalizedIds(q.categories, 32)
+    if (categories.length) {
+      // Primary-only on the new API; `categoryIds[]` keeps production filtering until that ships.
+      result['primaryCategoryIds[]'] = categories
+      result['categoryIds[]'] = categories
+    }
   }
   return result
 }

@@ -59,9 +59,9 @@ useDiscoverySeo({
           </span>
           <h1 class="d-title">{{ trainer.name }}</h1>
           <div v-if="trainer.specializations.length" class="d-chips">
-            <span v-for="specialization in trainer.specializations" :key="specialization" class="d-chip">
+            <PillChip v-for="specialization in trainer.specializations" :key="specialization" plain>
               {{ discoveryLabel(specialization, locale) }}
-            </span>
+            </PillChip>
           </div>
           <div class="d-row d-muted d-small">
             <span v-if="trainer.experience !== null">{{ discoveryCount(trainer.experience, 'experience', locale) }}</span>

@@ -317,10 +317,11 @@ onBeforeUnmount(() => {
          screen reader never has to reassemble the split run. -->
     <nav class="nav-desktop nav-center-links">
       <a
-        v-for="[label, href] in navLinks"
+        v-for="([label, href], linkIndex) in navLinks"
         :key="label"
         :href="href"
         class="nav-link"
+        :style="{ '--nav-i': linkIndex }"
         :aria-label="label"
         @click="onNavLinkClick(label, href, $event)"
       ><span class="nav-link__chars" aria-hidden="true"><span
@@ -634,16 +635,10 @@ onBeforeUnmount(() => {
   padding: 6px 0;
   opacity: 0;
   transform: translate3d(0, -14px, 0) skewX(-9deg);
-  animation: navItemIn 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* Stagger from the link's index rather than a fixed nth-child list, so every
+     link gets a delay no matter how many the nav holds. */
+  animation: navItemIn 700ms cubic-bezier(0.16, 1, 0.3, 1) calc(360ms + var(--nav-i, 0) * 70ms) both;
 }
-
-.nav-link:nth-child(1) { animation-delay: 360ms; }
-.nav-link:nth-child(2) { animation-delay: 430ms; }
-.nav-link:nth-child(3) { animation-delay: 500ms; }
-.nav-link:nth-child(4) { animation-delay: 570ms; }
-.nav-link:nth-child(5) { animation-delay: 640ms; }
-.nav-link:nth-child(6) { animation-delay: 710ms; }
-.nav-link:nth-child(7) { animation-delay: 780ms; }
 
 /* Hover index. Each character owns a clip window holding two copies of itself
    stacked vertically: the white one in flow, the lime one waiting one full

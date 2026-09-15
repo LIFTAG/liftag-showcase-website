@@ -8,6 +8,7 @@ import { parse } from 'vue/compiler-sfc'
 import * as catalogVideo from '../utils/catalogVideo.ts'
 import * as catalogMedia from '../i18n/messages/catalogMedia.ts'
 import * as videoLanguage from '../utils/exerciseVideoLanguage.ts'
+import * as exerciseHls from '../utils/exerciseHls.ts'
 
 // Execute the component's actual setup script with Vue reactivity and controlled media objects.
 // This keeps source changes testable without a browser or an additional test framework.
@@ -55,6 +56,7 @@ function setupPlayer(t: TestContext) {
       if (id === 'hls.js') return { default: Hls }
       if (id === '~/i18n/messages/catalogMedia') return catalogMedia
       if (id === '~/utils/exerciseVideoLanguage') return videoLanguage
+      if (id === '~/utils/exerciseHls') return exerciseHls
       assert.equal(id, '~/utils/catalogVideo')
       return catalogVideo
     },

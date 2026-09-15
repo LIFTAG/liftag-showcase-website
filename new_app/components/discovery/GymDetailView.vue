@@ -20,6 +20,7 @@ const distance = computed(() =>
   location.value && gym.value ? discoveryDistance(distanceKm(location.value, gym.value), locale.value) : null,
 )
 const gate = shallowRef(false)
+const showWorkoutTeaser = computed(() => Boolean(gym.value?.supported || data.value?.equipment?.totalEntries))
 useDiscoverySeo({
   name: () => gym.value?.name ?? copy.value.gym,
   description: () => gym.value?.description ?? gym.value?.address ?? copy.value.intro,
@@ -74,7 +75,7 @@ useDiscoverySeo({
               ({{ discoveryCount(gym.reviewCount, 'reviews', locale) }})
             </span>
           </span>
-          <span v-if="distance" class="d-chip">{{ distance }} {{ copy.away }}</span>
+          <PillChip v-if="distance" plain>{{ distance }} {{ copy.away }}</PillChip>
         </div>
         <div v-if="gym.temporarilyClosed" class="d-closure" role="status">
           <strong>{{ copy.closedTemporarily }}</strong>
@@ -105,21 +106,34 @@ useDiscoverySeo({
             {{ copy.showOnMap }}
           </NuxtLink>
         </div>
+        <!-- App teaser next to the primary actions. Generation builds on this gym's equipment in LIFTAG,
+             so it shows for supported gyms and for any gym whose equipment is already set up. -->
+        <template v-if="showWorkoutTeaser">
+          <button type="button" class="d-app-teaser" @click="gate = true">
+            <DiscoveryIcon name="gym" :size="120" class="d-app-teaser__art" aria-hidden="true" />
+            <span class="d-app-teaser__eyebrow">
+              <img src="/assets/logo.svg" width="16" height="16" alt="" />
+              {{ copy.generateEyebrow }}
+            </span>
+            <strong class="d-app-teaser__title">{{ copy.generate }}</strong>
+            <span class="d-app-teaser__hint">{{ copy.generateHint }}</span>
+            <span class="d-app-teaser__footer">
+              <span v-if="data.equipment?.totalEntries" class="d-app-teaser__count">
+                <DiscoveryIcon name="gym" :size="15" aria-hidden="true" />
+                {{ discoveryCount(data.equipment.totalEntries, 'machines', locale) }}
+              </span>
+              <span class="d-app-teaser__cta">
+                {{ copy.generateCta }}
+                <span class="d-app-teaser__cta-icon"><DiscoveryIcon name="arrow" :size="14" aria-hidden="true" /></span>
+              </span>
+            </span>
+          </button>
+          <DiscoveryAppGate v-if="gate" kind="generate" :locale="locale" @close="gate = false" />
+        </template>
       </aside>
       <div class="d-gym-content">
         <p v-if="gym.description" class="d-copy d-muted">{{ gym.description }}</p>
         <GymEquipmentPreview :detail="data" :locale="locale" @retry="refresh()" />
-        <section v-if="gym.supported" class="d-section">
-          <button class="d-ai-action" @click="gate = true">
-            <DiscoveryIcon name="spark" :size="28" />
-            <span>
-              <strong>{{ copy.generate }}</strong>
-              <span>{{ copy.generateHint }}</span>
-            </span>
-            <DiscoveryIcon name="arrow" />
-          </button>
-          <DiscoveryAppGate v-if="gate" kind="generate" :locale="locale" @close="gate = false" />
-        </section>
         <section v-if="data.trainers.length" class="d-section">
           <h2 class="d-subtitle">{{ copy.trainers }}</h2>
           <DiscoveryTrainerCard
@@ -203,31 +217,137 @@ useDiscoverySeo({
   margin: 6px 0 0;
   font-size: 0.875rem;
 }
-.d-ai-action {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  text-align: left;
-  padding: 20px;
-  border-radius: 16px;
-  border: 1px solid #4d5c27;
-  background: #1c2211;
-  color: var(--d-accent);
-}
-.d-ai-action > span {
-  flex: 1;
+/* App teaser: a small feature card with room for a one-line title and a clear lime CTA. */
+.d-app-teaser {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: grid;
   gap: 6px;
+  width: 100%;
+  padding: 18px 18px 16px;
+  text-align: left;
+  color: var(--d-text);
+  border: 1px solid rgba(204, 255, 0, 0.28);
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(204, 255, 0, 0.16) 0%, transparent 55%),
+    linear-gradient(160deg, #20260f 0%, #141610 100%);
+  cursor: pointer;
+  transition:
+    border-color 200ms,
+    box-shadow 200ms,
+    transform 200ms;
 }
-.d-ai-action strong {
-  font-size: 0.9375rem;
+.d-app-teaser__art {
+  position: absolute;
+  z-index: -1;
+  top: -22px;
+  right: -18px;
+  color: var(--d-accent);
+  opacity: 0.07;
+  transform: rotate(-24deg);
+  transition:
+    opacity 300ms,
+    transform 300ms;
 }
-.d-ai-action > span > span {
+.d-app-teaser__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--d-accent);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.d-app-teaser__title {
+  margin-top: 2px;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.d-app-teaser__hint {
   color: #b4bba6;
   font-size: 0.8125rem;
+  line-height: 1.4;
 }
-.d-ai-action > svg {
-  flex-shrink: 0;
+.d-app-teaser__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(204, 255, 0, 0.14);
+}
+.d-app-teaser__count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--d-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.d-app-teaser__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  color: var(--d-accent);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: gap 200ms;
+}
+.d-app-teaser__cta-icon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(204, 255, 0, 0.16);
+  transition:
+    background 200ms,
+    color 200ms;
+}
+@media (hover: hover) {
+  .d-app-teaser:hover {
+    border-color: rgba(204, 255, 0, 0.6);
+    box-shadow: 0 14px 36px rgba(204, 255, 0, 0.12);
+    transform: translateY(-2px);
+  }
+  .d-app-teaser:hover .d-app-teaser__art {
+    opacity: 0.13;
+    transform: rotate(-12deg) scale(1.06);
+  }
+  .d-app-teaser:hover .d-app-teaser__cta {
+    gap: 11px;
+  }
+  .d-app-teaser:hover .d-app-teaser__cta-icon {
+    background: var(--d-accent);
+    color: #131600;
+  }
+}
+.d-app-teaser:active {
+  transform: scale(0.99);
+}
+@media (prefers-reduced-motion: reduce) {
+  .d-app-teaser,
+  .d-app-teaser__art,
+  .d-app-teaser__cta,
+  .d-app-teaser__cta-icon {
+    transition: none;
+  }
+  .d-app-teaser:hover,
+  .d-app-teaser:active,
+  .d-app-teaser:hover .d-app-teaser__art {
+    transform: none;
+  }
 }
 @media (max-width: 1023px) {
   .d-gym-layout {

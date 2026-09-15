@@ -105,7 +105,7 @@ export const sk = {
     },
   ],
   ctaPath: '/',
-  ctaLabel: 'Získať LIFTAG zdarma',
+  ctaLabel: 'Stiahnuť LIFTAG zadarmo',
   secondaryPath: '/best-workout-tracking-app',
   secondaryLabel: 'Porovnať trackery',
 } satisfies typeof en

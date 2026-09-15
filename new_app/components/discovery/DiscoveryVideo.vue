@@ -3,6 +3,7 @@ import type Hls from 'hls.js'
 import type { DiscoveryLocale } from '~/types/discovery'
 import { discoveryCopy } from '~/utils/discoveryCopy'
 import { canUseNativeHls } from '~/utils/exerciseVideoLanguage'
+import { exerciseHlsConfig, exerciseHlsRequestUrl } from '~/utils/exerciseHls'
 const props = defineProps<{ src: string; poster?: string | null; title: string; locale: DiscoveryLocale }>()
 const video = useTemplateRef<HTMLVideoElement>('video')
 const failed = shallowRef(false)
@@ -57,7 +58,7 @@ watch(() => props.src, async (src, _previous, onCleanup) => {
       const { default: HlsPlayer } = await import('hls.js')
       if (cancelled || failed.value || attached !== element) return
       if (!HlsPlayer.isSupported()) { fail(); return }
-      const player = new HlsPlayer()
+      const player = new HlsPlayer(exerciseHlsConfig)
       hls = player
       player.on(HlsPlayer.Events.ERROR, (_, data) => {
         if (data.fatal && !cancelled && hls === player) fail()
@@ -69,7 +70,7 @@ watch(() => props.src, async (src, _previous, onCleanup) => {
       language.bind(element, player)
     } catch { if (!cancelled) fail() }
   } else {
-    element.src = src
+    element.src = exerciseHlsRequestUrl(src)
     language.bind(element)
   }
 }, { immediate: true, flush: 'post' })

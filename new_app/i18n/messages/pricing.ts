@@ -32,7 +32,7 @@ export const sk = {
     seoTitle: "Cenník LIFTAG 2026 {'|'} Bezplatný tracker tréningov bez plateného programu",
     description:
       'Koľko stojí LIFTAG v roku 2026. Základné zaznamenávanie tréningov je navždy bezplatné v iOS aj Androide, NFC a QR štítky sú voliteľné a v žiadnom obchode dnes nie je platený program.',
-    get: 'Získať LIFTAG zadarmo',
+    get: 'Stiahnuť LIFTAG zadarmo',
     gyms: 'Cenník pre fitká',
     facts: 'Prehľad faktov',
     freeIncludes: 'Čo skutočne obsahuje bezplatná verzia',

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { GymMachineDetail, DiscoveryLocale } from '~/types/discovery'
 import { discoveryHref } from '~/utils/discovery'
-import { gymExerciseHref } from '~/utils/gymCatalog'
+import { gymExerciseHref, isCatalogMachinePhoto } from '~/utils/gymCatalog'
+import { discoveryCopy } from '~/utils/discoveryCopy'
 import { discoveryMuscleName } from '~/utils/discoveryMuscles'
 import type { CatalogMachine } from '~/types/catalog'
 import { catalogChrome } from '~/utils/catalogCopy'
@@ -61,6 +62,12 @@ const exercises = computed(() =>
 )
 const heroAlt = computed(() => chrome.value.machineAlt(name.value, name.value))
 const activePhoto = shallowRef(0)
+const discovery = computed(() => discoveryCopy(props.locale))
+/** Only a gym's machine is expected to show its own unit; catalog pages are generic by design. */
+const illustrativePhoto = computed(() => {
+  const item = props.gymMachine ? media.value[activePhoto.value] : undefined
+  return item?.type === 'image' && isCatalogMachinePhoto(item.url)
+})
 watch(
   () => source.value?.id,
   () => {
@@ -119,6 +126,7 @@ watch(
               </div>
             </div>
           </div>
+          <p v-if="illustrativePhoto" class="ma-photo-note">{{ discovery.illustrativeImageHint }}</p>
           <div
             v-if="media.length > 1"
             class="ma-thumbs"
@@ -291,6 +299,13 @@ a.ma-crumb:hover {
   font-size: 120px;
   font-style: italic;
   font-weight: 700;
+}
+
+.ma-photo-note {
+  margin: 10px 0 0;
+  color: var(--liftag-fg-tertiary);
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .ma-hero-ui {
@@ -476,6 +491,12 @@ a.ma-crumb:hover {
 
   .ma-photo img {
     object-position: top center;
+  }
+
+  /* The mobile photo is full-bleed; the note keeps the page gutter. */
+  .ma-photo-note {
+    padding-right: max(16px, var(--liftag-safe-right));
+    padding-left: max(16px, var(--liftag-safe-left));
   }
 
   .ma-photo :deep(.cat-player:not(.is-cinema)) {

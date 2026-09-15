@@ -4,6 +4,22 @@ import { DISCOVERY_UUID, discoveryHref } from './discovery.ts'
 import { exercisePath } from './catalogLocale.ts'
 import { discoveryMuscleName } from './discoveryMuscles.ts'
 
+const CATALOG_MACHINE_PHOTO = /\/catalog\/machine-templates\/[^/]+\/images\/[^/]+$/
+
+/**
+ * True when a gym machine's resolved photo is the generic catalog template
+ * image rather than one the gym or its brand uploaded. The equipment API only
+ * returns the winning URL, so the storage path is the one signal available.
+ */
+export function isCatalogMachinePhoto(url: string | null | undefined): boolean {
+  if (!url) return false
+  try {
+    return CATALOG_MACHINE_PHOTO.test(new URL(url, 'https://liftag.fit').pathname)
+  } catch {
+    return false
+  }
+}
+
 export function gymMachineHref(gymId: string, machineId: string, locale: DiscoveryLocale): string {
   // The gym query explicitly identifies this as a gym-machine ID, never a QR/catalog ID.
   return discoveryHref(`/machines/${machineId}`, locale, { gym: gymId })

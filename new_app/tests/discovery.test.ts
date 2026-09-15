@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import {
   defaultDiscoveryLocale,
@@ -290,6 +291,52 @@ test('gym equipment shares catalog routes without confusing custom, template, an
   ]) {
     assert.throws(() => gymCatalogContext(query), /Invalid gym equipment context/)
   }
+})
+
+test('only catalog template machine photos count as illustrative', async () => {
+  const { isCatalogMachinePhoto } = await import('../utils/gymCatalog.ts')
+  const media = 'https://liftag-media.s3.eu-central-1.amazonaws.com'
+  assert.equal(
+    isCatalogMachinePhoto(`${media}/catalog/machine-templates/ab-crunch-bench/images/ab-crunch-bench_1.webp`),
+    true,
+  )
+  assert.equal(
+    isCatalogMachinePhoto(
+      `${media}/portal/brands/7f0c1f7e-2c41-4a8e-9a57-0d6b1c1b8f11/machine-configs/2b9d5e0a-6f7c-4d3e-8a1b-5c4d3e2f1a0b/photos/front.webp`,
+    ),
+    false,
+  )
+  assert.equal(isCatalogMachinePhoto(`${media}/catalog/exercise-templates/squat/images/squat_1.webp`), false)
+  assert.equal(isCatalogMachinePhoto(null), false)
+  assert.equal(isCatalogMachinePhoto('not a url'), false)
+})
+
+test('gym cards read today\'s closing and opening time in the gym timezone', async () => {
+  const { gymTodayStatus } = await import('../utils/gymHours.ts')
+  const week = (open: string, close: string) => Array.from({ length: 7 }, (_, day) => ({ day, open, close }))
+  const gym = { timezone: 'Europe/Bratislava', isOpen: true as boolean | null, hours: week('06:00', '22:00') }
+  // 2026-09-15 is a Tuesday; 10:00 UTC is 12:00 in Bratislava (CEST).
+  const noon = new Date('2026-09-15T10:00:00Z')
+  assert.deepEqual(gymTodayStatus(gym, noon), { kind: 'openUntil', time: '22:00' })
+  assert.deepEqual(gymTodayStatus({ ...gym, isOpen: false }, new Date('2026-09-15T02:30:00Z')), {
+    kind: 'opensAt',
+    time: '06:00',
+  })
+  assert.equal(gymTodayStatus({ ...gym, isOpen: false }, new Date('2026-09-15T21:00:00Z')), null)
+  // Monday's overnight window keeps the gym open at 01:30 on Tuesday.
+  const overnight = { ...gym, hours: [{ day: 0, open: '18:00', close: '02:00' }] }
+  assert.deepEqual(gymTodayStatus(overnight, new Date('2026-09-14T23:30:00Z')), { kind: 'openUntil', time: '02:00' })
+  assert.equal(gymTodayStatus({ ...gym, hours: week('00:00', '24:00') }, noon), null)
+  assert.equal(gymTodayStatus({ ...gym, timezone: 'Not/AZone' }, noon), null)
+  assert.equal(gymTodayStatus({ ...gym, timezone: null }, noon), null)
+  assert.equal(gymTodayStatus({ ...gym, hours: [] }, noon), null)
+  assert.equal(gymTodayStatus({ ...gym, isOpen: null }, noon), null)
+})
+
+test('equipment muscle filters send primary and legacy category keys', () => {
+  const source = readFileSync(new URL('../server/utils/discoveryApi.ts', import.meta.url), 'utf8')
+  assert.match(source, /result\['primaryCategoryIds\[\]'\] = categories/)
+  assert.match(source, /result\['categoryIds\[\]'\] = categories/)
 })
 
 test('discovery URL state round-trips through write and read', () => {

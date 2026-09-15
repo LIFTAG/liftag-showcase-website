@@ -7,6 +7,7 @@ import { en, sk } from '~/i18n/messages/gymDemo';
 import { useVideoLanguage } from '~/composables/useVideoLanguage';
 import { useSiteLocale } from '~/composables/useSiteLocale';
 import { canUseNativeHls } from '~/utils/exerciseVideoLanguage';
+import { exerciseHlsConfig, exerciseHlsRequestUrl } from '~/utils/exerciseHls';
 
 const emit = defineEmits<{ close: []; playing: [] }>();
 const dialog = useTemplateRef<HTMLDialogElement>("dialog");
@@ -64,14 +65,14 @@ onMounted(async () => {
         fail();
         return;
       }
-      hls = new HlsCtor({ maxBufferLength: 15 });
+      hls = new HlsCtor({ ...exerciseHlsConfig, maxBufferLength: 15 });
       hls.on(HlsCtor.Events.ERROR, (_event, data) => {
         if (data.fatal) fail();
       });
       hls.loadSource(source);
       hls.attachMedia(el);
       videoLanguage.bind(el, hls);
-    } else { el.src = source; videoLanguage.bind(el); }
+    } else { el.src = exerciseHlsRequestUrl(source); videoLanguage.bind(el); }
     // Silent by default, as in the rest of the experience. Native controls remain
     // available when a browser requires another gesture to begin playback.
     el.play().catch(() => {
