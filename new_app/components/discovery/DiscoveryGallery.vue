@@ -7,16 +7,70 @@ const index = shallowRef(0),
 const failed = ref(new Set<string>())
 const current = computed(() => props.media[index.value])
 const copy = computed(() => discoveryCopy(props.locale))
+const zoomed = shallowRef(false)
+let viewport: VisualViewport | null = null
+function updateZoom() {
+  zoomed.value = (viewport?.scale ?? 1) > 1
+}
+onMounted(() => {
+  viewport = window.visualViewport
+  updateZoom()
+  viewport?.addEventListener('resize', updateZoom)
+})
+onBeforeUnmount(() => viewport?.removeEventListener('resize', updateZoom))
+let swipeStart: Touch | null = null
 watch(
   () => props.media,
   () => {
     index.value = 0
     expanded.value = false
+    swipeStart = null
   },
 )
 function step(delta: number) {
   if (props.media.length < 2) return
   index.value = (index.value + delta + props.media.length) % props.media.length
+}
+function startSwipe(event: TouchEvent) {
+  swipeStart = null
+  // Leave navigation buttons, links and native/embedded video controls in charge of their gestures.
+  if (
+    props.media.length < 2 ||
+    event.touches.length !== 1 ||
+    (window.visualViewport?.scale ?? 1) > 1 ||
+    (event.target instanceof Element &&
+      event.target.closest('video, iframe, a, button:not(.d-gallery-image)'))
+  )
+    return
+  swipeStart = event.touches[0] ?? null
+}
+function cancelSwipe() {
+  swipeStart = null
+}
+function moveSwipe(event: TouchEvent) {
+  if (!swipeStart) return
+  const touch = event.touches[0]
+  if (!touch || event.touches.length !== 1 || touch.identifier !== swipeStart.identifier) {
+    cancelSwipe()
+    return
+  }
+  const dx = touch.clientX - swipeStart.clientX
+  const dy = touch.clientY - swipeStart.clientY
+  // Once a gesture becomes a vertical scroll, it cannot turn into a gallery swipe.
+  if (Math.abs(dy) > 10 && Math.abs(dy) >= Math.abs(dx)) cancelSwipe()
+}
+function endSwipe(event: TouchEvent) {
+  const start = swipeStart
+  cancelSwipe()
+  if (!start || event.touches.length) return
+  const touch = Array.from(event.changedTouches).find(item => item.identifier === start.identifier)
+  if (!touch) return
+  const dx = touch.clientX - start.clientX
+  const dy = touch.clientY - start.clientY
+  if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return
+  // A swipe must not also trigger the photo button's fullscreen click.
+  if (event.cancelable) event.preventDefault()
+  step(dx < 0 ? 1 : -1)
 }
 function viewerKeydown(event: KeyboardEvent) {
   if (
@@ -35,7 +89,14 @@ function viewerKeydown(event: KeyboardEvent) {
 </script>
 <template>
   <section class="d-gallery" :aria-label="copy.gallery">
-    <div v-if="current" class="d-gallery-stage">
+    <div
+      v-if="current"
+      class="d-gallery-stage"
+      @touchstart.passive="startSwipe"
+      @touchmove.passive="moveSwipe"
+      @touchend="endSwipe"
+      @touchcancel.passive="cancelSwipe"
+    >
       <DiscoveryVideo
         v-if="current.type === 'video'"
         :key="current.url"
@@ -44,7 +105,13 @@ function viewerKeydown(event: KeyboardEvent) {
         :title="name"
         :locale="locale"
       />
-      <button v-else class="d-gallery-image" :aria-label="`${copy.photos}: ${name}`" @click="expanded = true">
+      <button
+        v-else
+        class="d-gallery-image"
+        :style="{ touchAction: zoomed ? 'auto' : 'pan-y pinch-zoom' }"
+        :aria-label="`${copy.photos}: ${name}`"
+        @click="expanded = true"
+      >
         <img
           v-if="!failed.has(current.url)"
           :src="current.url"
@@ -95,7 +162,13 @@ function viewerKeydown(event: KeyboardEvent) {
       @close="expanded = false"
       @keydown="viewerKeydown"
     >
-      <div class="d-expanded-media">
+      <div
+        class="d-expanded-media"
+        @touchstart.passive="startSwipe"
+        @touchmove.passive="moveSwipe"
+        @touchend="endSwipe"
+        @touchcancel.passive="cancelSwipe"
+      >
         <DiscoveryVideo
           v-if="current.type === 'video'"
           :key="current.url"
@@ -110,6 +183,7 @@ function viewerKeydown(event: KeyboardEvent) {
           :src="current.url"
           :alt="`${name}, ${index + 1}`"
           class="d-expanded-image"
+          :style="{ touchAction: zoomed ? 'auto' : 'pan-y pinch-zoom' }"
           @error="failed.add(current.url)"
         />
         <div v-else class="d-empty" role="status">

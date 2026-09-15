@@ -78,6 +78,12 @@ const copy = computed(() => discoveryCopy(props.locale))
   color: var(--d-muted);
   font-size: 0.875rem;
 }
+/* Match the two-column equipment grid breakpoint in discovery.css. */
+@media (max-width: 1100px) {
+  .d-equipment-grid > :nth-child(n + 3) {
+    display: none;
+  }
+}
 @media (max-width: 767px) {
   .d-equipment-total {
     font-size: 1.75rem;
