@@ -1,0 +1,237 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "LIFTAG public exercise media CDN with consistent CORS and independent production/staging origins. Existing S3 permissions remain unchanged.",
+  "Resources": {
+    "CachePolicy": {
+      "Type": "AWS::CloudFront::CachePolicy",
+      "Properties": {
+        "CachePolicyConfig": {
+          "Name": "liftag-catalog-media-cache-v1",
+          "Comment": "Public immutable catalog media; respect origin TTL without varying on viewer Origin, cookies or query strings.",
+          "MinTTL": 0,
+          "DefaultTTL": 86400,
+          "MaxTTL": 31536000,
+          "ParametersInCacheKeyAndForwardedToOrigin": {
+            "EnableAcceptEncodingGzip": true,
+            "EnableAcceptEncodingBrotli": true,
+            "HeadersConfig": {
+              "HeaderBehavior": "none"
+            },
+            "CookiesConfig": {
+              "CookieBehavior": "none"
+            },
+            "QueryStringsConfig": {
+              "QueryStringBehavior": "none"
+            }
+          }
+        }
+      }
+    },
+    "ResponseHeadersPolicy": {
+      "Type": "AWS::CloudFront::ResponseHeadersPolicy",
+      "Properties": {
+        "ResponseHeadersPolicyConfig": {
+          "Name": "liftag-catalog-media-cors-v1",
+          "Comment": "Preserve wildcard CORS from S3, including native-video requests without Origin; add CORS metadata when needed.",
+          "CorsConfig": {
+            "AccessControlAllowCredentials": false,
+            "AccessControlAllowHeaders": {
+              "Items": [
+                "Range"
+              ]
+            },
+            "AccessControlAllowMethods": {
+              "Items": [
+                "GET",
+                "HEAD"
+              ]
+            },
+            "AccessControlAllowOrigins": {
+              "Items": [
+                "*"
+              ]
+            },
+            "AccessControlExposeHeaders": {
+              "Items": [
+                "Content-Length",
+                "Content-Type",
+                "ETag",
+                "Accept-Ranges",
+                "Content-Range"
+              ]
+            },
+            "OriginOverride": false
+          }
+        }
+      }
+    },
+    "ProductionDistribution": {
+      "Type": "AWS::CloudFront::Distribution",
+      "Properties": {
+        "DistributionConfig": {
+          "Comment": "LIFTAG production public exercise catalog media",
+          "Enabled": true,
+          "HttpVersion": "http2and3",
+          "IPV6Enabled": true,
+          "PriceClass": "PriceClass_All",
+          "Origins": [
+            {
+              "Id": "ProductionCatalog",
+              "DomainName": "liftag-media-prod-997916278530-eu-central-1.s3.eu-central-1.amazonaws.com",
+              "OriginPath": "/catalog/exercise-templates",
+              "S3OriginConfig": {
+                "OriginAccessIdentity": ""
+              },
+              "OriginCustomHeaders": [
+                {
+                  "HeaderName": "Origin",
+                  "HeaderValue": "https://liftag.fit"
+                }
+              ]
+            }
+          ],
+          "DefaultCacheBehavior": {
+            "TargetOriginId": "ProductionCatalog",
+            "ViewerProtocolPolicy": "redirect-to-https",
+            "AllowedMethods": [
+              "GET",
+              "HEAD"
+            ],
+            "CachedMethods": [
+              "GET",
+              "HEAD"
+            ],
+            "Compress": true,
+            "CachePolicyId": {
+              "Ref": "CachePolicy"
+            },
+            "ResponseHeadersPolicyId": {
+              "Ref": "ResponseHeadersPolicy"
+            }
+          },
+          "CustomErrorResponses": [
+            {
+              "ErrorCode": 403,
+              "ErrorCachingMinTTL": 0
+            },
+            {
+              "ErrorCode": 404,
+              "ErrorCachingMinTTL": 0
+            }
+          ],
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": true
+          }
+        },
+        "Tags": [
+          {
+            "Key": "project",
+            "Value": "liftag"
+          },
+          {
+            "Key": "environment",
+            "Value": "production"
+          }
+        ]
+      }
+    },
+    "StagingDistribution": {
+      "Type": "AWS::CloudFront::Distribution",
+      "Properties": {
+        "DistributionConfig": {
+          "Comment": "LIFTAG staging public exercise catalog media",
+          "Enabled": true,
+          "HttpVersion": "http2and3",
+          "IPV6Enabled": true,
+          "PriceClass": "PriceClass_All",
+          "Origins": [
+            {
+              "Id": "StagingCatalog",
+              "DomainName": "liftag-media-997916278530-eu-central-1-an.s3.eu-central-1.amazonaws.com",
+              "OriginPath": "/catalog/exercise-templates",
+              "S3OriginConfig": {
+                "OriginAccessIdentity": ""
+              },
+              "OriginCustomHeaders": [
+                {
+                  "HeaderName": "Origin",
+                  "HeaderValue": "https://liftag.fit"
+                }
+              ]
+            }
+          ],
+          "DefaultCacheBehavior": {
+            "TargetOriginId": "StagingCatalog",
+            "ViewerProtocolPolicy": "redirect-to-https",
+            "AllowedMethods": [
+              "GET",
+              "HEAD"
+            ],
+            "CachedMethods": [
+              "GET",
+              "HEAD"
+            ],
+            "Compress": true,
+            "CachePolicyId": {
+              "Ref": "CachePolicy"
+            },
+            "ResponseHeadersPolicyId": {
+              "Ref": "ResponseHeadersPolicy"
+            }
+          },
+          "CustomErrorResponses": [
+            {
+              "ErrorCode": 403,
+              "ErrorCachingMinTTL": 0
+            },
+            {
+              "ErrorCode": 404,
+              "ErrorCachingMinTTL": 0
+            }
+          ],
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": true
+          }
+        },
+        "Tags": [
+          {
+            "Key": "project",
+            "Value": "liftag"
+          },
+          {
+            "Key": "environment",
+            "Value": "staging"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "ProductionDomain": {
+      "Value": {
+        "Fn::GetAtt": [
+          "ProductionDistribution",
+          "DomainName"
+        ]
+      }
+    },
+    "ProductionDistributionId": {
+      "Value": {
+        "Ref": "ProductionDistribution"
+      }
+    },
+    "StagingDomain": {
+      "Value": {
+        "Fn::GetAtt": [
+          "StagingDistribution",
+          "DomainName"
+        ]
+      }
+    },
+    "StagingDistributionId": {
+      "Value": {
+        "Ref": "StagingDistribution"
+      }
+    }
+  }
+}

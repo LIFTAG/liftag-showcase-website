@@ -7,6 +7,7 @@ import type Hls from 'hls.js'
 import { CATALOG_VIDEOS_ENABLED } from '~/utils/catalogVideo'
 import { catalogChrome } from '~/utils/catalogCopy'
 import { canUseNativeHls } from '~/utils/exerciseVideoLanguage'
+import { exerciseHlsConfig, exerciseHlsRequestUrl } from '~/utils/exerciseHls'
 
 const props = defineProps<{
   to: string
@@ -94,13 +95,13 @@ async function startPreview() {
       stopPreview()
       return
     }
-    hls = new HlsCtor()
+    hls = new HlsCtor(exerciseHlsConfig)
     hls.loadSource(source)
     hls.attachMedia(video)
     language.bind(video, hls)
   }
   else {
-    video.src = source
+    video.src = exerciseHlsRequestUrl(source)
     language.bind(video)
   }
 

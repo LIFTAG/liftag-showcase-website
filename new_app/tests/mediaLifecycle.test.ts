@@ -5,6 +5,7 @@ import { runInNewContext } from 'node:vm'
 import ts from 'typescript'
 import { computed, effectScope, nextTick, reactive, ref, shallowRef, toValue, watch, type Ref } from 'vue'
 import { parse } from 'vue/compiler-sfc'
+import { exerciseHlsConfig, exerciseHlsRequestUrl } from '../utils/exerciseHls.ts'
 
 // Run the production setup with Vue reactivity, controlling only transport and media APIs.
 function compile(path: string, expose = '') {
@@ -63,6 +64,7 @@ function gym(t: TestContext) {
       if (id.includes('coachingMedia')) return { coachingMediaSource: (s: string) => s }
       if (id.includes('useVideoLanguage')) return { useVideoLanguage: () => media.language }
       if (id.includes('exerciseVideoLanguage')) return { canUseNativeHls: () => false }
+      if (id.includes('exerciseHls')) return { exerciseHlsConfig, exerciseHlsRequestUrl }
       throw Error(id)
     },
   })
@@ -160,7 +162,7 @@ function discovery(t: TestContext) {
     defineProps: () => props, useTemplateRef: () => ref(h.element),
     onBeforeUnmount: (fn: () => void) => { unmount = fn },
     useVideoLanguage: () => h.language, loadHls: h.loadHls,
-    require: () => ({ canUseNativeHls: () => false }),
+    require: () => ({ canUseNativeHls: () => false, exerciseHlsConfig, exerciseHlsRequestUrl }),
   }))
   t.after(() => { unmount(); scope.stop() })
   return { ...h, props, player: exports.player }

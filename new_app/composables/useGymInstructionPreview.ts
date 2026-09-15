@@ -7,6 +7,7 @@ import { coachingMediaSource } from '../utils/gymscan/coachingMedia.ts';
 import type { SiteLocale } from '~/types/locale';
 import { useVideoLanguage } from './useVideoLanguage.ts';
 import { canUseNativeHls } from '../utils/exerciseVideoLanguage.ts';
+import { exerciseHlsConfig, exerciseHlsRequestUrl } from '../utils/exerciseHls.ts';
 
 /** Resolve only the real matched bench instruction, near its visible shot. */
 export function useGymInstructionPreview(video: Ref<HTMLVideoElement | null>, active: () => boolean, reduced: () => boolean, sameOrigin = false, locale: MaybeRefOrGetter<SiteLocale> = 'en') {
@@ -85,7 +86,7 @@ export function useGymInstructionPreview(video: Ref<HTMLVideoElement | null>, ac
         attached = el;
         el.addEventListener('error', onMediaError);
         if (HlsCtor) {
-          const player = new HlsCtor({ maxBufferLength: 8 });
+          const player = new HlsCtor({ ...exerciseHlsConfig, maxBufferLength: 8 });
           hls = player;
           player.on(HlsCtor.Events.ERROR, (_event, data) => {
             if (data.fatal && hls === player && attached === el) fail();
@@ -96,7 +97,7 @@ export function useGymInstructionPreview(video: Ref<HTMLVideoElement | null>, ac
           if (!isCurrent()) return;
           bind(el, player);
         } else {
-          el.src = source;
+          el.src = exerciseHlsRequestUrl(source);
           bind(el);
         }
         if (!isCurrent()) return;

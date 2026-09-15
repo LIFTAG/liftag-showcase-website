@@ -10,6 +10,7 @@ import type Hls from 'hls.js'
 import { CATALOG_VIDEOS_ENABLED, catalogMediaAspectRatio } from '~/utils/catalogVideo'
 import { en, sk } from '~/i18n/messages/catalogMedia'
 import { canUseNativeHls } from '~/utils/exerciseVideoLanguage'
+import { exerciseHlsConfig, exerciseHlsRequestUrl } from '~/utils/exerciseHls'
 
 const props = defineProps<{
   videoUrl: string | null
@@ -198,13 +199,13 @@ async function startPreview() {
       stopPreview()
       return
     }
-    previewHls = new HlsCtor()
+    previewHls = new HlsCtor(exerciseHlsConfig)
     previewHls.loadSource(source)
     previewHls.attachMedia(video)
     language.bind(video, previewHls)
   }
   else {
-    video.src = source
+    video.src = exerciseHlsRequestUrl(source)
     language.bind(video)
   }
 
@@ -273,7 +274,7 @@ async function play() {
       const HlsCtor = (await import('hls.js')).default
       if (request !== playbackRequest || !playing.value) return
       if (!HlsCtor.isSupported()) { failPlayback(); return }
-      hls = new HlsCtor()
+      hls = new HlsCtor(exerciseHlsConfig)
       hls.on(HlsCtor.Events.ERROR, (_, data) => {
         if (data.fatal && request === playbackRequest) failPlayback()
       })
@@ -281,7 +282,7 @@ async function play() {
       hls.attachMedia(video)
       language.bind(video, hls)
     } else {
-      video.src = source
+      video.src = exerciseHlsRequestUrl(source)
       language.bind(video)
     }
     video.play().catch(error => {
