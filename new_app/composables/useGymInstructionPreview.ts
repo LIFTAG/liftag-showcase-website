@@ -21,63 +21,90 @@ export function useGymInstructionPreview(video: Ref<HTMLVideoElement | null>, ac
   let abort = new AbortController();
   let revision = 0;
   const { bind, unbind } = useVideoLanguage(locale);
+  const canPlay = () => !disposed && active() && !document.hidden && !reduced();
+
+  function release() {
+    const el = attached;
+    const player = hls;
+    // Invalidate ownership before teardown, which can itself dispatch media events.
+    attached = null;
+    attachedSource = '';
+    hls = null;
+    if (el) {
+      el.removeEventListener('error', onMediaError);
+      unbind(el);
+    }
+    player?.destroy();
+    if (el) { el.pause(); el.removeAttribute('src'); el.load(); }
+  }
+
+  function fail() {
+    revision++;
+    release();
+    loading.value = false;
+    failed.value = true;
+  }
+
+  function onMediaError(event: Event) {
+    if (event.currentTarget === attached) fail();
+  }
+
   async function sync() {
     const current = ++revision;
     const requestedLocale = toValue(locale);
-    if (!active() || document.hidden || reduced()) { loading.value = false; video.value?.pause(); return; }
+    if (!canPlay()) { loading.value = false; video.value?.pause(); return; }
     const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
     if (saveData) { loading.value = false; return; }
+    const isCurrent = () => current === revision && requestedLocale === toValue(locale) && canPlay();
     loading.value = true;
     failed.value = false;
     try {
       request ??= $fetch<CatalogExercise>(`/api/catalog/exercises/${benchInstruction.slug}?locale=${requestedLocale}`, { signal: abort.signal, timeout: 12000 });
       const result = await request;
-      if (disposed || current !== revision || requestedLocale !== toValue(locale) || !active() || reduced() || document.hidden) return;
+      if (!isCurrent()) return;
       exercise.value = result;
       await nextTick();
-      if (disposed || current !== revision) return;
+      if (!isCurrent()) return;
       const el = video.value;
-      const catalogSource = preferredCatalogVideoUrl(exercise.value.videos, toValue(locale));
-      if (!catalogSource) {
-        if (attached) unbind(attached);
-        hls?.destroy();
-        hls = null;
-        attached = null;
-        attachedSource = '';
-        failed.value = true;
-        return;
-      }
+      const catalogSource = preferredCatalogVideoUrl(result.videos, requestedLocale);
+      if (!catalogSource) { fail(); return; }
       const source = sameOrigin ? coachingMediaSource(catalogSource) : catalogSource;
       if (!el) return;
       if (attached !== el || attachedSource !== source) {
-        if (attached) unbind(attached);
-        hls?.destroy();
-        hls = null;
-        attached = el;
-        attachedSource = source;
+        release();
+        let HlsCtor: typeof Hls | undefined;
         if (/\.m3u8(?:\?|$)/i.test(source) && !canUseNativeHls(el)) {
-          const HlsCtor = (await import('hls.js')).default;
-          if (disposed || current !== revision || attached !== el || attachedSource !== source) return;
-          if (HlsCtor.isSupported()) {
-            hls = new HlsCtor({ maxBufferLength: 8 });
-            hls.on(HlsCtor.Events.ERROR, (_event, data) => {
-              if (!data.fatal) return;
-              unbind(el);
-              hls?.destroy();
-              hls = null;
-              failed.value = true;
-              el.pause();
-            });
-            hls.loadSource(source);
-            hls.attachMedia(el);
-            bind(el, hls);
-          } else if (el.canPlayType('application/vnd.apple.mpegurl')) el.src = source;
-          else { failed.value = true; return; }
-        } else { el.src = source; bind(el); }
+          HlsCtor = (await import('hls.js')).default;
+          // A cancelled import owns no attachment and must not clear a newer one.
+          if (!isCurrent() || video.value !== el) return;
+          if (!HlsCtor.isSupported()) {
+            if (!el.canPlayType('application/vnd.apple.mpegurl')) { fail(); return; }
+            HlsCtor = undefined;
+          }
+        }
+        attached = el;
+        el.addEventListener('error', onMediaError);
+        if (HlsCtor) {
+          const player = new HlsCtor({ maxBufferLength: 8 });
+          hls = player;
+          player.on(HlsCtor.Events.ERROR, (_event, data) => {
+            if (data.fatal && hls === player && attached === el) fail();
+          });
+          player.loadSource(source);
+          if (!isCurrent()) return;
+          player.attachMedia(el);
+          if (!isCurrent()) return;
+          bind(el, player);
+        } else {
+          el.src = source;
+          bind(el);
+        }
+        if (!isCurrent()) return;
+        attachedSource = source;
       }
-      if (!disposed && active() && !reduced() && !document.hidden) el.play().catch(() => {});
+      if (isCurrent()) el.play().catch(() => {});
     } catch {
-      if (!disposed && current === revision) { failed.value = true; request = null; }
+      if (!disposed && current === revision) { request = null; fail(); }
     } finally { if (!disposed && current === revision) loading.value = false; }
   }
   watch([active, reduced], sync);
@@ -95,10 +122,7 @@ export function useGymInstructionPreview(video: Ref<HTMLVideoElement | null>, ac
     revision++;
     abort.abort();
     document.removeEventListener('visibilitychange', sync);
-    const el = attached;
-    if (el) unbind(el);
-    hls?.destroy();
-    if (el) { el.pause(); el.removeAttribute('src'); el.load(); }
+    release();
   });
   return { exercise, failed, loading };
 }

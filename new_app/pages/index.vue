@@ -3,6 +3,7 @@ import { useReveal } from '~/composables/useReveal'
 import { en, sk } from '~/i18n/messages/marketingPages'
 import { en as marketingEn, sk as marketingSk } from '~/i18n/messages/marketing'
 const { t, tm, rt } = useI18n({ useScope: 'local', messages: { en: { ...en, marketing: marketingEn.marketing }, sk: { ...sk, marketing: marketingSk.marketing } } })
+const { href } = useSiteLocale()
 const localizedFaqs = computed(() => (tm('marketing.faqItems') as Array<{ question: string, answer: string }>).map(item => ({ question: rt(item.question), answer: rt(item.answer) })))
 
 // Keep these two in sync with app.head in nuxt.config.ts, which carries the
@@ -20,7 +21,7 @@ useLiftagStructuredData(() => [
   liftagSoftwareApplication,
   liftagWebSite,
   liftagWebPage({
-    path: '/',
+    path: href('/'),
     name: t('home.breadcrumb'),
     description: description.value,
     aboutId: APP_ID,

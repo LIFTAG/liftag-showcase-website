@@ -51,6 +51,12 @@ export function siteLocalePath(path: string, locale: SiteLocale): string {
   const base = siteBasePath(legal)
   return `${locale === 'sk' ? (base === '/' ? '/sk' : `/sk${base}`) : base}${suffix}`
 }
+/** Add language to a local URL whose path must remain unprefixed (handoffs and share images). */
+export function withSiteLocaleQuery(path: string, locale: SiteLocale): string {
+  const url = new URL(path, 'https://liftag.fit')
+  url.searchParams.set('lang', locale)
+  return `${url.pathname}${url.search}${url.hash}`
+}
 export function siteLocaleLocation<T extends Record<string, unknown>>(
   route: { path: string; query: T; hash: string },
   locale: SiteLocale,

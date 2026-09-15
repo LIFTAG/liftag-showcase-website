@@ -15,19 +15,19 @@ useLiftagStructuredData(() => [
   liftagOrganization,
   liftagMobileApplication,
   liftagWebPage({
-    path: '/qr-nfc-gym-tags',
+    path: href('/qr-nfc-gym-tags'),
     name: copy.value.structuredName,
     description: description.value,
     type: 'WebPage',
   }),
   liftagBreadcrumbs([
-    { name: 'LIFTAG', path: '/' },
-    { name: copy.value.breadcrumbName, path: '/qr-nfc-gym-tags' },
+    { name: 'LIFTAG', path: href('/') },
+    { name: copy.value.breadcrumbName, path: href('/qr-nfc-gym-tags') },
   ]),
   liftagArticle({
     headline: copy.value.articleHeadline,
     description: description.value,
-    path: '/qr-nfc-gym-tags',
+    path: href('/qr-nfc-gym-tags'),
     datePublished: '2026-08-20',
   }),
   liftagFAQPage(copy.value.faqs),

@@ -172,7 +172,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer))
         @mousemove="activeIndex = index"
       >
         <strong>{{ localizedExerciseLabel(exercise.id, exercise.label, locale) }}</strong>
-        <span>{{ localizedExerciseGroup(exercise.group, locale).replace(' · iba odhad', '') }}</span>
+        <span>{{ localizedExerciseGroup(exercise.group.split(' · ')[0]!, locale) }}</span>
       </li>
       <li v-if="!results.length" class="empty" role="presentation">{{ t('tools.picker.noMatch') }}</li>
     </ul>

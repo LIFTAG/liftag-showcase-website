@@ -3,30 +3,6 @@ import { en, sk } from '~/i18n/messages/marketing'
 const { t, tm, rt } = useI18n({ useScope: 'local', messages: { en, sk } })
 const { href } = useSiteLocale()
 const benefits = computed(() => (tm('marketing.gyms.benefits') as Array<{ tag: string, title: string, body: string }>).map(item => ({ tag: rt(item.tag), title: rt(item.title), body: rt(item.body) })))
-/* Source order and visual accents remain stable across locales. */
-/*
-  {
-    tag: 'QR + NFC',
-    title: 'Every machine, explained.',
-    body: 'Create tags in the dashboard. Members tap, scan, watch, lift. You buy the stickers.',
-  },
-  {
-    tag: 'YOUR CONTENT',
-    title: 'Your trainers in every video.',
-    body: 'Record once. Deploy across the whole floor.',
-  },
-  {
-    tag: 'DISCOVERY',
-    title: 'Get found by nearby lifters.',
-    body: 'Featured on the Liftag map with a verified badge.',
-  },
-  {
-    tag: 'FREE',
-    title: 'Core gym tools. Free forever.',
-    body: 'Dashboard, listing, machine setup, and the member app stay free. Physical NFC tags and QR stickers are not included.',
-  },
-*/
-
 const gymNumbers = computed(() => (tm('marketing.gyms.numbers') as Array<{ n: string, label: string, sub: string }>).map(item => ({ n: rt(item.n), l: rt(item.label), sub: rt(item.sub) })))
 
 const muscleTags = computed(() => (tm('marketing.gyms.tags') as string[]).map(item => rt(item)))

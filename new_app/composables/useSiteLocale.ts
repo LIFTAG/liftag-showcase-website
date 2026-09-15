@@ -1,10 +1,11 @@
 import type { MaybeRefOrGetter } from 'vue'
 import type { SiteLocale } from '~/types/locale'
-import { isDiscoveryLocalePath, siteBasePath, siteLocale, siteLocaleLocation, siteLocalePath, sitePathLocale } from '~/utils/siteLocale'
+import { isDiscoveryLocalePath, siteBasePath, siteLocale, siteLocaleLocation, siteLocalePath, sitePathLocale, withSiteLocaleQuery } from '~/utils/siteLocale'
 
 /** The i18n composer owns active language; this facade owns the manual preference. */
 export function useSiteLocale() {
   const route = useRoute()
+  const router = useRouter()
   const i18n = useNuxtApp().$i18n
   const switching = useState('site-locale-switching', () => false)
   const saved = useCookie<SiteLocale | null>('liftag-language', {
@@ -20,16 +21,16 @@ export function useSiteLocale() {
     saved.value = value
     switching.value = true
     try {
-      await navigateTo(siteLocaleLocation(route, value), { replace: true })
+      // This is a user action. navigateTo can return a redirect object instead
+      // of navigating while another URL update is running route middleware.
+      await router.replace(siteLocaleLocation(route, value))
       await nextTick()
     } finally { switching.value = false }
   }
   const href = (path: string) => {
     if (/^(?:https?:|mailto:|tel:|#)/.test(path)) return path
     if (/^\/(?:get|qr|routines|plans|trainer-invites|auth)(?:[/?#]|$)/.test(path)) {
-      const url = new URL(path, 'https://liftag.fit')
-      url.searchParams.set('lang', locale.value)
-      return `${url.pathname}${url.search}${url.hash}`
+      return withSiteLocaleQuery(path, locale.value)
     }
     return siteLocalePath(path, locale.value)
   }

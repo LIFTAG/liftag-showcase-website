@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { en, sk } from '~/i18n/messages/handoff'
-import { siteLocale } from '~/utils/siteLocale'
+import { siteLocale, withSiteLocaleQuery } from '~/utils/siteLocale'
 const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 definePageMeta({ i18n: false, layout: false })
 
 const route = useRoute()
-const { locale } = useSiteLocale()
+const { locale, href } = useSiteLocale()
 const htmlLang = computed(() => siteLocale(route.query.lang) ?? locale.value)
 useHead(() => ({ htmlAttrs: { lang: htmlLang.value } }))
 const id = String(route.params.id ?? '')
@@ -16,7 +16,7 @@ const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.liftag.app
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 // Share links from female users carry ?v=f; the card then prefers the female
 // exercise-image variants. Forwarded verbatim to the image route.
-const variantQuery = route.query.v === 'f' ? '?v=f' : ''
+const variantQuery = computed(() => route.query.v === 'f' ? '?v=f' : '')
 
 // Server-side fetch so link previews carry the real plan name. Private or
 // missing plans resolve to null and the generic copy is used instead.
@@ -39,10 +39,10 @@ const { data: plan } = await useAsyncData(`plan-share-${id}`, async () => {
 // card from these OG tags. The image endpoint renders the plan's routine grid
 // and falls back to the default og-image for non-public plans.
 useLiftagSeo(() => ({
-  title: plan.value ? `${plan.value.name} on LIFTAG` : t('handoff.planHeading'),
+  title: plan.value ? t('handoff.sharedTitle', { name: plan.value.name }) : t('handoff.planHeading'),
   description: t('handoff.body'),
   path: `/plans/${id}`,
-  image: `https://liftag.fit/api/og/plans/${id}${variantQuery}`,
+  image: absoluteUrl(withSiteLocaleQuery(`/api/og/plans/${id}${variantQuery.value}`, locale.value)),
   noindex: true,
 }))
 
@@ -91,7 +91,7 @@ onMounted(() => {
 <template>
   <StoreEscape
     v-if="showEscape"
-    :share-url="`https://liftag.fit/plans/${id}`"
+    :share-url="absoluteUrl(href(`/plans/${id}${variantQuery}`))"
     :heading="t('handoff.planHeading')"
     :body="t('handoff.body')"
   />

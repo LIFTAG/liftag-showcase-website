@@ -10,15 +10,24 @@ const language = useVideoLanguage(() => props.locale)
 let hls: Hls | undefined
 let attached: HTMLVideoElement | undefined
 function release() {
-  if (attached) {
-    language.unbind(attached)
-    attached.pause()
-    attached.removeAttribute('src')
-    attached.load()
-  }
-  hls?.destroy()
-  hls = undefined
+  const element = attached
+  const player = hls
   attached = undefined
+  hls = undefined
+  if (element) language.unbind(element)
+  player?.destroy()
+  if (element) {
+    element.pause()
+    element.removeAttribute('src')
+    element.load()
+  }
+}
+function fail() {
+  failed.value = true
+  release()
+}
+function onMediaError(event: Event) {
+  if (event.currentTarget === attached) fail()
 }
 const youtube = computed(() => {
   try {
@@ -46,16 +55,19 @@ watch(() => props.src, async (src, _previous, onCleanup) => {
   if (/\.m3u8(?:\?|$)/i.test(src) && !canUseNativeHls(element)) {
     try {
       const { default: HlsPlayer } = await import('hls.js')
-      if (cancelled) return
-      if (!HlsPlayer.isSupported()) { failed.value = true; return }
-      hls = new HlsPlayer()
-      hls.loadSource(src)
-      hls.attachMedia(element)
-      language.bind(element, hls)
-      hls.on(HlsPlayer.Events.ERROR, (_, data) => {
-        if (data.fatal && !cancelled) failed.value = true
+      if (cancelled || failed.value || attached !== element) return
+      if (!HlsPlayer.isSupported()) { fail(); return }
+      const player = new HlsPlayer()
+      hls = player
+      player.on(HlsPlayer.Events.ERROR, (_, data) => {
+        if (data.fatal && !cancelled && hls === player) fail()
       })
-    } catch { if (!cancelled) failed.value = true }
+      player.loadSource(src)
+      if (failed.value) return
+      player.attachMedia(element)
+      if (failed.value) return
+      language.bind(element, player)
+    } catch { if (!cancelled) fail() }
   } else {
     element.src = src
     language.bind(element)
@@ -87,7 +99,7 @@ onBeforeUnmount(release)
     controls
     playsinline
     preload="metadata"
-    @error="failed = true"
+    @error="onMediaError"
   />
 </template>
 <style scoped>

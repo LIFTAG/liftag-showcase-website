@@ -36,7 +36,7 @@ useLiftagStructuredData(() => [
     type: 'CollectionPage',
   }),
   liftagBreadcrumbs([
-    { name: 'LIFTAG', path: '/' },
+    { name: 'LIFTAG', path: href('/') },
     { name: t('library'), path: href('/exercises') },
     { name: t('muscles'), path: href('/muscles') },
   ]),

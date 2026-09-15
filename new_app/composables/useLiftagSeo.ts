@@ -1,3 +1,4 @@
+import type { SiteLocale } from '~/types/locale'
 import { localizedSharedSchema } from '~/utils/localizedSeoSchema'
 import type { MaybeRefOrGetter } from 'vue'
 import { siteCanonicalPath, siteLocaleAlternates, isLocalizedSitePath } from '~/utils/siteLocale'
@@ -109,7 +110,10 @@ export function useLiftagSeo(input: MaybeRefOrGetter<LiftagSeoOptions>) {
   }))
 }
 
-export function useLiftagStructuredData(input: MaybeRefOrGetter<Record<string, unknown>[]>) {
+export function useLiftagStructuredData(
+  input: MaybeRefOrGetter<Record<string, unknown>[]>,
+  sharedLocale?: MaybeRefOrGetter<SiteLocale>,
+) {
   const { locale } = useSiteLocale()
   useHead(() => ({
     script: [
@@ -118,7 +122,7 @@ export function useLiftagStructuredData(input: MaybeRefOrGetter<Record<string, u
         type: 'application/ld+json',
         innerHTML: JSON.stringify({
           '@context': 'https://schema.org',
-          '@graph': localizedSharedSchema(toValue(input), locale.value),
+          '@graph': localizedSharedSchema(toValue(input), toValue(sharedLocale) ?? locale.value),
         }).replaceAll('<', '\\u003c'),
       },
     ],

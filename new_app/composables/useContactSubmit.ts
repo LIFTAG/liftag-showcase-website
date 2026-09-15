@@ -1,3 +1,5 @@
+import { contactErrorMessage, type ContactSubmitError } from '../utils/contactError.ts'
+
 export type ContactSubmitStatus = 'idle' | 'submitting' | 'success' | 'error'
 
 export interface ContactSubmitBody {
@@ -23,7 +25,7 @@ function parseRetryAfter(value: string | null | undefined): { amount: number, un
   return { amount: minutes, unit: 'minutes' }
 }
 
-function mapErrorCode(status: number | undefined, retryAfter: ReturnType<typeof parseRetryAfter>): { code: string, retryAfter?: number, retryUnit?: string } {
+function mapErrorCode(status: number | undefined, retryAfter: ReturnType<typeof parseRetryAfter>): ContactSubmitError {
   switch (status) {
     case 403:
       return { code: 'verification' }
@@ -44,15 +46,9 @@ function mapErrorCode(status: number | undefined, retryAfter: ReturnType<typeof 
 export function useContactSubmit() {
   const config = useRuntimeConfig()
   const status = ref<ContactSubmitStatus>('idle')
-  const errorCode = ref<{ code: string, retryAfter?: number, retryUnit?: string } | null>(null)
-  // Kept as a raw English compatibility surface for non-UI callers and tests;
-  // ContactPage uses errorCode and translates it in its own local composer.
-  const errorMessage = { get value() {
-    const error = errorCode.value
-    if (!error) return null
-    if (error.code === 'tooManyRetry') return `Too many requests. Please try again in ${error.retryAfter} ${error.retryUnit === 'minutes' ? 'minutes' : 'seconds'}.`
-    return ({ verification: 'Verification failed. Please try again.', invalid: 'Some fields look off. Please double-check and try again.', tooMany: 'Too many requests. Please try again later.', unavailable: 'We couldn’t send your message right now. Please try again in a few minutes.', network: 'Network error. Please check your connection and try again.' } as Record<string, string>)[error.code] ?? null
-  } }
+  const errorCode = ref<ContactSubmitError | null>(null)
+  // Compatibility for non-UI callers; forms resolve the same messages in their active locale.
+  const errorMessage = { get value() { return contactErrorMessage(errorCode.value, 'en') } }
 
   async function submit(body: ContactSubmitBody) {
     status.value = 'submitting'

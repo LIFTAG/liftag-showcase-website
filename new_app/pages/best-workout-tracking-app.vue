@@ -26,18 +26,18 @@ useLiftagStructuredData(() => [
   liftagOrganization,
   liftagSoftwareApplication,
   liftagWebPage({
-    path,
+    path: href(path),
     name: t('workoutName'),
     description: description.value,
   }),
   liftagBreadcrumbs([
-    { name: 'LIFTAG', path: '/' },
-    { name: t('workoutCrumb'), path },
+    { name: 'LIFTAG', path: href('/') },
+    { name: t('workoutCrumb'), path: href(path) },
   ]),
   liftagArticle({
     headline: t('workoutHeadline'),
     description: description.value,
-    path,
+    path: href(path),
     datePublished: lastUpdated,
   }),
   liftagFAQPage(localizedFaqs.value),

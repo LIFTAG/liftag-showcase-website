@@ -49,19 +49,19 @@ useLiftagStructuredData(() => [
   liftagOrganization,
   liftagSoftwareApplication,
   liftagWebPage({
-    path,
+    path: href(path),
     name: t('appPricing.pricingName'),
     description: description.value,
     aboutId: APP_ID,
   }),
   liftagBreadcrumbs([
-    { name: 'LIFTAG', path: '/' },
-    { name: t('appPricing.pricingCrumb'), path },
+    { name: 'LIFTAG', path: href('/') },
+    { name: t('appPricing.pricingCrumb'), path: href(path) },
   ]),
   liftagArticle({
     headline: t('appPricing.pricingHeadline'),
     description: description.value,
-    path,
+    path: href(path),
     datePublished,
   }),
   liftagFAQPage(faqs.value),

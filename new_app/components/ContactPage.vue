@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { contactErrorMessage } from '~/utils/contactError'
 import { en, sk } from '~/i18n/messages/contact'
 const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
-const { href } = useSiteLocale()
+const { href, locale } = useSiteLocale()
 interface ContactPageProps {
   eyebrow: string
   title: string
@@ -29,12 +30,12 @@ useLiftagStructuredData(() => [
   liftagOrganization,
   liftagContactPage({
     name: props.seoTitle,
-    path: props.seoPath,
+    path: href(props.seoPath),
     description: props.seoDescription,
   }),
   liftagBreadcrumbs([
-    { name: 'LIFTAG', path: '/' },
-    { name: props.breadcrumbName, path: props.seoPath },
+    { name: 'LIFTAG', path: href('/') },
+    { name: props.breadcrumbName, path: href(props.seoPath) },
   ]),
 ])
 
@@ -50,12 +51,7 @@ const token = ref('')
 const turnstileRef = ref<{ reset: () => void } | null>(null)
 
 const { status, errorCode, submit, reset: resetSubmit } = useContactSubmit()
-const errorMessage = computed(() => {
-  const error = errorCode.value
-  if (!error) return null
-  const unit = error.retryUnit ? t(`contact.${error.retryUnit}`) : undefined
-  return t(`contact.${error.code}`, { retryAfter: error.retryAfter, unit })
-})
+const errorMessage = computed(() => contactErrorMessage(errorCode.value, locale.value))
 
 const isSubmitting = computed(() => status.value === 'submitting')
 const isSuccess = computed(() => status.value === 'success')

@@ -5,7 +5,7 @@ const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 definePageMeta({ i18n: false, layout: false })
 
 const route = useRoute()
-const { locale } = useSiteLocale()
+const { locale, href } = useSiteLocale()
 const htmlLang = computed(() => siteLocale(route.query.lang) ?? locale.value)
 useHead(() => ({ htmlAttrs: { lang: htmlLang.value } }))
 const id = String(route.params.id ?? '')
@@ -62,7 +62,7 @@ onMounted(() => {
 <template>
   <StoreEscape
     v-if="showEscape"
-    :share-url="`https://liftag.fit/trainer-invites/${id}`"
+    :share-url="absoluteUrl(href(`/trainer-invites/${id}`))"
     :heading="t('handoff.inviteHeading')"
     :body="t('handoff.body')"
   />

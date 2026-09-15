@@ -29,11 +29,11 @@ const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
  */
 definePageMeta({ i18n: false, layout: false })
 const route = useRoute()
-const { locale } = useSiteLocale()
+const { locale, href } = useSiteLocale()
 const htmlLang = computed(() => siteLocale(route.query.lang) ?? locale.value)
 useHead(() => ({ htmlAttrs: { lang: htmlLang.value } }))
 
-const SHARE_URL = 'https://liftag.fit/get'
+const shareUrl = computed(() => absoluteUrl(href('/get')))
 
 type View = Platform | 'escape'
 
@@ -76,7 +76,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <StoreEscape v-if="view === 'escape'" :share-url="SHARE_URL" />
+  <StoreEscape v-if="view === 'escape'" :share-url="shareUrl" />
 
   <main v-else class="get">
     <div class="get__aura" aria-hidden="true" />

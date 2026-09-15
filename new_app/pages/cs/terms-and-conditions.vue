@@ -19,7 +19,7 @@ useLiftagStructuredData(() => [
     { name: 'LIFTAG', path: '/' },
     { name: 'Obchodní podmínky', path },
   ]),
-])
+], 'en')
 
 const sections = [
   {

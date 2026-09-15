@@ -1,5 +1,11 @@
 import type { SiteLocale } from '../../types/locale'
 export const en = {
+  seo: {
+    title: "LIFTAG {'|'} Connect your gym machines",
+    name: 'Connect your gym machines',
+    description: 'Connect your gym machines with LIFTAG QR and NFC tags. Members scan, watch your trainer videos and log sets. Put your gym on the map and plan workouts on its equipment.',
+  },
+  footer: { tagline: 'BUILT FOR REAL TRAINING.' },
   arrival: {
     caption: 'Your machines. Connected.',
     enter: 'Enter the gym',
@@ -308,7 +314,6 @@ export const en = {
     verifyUnavailable:
       "Verification is unavailable right now. Please try again, or email support{'@'}liftag.fit to partner with us.",
     verifyPrompt: 'Please complete the verification below, then send your request.',
-    submitError: 'We could not send your request. Please try again.',
     required: {
       name: 'Enter your name.',
       gym: 'Enter your gym name.',
@@ -349,6 +354,12 @@ export const en = {
   },
 }
 export const sk = {
+  seo: {
+    title: "LIFTAG {'|'} Prepoj stroje vo svojom fitku",
+    name: 'Prepoj stroje vo svojom fitku',
+    description: 'Prepoj stroje vo svojom fitku pomocou QR a NFC štítkov LIFTAG. Členovia naskenujú štítok, pozrú si videá trénerov a zaznamenajú série. Pridaj fitko na mapu a plánuj tréningy na jeho vybavení.',
+  },
+  footer: { tagline: 'VYTVORENÉ PRE SKUTOČNÝ TRÉNING.' },
   arrival: {
     caption: 'Tvoje stroje. Prepojené.',
     enter: 'Vstúpiť do fitka',
@@ -650,7 +661,6 @@ export const sk = {
     verifyUnavailable:
       "Overenie teraz nie je dostupné. Skús to znova alebo nám napíš na support{'@'}liftag.fit.",
     verifyPrompt: 'Vyplň overenie nižšie a potom odošli žiadosť.',
-    submitError: 'Žiadosť sa nepodarilo odoslať. Skús to znova.',
     required: {
       name: 'Zadaj svoje meno.',
       gym: 'Zadaj názov fitka.',

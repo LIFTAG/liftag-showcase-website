@@ -26,7 +26,7 @@ onMounted(() => { localeReady.value = true })
 let nativeScrollTimeline = false
 
 const isHomeLike = computed(() => basePath.value === '/')
-const sectionHref = (hash: string) => isHomeLike.value ? hash : `/${hash}`
+const sectionHref = (hash: string) => isHomeLike.value ? hash : href(`/${hash}`)
 
 // Per-character spans for the desktop nav's hover index (see .nav-link__char).
 // Array.from, not split(''), so an accented or non-BMP label would still index
@@ -34,7 +34,7 @@ const sectionHref = (hash: string) => isHomeLike.value ? hash : `/${hash}`
 const navChars = (label: string) => Array.from(label)
 
 const navLinks = computed<[string, string][]>(() => [
-  [t('shell.nav.exercises'), exerciseIndexPath(localeReady.value ? locale.value : 'en')],
+  [t('shell.nav.exercises'), href('/exercises')],
   [t('shell.nav.gyms'), localeReady.value ? discoveryHref('/explore', locale.value) : href('/explore')],
   [t('shell.nav.lifters'), sectionHref('#lifters')],
   [t('shell.nav.owners'), sectionHref('#gyms')],

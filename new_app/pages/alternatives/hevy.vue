@@ -29,16 +29,16 @@ useLiftagSeo(() => ({ title: content.value.seoTitle, description: content.value.
 useLiftagStructuredData(() => [
   liftagOrganization,
   liftagSoftwareApplication,
-  liftagWebPage({ path, name: t('hevyName'), description: content.value.description }),
+  liftagWebPage({ path: href(path), name: t('hevyName'), description: content.value.description }),
   liftagBreadcrumbs([
-    { name: 'LIFTAG', path: '/' },
-    { name: t('alternatives'), path: '/best-workout-tracking-app' },
-    { name: 'Hevy', path },
+    { name: 'LIFTAG', path: href('/') },
+    { name: t('alternatives'), path: href('/best-workout-tracking-app') },
+    { name: 'Hevy', path: href(path) },
   ]),
   liftagArticle({
     headline: content.value.seoTitle,
     description: content.value.description,
-    path,
+    path: href(path),
     datePublished,
   }),
   liftagFAQPage(content.value.faqs),

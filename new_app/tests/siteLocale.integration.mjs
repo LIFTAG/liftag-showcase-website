@@ -43,6 +43,11 @@ for (const path of publicPaths) {
   for (const match of html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)) {
     const structured = JSON.parse(match[1])
     for (const item of structured['@graph'] ?? []) {
+      if (['WebPage', 'CollectionPage', 'AboutPage', 'ContactPage', 'Article', 'WebApplication'].includes(item['@type'])) {
+        if (item.inLanguage) assert.equal(item.inLanguage, language, `${path}: structured language`)
+        if (item.url) assert.equal(new URL(item.url).pathname, path, `${path}: structured page URL`)
+        if (item['@id']) assert.equal(new URL(item['@id']).pathname, path, `${path}: structured page identity`)
+      }
       if (item['@type'] !== 'FAQPage') continue
       for (const question of item.mainEntity) {
         assert.equal(typeof question.name, 'string', `${path}: FAQ question must be resolved text`)
@@ -74,6 +79,11 @@ for (const [path, language, title] of [
     assert.match(html, new RegExp(`<html[^>]*lang="${language}"`), path)
     if (title) assert.ok(html.includes(`<title>${title}</title>`), path)
     assert.ok(html.includes(`href="https://liftag.fit${path}"`), `${path}: canonical`)
+    if (language === 'cs') {
+      const graph = [...html.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)]
+        .flatMap(match => JSON.parse(match[1])['@graph'] ?? [])
+      assert.equal(graph.find(node => node['@type'] === 'Organization')?.url, 'https://liftag.fit/', 'Czech organization metadata must not depend on the preference cookie')
+    }
     if (language !== 'cs') {
       assert.match(html, /hreflang="en"/)
       assert.match(html, /hreflang="sk"/)
@@ -116,6 +126,38 @@ for (const [path, language] of [
   assert.match(html, new RegExp(`<html[^>]*lang="${language}"`), path)
   assert.match(html, /noindex/)
 }
+
+for (const prefix of ['', '/sk']) {
+  const { html } = await read(`${prefix}/pricing`)
+  const header = html.match(/<header[\s\S]*?<\/header>/)?.[0] ?? ''
+  assert.ok(header.includes(`href="${prefix}/exercises"`), 'catalog navigation is localized before hydration')
+  for (const hash of ['lifters', 'gyms', 'trainers']) {
+    assert.ok(header.includes(`href="${prefix || '/'}#${hash}"`), 'off-home navigation retains language')
+  }
+}
+const shareId = '00000000-0000-0000-0000-000000000000'
+for (const language of ['en', 'sk']) {
+  for (const path of ['/get', '/auth/callback', ...['qr', 'plans', 'routines', 'trainer-invites'].map(kind => `/${kind}/${shareId}`)]) {
+    const { html, response } = await read(`${path}?lang=${language}&v=f`, {
+      headers: { 'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Instagram' },
+    })
+    assert.equal(response.status, 200, path)
+    const printedUrl = html.match(/<p[^>]*class="[^"]*escape__url[^"]*"[^>]*>(.*?)<\/p>/)?.[1]?.replaceAll('&amp;', '&')
+    assert.ok(printedUrl, `${path}: escape link is present`)
+    const copied = new URL(`https://${printedUrl}`)
+    assert.equal(copied.pathname, path)
+    assert.equal(copied.searchParams.get('lang'), language)
+    if (/^\/(plans|routines)\//.test(path)) {
+      assert.equal(copied.searchParams.get('v'), 'f')
+      const image = new URL(html.match(/property="og:image"[^>]*content="([^"]+)"/)[1].replaceAll('&amp;', '&'))
+      assert.equal(image.pathname, `/api/og${path}`)
+      assert.equal(image.searchParams.get('lang'), language)
+      assert.equal(image.searchParams.get('v'), 'f')
+      assert.ok(html.includes(language === 'sk' ? ' v LIFTAGu</title>' : ' on LIFTAG</title>'), 'successful shared entity title uses the selected language')
+    }
+  }
+}
+
 console.log(
   'Locale integration checks passed: SSR, precedence, legacy redirects, stable routes, canonicals, alternates and cookie isolation.',
 )

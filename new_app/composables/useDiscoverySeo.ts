@@ -52,6 +52,7 @@ export function useDiscoverySeo(options: DiscoverySeoOptions) {
           name: toValue(name),
           description: toValue(description),
           url: url.value,
+          ...(kind === 'gym' ? {} : { inLanguage: toValue(locale) }),
           ...(toValue(photo) ? { image: toValue(photo) } : {}),
           ...(kind === 'profile'
             ? { mainEntity: { '@type': 'Person', name: toValue(name), url: url.value } }

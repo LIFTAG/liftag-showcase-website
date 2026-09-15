@@ -5,6 +5,8 @@ export const en = {
       'Instagram’s browser can’t open the App Store directly. Use the button below to open it outside Instagram.',
     qrHeading: 'OPEN IN LIFTAG.',
     qrTitle: 'Open in LIFTAG',
+    sharedTitle: '{name} on LIFTAG',
+    authDescription: 'Finish signing in to LIFTAG, or download the workout tracker on iOS and Android.',
     qrDescription:
       'This LIFTAG gym tag opens the exercise in the app. Get LIFTAG on iOS or Android to scan and log the set.',
     routineHeading: 'OPEN THIS ROUTINE.',
@@ -40,6 +42,8 @@ export const sk = {
       'Prehliadač Instagramu nedokáže priamo otvoriť App Store. Tlačidlom nižšie ho otvoríš mimo Instagramu.',
     qrHeading: 'OTVORIŤ V LIFTAG.',
     qrTitle: 'Otvoriť v LIFTAGu',
+    sharedTitle: '{name} v LIFTAGu',
+    authDescription: 'Dokonči prihlásenie do LIFTAGu alebo si stiahni aplikáciu na zaznamenávanie tréningov pre iOS a Android.',
     qrDescription:
       'Tento štítok LIFTAG vo fitku otvorí cvik v aplikácii. Nainštaluj si LIFTAG na iOS alebo Android a naskenuj štítok na zaznamenanie série.',
     routineHeading: 'OTVORIŤ TENTO TRÉNING.',

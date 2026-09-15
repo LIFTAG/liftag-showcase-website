@@ -24,7 +24,7 @@ useLiftagSeo(() => ({
 useLiftagStructuredData(() => [
   liftagOrganization,
   liftagBreadcrumbs([
-    { name: 'LIFTAG', path: '/' },
+    { name: 'LIFTAG', path: href('/') },
     { name: props.content.breadcrumbName, path: path.value },
   ]),
 ])

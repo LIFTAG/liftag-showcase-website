@@ -6,6 +6,7 @@ import {
   type KitFields,
   type KitErrors,
 } from "~/utils/gymscan/kit";
+import { contactErrorMessage } from '~/utils/contactError';
 import { en, sk } from '~/i18n/messages/gymDemo';
 import { useSiteLocale } from '~/composables/useSiteLocale';
 const props = withDefaults(
@@ -30,6 +31,7 @@ const token = ref(""),
   verificationMessage = ref(""),
   challengeReady = ref(false);
 const { status, errorCode, submit } = useContactSubmit();
+const errorMessage = computed(() => contactErrorMessage(errorCode.value, locale.value));
 const hydrated = ref(false);
 const pending = computed(() => status.value === "submitting");
 const succeeded = computed(() => status.value === "success");
@@ -219,13 +221,13 @@ onBeforeUnmount(() => {
         </div>
       </div>
       <p
-        v-if="verificationMessage || errorCode"
+        v-if="verificationMessage || errorMessage"
         ref="formError"
         class="gx-form-form-error"
         role="alert"
         tabindex="-1"
       >
-        {{ verificationMessage || t('kit.submitError') }}
+        {{ verificationMessage || errorMessage }}
       </p>
       <div
         class="gx-form-verification"

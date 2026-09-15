@@ -16,7 +16,7 @@ export default {
       body: 'Bez otočenia ide o tlak s jednoručkami v sede. Tento cvik si nechaj pre celý Arnoldov pohyb; miešanie zakryje, že si vynechal náročnú časť.',
     },
     {
-      title: 'Krútenie jednoručiek s hmotnosťou 40 kg v spodnej polohe',
+      title: 'Krútenie ťažkých jednoručiek v spodnej polohe s vystretými pažami',
       body: 'Rotácia patrí do dráhy tlaku. Zastavené krútenie pod záťažou v spodnej polohe je experiment s vnútornou rotáciou, nie tlak.',
     },
     {

@@ -21,19 +21,19 @@ useLiftagStructuredData(() => [
   liftagOrganization,
   liftagSoftwareApplication,
   liftagWebPage({
-    path,
+    path: href(path),
     name: copy.value.structuredName,
     description: description.value,
     type: 'WebPage',
   }),
   liftagBreadcrumbs([
-    { name: 'LIFTAG', path: '/' },
-    { name: copy.value.breadcrumbName, path },
+    { name: 'LIFTAG', path: href('/') },
+    { name: copy.value.breadcrumbName, path: href(path) },
   ]),
   liftagArticle({
     headline: copy.value.articleHeadline,
     description: description.value,
-    path,
+    path: href(path),
     datePublished,
   }),
 ])

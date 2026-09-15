@@ -100,7 +100,7 @@ export const en = {
       dismiss: 'Dismiss',
       message: 'Log sets, PRs and progress',
       fullMessage: 'Log sets, PRs and progress in the app.',
-      customMessage: '{message}',
+      customMessage: '{message} in the app.',
     },
   },
 }
@@ -207,7 +207,7 @@ export const sk = {
       dismiss: 'Zavrieť',
       message: 'Série, rekordy a pokrok',
       fullMessage: 'Zaznamenaj série, rekordy a pokrok v aplikácii.',
-      customMessage: '{message}',
+      customMessage: '{message} v aplikácii.',
     },
   },
 } satisfies typeof en

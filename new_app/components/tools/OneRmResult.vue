@@ -6,6 +6,7 @@ import OneRmAura from './OneRmAura.vue'
 import OneRmIcon from './OneRmIcon.vue'
 import {
   DEFAULT_FORMULA_ID,
+  fromKg,
   FORMULAS,
   type Confidence,
   type FormulaEstimate,
@@ -33,6 +34,9 @@ const props = defineProps<{
 const emit = defineEmits<{
   select: [id: FormulaId]
 }>()
+const { locale } = useSiteLocale()
+const decimalSeparator = computed(() => new Intl.NumberFormat(locale.value).formatToParts(1.1).find(part => part.type === 'decimal')!.value)
+const numericMax = computed(() => props.kg == null ? undefined : fromKg(props.kg, props.unit))
 const formattedMax = computed(() => props.kg == null ? '' : formatLoad(props.kg, props.unit))
 const alternate = computed(() => props.kg == null ? '' : `${formatLoad(props.kg, props.unit === 'kg' ? 'lb' : 'kg')} ${props.unit === 'kg' ? 'lb' : 'kg'}`)
 const pickerOpen = shallowRef(false)
@@ -79,7 +83,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer))
     <p class="sr-only" role="status" aria-atomic="true">{{ summary }}</p>
     <template v-if="kg != null">
       <div class="max-readout" aria-hidden="true">
-        <OneRmDial class="max-number" :class="{ compact: formattedMax.length > 5 }" :value="formattedMax" /><span class="max-unit">{{ unit }}</span>
+        <OneRmDial class="max-number" :class="{ compact: formattedMax.length > 5 }" :value="formattedMax" :numeric-value="numericMax" :decimal-separator="decimalSeparator" /><span class="max-unit">{{ unit }}</span>
       </div>
       <div class="result-context">
         <p class="max-equivalent">{{ alternate }}<template v-if="qualifier"> · {{ qualifier }}</template></p>

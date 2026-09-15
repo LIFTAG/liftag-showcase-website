@@ -24,7 +24,7 @@ export default {
       body: 'Hlava zostáva vzpriamená. Vysúvanie brady, aby si cvik „cítil viac“, iba zaťaží krk. Ramená idú k ušiam, nie uši k ramenám.',
     },
     {
-      title: 'Vyhadzovanie 50-kilových jednoručiek v trojkách',
+      title: 'Vyhadzovanie ťažkých jednoručiek v trojkách',
       body: 'Shrug odmeňuje čas pod napätím viac než falošný 1RM. Ak sa jednoručky hýbu a trapézy nemajú pauzu, zníž záťaž.',
     },
   ],

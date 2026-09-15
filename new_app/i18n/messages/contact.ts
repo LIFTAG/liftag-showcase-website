@@ -19,8 +19,8 @@ export const en = {
     tooManyRetry: 'Too many requests. Please try again in {retryAfter} {unit}.',
     unavailable: 'We couldn’t send your message right now. Please try again in a few minutes.',
     network: 'Network error. Please check your connection and try again.',
-    seconds: 'seconds',
-    minutes: 'minutes',
+    seconds: 'second | seconds',
+    minutes: 'minute | minutes',
   },
 }
 export const sk = {
@@ -44,7 +44,7 @@ export const sk = {
     tooManyRetry: 'Príliš veľa požiadaviek. Skús to znova o {retryAfter} {unit}.',
     unavailable: 'Správu teraz nemôžeme odoslať. Skús to znova o pár minút.',
     network: 'Chyba siete. Skontroluj pripojenie a skús to znova.',
-    seconds: 'sekúnd',
-    minutes: 'minút',
+    seconds: 'sekundu | sekundy | sekúnd',
+    minutes: 'minútu | minúty | minút',
   },
 } satisfies typeof en

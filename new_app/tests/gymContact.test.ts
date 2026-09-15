@@ -65,3 +65,16 @@ test("network, validation, challenge, rate limit and service failures preserve t
     assert.equal(contact.errorMessage.value, null);
   }
 });
+
+test('both forms can present the same localized failure and pluralized retry instructions', async () => {
+  const { contactErrorMessage } = await import('../utils/contactError.ts')
+  assert.equal(contactErrorMessage(null, 'sk'), null)
+  for (const code of ['verification', 'invalid', 'tooMany', 'unavailable', 'network'] as const) {
+    assert.ok(contactErrorMessage({ code }, 'en'))
+    assert.notEqual(contactErrorMessage({ code }, 'sk'), contactErrorMessage({ code }, 'en'))
+  }
+  for (const [amount, expected] of [[1, 'minútu'], [2, 'minúty'], [5, 'minút']] as const) {
+    assert.equal(contactErrorMessage({ code: 'tooManyRetry', retryAfter: amount, retryUnit: 'minutes' }, 'sk'), `Príliš veľa požiadaviek. Skús to znova o ${amount} ${expected}.`)
+  }
+  assert.equal(contactErrorMessage({ code: 'tooManyRetry', retryAfter: 1, retryUnit: 'seconds' }, 'en'), 'Too many requests. Please try again in 1 second.')
+})

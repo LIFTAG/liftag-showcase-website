@@ -119,6 +119,7 @@ const skGroups: Record<string, string> = {
   Dumbbell: 'Jednoručky',
   Cable: 'Kladka',
   Machine: 'Stroj',
+  Bodyweight: 'Vlastná hmotnosť',
   'Bodyweight · estimate only': 'Vlastná hmotnosť · iba odhad',
   Other: 'Iné',
 }

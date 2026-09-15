@@ -144,6 +144,7 @@ const server = createServer(async (request, response) => {
     return send(fixturePage(routines, page, limit))
   }
   if (/\/v1\/routines\/[^/]+$/.test(path)) return send({ data: fixtureRoutine() })
+  if (/\/v1\/plans\/[^/]+$/.test(path)) return send({ data: { name: 'Public plan' } })
   if (path === '/v1/users/123/plans')
     return send(
       fixturePage(

@@ -173,7 +173,7 @@ watch(targetReps, (destination) => {
 })
 const ticks = computed(() => [...new Set([1, 5, 10, 15, lastRep.value])]
   .filter(tick => tick === lastRep.value || lastRep.value - tick >= 3))
-const targetLabel = computed(() => `${targetReps.value} ${targetReps.value === 1 ? t('tools.curve.rep') : t('tools.curve.reps')}, ${t('tools.result.estimated')} ${formatLoad(target.value.kg, props.unit)} ${props.unit}`)
+const targetLabel = computed(() => `${targetReps.value} ${targetReps.value === 1 ? t('tools.curve.rep') : t('tools.curve.reps')}, ${t('tools.curve.estimated')} ${formatLoad(target.value.kg, props.unit)} ${props.unit}`)
 const formulaRange = computed(() => {
   const values = curves.value.map(curve => curve.points[targetReps.value - 1]!.kg)
   return `${formatLoad(Math.min(...values), props.unit)}–${formatLoad(Math.max(...values), props.unit)} ${props.unit}`

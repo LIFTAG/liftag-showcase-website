@@ -5,7 +5,7 @@ import { siteLocale } from '~/utils/siteLocale'
 const { t } = useI18n({ useScope: 'local', messages: { en: { ...en, ...shellEn }, sk: { ...sk, ...shellSk } } })
 definePageMeta({ i18n: false, layout: false })
 const route = useRoute()
-const { locale } = useSiteLocale()
+const { locale, href } = useSiteLocale()
 const htmlLang = computed(() => siteLocale(route.query.lang) ?? locale.value)
 useHead(() => ({ htmlAttrs: { lang: htmlLang.value } }))
 
@@ -14,11 +14,11 @@ const APP_STORE = `https://apps.apple.com/app/id${APP_STORE_APP_ID}`
 const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.liftag.app'
 
 useHead(() => ({
-  title: t('handoff.openStore'),
+  title: t('handoff.qrTitle'),
   meta: [
     { charset: 'utf-8' },
     { name: 'viewport', content: 'width=device-width,initial-scale=1' },
-    { name: 'description', content: t('handoff.openHint') },
+    { name: 'description', content: t('handoff.authDescription') },
     { name: 'robots', content: 'noindex,nofollow' },
     { name: 'apple-itunes-app', content: `app-id=${APP_STORE_APP_ID}` },
   ],
@@ -52,13 +52,13 @@ onMounted(() => {
 <template>
   <StoreEscape
     v-if="showEscape"
-    share-url="https://liftag.fit/auth/callback"
-    :heading="t('handoff.openStore')"
-    :body="t('handoff.openHint')"
+    :share-url="absoluteUrl(href('/auth/callback'))"
+    :heading="t('handoff.qrHeading')"
+    :body="t('handoff.body')"
   />
 
   <main v-else class="qr-fallback">
-    <p>{{ t('handoff.openStore') }}…</p>
+    <p>{{ t('handoff.opening') }}</p>
     <p>
       <a :href="APP_STORE">{{ t('shell.app.appStore') }}</a>
       ·

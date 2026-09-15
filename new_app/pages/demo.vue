@@ -5,13 +5,13 @@ import { GYM_DEMO_PATH } from "~/utils/gymscan/navigation";
 
 definePageMeta({ layout: false });
 
-const { locale } = useSiteLocale();
+const { locale, href } = useSiteLocale();
 const { t } = useI18n({ useScope: 'local', messages: { en, sk } });
-const description = computed(() => t('opening.body'));
+const description = computed(() => t('seo.description'));
 const localizedFaqs = computed(() => [...gymFaqsForLocale(locale.value)]);
 
 useLiftagSeo(computed(() => ({
-  title: `${t('nav.home')} | ${t('opening.titleA')}`,
+  title: t('seo.title'),
   description: description.value,
   path: GYM_DEMO_PATH,
   noindex: true,
@@ -22,8 +22,8 @@ useLiftagStructuredData(() => [
   liftagSoftwareApplication,
   liftagWebSite,
   liftagWebPage({
-    path: GYM_DEMO_PATH,
-    name: t('opening.titleA'),
+    path: href(GYM_DEMO_PATH),
+    name: t('seo.name'),
     description: description.value,
     aboutId: APP_ID,
   }),

@@ -24,7 +24,7 @@ export default {
       body: 'Iné náradie znamená iný rekord. Použi tento cvik. Poznač si otvor lavičky, ak „zvislá“ lavička v tvojej posilňovni v skutočnosti zvislá nie je.',
     },
     {
-      title: 'Vykopávanie 40-kilových jednoručiek so zalomeným zápästím',
+      title: 'Vykopávanie ťažkých jednoručiek so zalomeným zápästím',
       body: 'Nechaj si ich podať alebo začni prvé opakovanie z kľaku. Zlomené zápästie pri vykopnutí je spoľahlivý spôsob, ako sériu ukončiť predčasne.',
     },
   ],

@@ -35,13 +35,13 @@ useLiftagStructuredData(() => [
   liftagOrganization,
   liftagMobileApplication,
   liftagBreadcrumbs([
-    { name: 'LIFTAG', path: '/' },
-    { name: t('gymCrumb'), path },
+    { name: 'LIFTAG', path: href('/') },
+    { name: t('gymCrumb'), path: href(path) },
   ]),
   liftagArticle({
     headline: t('gymHeadline'),
     description: description.value,
-    path,
+    path: href(path),
     datePublished: lastUpdated,
   }),
   liftagFAQPage(localizedFaqs.value),

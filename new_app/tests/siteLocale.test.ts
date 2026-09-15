@@ -59,3 +59,15 @@ test('discovery counts use Slovak plural categories and locale-aware numbers', a
   assert.equal(discoveryCount(1, 'exercises', 'en'), '1 exercise')
   assert.equal(discoveryWeekdays('sk')[0], 'Pondelok')
 })
+
+test('unprefixed share URLs retain identity, variants and anchors while replacing language', async () => {
+  const { withSiteLocaleQuery } = await import('../utils/siteLocale.ts')
+  for (const route of ['/get', '/qr/id', '/plans/id', '/routines/id', '/trainer-invites/id', '/auth/callback', '/api/og/plans/id', '/api/og/routines/id']) {
+    const result = new URL(withSiteLocaleQuery(`${route}?v=f&lang=en#section`, 'sk'), 'https://liftag.fit')
+    assert.equal(result.pathname, route)
+    assert.equal(result.searchParams.get('v'), 'f')
+    assert.deepEqual(result.searchParams.getAll('lang'), ['sk'])
+    assert.equal(result.hash, '#section')
+    assert.equal(withSiteLocaleQuery(`${route}?lang=sk`, 'en'), `${route}?lang=en`)
+  }
+})

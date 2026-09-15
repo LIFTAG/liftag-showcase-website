@@ -183,7 +183,7 @@ useHead({
         ><NuxtLink :to="href('/privacy-policy')">{{ t('nav.privacy') }}</NuxtLink
         ><NuxtLink :to="href('/contact/support')">{{ t('nav.support') }}</NuxtLink>
       </nav>
-      <span class="gx-protocol">{{ t('opening.eyebrow') }}</span>
+      <span class="gx-protocol">{{ t('footer.tagline') }}</span>
     </footer>
     <nav v-show="chapter !== 'kit'" class="gx-chapters" :aria-label="t('nav.experienceChapters')" :inert="arriving ? true : undefined">
       <a
