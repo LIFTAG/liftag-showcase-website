@@ -36,11 +36,7 @@ export function discoveryListQuery(
   if (manufacturers.length) result['machineManufacturerIds[]'] = manufacturers
   if (equipment) {
     const categories = normalizedIds(q.categories, 32)
-    if (categories.length) {
-      // Primary-only on the new API; `categoryIds[]` keeps production filtering until that ships.
-      result['primaryCategoryIds[]'] = categories
-      result['categoryIds[]'] = categories
-    }
+    if (categories.length) result['primaryCategoryIds[]'] = categories
   }
   return result
 }
