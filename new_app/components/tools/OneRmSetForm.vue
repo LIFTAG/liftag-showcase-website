@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { exerciseHint, exerciseFor } from '~/utils/oneRepMaxExercises'
+import { exerciseFor, exerciseHintKey } from '~/utils/oneRepMaxExercises'
 import { MIN_REPS, MAX_REPS, formatInputWeight, parseRepsInput, parseWeightInput, type LiftId, type WeightUnit } from '~/utils/oneRepMax'
 import OneRmDial from './OneRmDial.vue'
 import OneRmMorphSwitch from './OneRmMorphSwitch.vue'
 import OneRmIcon from './OneRmIcon.vue'
+import { en, sk } from '~/i18n/messages/tools'
+
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 
 const unitOptions = [{ value: 'kg', label: 'kg' }, { value: 'lb', label: 'lb' }] as const
 
@@ -15,6 +18,7 @@ const selectedReps = computed(() => parseRepsInput(reps.value).value)
 const quickReps = Array.from({ length: 12 }, (_, index) => index + 1)
 const weightFocused = shallowRef(false)
 const repsFocused = shallowRef(false)
+const hint = computed(() => t(`tools.form.hint${exerciseHintKey(props.lift)[0]!.toUpperCase()}${exerciseHintKey(props.lift).slice(1)}`))
 const weightControl = useTemplateRef<HTMLElement>('weight-control')
 const repsControl = useTemplateRef<HTMLElement>('reps-control')
 const weightInput = useTemplateRef<HTMLInputElement>('weight-input')
@@ -54,47 +58,47 @@ useNumberScrub(repsControl, { step: stepReps, onActivate: () => repsInput.value?
 <template>
   <form class="set-form" @submit.prevent>
     <div class="form-heading">
-      <div><span class="form-eyebrow">START HERE</span><h2>Your last set.</h2></div>
-      <OneRmMorphSwitch :model-value="unit" :options="unitOptions" aria-label="Weight unit" @update:model-value="$event && $emit('unit', $event)" />
+      <div><span class="form-eyebrow">{{ t('tools.form.start') }}</span><h2>{{ t('tools.form.lastSet') }}</h2></div>
+      <OneRmMorphSwitch :model-value="unit" :options="unitOptions" :aria-label="t('tools.form.weightUnit')" @update:model-value="$event && $emit('unit', $event)" />
     </div>
     <div class="set-fields">
       <div class="load-field">
-        <label for="orm-weight"><span class="field-label"><OneRmIcon kind="weight" :value="weightKg" :active="weightFocused" />{{ exerciseFor(lift).basis === 'dumbbell' ? 'One dumbbell' : exerciseFor(lift).basis === 'bodyweight' ? 'Total load' : 'Weight lifted' }}</span><span>{{ unit }}</span></label>
+        <label for="orm-weight"><span class="field-label"><OneRmIcon kind="weight" :value="weightKg" :active="weightFocused" />{{ exerciseFor(lift).basis === 'dumbbell' ? t('tools.form.oneDumbbell') : exerciseFor(lift).basis === 'bodyweight' ? t('tools.form.totalLoad') : t('tools.form.weightLifted') }}</span><span>{{ unit }}</span></label>
         <div ref="weight-control" class="number-control" :class="{ invalid: weightError, 'is-editing': weightFocused }">
-          <button type="button" :aria-label="`Decrease weight by ${unit === 'kg' ? '2.5 kg' : '5 lb'}`" @click="stepWeight(-1)">−</button>
+          <button type="button" :aria-label="t('tools.form.decreaseWeight', { increment: unit === 'kg' ? '2.5 kg' : '5 lb' })" @click="stepWeight(-1)">−</button>
           <div class="number-stage" :class="{ 'is-dial': showWeightDial, 'long-value': weight.length > 5 }">
             <span v-if="showWeightDial" class="number-face" aria-hidden="true">
               <OneRmDial :value="weight" />
             </span>
-            <input id="orm-weight" ref="weight-input" v-model="weight" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="100" :aria-invalid="Boolean(weightError)" :aria-describedby="weightError ? 'orm-weight-error' : 'orm-set-hint'" @focus="focusWeight" @blur="weightFocused = false">
+            <input id="orm-weight" ref="weight-input" v-model="weight" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" :placeholder="t('tools.form.weightPlaceholder')" :aria-invalid="Boolean(weightError)" :aria-describedby="weightError ? 'orm-weight-error' : 'orm-set-hint'" @focus="focusWeight" @blur="weightFocused = false">
           </div>
-          <button type="button" :aria-label="`Increase weight by ${unit === 'kg' ? '2.5 kg' : '5 lb'}`" @click="stepWeight(1)">+</button>
+          <button type="button" :aria-label="t('tools.form.increaseWeight', { increment: unit === 'kg' ? '2.5 kg' : '5 lb' })" @click="stepWeight(1)">+</button>
         </div>
       </div>
       <div class="reps-field">
-        <label for="orm-reps"><span class="field-label"><OneRmIcon kind="reps" :value="selectedReps" :active="repsFocused" />Repetitions</span></label>
+        <label for="orm-reps"><span class="field-label"><OneRmIcon kind="reps" :value="selectedReps" :active="repsFocused" />{{ t('tools.form.repetitions') }}</span></label>
         <div ref="reps-control" class="number-control" :class="{ invalid: repsError, 'is-editing': repsFocused }">
-          <button type="button" aria-label="Decrease reps by 1" :disabled="selectedReps === MIN_REPS" @click="stepReps(-1)">−</button>
+          <button type="button" :aria-label="t('tools.form.decreaseReps')" :disabled="selectedReps === MIN_REPS" @click="stepReps(-1)">−</button>
           <div class="number-stage" :class="{ 'is-dial': showRepsDial }">
             <span v-if="showRepsDial" class="number-face" aria-hidden="true">
               <OneRmDial :value="reps" />
             </span>
-            <input id="orm-reps" ref="reps-input" v-model="reps" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="5" maxlength="2" :aria-invalid="Boolean(repsError)" :aria-describedby="repsError ? 'orm-reps-error' : 'orm-set-hint'" @focus="focusReps" @blur="repsFocused = false">
+            <input id="orm-reps" ref="reps-input" v-model="reps" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" :placeholder="t('tools.form.repsPlaceholder')" maxlength="2" :aria-invalid="Boolean(repsError)" :aria-describedby="repsError ? 'orm-reps-error' : 'orm-set-hint'" @focus="focusReps" @blur="repsFocused = false">
           </div>
-          <button type="button" aria-label="Increase reps by 1" :disabled="selectedReps === MAX_REPS" @click="stepReps(1)">+</button>
+          <button type="button" :aria-label="t('tools.form.increaseReps')" :disabled="selectedReps === MAX_REPS" @click="stepReps(1)">+</button>
         </div>
       </div>
     </div>
     <p v-if="weightError" id="orm-weight-error" class="field-error">{{ weightError }}</p>
     <p v-if="repsError" id="orm-reps-error" class="field-error">{{ repsError }}</p>
     <div class="rep-shortcuts" role="group" aria-labelledby="quick-reps-label" aria-describedby="quick-reps-hint">
-      <div class="shortcut-heading"><span id="quick-reps-label">Quick-set reps</span><span id="quick-reps-hint">1–12</span></div>
+      <div class="shortcut-heading"><span id="quick-reps-label">{{ t('tools.form.quickReps') }}</span><span id="quick-reps-hint">1–12</span></div>
       <div class="shortcut-options">
-        <button v-for="n in quickReps" :key="n" type="button" :aria-pressed="selectedReps === n" :aria-label="`Set ${n} reps`" aria-controls="orm-reps" @click="reps = String(n)"><HoloPill /><strong>{{ n }}</strong></button>
+        <button v-for="n in quickReps" :key="n" type="button" :aria-pressed="selectedReps === n" :aria-label="t('tools.form.setReps', { count: n })" aria-controls="orm-reps" @click="reps = String(n)"><HoloPill /><strong>{{ n }}</strong></button>
       </div>
     </div>
-    <div class="rep-quality" aria-hidden="true"><i /><span>Best estimates: 2–10 clean reps</span></div>
-    <p id="orm-set-hint" class="set-hint">{{ exerciseHint(lift) }}</p>
+    <div class="rep-quality" aria-hidden="true"><i /><span>{{ t('tools.form.bestEstimates') }}</span></div>
+    <p id="orm-set-hint" class="set-hint">{{ hint }}</p>
   </form>
 </template>
 

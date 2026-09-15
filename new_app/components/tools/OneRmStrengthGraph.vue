@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { formatLoad, type LiftId, type WeightUnit } from '~/utils/oneRepMax'
+const formatLoad = useLoadFormatter()
+import { type LiftId, type WeightUnit } from '~/utils/oneRepMax'
 import {
   densityMarkerRatio,
   sampleSmoothedDensity,
@@ -9,6 +10,9 @@ import {
   type ComparisonSex,
   type StrengthComparison,
 } from '~/utils/strengthStandards'
+import { en, sk } from '~/i18n/messages/tools'
+import { strengthLevelKey } from '~/content/tools/oneRmExercises'
+const { t, n } = useI18n({ useScope: 'local', messages: { en, sk } })
 
 const props = defineProps<{
   comparison: StrengthComparison | null
@@ -43,13 +47,14 @@ const chart = computed(() => {
     markerX,
     markerY,
     markerOffset: start ? 8 : -8,
-    markerLabel: props.comparison?.boundary === 'below' ? '← You' : props.comparison?.boundary === 'above' || nearRight ? 'You →' : 'You',
+    markerLabel: props.comparison?.boundary === 'below' ? t('tools.graph.youLeft') : props.comparison?.boundary === 'above' || nearRight ? t('tools.graph.youRight') : t('tools.graph.you'),
     markerAnchor: start ? 'start' : 'end',
     revealWidth: markerRatio == null ? 0 : Math.max(0, markerX - plot.left),
     anchors: model.anchors
       .filter((anchor, index, list) => index === list.findLastIndex(item => item.ratio === anchor.ratio))
       .map((anchor, index, list) => ({
         ...anchor,
+        label: strengthLevelKey(anchor.label) ? t(`tools.progression.${strengthLevelKey(anchor.label)}`) : anchor.label === 'World record' ? t('tools.progression.worldRecord') : anchor.label,
         x: x(anchor.ratio),
         value: props.bodyweightKg != null
           ? `${formatLoad(anchor.ratio * props.bodyweightKg, props.unit)}${index === list.length - 1 ? ` ${props.unit}` : ''}`
@@ -60,15 +65,15 @@ const chart = computed(() => {
       })),
   }
 })
-const axisLegend = computed(() => props.bodyweightKg != null ? `Estimated 1RM (${props.unit})` : '× bodyweight')
+const axisLegend = computed(() => props.bodyweightKg != null ? `${t('tools.result.estimated')} (${props.unit})` : `× ${t('tools.strength.bodyweight').toLowerCase()}`)
 const description = computed(() => {
-  if (props.comparison) return `You are stronger than ${strongerThanShare(props.comparison)} of lifters in your comparison group. The chart is the density implied by the published beginner to elite bodyweight ratios. The highlighted area is the share you are ahead of.${props.comparison.boundary ? ` Your marker is at the ${props.comparison.boundary === 'below' ? '5%' : 'modeled tail'} edge; your exact position lies beyond it.` : ''}`
-  if (density.value) return 'Approximate distribution of lifters for this exercise, reconstructed from published beginner to elite percentiles. Add your details to see your place.'
-  return 'Strength distribution for the selected exercise. Choose a comparison group to reveal it.'
+  if (props.comparison) return `${t('tools.strength.stronger', { share: strongerThanShare(props.comparison), sex: props.sex === 'male' ? t('tools.strength.maleGroup') : t('tools.strength.femaleGroup') })} ${t('tools.strength.approx', { record: '' })}`
+  if (density.value) return t('tools.graph.distribution')
+  return t('tools.graph.selected')
 })
 
 function formatRatio(ratio: number) {
-  return `${String(+ratio.toFixed(2))}×`
+  return `${n(ratio, { maximumFractionDigits: 2 })}×`
 }
 
 function curvePath(
@@ -136,17 +141,17 @@ function curvePath(
       </template>
     </svg>
     <div class="graph-direction" aria-hidden="true">
-      <span>Weaker</span>
+      <span>{{ t('tools.graph.weaker') }}</span>
       <svg viewBox="0 0 40 12"><path d="M1 6H38M33 1l5 5-5 5" /></svg>
       <span class="axis-legend">{{ axisLegend }}</span>
       <svg class="axis-legend" viewBox="0 0 40 12"><path d="M1 6H38M33 1l5 5-5 5" /></svg>
-      <span>Stronger</span>
+      <span>{{ t('tools.graph.stronger') }}</span>
     </div>
     <figcaption class="graph-key">
-      <span class="highlight-key"><i />{{ comparison ? 'Lifters you’re ahead of' : 'Your result lights up here' }}</span>
-      <span>{{ density ? 'Height = more lifters at that strength' : 'Pick a group to see the distribution' }}</span>
+      <span class="highlight-key"><i />{{ comparison ? t('tools.graph.ahead') : t('tools.graph.result') }}</span>
+      <span>{{ density ? t('tools.graph.height') : t('tools.graph.pick') }}</span>
     </figcaption>
-    <p v-if="comparison?.boundary" class="boundary-note">Marker shown at the {{ comparison.boundary === 'below' ? '5% boundary' : 'edge of the modeled tail' }}. Your position lies {{ comparison.boundary === 'below' ? 'below' : 'above' }} it.</p>
+    <p v-if="comparison?.boundary" class="boundary-note">{{ t('tools.graph.boundary', { edge: comparison.boundary === 'below' ? t('tools.graph.boundaryFive') : t('tools.graph.boundarySelected'), direction: comparison.boundary === 'below' ? t('tools.graph.boundaryBelow') : t('tools.graph.boundaryAbove') }) }}</p>
   </figure>
 </template>
 

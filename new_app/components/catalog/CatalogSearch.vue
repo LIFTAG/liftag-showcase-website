@@ -1,13 +1,10 @@
 <script setup lang="ts">
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   modelValue: string
   placeholder: string
-  ariaLabel?: string
-  clearAriaLabel?: string
-}>(), {
-  ariaLabel: 'Search exercises',
-  clearAriaLabel: 'Clear search',
-})
+  ariaLabel: string
+  clearAriaLabel: string
+}>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]

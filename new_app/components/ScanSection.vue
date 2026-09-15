@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { SCAN_FLOW_SEGMENTS, SCAN_FLOW_SOURCES } from '../utils/scanFlow'
+import { en, sk } from '~/i18n/messages/marketing'
+const { t, tm, rt } = useI18n({ useScope: 'local', messages: { en, sk } })
 
 const step = ref(0)
 // Bumped on every step change so the newly active row's title replays the
@@ -65,28 +67,14 @@ const lerpActive = useNearViewport(sectionRef)
 // compositor. Moving the cursor never re-renders this component.
 useLerpVars(sectionRef, rawMouse, 'scan', 0.06, () => lerpActive.value)
 
-const steps = [
-  {
-    tag: 'STEP 01',
-    title: 'Tap/scan.',
-    body: 'Open Liftag. Tap the NFC tag or aim at the QR sticker on the machine. The exact exercise, variations, and a setup video load instantly. No menus, no searching.',
-    brief: 'Tap NFC or scan QR. LIFTAG opens the exact exercise and setup video.',
-    screen: '/assets/screens/qr-scan.webp',
-    extra: null as null | { label: string; note: string; brief: string },
-  },
-  {
-    tag: 'STEP 02',
-    title: 'Log.',
-    body: 'Tap weight × reps. Timer auto-runs between sets. RPE optional. Every set is timestamped and saved to your history.',
-    brief: 'Tap weight and reps. Rest timer runs, then the set lands in history.',
-    screen: '/assets/screens/log-set.webp',
-    extra: {
-      label: 'OPTIONAL',
-      note: "Watch the gym's own instruction video. Filmed by their trainers, on their machines.",
-      brief: "Gym's own trainer video is one tap away.",
-    },
-  },
-]
+const steps = computed(() => {
+  const copy = tm('marketing.scan.steps') as Array<Record<string, unknown>>
+  return copy.map((item, index) => ({
+    tag: rt(item.tag as string), title: rt(item.title as string), body: rt(item.body as string), brief: rt(item.brief as string),
+    screen: index === 0 ? '/assets/screens/qr-scan.webp' : '/assets/screens/log-set.webp',
+    extra: item.extraLabel ? { label: rt(item.extraLabel as string), note: rt(item.extraNote as string), brief: rt(item.extraBrief as string) } : null,
+  }))
+})
 
 // videoCycleKey re-arms the current slice from its start. It advances whenever
 // the step timer is re-armed - coming back on screen, or a hover being
@@ -153,7 +141,7 @@ function onStepBorderAnimationEnd(stepIndex: number, event: AnimationEvent) {
   if (!phoneLayout.value || reduceMotion.value) return
   if (event.pseudoElement !== '::before' || !event.animationName.includes('scanMobilePaneBorderLoad')) return
   if (step.value !== stepIndex || !inView.value || !documentVisible.value || hoveredStep.value !== null) return
-  setStep((step.value + 1) % steps.length)
+  setStep((step.value + 1) % steps.value.length)
 }
 
 const SCAN_PHONE_MOTION = 'translate3d(calc(var(--scan-mx) * 18px), calc(var(--scan-my) * 12px), 0)'
@@ -210,7 +198,7 @@ function scheduleNextStep(delay: number) {
   clearCycleTimer()
   cycleTimer = setTimeout(() => {
     cycleTimer = null
-    setStep((step.value + 1) % steps.length)
+    setStep((step.value + 1) % steps.value.length)
     scheduleNextStep(scanCycleMs)
   }, Math.max(0, delay))
 }
@@ -260,9 +248,9 @@ onBeforeUnmount(() => {
 
     <div class="container scan-wrap" :style="{ position: 'relative', zIndex: 2 }">
       <div class="scan-intro">
-        <Eyebrow>▸ MACHINE SYNC</Eyebrow>
+        <Eyebrow>{{ t('marketing.scan.eyebrow') }}</Eyebrow>
         <SectionTitle>
-          Every machine has<br />a manual. <span class="lime">Now it's in your pocket.</span>
+          {{ t('marketing.scan.title') }}
         </SectionTitle>
 
         <p
@@ -276,20 +264,19 @@ onBeforeUnmount(() => {
             marginTop: '28px',
           }"
         >
-          No more guessing how a cable stack works. Tap the NFC tag or scan the QR code on any partner gym machine.
-          Liftag opens the right exercise, demo video, and tracking flow in seconds.
+          {{ t('marketing.scan.lead') }}
         </p>
       </div>
 
       <figure
         class="scan-token-stage"
-        aria-label="Stylized LIFTAG NFC tag for illustration. The real tag looks different. Move to tilt."
+        :aria-label="t('marketing.scan.tokenAlt')"
       >
         <TapTokenCore />
         <figcaption class="scan-token-caption">
-          <span class="scan-token-caption-name protocol">NFC machine tag</span>
-          <span class="scan-token-caption-note protocol">Optional add-on · below the QR</span>
-          <span class="scan-token-caption-note protocol">Illustration only · not the real tag</span>
+          <span class="scan-token-caption-name protocol">{{ t('marketing.scan.token') }}</span>
+          <span class="scan-token-caption-note protocol">{{ t('marketing.scan.optional') }}</span>
+          <span class="scan-token-caption-note protocol">{{ t('marketing.scan.illustration') }}</span>
         </figcaption>
       </figure>
 

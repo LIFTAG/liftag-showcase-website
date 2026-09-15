@@ -1,3 +1,4 @@
+import { siteBasePath } from '../utils/siteLocale.ts'
 import type {
   Coordinate,
   DiscoveryFilters,
@@ -45,6 +46,7 @@ const stateSignature = (state: BrowseState) =>
   ])
 
 export function useExplore(locale: Ref<DiscoveryLocale>) {
+  const { switching } = useSiteLocale()
   const route = useRoute(),
     router = useRouter()
   const saved = useState<ExploreSession | null>('explore-browse-state', () => null)
@@ -135,7 +137,7 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
     }
   }
   function saveQuery() {
-    if (route.path !== '/explore' || disposed) return
+    if (siteBasePath(route.path) !== '/explore' || disposed || switching.value) return
     persist()
     const query = {
       ...(route.query.lang ? { lang: route.query.lang } : {}),
@@ -283,7 +285,7 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
   watch(
     () => route.query,
     (value, previous) => {
-      if (route.path !== '/explore' || querySignature(value) === lastWritten) return
+      if (siteBasePath(route.path) !== '/explore' || querySignature(value) === lastWritten) return
       const next = readDiscoveryQuery(value)
       // A language change must not overwrite input or map movement that is
       // still waiting for the debounced URL write. Locale reloads separately.
@@ -297,6 +299,11 @@ export function useExplore(locale: Ref<DiscoveryLocale>) {
       }
     },
   )
+  // A debounced URL write must not cancel an in-flight language navigation.
+  watch(switching, (pending) => {
+    clearTimeout(urlTimer)
+    if (!pending && mounted) urlTimer = setTimeout(saveQuery, 100)
+  })
   onMounted(async () => {
     if (selectedId.value && !restored && route.query.lat === undefined) {
       const contextId = selectedId.value

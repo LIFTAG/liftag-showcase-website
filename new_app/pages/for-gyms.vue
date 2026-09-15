@@ -1,106 +1,51 @@
 <script setup lang="ts">
-const title = 'NFC and QR tags for <span class="lime">gym machines.</span>'
-const description = 'LIFTAG gives gyms a free dashboard to create and manage NFC tags and QR codes, plus listing, machine setup, and the full member app. Gyms buy the physical tags and stickers themselves. Advanced business tools are optional.'
-
-useLiftagSeo({
-  title: 'NFC and QR Gym Machine Tags | LIFTAG for Gyms',
-  description,
-  path: '/for-gyms',
+import { en, sk } from '~/i18n/messages/marketingPages'
+const { t, tm, rt } = useI18n({ useScope: 'local', messages: { en, sk } })
+const pageCopy = computed(() => {
+  const copy = tm('gyms') as typeof en.gyms
+  return {
+    ...copy,
+    metrics: copy.metrics.map((item) => ({ value: rt(item.value), label: rt(item.label) })),
+    sections: copy.sections.map((item) => ({ title: rt(item.title), body: rt(item.body) })),
+    faqs: copy.faqs.map((item) => ({ question: rt(item.question), answer: rt(item.answer) })),
+  }
 })
+const { locale, href } = useSiteLocale()
 
-useLiftagStructuredData([
+useLiftagSeo(() => ({
+  title: `${rt(pageCopy.value.title).replace(/<[^>]+>/g, '')} | LIFTAG`,
+  description: rt(pageCopy.value.description),
+  path: '/for-gyms',
+}))
+
+useLiftagStructuredData(() => [
   liftagOrganization,
   liftagMobileApplication,
   liftagBreadcrumbs([
-    { name: 'LIFTAG', path: '/' },
-    { name: 'For Gyms', path: '/for-gyms' },
+    { name: 'LIFTAG', path: href('/') },
+    { name: t('gymsBreadcrumb'), path: href('/for-gyms') },
   ]),
-  liftagFAQPage([
-    {
-      question: 'Can LIFTAG work across multiple gym locations?',
-      answer: 'Yes. LIFTAG is designed for a shared equipment catalog that can be deployed across multiple locations, with machines and staff managed from one place.',
-    },
-    {
-      question: 'Do gyms need NFC or QR codes?',
-      answer: 'LIFTAG supports both. NFC creates a fast tap experience, while QR codes keep the same flow accessible on more phones and surfaces.',
-    },
-    {
-      question: 'What does LIFTAG cost for gyms?',
-      answer: 'Listing, machine setup, and the dashboard to create and manage NFC tags and QR codes are free forever. Physical NFC tags and QR stickers are not included: gyms buy those themselves. Advanced business tools are optional.',
-    },
-    NFC_QR_HARDWARE_FAQ,
-    {
-      question: 'How does LIFTAG compare to Liftd, ScanLiftLog, or RepTag?',
-      answer: 'LIFTAG is the only one of those four that keeps core gym tools free, including the dashboard to create NFC and QR codes. Gyms buy the physical tags themselves. Liftd leads on paid owner-side churn analytics. ScanLiftLog is the no-app option. RepTag is strongest for DACH studios that want trainer chat and a digital floor plan. The full table is on the QR and NFC comparison page.',
-    },
-  ]),
+  liftagFAQPage(pageCopy.value.faqs),
 ])
-
-const metrics = [
-  { value: '1→12', label: 'multi-location rollout' },
-  { value: 'NFC', label: 'tap to open' },
-  { value: 'QR', label: 'scan backup' },
-]
-
-const sections = [
-  {
-    title: 'Turn every machine into an entry point',
-    body: 'Add an NFC tag or QR sticker to each machine. You buy the physical tags; the dashboard encodes them. Members land on the correct movement, machine setup, variations, and logging screen without searching.',
-  },
-  {
-    title: 'Use your own trainer videos',
-    body: 'Gyms can connect machine-specific instruction videos filmed by their own trainers, on their own equipment, so members get guidance that matches the actual floor.',
-  },
-  {
-    title: 'Manage locations from one dashboard',
-    body: 'Keep machines, locations, staff access, and rollout status organized from a central dashboard. The core dashboard is free forever; advanced business tools are optional.',
-  },
-]
-
-const faqs = [
-  {
-    question: 'Can LIFTAG work across multiple gym locations?',
-    answer: 'Yes. LIFTAG is designed for a shared equipment catalog that can be deployed across multiple locations, with machines and staff managed from one place.',
-  },
-  {
-    question: 'Do gyms need NFC or QR codes?',
-    answer: 'LIFTAG supports both. NFC creates a fast tap experience, while QR codes keep the same flow accessible on more phones and surfaces.',
-  },
-  {
-    question: 'What does LIFTAG cost for gyms?',
-    answer: 'Listing, machine setup, and the dashboard to create and manage NFC tags and QR codes are free forever. Physical NFC tags and QR stickers are not included: gyms buy those themselves. Advanced business tools are optional.',
-  },
-  NFC_QR_HARDWARE_FAQ,
-  {
-    question: 'How does LIFTAG compare to Liftd, ScanLiftLog, or RepTag?',
-    answer: 'LIFTAG is the only one of those four that keeps core gym tools free, including the dashboard to create NFC and QR codes. Gyms buy the physical tags themselves. Liftd leads on paid owner-side churn analytics. ScanLiftLog is the no-app option. RepTag is strongest for DACH studios that want trainer chat and a digital floor plan. The full table is on the QR and NFC comparison page.',
-  },
-]
 </script>
 
 <template>
   <SeoLandingPage
-    eyebrow="FOR GYM OWNERS"
-    :title="title"
-    :lead="description"
-    :metrics="metrics"
-    :sections="sections"
-    :faqs="faqs"
-    cta-label="See gym flow"
-    cta-href="/#gyms"
+    :eyebrow="rt(pageCopy.eyebrow)"
+    :title="rt(pageCopy.title)"
+    :lead="rt(pageCopy.description)"
+    :metrics="pageCopy.metrics"
+    :sections="pageCopy.sections"
+    :faqs="pageCopy.faqs"
+    :cta-label="rt(pageCopy.cta)"
+    :cta-href="href('/#gyms')"
   >
     <div class="container gym-compare">
-      <p class="protocol gym-compare-eyebrow">THE DECIDER</p>
-      <h2 class="gym-compare-title">The only free core in the category.</h2>
-      <p class="gym-compare-lead">
-        Liftd, ScanLiftLog, and RepTag all charge the gym a monthly platform fee. LIFTAG keeps listing, machine setup, and the dashboard to create NFC and QR codes free. Gyms buy the physical tags themselves.
-      </p>
-      <GymQrComparisonTable
-        kind="matrix"
-        variant="gym"
-        label="Gym cost and tag comparison"
-      />
-      <a href="/best-gym-qr-nfc-app" class="gym-compare-more">Full QR + NFC comparison</a>
+      <p class="protocol gym-compare-eyebrow">{{ rt(pageCopy.compare.eyebrow) }}</p>
+      <h2 class="gym-compare-title">{{ rt(pageCopy.compare.title) }}</h2>
+      <p class="gym-compare-lead">{{ rt(pageCopy.compare.lead) }}</p>
+      <GymQrComparisonTable kind="matrix" variant="gym" :label="rt(pageCopy.compare.label)" />
+      <a :href="href('/best-gym-qr-nfc-app')" class="gym-compare-more">{{ rt(pageCopy.compare.link) }}</a>
     </div>
   </SeoLandingPage>
 </template>

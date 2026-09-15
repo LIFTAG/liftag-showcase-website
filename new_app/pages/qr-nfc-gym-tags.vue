@@ -1,98 +1,64 @@
 <script setup lang="ts">
-const title = 'NFC and QR gym tags that open the <span class="lime">right exercise.</span>'
-const description = 'LIFTAG combines NFC tags and QR codes for gym machines so lifters can tap or scan equipment to open setup videos, exercise details, and workout tracking.'
+import { en, sk } from '~/content/comparisons/qrTags'
+const { locale, href } = useSiteLocale()
+const copy = computed(() => locale.value === 'sk' ? sk : en)
+const title = computed(() => copy.value.title)
+const description = computed(() => copy.value.description)
 
-useLiftagSeo({
-  title: 'NFC and QR Gym Tags for Exercise Machines | LIFTAG',
-  description,
+useLiftagSeo(() => ({
+  title: copy.value.seoTitle,
+  description: description.value,
   path: '/qr-nfc-gym-tags',
-})
+}))
 
-useLiftagStructuredData([
+useLiftagStructuredData(() => [
   liftagOrganization,
   liftagMobileApplication,
+  liftagWebPage({
+    path: href('/qr-nfc-gym-tags'),
+    name: copy.value.structuredName,
+    description: description.value,
+    type: 'WebPage',
+  }),
   liftagBreadcrumbs([
-    { name: 'LIFTAG', path: '/' },
-    { name: 'NFC and QR Gym Tags', path: '/qr-nfc-gym-tags' },
+    { name: 'LIFTAG', path: href('/') },
+    { name: copy.value.breadcrumbName, path: href('/qr-nfc-gym-tags') },
   ]),
-  liftagFAQPage([
-    {
-      question: 'What should a gym put on each machine?',
-      answer: 'A combined NFC tag and QR sticker is the strongest setup: NFC for tap-to-open speed, QR for universal scan access, and both pointing to the same machine-specific Liftag flow.',
-    },
-    {
-      question: 'Do NFC and QR tags help with member onboarding?',
-      answer: 'Yes. Tags reduce uncertainty at the machine by opening the correct exercise setup, variations, and gym-filmed instruction video directly from the equipment.',
-    },
-    {
-      question: 'Do other gym QR platforms support NFC tags?',
-      answer: 'LIFTAG treats NFC and QR as the default: gyms create both from the dashboard and buy the physical tags themselves. Liftd supports NFC if the gym supplies tags. ScanLiftLog and RepTag are QR only.',
-    },
-    NFC_QR_HARDWARE_FAQ,
-  ]),
+  liftagArticle({
+    headline: copy.value.articleHeadline,
+    description: description.value,
+    path: href('/qr-nfc-gym-tags'),
+    datePublished: '2026-08-20',
+  }),
+  liftagFAQPage(copy.value.faqs),
 ])
 
-const metrics = [
-  { value: 'TAP', label: 'nfc tag' },
-  { value: 'SCAN', label: 'qr code' },
-  { value: 'LOG', label: 'set tracking' },
-]
-
-const sections = [
-  {
-    title: 'NFC for the fastest interaction',
-    body: 'NFC tags let lifters tap the machine and immediately open the relevant Liftag flow. It feels native, fast, and clear for repeat gym use.',
-  },
-  {
-    title: 'QR codes as a universal fallback',
-    body: 'QR stickers keep the same machine-sync experience available across devices, lighting conditions, and member habits. Gyms can use both on the same machine.',
-  },
-  {
-    title: 'Content and tracking in one destination',
-    body: 'The tag does more than open a web page. It connects the machine to exercise instructions, trainer videos, logging, rest timing, and long-term workout history.',
-  },
-]
-
-const faqs = [
-  {
-    question: 'What should a gym put on each machine?',
-    answer: 'A combined NFC tag and QR sticker is the strongest setup: NFC for tap-to-open speed, QR for universal scan access, and both pointing to the same machine-specific Liftag flow.',
-  },
-  {
-    question: 'Do NFC and QR tags help with member onboarding?',
-    answer: 'Yes. Tags reduce uncertainty at the machine by opening the correct exercise setup, variations, and gym-filmed instruction video directly from the equipment.',
-  },
-  {
-    question: 'Do other gym QR platforms support NFC tags?',
-    answer: 'LIFTAG treats NFC and QR as the default: gyms create both from the dashboard and buy the physical tags themselves. Liftd supports NFC if the gym supplies tags. ScanLiftLog and RepTag are QR only.',
-  },
-  NFC_QR_HARDWARE_FAQ,
-]
+const metrics = computed(() => copy.value.metrics)
+const sections = computed(() => copy.value.sections)
+const faqs = computed(() => copy.value.faqs)
 </script>
 
 <template>
   <SeoLandingPage
-    eyebrow="MACHINE SYNC"
+    :eyebrow="copy.eyebrow"
     :title="title"
     :lead="description"
     :metrics="metrics"
     :sections="sections"
     :faqs="faqs"
-    cta-label="See scan flow"
+    :cta-label="copy.cta"
     cta-href="/#scan"
   >
     <div class="container tag-compare">
-      <p class="protocol tag-compare-eyebrow">NFC + QR</p>
-      <h2 class="tag-compare-title">Most competitors stop at a printed QR.</h2>
-      <p class="tag-compare-lead">
-        LIFTAG treats NFC for tap-to-open speed and QR as the universal fallback, on the same machine. Gyms create both from the dashboard and buy the physical tags themselves.
-      </p>
+      <p class="protocol tag-compare-eyebrow">{{ copy.compareEyebrow }}</p>
+      <h2 class="tag-compare-title">{{ copy.compareTitle }}</h2>
+      <p class="tag-compare-lead">{{ copy.compareLead }}</p>
       <GymQrComparisonTable
         kind="matrix"
         variant="tags"
-        label="NFC and QR gym tag comparison"
+        :label="copy.compareTitle"
       />
-      <a href="/best-gym-qr-nfc-app" class="tag-compare-more">Full QR + NFC comparison</a>
+      <a :href="href('/best-gym-qr-nfc-app')" class="tag-compare-more">{{ copy.compareMore }}</a>
     </div>
   </SeoLandingPage>
 </template>

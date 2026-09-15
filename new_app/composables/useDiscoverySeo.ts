@@ -1,6 +1,7 @@
 import type { MaybeRefOrGetter } from 'vue'
 import type { DiscoveryLocale } from '~/types/discovery'
 import { discoveryCopy } from '~/utils/discoveryCopy'
+import { siteBasePath, siteCanonicalPath, siteLocalePath, siteLocaleAlternates, isLocalizedSitePath } from '~/utils/siteLocale'
 import { DEFAULT_OG_IMAGE, SITE_URL, liftagBreadcrumbs } from '~/utils/seoSchema'
 
 interface DiscoverySeoOptions {
@@ -17,9 +18,20 @@ interface DiscoverySeoOptions {
 export function useDiscoverySeo(options: DiscoverySeoOptions) {
   const { name, description, locale, photo, details, canonicalPath, kind = 'page' } = options
   const route = useRoute()
-  const url = computed(
-    () => `${SITE_URL}${toValue(canonicalPath) ?? `${route.path}?lang=${toValue(locale)}`}`,
-  )
+  const canonical = computed(() => {
+    const target = new URL(toValue(canonicalPath) ?? route.path, SITE_URL)
+    if (isLocalizedSitePath(target.pathname)) {
+      return siteCanonicalPath(`${target.pathname}${target.search}`, toValue(locale))
+    } else target.searchParams.set('lang', toValue(locale))
+    return `${target.pathname}${target.search}`
+  })
+  const url = computed(() => `${SITE_URL}${canonical.value}`)
+  const alternates = computed(() => isLocalizedSitePath(route.path)
+    ? siteLocaleAlternates(canonical.value)
+    : (['en', 'sk', 'x-default'] as const).map(lang => ({
+      hreflang: lang,
+      path: canonical.value.replace(/([?&])lang=(en|sk)/, `$1lang=${lang === 'sk' ? 'sk' : 'en'}`),
+    })))
   useSeoMeta({
     title: () => `${toValue(name)} | LIFTAG`,
     description: () => toValue(description),
@@ -40,6 +52,7 @@ export function useDiscoverySeo(options: DiscoverySeoOptions) {
           name: toValue(name),
           description: toValue(description),
           url: url.value,
+          ...(kind === 'gym' ? {} : { inLanguage: toValue(locale) }),
           ...(toValue(photo) ? { image: toValue(photo) } : {}),
           ...(kind === 'profile'
             ? { mainEntity: { '@type': 'Person', name: toValue(name), url: url.value } }
@@ -47,10 +60,10 @@ export function useDiscoverySeo(options: DiscoverySeoOptions) {
           ...toValue(details),
         },
         liftagBreadcrumbs([
-          { name: 'LIFTAG', path: '/' },
-          ...(route.path === '/explore'
+          { name: 'LIFTAG', path: siteLocalePath('/', toValue(locale)) },
+          ...(siteBasePath(route.path) === '/explore'
             ? []
-            : [{ name: copy.explore, path: `/explore?lang=${toValue(locale)}` }]),
+            : [{ name: copy.explore, path: siteLocalePath('/explore', toValue(locale)) }]),
           { name: toValue(name), path: url.value },
         ]),
       ],
@@ -59,11 +72,7 @@ export function useDiscoverySeo(options: DiscoverySeoOptions) {
       htmlAttrs: { lang: toValue(locale) },
       link: [
         { rel: 'canonical', href: url.value },
-        ...(['en', 'sk'] as const).map((lang) => ({
-          rel: 'alternate',
-          hreflang: lang,
-          href: url.value.replace(/([?&])lang=(en|sk)/, `$1lang=${lang}`),
-        })),
+        ...alternates.value.map(item => ({ rel: 'alternate', hreflang: item.hreflang, href: `${SITE_URL}${item.path}` })),
       ],
       script: [
         {

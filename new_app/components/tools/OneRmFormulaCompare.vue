@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { FormulaEstimate, FormulaId, WeightUnit } from '~/utils/oneRepMax'
 import { DEFAULT_FORMULA_ID } from '~/utils/oneRepMax'
+import { en, sk } from '~/i18n/messages/tools'
+const { t, n } = useI18n({ useScope: 'local', messages: { en, sk } })
 
 defineProps<{
   rows: FormulaEstimate[]
@@ -20,18 +22,17 @@ const open = shallowRef(false)
 <template>
   <details class="orm-compare" :open="open" @toggle="open = ($event.target as HTMLDetailsElement).open">
     <summary class="orm-compare-summary">
-      Compare all seven formulas
-      <span v-if="spreadPct != null" class="orm-compare-spread">{{ spreadPct.toFixed(1) }}% spread</span>
+      {{ t('tools.curve.compareAll') }}
+      <span v-if="spreadPct != null" class="orm-compare-spread">{{ n(spreadPct, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) }}% {{ t('tools.calculatorUi.spreadLabel') }}</span>
     </summary>
     <p class="orm-compare-note">
-      Select a formula to update your result. The spread shows disagreement between equations,
-      not a confidence interval. The LIFTAG app uses Epley.
+      {{ t('tools.calculatorUi.compareNote') }} {{ t('tools.curve.spread') }}
     </p>
-    <div class="orm-compare-list" role="group" aria-label="Epley, Brzycki, Lombardi, Mayhew, O'Connor, Wathen, and Lander estimates">
+    <div class="orm-compare-list" role="group" :aria-label="t('tools.result.formulas')">
       <div class="orm-compare-head" aria-hidden="true">
-        <span>Formula</span>
-        <span>Year</span>
-        <span>Estimate</span>
+        <span>{{ t('tools.tables.formula') }}</span>
+        <span>{{ t('tools.tables.year') }}</span>
+        <span>{{ t('tools.result.estimated') }}</span>
       </div>
       <button
         v-for="row in rows"
@@ -45,12 +46,12 @@ const open = shallowRef(false)
       >
         <span class="orm-compare-name">
           {{ row.name }}
-          <span v-if="row.id === DEFAULT_FORMULA_ID" class="orm-compare-default">default</span>
+          <span v-if="row.id === DEFAULT_FORMULA_ID" class="orm-compare-default">{{ t('tools.result.default') }}</span>
         </span>
         <span>{{ row.year }}</span>
         <span class="orm-compare-load">
           <template v-if="row.kg != null">{{ formatLoad(row.kg, unit) }} {{ unit }}</template>
-          <template v-else>n/a</template>
+          <template v-else>{{ t('tools.tables.na') }}</template>
         </span>
       </button>
     </div>

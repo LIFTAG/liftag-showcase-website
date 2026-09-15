@@ -1,34 +1,11 @@
 <script setup lang="ts">
-const benefits = [
-  {
-    tag: 'QR + NFC',
-    title: 'Every machine, explained.',
-    body: 'Create tags in the dashboard. Members tap, scan, watch, lift. You buy the stickers.',
-  },
-  {
-    tag: 'YOUR CONTENT',
-    title: 'Your trainers in every video.',
-    body: 'Record once. Deploy across the whole floor.',
-  },
-  {
-    tag: 'DISCOVERY',
-    title: 'Get found by nearby lifters.',
-    body: 'Featured on the Liftag map with a verified badge.',
-  },
-  {
-    tag: 'FREE',
-    title: 'Core gym tools. Free forever.',
-    body: 'Dashboard, listing, machine setup, and the member app stay free. Physical NFC tags and QR stickers are not included.',
-  },
-]
+import { en, sk } from '~/i18n/messages/marketing'
+const { t, tm, rt } = useI18n({ useScope: 'local', messages: { en, sk } })
+const { href } = useSiteLocale()
+const benefits = computed(() => (tm('marketing.gyms.benefits') as Array<{ tag: string, title: string, body: string }>).map(item => ({ tag: rt(item.tag), title: rt(item.title), body: rt(item.body) })))
+const gymNumbers = computed(() => (tm('marketing.gyms.numbers') as Array<{ n: string, label: string, sub: string }>).map(item => ({ n: rt(item.n), l: rt(item.label), sub: rt(item.sub) })))
 
-const gymNumbers = [
-  { n: '0€', l: 'Core gym tools', sub: 'free forever' },
-  { n: 'FREE', l: 'NFC + QR dashboard', sub: 'you buy the stickers' },
-  { n: 'MAP', l: 'Featured placement', sub: 'verified gym badge' },
-]
-
-const muscleTags = ['BACK', 'LATS', 'BICEPS']
+const muscleTags = computed(() => (tm('marketing.gyms.tags') as string[]).map(item => rt(item)))
 const gymSectionRef = ref<HTMLElement | null>(null)
 const gymInView = ref(false)
 const documentVisible = ref(true)
@@ -138,13 +115,11 @@ onBeforeUnmount(() => {
 
     <div class="container" style="position: relative;">
       <SectionHeader :cols="'1.1fr 1fr'" :copy-max="480">
-        <template #eyebrow>▸ FOR GYMS</template>
+        <template #eyebrow>{{ t('marketing.gyms.eyebrow') }}</template>
         <template #title>
-          Put your gym<br />on the <span class="lime">map.</span>
+          {{ t('marketing.gyms.heroTitle') }}
         </template>
-        Tag your floor. Members tap NFC or scan QR, instantly open the right exercise, and watch
-        a setup video your trainers recorded. Get discovered by thousands of nearby lifters looking for
-        their next gym.
+        {{ t('marketing.gyms.heroLead') }}
       </SectionHeader>
 
       <!-- Middle: 3-col layout -->
@@ -214,7 +189,7 @@ onBeforeUnmount(() => {
             <div :style="{ height: '110px', position: 'relative', overflow: 'hidden' }">
               <img
                 src="/assets/img/lat-pulldown.webp"
-                alt="Lat Pulldown machine"
+                :alt="t('marketing.gyms.machineAlt')"
                 loading="lazy"
                 decoding="async"
                 :style="{
@@ -245,10 +220,10 @@ onBeforeUnmount(() => {
                   fontSize: '8px',
                   letterSpacing: '0.15em',
                 }"
-              >● LIVE · 3 USING</div>
+              >{{ t('marketing.gyms.liveStatus') }}</div>
             </div>
             <div :style="{ padding: '14px' }">
-              <div class="protocol" :style="{ color: '#CCFF00', fontSize: '8px' }">MACHINE · #042</div>
+              <div class="protocol" :style="{ color: '#CCFF00', fontSize: '8px' }">{{ t('marketing.gyms.machine') }}</div>
               <div
                 :style="{
                   fontFamily: '\'Space Grotesk\', sans-serif',
@@ -260,7 +235,7 @@ onBeforeUnmount(() => {
                   color: '#fff',
                   marginTop: '4px',
                 }"
-              >Cable Lat Pulldown</div>
+              >{{ t('marketing.gyms.machineName') }}</div>
               <div :style="{ display: 'flex', gap: '5px', marginTop: '10px', flexWrap: 'wrap' }">
                 <span
                   v-for="tag in muscleTags"
@@ -336,7 +311,7 @@ onBeforeUnmount(() => {
             </div>
           </div>
 
-          <div class="gyms-checkin" aria-hidden="true">+1 CHECK-IN</div>
+          <div class="gyms-checkin" aria-hidden="true">{{ t('marketing.gyms.checkin') }}</div>
 
           <!-- Live badge chip -->
           <div
@@ -370,7 +345,7 @@ onBeforeUnmount(() => {
               }"
             />
             <span class="protocol" :style="{ color: '#CCFF00', fontSize: '9px' }">
-              NFC + QR · APPLY NOW
+              {{ t('marketing.gymApply') }}
             </span>
           </div>
         </div>
@@ -426,18 +401,18 @@ onBeforeUnmount(() => {
           >
             <div :style="{ display: 'flex', gap: '12px', flexWrap: 'wrap' }">
               <a
-                href="/contact/partner"
+                :href="href('/contact/partner')"
                 class="btn-primary"
                 style="padding: 14px 24px; font-size: 12px; text-decoration: none; display: inline-block;"
               >
-                Partner with us
+                {{ t('marketing.gymPartner') }}
               </a>
               <a
-                href="/best-gym-qr-nfc-app"
+                :href="href('/best-gym-qr-nfc-app')"
                 class="btn-ghost"
                 style="padding: 14px 24px; font-size: 12px; text-decoration: none;"
               >
-                <HoloPill />Compare gym QR platforms
+                <HoloPill />{{ t('marketing.gymCompare') }}
               </a>
             </div>
           </div>

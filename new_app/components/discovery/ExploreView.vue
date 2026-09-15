@@ -89,7 +89,7 @@ function activateGym(gym: ExploreGym) {
   else select(gym)
 }
 function gymHref(id: string) {
-  return preference.value ? discoveryHref(`/gyms/${id}`, preference.value) : `/gyms/${id}`
+  return discoveryHref(`/gyms/${id}`, preference.value ?? locale.value)
 }
 useDiscoverySeo({
   name: () => copy.value.explore,

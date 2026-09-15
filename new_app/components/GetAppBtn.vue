@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/shell'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+const { href } = useSiteLocale()
 /**
  * The single install CTA. Carries both store marks so availability stays
  * legible at a glance, but resolves to one link: /get, which detects the
@@ -11,7 +14,7 @@
  * beside the QR, where naming the two stores IS the information), use
  * AppStoreBtn directly.
  */
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   label?: string
   /**
    * For narrow containers — notably the mobile hero rail, which is
@@ -22,16 +25,16 @@ withDefaults(defineProps<{
   compact?: boolean
   /** High-contrast equipment-plate treatment for primary hero placement. */
   hero?: boolean
-}>(), { label: 'Download LIFTAG', compact: false, hero: false })
+}>(), { compact: false, hero: false })
 </script>
 
 <template>
   <NuxtLink
-    to="/get"
+    :to="href('/get')"
     class="get-app-btn"
     :class="{
-      'get-app-btn--compact': compact,
-      'get-app-btn--hero': hero,
+      'get-app-btn--compact': props.compact,
+      'get-app-btn--hero': props.hero,
     }"
   >
     <span class="get-app-btn__shine" aria-hidden="true" />
@@ -51,13 +54,13 @@ withDefaults(defineProps<{
     </span>
 
     <span class="get-app-btn__copy">
-      <span v-if="!compact" class="get-app-btn__kicker">
-        {{ hero ? 'Free on iOS + Android' : 'iOS and Android' }}
+      <span v-if="!props.compact" class="get-app-btn__kicker">
+        {{ props.hero ? t('shell.app.freeMobile') : t('shell.app.mobile') }}
       </span>
-      <span class="get-app-btn__name">{{ label }}</span>
+      <span class="get-app-btn__name">{{ props.label || t('shell.app.download') }}</span>
     </span>
 
-    <span v-if="hero" class="get-app-btn__download" aria-hidden="true">
+    <span v-if="props.hero" class="get-app-btn__download" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none">
         <path d="M12 4v11m0 0 4-4m-4 4-4-4M5 20h14" />
       </svg>

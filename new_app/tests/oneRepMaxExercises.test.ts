@@ -42,3 +42,14 @@ test('bench prefers the barbell competition lift over variants', () => {
 test('unknown queries return no rows', () => {
   assert.deepEqual(ids('xyzzy'), [])
 })
+
+test('a localized picker searches Slovak labels without losing English aliases or stable IDs', async () => {
+  const { createExerciseSearch } = await import('../utils/oneRepMaxExercises.ts')
+  const search = createExerciseSearch(exercise => (({ squat: 'Drep s veľkou činkou', deadlift: 'Mŕtvy ťah' } as Record<string, string>)[exercise.id] ?? exercise.label))
+  assert.equal(search('mrtvy tah')[0]?.id, 'deadlift')
+  assert.equal(search('Mŕtvy ťah')[0]?.id, 'deadlift')
+  assert.equal(search('drep')[0]?.id, 'squat')
+  assert.ok(search('barbell squat').some(exercise => exercise.id === 'squat'))
+  assert.equal(search('deadlift')[0]?.id, 'deadlift')
+  assert.equal(searchExercises('mrtvy tah').length, 0, 'localized index must not mutate English search')
+})

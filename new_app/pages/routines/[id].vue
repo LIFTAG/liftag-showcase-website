@@ -1,7 +1,13 @@
 <script setup lang="ts">
-definePageMeta({ layout: false })
+import { en, sk } from '~/i18n/messages/handoff'
+import { siteLocale, withSiteLocaleQuery } from '~/utils/siteLocale'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+definePageMeta({ i18n: false, layout: false })
 
 const route = useRoute()
+const { locale, href } = useSiteLocale()
+const htmlLang = computed(() => siteLocale(route.query.lang) ?? locale.value)
+useHead(() => ({ htmlAttrs: { lang: htmlLang.value } }))
 const id = String(route.params.id ?? '')
 
 const APP_STORE_APP_ID = '6761140080'
@@ -10,7 +16,7 @@ const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.liftag.app
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 // Share links from female users carry ?v=f; the card then prefers the female
 // exercise-image variants. Forwarded verbatim to the image route.
-const variantQuery = route.query.v === 'f' ? '?v=f' : ''
+const variantQuery = computed(() => route.query.v === 'f' ? '?v=f' : '')
 
 // Server-side fetch so link previews carry the real routine name. Private or
 // missing routines resolve to null and the generic copy is used instead.
@@ -32,15 +38,15 @@ const { data: routine } = await useAsyncData(`routine-share-${id}`, async () => 
 // Share links are sent URL-only on iOS, so messaging apps build their preview
 // card from these OG tags. The image endpoint renders the routine's exercise
 // grid and falls back to the default og-image for non-public routines.
-useLiftagSeo({
-  title: routine.value ? `${routine.value.name} on LIFTAG` : 'Check out this routine on LIFTAG',
-  description: 'Someone shared a workout routine with you. Open the link on your phone to view it in the LIFTAG app.',
+useLiftagSeo(() => ({
+  title: routine.value ? t('handoff.sharedTitle', { name: routine.value.name }) : t('handoff.routineHeading'),
+  description: t('handoff.body'),
   path: `/routines/${id}`,
-  image: `https://liftag.fit/api/og/routines/${id}${variantQuery}`,
+  image: absoluteUrl(withSiteLocaleQuery(`/api/og/routines/${id}${variantQuery.value}`, locale.value)),
   noindex: true,
-})
+}))
 
-useHead({
+useHead(() => ({
   meta: [
     { charset: 'utf-8' },
     { name: 'viewport', content: 'width=device-width,initial-scale=1' },
@@ -49,7 +55,7 @@ useHead({
       content: `app-id=${APP_STORE_APP_ID}, app-argument=https://liftag.fit/routines/${id}`,
     },
   ],
-})
+}))
 
 // iOS inside a social app's webview cannot complete Apple's
 // `301 -> itms-appss://` hand-off, so redirecting there hangs on a blank page.
@@ -85,13 +91,13 @@ onMounted(() => {
 <template>
   <StoreEscape
     v-if="showEscape"
-    :share-url="`https://liftag.fit/routines/${id}`"
-    heading="OPEN THIS ROUTINE."
-    body="Instagram’s browser can’t open LIFTAG. Two seconds to get around it:"
+    :share-url="absoluteUrl(href(`/routines/${id}${variantQuery}`))"
+    :heading="t('handoff.routineHeading')"
+    :body="t('handoff.body')"
   />
 
   <main v-else class="routine-redirect">
-    <p>Opening LIFTAG routine...</p>
+    <p>{{ t('handoff.openingRoutine') }}</p>
   </main>
 </template>
 

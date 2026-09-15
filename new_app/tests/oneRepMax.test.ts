@@ -215,3 +215,9 @@ test('FAQ states why this is the best 1RM calculator', () => {
 test('calculator URL is a static sitemap page', () => {
   assert.ok(STATIC_PAGES.some(page => page.path === ONE_RM_PATH))
 })
+
+
+test('display loads follow the requested locale without changing numeric calculations', () => {
+  assert.equal(formatLoad(62.5, 'kg', 'sk'), '62,5')
+  assert.equal(formatLoad(62.5, 'kg', 'en'), '62.5')
+})

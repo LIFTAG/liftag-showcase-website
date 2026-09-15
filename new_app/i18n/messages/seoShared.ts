@@ -1,0 +1,58 @@
+export const en = {
+  organization:
+    'LIFTAG is a workout and set tracking app for serious lifters. Tap NFC tags or scan QR codes on gym machines to open the right exercise, log sets, and track progress.',
+  application:
+    'LIFTAG is a workout and set tracking app for serious lifters. Tap NFC tags or scan QR codes on gym machines to open the right exercise, log every set, run rest timers, and track progress over time.',
+  website:
+    'LIFTAG: workout tracker for serious lifters. NFC and QR for gym machines, set logging, progress tracking, trainers, and partner gyms.',
+  support: 'customer support',
+  sales: 'sales',
+  featureScan: 'NFC tap and QR scan to open the right exercise on any partner-gym machine',
+  featureLog: 'Set logging with weight, reps, rest time, and optional RPE',
+  featureRest: 'Rest timer with auto-start after a logged set',
+  featureRecords: 'Personal record tracking and estimated 1RM',
+  featureCharts: 'Volume, frequency, and progress charts per exercise and per muscle group',
+  featureHistory: 'Workout history with full set-by-set audit trail',
+  featureTrainers: 'Trainer profiles, discovery, and shared workout plans',
+  featureGyms: 'Partner-gym discovery on a map',
+  featureVideo: 'Gym-specific exercise instruction videos filmed on the actual equipment',
+  topicTracking: 'workout tracking',
+  topicLogger: 'workout logger',
+  topicLogbook: 'workout logbook',
+  topicSets: 'set logging',
+  topicNfc: 'NFC gym tags',
+  topicQr: 'QR codes for gym machines',
+  topicStrength: 'strength training',
+  topicPowerlifting: 'powerlifting',
+  topicMax: 'one-rep max',
+  topicCalculator: '1RM calculator',
+}
+export const sk = {
+  organization:
+    'LIFTAG je aplikácia na zaznamenávanie tréningov a sérií pre ľudí, ktorí to s cvičením myslia vážne. Prilož telefón k NFC štítku alebo naskenuj QR kód na stroji, otvor správny cvik a sleduj svoj pokrok.',
+  application:
+    'LIFTAG je aplikácia na zaznamenávanie tréningov a sérií pre ľudí, ktorí to s cvičením myslia vážne. Cvik otvoríš cez NFC štítok alebo QR kód na stroji. Zaznamenaj každú sériu, odmeraj prestávky a sleduj, ako sa zlepšuješ.',
+  website:
+    'LIFTAG: tréningový denník pre ľudí, ktorí to s cvičením myslia vážne. NFC a QR na strojoch, záznam sérií, sledovanie pokroku, tréneri a partnerské fitness centrá.',
+  support: 'zákaznícka podpora',
+  sales: 'obchodné oddelenie',
+  featureScan: 'Otvorenie správneho cviku cez NFC štítok alebo QR kód na stroji v partnerskom fitness centre',
+  featureLog: 'Záznam sérií s hmotnosťou, počtom opakovaní, prestávkami a voliteľným RPE',
+  featureRest: 'Časovač prestávok s automatickým spustením po zaznamenaní série',
+  featureRecords: 'Sledovanie osobných rekordov a odhad maxima na jedno opakovanie',
+  featureCharts: 'Grafy objemu, frekvencie a pokroku podľa cviku aj svalovej skupiny',
+  featureHistory: 'História tréningov s podrobným záznamom každej série',
+  featureTrainers: 'Profily a vyhľadávanie trénerov, zdieľanie tréningových plánov',
+  featureGyms: 'Vyhľadávanie partnerských fitness centier na mape',
+  featureVideo: 'Videonávody natočené priamo na vybavení konkrétneho fitness centra',
+  topicTracking: 'zaznamenávanie tréningov',
+  topicLogger: 'tréningový denník',
+  topicLogbook: 'záznam tréningov',
+  topicSets: 'zaznamenávanie sérií',
+  topicNfc: 'NFC štítky vo fitness centre',
+  topicQr: 'QR kódy na posilňovacích strojoch',
+  topicStrength: 'silový tréning',
+  topicPowerlifting: 'silový trojboj',
+  topicMax: 'maximum na jedno opakovanie',
+  topicCalculator: 'kalkulačka 1RM',
+} satisfies typeof en

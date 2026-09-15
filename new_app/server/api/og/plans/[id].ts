@@ -1,5 +1,8 @@
+import type { SiteLocale } from '../../../../types/locale'
+import { en, sk } from '../../../../i18n/messages/seoMedia'
+import { createMessageTranslator } from '../../../../utils/messageTranslator'
 import type { OgCardModel } from '../../../utils/ogCard'
-import { serveOgCard, formatCount, tileImageCandidates } from '../../../utils/ogShare'
+import { serveOgCard, tileImageCandidates } from '../../../utils/ogShare'
 
 interface PlanDetailResponse {
   data: {
@@ -44,18 +47,21 @@ async function firstExerciseImage(apiBaseUrl: string, routineId: string): Promis
   }
 }
 
-async function fetchPlanModel(apiBaseUrl: string, id: string, femaleVariant: boolean): Promise<OgCardModel> {
+async function fetchPlanModel(apiBaseUrl: string, id: string, femaleVariant: boolean, locale: SiteLocale): Promise<OgCardModel> {
+  const { t } = createMessageTranslator(locale, { en, sk })
   const res = await $fetch<PlanDetailResponse>(`/v1/plans/${id}`, {
     baseURL: apiBaseUrl,
     timeout: 6000,
+    query: { lang: locale },
+    headers: { 'Accept-Language': locale },
   })
   const plan = res.data
   const routines = plan.items
     .map(item => item.routine)
     .filter((routine): routine is NonNullable<typeof routine> => routine !== null)
   const author = plan.createdByUserName ?? plan.creator?.fullName ?? null
-  const chips: string[] = [formatCount(routines.length, 'routine', 'routines')]
-  if (author) chips.push(`by ${author}`)
+  const chips: string[] = [t('routineCount', routines.length)]
+  if (author) chips.push(t('byAuthor', { name: author }))
   const tiles = await Promise.all(routines.map(async (routine, index) => {
     // Routine thumbnails are user uploads with no gender variant; only the
     // borrowed catalog exercise images participate in the female variant.
@@ -66,7 +72,7 @@ async function fetchPlanModel(apiBaseUrl: string, id: string, femaleVariant: boo
     return { label: routine.name, imageUrls: tileImageCandidates(exerciseImage, femaleVariant) }
   }))
   return {
-    caption: 'Training plan',
+    caption: t('plan'),
     name: plan.name,
     chips,
     backdropImageUrl: plan.thumbnailUrl,

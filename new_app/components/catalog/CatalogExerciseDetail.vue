@@ -2,22 +2,29 @@
 import { gymCatalogContext, gymExerciseHref, gymMachineHref } from '~/utils/gymCatalog'
 import type { CatalogLocale } from '~/utils/catalogLocale'
 
-const props = withDefaults(defineProps<{
-  locale?: CatalogLocale
-  param: string
-}>(), {
-  locale: 'en',
-})
+const props = withDefaults(
+  defineProps<{
+    locale?: CatalogLocale
+    param: string
+  }>(),
+  {
+    locale: 'en',
+  },
+)
 
 const locale = props.locale
 const param = props.param
 const chrome = catalogChrome(locale)
-const isSk = locale === 'sk'
+const seo = catalogSeo(locale)
 
 const route = useRoute()
+const { preference } = useSiteLocale()
 const context = (() => {
-  try { return gymCatalogContext(route.query) }
-  catch { throw createError({ statusCode: 400, statusMessage: 'Invalid gym equipment context' }) }
+  try {
+    return gymCatalogContext(route.query)
+  } catch {
+    throw createError({ statusCode: 400, statusMessage: 'Invalid gym equipment context' })
+  }
 })()
 const { data: resolved, error: loadError } = await useCatalogExerciseResource(param, locale, context)
 const exercise = computed(() => resolved.value?.exercise)
@@ -36,6 +43,12 @@ function detailPath(slug: string, language = locale) {
     ? gymExerciseHref(resolved.value.machine, resolved.value.gymExercise, language, slug)
     : exercisePath(slug, language)
 }
+if (context && !preference.value && gymMachine.value?.locale && gymMachine.value.locale !== locale) {
+  await navigateTo(detailPath(exercise.value.slug ?? param, gymMachine.value.locale), {
+    redirectCode: 302,
+    replace: true,
+  })
+}
 // Keep resolved gym context when canonicalizing UUID links to catalog slugs.
 if (exercise.value.slug && exercise.value.slug !== param) {
   await navigateTo(detailPath(exercise.value.slug), { redirectCode: 301, replace: true })
@@ -43,19 +56,22 @@ if (exercise.value.slug && exercise.value.slug !== param) {
 
 const name = computed(() => exercise.value?.name ?? '')
 const canonicalSlug = computed(() => exercise.value?.slug ?? param)
-const overlay = computed(() => (isSk || context ? null : exerciseOverlay(canonicalSlug.value)))
+const { data: guide } = await useAsyncData(`exercise-guide:${locale}:${canonicalSlug.value}`, async () => ({
+  overlay: context ? null : await exerciseOverlay(canonicalSlug.value, locale),
+}))
+const overlay = computed(() => guide.value?.overlay ?? null)
 const path = computed(() => detailPath(canonicalSlug.value))
 const indexPath = computed(() => exerciseIndexPath(locale))
 
-const videoUrl = computed(() => preferredCatalogVideoUrl(exercise.value?.videos ?? []))
+const videoUrl = computed(() => preferredCatalogVideoUrl(exercise.value?.videos ?? [], locale))
 
 const secondaryMuscles = computed(() => {
   const primarySlug = exercise.value?.primaryCategory?.slug
-  return (exercise.value?.categories ?? []).filter(category => category.slug !== primarySlug)
+  return (exercise.value?.categories ?? []).filter((category) => category.slug !== primarySlug)
 })
 
 const anatomySecondary = computed(() =>
-  secondaryMuscles.value.map(muscle => ({
+  secondaryMuscles.value.map((muscle) => ({
     slug: muscle.slug,
     name: muscleName(muscle.slug, muscle.name),
   })),
@@ -64,7 +80,7 @@ const anatomySecondary = computed(() =>
 const showAnatomy = computed(() =>
   hasExerciseAnatomy(
     exercise.value?.primaryCategory?.slug,
-    anatomySecondary.value.map(muscle => muscle.slug),
+    anatomySecondary.value.map((muscle) => muscle.slug),
   ),
 )
 
@@ -88,18 +104,29 @@ const loggingLabel = computed(() => {
     time: chrome.time,
     calories: chrome.calories,
   }
-  return (exercise.value?.loggingTypes ?? [])
-    .map(type => labels[type] ?? type)
-    .join(' · ')
+  return (exercise.value?.loggingTypes ?? []).map((type) => labels[type] ?? type).join(' · ')
 })
 
-const machines = computed(() => gymMachine.value
-  ? [{ id: gymMachine.value.id, slug: null, name: gymMachine.value.name, photoUrl: gymMachine.value.media.find(item => item.type === 'image')?.url ?? null }]
-  : exercise.value?.machines ?? [])
+const machines = computed(() =>
+  gymMachine.value
+    ? [
+        {
+          id: gymMachine.value.id,
+          slug: null,
+          name: gymMachine.value.name,
+          photoUrl: gymMachine.value.media.find((item) => item.type === 'image')?.url ?? null,
+        },
+      ]
+    : (exercise.value?.machines ?? []),
+)
 
 const steps = computed(() => {
   const instructions = resolved.value?.gymExercise?.instructions
-  if (instructions) return instructions.split(/\n+/).map(line => line.replace(/^\s*(?:\d+[.)]|[-•])\s*/, '').trim()).filter(Boolean)
+  if (instructions)
+    return instructions
+      .split(/\n+/)
+      .map((line) => line.replace(/^\s*(?:\d+[.)]|[-•])\s*/, '').trim())
+      .filter(Boolean)
   if (overlay.value?.steps?.length) return overlay.value.steps
   return descriptionToHowToSteps(exercise.value?.description)
 })
@@ -108,7 +135,7 @@ const overview = computed(() => {
   const description = exercise.value?.description?.trim()
   if (!description) return null
   if (overlay.value?.steps?.length || resolved.value?.gymExercise?.instructions) return description
-  const leftover = splitSentences(description).filter(sentence => !steps.value.includes(sentence))
+  const leftover = splitSentences(description).filter((sentence) => !steps.value.includes(sentence))
   return leftover.length ? leftover.join(' ') : null
 })
 
@@ -117,35 +144,26 @@ const faqs = computed(() => {
   const primaryName = exercise.value?.primaryCategory
     ? muscleName(exercise.value.primaryCategory.slug, exercise.value.primaryCategory.name)
     : null
-  const secondaryNames = secondaryMuscles.value.map(muscle => muscleName(muscle.slug, muscle.name))
-  const machineNames = machines.value.map(machine => machine.name)
-  if (isSk) {
-    return defaultExerciseFaqsSk({
-      name: name.value,
-      primaryMuscle: primaryName,
-      secondaryMuscles: secondaryNames,
-      machines: machineNames,
-      loggingLabel: loggingLabel.value || null,
-    })
-  }
-  const generated = defaultExerciseFaqs({
+  const secondaryNames = secondaryMuscles.value.map((muscle) => muscleName(muscle.slug, muscle.name))
+  const machineNames = machines.value.map((machine) => machine.name)
+  const generated = seo.defaultExerciseFaqs({
     name: name.value,
-    primaryMuscle: exercise.value?.primaryCategory?.name,
-    secondaryMuscles: secondaryMuscles.value.map(muscle => muscle.name),
+    primaryMuscle: primaryName,
+    secondaryMuscles: secondaryNames,
     machines: machineNames,
     loggingLabel: loggingLabel.value || null,
   })
   const extra = overlay.value?.faqs ?? []
-  const seen = new Set(extra.map(item => item.question.toLowerCase()))
-  return [...extra, ...generated.filter(item => !seen.has(item.question.toLowerCase()))]
+  const seen = new Set(extra.map((item) => item.question.toLowerCase()))
+  return [...extra, ...generated.filter((item) => !seen.has(item.question.toLowerCase()))]
 })
 
-// Related lifts: overlay order first (English only), then same primary muscle.
+// Related lifts: localized guide order first, then same primary muscle.
 const index = context ? shallowRef(null) : (await useCatalogIndex(locale)).data
 const related = computed(() => {
   const rows = index.value?.exercises ?? []
   const currentId = exercise.value?.id
-  const bySlug = new Map(rows.map(row => [row.slug, row]))
+  const bySlug = new Map(rows.map((row) => [row.slug, row]))
   const picked: typeof rows = []
   const seen = new Set<string>()
 
@@ -170,42 +188,26 @@ const related = computed(() => {
   return picked.slice(0, 8)
 })
 
-const pageDescription = computed(() => {
-  if (isSk) {
-    return exerciseMetaDescriptionSk({
-      name: name.value,
-      description: exercise.value?.description,
-      isCompound: exercise.value?.isCompound,
-      primaryMuscle: exercise.value?.primaryCategory
-        ? muscleName(exercise.value.primaryCategory.slug, exercise.value.primaryCategory.name)
-        : null,
-    })
-  }
-  return exerciseMetaDescription({
+const primaryMuscleName = computed(() => {
+  const category = exercise.value?.primaryCategory
+  return category ? muscleName(category.slug, category.name) : null
+})
+const pageDescription = computed(() =>
+  seo.exerciseMetaDescription({
     name: name.value,
     overlay: overlay.value?.metaDescription,
     description: exercise.value?.description,
     isCompound: exercise.value?.isCompound,
-    primaryMuscle: exercise.value?.primaryCategory?.name,
-  })
-})
-
-const imageAlt = computed(() => {
-  if (isSk) {
-    return exerciseImageAltSk({
-      name: name.value,
-      primaryMuscle: exercise.value?.primaryCategory
-        ? muscleName(exercise.value.primaryCategory.slug, exercise.value.primaryCategory.name)
-        : null,
-      isCompound: exercise.value?.isCompound,
-    })
-  }
-  return exerciseImageAlt({
+    primaryMuscle: primaryMuscleName.value,
+  }),
+)
+const imageAlt = computed(() =>
+  seo.exerciseImageAlt({
     name: name.value,
-    primaryMuscle: exercise.value?.primaryCategory?.name,
+    primaryMuscle: primaryMuscleName.value,
     isCompound: exercise.value?.isCompound,
-  })
-})
+  }),
+)
 
 const muscleHubSlug = computed(() => exercise.value?.primaryCategory?.slug ?? null)
 const muscleHubName = computed(() => {
@@ -215,29 +217,29 @@ const muscleHubName = computed(() => {
 })
 
 const seoTitle = computed(() => {
-  if (isSk) return exerciseTitleSk(name.value)
-  return overlay.value?.title ?? exerciseTitle(name.value)
+  return overlay.value?.title ?? seo.exerciseTitle(name.value)
 })
 
-useLiftagSeo({
+useLiftagSeo(() => ({
   title: seoTitle.value,
   description: pageDescription.value,
   path: path.value,
   alternates: context
-    ? (['en', 'sk'] as const).map(lang => ({ hreflang: lang, path: detailPath(canonicalSlug.value, lang) }))
+    ? (['en', 'sk'] as const).map((lang) => ({ hreflang: lang, path: detailPath(canonicalSlug.value, lang) }))
     : liftagExerciseAlternates(canonicalSlug.value),
-  ...(isSk ? { lang: 'sk', locale: 'sk_SK' } : {}),
   ...(exercise.value?.imageUrl ? { image: exercise.value.imageUrl } : {}),
-})
+}))
 
-const imageObject = computed(() => exercise.value?.imageUrl
-  ? liftagImageObject({
-      url: exercise.value.imageUrl,
-      name: imageAlt.value,
-      caption: imageAlt.value,
-      description: pageDescription.value,
-    })
-  : null)
+const imageObject = computed(() =>
+  exercise.value?.imageUrl
+    ? liftagImageObject({
+        url: exercise.value.imageUrl,
+        name: imageAlt.value,
+        caption: imageAlt.value,
+        description: pageDescription.value,
+      })
+    : null,
+)
 
 const structuredData = computed(() => {
   const crumbs = [
@@ -259,7 +261,7 @@ const structuredData = computed(() => {
       image: exercise.value?.imageUrl ?? undefined,
       aboutId: `https://liftag.fit${path.value}#exercise`,
       primaryImage: imageObject.value ?? undefined,
-      inLanguage: isSk ? 'sk' : 'en',
+      inLanguage: locale,
     }),
     liftagBreadcrumbs(crumbs),
     liftagPhysicalActivity({
@@ -270,7 +272,7 @@ const structuredData = computed(() => {
       category: muscleHubName.value,
       muscles: [
         muscleHubName.value,
-        ...secondaryMuscles.value.map(muscle => muscleName(muscle.slug, muscle.name)),
+        ...secondaryMuscles.value.map((muscle) => muscleName(muscle.slug, muscle.name)),
       ].filter((item): item is string => Boolean(item)),
     }),
   ]
@@ -278,40 +280,44 @@ const structuredData = computed(() => {
   if (imageObject.value) graph.push(imageObject.value)
 
   if (videoUrl.value && exercise.value?.createdAt) {
-    graph.push(liftagVideoObject({
-      name: chrome.videoName(name.value),
-      description: pageDescription.value,
-      contentUrl: videoUrl.value,
-      thumbnailUrl: exercise.value.imageUrl ?? 'https://liftag.fit/og-image.jpg',
-      uploadDate: exercise.value.createdAt,
-    }))
+    graph.push(
+      liftagVideoObject({
+        name: chrome.videoName(name.value),
+        description: pageDescription.value,
+        contentUrl: videoUrl.value,
+        thumbnailUrl: exercise.value.imageUrl ?? 'https://liftag.fit/og-image.jpg',
+        uploadDate: exercise.value.createdAt,
+      }),
+    )
   }
 
   if (steps.value.length) {
-    graph.push(liftagHowTo({
-      name: chrome.howToName(name.value),
-      description: pageDescription.value,
-      steps: steps.value,
-      image: exercise.value?.imageUrl ?? undefined,
-      videoUrl: videoUrl.value,
-      path: path.value,
-      stepName: index => chrome.stepName(index),
-      inLanguage: isSk ? 'sk' : 'en',
-    }))
+    graph.push(
+      liftagHowTo({
+        name: chrome.howToName(name.value),
+        description: pageDescription.value,
+        steps: steps.value,
+        image: exercise.value?.imageUrl ?? undefined,
+        videoUrl: videoUrl.value,
+        path: path.value,
+        stepName: (index) => chrome.stepName(index),
+        inLanguage: locale,
+      }),
+    )
   }
 
   if (faqs.value.length) graph.push(liftagFAQPage(faqs.value))
 
   if (related.value.length) {
-    graph.push(liftagItemList({
-      name: isSk
-        ? `Súvisiace cviky${muscleHubName.value ? ` — ${muscleHubName.value}` : ''}`
-        : `Related ${muscleHubName.value ?? ''} exercises`.replace(/\s+/g, ' ').trim(),
-      items: related.value.map(row => ({
-        name: row.name,
-        url: `https://liftag.fit${exercisePath(row.slug, locale)}`,
-      })),
-    }))
+    graph.push(
+      liftagItemList({
+        name: chrome.relatedList(muscleHubName.value),
+        items: related.value.map((row) => ({
+          name: row.name,
+          url: `https://liftag.fit${exercisePath(row.slug, locale)}`,
+        })),
+      }),
+    )
   }
 
   return graph
@@ -327,8 +333,13 @@ useStickyMomentum(mediaRef)
 <template>
   <div v-if="exercise" class="ex-detail">
     <main class="ex-main">
-      <nav class="container ex-breadcrumb" aria-label="Breadcrumb">
-        <NuxtLink v-if="gymMachine" :to="gymMachineHref(gymMachine.gym.id, gymMachine.id, locale)" class="protocol ex-crumb">{{ gymMachine.name }}</NuxtLink>
+      <nav class="container ex-breadcrumb" :aria-label="chrome.breadcrumbAria">
+        <NuxtLink
+          v-if="gymMachine"
+          :to="gymMachineHref(gymMachine.gym.id, gymMachine.id, locale)"
+          class="protocol ex-crumb"
+          >{{ gymMachine.name }}</NuxtLink
+        >
         <NuxtLink v-else :to="indexPath" class="protocol ex-crumb">{{ chrome.breadcrumbExercises }}</NuxtLink>
         <span class="ex-crumb-sep" aria-hidden="true">/</span>
         <NuxtLink
@@ -383,6 +394,7 @@ useStickyMomentum(mediaRef)
 
           <CatalogMuscleChips
             class="ex-muscles"
+            :locale="locale"
             :primary="exercise.primaryCategory"
             :secondary="secondaryMuscles"
             :aria-label="chrome.musclesAria"
@@ -408,12 +420,15 @@ useStickyMomentum(mediaRef)
               <ClientOnly>
                 <CatalogExerciseAnatomy
                   :primary-slug="exercise.primaryCategory?.slug ?? null"
-                  :primary-name="exercise.primaryCategory
-                    ? muscleName(exercise.primaryCategory.slug, exercise.primaryCategory.name)
-                    : null"
+                  :primary-name="
+                    exercise.primaryCategory
+                      ? muscleName(exercise.primaryCategory.slug, exercise.primaryCategory.name)
+                      : null
+                  "
                   :secondary="anatomySecondary"
                   :to-for="muscleTo"
                   :name-for="muscleName"
+                  :aria-label="chrome.musclesAria"
                 />
                 <template #fallback>
                   <div class="ex-anatomy__placeholder" aria-hidden="true" />
@@ -428,7 +443,7 @@ useStickyMomentum(mediaRef)
             <p class="protocol ex-log-panel__eyebrow">{{ chrome.inTheApp }}</p>
             <GetAppBtn :label="chrome.getLiftag" />
             <p class="ex-log-panel__copy">
-              {{ context ? (isSk ? 'Zaznamenaj si série, sleduj svoj pokrok a trénuj s LIFTAG.' : 'Log your sets, follow your progress, and train with LIFTAG.') : chrome.logCopy(name) }}
+              {{ context ? chrome.contextLogCopy : chrome.logCopy(name) }}
             </p>
           </div>
 
@@ -436,7 +451,14 @@ useStickyMomentum(mediaRef)
             <h2 class="protocol ex-section-title">{{ chrome.machinesHeading }}</h2>
             <ul class="ex-machine-list">
               <li v-for="machine in machines" :key="machine.id">
-                <NuxtLink :to="gymMachine ? gymMachineHref(gymMachine.gym.id, gymMachine.id, locale) : machinePath(machine)" class="ex-machine-link">
+                <NuxtLink
+                  :to="
+                    gymMachine
+                      ? gymMachineHref(gymMachine.gym.id, gymMachine.id, locale)
+                      : machinePath(machine)
+                  "
+                  class="ex-machine-link"
+                >
                   <img
                     v-if="machine.photoUrl"
                     :src="machine.photoUrl"
@@ -444,7 +466,7 @@ useStickyMomentum(mediaRef)
                     loading="lazy"
                     decoding="async"
                     class="ex-machine-link__img"
-                  >
+                  />
                   <span>{{ machine.name }}</span>
                 </NuxtLink>
               </li>
@@ -462,7 +484,7 @@ useStickyMomentum(mediaRef)
         </section>
 
         <section v-if="overlay?.mistakes?.length" class="ex-block">
-          <h2 class="protocol ex-section-title">COMMON MISTAKES</h2>
+          <h2 class="protocol ex-section-title">{{ chrome.commonMistakes }}</h2>
           <ul class="ex-prose-list">
             <li v-for="mistake in overlay.mistakes" :key="mistake.title">
               <strong>{{ mistake.title }}.</strong>
@@ -472,32 +494,32 @@ useStickyMomentum(mediaRef)
         </section>
 
         <section v-if="overlay?.variations?.length" class="ex-block">
-          <h2 class="protocol ex-section-title">VARIATIONS</h2>
+          <h2 class="protocol ex-section-title">{{ chrome.variations }}</h2>
           <ul class="ex-link-list">
             <li v-for="variation in overlay.variations" :key="variation.slug">
-              <NuxtLink :to="`/exercises/${variation.slug}`">{{ variation.name }}</NuxtLink>
+              <NuxtLink :to="exercisePath(variation.slug, locale)">{{ variation.name }}</NuxtLink>
               — {{ variation.note }}
             </li>
           </ul>
         </section>
 
         <section v-if="overlay?.progressions?.length" class="ex-block">
-          <h2 class="protocol ex-section-title">PROGRESSIONS</h2>
+          <h2 class="protocol ex-section-title">{{ chrome.progressions }}</h2>
           <ol class="ex-steps">
             <li v-for="(item, itemIndex) in overlay.progressions" :key="itemIndex">{{ item }}</li>
           </ol>
         </section>
 
         <section v-if="overlay?.programming" class="ex-block">
-          <h2 class="protocol ex-section-title">PROGRAMMING NOTES</h2>
+          <h2 class="protocol ex-section-title">{{ chrome.programmingNotes }}</h2>
           <p class="ex-prose">{{ overlay.programming }}</p>
         </section>
 
         <section v-if="overlay?.equipmentAlternatives?.length" class="ex-block">
-          <h2 class="protocol ex-section-title">EQUIPMENT ALTERNATIVES</h2>
+          <h2 class="protocol ex-section-title">{{ chrome.equipmentAlternatives }}</h2>
           <ul class="ex-link-list">
             <li v-for="item in overlay.equipmentAlternatives" :key="item.slug">
-              <NuxtLink :to="`/exercises/${item.slug}`">{{ item.name }}</NuxtLink>
+              <NuxtLink :to="exercisePath(item.slug, locale)">{{ item.name }}</NuxtLink>
               — {{ item.note }}
             </li>
           </ul>
@@ -511,7 +533,13 @@ useStickyMomentum(mediaRef)
 
       <section v-if="related.length" class="container ex-related" :aria-label="chrome.relatedAria">
         <h2 class="protocol ex-section-title">
-          {{ chrome.relatedHeading(exercise.primaryCategory ? muscleName(exercise.primaryCategory.slug, exercise.primaryCategory.name) : '') }}
+          {{
+            chrome.relatedHeading(
+              exercise.primaryCategory
+                ? muscleName(exercise.primaryCategory.slug, exercise.primaryCategory.name)
+                : '',
+            )
+          }}
         </h2>
         <div class="ex-related-grid">
           <CatalogExerciseTile
@@ -534,9 +562,7 @@ useStickyMomentum(mediaRef)
 <style scoped>
 .ex-detail {
   min-height: var(--liftag-stable-vh);
-  background:
-    radial-gradient(circle at 80% 6%, rgba(204, 255, 0, 0.08), transparent 30%),
-    #000;
+  background: radial-gradient(circle at 80% 6%, rgba(204, 255, 0, 0.08), transparent 30%), #000;
   color: #fff;
   padding-bottom: 48px;
 }
@@ -677,11 +703,21 @@ useStickyMomentum(mediaRef)
   animation: ex-rise 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.ex-info :deep(.ex-muscles li:nth-child(1)) { animation-delay: 230ms; }
-.ex-info :deep(.ex-muscles li:nth-child(2)) { animation-delay: 280ms; }
-.ex-info :deep(.ex-muscles li:nth-child(3)) { animation-delay: 330ms; }
-.ex-info :deep(.ex-muscles li:nth-child(4)) { animation-delay: 370ms; }
-.ex-info :deep(.ex-muscles li:nth-child(n+5)) { animation-delay: 410ms; }
+.ex-info :deep(.ex-muscles li:nth-child(1)) {
+  animation-delay: 230ms;
+}
+.ex-info :deep(.ex-muscles li:nth-child(2)) {
+  animation-delay: 280ms;
+}
+.ex-info :deep(.ex-muscles li:nth-child(3)) {
+  animation-delay: 330ms;
+}
+.ex-info :deep(.ex-muscles li:nth-child(4)) {
+  animation-delay: 370ms;
+}
+.ex-info :deep(.ex-muscles li:nth-child(n + 5)) {
+  animation-delay: 410ms;
+}
 
 .ex-info .ex-anatomy__head {
   animation: ex-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) 320ms both;
@@ -691,8 +727,12 @@ useStickyMomentum(mediaRef)
   animation: ex-rise 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.ex-info .ex-anatomy__legend li:nth-child(1) { animation-delay: 380ms; }
-.ex-info .ex-anatomy__legend li:nth-child(2) { animation-delay: 430ms; }
+.ex-info .ex-anatomy__legend li:nth-child(1) {
+  animation-delay: 380ms;
+}
+.ex-info .ex-anatomy__legend li:nth-child(2) {
+  animation-delay: 430ms;
+}
 
 .ex-info > .ex-description {
   animation: ex-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) 400ms both;
@@ -753,7 +793,8 @@ useStickyMomentum(mediaRef)
 }
 
 @keyframes ex-lock-retire {
-  0%, 88% {
+  0%,
+  88% {
     visibility: visible;
   }
   100% {
@@ -786,8 +827,12 @@ useStickyMomentum(mediaRef)
 }
 
 @keyframes ex-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes ex-cta-in {
@@ -924,8 +969,7 @@ useStickyMomentum(mediaRef)
   border: 1px solid rgba(204, 255, 0, 0.22);
   border-radius: var(--liftag-r-xl);
   background:
-    radial-gradient(circle at 100% 0%, rgba(204, 255, 0, 0.08), transparent 46%),
-    var(--liftag-surface-dark);
+    radial-gradient(circle at 100% 0%, rgba(204, 255, 0, 0.08), transparent 46%), var(--liftag-surface-dark);
 }
 
 .ex-log-panel__eyebrow {

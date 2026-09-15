@@ -1,15 +1,15 @@
 <script setup lang="ts">
-const props = defineProps<{ value: string }>()
+const props = withDefaults(defineProps<{ value: string; numericValue?: number; decimalSeparator?: string }>(), { decimalSeparator: '.' })
 const direction = shallowRef(1)
 
-watch(() => props.value, (next, previous) => {
-  direction.value = Number(next.replaceAll(',', '')) >= Number(previous.replaceAll(',', '')) ? 1 : -1
+watch(() => props.numericValue ?? Number(props.value), (next, previous) => {
+  if (Number.isFinite(next) && Number.isFinite(previous)) direction.value = next >= previous ? 1 : -1
 })
 
 // Anchor columns to the decimal point so carries keep existing digits in place.
 // Memoize unchanged columns; only changing digits need to update their glyphs.
 const columns = computed(() => {
-  const decimal = props.value.includes('.') ? props.value.indexOf('.') : props.value.length
+  const decimal = props.value.includes(props.decimalSeparator) ? props.value.indexOf(props.decimalSeparator) : props.value.length
   return Array.from(props.value, (character, index) => ({
     character,
     place: index - decimal,

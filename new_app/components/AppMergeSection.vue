@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/marketing'
+const { t, tm, rt } = useI18n({ useScope: 'local', messages: { en, sk } })
+const { locale } = useSiteLocale()
 import {
   MERGE_BODY_COUNT,
   MERGE_LOGO_INDEX,
@@ -210,6 +213,11 @@ const mockApps: MockApp[] = [
     depth: 0.9,
   },
 ]
+
+const localizedMockApps = computed(() => {
+  const copy = tm('marketing.merge.apps') as Array<{ name: string, replaces: string }>
+  return mockApps.map((app, index) => ({ ...app, name: rt(copy[index]?.name ?? app.name), replaces: rt(copy[index]?.replaces ?? app.replaces) }))
+})
 
 // Each mock app becomes one light in the prism core's environment, aimed from
 // where that icon sits in the orbit. Static, so it never triggers a re-render.
@@ -853,16 +861,16 @@ onBeforeUnmount(() => {
 
       <div class="container app-merge-layout">
         <div class="merge-copy">
-          <Eyebrow class="merge-copy-eyebrow">▸ ONE APP INSTEAD OF EIGHT</Eyebrow>
+          <Eyebrow class="merge-copy-eyebrow">{{ t('marketing.merge.eyebrow') }}</Eyebrow>
           <SectionTitle class="merge-copy-title" :max="560">
-            All the little gym apps, <span class="lime">folded into LIFTAG.</span>
+            {{ t('marketing.merge.title') }}
           </SectionTitle>
           <p class="merge-copy-text reveal">
-            Set logging, rest timing, PRs, body metrics, form guides, progress charts, and routines finally live in one place.
+            {{ t('marketing.merge.lead') }}
           </p>
         </div>
 
-        <div ref="stageRef" class="merge-stage" aria-label="Mock fitness apps merging into LIFTAG">
+        <div ref="stageRef" class="merge-stage" :aria-label="t('marketing.merge.stageAria')">
           <div class="merge-rings" aria-hidden="true">
             <span></span>
             <span></span>
@@ -932,7 +940,7 @@ onBeforeUnmount(() => {
           </div>
 
           <div
-            v-for="(app, i) in mockApps"
+            v-for="(app, i) in localizedMockApps"
             :key="`${app.key}-caption`"
             :ref="(el) => setCaptionRef(el, i)"
             class="mock-app-caption"
@@ -942,15 +950,15 @@ onBeforeUnmount(() => {
             <small>{{ app.replaces }}</small>
           </div>
 
-          <div ref="liftagRef" class="liftag-target" aria-label="LIFTAG app icon">
+          <div ref="liftagRef" class="liftag-target" :aria-label="t('marketing.merge.targetAria')">
             <div class="prism-rim liftag-icon-rim" aria-hidden="true"></div>
             <div class="liftag-icon-shell">
-              <img src="/logo.svg" alt="LIFTAG" />
+              <img src="/logo.svg" :alt="t('marketing.merge.targetAlt')" />
               <div class="liftag-icon-sheen"></div>
             </div>
             <div class="liftag-target-label">
               <span>LIFTAG</span>
-              <small>all-in-one gym OS</small>
+              <small>{{ t('marketing.merge.targetSub') }}</small>
             </div>
           </div>
         </div>

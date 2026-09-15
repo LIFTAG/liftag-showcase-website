@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { discoveryCopy } from '~/utils/discoveryCopy'
+import { en, sk } from '~/i18n/messages/discovery'
 import '~/assets/css/discovery.css'
-const { locale } = useSiteLocale()
-const copy = computed(() => discoveryCopy(locale.value))
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 </script>
 <template>
-  <a class="discovery-skip" href="#discovery-content">{{ copy.skip }}</a>
+  <a class="discovery-skip" href="#discovery-content">{{ t('skip') }}</a>
   <SiteNav />
   <div class="discovery-root discovery-shell"><slot /></div>
 </template>

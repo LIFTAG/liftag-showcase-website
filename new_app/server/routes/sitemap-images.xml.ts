@@ -1,3 +1,6 @@
+import { en, sk } from '../../i18n/messages/seoMedia'
+import { createMessageTranslator } from '../../utils/messageTranslator'
+import { siteLocalePath } from '../../utils/siteLocale'
 import { imageUrlEntry, sitemapXml, xmlHeaders } from '../../utils/sitemapXml'
 
 export default defineEventHandler(async (event) => {
@@ -5,29 +8,32 @@ export default defineEventHandler(async (event) => {
   setHeader(event, 'content-type', headers['content-type'])
   setHeader(event, 'cache-control', headers['cache-control'])
 
-  const snapshot = await getCatalogSnapshotOrNull()
-  if (!snapshot) return sitemapXml('')
-
-  const entries = [
+  const localized = await Promise.all((['en', 'sk'] as const).map(async (locale) => {
+    const snapshot = await getCatalogSnapshotOrNull(locale)
+    if (!snapshot) return []
+    const { t } = createMessageTranslator(locale, { en, sk })
+    return [
     ...snapshot.exercises
       .filter(exercise => exercise.slug && exercise.imageUrl)
       .map(exercise => imageUrlEntry({
-        path: `/exercises/${exercise.slug}`,
+        path: siteLocalePath(`/exercises/${exercise.slug}`, locale),
         imageUrl: exercise.imageUrl!,
         title: exercise.name,
-        caption: `${exercise.name} in the LIFTAG exercise library`,
+        caption: t('exerciseCaption', { name: exercise.name }),
         lastmod: exercise.updatedAt ?? exercise.createdAt,
       })),
     ...snapshot.machines
       .filter(machine => machine.photoUrl)
       .map(machine => imageUrlEntry({
-        path: `/machines/${machine.slug ?? machine.id}`,
+        path: siteLocalePath(`/machines/${machine.slug ?? machine.id}`, locale),
         imageUrl: machine.photoUrl!,
         title: machine.name,
-        caption: `${machine.name} in the LIFTAG machine catalog`,
+        caption: t('machineCaption', { name: machine.name }),
         lastmod: machine.updatedAt ?? machine.createdAt,
       })),
-  ]
+    ]
+  }))
+  const entries = localized.flat()
 
   return sitemapXml(
     entries.join('\n'),

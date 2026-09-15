@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { TrainingPercentRow, WeightUnit } from '~/utils/oneRepMax'
+import { en, sk } from '~/i18n/messages/tools'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 
 defineProps<{
   rows: TrainingPercentRow[]
@@ -11,14 +13,14 @@ defineProps<{
 <template>
   <div class="orm-table-wrap">
     <table class="orm-table">
-      <caption class="orm-table-caption">Training percentages from the estimated 1RM</caption>
+      <caption class="orm-table-caption">{{ t('tools.tables.percentages') }}</caption>
       <thead>
         <tr>
           <th scope="col">%</th>
-          <th scope="col">Load</th>
-          <th scope="col">Exact</th>
-          <th scope="col">~Reps</th>
-          <th scope="col">Purpose</th>
+          <th scope="col">{{ t('tools.tables.load') }}</th>
+          <th scope="col">{{ t('tools.tables.exact') }}</th>
+          <th scope="col">{{ t('tools.tables.approxReps') }}</th>
+          <th scope="col">{{ t('tools.tables.purpose') }}</th>
         </tr>
       </thead>
       <tbody>

@@ -1,18 +1,22 @@
 <script setup lang="ts">
+const formatLoad = useLoadFormatter()
 import OneRmCurve from './OneRmCurve.vue'
 import OneRmDial from './OneRmDial.vue'
 import OneRmAura from './OneRmAura.vue'
 import OneRmIcon from './OneRmIcon.vue'
 import {
-  CONFIDENCE_LABEL,
   DEFAULT_FORMULA_ID,
+  fromKg,
   FORMULAS,
-  formatLoad,
   type Confidence,
   type FormulaEstimate,
   type FormulaId,
   type WeightUnit,
 } from '~/utils/oneRepMax'
+import { en, sk } from '~/i18n/messages/tools'
+
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+const confidenceLabel = (value: Confidence) => t(`tools.result.confidence${value.charAt(0).toUpperCase()}${value.slice(1)}`)
 
 const props = defineProps<{
   kg: number | null
@@ -30,6 +34,9 @@ const props = defineProps<{
 const emit = defineEmits<{
   select: [id: FormulaId]
 }>()
+const { locale } = useSiteLocale()
+const decimalSeparator = computed(() => new Intl.NumberFormat(locale.value).formatToParts(1.1).find(part => part.type === 'decimal')!.value)
+const numericMax = computed(() => props.kg == null ? undefined : fromKg(props.kg, props.unit))
 const formattedMax = computed(() => props.kg == null ? '' : formatLoad(props.kg, props.unit))
 const alternate = computed(() => props.kg == null ? '' : `${formatLoad(props.kg, props.unit === 'kg' ? 'lb' : 'kg')} ${props.unit === 'kg' ? 'lb' : 'kg'}`)
 const pickerOpen = shallowRef(false)
@@ -70,17 +77,17 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer))
   <section class="max-result" aria-labelledby="orm-result-title">
     <OneRmAura :kg="kg" />
     <div class="result-heading">
-      <h2 id="orm-result-title"><OneRmIcon kind="trophy" :value="kg" />{{ reps === 1 ? 'Your one-rep max' : 'Your estimated 1RM' }}</h2>
-      <span class="live-indicator"><i aria-hidden="true" /> Updates live</span>
+      <h2 id="orm-result-title"><OneRmIcon kind="trophy" :value="kg" />{{ reps === 1 ? t('tools.result.oneRepMax') : t('tools.result.estimated') }}</h2>
+      <span class="live-indicator"><i aria-hidden="true" /> {{ t('tools.result.updates') }}</span>
     </div>
     <p class="sr-only" role="status" aria-atomic="true">{{ summary }}</p>
     <template v-if="kg != null">
       <div class="max-readout" aria-hidden="true">
-        <OneRmDial class="max-number" :class="{ compact: formattedMax.length > 5 }" :value="formattedMax" /><span class="max-unit">{{ unit }}</span>
+        <OneRmDial class="max-number" :class="{ compact: formattedMax.length > 5 }" :value="formattedMax" :numeric-value="numericMax" :decimal-separator="decimalSeparator" /><span class="max-unit">{{ unit }}</span>
       </div>
       <div class="result-context">
         <p class="max-equivalent">{{ alternate }}<template v-if="qualifier"> · {{ qualifier }}</template></p>
-        <span v-if="reps === 1" class="formula-label">Completed single</span>
+        <span v-if="reps === 1" class="formula-label">{{ t('tools.result.completedSingle') }}</span>
         <div v-else ref="formula-picker" class="formula-picker" @keydown="onPickerKey">
           <button
             type="button"
@@ -88,7 +95,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer))
             aria-haspopup="true"
             :aria-expanded="pickerOpen"
             aria-controls="orm-formula-menu"
-            :aria-label="`Formula ${formula}. Change formula`"
+            :aria-label="t('tools.result.formulaChange', { formula })"
             @click="togglePicker"
           >{{ formula }}</button>
           <div
@@ -96,7 +103,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer))
             id="orm-formula-menu"
             class="formula-menu"
             role="group"
-            aria-label="1RM formulas"
+            :aria-label="t('tools.result.formulas')"
           >
             <button
               v-for="item in formulaChoices"
@@ -107,7 +114,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer))
               :disabled="item.kg == null && estimates.length > 0"
               @click="chooseFormula(item.id)"
             >
-              <span>{{ item.name }} <small v-if="item.id === DEFAULT_FORMULA_ID">default</small></span>
+              <span>{{ item.name }} <small v-if="item.id === DEFAULT_FORMULA_ID">{{ t('tools.result.default') }}</small></span>
               <span v-if="item.kg != null" class="formula-option-load">{{ formatLoad(item.kg, unit) }} {{ unit }}</span>
             </button>
           </div>
@@ -118,16 +125,16 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer))
     <div v-else class="empty-result">
       <svg viewBox="0 0 300 100" aria-hidden="true"><path d="M10 15C80 28 110 67 290 86" /><circle cx="10" cy="15" r="4" /><circle cx="158" cy="65" r="4" /></svg>
       <span aria-hidden="true">— <small>{{ unit }}</small></span>
-      <p>It starts with one set.</p><small>Enter a weight and 1–30 reps to reveal your strength curve.</small>
+      <p>{{ t('tools.result.starts') }}</p><small>{{ t('tools.result.enter') }}</small>
     </div>
     <div v-if="kg != null" class="result-footnote">
       <p class="result-note" :class="{ 'is-warning': reps != null && reps > 10 }">
         <span class="confidence-dot" aria-hidden="true" />
-        <template v-if="reps === 1">Completed single. No prediction needed.</template>
-        <template v-else-if="reps != null && reps > 10">High-rep estimate. A shorter set gives a more useful max.</template>
-        <template v-else>{{ confidence ? CONFIDENCE_LABEL[confidence] : '' }} · Estimated, not tested.</template>
+        <template v-if="reps === 1">{{ t('tools.result.completedNote') }}</template>
+        <template v-else-if="reps != null && reps > 10">{{ t('tools.result.highRep') }}</template>
+        <template v-else>{{ confidence ? confidenceLabel(confidence) : '' }} · {{ t('tools.result.estimatedNote') }}</template>
       </p>
-      <p class="training-max">90% training max <strong>{{ trainingMax == null ? '—' : formatLoad(trainingMax, unit) }} {{ unit }}</strong><span>rounded</span></p>
+      <p class="training-max">{{ t('tools.result.trainingMax') }} <strong>{{ trainingMax == null ? '—' : formatLoad(trainingMax, unit) }} {{ unit }}</strong><span>{{ t('tools.result.rounded') }}</span></p>
     </div>
   </section>
 </template>

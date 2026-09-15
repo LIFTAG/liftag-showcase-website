@@ -1,8 +1,9 @@
 <script setup lang="ts">
+definePageMeta({ i18n: false })
 const path = '/cs/privacy-policy'
 const lastUpdated = 'srpen 2026'
 
-useLiftagSeo({
+useLiftagSeo(() => ({
   title: 'Zásady ochrany osobních údajů | LIFTAG',
   description:
     'Jak LIFTAG shromažďuje, používá, ukládá a chrání vaše osobní údaje při používání tréninkové aplikace LIFTAG.',
@@ -10,15 +11,15 @@ useLiftagSeo({
   lang: 'cs',
   locale: 'cs_CZ',
   alternates: liftagLegalAlternates('privacy'),
-})
+}))
 
-useLiftagStructuredData([
+useLiftagStructuredData(() => [
   liftagOrganization,
   liftagBreadcrumbs([
     { name: 'LIFTAG', path: '/' },
     { name: 'Ochrana osobních údajů', path },
   ]),
-])
+], 'en')
 
 const sections = [
   {

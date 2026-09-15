@@ -1,3 +1,4 @@
+import { en as gymCopy } from '../i18n/messages/gymDemo.ts';
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFileSync, statSync } from "node:fs";
@@ -796,10 +797,10 @@ test("the discovery stage morphs a phone-curved stand-in, then the shared 3D pho
     new URL("../components/gym/GymGlobeStory.vue", import.meta.url),
     "utf8",
   );
-  assert.match(story, /In the app/);
-  assert.match(story, /Every gym/);
-  assert.match(story, /One place/);
-  assert.match(story, /Eight gyms across Slovakia/);
+  assert.match(gymCopy.discovery.stepApp, /In the app/);
+  assert.match(gymCopy.discovery.titleNetwork, /Every gym/);
+  assert.match(gymCopy.discovery.titleNetwork, /One place/);
+  assert.match(gymCopy.discovery.captionNetwork, /Eight gyms across Slovakia/);
   assert.doesNotMatch(story, /365|Fit&Co/);
   assert.match(story, /v-if="simple"/);
   const globe = readFileSync(
@@ -871,7 +872,7 @@ test("the discovery stage morphs a phone-curved stand-in, then the shared 3D pho
   assert.match(host, /useSharedMouse/);
   assert.match(host, /onMouseEvent/);
   assert.match(host, /clientX/);
-  assert.match(host, /8 gyms in Slovakia/);
+  assert.match(gymCopy.discovery.countStatus, /8 gyms in Slovakia/);
   assert.match(host, /v-if="reduced"/);
   assert.doesNotMatch(host, /!ready \|\| reduced/);
   assert.doesNotMatch(host, /365|Fit&Co/);

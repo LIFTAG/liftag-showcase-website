@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import RoutineExerciseCard from '~/components/discovery/RoutineExerciseCard.vue'
 import type { DiscoveryExercise, PublicRoutine } from '~/types/discovery'
-import { discoveryLabel, discoveryRating } from '~/utils/discoveryCopy'
+import { discoveryCount, discoveryLabel, discoveryRating } from '~/utils/discoveryCopy'
 import { discoveryMuscleName } from '~/utils/discoveryMuscles'
 const props = defineProps<{ id: string }>()
 const { locale, copy, href } = useDiscoveryLocale()
@@ -78,7 +78,7 @@ useDiscoverySeo({
               <span v-if="routine.ratingCount !== null" class="d-muted">({{ routine.ratingCount }})</span>
             </span>
             <span v-if="routine.copyCount !== null" class="d-chip">
-              {{ routine.copyCount }} {{ copy.copies }}
+              {{ discoveryCount(routine.copyCount, 'copies', locale) }}
             </span>
           </div>
         </div>
@@ -130,7 +130,7 @@ useDiscoverySeo({
                 <strong>{{ groupStarts.get(exercise.id)?.name || copy.superset }}</strong>
                 <span>
                   <template v-if="groupStarts.get(exercise.id)?.rounds !== null">
-                    {{ groupStarts.get(exercise.id)?.rounds }} {{ copy.rounds }}
+                    {{ discoveryCount(groupStarts.get(exercise.id)?.rounds ?? 0, 'rounds', locale) }}
                   </template>
                   <template v-if="groupStarts.get(exercise.id)?.rest !== null">
                     <template v-if="groupStarts.get(exercise.id)?.rounds !== null">·</template>

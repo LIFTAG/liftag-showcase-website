@@ -1,8 +1,9 @@
+import type { SiteLocale } from '~/types/locale'
+import { localizedSharedSchema } from '~/utils/localizedSeoSchema'
+import type { MaybeRefOrGetter } from 'vue'
+import { siteCanonicalPath, siteLocaleAlternates, isLocalizedSitePath } from '~/utils/siteLocale'
 import { exerciseHreflangAlternates } from '~/utils/catalogLocale'
-import {
-  DEFAULT_OG_IMAGE,
-  SITE_URL,
-} from '~/utils/seoSchema'
+import { DEFAULT_OG_IMAGE, SITE_URL } from '~/utils/seoSchema'
 
 const DEFAULT_IMAGE = DEFAULT_OG_IMAGE
 
@@ -37,87 +38,95 @@ interface LiftagSeoOptions {
   alternates?: LiftagAlternate[]
 }
 
-export function useLiftagSeo(options: LiftagSeoOptions) {
-  const path = options.path ?? '/'
-  const url = new URL(path, SITE_URL).toString()
-  const image = options.image ?? DEFAULT_IMAGE
-  const robots = options.noindex ? 'noindex,nofollow' : 'index,follow'
-  const locale = options.locale ?? 'en_US'
-
+export function useLiftagSeo(input: MaybeRefOrGetter<LiftagSeoOptions>) {
+  const { locale } = useSiteLocale()
+  const options = computed(() => toValue(input))
+  const lang = computed(() => options.value.lang ?? locale.value)
+  const path = computed(() =>
+    lang.value === 'cs'
+      ? (options.value.path ?? '/')
+      : siteCanonicalPath(options.value.path ?? '/', lang.value === 'sk' ? 'sk' : 'en'),
+  )
+  const url = computed(() => new URL(path.value, SITE_URL).toString())
+  const image = computed(() => options.value.image ?? DEFAULT_IMAGE)
   useSeoMeta({
-    title: options.title,
-    description: options.description,
-    robots,
-    ogTitle: options.title,
-    ogDescription: options.description,
+    title: () => options.value.title,
+    description: () => options.value.description,
+    robots: () => (options.value.noindex ? 'noindex,nofollow' : 'index,follow'),
+    ogTitle: () => options.value.title,
+    ogDescription: () => options.value.description,
     ogType: 'website',
-    ogUrl: url,
+    ogUrl: () => url.value,
     ogSiteName: 'LIFTAG',
-    ogLocale: locale,
-    ogImage: image,
-    ogImageSecureUrl: image,
-    ogImageType: ogImageMimeType(image),
+    ogLocale: () =>
+      options.value.locale ?? (lang.value === 'sk' ? 'sk_SK' : lang.value === 'cs' ? 'cs_CZ' : 'en_US'),
+    ogImage: () => image.value,
+    ogImageSecureUrl: () => image.value,
+    ogImageType: () => ogImageMimeType(image.value),
     ogImageWidth: OG_IMAGE_WIDTH,
     ogImageHeight: OG_IMAGE_HEIGHT,
-    ogImageAlt: options.title,
+    ogImageAlt: () => options.value.title,
     twitterCard: 'summary_large_image',
-    twitterTitle: options.title,
-    twitterDescription: options.description,
-    twitterImage: image,
-    twitterImageAlt: options.title,
+    twitterTitle: () => options.value.title,
+    twitterDescription: () => options.value.description,
+    twitterImage: () => image.value,
+    twitterImageAlt: () => options.value.title,
   })
-
   const config = useRuntimeConfig()
-  const googleVerify = (config.public.googleSiteVerification as string | undefined) ?? ''
-  const bingVerify = (config.public.bingSiteVerification as string | undefined) ?? ''
-  const verificationMeta: Array<{ name: string, content: string }> = []
-  if (googleVerify) {
-    verificationMeta.push({ name: 'google-site-verification', content: googleVerify })
-  }
-  if (bingVerify) {
-    verificationMeta.push({ name: 'msvalidate.01', content: bingVerify })
-  }
-
-  const alternateLinks = (options.alternates ?? []).map(item => ({
-    rel: 'alternate' as const,
-    hreflang: item.hreflang,
-    href: new URL(item.path, SITE_URL).toString(),
-  }))
-
-  // Czech/Slovak diacritics live in the latin-ext subsets, which the global
-  // config does not preload. Inter covers body copy; Space Grotesk covers
-  // display headlines (Ž in KAŽDÝ, etc). Preload both so first paint has them.
-  const latinExtFontLinks = options.lang === 'cs' || options.lang === 'sk'
-    ? [
-        { rel: 'preload' as const, as: 'font' as const, type: 'font/woff2', crossorigin: '' as const, href: '/assets/fonts/inter-latin-ext.woff2' },
-        { rel: 'preload' as const, as: 'font' as const, type: 'font/woff2', crossorigin: '' as const, href: '/assets/fonts/space-grotesk-latin-ext.woff2' },
-      ]
-    : []
-
-  useHead({
-    htmlAttrs: { lang: options.lang ?? 'en' },
-    link: [
-      { rel: 'canonical', href: url },
-      ...latinExtFontLinks,
-      ...alternateLinks,
+  useHead(() => ({
+    htmlAttrs: { lang: lang.value },
+    meta: [
+      ...(config.public.googleSiteVerification
+        ? [{ name: 'google-site-verification', content: String(config.public.googleSiteVerification) }]
+        : []),
+      ...(config.public.bingSiteVerification
+        ? [{ name: 'msvalidate.01', content: String(config.public.bingSiteVerification) }]
+        : []),
     ],
-    ...(verificationMeta.length ? { meta: verificationMeta } : {}),
-  })
+    link: [
+      { rel: 'canonical', href: url.value },
+      ...(
+        options.value.alternates ?? (isLocalizedSitePath(path.value) ? siteLocaleAlternates(path.value) : [])
+      ).map((item) => ({
+        rel: 'alternate',
+        hreflang: item.hreflang,
+        href: new URL(
+          item.hreflang === 'cs'
+            ? item.path
+            : siteCanonicalPath(item.path, item.hreflang === 'sk' ? 'sk' : 'en'),
+          SITE_URL,
+        ).toString(),
+      })),
+      ...(['sk', 'cs'].includes(lang.value)
+        ? ['inter', 'space-grotesk'].map((font) => ({
+            rel: 'preload',
+            as: 'font' as const,
+            type: 'font/woff2',
+            crossorigin: '' as const,
+            href: `/assets/fonts/${font}-latin-ext.woff2`,
+          }))
+        : []),
+    ],
+  }))
 }
 
-export function useLiftagStructuredData(items: Record<string, unknown>[]) {
-  useHead({
+export function useLiftagStructuredData(
+  input: MaybeRefOrGetter<Record<string, unknown>[]>,
+  sharedLocale?: MaybeRefOrGetter<SiteLocale>,
+) {
+  const { locale } = useSiteLocale()
+  useHead(() => ({
     script: [
       {
         key: 'liftag-json-ld',
         type: 'application/ld+json',
         innerHTML: JSON.stringify({
           '@context': 'https://schema.org',
-          '@graph': items,
-        }),
+          '@graph': localizedSharedSchema(toValue(input), toValue(sharedLocale) ?? locale.value),
+        }).replaceAll('<', '\\u003c'),
       },
     ],
-  })
+  }))
 }
 
 export function liftagLegalAlternates(kind: 'privacy' | 'terms'): LiftagAlternate[] {

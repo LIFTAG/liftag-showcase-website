@@ -47,6 +47,7 @@ import {
 import { createPhoneOverlay, phoneShrink, type PhoneOverlay } from './phoneOverlay'
 import { createScanAppScreen } from './scanApp.ts'
 import { createCoachingContent, type CoachingFrame } from './coachingStage'
+import type { GymDemoMessages } from '~/i18n/messages/gymDemo'
 import { coachingPhoneSlot } from './coachingTimeline'
 import { PHONE_H, PHONE_W } from '../phoneModel'
 import {
@@ -287,6 +288,7 @@ export interface StageOptions {
   readCoaching?: () => { frame: CoachingFrame; video: HTMLVideoElement | null; customVideo: HTMLVideoElement | null; replay: number }
   overlayCoversFrame?: () => boolean
   renderOverlay?: (renderer: THREE.WebGLRenderer, dt: number, width: number, height: number) => void
+  copy?: GymDemoMessages
 }
 
 // Bracketed under the front crossbeam, on the machine's centre line, facing
@@ -872,7 +874,7 @@ export function createGymScanStage(opts: StageOptions) {
 
   // The NFC inlay, 0.7 mm behind the print. It shares the card surface so its
   // layered edge reads during 0C's grazing quarter-turn.
-  const nfcMaps = createNfcMaps(renderer.capabilities.getMaxAnisotropy())
+  const nfcMaps = createNfcMaps(renderer.capabilities.getMaxAnisotropy(), opts.copy?.canvas)
   const nfc = new THREE.Mesh(cardGeo, createNfcMaterial(nfcMaps, backPeel))
   nfc.renderOrder = 0
 
@@ -1076,7 +1078,7 @@ export function createGymScanStage(opts: StageOptions) {
     const input = opts.readCoaching?.()
     const mix = input ? smoothstep((morph - .82) / .18) : 0
     if (mix > 0 && !coaching) {
-      coaching = createCoachingContent()
+      coaching = createCoachingContent(opts.copy)
       phoneOverlay.addContent(coaching.group)
     }
     phoneOverlay.setCoaching(coaching?.texture ?? null, mix)
@@ -2265,6 +2267,10 @@ export function createGymScanStage(opts: StageOptions) {
     setProgress,
     setAssemblyProgress,
     setProductView,
+    setCopy(next: GymDemoMessages) {
+      coaching?.setCopy(next)
+      nfcMaps.setCopy(next.canvas)
+    },
     setHeroSlot,
     setPointer,
     setTilt,

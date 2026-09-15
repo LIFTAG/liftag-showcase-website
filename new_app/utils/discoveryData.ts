@@ -1,3 +1,4 @@
+import type { CatalogVideo } from '../types/catalog'
 import type {
   DiscoveryExercise,
   DiscoveryLocale,
@@ -44,6 +45,25 @@ function urls(value: unknown): string[] {
   return array(value)
     .map((v) => safeDiscoveryUrl(v))
     .filter((v): v is string => v !== null)
+}
+/** Preserve upstream language metadata. A legacy selected URL has no declared language. */
+export function normalizeExerciseVideos(value: unknown): CatalogVideo[] {
+  if (typeof value === 'string') {
+    try { return normalizeExerciseVideos(JSON.parse(value)) }
+    catch { return normalizeExerciseVideos([value]) }
+  }
+  return array(value).flatMap((item, index) => {
+    const row = discoveryRecord(item)
+    const url = safeDiscoveryUrl(typeof item === 'string' ? item : row.url)
+    if (!url) return []
+    return [{
+      url,
+      locale: text(row.locale) ?? '',
+      displayOrder: number(row.displayOrder) ?? index,
+      uploadedByUserId: typeof row.uploadedByUserId === 'string' || typeof row.uploadedByUserId === 'number'
+        ? row.uploadedByUserId : null,
+    }]
+  })
 }
 function manufacturer(value: unknown): Manufacturer | null {
   const r = discoveryRecord(value)
@@ -211,7 +231,7 @@ export function normalizeGymMachine(value: unknown, locale: DiscoveryLocale): Gy
         description: text(e.description),
         instructions: text(e.instructions),
         image: safeDiscoveryUrl(e.imageUrl),
-        videos: urls(e.videoUrl),
+        videos: normalizeExerciseVideos(e.videos ?? e.videoUrl),
         muscles: muscles(e.categories),
       })),
   }
@@ -307,9 +327,7 @@ export function normalizeRoutine(value: unknown): PublicRoutine {
               ? e.exerciseImageUrl
               : (template.imageUrl ?? template.defaultImageUrl),
           ),
-          videos: array(videos)
-            .map((v) => safeDiscoveryUrl(discoveryRecord(v).url))
-            .filter((v): v is string => v !== null),
+          videos: normalizeExerciseVideos(videos),
           muscles: muscles(template.categories),
         }
         const fallbackCount =

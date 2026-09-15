@@ -1,133 +1,82 @@
 <script setup lang="ts">
-import { ONE_RM_DATE_PUBLISHED, ONE_RM_DATE_REVIEWED, ONE_RM_FAQS, ONE_RM_SOURCES, workedEpleyKg, workedExampleRows } from '~/utils/oneRepMaxPage'
+import { ONE_RM_DATE_PUBLISHED, ONE_RM_DATE_REVIEWED, ONE_RM_SOURCES, workedEpleyKg, workedExampleRows } from '~/utils/oneRepMaxPage'
 import { STRENGTH_COMPARISON_COUNT, STRENGTH_STANDARDS } from '~/utils/strengthStandards'
-const formulaRows = workedExampleRows()
-const epleyKg = workedEpleyKg()
-const faqs = ONE_RM_FAQS
-const chapters = [
-  { id: 'why', label: 'Why this calculator' },
-  { id: 'what', label: 'Understand your 1RM' },
-  { id: 'how', label: 'Using the calculator' },
-  { id: 'method', label: 'Our method' },
-  { id: 'percentile-method', label: 'Strength percentiles' },
-  { id: 'formulas', label: 'The seven formulas' },
-  { id: 'when-wrong', label: 'Accuracy & limitations' },
-  { id: 'faq', label: 'Common questions' },
-  { id: 'sources', label: 'Sources & review' },
-]
+import { en, sk } from '~/i18n/messages/tools'
+import { en as guideEn, sk as guideSk } from '~/content/tools/oneRmGuide'
+import { localizedExerciseLabel } from '~/content/tools/oneRmExercises'
+const { t, d } = useI18n({ useScope: 'local', messages: { en, sk } })
+const { href, locale } = useSiteLocale()
+const guideCopy = computed(() => locale.value === 'sk' ? guideSk : guideEn)
+const reviewedDate = computed(() => d(new Date(`${ONE_RM_DATE_REVIEWED}T00:00:00Z`), { dateStyle: 'long', timeZone: 'UTC' }))
+const publishedDate = computed(() => d(new Date(`${ONE_RM_DATE_PUBLISHED}T00:00:00Z`), { dateStyle: 'long', timeZone: 'UTC' }))
+const formulaRows = computed(() => workedExampleRows(locale.value))
+const epleyKg = computed(() => workedEpleyKg(locale.value))
+const faqs = computed(() => guideCopy.value.faqs)
+const sourceLabels = computed(() => guideCopy.value.sourceLabels)
+const withCount = (copy: string) => copy.replace('{count}', String(STRENGTH_COMPARISON_COUNT))
+const withDates = (copy: string) => copy.replace('{reviewed}', reviewedDate.value).replace('{published}', publishedDate.value)
+const chapters = computed(() => [
+  { id: 'why', label: t('tools.why.eyebrow') }, { id: 'what', label: t('tools.guide.what') }, { id: 'how', label: t('tools.guide.how') },
+  { id: 'method', label: t('tools.guide.method') }, { id: 'percentile-method', label: t('tools.guide.percentile') }, { id: 'formulas', label: t('tools.guide.formulas') },
+  { id: 'when-wrong', label: t('tools.guide.whenWrong') }, { id: 'faq', label: t('tools.guide.faq') }, { id: 'sources', label: t('tools.guide.sourcesReview') },
+])
 </script>
 
 <template>
   <div class="guide-layout">
     <aside class="guide-sidebar">
-      <p class="guide-eyebrow">Behind the numbers</p>
-      <nav aria-label="Calculator guide"><a v-for="chapter in chapters" :key="chapter.id" :href="`#${chapter.id}`">{{ chapter.label }}</a></nav>
-      <a class="back-to-calculator" href="#calculator">Back to calculator ↑</a>
+      <p class="guide-eyebrow">{{ t('tools.guide.behind') }}</p>
+      <nav :aria-label="t('tools.guide.nav')"><a v-for="chapter in chapters" :key="chapter.id" :href="`#${chapter.id}`">{{ chapter.label }}</a></nav>
+      <a class="back-to-calculator" href="#calculator">{{ t('tools.guide.back') }}</a>
     </aside>
     <div class="guide-body">
         <section id="what">
-          <h2>What a 1RM is, and what a PR is</h2>
-          <p>
-            A one-rep max is the most you can lift once, with the standard you actually compete or train with.
-            A PR is any personal record: a 5-rep bench, a paused squat, a volume day. People search “PR calculator”
-            when they mean this tool. It estimates a 1RM. LIFTAG stores both.
-          </p>
-          <p>
-            You do not need a meet to use the number. You need a hard set of a few reps, a named formula, and a log
-            that does not invent a second max next week.
-          </p>
+          <h2>{{ t('tools.guide.what') }}</h2>
+          <p>{{ guideCopy.whatIntro }}</p>
+          <p>{{ guideCopy.whatDetail }}</p>
         </section>
 
         <section id="how">
-          <h2>How to use this calculator</h2>
-          <h3>Weight, reps, units</h3>
-          <p>
-            Type the load and the clean reps. Switch kg or lb; the physical weight stays put. The result updates as
-            you type. No submit button, no email gate, no app wall in front of the number.
-          </p>
-          <h3>Pick an exercise to compare your strength</h3>
-          <p>
-            In See where you stand, search from {{ STRENGTH_COMPARISON_COUNT }} common gym exercises with strength benchmarks, across barbell, dumbbell, cable, and machine lifts.
-            Choose a lift, enter your bodyweight, and select a comparison group to see an approximate
-            “stronger than X% of lifters” ranking. Exercise selection changes the comparison, not the 1RM equation.
-          </p>
-          <h3>Why 3–8 near failure beats a 15-rep burnout</h3>
-          <p>
-            Prediction error grows as the set gets longer. A hard 5 is the sweet spot. A 20-rep set measures
-            how long you can last, not what you could unrack once. If you only have a high-rep set, do a heavier
-            one. Then come back.
-          </p>
+          <h2>{{ t('tools.guide.how') }}</h2>
+          <h3>{{ t('tools.guide.weight') }}</h3>
+          <p>{{ guideCopy.weight }}</p>
+          <h3>{{ t('tools.guide.pick') }}</h3>
+          <p>{{ withCount(guideCopy.pick) }}</p>
+          <h3>{{ t('tools.guide.failure') }}</h3>
+          <p>{{ guideCopy.failure }}</p>
         </section>
 
         <section id="method">
-          <h2>How LIFTAG estimates 1RM</h2>
-          <p>
-            LIFTAG estimates 1RM with the Epley formula, <code>1RM = weight × (1 + reps / 30)</code>, for sets of
-            1–10 reps near failure. A single is stored as the weight you lifted, not as 3% extra. This page uses
-            the same estimator the LIFTAG app stores per exercise. Optional
-            <a href="/journal/what-is-rpe-lifting">RPE</a> is context on the set. It is not a second 1RM formula.
-          </p>
-          <p>
-            The formula, assumptions, and worked example are also available in a
-            <a href="/tools/1rm-calculator.md">plain Markdown version</a> for readers and search assistants. Core tracking is free;
-            <a href="/pricing">pricing</a> is the dated fact sheet.
-          </p>
+          <h2>{{ t('tools.guide.method') }}</h2>
+          <p>{{ guideCopy.methodIntro }}</p>
+          <p>{{ guideCopy.methodDetails }}</p>
         </section>
 
         <section id="percentile-method">
-          <h2>How the strength percentile works</h2>
-          <p>
-            Your estimated 1RM divided by your bodyweight gives your strength-to-bodyweight ratio.
-            We compare it with the published male or female ratios from Strength Level for
-            the selected exercise. All {{ STRENGTH_COMPARISON_COUNT }} supported exercises have male and female benchmarks.
-          </p>
-          <p>
-            The benchmark anchors are the 5th (beginner), 20th (novice), 50th (intermediate),
-            80th (advanced), and 95th (elite) percentiles. LIFTAG linearly interpolates between
-            those anchors and shows the result as “You are stronger than X% of lifters.”
-            Below the 5th we show “fewer than 5%”. Past elite, lifts with a sourced all-time
-            raw world-record ratio stretch that last 5% to the record as 100%. Other lifts
-            keep a modeled tail and never claim 100%.
-          </p>
-          <p>
-            This is an approximate benchmark comparison, not a measured population percentile or
-            Strength Level’s exact-bodyweight calculator. The source reflects people who log lifts,
-            not all people. Broad ratios do not account for age, body proportions, or all differences
-            across bodyweights. Comparisons use your estimated 1RM for any valid set (1–30 reps)
-            and bodyweights of 30–300 kg. Past 10 reps the 1RM is a rougher estimate, so the ranking
-            is too. A result ranks the selected exercise only, not your overall fitness.
-          </p>
-          <p>Dumbbell loads and results are per dumbbell, including the handle; goblet squats and dumbbell pullovers use one weight.
-            Machine designs and pulley ratios vary, making machine comparisons especially approximate.
-            Pull-ups, chin-ups, and dips use bodyweight plus added weight for a total-load 1RM estimate;
-            they do not receive a percentile because compatible bodyweight-ratio benchmarks are unavailable here.
-            All training loads for these exercises include bodyweight too. “Other exercise” also gives an estimate only.</p>
+          <h2>{{ t('tools.guide.percentile') }}</h2>
+          <p>{{ guideCopy.percentileIntro }}</p>
+          <p>{{ guideCopy.percentileAnchors }}</p>
+          <p>{{ guideCopy.percentileLimits }}</p>
+          <p>{{ guideCopy.equipment }}</p>
           <details class="exercise-sources">
-            <summary>All {{ STRENGTH_COMPARISON_COUNT }} exercise benchmarks & sources</summary>
-            <p>Strength Level standards, reviewed 9 September 2026.</p>
-            <ul><li v-for="standard in STRENGTH_STANDARDS" :key="standard.slug"><a :href="`https://strengthlevel.com/strength-standards/${standard.slug}`">{{ standard.label }}</a></li></ul>
+            <summary>{{ withCount(guideCopy.exerciseSourcesSummary) }}</summary>
+            <p>{{ guideCopy.exerciseSourcesNote }}</p>
+            <ul><li v-for="(standard, standardId) in STRENGTH_STANDARDS" :key="standard.slug"><a :href="`https://strengthlevel.com/strength-standards/${standard.slug}`">{{ localizedExerciseLabel(standardId, standard.label, locale) }}</a></li></ul>
           </details>
         </section>
 
         <section id="formulas">
-          <h2>How the formulas work</h2>
-          <p>
-            Default is Epley so the website and the log agree. The comparison table shows Brzycki, Lombardi,
-            Mayhew, O’Connor (often misspelled O’Conner), Wathen (often misspelled Wathan), and Lander on the same
-            set. At 1 rep every formula returns the load you typed.
-          </p>
-          <p>
-            Worked example, always true, no JavaScript required: <strong>100 kg × 5</strong>.
-            Epley is <strong>{{ epleyKg }} kg</strong>. 225 lb × 5 is 262.5 lb.
-          </p>
+          <h2>{{ t('tools.guide.formulas') }}</h2>
+          <p>{{ guideCopy.formulasIntro }}</p>
+          <p>{{ guideCopy.formulaExample.replace('{value}', epleyKg) }}</p>
           <div class="orm-static-table">
             <table>
-              <caption>100 kg × 5 across published 1RM equations</caption>
+              <caption>{{ t('tools.guide.formulas') }}</caption>
               <thead>
                 <tr>
-                  <th scope="col">Formula</th>
-                  <th scope="col">Year</th>
-                  <th scope="col">Equation</th>
+                  <th scope="col">{{ t('tools.tables.formula') }}</th>
+                  <th scope="col">{{ t('tools.tables.year') }}</th>
+                  <th scope="col">{{ t('tools.tables.exact') }}</th>
                   <th scope="col">100 kg × 5</th>
                 </tr>
               </thead>
@@ -141,114 +90,61 @@ const chapters = [
               </tbody>
             </table>
           </div>
-          <h3>Epley (1985)</h3>
-          <p>
-            Linear. <code>1RM = w × (1 + r / 30)</code>. At 10 reps it meets Brzycki at w × 4/3.
-            Below 10 it runs a little high. This is LIFTAG’s default because it is stable, named, and already in the app.
-          </p>
-          <h3>Brzycki (1993)</h3>
-          <p>
-            <code>1RM = w × 36 / (37 − r)</code>. Conservative in the middle. Undefined at 37 reps, which is why
-            this page will not show a Brzycki number on a 30-rep set as if it were a max.
-          </p>
-          <h3>The rest of the family</h3>
-          <p>
-            Lombardi is a power curve. Mayhew and Wathen are exponential and were the LeSuer bench winners.
-            O’Connor is a shallower linear (r/40). Lander is the NSCA-era percentage chart in equation form.
-            <a href="https://journals.lww.com/nsca-jscr/abstract/1997/11000/the_accuracy_of_prediction_equations_for.1.aspx">LeSuer et al. 1997</a>
-            is still the paper to cite: every formula under-predicted deadlift by about 10%.
-          </p>
+          <h3>{{ guideCopy.epleyHeading }}</h3>
+          <p>{{ guideCopy.epleyBody }}</p>
+          <h3>{{ guideCopy.brzyckiHeading }}</h3>
+          <p>{{ guideCopy.brzyckiBody }}</p>
+          <h3>{{ guideCopy.familyHeading }}</h3>
+          <p>{{ guideCopy.familyBody }}</p>
         </section>
 
         <section id="when-wrong">
-          <h2>When the estimate is wrong</h2>
-          <ul>
-            <li>High-rep sets. Past 10, uncertainty increases. Use a lower-rep set before making training decisions.</li>
-            <li>Isolation lifts and machines. You get more reps at a given percent than on a free squat.</li>
-            <li>A bounce bench next to a paused one. The formula cannot see the standard. The log can, if you keep it honest.</li>
-            <li>Squat depth, deadlift start, grip. Formula disagreement is not a confidence interval and cannot diagnose the quality of a set.</li>
-            <li>Fatigue, a cut, bad sleep. Same kilos, different session. That is what
-              <a href="/journal/what-is-rpe-lifting">RPE</a> is for.</li>
-          </ul>
+          <h2>{{ t('tools.guide.whenWrong') }}</h2>
+          <ul><li v-for="item in guideCopy.wrong" :key="item">{{ item }}</li></ul>
         </section>
 
         <section id="lifts">
-          <h2>Bench, squat, and deadlift maxes</h2>
-          <p>
-            Select your exercise in the calculator for lift-specific context and strength benchmarks.
-            The 1RM formulas remain the same. Most validation studies focus on
-            <a href="/exercises/barbell-bench-press">bench</a>,
-            <a href="/exercises/barbell-back-squat">squat</a>,
-            <a href="/exercises/conventional-deadlift">deadlift</a>.
-            A machine chest press 8RM is not a competition bench.
-          </p>
-          <p>
-            For percentage programs like 5/3/1, use the 90% training max, as a conservative reference.
-            <a href="/journal/best-workout-app-for-powerlifting">Best workout app for powerlifting</a>
-            covers how that looks in a log.
-          </p>
+          <h2>{{ t('tools.guide.lifts') }}</h2>
+          <p>{{ guideCopy.liftsIntro }}</p>
+          <p>{{ guideCopy.liftsProgram }}</p>
         </section>
 
         <section id="true-max">
-          <h2>How to test a true 1RM</h2>
-          <ol>
-            <li>Warm up to a heavy triple you already own.</li>
-            <li>Take small jumps. Leave a rep in the tank until the last attempt.</li>
-            <li>Use a spotter and safeties. Set the safety pins before adding load.</li>
-            <li>Log the single. LIFTAG will store it as the max, not as an estimate.</li>
-          </ol>
-          <p>
-            Most weeks you should skip this. Log submax work, watch estimated 1RM trend, and add load when the
-            <a href="/journal/progressive-overload">overload</a> is honest.
-          </p>
+          <h2>{{ t('tools.guide.trueMax') }}</h2>
+          <ol><li v-for="item in guideCopy.testing" :key="item">{{ item }}</li></ol>
+          <p>{{ guideCopy.trueMaxIntro }}</p>
         </section>
 
         <section id="app">
-          <h2>How LIFTAG uses 1RM</h2>
-          <p>
-            Every working set can update estimated 1RM on that exercise. The app uses Epley, per set, same as the
-            default on this page. PRs stay on the lift you performed. Percentage cues read that history.
-            Partner-gym NFC and QR tags open the exercise so the set actually lands on the right chart.
-          </p>
-          <p>
-            <a href="/get">Get the app</a>. Core tracking is free on iOS and Android.
-            Estimated 1RM is not paywalled.
-          </p>
+          <h2>{{ t('tools.guide.app') }}</h2>
+          <p>{{ guideCopy.appIntro }}</p>
+          <p><a :href="href('/get')">{{ guideCopy.appGetLabel }}</a>. {{ guideCopy.appGetTail }}</p>
         </section>
 
         <section id="faq" class="guide-faq">
-          <h2>Frequently asked questions</h2>
+          <h2>{{ t('tools.guide.faq') }}</h2>
           <FaqAccordion class="guide-faq-list" :items="faqs" id-prefix="orm-faq" />
         </section>
 
         <section id="related">
-          <h2>Related tools and guides</h2>
+          <h2>{{ t('tools.guide.related') }}</h2>
           <ul>
-            <li><a href="/journal/what-is-rpe-lifting">What is RPE in lifting</a></li>
-            <li><a href="/journal/progressive-overload">Progressive overload</a></li>
-            <li><a href="/journal/how-to-track-workouts">How to track workouts</a></li>
-            <li><a href="/journal/best-workout-app-for-powerlifting">Best workout app for powerlifting</a></li>
-            <li><a href="/exercises">Exercise library</a></li>
-            <li><a href="/for-lifters">LIFTAG for lifters</a></li>
+            <li><a :href="href('/journal/what-is-rpe-lifting')">{{ t('tools.guide.relatedRpe') }}</a></li>
+            <li><a :href="href('/journal/progressive-overload')">{{ t('tools.guide.relatedOverload') }}</a></li>
+            <li><a :href="href('/journal/how-to-track-workouts')">{{ t('tools.guide.relatedTrack') }}</a></li>
+            <li><a :href="href('/journal/best-workout-app-for-powerlifting')">{{ t('tools.guide.relatedPower') }}</a></li>
+            <li><a :href="href('/exercises')">{{ t('tools.guide.exerciseLibrary') }}</a></li>
+            <li><a :href="href('/for-lifters')">{{ t('tools.guide.forLifters') }}</a></li>
           </ul>
         </section>
 
         <section id="sources" class="guide-method">
-          <p class="protocol">Method</p>
-          <p>
-            Written by the LIFTAG team, Bratislava. Last reviewed {{ ONE_RM_DATE_REVIEWED }}.
-            First published {{ ONE_RM_DATE_PUBLISHED }}.
-            We log estimated 1RM with Epley. This page shows the rest of the family so you can see the spread.
-            Facts and how to cite us:
-            <a href="/about">about</a>,
-            <a href="/press">press kit</a>.
-            Questions:
-            <a href="/contact/support">support</a>.
-          </p>
+          <p class="protocol">{{ t('tools.guide.sources') }}</p>
+          <p>{{ withDates(guideCopy.sourcesIntro) }} {{ guideCopy.sourcesFacts }} <a :href="href('/about')">{{ t('tools.guide.about') }}</a>, <a :href="href('/press')">{{ t('tools.guide.pressKit') }}</a>. {{ guideCopy.sourcesQuestions }} <a :href="href('/contact/support')">{{ t('tools.guide.support') }}</a>.</p>
           <ul class="orm-sources">
-            <li v-for="source in ONE_RM_SOURCES" :key="source.label">
-              <a v-if="source.href" :href="source.href" rel="noopener">{{ source.label }}</a>
-              <template v-else>{{ source.label }}</template>
+            <li v-for="(source, index) in ONE_RM_SOURCES" :key="source.label">
+              <a v-if="source.href" :href="source.href" rel="noopener">{{ sourceLabels[index] }}</a>
+              <template v-else>{{ sourceLabels[index] }}</template>
             </li>
           </ul>
         </section>

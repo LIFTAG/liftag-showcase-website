@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { NrmRow, WeightUnit } from '~/utils/oneRepMax'
+import { en, sk } from '~/i18n/messages/tools'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 
 defineProps<{
   rows: NrmRow[]
@@ -11,17 +13,17 @@ defineProps<{
 <template>
   <div class="orm-table-wrap">
     <table class="orm-table">
-      <caption class="orm-table-caption">Estimated n-rep maxes from the active formula, 1 to 10</caption>
+      <caption class="orm-table-caption">{{ t('tools.tables.nrm') }}</caption>
       <thead>
         <tr>
-          <th scope="col">nRM</th>
-          <th scope="col">Load</th>
-          <th scope="col">% of e1RM</th>
+          <th scope="col">{{ t('tools.tables.nrmLabel') }}</th>
+          <th scope="col">{{ t('tools.tables.load') }}</th>
+          <th scope="col">{{ t('tools.tables.e1rm') }}</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="row in rows" :key="row.reps" :class="{ 'is-input': row.isInput }">
-          <th scope="row">{{ row.reps }}{{ row.isInput ? ' (this set)' : '' }}</th>
+          <th scope="row">{{ row.reps }}{{ row.isInput ? ` (${t('tools.tables.thisSet')})` : '' }}</th>
           <td class="orm-table-load">{{ formatLoad(row.kg, unit) }} {{ unit }}</td>
           <td class="orm-table-exact">{{ Math.round(row.percentOfMax) }}%</td>
         </tr>

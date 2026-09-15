@@ -42,14 +42,11 @@ export interface CatalogSnapshot {
  * API route and the catalog sitemap. ~7 upstream requests per refresh at
  * today's catalog size; each response is CDN-cached upstream too.
  *
- * Cache key is the locale: `en` and `sk` return different `name` / `description`
- * payloads. Default stays `en` so English routes are unchanged.
+ * Nitro hashes both arguments: API source and locale. A fixture/staging build
+ * can share development's disk cache without replacing the live catalog.
  */
-export const getCatalogSnapshot = defineCachedFunction(
-  async (locale: CatalogLocale = 'en'): Promise<CatalogSnapshot> => {
-    const lang: CatalogLocale = locale === 'sk' ? 'sk' : 'en'
-    const { apiBaseUrl } = useRuntimeConfig().public
-    const base = String(apiBaseUrl)
+const readCatalogSnapshot = defineCachedFunction(
+  async (base: string, lang: CatalogLocale): Promise<CatalogSnapshot> => {
     const [exercises, machines, categories] = await Promise.all([
       fetchAllPages<CatalogExercise>(base, '/v1/catalog/exercise-templates', lang),
       fetchAllPages<CatalogMachine>(base, '/v1/catalog/machine-templates', lang),
@@ -68,11 +65,15 @@ export const getCatalogSnapshot = defineCachedFunction(
   },
   {
     name: 'catalog-snapshot',
-    getKey: (locale: CatalogLocale = 'en') => (locale === 'sk' ? 'sk' : 'en'),
     maxAge: 3600,
     staleMaxAge: 86400,
   },
 )
+
+export function getCatalogSnapshot(locale: CatalogLocale = 'en'): Promise<CatalogSnapshot> {
+  const { apiBaseUrl } = useRuntimeConfig().public
+  return readCatalogSnapshot(String(apiBaseUrl), locale === 'sk' ? 'sk' : 'en')
+}
 
 /** Sitemap routes prefer an empty urlset over a 500 that Google caches as "Couldn't fetch". */
 export async function getCatalogSnapshotOrNull(

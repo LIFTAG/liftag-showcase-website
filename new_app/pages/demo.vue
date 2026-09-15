@@ -1,30 +1,33 @@
 <script setup lang="ts">
-import { gymFaqs } from "~/utils/gymscan/content";
+import { gymFaqsForLocale } from "~/utils/gymscan/content";
+import { en, sk } from '~/i18n/messages/gymDemo';
 import { GYM_DEMO_PATH } from "~/utils/gymscan/navigation";
 
 definePageMeta({ layout: false });
 
-const description =
-  "Connect your gym machines with free LIFTAG QR and NFC tags. Members scan, watch your trainer videos and log sets. Put your gym on the map and plan workouts on its equipment.";
+const { locale, href } = useSiteLocale();
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } });
+const description = computed(() => t('seo.description'));
+const localizedFaqs = computed(() => [...gymFaqsForLocale(locale.value)]);
 
-useLiftagSeo({
-  title: "LIFTAG | Connect your gym machines",
-  description,
+useLiftagSeo(computed(() => ({
+  title: t('seo.title'),
+  description: description.value,
   path: GYM_DEMO_PATH,
   noindex: true,
-});
+})));
 
-useLiftagStructuredData([
+useLiftagStructuredData(() => [
   liftagOrganization,
   liftagSoftwareApplication,
   liftagWebSite,
   liftagWebPage({
-    path: GYM_DEMO_PATH,
-    name: "Connect your gym machines",
-    description,
+    path: href(GYM_DEMO_PATH),
+    name: t('seo.name'),
+    description: description.value,
     aboutId: APP_ID,
   }),
-  liftagFAQPage(gymFaqs),
+  liftagFAQPage(localizedFaqs.value),
 ]);
 </script>
 

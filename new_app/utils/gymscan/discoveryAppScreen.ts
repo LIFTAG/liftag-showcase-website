@@ -6,6 +6,7 @@ import {
   discoveryAppNumber,
   discoveryAppRow,
 } from "./discoveryTimeline";
+import type { GymDemoMessages } from '~/i18n/messages/gymDemo';
 
 function canvasX(localX: number, w: number) {
   return (localX / PHONE_SCR_W + 0.5) * w;
@@ -20,7 +21,7 @@ export function drawDiscoveryAppScreen(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
-  options: { dividers?: boolean; numbers?: boolean; title?: boolean } = {},
+  options: { dividers?: boolean; numbers?: boolean; title?: boolean; copy: GymDemoMessages['canvas']; discovery: GymDemoMessages['discovery'] },
 ) {
   const ink = "#eff2ed", muted = "#a8b1a9", lime = "#ccff00";
   const text = (value: string, x: number, y: number, size: number, color = ink, weight = 500) => {
@@ -44,10 +45,10 @@ export function drawDiscoveryAppScreen(
   rounded(w - 74, 47, 31, 13, 2, ink);
   rounded(w - 37, 49, 3, 9, 1, muted);
   text("‹", 38, 147, 48);
-  text("GYM OVERVIEW", 76, 137, 20, muted, 600);
+  text(options.copy.gymOverview, 76, 137, 20, muted, 600);
   if (options.title !== false)
     text(
-      DISCOVERY_APP_TITLE.text,
+      options.discovery.profileTitle,
       DISCOVERY_APP_TITLE.x,
       DISCOVERY_APP_TITLE.baseline,
       DISCOVERY_APP_TITLE.size,
@@ -61,10 +62,10 @@ export function drawDiscoveryAppScreen(
   ctx.beginPath();
   ctx.arc(68, 317, 10, 0, Math.PI * 2);
   ctx.moveTo(76, 325); ctx.lineTo(84, 333); ctx.stroke();
-  text("Find a machine", 104, 330, 25, muted);
-  text("Equipment", 38, 398, 32, ink, 600);
+  text(options.copy.findMachine, 104, 330, 25, muted);
+  text(options.copy.equipment, 38, 398, 32, ink, 600);
   ctx.textAlign = "right";
-  text(`${discoveryEquipment.length} machines`, w - 38, 397, 23, muted);
+  text(`${discoveryEquipment.length} ${options.copy.machines}`, w - 38, 397, 23, muted);
   ctx.textAlign = "left";
 
   for (let i = 0; i < discoveryEquipment.length; i++) {
@@ -85,14 +86,20 @@ export function drawDiscoveryAppScreen(
       ctx.fillText(item.number, canvasX(number.x, w), areaY);
       ctx.textAlign = "left";
     }
-    text(item.area.toUpperCase(), areaX, areaY, 18, muted, 600);
+    const area = item.id === 'adjustable-bench'
+      ? options.discovery.areaFreeWeights
+      : item.id === 'indoor-bike'
+        ? options.discovery.areaCardio
+        : options.discovery.areaStrength;
+    text(area.toUpperCase(), areaX, areaY, 18, muted, 600);
     if (item.id === "plate-loaded-pulldown") {
-      text("Plate-loaded", areaX, cy - 9, 32, ink, 600);
-      text("pulldown", areaX, cy + 27, 32, ink, 600);
+      text(options.copy.plateLoaded, areaX, cy - 9, 32, ink, 600);
+      text(options.copy.pulldown, areaX, cy + 27, 32, ink, 600);
     } else {
-      text(item.name, areaX, cy + 5, 32, ink, 600);
+      const itemKey = item.id as keyof typeof options.discovery.equipmentNames;
+      text(options.discovery.equipmentNames[itemKey], areaX, cy + 5, 32, ink, 600);
     }
-    text("View exercises", areaX, cy + 65, 21, lime);
+    text(options.copy.viewExercises, areaX, cy + 65, 21, lime);
     ctx.textAlign = "right";
     text("›", w - 32, cy + 11, 36, muted);
     ctx.textAlign = "left";
@@ -107,7 +114,7 @@ export function drawDiscoveryAppScreen(
   }
   text("LIFTAG", 40, h - 60, 19, lime, 700);
   ctx.textAlign = "right";
-  text("Your floor. Ready to train.", w - 40, h - 60, 19, muted);
+  text(options.copy.floorReady, w - 40, h - 60, 19, muted);
   ctx.textAlign = "left";
   rounded(w / 2 - 74, h - 24, 148, 7, 4, ink);
 }

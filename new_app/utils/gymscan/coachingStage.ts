@@ -16,6 +16,8 @@ import {
   coachingOverlayIsGym,
   coachingWipeTravel,
 } from "./coachingWipe";
+import type { GymDemoMessages } from '~/i18n/messages/gymDemo';
+import { gymDemoMessages } from '~/i18n/messages/gymDemo';
 export type { CoachingFrame } from "./coachingTimeline";
 
 export interface CoachingState {
@@ -127,7 +129,7 @@ function resetCover(texture: THREE.Texture) {
 }
 
 /** Screen content attached to the scan phone. The video stays on the glass. */
-export function createCoachingContent() {
+export function createCoachingContent(copy: GymDemoMessages = gymDemoMessages('en')) {
   const group = new THREE.Group();
   group.visible = false;
   const logger = surface(CANVAS_W, CANVAS_H);
@@ -159,16 +161,16 @@ export function createCoachingContent() {
     roundRect(ctx, 0, 0, CANVAS_W, CANVAS_H, "#101510");
     const header = CANVAS_H * HEADER_RATIO;
     roundRect(ctx, 0, 0, CANVAS_W, header, "#161c16");
-    text(ctx, "LOG SET", 40, header + 72, 20, "#9da79e");
-    text(ctx, "1 / 3 sets", 728, header + 72, 20, "#ccff00", 500, "right");
-    text(ctx, "WEIGHT", 40, header + 128, 18, "#9da79e");
-    text(ctx, "REPS", 400, header + 128, 18, "#9da79e");
+    text(ctx, copy.canvas.logSet, 40, header + 72, 20, "#9da79e");
+    text(ctx, `1 / 3 ${copy.canvas.sets}`, 728, header + 72, 20, "#ccff00", 500, "right");
+    text(ctx, copy.canvas.weight, 40, header + 128, 18, "#9da79e");
+    text(ctx, copy.canvas.reps, 400, header + 128, 18, "#9da79e");
     text(ctx, "20", 40, header + 214, 64, "#edf1ed", 600);
     text(ctx, "kg", 148, header + 214, 24, "#9da79e");
     text(ctx, "12", 400, header + 214, 64, "#edf1ed", 600);
-    text(ctx, "reps", 508, header + 214, 24, "#9da79e");
+    text(ctx, copy.canvas.reps.toLowerCase(), 508, header + 214, 24, "#9da79e");
     roundRect(ctx, 40, header + 268, 688, 96, "#ccff00", 48);
-    text(ctx, "Log set", 384, header + 330, 32, "#101510", 600, "center");
+    text(ctx, copy.canvas.logSet, 384, header + 330, 32, "#101510", 600, "center");
     roundRect(ctx, 40, header + 396, 688, 84, branded ? "#26341a" : "#1b221b", 16);
     text(ctx, "#1", 64, header + 448, 26, "#9da79e");
     text(ctx, "20 kg × 12", 140, header + 448, 26);
@@ -189,10 +191,8 @@ export function createCoachingContent() {
     text(ctx, "9:41", 40, 48, 22, "#edf1ed", 600);
     text(ctx, "•••  ▰", 700, 48, 22, "#edf1ed", 500, "right");
     const label = branded
-      ? hasCustom
-        ? "YOUR GYM’S VIDEO"
-        : "YOUR GYM · PREVIEW"
-      : "LIFTAG GUIDE";
+      ? (hasCustom ? copy.canvas.yourGymVideo : copy.canvas.yourGymPreview)
+      : copy.canvas.guide;
     const pillW = branded ? (hasCustom ? 232 : 220) : 168;
     roundRect(ctx, 36, h - 118, pillW, 40, branded ? "#ccff00" : "#1d271b", 20);
     text(
@@ -207,7 +207,7 @@ export function createCoachingContent() {
     );
     text(
       ctx,
-      branded && !hasCustom ? "Your trainer on this machine." : "EZ-Bar Skullcrusher",
+      branded && !hasCustom ? copy.canvas.trainerOnMachine : copy.canvas.exercise,
       40,
       h - 36,
       branded && !hasCustom ? 26 : 32,
@@ -382,6 +382,11 @@ export function createCoachingContent() {
     group,
     texture: logger.texture,
     update,
+    setCopy(next: GymDemoMessages) {
+      copy = next;
+      drawLogger(lastBrand);
+      drawOverlay(lastBrand, lastHasCustom);
+    },
     dispose() {
       disposed = true;
       poster.onload = null;

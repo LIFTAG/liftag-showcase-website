@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/marketing'
+const { t, tm, rt } = useI18n({ useScope: 'local', messages: { en, sk } })
 // ─── Refs: DOM elements ───────────────────────────────────────────────────
 const sectionRef = ref<HTMLElement | null>(null)
 const trackRef   = ref<HTMLElement | null>(null)
@@ -125,26 +127,19 @@ const curvePoints: [number, number][] = [
   [1.00, 0.10],
 ]
 
-const dataMarkers: { x: number; label: string; sub: string; above: boolean }[] = [
-  { x: 0.30, label: '60kg × 8',  sub: 'W1',  above: true  },
-  { x: 0.38, label: '62.5kg',    sub: 'W2',  above: false },
-  { x: 0.46, label: '65kg × 8',  sub: 'W3',  above: true  },
-  { x: 0.53, label: 'Bench',     sub: 'W5',  above: false },
-  { x: 0.60, label: '70kg × 6',  sub: 'W6',  above: true  },
-  { x: 0.68, label: '+5kg PR',   sub: 'W8',  above: false },
-  { x: 0.76, label: '80kg × 5',  sub: 'W9',  above: true  },
-  { x: 0.84, label: 'Squat 1RM', sub: 'W10', above: false },
-  { x: 0.92, label: '90kg × 3',  sub: 'W11', above: true  },
-  { x: 1.00, label: 'NEW PR!',   sub: 'W12', above: false },
-]
-
-const yAxisLabels = ['100kg', '80kg', '60kg', '40kg', '20kg']
-const xAxisLabels = [
-  { x: 0.0,  text: 'JAN' },
-  { x: 0.33, text: 'FEB' },
-  { x: 0.66, text: 'MAR' },
-  { x: 1.0,  text: 'APR' },
-]
+const markerPositions = [0.30, 0.38, 0.46, 0.53, 0.60, 0.68, 0.76, 0.84, 0.92, 1.00]
+const markerAbove = [true, false, true, false, true, false, true, false, true, false]
+const dataMarkers = computed(() => {
+  const labels = tm('marketing.how.markers') as string[]
+  return markerPositions.map((x, i) => ({
+  x,
+  label: rt(labels[i]),
+  sub: `W${[1, 2, 3, 5, 6, 8, 9, 10, 11, 12][i]}`,
+  above: markerAbove[i],
+  }))
+})
+const yAxisLabels = computed(() => (tm('marketing.how.yAxis') as string[]).map(item => rt(item)))
+const xAxisLabels = computed(() => (tm('marketing.how.xAxis') as string[]).map((item, i) => ({ x: [0, 0.33, 0.66, 1][i], text: rt(item) })))
 
 // Chart SVG points
 const chartPts: [number, number][] = [
@@ -217,18 +212,18 @@ function drawHIWCurve(p: number) {
     ctx.lineTo(padX + graphW * drawProgress, yy)
     ctx.stroke()
 
-    if (drawProgress > 0.02 && yAxisLabels[gy]) {
+    if (drawProgress > 0.02 && yAxisLabels.value[gy]) {
       const labelAlpha = Math.min(0.12, drawProgress * 0.4)
       ctx.font = "500 10px 'JetBrains Mono', monospace"
       ctx.fillStyle = `rgba(255, 255, 255, ${labelAlpha})`
       ctx.textAlign = 'right'
       ctx.textBaseline = 'middle'
-      ctx.fillText(yAxisLabels[gy], padX - 10, yy)
+      ctx.fillText(yAxisLabels.value[gy], padX - 10, yy)
     }
   }
 
   // === X-axis date labels ===
-  xAxisLabels.forEach(({ x: xn, text }) => {
+  xAxisLabels.value.forEach(({ x: xn, text }) => {
     if (xn > drawProgress) return
     const xx = toCanvasX(xn)
     const yy = toCanvasY(1) + 18
@@ -243,7 +238,7 @@ function drawHIWCurve(p: number) {
   })
 
   // === Vertical grid lines at date marks ===
-  xAxisLabels.forEach(({ x: xn }) => {
+  xAxisLabels.value.forEach(({ x: xn }) => {
     if (xn > drawProgress || xn === 0) return
     const xx = toCanvasX(xn)
     ctx!.strokeStyle = 'rgba(255, 255, 255, 0.02)'
@@ -348,7 +343,7 @@ function drawHIWCurve(p: number) {
 
   // === Data point markers ===
   const now = performance.now()
-  dataMarkers.forEach((marker, mi) => {
+  dataMarkers.value.forEach((marker, mi) => {
     if (marker.x > drawProgress) {
       markerFlashTime[mi] = 0
       return
@@ -1065,7 +1060,7 @@ onBeforeUnmount(() => {
       <canvas ref="curveCanvas" class="hiw-curve-canvas"></canvas>
 
       <div class="hiw-header">
-        <h2 class="section-label">How It Works</h2>
+        <h2 class="section-label">{{ t('marketing.how.heading') }}</h2>
       </div>
 
       <div ref="trackRef" class="hiw-track">
@@ -1109,8 +1104,8 @@ onBeforeUnmount(() => {
                 </div>
               </div>
             </div>
-            <h3 ref="scanTitle" class="hiw-panel-title">Scan the QR Code</h3>
-            <p ref="scanDesc" class="hiw-panel-desc">Open LIFTAG, point your camera at the machine's QR code. The exercise loads instantly.</p>
+            <h3 ref="scanTitle" class="hiw-panel-title">{{ t('marketing.how.scanTitle') }}</h3>
+            <p ref="scanDesc" class="hiw-panel-desc">{{ t('marketing.how.scanDesc') }}</p>
             <div class="hiw-panel-line"></div>
           </div>
         </div>
@@ -1134,18 +1129,18 @@ onBeforeUnmount(() => {
           >
             <div class="hiw-panel-visual">
               <div class="hiw-log-card" :class="{ 'pr-unlocked': prVisible }">
-                <div class="hiw-log-exercise">Bench Press</div>
-                <div class="hiw-log-previous">Last session: 80kg × 10</div>
+                <div class="hiw-log-exercise">{{ t('marketing.how.exercise') }}</div>
+                <div class="hiw-log-previous">{{ t('marketing.how.previous') }}</div>
                 <div class="hiw-log-inputs">
                   <div class="hiw-log-field">
-                    <div class="hiw-log-label">WEIGHT</div>
+                    <div class="hiw-log-label">{{ t('marketing.how.weight') }}</div>
                     <div class="hiw-log-value">
-                      <span ref="weightEl">0</span><span class="hiw-log-unit">kg</span>
+                      <span ref="weightEl">0</span><span class="hiw-log-unit">{{ t('marketing.how.unit') }}</span>
                     </div>
                   </div>
                   <div class="hiw-log-x">×</div>
                   <div class="hiw-log-field">
-                    <div class="hiw-log-label">REPS</div>
+                    <div class="hiw-log-label">{{ t('marketing.how.reps') }}</div>
                     <div class="hiw-log-value">
                       <span ref="repsEl">0</span>
                     </div>
@@ -1156,12 +1151,12 @@ onBeforeUnmount(() => {
                   :class="{ 'is-confirmed': prVisible, 'hiw-log-hint': logSetHint && !prVisible }"
                   role="button"
                   tabindex="0"
-                  aria-label="Log set"
+                  :aria-label="t('marketing.how.log')"
                   @click="handleLogSet"
                   @keydown.enter.prevent="handleLogSet"
                   @keydown.space.prevent="handleLogSet"
                 >
-                  LOG SET
+                  {{ t('marketing.how.log') }}
                 </div>
                 <div class="hiw-log-pr-stage" :class="{ 'is-visible': prVisible }" aria-live="polite">
                   <div
@@ -1184,16 +1179,16 @@ onBeforeUnmount(() => {
                     ></span>
                   </div>
                   <div v-if="prVisible" :key="`pr-${prBurstKey}`" class="hiw-log-pb">
-                    NEW PR! <span>+5kg</span>
+                    {{ t('marketing.how.newPr') }} <span>+5kg</span>
                   </div>
                   <div v-else class="hiw-log-pb hiw-log-pb-placeholder" aria-hidden="true">
-                    NEW PR! <span>+5kg</span>
+                    {{ t('marketing.how.newPr') }} <span>+5kg</span>
                   </div>
                 </div>
               </div>
             </div>
-            <h3 class="hiw-panel-title">Track Your Sets</h3>
-            <p class="hiw-panel-desc">Enter weight and reps. See your previous performance, personal bests, and projected targets.</p>
+            <h3 class="hiw-panel-title">{{ t('marketing.how.trackTitle') }}</h3>
+            <p class="hiw-panel-desc">{{ t('marketing.how.trackDesc') }}</p>
             <div class="hiw-panel-line"></div>
           </div>
         </div>
@@ -1222,7 +1217,7 @@ onBeforeUnmount(() => {
                 @pointerleave="resetHIWChartHover"
                 @pointercancel="resetHIWChartHover"
               >
-                <div class="hiw-chart-title">Bench Press · 12 weeks</div>
+                <div class="hiw-chart-title">{{ t('marketing.how.chartTitle') }}</div>
                 <svg
                   ref="chartSvg"
                   class="hiw-chart-svg"
@@ -1254,21 +1249,21 @@ onBeforeUnmount(() => {
                 <div class="hiw-chart-stats">
                   <div class="hiw-chart-stat">
                     <span ref="statStrength" style="color: var(--liftag-primary); font-weight: 800;">+0%</span><br />
-                    <span style="color: var(--liftag-fg-dim); font-size: 0.6rem;">STRENGTH</span>
+                    <span style="color: var(--liftag-fg-dim); font-size: 0.6rem;">{{ t('marketing.how.strength') }}</span>
                   </div>
                   <div class="hiw-chart-stat">
                     <span ref="statSessions" style="color: var(--liftag-red-neon); font-weight: 800;">0</span><br />
-                    <span style="color: var(--liftag-fg-dim); font-size: 0.6rem;">SESSIONS</span>
+                    <span style="color: var(--liftag-fg-dim); font-size: 0.6rem;">{{ t('marketing.how.sessions') }}</span>
                   </div>
                   <div class="hiw-chart-stat">
                     <span ref="statPRs" style="font-weight: 800;">0</span><br />
-                    <span style="color: var(--liftag-fg-dim); font-size: 0.6rem;">NEW PRs</span>
+                    <span style="color: var(--liftag-fg-dim); font-size: 0.6rem;">{{ t('marketing.how.newPrs') }}</span>
                   </div>
                 </div>
               </div>
             </div>
-            <h3 class="hiw-panel-title">Watch Progress Compound</h3>
-            <p class="hiw-panel-desc">Over weeks and months, LIFTAG builds your complete strength story. Every rep, every PR.</p>
+            <h3 class="hiw-panel-title">{{ t('marketing.how.progressTitle') }}</h3>
+            <p class="hiw-panel-desc">{{ t('marketing.how.progressDesc') }}</p>
             <div class="hiw-panel-line"></div>
           </div>
         </div>
@@ -1276,7 +1271,7 @@ onBeforeUnmount(() => {
       </div><!-- /.hiw-track -->
 
       <!-- Step dots -->
-      <div class="hiw-dots" role="tablist" aria-label="How it works steps">
+      <div class="hiw-dots" role="tablist" :aria-label="t('marketing.how.stepsAria')">
         <div
           v-for="(_, i) in 3"
           :key="i"
@@ -1285,7 +1280,7 @@ onBeforeUnmount(() => {
           :class="{ active: i === 0 }"
           role="tab"
           tabindex="0"
-          :aria-label="`Step ${i + 1}`"
+          :aria-label="`${t('marketing.how.step')} ${i + 1}`"
           :aria-selected="i === 0 ? 'true' : 'false'"
           @click="scrollToPanel(i)"
           @keydown.enter.prevent="scrollToPanel(i)"

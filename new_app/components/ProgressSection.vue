@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/marketing'
+const { t, tm, rt } = useI18n({ useScope: 'local', messages: { en, sk } })
 const screens = [
   '/assets/screens/chest-progression.webp',
   '/assets/screens/bench-progress.webp',
@@ -101,26 +103,20 @@ onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', onDocumentVisibilityChange)
 })
 
-const leftChips = [
-  { title: 'Volume Trends', sub: '4W · 12W · 26W · 52W', accent: '#CCFF00' },
-  { title: 'Streak Tracking', sub: '12 weeks unbroken', accent: '#22C55E' },
-  { title: 'Body-Part Split', sub: 'Push · Pull · Legs · Full', accent: '#CCFF00' },
-  { title: 'Rest & Recovery', sub: 'Avg rest between sets', accent: 'rgba(255,255,255,0.5)' },
-]
+const leftChips = computed(() => {
+  const copy = tm('marketing.progressChips') as string[][]
+  return copy.slice(0, 4).map((item, i) => ({ title: rt(item[0]), sub: rt(item[1]), accent: i === 1 ? '#22C55E' : i === 3 ? 'rgba(255,255,255,0.5)' : '#CCFF00' }))
+})
 
-const rightChips = [
-  { title: 'Personal Records', sub: 'Auto-detected · weight / reps / vol', accent: '#CCFF00' },
-  { title: '1RM Estimates', sub: 'Epley formula, per set', accent: '#CCFF00' },
-  { title: 'Workout History', sub: 'Every session, searchable', accent: 'rgba(255,255,255,0.5)' },
-  { title: 'Exercise Insights', sub: 'Top set · best 1RM · total volume', accent: '#22C55E' },
-]
+const rightChips = computed(() => {
+  const copy = tm('marketing.progressChips') as string[][]
+  return copy.slice(4).map((item, i) => ({ title: rt(item[0]), sub: rt(item[1]), accent: i === 2 ? 'rgba(255,255,255,0.5)' : i === 3 ? '#22C55E' : '#CCFF00' }))
+})
 
-const stats = [
-  { n: '4W-52W', l: 'Time windows', sub: 'Zoom in or out' },
-  { n: 'PRs', l: 'Auto-detected', sub: 'Weight, reps & volume' },
-  { n: '1RM', l: 'Estimated per set', sub: 'Every exercise' },
-  { n: '∞', l: 'History stored', sub: 'Every set, forever' },
-]
+const stats = computed(() => {
+  const copy = tm('marketing.progress.stats') as Array<{ n: string, label: string, sub: string }>
+  return copy.map(item => ({ n: rt(item.n), l: rt(item.label), sub: rt(item.sub) }))
+})
 
 const barVals = [40, 55, 48, 62, 58, 70, 75, 68, 80, 85, 78, 92]
 const barMax = Math.max(...barVals)
@@ -282,13 +278,12 @@ onBeforeUnmount(() => {
     <div class="container" style="position: relative;">
       <div class="progress-hero">
         <div class="progress-hero-copy">
-          <Eyebrow color="#CCFF00">▸ PROGRESS &amp; INSIGHTS</Eyebrow>
+          <Eyebrow color="#CCFF00">{{ t('marketing.progress.eyebrow') }}</Eyebrow>
           <SectionTitle :max="640">
-            Watch the numbers <span class="lime">compound.</span>
+            {{ t('marketing.progress.title') }}
           </SectionTitle>
           <p class="reveal progress-hero-text">
-            Volume, PRs, 1RM estimates, streaks, body-part splits, workout history, rest trends. Every
-            dimension of your training in one place.
+            {{ t('marketing.progress.lead') }}
           </p>
         </div>
         <div class="progress-plate-hero" aria-hidden="true">
@@ -373,7 +368,7 @@ onBeforeUnmount(() => {
             }"
           >
             <div class="protocol" :style="{ color: '#666', fontSize: '9px', marginBottom: '10px' }">
-              WEEKLY VOLUME
+              {{ t('marketing.progress.weekly') }}
             </div>
             <div
               class="weekly-volume-bars"
@@ -386,7 +381,7 @@ onBeforeUnmount(() => {
                 type="button"
                 class="weekly-volume-bar"
                 :class="{ 'is-lit': i === litVolumeBar }"
-                :aria-label="`Week ${i + 1} volume ${v}`"
+                :aria-label="`${t('marketing.progress.week')} ${i + 1} ${t('marketing.progress.volume')} ${v}`"
                 @pointerenter="activateVolumeBar(i, $event)"
                 @pointerdown="activateVolumeBar(i, $event)"
                 @focus="activateVolumeBar(i)"
@@ -410,7 +405,7 @@ onBeforeUnmount(() => {
               </button>
             </div>
             <div class="weekly-volume-readout">
-              WEEK {{ litVolumeBar + 1 }} · {{ barVals[litVolumeBar] }} VOL
+              {{ t('marketing.progress.week') }} {{ litVolumeBar + 1 }} · {{ barVals[litVolumeBar] }} {{ t('marketing.progress.volume') }}
             </div>
           </div>
         </div>
@@ -435,7 +430,7 @@ onBeforeUnmount(() => {
               type="button"
               class="progress-screen-dot"
               :class="{ 'is-active': screen === i }"
-              :aria-label="`Screen ${i + 1}`"
+              :aria-label="`${t('marketing.progress.screens')} ${i + 1}`"
               @click="setScreen(i)"
               :style="{
                 width: screen === i ? '32px' : '24px',
@@ -521,7 +516,7 @@ onBeforeUnmount(() => {
             }"
           >
             <div class="protocol" :style="{ color: '#666', fontSize: '9px', marginBottom: '10px' }">
-              1RM PROGRESSION
+              {{ t('marketing.progress.oneRm') }}
             </div>
             <svg
               ref="lineChartRef"

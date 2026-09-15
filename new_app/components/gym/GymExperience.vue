@@ -4,11 +4,14 @@ import type { CoachingState } from '~/utils/gymscan/coachingStage';
 import { gymJourneyKey } from '~/composables/useGymJourney';
 import { gymCoachingKey } from '~/composables/useCoachingScroll';
 import { GYM_ARRIVAL_STATE_KEY } from '~/utils/gymscan/arrivalBootstrap';
+import { en, sk } from '~/i18n/messages/gymDemo';
 const coaching = shallowRef<CoachingState>({ frame: { member: 0, owner: 0, isOwner: false, reduced: false }, paused: false, customSrc: '', replay: 0 });
 const customError = shallowRef(0);
 const mediaFailed = shallowRef(false);
 const root = useTemplateRef<HTMLElement>("journey");
 const { current, chapter, reducedMotion, track } = useGymJourney(root);
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } });
+const { href } = useSiteLocale();
 provide(gymJourneyKey, current);
 provide(gymCoachingKey, coaching);
 const enhanced = shallowRef(false);
@@ -26,13 +29,13 @@ const copyHold = computed(
       !swept.value),
 );
 provideGymCopyReveal(copyHold, reducedMotion);
-const chapters = [
-  { id: "experience", label: "The machine", compact: "Machine" },
-  { id: "the-tag", label: "The tag", compact: "The tag" },
-  { id: "lifters", label: "Watch & lift", compact: "Watch & lift" },
-  { id: "gyms", label: "Your instructions", compact: "Your gym" },
-  { id: "discover", label: "On the map", compact: "On the map" },
-];
+const chapters = computed(() => [
+  { id: 'experience', label: t('chapters.machine'), compact: t('chapters.machineCompact') },
+  { id: 'the-tag', label: t('chapters.tag'), compact: t('chapters.tagCompact') },
+  { id: 'lifters', label: t('chapters.members'), compact: t('chapters.membersCompact') },
+  { id: 'gyms', label: t('chapters.instructions'), compact: t('chapters.instructionsCompact') },
+  { id: 'discover', label: t('chapters.map'), compact: t('chapters.mapCompact') },
+]);
 function kit() {
   track("gym_kit_cta");
 }
@@ -124,32 +127,32 @@ useHead({
         <section id="experience" class="gx-opening" aria-labelledby="gx-title" tabindex="-1">
           <div class="gx-opening__copy">
             <p class="gx-protocol">
-              <GymHeroEntry row><span class="gx-dot" /> BUILT AROUND YOUR GYM</GymHeroEntry>
+              <GymHeroEntry row><span class="gx-dot" /> {{ t('opening.eyebrow') }}</GymHeroEntry>
             </p>
             <h1 id="gx-title">
-              <GymHeroEntry row :delay="80">Your machines.</GymHeroEntry><br /><GymHeroEntry :delay="180"><em>Connected to their workout.</em></GymHeroEntry>
+              <GymHeroEntry row :delay="80">{{ t('opening.titleA') }}</GymHeroEntry><br /><GymHeroEntry :delay="180"><em>{{ t('opening.titleB') }}</em></GymHeroEntry>
             </h1>
-            <p><GymHeroEntry :delay="300">Put a tag on a machine. Members scan, watch and log.</GymHeroEntry></p>
+            <p><GymHeroEntry :delay="300">{{ t('opening.body') }}</GymHeroEntry></p>
             <div class="gx-actions">
-              <GymHeroEntry button :delay="400"><a class="btn-primary" href="#kit" @click="kit">Become a partner gym</a></GymHeroEntry>
-              <GymHeroEntry button :delay="480"><NuxtLink class="btn-ghost" to="/get"><HoloPill />Get the app</NuxtLink></GymHeroEntry>
+              <GymHeroEntry button :delay="400"><a class="btn-primary" href="#kit" @click="kit">{{ t('opening.partner') }}</a></GymHeroEntry>
+              <GymHeroEntry button :delay="480"><NuxtLink class="btn-ghost" :to="href('/get')"><HoloPill />{{ t('nav.app') }}</NuxtLink></GymHeroEntry>
             </div>
           </div>
           <a class="gx-scroll gx-protocol" href="#the-tag"
-            ><GymHeroEntry row :delay="560">SCROLL TO CONNECT</GymHeroEntry> <span>↓</span></a
+            ><GymHeroEntry row :delay="560">{{ t('opening.scroll') }}</GymHeroEntry> <span>↓</span></a
           ><span class="gx-spec gx-protocol"
-            ><GymHeroEntry :delay="600">01 / PIVOT LEG PRESS<br />TAG → SCAN → LOG</GymHeroEntry></span
+            ><GymHeroEntry :delay="600">{{ t('opening.spec') }}<br />{{ t('opening.specSub') }}</GymHeroEntry></span
           >
         </section>
         <section id="the-tag" class="gx-install" aria-labelledby="gx-tag-title" tabindex="-1">
           <div class="gx-install__copy">
-            <p class="gx-protocol"><GymHeroEntry row>A STICKER FOR EACH MACHINE</GymHeroEntry></p>
+            <p class="gx-protocol"><GymHeroEntry row>{{ t('tag.eyebrow') }}</GymHeroEntry></p>
             <h2 id="gx-tag-title">
-              <GymHeroEntry :delay="70">Stick it on. Scan or tap.</GymHeroEntry>
+              <GymHeroEntry :delay="70">{{ t('tag.title') }}</GymHeroEntry>
             </h2>
             <span class="gx-install__types"
-              ><span class="gx-install__chip"><GymHeroEntry row :delay="160">QR <i>Scan</i></GymHeroEntry></span
-              ><span class="gx-install__chip"><GymHeroEntry row :delay="220">NFC <i>Tap</i></GymHeroEntry></span></span
+              ><span class="gx-install__chip"><GymHeroEntry row :delay="160">QR <i>{{ t('tag.scan') }}</i></GymHeroEntry></span
+              ><span class="gx-install__chip"><GymHeroEntry row :delay="220">NFC <i>{{ t('tag.tap') }}</i></GymHeroEntry></span></span
             >
           </div>
           <img
@@ -157,7 +160,7 @@ useHead({
             src="/assets/gym3d/tag-poster.webp"
             width="1000"
             height="1000"
-            alt="LIFTAG tag attached to the leg press"
+            :alt="t('tag.alt')"
             loading="lazy"
           />
         </section>
@@ -167,22 +170,22 @@ useHead({
       <GymKit />
     </main>
     <footer class="gx-footer" :inert="arriving ? true : undefined">
-      <NuxtLink class="gx-logo" to="/"
+      <NuxtLink class="gx-logo" :to="href('/')"
         ><img src="/assets/logo.svg" width="25" height="25" alt="" /><span
           >LIFTAG</span
         ></NuxtLink
       >
-      <nav aria-label="Footer">
-        <NuxtLink to="/for-gyms">For gyms</NuxtLink
-        ><NuxtLink to="/for-lifters">For lifters</NuxtLink
-        ><NuxtLink to="/for-trainers">For coaches</NuxtLink
-        ><NuxtLink to="/get">Get the app</NuxtLink
-        ><NuxtLink to="/privacy-policy">Privacy</NuxtLink
-        ><NuxtLink to="/contact/support">Support</NuxtLink>
+      <nav :aria-label="t('nav.footer')">
+        <NuxtLink :to="href('/for-gyms')">{{ t('nav.gyms') }}</NuxtLink
+        ><NuxtLink :to="href('/for-lifters')">{{ t('nav.lifters') }}</NuxtLink
+        ><NuxtLink :to="href('/for-trainers')">{{ t('nav.coaches') }}</NuxtLink
+        ><NuxtLink :to="href('/get')">{{ t('nav.app') }}</NuxtLink
+        ><NuxtLink :to="href('/privacy-policy')">{{ t('nav.privacy') }}</NuxtLink
+        ><NuxtLink :to="href('/contact/support')">{{ t('nav.support') }}</NuxtLink>
       </nav>
-      <span class="gx-protocol">BUILT FOR REAL TRAINING.</span>
+      <span class="gx-protocol">{{ t('footer.tagline') }}</span>
     </footer>
-    <nav v-show="chapter !== 'kit'" class="gx-chapters" aria-label="Experience chapters" :inert="arriving ? true : undefined">
+    <nav v-show="chapter !== 'kit'" class="gx-chapters" :aria-label="t('nav.experienceChapters')" :inert="arriving ? true : undefined">
       <a
         v-for="(item, i) in chapters"
         :key="item.id"
@@ -196,7 +199,7 @@ useHead({
         href="#kit"
         @click="kit"
         :aria-current="chapter === 'kit' ? 'step' : undefined"
-        aria-label="Become a partner gym"
+        :aria-label="t('chapters.becomePartner')"
         >↗</a
       >
     </nav>

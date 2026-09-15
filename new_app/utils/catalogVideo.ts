@@ -1,4 +1,5 @@
-import type { CatalogVideo } from '~/types/catalog'
+import type { CatalogVideo } from '../types/catalog.ts'
+import type { SiteLocale } from '../types/locale.ts'
 
 /**
  * Public catalog instruction videos. Players, badges, VideoObject, and the
@@ -8,14 +9,14 @@ import type { CatalogVideo } from '~/types/catalog'
 export const CATALOG_VIDEOS_ENABLED = true
 
 /** Pick the same deterministic instruction video everywhere the catalog appears. */
-export function preferredCatalogVideoUrl(videos: readonly CatalogVideo[]): string | null {
+export function preferredCatalogVideoUrl(videos: readonly CatalogVideo[], locale: SiteLocale = 'en'): string | null {
   if (!CATALOG_VIDEOS_ENABLED) return null
 
   const ordered = videos
     .filter(video => Boolean(video.url))
     .sort((a, b) => a.displayOrder - b.displayOrder)
 
-  return (ordered.find(video => video.locale === 'en') ?? ordered[0])?.url ?? null
+  return (ordered.find(video => video.locale === locale) ?? ordered.find(video => video.locale === 'en') ?? ordered[0])?.url ?? null
 }
 
 export function catalogHasVideo(videos: readonly CatalogVideo[]): boolean {

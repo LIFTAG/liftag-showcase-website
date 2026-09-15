@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/comparisons'
+import { en as tableEn, sk as tableSk, skGlance } from '~/content/comparisons/gymQrTable'
 import {
   gymQrGlanceRows,
   gymQrMatrixFor,
@@ -6,6 +8,8 @@ import {
   type GymQrCellMark,
   type GymQrTableVariant,
 } from '~/utils/gymQrComparison'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+const { locale } = useSiteLocale()
 
 const props = withDefaults(defineProps<{
   kind?: 'glance' | 'matrix'
@@ -14,34 +18,39 @@ const props = withDefaults(defineProps<{
 }>(), {
   kind: 'matrix',
   variant: 'full',
-  label: 'QR and NFC gym tracking comparison',
+  label: undefined,
 })
 
-const matrixRows = computed(() => gymQrMatrixFor(props.variant))
+const matrixRows = computed(() => gymQrMatrixFor(props.variant).map(row => {
+  const translation = locale.value === 'sk' ? tableSk[row.id] : tableEn[row.id]
+  if (!translation) return row
+  return { ...row, aspect: translation.aspect, cells: Object.fromEntries(gymQrPlatforms.map(platform => [platform, { ...row.cells[platform], text: translation.cells[platform] }])) as typeof row.cells }
+}))
+const glanceRows = computed(() => locale.value === 'sk' ? gymQrGlanceRows.map(row => ({ ...row, ...(skGlance[row.name] ?? {}) })) : gymQrGlanceRows)
 
 function markLabel(mark: GymQrCellMark | undefined) {
-  if (mark === 'only') return 'Only LIFTAG'
-  if (mark === 'best') return 'Best here'
-  if (mark === 'theirs') return 'They win'
+  if (mark === 'only') return t('comparisons.table.only')
+  if (mark === 'best') return t('comparisons.table.best')
+  if (mark === 'theirs') return t('comparisons.table.theirs')
   return ''
 }
 </script>
 
 <template>
-  <div class="gqc-wrap" role="region" :aria-label="label">
+  <div class="gqc-wrap" role="region" :aria-label="label ?? t('comparisons.table.defaultLabel')">
     <table v-if="kind === 'glance'" class="gqc-table gqc-table--glance">
       <thead>
         <tr>
-          <th scope="col">Platform</th>
-          <th scope="col">Gym cost</th>
-          <th scope="col">Unique strength</th>
-          <th scope="col">Best for</th>
-          <th scope="col">Weak spot</th>
+          <th scope="col">{{ t('comparisons.table.platform') }}</th>
+          <th scope="col">{{ t('comparisons.table.gymCost') }}</th>
+          <th scope="col">{{ t('comparisons.table.unique') }}</th>
+          <th scope="col">{{ t('comparisons.table.bestFor') }}</th>
+          <th scope="col">{{ t('comparisons.table.weakSpot') }}</th>
         </tr>
       </thead>
       <tbody>
         <tr
-          v-for="row in gymQrGlanceRows"
+          v-for="row in glanceRows"
           :key="row.name"
           :class="{ 'gqc-row-self': row.name === 'LIFTAG' }"
         >
@@ -57,7 +66,7 @@ function markLabel(mark: GymQrCellMark | undefined) {
     <table v-else class="gqc-table gqc-table--matrix">
       <thead>
         <tr>
-          <th scope="col">Aspect</th>
+          <th scope="col">{{ t('comparisons.table.aspect') }}</th>
           <th
             v-for="platform in gymQrPlatforms"
             :key="platform"

@@ -1,6 +1,4 @@
 <script setup lang="ts">
+const { locale } = useSiteLocale()
 </script>
-
-<template>
-  <CatalogExerciseIndex locale="en" />
-</template>
+<template><CatalogExerciseIndex :key="locale" :locale="locale" /></template>

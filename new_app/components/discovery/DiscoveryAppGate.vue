@@ -2,6 +2,7 @@
 import type { DiscoveryLocale } from '~/types/discovery'
 import { discoveryCopy } from '~/utils/discoveryCopy'
 const props = defineProps<{ locale: DiscoveryLocale; kind: 'generate' | 'review' | 'routine' | 'plan' }>()
+const { href } = useSiteLocale()
 defineEmits<{ close: [] }>()
 const copy = computed(() => discoveryCopy(props.locale))
 const message = computed(
@@ -32,7 +33,7 @@ const message = computed(
           <AppStoreBtn store="apple" :href="APP_STORE_URL" :locale="locale" />
           <AppStoreBtn store="google" :href="PLAY_STORE_URL" :locale="locale" />
         </div>
-        <NuxtLink to="/get" class="d-install-link">
+        <NuxtLink :to="href('/get')" class="d-install-link">
           {{ copy.appDownload }}
           <DiscoveryIcon name="arrow" :size="16" />
         </NuxtLink>

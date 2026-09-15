@@ -47,10 +47,11 @@ test('maps the 13 muscle slugs to the SK chip labels and leaves English alone', 
   assert.equal(muscleDisplayName('adductors', 'Adductors', 'sk'), 'Adduktory')
   assert.equal(muscleDisplayName('cardio', 'Cardio', 'sk'), 'Kardio')
   assert.equal(muscleDisplayName('chest', 'Chest', 'en'), 'Chest')
+  assert.equal(muscleDisplayName('chest', 'Prsné svaly', 'sk'), 'Prsné svaly')
   assert.equal(muscleDisplayName('unknown', 'Other', 'sk'), 'Other')
 })
 
-test('SK muscle chips stay on the SK library; English chips still go to muscle hubs', () => {
+test('muscle chips use localized muscle hubs', () => {
   assert.equal(muscleChipPath('chest', 'en'), '/muscles/chest')
-  assert.equal(muscleChipPath('chest', 'sk'), '/sk/exercises?muscle=chest')
+  assert.equal(muscleChipPath('chest', 'sk'), '/sk/muscles/chest')
 })

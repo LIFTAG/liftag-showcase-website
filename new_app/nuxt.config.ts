@@ -1,3 +1,4 @@
+import { localizedRouteRules } from './utils/localizedRouteRules'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
 const DEFERRED_CHUNK = /(?:^|\/)(?:ScanSection|HowItWorks|LiftersSection|ProgressSection|AppMergeSection|GymsSection|DashboardSection|TrainersSection|Roadmap|FinalCta|SiteFooter|HomeFaq|FaqAccordion|PartnerMarquee|Phone3D|Macbook3D|HeroParticles|HeroDesktop|HeroMobile|HeroCharts|NfcTag3D|ForgedPrPlate|HologramPlate|MergeParticles|MergePrismCore|MergePrismaticBurst|MergeBurstHalo|RoadmapParticles|TapTokenCore)(?:\.vue)?(?:-|\.|$)/
@@ -16,7 +17,19 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-04-26',
   devtools: { enabled: true },
   ssr: true,
-  modules: ['@vercel/analytics', '@nuxtjs/turnstile', 'nuxt-gtag'],
+  modules: ['@vercel/analytics', '@nuxtjs/turnstile', 'nuxt-gtag', '@nuxtjs/i18n'],
+  i18n: {
+    baseUrl: 'https://liftag.fit',
+    strategy: 'prefix_except_default',
+    defaultLocale: 'en',
+    detectBrowserLanguage: false,
+    locales: [
+      { code: 'en', language: 'en-US', name: 'English', file: 'en.ts' },
+      { code: 'sk', language: 'sk-SK', name: 'Slovenčina', file: 'sk.ts' },
+    ],
+    vueI18n: './i18n.config.ts',
+    compilation: { strictMessage: false, escapeHtml: false },
+  },
   css: ['~/assets/css/main.css'],
   turnstile: {
     siteKey: '0x4AAAAAADV3ju2YEd8uiR-k',
@@ -137,7 +150,7 @@ export default defineNuxtConfig({
       strict: false,
     },
   },
-  routeRules: {
+  routeRules: localizedRouteRules({
     // One rule only. `/gym-scan/` sanitizes to the same Vercel function name
     // (`gym-scan.func`); a second symlink onto `__fallback.func` is EEXIST
     // and the production build dies. `vercel.json` `trailingSlash: false`
@@ -180,11 +193,7 @@ export default defineNuxtConfig({
     '/privacy-policy': { prerender: true },
     '/terms-and-conditions': { prerender: true },
     '/cs/**': { prerender: true },
-    '/sk/**': { prerender: true },
-    // More specific than `/sk/**` so 434 SK exercises are not prerendered at
-    // build. Legal pages under /sk/privacy-policy still prerender.
-    '/sk/exercises': { isr: 3600 },
-    '/sk/exercises/**': { prerender: false, headers: { 'cache-control': 'no-store' } },
+    '/sk': { prerender: true },
     // Catalog pages regenerate on Vercel at most hourly: new exercises appear
     // without a redeploy, and a build never has to prerender the whole catalog.
     '/exercises': { isr: 3600 },
@@ -211,6 +220,9 @@ export default defineNuxtConfig({
         'cache-control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
       },
     },
+    // Stable handoffs can resolve their UI from a manual language cookie.
+    ...Object.fromEntries(['/qr/**', '/auth/**', '/routines/**', '/plans/**', '/trainer-invites/**']
+      .map(path => [path, { headers: { 'cache-control': 'no-store' } }])),
     '/get': {
       headers: {
         'x-robots-tag': 'noindex, nofollow',
@@ -225,12 +237,12 @@ export default defineNuxtConfig({
     '/logo-apple-touch.png': { headers: { 'cache-control': LONG_CACHE } },
     '/og-image.jpg': { headers: { 'cache-control': LONG_CACHE } },
     '/api/og/1rm-calculator': { headers: { 'cache-control': LONG_CACHE } },
-  },
+  }),
   nitro: {
     compressPublicAssets: true,
     prerender: {
       // Not linked from HTML, so the crawler would skip them without this list.
-      routes: ['/sitemap.xml', '/sitemap-pages.xml'],
+      routes: ['/sitemap.xml', '/sitemap-pages.xml', '/sk/tools/1rm-calculator.md'],
     },
   },
   typescript: {

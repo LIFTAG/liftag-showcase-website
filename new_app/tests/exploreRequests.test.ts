@@ -10,6 +10,7 @@ function setupExplore(t: TestContext, query: Record<string, string> = {}) {
   t.mock.timers.enable({ apis: ['setTimeout', 'Date'], now: 100000 })
   const route = reactive({ path: '/explore', query })
   const session = ref<unknown>(null)
+  const switching = ref(false)
   let mount: () => Promise<void> = async () => {}
   let beforeUnmount: () => void = () => {}
   const requests: {
@@ -25,6 +26,7 @@ function setupExplore(t: TestContext, query: Record<string, string> = {}) {
     watch,
     onScopeDispose,
     useRoute: () => route,
+    useSiteLocale: () => ({ switching }),
     useRouter: () => ({
       replace: ({ query }: { query: Record<string, string> }) => {
         route.query = query
@@ -85,7 +87,7 @@ function setupExplore(t: TestContext, query: Record<string, string> = {}) {
       },
     }
   }
-  return { route, locale, gym, requests, result, flush, tick, create }
+  return { route, locale, switching, gym, requests, result, flush, tick, create }
 }
 
 test('Explore keeps viewport state, rejects obsolete responses, and preserves pending input across language changes', async (t) => {
@@ -231,3 +233,24 @@ for (const phase of ['debounce', 'pending', 'failed'] as const) {
     assert.equal(second.browse.loading.value, false)
   })
 }
+
+
+test('a pending query write cannot cancel a slower locale navigation', async (t) => {
+  const { route, locale, switching, create, tick, flush } = setupExplore(t, { lang: 'en' })
+  const { browse } = await create()
+  browse.search.value = 'Pending search'
+  await flush()
+  switching.value = true
+  await flush()
+  await tick(200)
+  assert.equal(route.query.q, undefined, 'Do not replace the route while its language switch is pending')
+  route.path = '/sk/explore'
+  route.query = { ...route.query, lang: 'sk' }
+  locale.value = 'sk'
+  switching.value = false
+  await flush()
+  await tick(100)
+  assert.equal(route.query.q, 'Pending search')
+  assert.equal(route.query.lang, 'sk')
+  assert.equal(browse.search.value, 'Pending search')
+})

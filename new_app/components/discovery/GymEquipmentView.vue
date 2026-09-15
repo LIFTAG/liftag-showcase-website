@@ -14,7 +14,7 @@ onMounted(() => {
   if (route.query.focus === '1') searchField.value?.focus()
 })
 /** The gym's timezone only arrives with the response, so the locale resolves after it. */
-const { preference } = useSiteLocale()
+const { preference, switching } = useSiteLocale()
 const {
   data: detail,
   error: detailError,
@@ -67,8 +67,9 @@ watch(
   },
 )
 watch(
-  () => JSON.stringify([search.value, manufacturers.value, categories.value, locale.value]),
+  () => JSON.stringify([search.value, manufacturers.value, categories.value, locale.value, switching.value]),
   (_, __, cleanup) => {
+    if (switching.value) return
     const timeout = setTimeout(
       () =>
         void navigateTo(

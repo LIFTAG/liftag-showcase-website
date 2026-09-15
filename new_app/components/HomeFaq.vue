@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { homeFaqs } from '~/utils/homeFaqs'
+import { en, sk } from '~/i18n/messages/marketing'
+const { t, tm, rt } = useI18n({ useScope: 'local', messages: { en, sk } })
+const localizedFaqs = computed(() => (tm('marketing.faqItems') as Array<{ question: string, answer: string }>).map(item => ({ question: rt(item.question), answer: rt(item.answer) })))
 </script>
 
 <template>
@@ -8,15 +10,15 @@ import { homeFaqs } from '~/utils/homeFaqs'
     <div class="container">
       <div class="home-faq-split">
         <header class="home-faq-intro">
-          <p class="protocol home-faq-eyebrow reveal">Common questions</p>
+          <p class="protocol home-faq-eyebrow reveal">{{ t('marketing.faq.eyebrow') }}</p>
           <h2 id="home-faq-title" class="display home-faq-title reveal plate-title">
-            <span class="plate-wipe">Answers before you <span class="lime">scan.</span></span>
+            <span class="plate-wipe">{{ t('marketing.faq.title') }}</span>
           </h2>
         </header>
 
         <FaqAccordion
           class="reveal"
-          :items="homeFaqs"
+          :items="localizedFaqs"
           id-prefix="home-faq"
         />
       </div>

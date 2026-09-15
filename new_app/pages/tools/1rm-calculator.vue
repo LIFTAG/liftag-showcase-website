@@ -1,35 +1,43 @@
 <script setup lang="ts">
-import { ONE_RM_DESCRIPTION, ONE_RM_FAQS, ONE_RM_H1, ONE_RM_MARKDOWN_PATH, ONE_RM_PATH, ONE_RM_TITLE } from '~/utils/oneRepMaxPage'
+definePageMeta({ key: 'one-rm-calculator' })
+import { ONE_RM_MARKDOWN_PATH, ONE_RM_PATH } from '~/utils/oneRepMaxPage'
 import OneRmCalculator from '~/components/tools/OneRmCalculator.vue'
 import OneRmWhy from '~/components/tools/OneRmWhy.vue'
 import OneRmGuide from '~/components/tools/OneRmGuide.vue'
 import { SITE_URL } from '~/utils/seoSchema'
+import { en, sk } from '~/i18n/messages/tools'
+import { en as guideEn, sk as guideSk } from '~/content/tools/oneRmGuide'
+import { en as seoEn, sk as seoSk } from '~/i18n/messages/calculatorSeo'
+const { t } = useI18n({ useScope: 'local', messages: { en: { ...en, seo: seoEn }, sk: { ...sk, seo: seoSk } } })
+const { href, locale } = useSiteLocale()
+const guideCopy = computed(() => locale.value === 'sk' ? guideSk : guideEn)
 
-const ogImage = `${SITE_URL}/api/og/1rm-calculator`
-useLiftagSeo({ title: ONE_RM_TITLE, description: ONE_RM_DESCRIPTION, path: ONE_RM_PATH, image: ogImage })
-useHead({ link: [{ rel: 'alternate', type: 'text/markdown', href: `${SITE_URL}${ONE_RM_MARKDOWN_PATH}` }] })
-useLiftagStructuredData([
+const ogImage = computed(() => `${SITE_URL}/api/og/1rm-calculator?lang=${locale.value}`)
+useLiftagSeo(() => ({ title: t('tools.calculator.seoTitle'), description: t('tools.calculator.seoDescription'), path: ONE_RM_PATH, image: ogImage.value }))
+useHead(() => ({ link: [{ rel: 'alternate', type: 'text/markdown', href: `${SITE_URL}${href(ONE_RM_MARKDOWN_PATH)}` }] }))
+useLiftagStructuredData(() => [
   liftagOrganization,
   liftagWebSite,
-  liftagWebPage({ path: ONE_RM_PATH, name: ONE_RM_H1, description: ONE_RM_DESCRIPTION, image: ogImage }),
-  liftagBreadcrumbs([{ name: 'LIFTAG', path: '/' }, { name: '1RM calculator', path: ONE_RM_PATH }]),
+  liftagWebPage({ path: href(ONE_RM_PATH), name: t('tools.calculator.title'), description: t('tools.calculator.seoDescription'), image: ogImage.value }),
+  liftagBreadcrumbs([{ name: 'LIFTAG', path: href('/') }, { name: t('tools.calculator.breadcrumb'), path: href(ONE_RM_PATH) }]),
   {
     '@type': 'WebApplication',
-    '@id': `${SITE_URL}${ONE_RM_PATH}#application`,
-    name: 'LIFTAG 1RM Calculator',
-    url: `${SITE_URL}${ONE_RM_PATH}`,
-    description: ONE_RM_DESCRIPTION,
+    '@id': `${SITE_URL}${href(ONE_RM_PATH)}#application`,
+    name: t('seo.name'),
+    url: `${SITE_URL}${href(ONE_RM_PATH)}`,
+    description: t('tools.calculator.seoDescription'),
     applicationCategory: 'HealthApplication',
     operatingSystem: 'Any',
-    browserRequirements: 'Requires JavaScript for interactive calculations.',
+    inLanguage: locale.value,
+    browserRequirements: t('seo.browser'),
     isAccessibleForFree: true,
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
     publisher: { '@id': `${SITE_URL}/#organization` },
-    featureList: ['One-rep max estimation', 'Seven published formulas', 'Kilograms and pounds', 'Training percentages', 'Interactive rep-max curve', 'Approximate strength percentiles for common gym exercises', 'Exercise-specific weight guidance'],
+    featureList: ['estimate', 'formulas', 'units', 'percentages', 'curve', 'percentiles', 'guidance'].map(key => t(`seo.${key}`)),
     datePublished: '2026-09-09',
     dateModified: '2026-09-11',
   },
-  liftagFAQPage(ONE_RM_FAQS),
+  liftagFAQPage(guideCopy.value.faqs),
 ])
 </script>
 
@@ -38,21 +46,21 @@ useLiftagStructuredData([
     <div class="calculator-shell">
       <header class="calculator-header">
         <div>
-          <nav class="calculator-crumbs" aria-label="Breadcrumb"><a href="/">LIFTAG</a><span aria-hidden="true">/</span><span aria-current="page">Training tools</span></nav>
-          <h1>{{ ONE_RM_H1 }}<span class="title-dot" aria-hidden="true">.</span></h1>
-          <p>One hard set. See what you’re capable of.</p>
+          <nav class="calculator-crumbs" :aria-label="t('seo.breadcrumb')"><a :href="href('/')">LIFTAG</a><span aria-hidden="true">/</span><span aria-current="page">{{ t('tools.calculator.breadcrumb') }}</span></nav>
+          <h1>{{ t('tools.calculator.title') }}<span class="title-dot" aria-hidden="true">.</span></h1>
+          <p>{{ t('tools.calculator.lead') }}</p>
         </div>
         <div class="header-links">
-          <a class="method-link" href="#why">Why this calculator <span aria-hidden="true">↗</span></a>
-          <a class="method-link" href="#method">How the estimate works <span aria-hidden="true">↗</span></a>
+          <a class="method-link" href="#why">{{ t('tools.calculator.why') }} <span aria-hidden="true">↗</span></a>
+          <a class="method-link" href="#method">{{ t('tools.calculator.method') }} <span aria-hidden="true">↗</span></a>
         </div>
       </header>
       <div id="calculator" class="calculator-stage">
         <OneRmCalculator />
-        <noscript>Enable JavaScript to edit the calculator. The example shown is 100 kg × 5 = 116.7 kg using Epley. The formulas and guide below work without JavaScript.</noscript>
+        <noscript>{{ t('tools.calculator.noscript') }}</noscript>
       </div>
       <OneRmWhy />
-      <div class="app-invitation"><p><strong>Make progress a habit.</strong> Track your sets. Watch your max grow.</p><a href="/get">Track with LIFTAG <span aria-hidden="true">↗</span></a></div>
+      <div class="app-invitation"><p><strong>{{ t('tools.calculator.invitationTitle') }}</strong> {{ t('tools.calculator.invitationBody') }}</p><a :href="href('/get')">{{ t('tools.calculator.invitationLink') }} <span aria-hidden="true">↗</span></a></div>
       <OneRmGuide />
     </div>
   </article>

@@ -3,6 +3,10 @@ import type Hls from "hls.js";
 import type { CatalogExercise } from "~/types/catalog";
 import { preferredCatalogVideoUrl } from "~/utils/catalogVideo";
 import { benchInstruction } from "~/utils/gymscan/equipment";
+import { en, sk } from '~/i18n/messages/gymDemo';
+import { useVideoLanguage } from '~/composables/useVideoLanguage';
+import { useSiteLocale } from '~/composables/useSiteLocale';
+import { canUseNativeHls } from '~/utils/exerciseVideoLanguage';
 
 const emit = defineEmits<{ close: []; playing: [] }>();
 const dialog = useTemplateRef<HTMLDialogElement>("dialog");
@@ -11,6 +15,9 @@ const exercise = shallowRef<CatalogExercise | null>(null);
 const loading = shallowRef(true);
 const failed = shallowRef(false);
 const muted = shallowRef(true);
+const { locale, href } = useSiteLocale();
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } });
+const videoLanguage = useVideoLanguage(locale);
 let hls: Hls | null = null;
 let disposed = false;
 const abort = new AbortController();
@@ -18,6 +25,7 @@ const abort = new AbortController();
 function fail() {
   loading.value = false;
   failed.value = true;
+  if (video.value) videoLanguage.unbind(video.value);
   hls?.destroy();
   hls = null;
   video.value?.pause();
@@ -34,11 +42,11 @@ onMounted(async () => {
   dialog.value?.showModal();
   try {
     exercise.value = await $fetch<CatalogExercise>(
-      `/api/catalog/exercises/${benchInstruction.slug}`,
+      `/api/catalog/exercises/${benchInstruction.slug}?locale=${locale.value}`,
       { signal: abort.signal, timeout: 12000 },
     );
     if (disposed) return;
-    const source = preferredCatalogVideoUrl(exercise.value.videos);
+    const source = preferredCatalogVideoUrl(exercise.value.videos, locale.value);
     if (!source) {
       fail();
       return;
@@ -48,7 +56,7 @@ onMounted(async () => {
     if (!el || disposed) return;
     if (
       /\.m3u8(?:\?|$)/i.test(source) &&
-      !el.canPlayType("application/vnd.apple.mpegurl")
+      !canUseNativeHls(el)
     ) {
       const HlsCtor = (await import("hls.js")).default;
       if (disposed) return;
@@ -62,7 +70,8 @@ onMounted(async () => {
       });
       hls.loadSource(source);
       hls.attachMedia(el);
-    } else el.src = source;
+      videoLanguage.bind(el, hls);
+    } else { el.src = source; videoLanguage.bind(el); }
     // Silent by default, as in the rest of the experience. Native controls remain
     // available when a browser requires another gesture to begin playback.
     el.play().catch(() => {
@@ -75,8 +84,9 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   disposed = true;
   abort.abort();
-  hls?.destroy();
   const el = video.value;
+  if (el) videoLanguage.unbind(el);
+  hls?.destroy();
   if (el) {
     el.pause();
     el.removeAttribute("src");
@@ -95,12 +105,12 @@ onBeforeUnmount(() => {
   >
     <header>
       <div>
-        <p class="gx-protocol">FROM THE LIFTAG EXERCISE LIBRARY</p>
+        <p class="gx-protocol">{{ t('member.librarySource') }}</p>
         <h2 id="gx-instruction-title">
-          {{ exercise?.name ?? benchInstruction.name }}
+          {{ exercise?.name ?? t('member.exercise') }}
         </h2>
       </div>
-      <button autofocus aria-label="Close instructions" @click="close">
+      <button autofocus :aria-label="t('nav.closeMenu')" @click="close">
         ×
       </button>
     </header>
@@ -113,31 +123,31 @@ onBeforeUnmount(() => {
         controls
         playsinline
         preload="none"
-        aria-label="EZ-Bar Skullcrusher instruction video"
+        :aria-label="t('member.previewAlt')"
         @playing="playing"
         @canplay="loading = false"
         @error="fail"
         @volumechange="muted = video?.muted ?? true"
       />
       <p v-if="loading" class="gx-instruction__status" role="status">
-        Opening instructions…
+        {{ t('member.opening') }}
       </p>
       <div v-if="failed" class="gx-instruction__error" role="status">
-        <p>The video is unavailable right now.</p>
+        <p>{{ t('coaching.unavailable') }}</p>
         <NuxtLink
-          :to="`/exercises/${benchInstruction.slug}`"
+          :to="href(`/exercises/${benchInstruction.slug}`)"
           class="btn-ghost"
-          ><HoloPill />Read the exercise guide</NuxtLink
+          ><HoloPill />{{ t('member.openGuide') }}</NuxtLink
         >
       </div>
     </div>
     <footer>
-      <span>Flat bench + EZ bar</span>
+      <span>{{ t('member.equipment') }}</span>
       <button v-if="!failed" :aria-pressed="!muted" @click="muted = !muted">
-        {{ muted ? "Enable sound" : "Mute sound" }}
+        {{ muted ? t('member.enableSound') : t('member.muteSound') }}
       </button>
-      <NuxtLink :to="`/exercises/${benchInstruction.slug}`"
-        >Exercise details ↗</NuxtLink
+      <NuxtLink :to="href(`/exercises/${benchInstruction.slug}`)"
+        >{{ t('nav.library') }} ↗</NuxtLink
       >
     </footer>
   </dialog>

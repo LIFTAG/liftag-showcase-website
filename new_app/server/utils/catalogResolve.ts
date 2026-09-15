@@ -42,12 +42,12 @@ export async function resolveExerciseFromCatalog(
   return fetchShow<CatalogExercise>(`/v1/catalog/exercise-templates/${param}`, lang)
 }
 
-export async function resolveMachineFromCatalog(param: string): Promise<CatalogMachine | null> {
-  const snapshot = await getCatalogSnapshot()
+export async function resolveMachineFromCatalog(param: string, locale: CatalogLocale = 'en'): Promise<CatalogMachine | null> {
+  const snapshot = await getCatalogSnapshot(locale)
   const hit = snapshot.machines.find(machine => machine.slug === param || machine.id === param)
   if (hit) {
-    return (await fetchShow<CatalogMachine>(`/v1/catalog/machine-templates/${hit.id}`)) ?? hit
+    return (await fetchShow<CatalogMachine>(`/v1/catalog/machine-templates/${hit.id}`, locale)) ?? hit
   }
   if (!UUID_RE.test(param)) return null
-  return fetchShow<CatalogMachine>(`/v1/catalog/machine-templates/${param}`)
+  return fetchShow<CatalogMachine>(`/v1/catalog/machine-templates/${param}`, locale)
 }

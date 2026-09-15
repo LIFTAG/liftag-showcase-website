@@ -2,11 +2,33 @@
 import type Hls from 'hls.js'
 import type { DiscoveryLocale } from '~/types/discovery'
 import { discoveryCopy } from '~/utils/discoveryCopy'
+import { canUseNativeHls } from '~/utils/exerciseVideoLanguage'
 const props = defineProps<{ src: string; poster?: string | null; title: string; locale: DiscoveryLocale }>()
 const video = useTemplateRef<HTMLVideoElement>('video')
 const failed = shallowRef(false)
-let hls: Hls | undefined,
-  disposed = false
+const language = useVideoLanguage(() => props.locale)
+let hls: Hls | undefined
+let attached: HTMLVideoElement | undefined
+function release() {
+  const element = attached
+  const player = hls
+  attached = undefined
+  hls = undefined
+  if (element) language.unbind(element)
+  player?.destroy()
+  if (element) {
+    element.pause()
+    element.removeAttribute('src')
+    element.load()
+  }
+}
+function fail() {
+  failed.value = true
+  release()
+}
+function onMediaError(event: Event) {
+  if (event.currentTarget === attached) fail()
+}
 const youtube = computed(() => {
   try {
     const u = new URL(props.src)
@@ -21,32 +43,37 @@ const youtube = computed(() => {
     return null
   }
 })
-onMounted(async () => {
-  if (!video.value || youtube.value) return
-  if (/\.m3u8(?:\?|$)/i.test(props.src) && !video.value.canPlayType('application/vnd.apple.mpegurl')) {
+// Watch the source, not the locale: the shared helper changes audio on a stable URL.
+watch(() => props.src, async (src, _previous, onCleanup) => {
+  let cancelled = false
+  onCleanup(() => { cancelled = true; release() })
+  failed.value = false
+  await nextTick()
+  if (cancelled || !video.value || youtube.value) return
+  const element = video.value
+  attached = element
+  if (/\.m3u8(?:\?|$)/i.test(src) && !canUseNativeHls(element)) {
     try {
       const { default: HlsPlayer } = await import('hls.js')
-      if (disposed || !video.value) return
-      if (!HlsPlayer.isSupported()) {
-        failed.value = true
-        return
-      }
-      hls = new HlsPlayer()
-      hls.loadSource(props.src)
-      hls.attachMedia(video.value)
-      hls.on(HlsPlayer.Events.ERROR, (_, data) => {
-        if (data.fatal) failed.value = true
+      if (cancelled || failed.value || attached !== element) return
+      if (!HlsPlayer.isSupported()) { fail(); return }
+      const player = new HlsPlayer()
+      hls = player
+      player.on(HlsPlayer.Events.ERROR, (_, data) => {
+        if (data.fatal && !cancelled && hls === player) fail()
       })
-    } catch {
-      if (!disposed) failed.value = true
-    }
-  } else video.value.src = props.src
-})
-onBeforeUnmount(() => {
-  disposed = true
-  hls?.destroy()
-  video.value?.pause()
-})
+      player.loadSource(src)
+      if (failed.value) return
+      player.attachMedia(element)
+      if (failed.value) return
+      language.bind(element, player)
+    } catch { if (!cancelled) fail() }
+  } else {
+    element.src = src
+    language.bind(element)
+  }
+}, { immediate: true, flush: 'post' })
+onBeforeUnmount(release)
 </script>
 <template>
   <iframe
@@ -72,7 +99,7 @@ onBeforeUnmount(() => {
     controls
     playsinline
     preload="metadata"
-    @error="failed = true"
+    @error="onMediaError"
   />
 </template>
 <style scoped>

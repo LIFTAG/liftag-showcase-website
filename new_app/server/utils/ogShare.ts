@@ -1,3 +1,5 @@
+import type { SiteLocale } from '../../types/locale'
+import { siteLocale } from '../../utils/siteLocale'
 import type { Buffer } from 'node:buffer'
 import type { H3Event } from 'h3'
 import type { OgCardModel } from './ogCard'
@@ -13,13 +15,13 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
  */
 export async function serveOgCard(
   event: H3Event,
-  fetchModel: (apiBaseUrl: string, id: string, femaleVariant: boolean) => Promise<OgCardModel>,
+  fetchModel: (apiBaseUrl: string, id: string, femaleVariant: boolean, locale: SiteLocale) => Promise<OgCardModel>,
 ): Promise<Buffer | undefined> {
   const id = String(event.context.params?.id ?? '')
   if (UUID_RE.test(id)) {
     try {
       const { apiBaseUrl } = useRuntimeConfig(event).public
-      const model = await fetchModel(String(apiBaseUrl), id, isFemaleVariantRequest(event))
+      const model = await fetchModel(String(apiBaseUrl), id, isFemaleVariantRequest(event), siteLocale(getQuery(event).lang) ?? 'en')
       const png = await renderOgCard(model)
       setHeader(event, 'Content-Type', 'image/png')
       // Long CDN cache: card content only changes when the routine/plan is

@@ -1,28 +1,32 @@
 <script setup lang="ts">
 import { useReveal } from '~/composables/useReveal'
-import { homeFaqs } from '~/utils/homeFaqs'
+import { en, sk } from '~/i18n/messages/marketingPages'
+import { en as marketingEn, sk as marketingSk } from '~/i18n/messages/marketing'
+const { t, tm, rt } = useI18n({ useScope: 'local', messages: { en: { ...en, marketing: marketingEn.marketing }, sk: { ...sk, marketing: marketingSk.marketing } } })
+const { href } = useSiteLocale()
+const localizedFaqs = computed(() => (tm('marketing.faqItems') as Array<{ question: string, answer: string }>).map(item => ({ question: rt(item.question), answer: rt(item.answer) })))
 
 // Keep these two in sync with app.head in nuxt.config.ts, which carries the
 // same pair as the pre-hydration fallback.
-const description = 'LIFTAG is a free workout tracker and logger for iOS and Android. Tap NFC or scan QR on gym machines to log sets, run rest timers, and track PRs. Works without tags.'
+const description = computed(() => t('home.description'))
 
-useLiftagSeo({
-  title: 'LIFTAG | Free Workout Tracker and Logger',
-  description,
+useLiftagSeo(() => ({
+  title: t('home.seoTitle'),
+  description: description.value,
   path: '/',
-})
+}))
 
-useLiftagStructuredData([
+useLiftagStructuredData(() => [
   liftagOrganization,
   liftagSoftwareApplication,
   liftagWebSite,
   liftagWebPage({
-    path: '/',
-    name: 'LIFTAG workout tracker',
-    description,
+    path: href('/'),
+    name: t('home.breadcrumb'),
+    description: description.value,
     aboutId: APP_ID,
   }),
-  liftagFAQPage(homeFaqs),
+  liftagFAQPage(localizedFaqs.value),
 ])
 
 useReveal()

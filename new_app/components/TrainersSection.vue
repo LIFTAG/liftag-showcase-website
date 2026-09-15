@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { en, sk } from '~/i18n/messages/marketing'
+const { t, tm, rt } = useI18n({ useScope: 'local', messages: { en, sk } })
+const { href } = useSiteLocale()
 interface Feature {
   tag: string
   title: string
@@ -43,6 +46,25 @@ const features: Feature[] = [
   },
 ]
 
+const localizedFeatures = computed(() => {
+  const copy = tm('marketing.trainers.features') as Array<{
+    tag: string
+    title: string
+    body: string
+    chip1: { label: string; value: string; sub: string }
+    chip2: { label: string; value: string; sub: string }
+  }>
+  return features.map((feature, i) => ({
+    ...feature,
+    tag: rt(copy[i].tag),
+    title: rt(copy[i].title),
+    body: rt(copy[i].body),
+    chip1: { ...feature.chip1, label: rt(copy[i].chip1.label), value: rt(copy[i].chip1.value), sub: rt(copy[i].chip1.sub) },
+    chip2: { ...feature.chip2, label: rt(copy[i].chip2.label), value: rt(copy[i].chip2.value), sub: rt(copy[i].chip2.sub) },
+  }))
+})
+const localizedBullets = computed(() => (tm('marketing.trainerBullets') as string[]).map(item => rt(item)))
+
 const active = ref(0)
 // Bumped when the section comes into view and on every tab change after that,
 // so the headline plays the character index both as it arrives and as it swaps
@@ -57,15 +79,7 @@ const sectionRef = ref<HTMLElement | null>(null)
 const sectionInView = ref(false)
 const cursorGlowActive = ref(false)
 const trainerScreenCycleMs = 4200
-const f = computed(() => features[active.value])
-
-const bullets = [
-  'Verified trainer badge + priority placement',
-  'Share plans with any client via email',
-  'Review client history & volume trends',
-  'Add custom exercises with your own videos',
-  'Online & in-person coaching, one dashboard',
-]
+const f = computed(() => localizedFeatures.value[active.value])
 
 function chipBorderColor(color: string) {
   if (color === '#FF2D55') return 'rgba(255,45,85,0.2)'
@@ -277,12 +291,11 @@ onBeforeUnmount(() => {
 
     <div class="container" style="position: relative; z-index: 1;">
       <SectionHeader eyebrow-color="#FF2D55" :copy-max="440">
-        <template #eyebrow>▸ FOR TRAINERS &amp; COACHES</template>
+        <template #eyebrow>{{ t('marketing.trainers.eyebrow') }}</template>
         <template #title>
-          Your clients,<br /><span style="color: #FF2D55;">quantified.</span>
+          {{ t('marketing.trainers.title') }}
         </template>
-        LIFTAG is a full coaching platform, not just a directory. Build your profile, get
-        discovered, share plans, and track every client's progress in one place.
+        {{ t('marketing.trainers.lead') }}
       </SectionHeader>
 
       <!-- Mobile horizontal tab strip - only visible on mobile -->
@@ -297,7 +310,7 @@ onBeforeUnmount(() => {
         }"
       >
         <button
-          v-for="(feat, i) in features"
+          v-for="(feat, i) in localizedFeatures"
           :key="i"
           @click="selectTrainer(i)"
           @pointerdown="selectTrainer(i)"
@@ -375,7 +388,7 @@ onBeforeUnmount(() => {
           <!-- Bullet list -->
           <div :style="{ marginTop: '36px', display: 'flex', flexDirection: 'column', gap: 0 }">
             <div
-              v-for="(item, i) in bullets"
+              v-for="(item, i) in localizedBullets"
               :key="i"
               :style="{
                 display: 'flex',
@@ -402,18 +415,18 @@ onBeforeUnmount(() => {
 
           <div :style="{ marginTop: '32px', display: 'flex', gap: '12px', flexWrap: 'wrap' }">
             <NuxtLink
-              to="/become-a-coach"
+              :to="href('/become-a-coach')"
               class="btn-primary"
               style="padding: 14px 24px; font-size: 12px; display: inline-flex; align-items: center; text-decoration: none;"
             >
-              Join as a coach
+              {{ t('marketing.trainers.joinCoach') }}
             </NuxtLink>
             <NuxtLink
-              to="/become-a-coach#showcase"
+              :to="href('/become-a-coach#showcase')"
               class="btn-ghost"
               style="padding: 14px 24px; font-size: 12px; display: inline-flex; align-items: center; text-decoration: none;"
             >
-              <HoloPill />See the coach platform
+              <HoloPill />{{ t('marketing.trainers.coachPlatform') }}
             </NuxtLink>
           </div>
         </div>

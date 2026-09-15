@@ -1,7 +1,15 @@
 <script setup lang="ts">
+import type { CatalogLocale } from '~/utils/catalogLocale'
+import { catalogChrome } from '~/utils/catalogCopy'
+
 const props = defineProps<{
   text: string
+  locale?: CatalogLocale
 }>()
+
+const { locale: siteLocale } = useSiteLocale()
+const noteLocale = computed(() => props.locale ?? siteLocale.value)
+const chrome = computed(() => catalogChrome(noteLocale.value))
 
 const noteId = useId()
 const textRef = ref<HTMLElement | null>(null)
@@ -90,7 +98,7 @@ onBeforeUnmount(() => {
       :aria-expanded="expanded"
       @click="toggleExpanded"
     >
-      <span>{{ expanded ? 'Show less' : 'Show more' }}</span>
+      <span>{{ expanded ? chrome.showLess : chrome.showMoreNote }}</span>
       <svg
         class="catalog-note__chevron"
         viewBox="0 0 16 16"

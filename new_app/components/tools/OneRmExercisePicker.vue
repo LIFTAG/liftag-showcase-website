@@ -2,10 +2,15 @@
 import {
   FEATURED_EXERCISES,
   exerciseFor,
-  searchExercises,
+  createExerciseSearch,
 } from '~/utils/oneRepMaxExercises'
 import { STRENGTH_COMPARISON_COUNT } from '~/utils/strengthStandards'
 import type { LiftId } from '~/utils/oneRepMax'
+import { en, sk } from '~/i18n/messages/tools'
+import { localizedExerciseGroup, localizedExerciseLabel, localizedFeaturedLabel } from '~/content/tools/oneRmExercises'
+
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+const { locale } = useSiteLocale()
 
 const lift = defineModel<LiftId>({ required: true })
 const draft = shallowRef('')
@@ -15,17 +20,21 @@ const root = useTemplateRef<HTMLElement>('picker-root')
 const input = useTemplateRef<HTMLInputElement>('exercise-search')
 
 const selected = computed(() => exerciseFor(lift.value))
-const selectedLabel = computed(() => lift.value === 'other' ? '' : selected.value.label)
+const selectedLabel = computed(() => lift.value === 'other' ? '' : localizedExerciseLabel(lift.value, selected.value.label, locale.value))
 const browsing = computed(() => !draft.value.trim())
 const searching = computed(() => open.value && !browsing.value)
-const results = computed(() => searching.value ? searchExercises(draft.value) : [])
+const search = computed(() => {
+  const language = locale.value
+  return createExerciseSearch(exercise => localizedExerciseLabel(exercise.id, exercise.label, language))
+})
+const results = computed(() => searching.value ? search.value(draft.value) : [])
 const displayValue = computed(() => open.value ? draft.value : selectedLabel.value)
 const activeId = computed(() => results.value[activeIndex.value]?.id ?? null)
 const showQuickLifts = computed(() => lift.value === 'other' && browsing.value)
 const statusText = computed(() => {
   if (!searching.value) return ''
-  if (!results.value.length) return `No exercises match ${draft.value.trim()}.`
-  return `${results.value.length} match${results.value.length === 1 ? '' : 'es'}.`
+  if (!results.value.length) return t('tools.picker.noExercises', { query: draft.value.trim() })
+  return `${t('tools.picker.matches', results.value.length)}.`
 })
 
 watch(results, () => { activeIndex.value = 0 })
@@ -102,7 +111,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer))
 
 <template>
   <div ref="picker-root" class="exercise-picker" @focusout="onFocusOut">
-    <label for="orm-exercise">Exercise <span>{{ STRENGTH_COMPARISON_COUNT }} lifts</span></label>
+    <label for="orm-exercise">{{ t('tools.picker.exercise') }} <span>{{ t('tools.picker.lifts', { count: STRENGTH_COMPARISON_COUNT }) }}</span></label>
     <div class="picker-field" :class="{ open }">
       <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
         <circle cx="11" cy="11" r="7" />
@@ -119,7 +128,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer))
         autocorrect="off"
         autocapitalize="none"
         spellcheck="false"
-        placeholder="Search bench, RDL, pulldown…"
+        :placeholder="t('tools.picker.search')"
         aria-autocomplete="list"
         :aria-expanded="searching"
         aria-controls="orm-exercise-list"
@@ -133,7 +142,7 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer))
         v-if="displayValue || lift !== 'other'"
         type="button"
         class="clear"
-        aria-label="Clear exercise"
+        :aria-label="t('tools.picker.clear')"
         @click="clearSelection"
       >
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
@@ -141,15 +150,15 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer))
         </svg>
       </button>
     </div>
-    <div v-if="showQuickLifts" class="quick-lifts" role="group" aria-label="Popular lifts">
-      <button v-for="item in FEATURED_EXERCISES" :key="item.id" type="button" @click="choose(item.id)"><HoloPill /><span>{{ item.short }}</span></button>
+    <div v-if="showQuickLifts" class="quick-lifts" role="group" :aria-label="t('tools.picker.popular')">
+      <button v-for="item in FEATURED_EXERCISES" :key="item.id" type="button" @click="choose(item.id)"><HoloPill /><span>{{ localizedFeaturedLabel(item.id, item.short, locale) }}</span></button>
     </div>
     <ul
       v-if="searching"
       id="orm-exercise-list"
       class="picker-list"
       role="listbox"
-      aria-label="Matching exercises"
+      :aria-label="t('tools.picker.matching')"
       @mousedown.prevent
     >
       <li
@@ -162,12 +171,12 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', onDocPointer))
         @click="choose(exercise.id)"
         @mousemove="activeIndex = index"
       >
-        <strong>{{ exercise.label }}</strong>
-        <span>{{ exercise.group.replace(' · estimate only', '') }}</span>
+        <strong>{{ localizedExerciseLabel(exercise.id, exercise.label, locale) }}</strong>
+        <span>{{ localizedExerciseGroup(exercise.group.split(' · ')[0]!, locale) }}</span>
       </li>
-      <li v-if="!results.length" class="empty" role="presentation">No match. Try bench, RDL, or pulldown.</li>
+      <li v-if="!results.length" class="empty" role="presentation">{{ t('tools.picker.noMatch') }}</li>
     </ul>
-    <p v-if="lift !== 'other' && !open" class="picker-hint">{{ selected.group }}{{ selected.basis === 'dumbbell' ? ' · enter one dumbbell above' : selected.basis === 'bodyweight' ? ' · include bodyweight in the load above' : selected.basis === 'machine' ? ' · machine load as shown' : '' }}</p>
+    <p v-if="lift !== 'other' && !open" class="picker-hint">{{ localizedExerciseGroup(selected.group, locale) }}{{ selected.basis === 'dumbbell' ? t('tools.picker.dumbbellHint') : selected.basis === 'bodyweight' ? t('tools.picker.bodyweightHint') : selected.basis === 'machine' ? t('tools.picker.machineHint') : '' }}</p>
     <p id="orm-exercise-status" class="sr-only" role="status">{{ statusText }}</p>
   </div>
 </template>

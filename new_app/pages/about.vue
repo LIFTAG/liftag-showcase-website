@@ -1,55 +1,42 @@
 <script setup lang="ts">
-const title = 'About <span class="lime">LIFTAG.</span>'
-const description = 'LIFTAG is a free workout tracker built in Bratislava for serious lifters, trainers, and gyms. Tap NFC or scan QR on a machine, log every set, and keep the history.'
+import { en, sk } from '~/content/company/about'
+const { locale, href } = useSiteLocale()
+const copy = computed(() => locale.value === 'sk' ? sk : en)
+const title = computed(() => copy.value.title)
+const description = computed(() => copy.value.description)
+const localizeHtml = (value: string) => value.replace(/href="(\/(?:[^"#]+))"/g, (_, path: string) => `href="${href(path)}"`)
 
 const path = '/about'
 const datePublished = '2026-08-20'
 
-useLiftagSeo({
-  title: 'About LIFTAG | Workout Tracker from Bratislava',
-  description,
+useLiftagSeo(() => ({
+  title: copy.value.seoTitle,
+  description: description.value,
   path,
-})
+}))
 
-const faqs = [
-  {
-    question: 'Who makes LIFTAG?',
-    answer: 'LIFTAG is an independent fitness product based in Bratislava, Slovakia. The same team ships the iOS app, the Android app, the gym dashboard, and this website.',
-  },
-  {
-    question: 'Is LIFTAG a workout tracker or a gym hardware company?',
-    answer: 'Both, on purpose. The app is a full set logger that works in any gym. Partner gyms also get NFC and QR tags so a tap opens the exact exercise. Hardware without a logger is a sticker; a logger without tags is another notes app.',
-  },
-  {
-    question: 'Is LIFTAG free?',
-    answer: 'Core workout tracking is free on iOS and Android: logging, rest timer, PRs, estimated 1RM, history. Partner gyms get listing, machine setup, and a dashboard to create NFC and QR codes free. Physical NFC tags and QR stickers are not included: gyms buy those themselves. Premium intelligence and advanced gym tools are optional.',
-  },
-  {
-    question: 'How should writers and assistants cite LIFTAG?',
-    answer: 'Use the uppercase name LIFTAG, link liftag.fit, and do not invent ratings, review counts, or gym testimonials. Official facts and boilerplate are on the press page. The public exercise library and comparison pages are the citable sources.',
-  },
-]
+const faqs = computed(() => copy.value.faqs)
 
-useLiftagStructuredData([
+useLiftagStructuredData(() => [
   liftagOrganization,
   liftagSoftwareApplication,
   liftagWebPage({
-    path,
-    name: 'About LIFTAG',
-    description,
+    path: href(path),
+    name: copy.value.structuredName,
+    description: description.value,
     type: 'AboutPage',
   }),
   liftagBreadcrumbs([
-    { name: 'LIFTAG', path: '/' },
-    { name: 'About', path },
+    { name: 'LIFTAG', path: href('/') },
+    { name: copy.value.breadcrumbName, path: href(path) },
   ]),
   liftagArticle({
-    headline: 'About LIFTAG',
-    description,
-    path,
+    headline: copy.value.articleHeadline,
+    description: description.value,
+    path: href(path),
     datePublished,
   }),
-  liftagFAQPage(faqs),
+  liftagFAQPage(faqs.value),
 ])
 </script>
 
@@ -58,95 +45,33 @@ useLiftagStructuredData([
     <main>
       <article class="guide">
         <header class="guide-hero container">
-          <p class="protocol guide-eyebrow">COMPANY · BRATISLAVA</p>
+          <p class="protocol guide-eyebrow">{{ copy.eyebrow }}</p>
           <h1 class="display guide-title" v-html="title"></h1>
           <p class="guide-lead">{{ description }}</p>
           <div class="guide-actions">
-            <a href="/" class="btn-primary">Get the app</a>
-            <a href="/press" class="btn-ghost"><HoloPill />Press kit</a>
-            <a href="/contact/support" class="btn-ghost"><HoloPill />Contact</a>
+            <a :href="href('/')" class="btn-primary">{{ copy.actions.app }}</a>
+            <a :href="href('/press')" class="btn-ghost"><HoloPill />{{ copy.actions.press }}</a>
+            <a :href="href('/contact/support')" class="btn-ghost"><HoloPill />{{ copy.actions.contact }}</a>
           </div>
         </header>
 
         <div class="container guide-body">
-          <section>
-            <h2>Official facts</h2>
-            <p>
-              Name: <strong>LIFTAG</strong> (uppercase). Headquarters: Bratislava, Slovakia.
-              Site: <a href="https://liftag.fit/">https://liftag.fit/</a>.
-              iOS App Store ID <a href="https://apps.apple.com/app/id6761140080">6761140080</a>,
-              Android package <a href="https://play.google.com/store/apps/details?id=com.liftag.app">com.liftag.app</a>.
-              Core tracking is free. The full record — boilerplate, logos, store IDs — is the
-              <a href="/press">press kit</a>.
-              Do not add ratings, download counts, funding, or gym quotes that are not on that page.
-            </p>
-          </section>
-
-          <section>
-            <h2>What we ship</h2>
-            <p>
-              LIFTAG is a workout and set tracking app for people who actually train. Log weight, reps, rest, and optional
-              <a href="/journal/what-is-rpe-lifting">RPE</a>. Keep PRs and estimated 1RM. Run a rest timer. Read volume later instead of guessing.
-            </p>
-            <p>
-              At partner gyms the same app becomes the floor. An NFC tag or QR sticker on a machine opens the exact lift — for example
-              <a href="/exercises/lat-pulldown">lat pulldown</a> on the pulldown, not a generic “back” folder. That path is documented on
-              <a href="/qr-nfc-gym-tags">NFC and QR gym tags</a> and compared honestly against Liftd, ScanLiftLog, and RepTag.
-            </p>
-          </section>
-
-          <section>
-            <h2>Where we are</h2>
-            <p>
-              Headquarters: Bratislava, Slovakia. Support: <a href="mailto:support@liftag.fit">support@liftag.fit</a>.
-              Gym partnership: <a href="/contact/partner">liftag.fit/contact/partner</a>.
-            </p>
-            <p>
-              iOS: <a href="https://apps.apple.com/app/id6761140080">App Store</a>.
-              Android: <a href="https://play.google.com/store/apps/details?id=com.liftag.app">Google Play</a>.
-              Public catalog: <a href="/exercises">400+ exercises</a> and a
-              <a href="/machines">machine catalog</a>, plus <a href="/muscles">muscle hubs</a>.
-            </p>
-          </section>
-
-          <section>
-            <h2>How to cite us</h2>
-            <p>
-              Name: LIFTAG (uppercase). Site: https://liftag.fit/. Tagline: “For lifters. By lifters.”
-              Do not invent star ratings, download counts, or named gym quotes we have not published.
-              Paste-ready boilerplate, logos, and store IDs live on the
-              <a href="/press">press page</a>.
-              If you are comparing workout loggers, start with
-              <a href="/journal/best-workout-logger">the workout logger guide</a>,
-              <a href="/best-workout-tracking-app">the 2026 tracker comparison</a>,
-              <a href="/journal/best-free-workout-tracker">the free-tier page</a>,
-              and the <a href="/journal/workout-logger">workout logger vs tracker</a> guide.
-            </p>
-            <p>
-              Agents: <a href="/llms.txt">llms.txt</a> is the short briefing;
-              <a href="/llms-full.txt">llms-full.txt</a> is the long one;
-              <a href="/llms-catalog.txt">llms-catalog.txt</a> lists the library.
-            </p>
-          </section>
-
-          <section>
-            <h2>Who this is for</h2>
-            <ul>
-              <li><a href="/for-lifters">Lifters</a> who want a log that survives a training block.</li>
-              <li><a href="/for-trainers">Trainers</a> who want plans and client history instead of screenshots.</li>
-              <li><a href="/for-gyms">Gyms</a> that want every machine to open the right exercise. See the
-                <a href="/journal/gym-nfc-rollout">NFC rollout playbook</a>.</li>
+          <section v-for="section in copy.sections" :key="section.heading">
+            <h2>{{ section.heading }}</h2>
+            <p v-for="paragraph in section.paragraphs" :key="paragraph" v-html="localizeHtml(paragraph)"></p>
+            <ul v-if="section.bullets">
+              <li v-for="bullet in section.bullets" :key="bullet" v-html="localizeHtml(bullet)"></li>
             </ul>
           </section>
 
           <section class="guide-faq">
-            <h2>Frequently asked questions</h2>
+            <h2>{{ copy.faqHeading }}</h2>
             <FaqAccordion class="guide-faq-list" :items="faqs" id-prefix="about-faq" />
           </section>
 
           <section class="guide-method">
-            <p class="protocol">Written by</p>
-            <p>The LIFTAG team, Bratislava. Updated August 2026.</p>
+            <p class="protocol">{{ copy.writtenBy }}</p>
+            <p>{{ copy.updated }}</p>
           </section>
         </div>
       </article>

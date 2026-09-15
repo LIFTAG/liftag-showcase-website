@@ -16,6 +16,7 @@ import {
   writeDiscoveryQuery,
 } from '../utils/discovery.ts'
 import {
+  normalizeExerciseVideos,
   normalizeDiscoveryMedia,
   normalizeDiscoveryPage,
   normalizeEquipment,
@@ -120,7 +121,7 @@ test('URL restoration retains map bounds, multi-brand OR selections and selected
   assert.deepEqual(normalizedIds([ids.brand, '../secret', ids.brand]), [ids.brand])
   assert.equal(
     discoveryHref('/gyms/a/equipment', 'sk', { manufacturers: ids.brand }),
-    `/gyms/a/equipment?lang=sk&manufacturers=${ids.brand}`,
+    `/sk/gyms/a/equipment?lang=sk&manufacturers=${ids.brand}`,
   )
 })
 
@@ -259,7 +260,7 @@ test('gym equipment shares catalog routes without confusing custom, template, an
   const machine = normalizeGymMachine(fixtureMachine(), 'en')
   const exercise = machine.exercises[0]!
   const machineUrl = new URL(gymMachineHref(ids.gym, ids.machine, 'sk'), 'https://liftag.fit')
-  assert.equal(machineUrl.pathname, `/machines/${ids.machine}`)
+  assert.equal(machineUrl.pathname, `/sk/machines/${ids.machine}`)
   assert.deepEqual(gymCatalogContext(Object.fromEntries(machineUrl.searchParams), ids.machine), {
     gymId: ids.gym,
     machineId: ids.machine,
@@ -315,4 +316,22 @@ test('discovery URL state round-trips through write and read', () => {
   assert.equal('q' in emptyQuery, false, 'An empty search must not be written to the URL')
   assert.equal('gym' in emptyQuery, false)
   assert.deepEqual(readDiscoveryQuery(emptyQuery).filters, emptyDiscoveryFilters())
+})
+
+
+test('exercise media preserves language and order without inventing metadata for legacy URLs', () => {
+  const normalized = normalizeExerciseVideos([
+    { url: 'https://example.com/en.m3u8', locale: 'en', displayOrder: 4 },
+    { url: 'https://example.com/sk.m3u8', locale: 'sk', displayOrder: 2, uploadedByUserId: 42 },
+    'https://example.com/legacy.mp4',
+    { url: 'javascript:alert(1)', locale: 'sk' },
+  ])
+  assert.equal(normalized.length, 3)
+  assert.equal(normalized[1].locale, 'sk')
+  assert.equal(normalized[1].displayOrder, 2)
+  assert.equal(normalized[1].uploadedByUserId, 42)
+  assert.equal(normalized[2].locale, '')
+  assert.deepEqual(normalizeExerciseVideos('https://example.com/legacy.mp4'), [{
+    url: 'https://example.com/legacy.mp4', locale: '', displayOrder: 0, uploadedByUserId: null,
+  }])
 })

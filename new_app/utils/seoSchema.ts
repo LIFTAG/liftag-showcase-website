@@ -1,3 +1,4 @@
+import { en as sharedCopy } from '../i18n/messages/seoShared.ts'
 export const SITE_URL = 'https://liftag.fit'
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.jpg`
 const APP_STORE_URL = 'https://apps.apple.com/app/id6761140080'
@@ -6,6 +7,11 @@ const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.liftag
 export const ORGANIZATION_ID = `${SITE_URL}/#organization`
 export const WEBSITE_ID = `${SITE_URL}/#website`
 export const APP_ID = `${SITE_URL}/#app`
+
+function schemaLanguage(path: string): string {
+  const pathname = new URL(path, SITE_URL).pathname
+  return /^\/sk(?:\/|$)/.test(pathname) ? 'sk' : /^\/cs(?:\/|$)/.test(pathname) ? 'cs' : 'en'
+}
 
 export function absoluteUrl(path: string): string {
   return new URL(path, SITE_URL).toString()
@@ -30,7 +36,7 @@ export const liftagOrganization = {
   legalName: 'LIFTAG',
   alternateName: ['Liftag', 'liftag.fit', 'LIFTAG Workout Tracker', 'LIFTAG Workout Logger'],
   url: `${SITE_URL}/`,
-  description: 'LIFTAG is a workout and set tracking app for serious lifters. Tap NFC tags or scan QR codes on gym machines to open the right exercise, log sets, and track progress.',
+  description: sharedCopy.organization,
   email: 'support@liftag.fit',
   logo: {
     '@type': 'ImageObject',
@@ -68,18 +74,7 @@ export const liftagOrganization = {
     APP_STORE_URL,
     PLAY_STORE_URL,
   ],
-  knowsAbout: [
-    'workout tracking',
-    'workout logger',
-    'workout logbook',
-    'set logging',
-    'NFC gym tags',
-    'QR codes for gym machines',
-    'strength training',
-    'powerlifting',
-    'one-rep max',
-    '1RM calculator',
-  ],
+  knowsAbout: ['topicTracking', 'topicLogger', 'topicLogbook', 'topicSets', 'topicNfc', 'topicQr', 'topicStrength', 'topicPowerlifting', 'topicMax', 'topicCalculator'].map(key => sharedCopy[key as keyof typeof sharedCopy]),
 }
 
 export const liftagSoftwareApplication = {
@@ -99,18 +94,8 @@ export const liftagSoftwareApplication = {
     `${SITE_URL}/assets/screens/qr-scan.webp`,
     `${SITE_URL}/assets/screens/progression.webp`,
   ],
-  description: 'LIFTAG is a workout and set tracking app for serious lifters. Tap NFC tags or scan QR codes on gym machines to open the right exercise, log every set, run rest timers, and track progress over time.',
-  featureList: [
-    'NFC tap and QR scan to open the right exercise on any partner-gym machine',
-    'Set logging with weight, reps, rest time, and optional RPE',
-    'Rest timer with auto-start after a logged set',
-    'Personal record tracking and estimated 1RM',
-    'Volume, frequency, and progress charts per exercise and per muscle group',
-    'Workout history with full set-by-set audit trail',
-    'Trainer profiles, discovery, and shared workout plans',
-    'Partner-gym discovery on a map',
-    'Gym-specific exercise instruction videos filmed on the actual equipment',
-  ],
+  description: sharedCopy.application,
+  featureList: ['featureScan', 'featureLog', 'featureRest', 'featureRecords', 'featureCharts', 'featureHistory', 'featureTrainers', 'featureGyms', 'featureVideo'].map(key => sharedCopy[key as keyof typeof sharedCopy]),
   inLanguage: ['en', 'sk'],
   offers: {
     '@type': 'Offer',
@@ -132,7 +117,7 @@ export const liftagWebSite = {
   name: 'LIFTAG',
   alternateName: ['Liftag', 'liftag.fit'],
   url: `${SITE_URL}/`,
-  description: 'LIFTAG: workout tracker for serious lifters. NFC and QR for gym machines, set logging, progress tracking, trainers, and partner gyms.',
+  description: sharedCopy.website,
   publisher: { '@id': ORGANIZATION_ID },
   inLanguage: ['en', 'sk', 'cs'],
   potentialAction: {
@@ -220,7 +205,7 @@ export function liftagWebPage(opts: {
     about: opts.aboutId ? { '@id': opts.aboutId } : { '@id': ORGANIZATION_ID },
     primaryImageOfPage: opts.primaryImage
       ?? (opts.image ? { '@type': 'ImageObject', url: opts.image } : { '@type': 'ImageObject', url: DEFAULT_OG_IMAGE }),
-    inLanguage: opts.inLanguage ?? 'en',
+    inLanguage: opts.inLanguage ?? schemaLanguage(opts.path),
   }
 }
 
@@ -259,7 +244,7 @@ export function liftagHowTo(opts: {
     '@id': `${url}#howto`,
     name: opts.name,
     description: opts.description,
-    inLanguage: opts.inLanguage ?? 'en',
+    inLanguage: opts.inLanguage ?? schemaLanguage(opts.path),
     url,
     ...(opts.image ? { image: opts.image } : {}),
     ...(opts.videoUrl ? { video: { contentUrl: opts.videoUrl } } : {}),
@@ -341,7 +326,7 @@ export function liftagArticle(opts: LiftagArticleOptions) {
       url: `${SITE_URL}/`,
     },
     publisher: { '@id': ORGANIZATION_ID },
-    inLanguage: 'en',
+    inLanguage: schemaLanguage(opts.path),
   }
 }
 
@@ -403,6 +388,6 @@ export function liftagContactPage(opts: { name: string, path: string, descriptio
     description: opts.description,
     isPartOf: { '@id': WEBSITE_ID },
     about: { '@id': ORGANIZATION_ID },
-    inLanguage: 'en',
+    inLanguage: schemaLanguage(opts.path),
   }
 }

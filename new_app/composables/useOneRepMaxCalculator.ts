@@ -1,4 +1,6 @@
-import { exerciseFor, loadQualifier } from '~/utils/oneRepMaxExercises'
+import { en } from '~/i18n/messages/calculatorLogic'
+import { localizedExerciseLabel } from '~/content/tools/oneRmExercises'
+import { exerciseFor } from '~/utils/oneRepMaxExercises'
 import {
   DEFAULT_FORMULA_ID,
   buildShareQuery,
@@ -7,8 +9,6 @@ import {
   estimateAll,
   estimateOne,
   formatInputWeight,
-  formatLoad,
-  formatLoadWithUnit,
   fromKg,
   isFormulaId,
   isLiftId,
@@ -75,8 +75,14 @@ function createConvertibleLoad(initialText: string, unit: Ref<WeightUnit>) {
   return { text, kg, relabel }
 }
 
-export function useOneRepMaxCalculator() {
+export function useOneRepMaxCalculator(t: (key: string, values?: Record<string, string | number>) => string) {
   const route = useRoute()
+  const { locale, switching } = useSiteLocale()
+  const formatLoad = useLoadFormatter()
+  const formatLoadWithUnit = (kg: number, unit: WeightUnit) => `${formatLoad(kg, unit)} ${unit}`
+  const qualifier = computed(() => exerciseFor(lift.value).basis === 'dumbbell' ? t('qualifierDumbbell')
+    : exerciseFor(lift.value).basis === 'bodyweight' ? t('qualifierBodyweight') : '')
+  const validation = computed(() => Object.fromEntries(Object.keys(en).map(key => [key, t(key, { min: 1, max: 30 })])) as typeof en)
 
   // Keep the initial render identical to the prerendered HTML. Restore shared inputs after hydration.
   const repsText = shallowRef('5')
@@ -96,10 +102,19 @@ export function useOneRepMaxCalculator() {
 
   let disposed = false
   let initialized = false
+  let editedBeforeReady = false
   // Nuxt temporarily replaces a prerendered URL during hydration and restores its
   // query at app:suspense:resolve. Wait for that before reading or syncing inputs.
   onNuxtReady(() => {
     if (disposed) return
+    canShare.value = typeof navigator.share === 'function'
+    // onNuxtReady runs at browser idle; an already interactive form may have
+    // received input before it fires. Never overwrite that newer draft.
+    if (editedBeforeReady) {
+      initialized = true
+      syncUrl()
+      return
+    }
     const query = new URLSearchParams(window.location.search)
     const initialUnit = query.get('u') ?? ''
     const initialFormula = query.get('f') ?? ''
@@ -110,7 +125,6 @@ export function useOneRepMaxCalculator() {
     if (isFormulaId(initialFormula)) formulaId.value = initialFormula
     weightText.value = query.get('w') || '100'
     repsText.value = query.get('r') || '5'
-    canShare.value = typeof navigator.share === 'function'
     if (!queryHadUnit) {
       const stored = readStoredUnit()
       if (stored) setUnit(stored)
@@ -118,8 +132,8 @@ export function useOneRepMaxCalculator() {
     initialized = true
   })
 
-  const weightParse = computed(() => parseWeightInput(weightText.value))
-  const repsParse = computed(() => parseRepsInput(repsText.value))
+  const weightParse = computed(() => parseWeightInput(weightText.value, validation.value))
+  const repsParse = computed(() => parseRepsInput(repsText.value, validation.value))
 
   watch(() => weightParse.value.detectedUnit, (detected) => {
     if (detected && detected !== unit.value) setUnit(detected)
@@ -151,6 +165,7 @@ export function useOneRepMaxCalculator() {
 
   const percentRows = computed(() => oneRmKg.value == null ? [] : trainingPercentTable(oneRmKg.value).map(row => ({
     ...row,
+    purpose: t(`purpose${row.percent}`),
     roundedKg: toKg(roundToIncrement(fromKg(row.kg, unit.value), loadIncrement(unit.value)), unit.value),
   })))
   const nrmRows = computed(() => {
@@ -167,26 +182,26 @@ export function useOneRepMaxCalculator() {
 
   const liveSummary = computed(() => {
     if (idle.value || oneRmKg.value == null || reps.value == null || confidence.value == null) {
-      return 'Enter a set to estimate a one-rep max.'
+      return t('idle')
     }
     const load = formatLoadWithUnit(oneRmKg.value, unit.value)
     const formula = estimates.value.find(item => item.id === formulaId.value)?.name ?? 'Epley'
-    return `Estimated one-rep max ${load}${loadQualifier(lift.value) ? ` ${loadQualifier(lift.value)}` : ''}. ${formula}. ${reps.value} reps. ${confidence.value === 'measured' ? 'Measured, not an estimate.' : `${confidence.value} confidence.`}`
+    return t('summary', { load, qualifier: qualifier.value, formula, reps: reps.value, confidence: t(confidence.value) })
   })
 
   const resultCopy = computed(() => {
     if (oneRmKg.value == null || weightKg.value == null || reps.value == null) return ''
-    const liftLabel = lift.value === 'other' ? '1RM' : `${exerciseFor(lift.value).label} 1RM`
-    return `${liftLabel} ~${formatLoadWithUnit(oneRmKg.value, unit.value)}${loadQualifier(lift.value) ? ` ${loadQualifier(lift.value)}` : ''} (${formatLoad(weightKg.value, unit.value)} × ${reps.value}, ${formulaId.value})`
+    const liftLabel = lift.value === 'other' ? '1RM' : `${localizedExerciseLabel(lift.value, exerciseFor(lift.value).label, locale.value)} 1RM`
+    return t('result', { lift: liftLabel, load: formatLoadWithUnit(oneRmKg.value, unit.value), qualifier: qualifier.value, weight: formatLoad(weightKg.value, unit.value), reps: reps.value, formula: formulaId.value })
   })
 
   const caveat = computed(() => liftCaveat(lift.value))
 
-  const bodyweightParse = computed(() => parseWeightInput(bodyweightText.value))
+  const bodyweightParse = computed(() => parseWeightInput(bodyweightText.value, validation.value))
   const bodyweightError = computed(() => {
     if (!bodyweightText.value.trim()) return null
     if (bodyweightParse.value.error) return bodyweightParse.value.error
-    if (bodyweightKg.value == null || bodyweightKg.value < 30 || bodyweightKg.value > 300) return 'Enter a bodyweight between 30 and 300 kg (66–661 lb).'
+    if (bodyweightKg.value == null || bodyweightKg.value < 30 || bodyweightKg.value > 300) return t('bodyweightRange')
     return null
   })
   const comparison = computed(() => !bodyweightError.value
@@ -196,7 +211,7 @@ export function useOneRepMaxCalculator() {
   let urlTimer = 0
   let copyTimer = 0
   function syncUrl() {
-    if (!import.meta.client) return
+    if (!import.meta.client || switching.value) return
     const search = queryToSearchParams(buildShareQuery({
       weightText: weightText.value,
       repsText: repsText.value,
@@ -204,16 +219,30 @@ export function useOneRepMaxCalculator() {
       lift: lift.value,
       formulaId: formulaId.value,
     }))
-    const next = `${route.path}${search}${window.location.hash}`
+    const parameters = new URLSearchParams(window.location.search)
+    for (const key of ['w', 'r', 'u', 'lift', 'f']) parameters.delete(key)
+    for (const [key, value] of new URLSearchParams(search)) parameters.set(key, value)
+    const query = parameters.toString()
+    const next = `${route.path}${query ? `?${query}` : ''}${window.location.hash}`
     const current = `${window.location.pathname}${window.location.search}${window.location.hash}`
     if (next !== current) window.history.replaceState(window.history.state, '', next)
   }
 
   watch([weightText, repsText, unit, lift, formulaId], () => {
-    if (!initialized || !import.meta.client) return
+    if (!import.meta.client) return
+    if (!initialized) {
+      editedBeforeReady = true
+      return
+    }
     persistUnit(unit.value)
     window.clearTimeout(urlTimer)
     urlTimer = window.setTimeout(syncUrl, 150)
+  })
+
+  // A language navigation can overtake the debounced URL write. Keep the draft
+  // in this page instance, then restore its share parameters on the new URL.
+  watch(switching, active => {
+    if (!active && initialized) syncUrl()
   })
 
   onBeforeUnmount(() => {
@@ -253,7 +282,7 @@ export function useOneRepMaxCalculator() {
     }
     catch {
       copied.value = null
-      copyError.value = 'Copy unavailable in this browser. You can copy the page URL from the address bar.'
+      copyError.value = t('copyUnavailable')
     }
   }
 
@@ -271,10 +300,10 @@ export function useOneRepMaxCalculator() {
     if (!import.meta.client || !navigator.share) return
     syncUrl()
     try {
-      await navigator.share({ title: 'LIFTAG 1RM calculator', text: resultCopy.value || 'Estimate a one-rep max.', url: window.location.href })
+      await navigator.share({ title: t('shareTitle'), text: resultCopy.value || t('shareText'), url: window.location.href })
     }
     catch (error) {
-      if (!(error instanceof Error && error.name === 'AbortError')) copyError.value = 'Sharing unavailable. Try copying the link.'
+      if (!(error instanceof Error && error.name === 'AbortError')) copyError.value = t('sharingUnavailable')
     }
   }
 

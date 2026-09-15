@@ -1,16 +1,23 @@
-import assert from "node:assert/strict";
-import { test } from "node:test";
-import {
-  NFC_QR_FREE_MEANS,
-  NFC_QR_HARDWARE_FAQ,
-  NFC_QR_HARDWARE_SELF_BUY,
-} from "../utils/nfcQrCopy.ts";
+import assert from 'node:assert/strict'
+import { test } from 'node:test'
+import { en, sk } from '../i18n/messages/gymFaqs.ts'
+import { gymFaqsForLocale } from '../utils/gymscan/content.ts'
 
-test("free NFC and QR copy means dashboard plus app, not physical stickers", () => {
-  assert.match(NFC_QR_FREE_MEANS, /dashboard/);
-  assert.match(NFC_QR_FREE_MEANS, /full LIFTAG app/);
-  assert.match(NFC_QR_HARDWARE_SELF_BUY, /does not buy or ship/);
-  assert.match(NFC_QR_HARDWARE_SELF_BUY, /purchase those themselves/);
-  assert.equal(NFC_QR_HARDWARE_FAQ.question, "Are NFC tags and QR codes free?");
-  assert.equal(NFC_QR_HARDWARE_FAQ.answer, NFC_QR_FREE_MEANS);
-});
+test('free NFC and QR copy means dashboard plus app, not physical stickers', () => {
+  assert.match(en.hardwareAnswer, /dashboard/)
+  assert.match(en.hardwareAnswer, /full LIFTAG app/)
+  assert.match(en.hardwareAnswer, /does not buy or ship/)
+  assert.match(en.hardwareAnswer, /purchase those themselves/)
+  assert.match(sk.hardwareAnswer, /nekupuje a neposiela/)
+  assert.match(sk.hardwareAnswer, /kupujú samy/)
+  for (const [locale, messages] of [
+    ['en', en],
+    ['sk', sk],
+  ] as const) {
+    assert.ok(
+      gymFaqsForLocale(locale).some(
+        (faq) => faq.question === messages.hardwareQuestion && faq.answer === messages.hardwareAnswer,
+      ),
+    )
+  }
+})

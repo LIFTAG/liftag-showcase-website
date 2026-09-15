@@ -1,66 +1,29 @@
 <script setup lang="ts">
 import { siInstagram, siReddit, siTiktok, siX, siYoutube } from 'simple-icons'
+import { en, sk } from '~/i18n/messages/shell'
 
 interface FooterLink {
-  label: string
+  key: string
   href: string
 }
 
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+const { href: localeHref } = useSiteLocale()
+
 const productLinks: FooterLink[] = [
-  { label: 'Gyms', href: '/explore' },
-  { label: 'Demo', href: '/demo' },
-  { label: '1RM Calculator', href: '/tools/1rm-calculator' },
-  { label: 'Exercise Library', href: '/exercises' },
-  { label: 'Machine Catalog', href: '/machines' },
-  { label: 'For Lifters', href: '/for-lifters' },
-  { label: 'For Trainers', href: '/for-trainers' },
-  { label: 'Become a Coach', href: '/become-a-coach' },
-  { label: 'For gym owners', href: '/for-gyms' },
-  { label: 'NFC + QR Tags', href: '/qr-nfc-gym-tags' },
-  { label: 'Pricing', href: '/pricing' },
-  { label: 'About', href: '/about' },
-  { label: 'Press', href: '/press' },
-  { label: 'Roadmap', href: '/#roadmap' },
-  { label: 'Partner with us', href: '/contact/partner' },
-  { label: 'Support', href: '/contact/support' },
+  { key: 'gyms', href: '/explore' }, { key: 'demo', href: '/demo' }, { key: 'calculator', href: '/tools/1rm-calculator' }, { key: 'exercises', href: '/exercises' }, { key: 'machines', href: '/machines' }, { key: 'lifters', href: '/for-lifters' }, { key: 'trainers', href: '/for-trainers' }, { key: 'coach', href: '/become-a-coach' }, { key: 'owners', href: '/for-gyms' }, { key: 'tags', href: '/qr-nfc-gym-tags' }, { key: 'pricing', href: '/pricing' }, { key: 'about', href: '/about' }, { key: 'press', href: '/press' }, { key: 'roadmap', href: '/#roadmap' }, { key: 'partner', href: '/contact/partner' }, { key: 'support', href: '/contact/support' },
 ]
 
 const libraryLinks: FooterLink[] = [
-  { label: 'All muscles', href: '/muscles' },
-  { label: 'Chest', href: '/muscles/chest' },
-  { label: 'Back', href: '/muscles/back' },
-  { label: 'Shoulders', href: '/muscles/shoulders' },
-  { label: 'Quads', href: '/muscles/quadriceps' },
-  { label: 'Hamstrings', href: '/muscles/hamstrings' },
-  { label: 'Glutes', href: '/muscles/glutes' },
-  { label: 'Abs', href: '/muscles/abs' },
-  { label: 'Bench press', href: '/exercises/barbell-bench-press' },
-  { label: 'Back squat', href: '/exercises/barbell-back-squat' },
-  { label: 'Deadlift', href: '/exercises/conventional-deadlift' },
+  { key: 'muscles', href: '/muscles' }, { key: 'chest', href: '/muscles/chest' }, { key: 'back', href: '/muscles/back' }, { key: 'shoulders', href: '/muscles/shoulders' }, { key: 'quads', href: '/muscles/quadriceps' }, { key: 'hamstrings', href: '/muscles/hamstrings' }, { key: 'glutes', href: '/muscles/glutes' }, { key: 'abs', href: '/muscles/abs' }, { key: 'bench', href: '/exercises/barbell-bench-press' }, { key: 'squat', href: '/exercises/barbell-back-squat' }, { key: 'deadlift', href: '/exercises/conventional-deadlift' },
 ]
 
 const guideLinks: FooterLink[] = [
-  { label: 'All articles', href: '/journal' },
-  { label: 'Best Workout Tracking App', href: '/best-workout-tracking-app' },
-  { label: 'Best Gym QR + NFC App', href: '/best-gym-qr-nfc-app' },
-  { label: 'Best Workout Logger', href: '/journal/best-workout-logger' },
-  { label: 'Best Free Workout Tracker', href: '/journal/best-free-workout-tracker' },
-  { label: 'LIFTAG vs Hevy', href: '/alternatives/hevy' },
-  { label: 'LIFTAG vs Strong', href: '/vs/strong' },
-  { label: 'Strong vs Hevy vs LIFTAG', href: '/journal/strong-vs-hevy-vs-liftag' },
-  { label: 'Workout Logger', href: '/journal/workout-logger' },
-  { label: 'How to Track Workouts', href: '/journal/how-to-track-workouts' },
-  { label: 'Best App for Powerlifting', href: '/journal/best-workout-app-for-powerlifting' },
-  { label: 'QR + NFC Gym Tracking', href: '/journal/qr-nfc-gym-tracking' },
-  { label: 'NFC Tags for Gym Equipment', href: '/journal/nfc-tags-for-gym-equipment' },
-  { label: 'What is RPE', href: '/journal/what-is-rpe-lifting' },
-  { label: 'Progressive Overload', href: '/journal/progressive-overload' },
-  { label: 'Gym NFC Rollout', href: '/journal/gym-nfc-rollout' },
+  { key: 'articles', href: '/journal' }, { key: 'bestTracking', href: '/best-workout-tracking-app' }, { key: 'bestGym', href: '/best-gym-qr-nfc-app' }, { key: 'bestLogger', href: '/journal/best-workout-logger' }, { key: 'freeTracker', href: '/journal/best-free-workout-tracker' }, { key: 'vsHevy', href: '/alternatives/hevy' }, { key: 'vsStrong', href: '/vs/strong' }, { key: 'comparison', href: '/journal/strong-vs-hevy-vs-liftag' }, { key: 'logger', href: '/journal/workout-logger' }, { key: 'howTrack', href: '/journal/how-to-track-workouts' }, { key: 'powerlifting', href: '/journal/best-workout-app-for-powerlifting' }, { key: 'qrTracking', href: '/journal/qr-nfc-gym-tracking' }, { key: 'nfcTags', href: '/journal/nfc-tags-for-gym-equipment' }, { key: 'rpe', href: '/journal/what-is-rpe-lifting' }, { key: 'overload', href: '/journal/progressive-overload' }, { key: 'rollout', href: '/journal/gym-nfc-rollout' },
 ]
 
 const legalLinks: FooterLink[] = [
-  { label: 'Privacy Policy', href: '/privacy-policy' },
-  { label: 'Terms & Conditions', href: '/terms-and-conditions' },
+  { key: 'privacy', href: '/privacy-policy' }, { key: 'terms', href: '/terms-and-conditions' },
 ]
 
 const socialLinks = [
@@ -190,12 +153,12 @@ onBeforeUnmount(() => {
             width="32"
             height="32"
             class="footer-logo-img"
-            alt="LIFTAG logo"
+          :alt="t('shell.nav.logoAlt')"
           />
           <span class="footer-wordmark">LIFTAG</span>
         </div>
         <p class="footer-tagline">
-          Because serious training deserves more than a notes app and a spreadsheet.
+          {{ t('shell.footer.tagline') }}
         </p>
         <div class="footer-badges">
           <!-- LaunchBuff go-live check: crawler looks for this product href on liftag.fit. -->
@@ -204,11 +167,11 @@ onBeforeUnmount(() => {
             class="footer-badge"
             target="_blank"
             rel="noopener noreferrer"
-            title="Featured on LaunchBuff"
+            :title="t('shell.footer.featuredLaunchBuff')"
           >
             <img
               src="https://launchbuff.com/badge-featured-dark.svg"
-              alt="Featured on LaunchBuff"
+              :alt="t('shell.footer.featuredLaunchBuff')"
               width="256"
               height="80"
               loading="lazy"
@@ -221,11 +184,11 @@ onBeforeUnmount(() => {
             class="footer-badge"
             target="_blank"
             rel="noopener noreferrer"
-            title="Featured on Launchstag"
+            :title="t('shell.footer.featuredLaunchstag')"
           >
             <img
               src="https://launchstag.com/badge-dark.svg"
-              alt="Featured on Launchstag"
+              :alt="t('shell.footer.featuredLaunchstag')"
               width="198"
               height="62"
               loading="lazy"
@@ -238,43 +201,43 @@ onBeforeUnmount(() => {
       <!-- Every hoverable label below carries the nav's character index; the two
            column headings that are not links keep plain text. -->
       <div class="footer-col">
-        <a href="/#all-in-one" class="protocol footer-col-heading footer-heading-link ti-host">
-          <IndexedText text="Product" />
+        <a :href="localeHref('/#all-in-one')" class="protocol footer-col-heading footer-heading-link ti-host">
+          <IndexedText :text="t('shell.footer.product')" />
         </a>
         <ul class="footer-link-list">
-          <li v-for="item in productLinks" :key="item.label">
-            <a :href="item.href" class="footer-link ti-host"><IndexedText :text="item.label" /></a>
+          <li v-for="item in productLinks" :key="item.key">
+            <a :href="localeHref(item.href)" class="footer-link ti-host"><IndexedText :text="t(`shell.footer.links.${item.key}`)" /></a>
           </li>
         </ul>
       </div>
 
       <div class="footer-col">
-        <NuxtLink to="/muscles" class="protocol footer-col-heading footer-heading-link ti-host">
-          <IndexedText text="Library" />
+        <NuxtLink :to="localeHref('/muscles')" class="protocol footer-col-heading footer-heading-link ti-host">
+          <IndexedText :text="t('shell.footer.library')" />
         </NuxtLink>
         <ul class="footer-link-list">
-          <li v-for="item in libraryLinks" :key="item.label">
-            <a :href="item.href" class="footer-link ti-host"><IndexedText :text="item.label" /></a>
+          <li v-for="item in libraryLinks" :key="item.key">
+            <a :href="localeHref(item.href)" class="footer-link ti-host"><IndexedText :text="t(`shell.footer.links.${item.key}`)" /></a>
           </li>
         </ul>
       </div>
 
       <div class="footer-col">
-        <NuxtLink to="/journal" class="protocol footer-col-heading footer-heading-link ti-host">
-          <IndexedText text="Journal" />
+        <NuxtLink :to="localeHref('/journal')" class="protocol footer-col-heading footer-heading-link ti-host">
+          <IndexedText :text="t('shell.footer.journal')" />
         </NuxtLink>
         <ul class="footer-link-list">
-          <li v-for="item in guideLinks" :key="item.label">
-            <a :href="item.href" class="footer-link ti-host"><IndexedText :text="item.label" /></a>
+          <li v-for="item in guideLinks" :key="item.key">
+            <a :href="localeHref(item.href)" class="footer-link ti-host"><IndexedText :text="t(`shell.footer.links.${item.key}`)" /></a>
           </li>
         </ul>
       </div>
 
       <div class="footer-col">
-        <span class="protocol footer-col-heading">Legal</span>
+        <span class="protocol footer-col-heading">{{ t('shell.footer.legal') }}</span>
         <ul class="footer-link-list">
-          <li v-for="item in legalLinks" :key="item.label">
-            <a :href="item.href" class="footer-link ti-host"><IndexedText :text="item.label" /></a>
+          <li v-for="item in legalLinks" :key="item.key">
+            <a :href="localeHref(item.href)" class="footer-link ti-host"><IndexedText :text="t(`shell.footer.links.${item.key}`)" /></a>
           </li>
         </ul>
       </div>
@@ -295,7 +258,7 @@ onBeforeUnmount(() => {
         gap: 16px;
       "
     >
-      <span class="protocol footer-copy">© 2026 LIFTAG · BRATISLAVA · BUILT BY LIFTERS</span>
+      <span class="protocol footer-copy">{{ t('shell.footer.copyright') }}</span>
       <div class="footer-bottom-actions">
         <div class="footer-socials">
           <a
@@ -305,7 +268,7 @@ onBeforeUnmount(() => {
             class="footer-social-link"
             target="_blank"
             rel="noopener noreferrer"
-            :aria-label="social.aria"
+            :aria-label="t(`shell.footer.social.${social.key}`)"
           >
             <span class="footer-social-index" :class="{ 'is-indexed': iconIndexed }">
               <svg
@@ -328,7 +291,7 @@ onBeforeUnmount(() => {
             </span>
           </a>
         </div>
-        <span class="protocol footer-stores">Available on · <a href="/get" class="footer-stores-link ti-host"><IndexedText text="IOS AND ANDROID" /></a></span>
+        <span class="protocol footer-stores">{{ t('shell.footer.available') }} <a :href="localeHref('/get')" class="footer-stores-link ti-host"><IndexedText :text="t('shell.app.mobile')" /></a></span>
       </div>
     </div>
 

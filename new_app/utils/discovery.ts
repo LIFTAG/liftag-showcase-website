@@ -1,3 +1,4 @@
+import { siteLocalePath } from './siteLocale.ts'
 import type {
   Coordinate,
   DiscoveryFilters,
@@ -33,7 +34,7 @@ export function discoveryHref(
 ): string {
   const params = new URLSearchParams({ lang: locale })
   for (const [key, value] of Object.entries(query)) if (value !== undefined) params.set(key, String(value))
-  return `${path}?${params}`
+  return `${siteLocalePath(path, locale)}?${params}`
 }
 export function distanceKm(a: Coordinate, b: Coordinate): number {
   const rad = Math.PI / 180

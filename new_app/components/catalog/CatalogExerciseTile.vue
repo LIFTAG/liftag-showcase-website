@@ -5,6 +5,8 @@
  */
 import type Hls from 'hls.js'
 import { CATALOG_VIDEOS_ENABLED } from '~/utils/catalogVideo'
+import { catalogChrome } from '~/utils/catalogCopy'
+import { canUseNativeHls } from '~/utils/exerciseVideoLanguage'
 
 const props = defineProps<{
   to: string
@@ -14,6 +16,10 @@ const props = defineProps<{
   hasVideo?: boolean
   previewVideoUrl?: string | null
 }>()
+
+const { locale } = useSiteLocale()
+const language = useVideoLanguage(locale)
+const videoPreviewTitle = computed(() => catalogChrome(locale.value).videoPreview(props.name))
 
 const showVideo = computed(() => CATALOG_VIDEOS_ENABLED && Boolean(props.hasVideo))
 const previewUrl = computed(() => (CATALOG_VIDEOS_ENABLED ? props.previewVideoUrl : null))
@@ -40,6 +46,7 @@ function stopPreview() {
   previewVisible.value = false
 
   const video = previewRef.value
+  if (video) language.unbind(video)
   video?.pause()
   hls?.destroy()
   hls = null
@@ -80,7 +87,7 @@ async function startPreview() {
   const video = previewRef.value
   if (!video || request !== previewRequest || !previewMounted.value) return
 
-  if (/\.m3u8(\?|$)/i.test(source) && !video.canPlayType('application/vnd.apple.mpegurl')) {
+  if (/\.m3u8(\?|$)/i.test(source) && !canUseNativeHls(video)) {
     const HlsCtor = (await import('hls.js')).default
     if (request !== previewRequest || !previewMounted.value) return
     if (!HlsCtor.isSupported()) {
@@ -90,9 +97,11 @@ async function startPreview() {
     hls = new HlsCtor()
     hls.loadSource(source)
     hls.attachMedia(video)
+    language.bind(video, hls)
   }
   else {
     video.src = source
+    language.bind(video)
   }
 
   video.play().catch(() => stopPreview())
@@ -142,7 +151,7 @@ onBeforeUnmount(() => {
         v-if="previewMounted && youTubeId"
         class="ex-tile__preview"
         :src="`https://www.youtube-nocookie.com/embed/${youTubeId}?autoplay=1&mute=1&controls=0&playsinline=1&loop=1&playlist=${youTubeId}&rel=0`"
-        :title="`${name} video preview`"
+        :title="videoPreviewTitle"
         tabindex="-1"
         allow="autoplay; encrypted-media"
         @load="markPreviewVisible(previewRequest)"

@@ -6,18 +6,29 @@ import OneRmStrength from './OneRmStrength.vue'
 import OneRmFormulaCompare from './OneRmFormulaCompare.vue'
 import OneRmNrmTable from './OneRmNrmTable.vue'
 import OneRmPercentTable from './OneRmPercentTable.vue'
-import { exerciseFor, loadQualifier } from '~/utils/oneRepMaxExercises'
+import { exerciseFor } from '~/utils/oneRepMaxExercises'
 import { FORMULAS } from '~/utils/oneRepMax'
 import { strengthSource } from '~/utils/strengthStandards'
+import { en, sk } from '~/i18n/messages/tools'
+import { en as calculatorEn, sk as calculatorSk } from '~/i18n/messages/calculatorLogic'
+import { caveatMessageKey } from '~/content/tools/oneRmExercises'
+
+const { t } = useI18n({
+  useScope: 'local',
+  messages: { en: { ...en, calculator: calculatorEn }, sk: { ...sk, calculator: calculatorSk } },
+})
 
 const {
   weightText, repsText, unit, lift, formulaId, copied, copyError, weightError, repsError,
   reps, weightKg, oneRmKg, estimates, cluster, confidence, percentRows, nrmRows, trainingMax,
   liveSummary, caveat, canShare, setUnit, setFormula, copyLink, copyResult, share,
   formatLoad, bodyweightText, bodyweightKg, comparisonSex, bodyweightError, comparison, stepWeight,
-} = useOneRepMaxCalculator()
+} = useOneRepMaxCalculator((key, values) => t(`calculator.${key}`, values ?? {}))
 const formulaName = computed(() => FORMULAS.find(item => item.id === formulaId.value)?.name ?? 'Epley')
 const sourceHref = computed(() => strengthSource(lift.value))
+const qualifier = computed(() => exerciseFor(lift.value).basis === 'dumbbell' ? t('tools.calculatorUi.qualifierDumbbell') : exerciseFor(lift.value).basis === 'bodyweight' ? t('tools.calculatorUi.qualifierBodyweight') : '')
+
+const localizedCaveat = computed(() => { const key = caveatMessageKey(lift.value); return key ? t(`tools.calculatorUi.${key}`) : caveat.value })
 </script>
 
 <template>
@@ -26,44 +37,44 @@ const sourceHref = computed(() => strengthSource(lift.value))
       <OneRmGlass />
       <div class="calculator-main">
         <OneRmSetForm v-model:weight="weightText" v-model:reps="repsText" :lift="lift" :unit="unit" :weight-kg="weightKg" :weight-error="weightError" :reps-error="repsError" @unit="setUnit" @step="stepWeight" />
-        <OneRmResult :kg="oneRmKg" :weight-kg="weightKg" :unit="unit" :reps="reps" :formula="formulaName" :formula-id="formulaId" :estimates="estimates" :confidence="confidence" :training-max="trainingMax" :summary="liveSummary" :qualifier="loadQualifier(lift)" @select="setFormula" />
+        <OneRmResult :kg="oneRmKg" :weight-kg="weightKg" :unit="unit" :reps="reps" :formula="formulaName" :formula-id="formulaId" :estimates="estimates" :confidence="confidence" :training-max="trainingMax" :summary="liveSummary" :qualifier="qualifier" @select="setFormula" />
       </div>
       <OneRmStrength v-model:bodyweight="bodyweightText" v-model:sex="comparisonSex" v-model:lift="lift" :unit="unit" :comparison="comparison" :bodyweight-kg="bodyweightKg" :bodyweight-error="bodyweightError" :valid-set="oneRmKg != null" />
       <div class="calculator-footer">
-        <p>Calculated on your device. No signup.</p>
+        <p>{{ t('tools.calculatorUi.calculated') }}</p>
         <div class="result-actions">
-          <button type="button" :disabled="oneRmKg == null" @click="copyResult">{{ copied === 'result' ? 'Copied ✓' : 'Copy result' }}</button>
-          <button type="button" :disabled="oneRmKg == null" @click="copyLink">{{ copied === 'link' ? 'Copied ✓' : 'Copy link' }}</button>
-          <button v-if="canShare" type="button" :disabled="oneRmKg == null" @click="share">Share</button>
+          <button type="button" :disabled="oneRmKg == null" @click="copyResult">{{ copied === 'result' ? t('tools.calculatorUi.copied') : t('tools.calculatorUi.copyResult') }}</button>
+          <button type="button" :disabled="oneRmKg == null" @click="copyLink">{{ copied === 'link' ? t('tools.calculatorUi.copied') : t('tools.calculatorUi.copyLink') }}</button>
+          <button v-if="canShare" type="button" :disabled="oneRmKg == null" @click="share">{{ t('tools.calculatorUi.share') }}</button>
         </div>
         <p v-if="copyError" class="copy-error" role="status">{{ copyError }}</p>
-        <span class="sr-only" role="status">{{ copied ? `${copied === 'link' ? 'Link' : 'Result'} copied.` : '' }}</span>
+        <span class="sr-only" role="status">{{ copied === 'link' ? t('tools.calculatorUi.linkCopied') : copied === 'result' ? t('tools.calculatorUi.resultCopied') : '' }}</span>
       </div>
     </div>
     <p id="strength-method-note" class="strength-method">
-      Data from <a v-if="sourceHref" :href="sourceHref" rel="noopener">Strength Level</a><span v-else>Strength Level</span>’s published bodyweight-ratio standards for people who log lifts there.
-      <template v-if="exerciseFor(lift).basis === 'machine'">Machine designs and pulley ratios vary; comparisons are especially approximate.</template>
-      Not the general population. No age adjustment. Approximate. <a href="#percentile-method">How it works <span aria-hidden="true">↗</span></a>
+      {{ t('tools.calculatorUi.dataFrom') }} <a v-if="sourceHref" :href="sourceHref" rel="noopener">{{ t('tools.calculatorUi.strengthLevel') }}</a><span v-else>{{ t('tools.calculatorUi.strengthLevel') }}</span>{{ t('tools.calculatorUi.dataTail') }}
+      <template v-if="exerciseFor(lift).basis === 'machine'">{{ t('tools.calculatorUi.machineNote') }}</template>
+      {{ t('tools.calculatorUi.populationNote') }} <a href="#percentile-method">{{ t('tools.calculatorUi.howItWorks') }} <span aria-hidden="true">↗</span></a>
     </p>
 
     <div class="training-details">
       <details class="training-disclosure">
-        <summary><span><strong>Training load tables</strong><small>Percentages & rep maxes</small></span><span class="disclosure-icon" aria-hidden="true">+</span></summary>
+        <summary><span><strong>{{ t('tools.calculatorUi.trainingTables') }}</strong><small>{{ t('tools.calculatorUi.percentagesAndRepMaxes') }}</small></span><span class="disclosure-icon" aria-hidden="true">+</span></summary>
         <div class="training-content">
-          <p v-if="!percentRows.length">Enter a valid set to get training loads.</p>
+          <p v-if="!percentRows.length">{{ t('tools.calculatorUi.validSet') }}</p>
           <template v-else>
-            <h3>Training percentages</h3>
-            <p>Based on your {{ formulaName }} 1RM<span v-if="loadQualifier(lift)">, {{ loadQualifier(lift) }}</span>. Loads rounded to {{ unit === 'kg' ? '2.5 kg' : '5 lb' }} increments; exact values shown alongside.</p>
+            <h3>{{ t('tools.calculatorUi.trainingPercentages') }}</h3>
+            <p>{{ t('tools.calculatorUi.basedOn', { formula: formulaName }) }}<span v-if="qualifier">, {{ qualifier }}</span>. {{ t('tools.calculatorUi.loadsRounded', { increment: unit === 'kg' ? '2.5 kg' : '5 lb' }) }}</p>
             <OneRmPercentTable :rows="percentRows" :unit="unit" :format-load="formatLoad" />
-            <h3>Estimated rep maxes</h3>
-            <p>Predicted maximum weight for each rep target, using {{ formulaName }}<span v-if="loadQualifier(lift)">, {{ loadQualifier(lift) }}</span>.</p>
+            <h3>{{ t('tools.calculatorUi.estimatedRepMaxes') }}</h3>
+            <p>{{ t('tools.calculatorUi.predicted', { formula: formulaName }) }}<span v-if="qualifier">, {{ qualifier }}</span>.</p>
             <OneRmNrmTable :rows="nrmRows" :unit="unit" :format-load="formatLoad" />
           </template>
         </div>
       </details>
       <OneRmFormulaCompare v-if="estimates.length" :rows="estimates" :active-id="formulaId" :unit="unit" :spread-pct="cluster?.spreadPct ?? null" :format-load="formatLoad" @select="setFormula" />
     </div>
-    <p v-if="caveat" class="lift-context">{{ caveat }}</p>
+    <p v-if="localizedCaveat" class="lift-context">{{ localizedCaveat }}</p>
   </div>
 </template>
 

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import {
-  HERO_MOBILE_TITLE_LINES,
   heroLaserClass,
-  isHeroLimeWord,
   useHeroLaser,
 } from '../composables/useHeroLaser'
+import { en, sk } from '~/i18n/messages/marketing'
+
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+const heroMobileTitle = computed(() => [[t('marketing.heroMobileTitle.0.0'), t('marketing.heroMobileTitle.0.1')], [t('marketing.heroMobileTitle.1.0'), t('marketing.heroMobileTitle.1.1')]])
 
 const props = withDefaults(defineProps<{
   autoEnter?: boolean
@@ -95,18 +97,18 @@ onBeforeUnmount(() => {
       }"
     >
       <div class="hero-mobile-copy">
-        <p class="hero-mobile-title">
+        <h1 class="hero-mobile-title">
           <span
-            v-for="(line, lineIndex) in HERO_MOBILE_TITLE_LINES"
+            v-for="(line, lineIndex) in heroMobileTitle"
             :key="lineIndex"
             class="hero-title-line"
           >
             <template v-for="(word, wordIndex) in line" :key="wordIndex">
               <span v-if="wordIndex > 0">{{ ' ' }}</span>
-              <span v-if="isHeroLimeWord(word)" class="hero-mobile-lime-word">
+              <span v-if="wordIndex === 1" class="hero-mobile-lime-word">
                 <span
                   :ref="(el) => setTitleEl(el as Element | null, lineIndex * 2 + wordIndex)"
-                  :class="heroLaserClass(word, lineIndex * 2 + wordIndex)"
+                  :class="heroLaserClass(lineIndex * 2 + wordIndex)"
                   :style="{ color: '#CCFF00' }"
                 >{{ word }}</span>
                 <span
@@ -118,23 +120,23 @@ onBeforeUnmount(() => {
               <span
                 v-else
                 :ref="(el) => setTitleEl(el as Element | null, lineIndex * 2 + wordIndex)"
-                :class="heroLaserClass(word, lineIndex * 2 + wordIndex)"
+                :class="heroLaserClass(lineIndex * 2 + wordIndex)"
                 :style="{ color: '#fff' }"
               >{{ word }}</span>
             </template>
           </span>
-        </p>
+        </h1>
 
         <div class="hero-mobile-details" :style="heroMobileDetailsStyle">
-          <p class="hero-mobile-kicker">Your all-in-one fitness app.</p>
+          <p class="hero-mobile-kicker">{{ t('marketing.hero.kicker') }}</p>
 
           <p class="hero-mobile-copyline hero-mobile-copyline--tablet">
-            Tap NFC or scan QR at the machine. Core workout tracking is free forever. Premium intelligence is optional.
+            {{ t('marketing.hero.machineHint') }} {{ t('marketing.hero.free') }}
           </p>
 
           <div class="hero-mobile-actions">
-            <GetAppBtn hero label="Get LIFTAG" />
-            <a href="#scan" class="hero-mobile-secondary">See how it works</a>
+            <GetAppBtn hero />
+            <a href="#scan" class="hero-mobile-secondary">{{ t('marketing.hero.how') }}</a>
           </div>
         </div>
       </div>
@@ -144,10 +146,10 @@ onBeforeUnmount(() => {
         :class="{ 'is-entered': entered }"
       >
         <div class="hero-mobile-rail">
-          <div class="hero-mobile-proof" aria-label="LIFTAG tap, scan, and tracking flow">
-            <span><strong>Tap</strong> NFC tag</span>
-            <span><strong>Scan</strong> machine QR</span>
-            <span><strong>Log</strong> sets fast</span>
+          <div class="hero-mobile-proof" :aria-label="t('marketing.hero.flow')">
+            <span>{{ t('marketing.hero.tapTag') }}</span>
+            <span>{{ t('marketing.hero.scanQr') }}</span>
+            <span>{{ t('marketing.hero.logSets') }}</span>
           </div>
         </div>
 
@@ -180,19 +182,19 @@ onBeforeUnmount(() => {
         <span class="hero-mobile-copybeat" style="--beat: 0">
           <span class="hero-mobile-copybeat-scan" aria-hidden="true" />
           <span class="hero-mobile-copybeat-text">
-            Tap <span class="hero-mobile-copykey">NFC</span> or scan <span class="hero-mobile-copykey">QR</span> at the machine.
+            {{ t('marketing.hero.machineHint') }}
           </span>
         </span>
         <span class="hero-mobile-copybeat" style="--beat: 1">
           <span class="hero-mobile-copybeat-scan" aria-hidden="true" />
           <span class="hero-mobile-copybeat-text">
-            Core workout tracking is <span class="hero-mobile-copykey">free forever</span>.
+            {{ t('marketing.hero.freeCore') }}
           </span>
         </span>
         <span class="hero-mobile-copybeat" style="--beat: 2">
           <span class="hero-mobile-copybeat-scan" aria-hidden="true" />
           <span class="hero-mobile-copybeat-text">
-            Premium intelligence is optional.
+            {{ t('marketing.hero.optional') }}
           </span>
         </span>
       </p>
@@ -872,6 +874,19 @@ onBeforeUnmount(() => {
 
   .hero-mobile-actions {
     gap: 10px;
+  }
+}
+
+/* The longer Slovak title must fit both phone and split tablet columns. */
+@media (max-width: 699px) {
+  :global(html[lang="sk"] .hero-mobile-title) {
+    font-size: clamp(32px, 11vw, 54px);
+  }
+}
+
+@media (min-width: 700px) and (max-width: 768px) {
+  :global(html[lang="sk"] .hero-mobile-title) {
+    font-size: clamp(30px, 4.7vw, 36px);
   }
 }
 

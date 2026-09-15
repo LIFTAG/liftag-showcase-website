@@ -25,10 +25,10 @@
         </div>
       </div>
       <div v-if="!ready" class="gs__boot protocol">
-        <span class="gs__boot-dot" />INITIALISING ROOM
+        <span class="gs__boot-dot" />{{ t('canvas.boot') }}
       </div>
 
-      <NuxtLink to="/" class="gs__logo" aria-label="LIFTAG home">
+      <NuxtLink :to="href('/')" class="gs__logo" :aria-label="t('nav.home')">
         <img
           src="/assets/logo.svg"
           width="24"
@@ -39,7 +39,7 @@
 
       <div ref="hudEl" class="gs__hud" :class="{ 'is-retired': hudOut }">
         <div class="gs__hint protocol" :class="{ 'is-out': hintOut }">
-          <span class="gs__hint-rail"><i /></span>SCROLL
+          <span class="gs__hint-rail"><i /></span>{{ t('opening.scroll') }}
         </div>
       </div>
 
@@ -54,11 +54,11 @@
           :inert="!doorsVisible"
           :aria-hidden="doorsVisible ? undefined : true"
         >
-          <NuxtLink class="gs__btn gs__btn--primary" to="/get">Get LIFTAG</NuxtLink>
+          <NuxtLink class="gs__btn gs__btn--primary" :to="href('/get')">{{ t('nav.app') }}</NuxtLink>
           <GymScanPartnerBtn />
         </div>
         <div v-if="skipVisible" class="gs__skip">
-          <button type="button" class="gs__skip-btn" @click="skipBirth">Skip</button>
+          <button type="button" class="gs__skip-btn" @click="skipBirth">{{ t('nav.skip') }}</button>
         </div>
       </div>
 
@@ -85,6 +85,7 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, shallowRef, useTemplateRef } from 'vue'
+import { en, sk } from '~/i18n/messages/gymDemo'
 import { useSharedMouse } from '../composables/useSharedMouse'
 import { detectGymScanDevice, type GymScanDevice } from '../utils/gymscan/device'
 import {
@@ -99,6 +100,8 @@ const emit = defineEmits<{
   handoff: [active: boolean]
   'cursor-visible': [active: boolean]
 }>()
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
+const { href } = useSiteLocale()
 
 type HeroHandoff = {
   enter: () => void

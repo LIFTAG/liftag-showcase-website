@@ -60,12 +60,7 @@ export function gymExercisePresentation(
     name: exercise.name,
     description: exercise.description,
     imageUrl: exercise.image,
-    videos: exercise.videos.map((url, displayOrder) => ({
-      url,
-      locale,
-      displayOrder,
-      uploadedByUserId: null,
-    })),
+    videos: exercise.videos,
     aliases: catalog?.aliases ?? null,
     localeName: null,
     isCompound: catalog?.isCompound ?? null,

@@ -9,14 +9,16 @@ export function useCatalogExerciseResource(
   context: ReturnType<typeof gymCatalogContext>,
 ) {
   const requestFetch = useRequestFetch()
+  const { preference } = useSiteLocale()
+  const requestedLocale = context ? preference.value : locale
   return useAsyncData(
-    `catalog-exercise:${locale}:${param}:${context ? JSON.stringify(context) : 'catalog'}`,
+    `catalog-exercise:${requestedLocale ?? 'auto'}:${param}:${context ? JSON.stringify(context) : 'catalog'}`,
     async (_app, { signal }) => {
       if (!context)
-        return { exercise: await resolveCatalogExercise(param, locale), machine: null, gymExercise: null }
+        return { exercise: await resolveCatalogExercise(param, locale, signal), machine: null, gymExercise: null }
       const machine = await requestFetch<GymMachineDetail>(
         `/api/explore/gyms/${context.gymId}/machines/${context.machineId}`,
-        { query: { lang: locale }, signal, retry: 0 },
+        { query: { lang: requestedLocale }, signal, retry: 0 },
       )
       const gymExercise = machine.exercises.find((item) => item.id === context.exerciseId)
       if (!gymExercise)
@@ -24,7 +26,7 @@ export function useCatalogExerciseResource(
       const matchesResolvedId = param === (gymExercise.templateId ?? gymExercise.id)
       const catalog = gymExercise.templateId
         ? await requestFetch<CatalogExercise>(`/api/catalog/exercises/${gymExercise.templateId}`, {
-            query: { locale },
+            query: { locale: machine.locale },
             signal,
             retry: 0,
           }).catch((error) => {
@@ -41,7 +43,7 @@ export function useCatalogExerciseResource(
         : null
       if (!matchesResolvedId && param !== catalog?.slug)
         throw createError({ statusCode: 404, statusMessage: 'Exercise not found on this machine' })
-      return { exercise: gymExercisePresentation(gymExercise, locale, catalog), machine, gymExercise }
+      return { exercise: gymExercisePresentation(gymExercise, machine.locale, catalog), machine, gymExercise }
     },
   )
 }
