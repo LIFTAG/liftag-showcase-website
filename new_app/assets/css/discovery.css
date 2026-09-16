@@ -18,6 +18,8 @@
 .d-equipment-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Without this a short result set stretches its rows to the filter sidebar's height. */
+  align-content: start;
   align-items: start;
   gap: 16px;
 }

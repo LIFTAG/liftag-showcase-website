@@ -8,6 +8,7 @@ const animate = shallowRef(true)
 const direction = shallowRef(1)
 const expandButton = useTemplateRef<HTMLButtonElement>('expandButton')
 const current = computed(() => props.media[index.value])
+const thumbs = useTemplateRef<HTMLDivElement>('thumbs')
 const copy = computed(() => discoveryCopy(props.locale))
 const zoomed = shallowRef(false)
 let viewport: VisualViewport | null = null
@@ -27,6 +28,13 @@ watch(
     expanded.value = false
   },
 )
+// Keep the selected thumbnail visible without scrolling the page itself.
+watch(index, (i) => {
+  const strip = thumbs.value
+  const thumb = strip?.children[i] as HTMLElement | undefined
+  if (!strip || !thumb) return
+  strip.scrollTo({ left: thumb.offsetLeft - (strip.clientWidth - thumb.offsetWidth) / 2, behavior: 'smooth' })
+})
 function select(next: number, smooth = true) {
   animate.value = smooth
   direction.value = Math.sign(next - index.value) || 1
@@ -76,21 +84,22 @@ function viewerKeydown(event: KeyboardEvent) {
       <button ref="expandButton" class="d-gallery-expand d-icon-button" :aria-label="copy.openGallery" @click="expanded = true">
         <DiscoveryIcon name="expand" />
       </button>
-      <DiscoveryGalleryNav
-        v-if="media.length > 1"
-        class="d-gallery-controls"
-        :class="{ 'd-gallery-controls--video': current.type === 'video' }"
-        :index="index"
-        :total="media.length"
-        :locale="locale"
-        @step="step"
-      />
+      <!-- Mid-height edges stay clear of video controls and never move between photos and videos. -->
+      <template v-if="media.length > 1">
+        <button class="d-gallery-step d-gallery-step--previous d-icon-button" :aria-label="copy.previous" @click="step(-1)">
+          <DiscoveryIcon name="arrow" />
+        </button>
+        <button class="d-gallery-step d-gallery-step--next d-icon-button" :aria-label="copy.next" @click="step(1)">
+          <DiscoveryIcon name="arrow" />
+        </button>
+        <span class="d-gallery-count">{{ index + 1 }} / {{ media.length }}</span>
+      </template>
     </div>
     <div v-else class="d-gallery-empty">
       <DiscoveryIcon name="image" :size="40" />
       <span>{{ copy.noMedia }}</span>
     </div>
-    <div v-if="media.length > 1" class="d-gallery-thumbs">
+    <div v-if="media.length > 1" ref="thumbs" class="d-gallery-thumbs">
       <button
         v-for="(item, i) in media"
         :key="item.url"
@@ -160,21 +169,37 @@ function viewerKeydown(event: KeyboardEvent) {
   color: var(--d-muted);
   border-radius: 20px;
 }
-.d-gallery-controls {
+.d-gallery-step,
+.d-gallery-count {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  background: #111e;
   color: #f5f5f3;
-  border-radius: 24px;
+  background: #111c;
 }
-.d-gallery-controls--video {
+.d-gallery-step {
+  top: 50%;
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+.d-gallery-step:hover {
+  background: #111;
+}
+.d-gallery-step--previous {
+  left: 12px;
+}
+.d-gallery-step--previous :deep(svg) {
+  transform: scaleX(-1);
+}
+.d-gallery-step--next {
+  right: 12px;
+}
+.d-gallery-count {
   top: 12px;
-  bottom: auto;
+  right: 12px;
+  padding: 4px 10px;
+  border-radius: 24px;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
 }
 .d-gallery-expand {
   position: absolute;
@@ -186,6 +211,7 @@ function viewerKeydown(event: KeyboardEvent) {
 .d-gallery-thumbs {
   scrollbar-width: none;
   display: flex;
+  position: relative;
   gap: 8px;
   overflow-x: auto;
   padding: 12px 3px 4px;

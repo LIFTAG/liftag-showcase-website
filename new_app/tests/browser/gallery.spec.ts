@@ -49,7 +49,7 @@ test('photos and videos share fullscreen navigation, keyboard controls, and redu
   await expect(dialog.locator('.d-carousel-slide:not([inert]) img')).toBeVisible()
   await dialog.press('Escape')
   await expect(dialog).toHaveCount(0)
-  await expect(gallery.locator('.d-gallery-controls')).toContainText('1 / 2')
+  await expect(gallery.locator('.d-gallery-count')).toHaveText('1 / 2')
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await expect(gallery.locator('.d-carousel')).toHaveCSS('scroll-behavior', 'auto')
   await gallery.getByRole('button', { name: 'Predchádzajúca', exact: true }).click()
@@ -64,7 +64,7 @@ test('native photo and video swipes animate, loop, and release playback in both 
   page.on('pageerror', error => errors.push(error.message))
   const cdp = await page.context().newCDPSession(page)
   const carousel = page.locator('.d-gallery-stage .d-carousel')
-  const counter = page.locator('.d-gallery-controls')
+  const counter = page.locator('.d-gallery-count')
   await carousel.scrollIntoViewIfNeeded()
   const initialBox = (await carousel.boundingBox())!
   const initialScroll = await page.evaluate(() => scrollY)
@@ -122,4 +122,37 @@ test('zoomed photos pan without changing media and resume swiping after zooming 
   await expect(carousel).toHaveCSS('overflow-x', 'auto')
   await swipe(cdp, carousel)
   await expect(page.locator('.d-expanded-controls')).toContainText('2 / 2')
+})
+
+test('gallery arrows stay in place for photos and videos, clear of the player controls', async ({ page }) => {
+  const stage = page.locator('.d-gallery-stage')
+  const next = stage.getByRole('button', { name: 'Nasledujúca', exact: true })
+  const offsets = () => stage.evaluate(el => {
+    const stageBox = el.getBoundingClientRect()
+    return [...el.querySelectorAll('.d-gallery-step, .d-gallery-count')].map(item => {
+      const box = item.getBoundingClientRect()
+      return { x: box.x - stageBox.x, y: box.y - stageBox.y, bottom: stageBox.bottom - box.bottom }
+    })
+  })
+  const before = await offsets()
+  await next.click()
+  await expect(stage.locator('video')).toBeVisible()
+  expect(await offsets()).toEqual(before)
+  // Native control bars take roughly the bottom 60px of the player.
+  for (const item of before) expect(item.bottom).toBeGreaterThan(60)
+})
+
+test('the thumbnail strip keeps the selected item visible', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 })
+  const strip = page.locator('.d-gallery-thumbs')
+  await strip.evaluate(el => {
+    // The fixture only has two items; widen them so the strip overflows.
+    for (const button of el.querySelectorAll('button')) (button as HTMLElement).style.flexBasis = '260px'
+  })
+  await page.locator('.d-gallery-stage').getByRole('button', { name: 'Nasledujúca', exact: true }).click()
+  const selected = strip.locator('button[aria-pressed="true"]')
+  await expect.poll(async () => {
+    const [box, stripBox] = [(await selected.boundingBox())!, (await strip.boundingBox())!]
+    return box.x >= stripBox.x - 1 && box.x + box.width <= stripBox.x + stripBox.width + 1
+  }).toBe(true)
 })
