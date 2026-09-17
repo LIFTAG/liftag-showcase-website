@@ -139,6 +139,7 @@ useDiscoverySeo({
       >
         <DiscoveryIcon name="locate" :size="24" />
       </button>
+      <DiscoveryClaimControl :locale="locale" />
     </section>
     <aside class="d-explore-sidebar" :aria-label="copy.list">
       <div class="d-explore-tools">
@@ -218,18 +219,11 @@ useDiscoverySeo({
           <button v-if="filterCount" class="d-link" @click="reset">
             {{ copy.clearFilters }}
           </button>
-          <!-- Phones only: a filtered-out area may still have gyms, so filters hide it. -->
-          <DiscoveryClaimCard
-            v-if="settledSearch.trim() || !filterCount"
-            class="d-claim-inline"
-            :locale="locale"
-          />
         </div>
         <div v-if="hasMore" class="d-pagination">
           <button class="d-button" :disabled="loading" @click="loadMore">{{ copy.more }}</button>
         </div>
         <p v-if="meta.truncated || meta.tooLarge" class="d-map-notice" role="status">{{ copy.zoomIn }}</p>
-        <DiscoveryClaimCard v-if="!error && visible.length" class="d-claim-inline" :locale="locale" />
       </div>
       <div class="d-explore-owner">
         <DiscoveryClaimCard :locale="locale" />
@@ -336,10 +330,7 @@ useDiscoverySeo({
   display: grid;
   justify-items: center;
 }
-/* Wide screens pin the gym-owner bar under the list; phones put it in the swipe row. */
-.d-claim-inline {
-  display: none !important;
-}
+/* Wide screens pin the gym-owner bar under the list; phones get a map control instead. */
 .d-explore-owner {
   position: relative;
   flex-shrink: 0;
@@ -435,8 +426,7 @@ useDiscoverySeo({
     pointer-events: auto;
     scroll-snap-type: x proximity;
   }
-  .d-explore-results > :deep(.d-gym-card),
-  .d-explore-results > :deep(.d-claim-card) {
+  .d-explore-results > :deep(.d-gym-card) {
     flex: 0 0 310px;
     scroll-snap-align: center;
   }
@@ -448,15 +438,8 @@ useDiscoverySeo({
     width: 310px;
     min-height: 112px;
   }
-  .d-claim-inline {
-    display: flex !important;
-  }
   .d-explore-owner {
     display: none;
-  }
-  .d-no-gyms > .d-claim-card {
-    width: calc(100% - 24px);
-    margin: 0 12px 12px;
   }
   .d-explore-results > :deep(.d-empty),
   .d-no-gyms {
@@ -483,6 +466,15 @@ useDiscoverySeo({
       calc(var(--d-results-height, 0px) + 28px)
     );
     transition: bottom 200ms ease;
+  }
+  /* Stacked one control above Locate me, riding the card row with it. */
+  .d-claim-control {
+    bottom: calc(
+      max(calc(172px + env(safe-area-inset-bottom, 0px)), calc(var(--d-results-height, 0px) + 28px)) + 64px
+    );
+    transition:
+      bottom 200ms ease,
+      box-shadow 240ms;
   }
   .d-map-notice {
     width: 180px;
