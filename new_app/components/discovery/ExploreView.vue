@@ -139,6 +139,7 @@ useDiscoverySeo({
       >
         <DiscoveryIcon name="locate" :size="24" />
       </button>
+      <DiscoveryClaimControl :locale="locale" />
     </section>
     <aside class="d-explore-sidebar" :aria-label="copy.list">
       <div class="d-explore-tools">
@@ -224,6 +225,9 @@ useDiscoverySeo({
         </div>
         <p v-if="meta.truncated || meta.tooLarge" class="d-map-notice" role="status">{{ copy.zoomIn }}</p>
       </div>
+      <div class="d-explore-owner">
+        <DiscoveryClaimCard :locale="locale" />
+      </div>
     </aside>
     <DiscoveryFilters
       v-if="filtersOpen"
@@ -296,6 +300,7 @@ useDiscoverySeo({
   padding: 24px 0 14px;
 }
 .d-explore-results {
+  flex: 1;
   min-height: 0;
   overflow-y: auto;
   display: flex;
@@ -324,6 +329,24 @@ useDiscoverySeo({
 .d-no-gyms {
   display: grid;
   justify-items: center;
+}
+/* Wide screens pin the gym-owner bar under the list; phones get a map control instead. */
+.d-explore-owner {
+  position: relative;
+  flex-shrink: 0;
+  padding: 12px 20px 20px;
+  background: var(--d-bg);
+}
+/* The list fades into the bar instead of being cut off by it. */
+.d-explore-owner::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 28px;
+  background: linear-gradient(transparent, var(--d-bg));
+  pointer-events: none;
 }
 .d-no-gyms .d-empty {
   padding-inline: 0;
@@ -391,6 +414,7 @@ useDiscoverySeo({
     max-width: 45ch;
   }
   .d-explore-results {
+    flex: 0 1 auto;
     margin-top: auto;
     flex-direction: row;
     /* Bottom-aligned so only the selected card grows when it expands. */
@@ -413,6 +437,9 @@ useDiscoverySeo({
   .d-explore-results :deep(.d-skeleton) {
     width: 310px;
     min-height: 112px;
+  }
+  .d-explore-owner {
+    display: none;
   }
   .d-explore-results > :deep(.d-empty),
   .d-no-gyms {
@@ -439,6 +466,15 @@ useDiscoverySeo({
       calc(var(--d-results-height, 0px) + 28px)
     );
     transition: bottom 200ms ease;
+  }
+  /* Stacked one control above Locate me, riding the card row with it. */
+  .d-claim-control {
+    bottom: calc(
+      max(calc(172px + env(safe-area-inset-bottom, 0px)), calc(var(--d-results-height, 0px) + 28px)) + 64px
+    );
+    transition:
+      bottom 200ms ease,
+      box-shadow 240ms;
   }
   .d-map-notice {
     width: 180px;
