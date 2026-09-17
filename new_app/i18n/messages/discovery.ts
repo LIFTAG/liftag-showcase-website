@@ -126,6 +126,13 @@ export const en = {
   claimHint: 'Get it on the map for free.',
   claimCta: 'Add gym',
   claimLabel: 'Gym owners: add your gym to the map',
+  claimToggle: 'For gym owners',
+  claimEyebrow: 'For gym owners',
+  claimPanelTitle: 'Put your gym on the map',
+  claimPerkMap: 'Lifters find your gym right here on the map',
+  claimPerkQr: 'QR and NFC codes open setup videos on every machine',
+  claimPerkFree: 'Free dashboard. You only buy the physical tags.',
+  claimPanelCta: 'Add your gym',
 }
 export type DiscoveryCopy = typeof en
 export const sk: DiscoveryCopy = {
@@ -255,4 +262,11 @@ export const sk: DiscoveryCopy = {
   claimHint: 'Pridaj ho na mapu zadarmo.',
   claimCta: 'Pridať',
   claimLabel: 'Pre majiteľov fitiek: pridaj fitko na mapu',
+  claimToggle: 'Pre majiteľov fitiek',
+  claimEyebrow: 'Pre majiteľov fitiek',
+  claimPanelTitle: 'Daj svoje fitko na mapu',
+  claimPerkMap: 'Cvičiaci nájdu tvoje fitko priamo na tejto mape',
+  claimPerkQr: 'QR a NFC kódy otvoria videonávod na každom stroji',
+  claimPerkFree: 'Prehľad zadarmo. Kupuješ len fyzické štítky.',
+  claimPanelCta: 'Pridaj fitko',
 }
