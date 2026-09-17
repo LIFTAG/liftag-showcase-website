@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { scrollToTrainerHandoff } from '~/utils/dashboardScroll'
 import { discoveryHref } from '~/utils/discovery'
+import { NAV_ACTIVE_PREFIXES, isNavPathActive } from '~/utils/navActive'
 import { en, sk } from '~/i18n/messages/shell'
 
 const props = withDefaults(defineProps<{
@@ -33,15 +34,20 @@ const sectionHref = (hash: string) => isHomeLike.value ? hash : href(`/${hash}`)
 // one glyph at a time rather than tearing a surrogate pair in half.
 const navChars = (label: string) => Array.from(label)
 
-const navLinks = computed<[string, string][]>(() => [
-  [t('shell.nav.exercises'), href('/exercises')],
-  [t('shell.nav.gyms'), localeReady.value ? discoveryHref('/explore', locale.value) : href('/explore')],
-  [t('shell.nav.lifters'), sectionHref('#lifters')],
-  [t('shell.nav.owners'), sectionHref('#gyms')],
-  [t('shell.nav.trainers'), sectionHref('#trainers')],
-  [t('shell.nav.demo'), href('/demo')],
-  [t('shell.nav.journal'), href('/journal')],
-  [t('shell.nav.pricing'), href('/pricing')],
+// The third entry says whether the current page belongs to the link. It is
+// matched on the locale-stripped route path rather than the href, which carries
+// a query and changes once the locale is ready. Homepage sections stay false.
+const isActive = (prefixes: readonly string[]) => isNavPathActive(basePath.value, prefixes)
+
+const navLinks = computed<[string, string, boolean][]>(() => [
+  [t('shell.nav.exercises'), href('/exercises'), isActive(NAV_ACTIVE_PREFIXES.exercises)],
+  [t('shell.nav.gyms'), localeReady.value ? discoveryHref('/explore', locale.value) : href('/explore'), isActive(NAV_ACTIVE_PREFIXES.gyms)],
+  [t('shell.nav.lifters'), sectionHref('#lifters'), false],
+  [t('shell.nav.owners'), sectionHref('#gyms'), false],
+  [t('shell.nav.trainers'), sectionHref('#trainers'), false],
+  [t('shell.nav.demo'), href('/demo'), isActive(NAV_ACTIVE_PREFIXES.demo)],
+  [t('shell.nav.journal'), href('/journal'), isActive(NAV_ACTIVE_PREFIXES.journal)],
+  [t('shell.nav.pricing'), href('/pricing'), isActive(NAV_ACTIVE_PREFIXES.pricing)],
 ])
 
 // "Trainers" is the MacBook coach chapter, not TrainersSection. Direct
@@ -317,10 +323,12 @@ onBeforeUnmount(() => {
          screen reader never has to reassemble the split run. -->
     <nav class="nav-desktop nav-center-links">
       <a
-        v-for="([label, href], linkIndex) in navLinks"
+        v-for="([label, href, active], linkIndex) in navLinks"
         :key="label"
         :href="href"
         class="nav-link"
+        :class="{ 'is-active': active }"
+        :aria-current="active ? 'page' : undefined"
         :style="{ '--nav-i': linkIndex }"
         :aria-label="label"
         @click="onNavLinkClick(label, href, $event)"
@@ -386,10 +394,12 @@ onBeforeUnmount(() => {
   >
     <nav style="display: flex; flex-direction: column; gap: 0;">
       <a
-        v-for="[label, href] in navLinks"
+        v-for="[label, href, active] in navLinks"
         :key="label"
         :href="href"
         class="nav-drawer-link"
+        :class="{ 'is-active': active }"
+        :aria-current="active ? 'page' : undefined"
         @click="open = false; onNavLinkClick(label, href, $event)"
       >{{ label }}</a>
     </nav>
@@ -684,6 +694,75 @@ onBeforeUnmount(() => {
   transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 300ms;
 }
 
+/* Current page: a scanner lock. LIFTAG is read by pointing a phone at a tag,
+   so the page you are on is framed the way the app frames a tag it has found -
+   four hairline corner ticks that close in once the link has landed and settle
+   with a small overshoot, over a low pool of lime light. One pseudo-element
+   carries all eight strokes as sized gradients, so the reticle costs no DOM.
+   Nothing loops: after the lock the state is static, and hover only tightens
+   the frame a touch while the character index runs as usual. */
+.nav-link.is-active {
+  --nav-lock-tick: 7px;
+  --nav-lock-stroke: 1.5px;
+  --nav-lock-x: -11px;
+  --nav-lock-y: 1px;
+  color: var(--liftag-primary);
+  text-shadow: 0 0 14px rgba(204, 255, 0, 0.35);
+}
+
+.nav-link.is-active::before,
+.nav-link.is-active::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+.nav-link.is-active::before {
+  inset: var(--nav-lock-y) var(--nav-lock-x);
+  --c: var(--liftag-primary);
+  background:
+    linear-gradient(var(--c), var(--c)) top left / var(--nav-lock-tick) var(--nav-lock-stroke),
+    linear-gradient(var(--c), var(--c)) top left / var(--nav-lock-stroke) var(--nav-lock-tick),
+    linear-gradient(var(--c), var(--c)) top right / var(--nav-lock-tick) var(--nav-lock-stroke),
+    linear-gradient(var(--c), var(--c)) top right / var(--nav-lock-stroke) var(--nav-lock-tick),
+    linear-gradient(var(--c), var(--c)) bottom left / var(--nav-lock-tick) var(--nav-lock-stroke),
+    linear-gradient(var(--c), var(--c)) bottom left / var(--nav-lock-stroke) var(--nav-lock-tick),
+    linear-gradient(var(--c), var(--c)) bottom right / var(--nav-lock-tick) var(--nav-lock-stroke),
+    linear-gradient(var(--c), var(--c)) bottom right / var(--nav-lock-stroke) var(--nav-lock-tick);
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 0 4px rgba(204, 255, 0, 0.55));
+  transition: inset 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  /* Lands after the link's own entry (navItemIn: 360ms + 70ms per index, 700ms). */
+  animation: navLockOn 760ms cubic-bezier(0.34, 1.56, 0.64, 1) calc(820ms + var(--nav-i, 0) * 70ms) both;
+}
+
+.nav-link.is-active::after {
+  inset: -6px -18px;
+  z-index: -1;
+  background: radial-gradient(closest-side, rgba(204, 255, 0, 0.16), rgba(204, 255, 0, 0.05) 55%, transparent);
+  animation: navLockGlow 900ms ease-out calc(900ms + var(--nav-i, 0) * 70ms) both;
+}
+
+.nav-link.is-active:hover::before,
+.nav-link.is-active:focus-visible::before {
+  inset: calc(var(--nav-lock-y) + 2px) calc(var(--nav-lock-x) + 3px);
+}
+
+@keyframes navLockOn {
+  0% { opacity: 0; transform: scale(1.45, 1.9); }
+  35% { opacity: 1; }
+  /* The reticle blinks once as it seats, like a read confirming. */
+  70% { opacity: 1; }
+  80% { opacity: 0.35; }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes navLockGlow {
+  0% { opacity: 0; }
+  40% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
 /* Stagger only the entry; leaving returns every character together. */
 .nav-link:hover .nav-link__glyph,
 .nav-link:focus-visible .nav-link__glyph {
@@ -868,8 +947,37 @@ onBeforeUnmount(() => {
   transition: color 200ms ease;
 }
 
-.nav-drawer-link:hover {
+.nav-drawer-link:hover,
+.nav-drawer-link.is-active {
   color: #CCFF00;
+}
+
+/* The drawer's rows are full width, so the lock reads as a lit edge instead of
+   a reticle: a glowing lime rule on the left with light washing into the row,
+   and the label stepped in to make room for it. */
+.nav-drawer-link.is-active {
+  position: relative;
+  padding-left: 18px;
+  text-shadow: 0 0 22px rgba(204, 255, 0, 0.3);
+  background: linear-gradient(90deg, rgba(204, 255, 0, 0.1), rgba(204, 255, 0, 0.02) 45%, transparent 75%);
+}
+
+.nav-drawer-link.is-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 2px;
+  background: var(--liftag-primary);
+  box-shadow: 0 0 10px rgba(204, 255, 0, 0.8), 0 0 24px rgba(204, 255, 0, 0.35);
+  transform-origin: center;
+  transform: scaleY(0);
+  transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1) 180ms;
+}
+
+.nav-mobile-drawer.is-open .nav-drawer-link.is-active::before {
+  transform: scaleY(1);
 }
 
 .nav-dashboard-mobile {
@@ -1011,6 +1119,12 @@ onBeforeUnmount(() => {
     gap: clamp(18px, 1.5vw, 24px);
     transform: none;
   }
+
+  /* The links close up to ~22px apart; pull the reticle in to clear them. */
+  .nav-link.is-active {
+    --nav-lock-x: -8px;
+    --nav-lock-tick: 6px;
+  }
 }
 
 .nav-language-placeholder {
@@ -1094,6 +1208,16 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .nav-link.is-active::before,
+  .nav-link.is-active::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .nav-drawer-link.is-active::before {
+    transition: none !important;
+  }
+
   .site-nav,
   .site-nav::before,
   .site-nav::after,
