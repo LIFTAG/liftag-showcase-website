@@ -130,7 +130,7 @@ export const en = {
   claimEyebrow: 'For gym owners',
   claimPanelTitle: 'Put your gym on the map',
   claimPerkMap: 'Lifters find your gym on this map',
-  claimPerkQr: 'Members scan machines for quick how-tos',
+  claimPerkMore: 'Machine guides, workouts and much more',
   claimPerkFree: 'Completely free for your gym',
   claimPanelCta: 'Add your gym',
 }
@@ -266,7 +266,7 @@ export const sk: DiscoveryCopy = {
   claimEyebrow: 'Pre majiteľov fitiek',
   claimPanelTitle: 'Daj svoje fitko na mapu',
   claimPerkMap: 'Cvičiaci ťa nájdu priamo na tejto mape',
-  claimPerkQr: 'Sken stroja ukáže členom, ako na to',
+  claimPerkMore: 'Návody k strojom, tréningy a oveľa viac',
   claimPerkFree: 'Pre tvoje fitko úplne zadarmo',
   claimPanelCta: 'Pridaj fitko',
 }

@@ -18,7 +18,7 @@ const open = shallowRef(false)
 const hint = shallowRef(false)
 const perks = computed(() => [
   { icon: 'pin', text: copy.value.claimPerkMap },
-  { icon: 'gym', text: copy.value.claimPerkQr },
+  { icon: 'spark', text: copy.value.claimPerkMore },
   { icon: 'check', text: copy.value.claimPerkFree },
 ])
 
