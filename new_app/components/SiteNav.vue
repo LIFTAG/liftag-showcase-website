@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { scrollToTrainerHandoff } from '~/utils/dashboardScroll'
 import { discoveryHref } from '~/utils/discovery'
-import { NAV_ACTIVE_PREFIXES, isNavPathActive } from '~/utils/navActive'
+import { NAV_ACTIVE_PREFIXES, navCurrent, type NavCurrent } from '~/utils/navActive'
 import { en, sk } from '~/i18n/messages/shell'
 
 const props = withDefaults(defineProps<{
@@ -34,20 +34,21 @@ const sectionHref = (hash: string) => isHomeLike.value ? hash : href(`/${hash}`)
 // one glyph at a time rather than tearing a surrogate pair in half.
 const navChars = (label: string) => Array.from(label)
 
-// The third entry says whether the current page belongs to the link. It is
-// matched on the locale-stripped route path rather than the href, which carries
-// a query and changes once the locale is ready. Homepage sections stay false.
-const isActive = (prefixes: readonly string[]) => isNavPathActive(basePath.value, prefixes)
+// The third entry is the link's aria-current value, and any value marks it
+// active. It is matched on the locale-stripped route path rather than the href,
+// which carries a query and changes once the locale is ready. Homepage sections
+// are never current.
+const current = (prefixes: readonly [string, ...string[]]) => navCurrent(basePath.value, prefixes)
 
-const navLinks = computed<[string, string, boolean][]>(() => [
-  [t('shell.nav.exercises'), href('/exercises'), isActive(NAV_ACTIVE_PREFIXES.exercises)],
-  [t('shell.nav.gyms'), localeReady.value ? discoveryHref('/explore', locale.value) : href('/explore'), isActive(NAV_ACTIVE_PREFIXES.gyms)],
-  [t('shell.nav.lifters'), sectionHref('#lifters'), false],
-  [t('shell.nav.owners'), sectionHref('#gyms'), false],
-  [t('shell.nav.trainers'), sectionHref('#trainers'), false],
-  [t('shell.nav.demo'), href('/demo'), isActive(NAV_ACTIVE_PREFIXES.demo)],
-  [t('shell.nav.journal'), href('/journal'), isActive(NAV_ACTIVE_PREFIXES.journal)],
-  [t('shell.nav.pricing'), href('/pricing'), isActive(NAV_ACTIVE_PREFIXES.pricing)],
+const navLinks = computed<[string, string, NavCurrent][]>(() => [
+  [t('shell.nav.exercises'), href('/exercises'), current(NAV_ACTIVE_PREFIXES.exercises)],
+  [t('shell.nav.gyms'), localeReady.value ? discoveryHref('/explore', locale.value) : href('/explore'), current(NAV_ACTIVE_PREFIXES.gyms)],
+  [t('shell.nav.lifters'), sectionHref('#lifters'), undefined],
+  [t('shell.nav.owners'), sectionHref('#gyms'), undefined],
+  [t('shell.nav.trainers'), sectionHref('#trainers'), undefined],
+  [t('shell.nav.demo'), href('/demo'), current(NAV_ACTIVE_PREFIXES.demo)],
+  [t('shell.nav.journal'), href('/journal'), current(NAV_ACTIVE_PREFIXES.journal)],
+  [t('shell.nav.pricing'), href('/pricing'), current(NAV_ACTIVE_PREFIXES.pricing)],
 ])
 
 // "Trainers" is the MacBook coach chapter, not TrainersSection. Direct
@@ -323,12 +324,12 @@ onBeforeUnmount(() => {
          screen reader never has to reassemble the split run. -->
     <nav class="nav-desktop nav-center-links">
       <a
-        v-for="([label, href, active], linkIndex) in navLinks"
+        v-for="([label, href, currentAs], linkIndex) in navLinks"
         :key="label"
         :href="href"
         class="nav-link"
-        :class="{ 'is-active': active }"
-        :aria-current="active ? 'page' : undefined"
+        :class="{ 'is-active': currentAs }"
+        :aria-current="currentAs"
         :style="{ '--nav-i': linkIndex }"
         :aria-label="label"
         @click="onNavLinkClick(label, href, $event)"
@@ -394,12 +395,12 @@ onBeforeUnmount(() => {
   >
     <nav style="display: flex; flex-direction: column; gap: 0;">
       <a
-        v-for="[label, href, active] in navLinks"
+        v-for="[label, href, currentAs] in navLinks"
         :key="label"
         :href="href"
         class="nav-drawer-link"
-        :class="{ 'is-active': active }"
-        :aria-current="active ? 'page' : undefined"
+        :class="{ 'is-active': currentAs }"
+        :aria-current="currentAs"
         @click="open = false; onNavLinkClick(label, href, $event)"
       >{{ label }}</a>
     </nav>
@@ -731,7 +732,10 @@ onBeforeUnmount(() => {
     linear-gradient(var(--c), var(--c)) bottom right / var(--nav-lock-stroke) var(--nav-lock-tick);
   background-repeat: no-repeat;
   filter: drop-shadow(0 0 4px rgba(204, 255, 0, 0.55));
-  transition: inset 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  /* Hover tightens through the standalone `scale` property: it stays on the
+     compositor, and unlike `transform` it is not pinned by the lock-on
+     animation's fill. */
+  transition: scale 420ms cubic-bezier(0.16, 1, 0.3, 1);
   /* Lands after the link's own entry (navItemIn: 360ms + 70ms per index, 700ms). */
   animation: navLockOn 760ms cubic-bezier(0.34, 1.56, 0.64, 1) calc(820ms + var(--nav-i, 0) * 70ms) both;
 }
@@ -745,7 +749,7 @@ onBeforeUnmount(() => {
 
 .nav-link.is-active:hover::before,
 .nav-link.is-active:focus-visible::before {
-  inset: calc(var(--nav-lock-y) + 2px) calc(var(--nav-lock-x) + 3px);
+  scale: 0.95 0.86;
 }
 
 @keyframes navLockOn {
