@@ -122,6 +122,10 @@ export const en = {
   planPreview: 'View in app',
   clearFilters: 'Clear filters',
   list: 'Gym list',
+  claimTitle: 'Own a gym?',
+  claimHint: 'Get it on the map for free.',
+  claimCta: 'Add gym',
+  claimLabel: 'Gym owners: add your gym to the map',
 }
 export type DiscoveryCopy = typeof en
 export const sk: DiscoveryCopy = {
@@ -247,4 +251,8 @@ export const sk: DiscoveryCopy = {
   planPreview: 'Otvoriť v aplikácii',
   clearFilters: 'Vymazať filtre',
   list: 'Zoznam fitiek',
+  claimTitle: 'Máš fitko?',
+  claimHint: 'Pridaj ho na mapu zadarmo.',
+  claimCta: 'Pridať',
+  claimLabel: 'Pre majiteľov fitiek: pridaj fitko na mapu',
 }

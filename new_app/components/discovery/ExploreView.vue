@@ -218,11 +218,21 @@ useDiscoverySeo({
           <button v-if="filterCount" class="d-link" @click="reset">
             {{ copy.clearFilters }}
           </button>
+          <!-- Phones only: a filtered-out area may still have gyms, so filters hide it. -->
+          <DiscoveryClaimCard
+            v-if="settledSearch.trim() || !filterCount"
+            class="d-claim-inline"
+            :locale="locale"
+          />
         </div>
         <div v-if="hasMore" class="d-pagination">
           <button class="d-button" :disabled="loading" @click="loadMore">{{ copy.more }}</button>
         </div>
         <p v-if="meta.truncated || meta.tooLarge" class="d-map-notice" role="status">{{ copy.zoomIn }}</p>
+        <DiscoveryClaimCard v-if="!error && visible.length" class="d-claim-inline" :locale="locale" />
+      </div>
+      <div class="d-explore-owner">
+        <DiscoveryClaimCard :locale="locale" />
       </div>
     </aside>
     <DiscoveryFilters
@@ -296,6 +306,7 @@ useDiscoverySeo({
   padding: 24px 0 14px;
 }
 .d-explore-results {
+  flex: 1;
   min-height: 0;
   overflow-y: auto;
   display: flex;
@@ -324,6 +335,27 @@ useDiscoverySeo({
 .d-no-gyms {
   display: grid;
   justify-items: center;
+}
+/* Wide screens pin the gym-owner bar under the list; phones put it in the swipe row. */
+.d-claim-inline {
+  display: none !important;
+}
+.d-explore-owner {
+  position: relative;
+  flex-shrink: 0;
+  padding: 12px 20px 20px;
+  background: var(--d-bg);
+}
+/* The list fades into the bar instead of being cut off by it. */
+.d-explore-owner::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 28px;
+  background: linear-gradient(transparent, var(--d-bg));
+  pointer-events: none;
 }
 .d-no-gyms .d-empty {
   padding-inline: 0;
@@ -391,6 +423,7 @@ useDiscoverySeo({
     max-width: 45ch;
   }
   .d-explore-results {
+    flex: 0 1 auto;
     margin-top: auto;
     flex-direction: row;
     /* Bottom-aligned so only the selected card grows when it expands. */
@@ -402,7 +435,8 @@ useDiscoverySeo({
     pointer-events: auto;
     scroll-snap-type: x proximity;
   }
-  .d-explore-results > :deep(.d-gym-card) {
+  .d-explore-results > :deep(.d-gym-card),
+  .d-explore-results > :deep(.d-claim-card) {
     flex: 0 0 310px;
     scroll-snap-align: center;
   }
@@ -413,6 +447,16 @@ useDiscoverySeo({
   .d-explore-results :deep(.d-skeleton) {
     width: 310px;
     min-height: 112px;
+  }
+  .d-claim-inline {
+    display: flex !important;
+  }
+  .d-explore-owner {
+    display: none;
+  }
+  .d-no-gyms > .d-claim-card {
+    width: calc(100% - 24px);
+    margin: 0 12px 12px;
   }
   .d-explore-results > :deep(.d-empty),
   .d-no-gyms {
