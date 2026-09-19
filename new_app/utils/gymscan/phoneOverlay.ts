@@ -378,9 +378,60 @@ export function createPhoneOverlay(opts: { shadows: boolean }) {
     }
   }
 
-  function prewarm(renderer: THREE.WebGLRenderer) {
-    renderer.compile(scene, camera)
-    renderer.compile(blitScene, blitCamera)
+  async function prewarm(
+    renderer: THREE.WebGLRenderer,
+    gymTexture: THREE.Texture,
+    warmContent: THREE.Object3D | null = null,
+    cancelled: () => boolean = () => false,
+  ) {
+    const contentWasVisible = warmContent?.visible
+    const prevTarget = renderer.getRenderTarget()
+    const prevAutoClear = renderer.autoClear
+    const prevApp = screenMat.uniforms.uApp!.value as number
+    const prevGym = screenMat.uniforms.tGym!.value as THREE.Texture | null
+    const prevGymTexel = screenMat.uniforms.uGymTexel!.value.clone()
+    let target: THREE.WebGLRenderTarget | null = null
+    try {
+      if (warmContent) warmContent.visible = true
+
+      // Compile while the renderer still targets the drawing buffer. Three's
+      // output/tone-mapping defines depend on that distinction, and production
+      // presents both the phone and blit scenes to this same target.
+      renderer.setRenderTarget(null)
+      await renderer.compileAsync(scene, camera)
+      if (cancelled()) return
+      await renderer.compileAsync(blitScene, blitCamera)
+      if (cancelled()) return
+
+      // compileAsync builds programs, but the first real draw still allocates
+      // the phone shadow map and uploads geometry/textures. Pay those one-time
+      // costs into a private target while the stage is still behind its ready
+      // gate, so the first fold/coaching frame cannot stall the visible canvas.
+      target = new THREE.WebGLRenderTarget(1, 1)
+      bindGymTexture(gymTexture)
+      screenMat.uniforms.uApp!.value = 0
+      renderer.autoClear = true
+      renderer.setRenderTarget(target)
+      await renderer.compileAsync(scene, camera)
+      if (cancelled()) return
+      await renderer.compileAsync(blitScene, blitCamera)
+      if (cancelled()) return
+      renderer.clear()
+      renderer.render(scene, camera)
+      renderer.render(blitScene, blitCamera)
+    } finally {
+      // Navigation/reduced-motion toggles may dispose the stage while an async
+      // compile is pending. Leave no warmup state behind on either path.
+      if (!cancelled()) {
+        renderer.setRenderTarget(prevTarget)
+        renderer.autoClear = prevAutoClear
+      }
+      screenMat.uniforms.uApp!.value = prevApp
+      screenMat.uniforms.tGym!.value = prevGym
+      screenMat.uniforms.uGymTexel!.value.copy(prevGymTexel)
+      target?.dispose()
+      if (warmContent) warmContent.visible = contentWasVisible ?? false
+    }
   }
 
   function bindGymTexture(gymTexture: THREE.Texture) {

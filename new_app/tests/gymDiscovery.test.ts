@@ -333,7 +333,8 @@ test("the gym listing blooms out of the Bratislava pin after the 3D phone recede
     new URL("../components/gym/GymCinema.vue", import.meta.url),
     "utf8",
   );
-  assert.match(cinema, /listingFromStyle/);
+  assert.match(cinema, /useGymDiscoveryHandoff/);
+  assert.doesNotMatch(cinema, /getComputedStyle|earthPoll/);
   assert.doesNotMatch(cinema, /readListing/);
   const parsed = listingFromStyle({
     getPropertyValue(name: string) {

@@ -14,6 +14,7 @@ const { t } = useI18n({ useScope: 'local', messages: { en, sk } });
 const { href } = useSiteLocale();
 provide(gymJourneyKey, current);
 provide(gymCoachingKey, coaching);
+provideGymDiscoveryHandoff();
 const enhanced = shallowRef(false);
 const hydrated = shallowRef(false);
 const arrivalSeen = useState(GYM_ARRIVAL_STATE_KEY, () => false);

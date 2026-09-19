@@ -375,6 +375,7 @@ function roundedPlateGeometry(w: number, h: number, d: number, r: number) {
 }
 
 export function createGymScanStage(opts: StageOptions) {
+  let currentCopy = opts.copy
   const { canvas, overlayCanvas, device, onDeviceClassChange, onFrame, onReady, reducedMotion } = opts
 
   const renderer = new THREE.WebGLRenderer({
@@ -781,10 +782,24 @@ export function createGymScanStage(opts: StageOptions) {
   const tilePos = new THREE.Vector3()
   const tileScale = new THREE.Vector3()
   const TILE_UNCALLED = new THREE.Matrix4().makeScale(0, 0, 0)
+  const TILE_SETTLED_T = floorTiles.reduce(
+    (latest, tile) => Math.max(latest, tile.delay + tile.dur),
+    TILE_T0,
+  )
+  let lastTileSweep = Number.NaN
+  let lastTileLive = false
 
   function applyFloorTiles(sweepT: number, live: boolean) {
     const on = live && sweepT >= TILE_T0
     tileMesh.visible = on
+    // Once every deterministic slab pose is seated, larger sweep times map to
+    // the exact same matrices and zero glow. Frozen choreography also repeats
+    // the same input. In both cases keep the existing GPU buffers instead of
+    // rebuilding and re-uploading all 144 instances every frame.
+    const stableSweep = sweepT >= TILE_SETTLED_T ? TILE_SETTLED_T : sweepT
+    if (lastTileLive === on && Object.is(lastTileSweep, stableSweep)) return
+    lastTileLive = on
+    lastTileSweep = stableSweep
     if (!on) return
     for (let i = 0; i < floorTiles.length; i++) {
       const tile = floorTiles[i]!
@@ -1001,6 +1016,10 @@ export function createGymScanStage(opts: StageOptions) {
   composite.uniforms.tBlur!.value = stickFocus.blurTexture
   composite.uniforms.tFoil!.value = stickFocus.foilTexture
   composer.addPass(composite)
+  // The graded room is always sampled by the phone/blit presentation path.
+  // Set this at construction so loading warmups and production frames compile
+  // and render the same offscreen composite variant.
+  composer.renderToScreen = false
 
   let overlayRenderer: THREE.WebGLRenderer | null = null
   let overlayLive = false
@@ -1078,7 +1097,7 @@ export function createGymScanStage(opts: StageOptions) {
     const input = opts.readCoaching?.()
     const mix = input ? smoothstep((morph - .82) / .18) : 0
     if (mix > 0 && !coaching) {
-      coaching = createCoachingContent(opts.copy)
+      coaching = createCoachingContent(currentCopy)
       phoneOverlay.addContent(coaching.group)
     }
     phoneOverlay.setCoaching(coaching?.texture ?? null, mix)
@@ -1107,6 +1126,8 @@ export function createGymScanStage(opts: StageOptions) {
   let running = false
   let raf = 0
   let disposed = false
+  let activeWarmup: Promise<void> | null = null
+  let gpuDisposalStarted = false
   let lastT = performance.now()
   let elapsed = 0
   let heroRoot: THREE.Object3D | null = null
@@ -2098,65 +2119,153 @@ export function createGymScanStage(opts: StageOptions) {
     }
 
     draco.dispose()
-    // Warm both light-count variants into the program cache before the first
-    // frame, so the phoneFill toggle above is a cache hit rather than a
-    // mid-scroll shader compile.
-    // compile() walks traverseVisible, so anything parked invisible is skipped
-    // - the shell has to be shown for the prewarm or its first sweep would
-    // compile mid-scroll. Parts path: compile the swapped rest (the long-lived
-    // lighting identity) then restore the hang pose.
-    if (partsRig && !reducedMotion) {
-      partsRig.root.visible = true
-      partsRig.apply(assembleAt(1e6, { phone: phoneCut() }))
-      applyStick(stickAt(0, 'hold', phoneCut()))
+    let settleWarmup!: () => void
+    const warmup = new Promise<void>((resolve) => { settleWarmup = resolve })
+    activeWarmup = warmup
+    try {
+      // Warm both light-count variants into the program cache before the first
+      // frame, so the phoneFill toggle above is a cache hit rather than a
+      // mid-scroll shader compile.
+      // compile() walks traverseVisible, so anything parked invisible is skipped
+      // - the shell has to be shown for the prewarm or its first sweep would
+      // compile mid-scroll. Parts path: compile the swapped rest (the long-lived
+      // lighting identity) then restore the hang pose.
+      if (partsRig && !reducedMotion) {
+        partsRig.root.visible = true
+        partsRig.apply(assembleAt(1e6, { phone: phoneCut() }))
+        applyStick(stickAt(0, 'hold', phoneCut()))
+      }
+      // The card's three layers each have their own program, and two of them -
+      // the inlay and the film - are only ever on screen during 0C. compile()
+      // walks traverseVisible, so unless they are shown here they are compiled
+      // the frame the peel starts, which is the frame that must not drop.
+      const stickerWas = [stickerRig.visible, nfc.visible, foil.visible] as const
+      stickerRig.visible = true
+      nfc.visible = true
+      foil.visible = true
+      phoneFill.visible = true
+      holo.object.visible = true
+      // Compile against the exact half-float geometry target used by RenderPass,
+      // then exercise the complete graph with the fill light and all transition
+      // materials present. Binding the target before compileAsync keeps the
+      // expensive RT-specific links out of the synchronous warm draw.
+      const warmTarget = renderer.getRenderTarget()
+      try {
+        renderer.setRenderTarget(composer.renderTarget2)
+        await renderer.compileAsync(scene, camera)
+        if (disposed) return
+        renderGymFrame()
+      } finally {
+        if (!disposed) renderer.setRenderTarget(warmTarget)
+      }
+      if (overlayRenderer) {
+        const prevBg = scene.background
+        const prevFog = scene.fog
+        const layers = camera.layers.mask
+        const prevTarget = overlayRenderer.getRenderTarget()
+        const overlayWarmTarget = new THREE.WebGLRenderTarget(1, 1)
+        scene.background = null
+        scene.fog = null
+        camera.layers.set(STICK_FOCUS_LAYER)
+        try {
+          await overlayRenderer.compileAsync(scene, camera)
+          if (disposed) return
+          // Compilation covers the canvas-output shader variant; this private
+          // draw pays the context's first geometry/texture upload cost without
+          // ever lighting up the transparent overlay canvas.
+          overlayRenderer.setRenderTarget(overlayWarmTarget)
+          await overlayRenderer.compileAsync(scene, camera)
+          if (disposed) return
+          overlayRenderer.clear()
+          overlayRenderer.render(scene, camera)
+        } finally {
+          if (!disposed) {
+            overlayRenderer.setRenderTarget(prevTarget)
+            overlayRenderer.setClearColor(0x000000, 0)
+            overlayRenderer.clear()
+          }
+          overlayWarmTarget.dispose()
+          scene.background = prevBg
+          scene.fog = prevFog
+          camera.layers.mask = layers
+        }
+      }
+      if (disposed) return
+      phoneFill.visible = false
+      holo.object.visible = false
+      // Light counts are shader defines. Warm the no-fill composer variant too;
+      // this is the long-lived state after the phone approach ends.
+      const noFillWarmTarget = renderer.getRenderTarget()
+      try {
+        renderer.setRenderTarget(composer.renderTarget2)
+        await renderer.compileAsync(scene, camera)
+        if (disposed) return
+        renderGymFrame()
+      } finally {
+        if (!disposed) renderer.setRenderTarget(noFillWarmTarget)
+      }
+      // The hold pose has zero DOF, so the normal light-state warmups skip the
+      // mask, foil and separable-blur passes entirely. Exercise them once with
+      // the card key in the light list, covering the remaining 0C programs and
+      // allocations before the fly can make them visible.
+      const focusWarmTarget = renderer.getRenderTarget()
+      const focusDof = lastDof
+      const compositeDof = composite.uniforms.uDof!.value as number
+      const cardKeyWasVisible = cardKey.visible
+      try {
+        cardKey.visible = true
+        stickFocus.setDof(1)
+        composite.uniforms.uDof!.value = 1
+        renderer.setRenderTarget(composer.renderTarget2)
+        await renderer.compileAsync(scene, camera)
+        if (disposed) return
+        renderGymFrame()
+      } finally {
+        if (!disposed) renderer.setRenderTarget(focusWarmTarget)
+        cardKey.visible = cardKeyWasVisible
+        stickFocus.setDof(focusDof)
+        composite.uniforms.uDof!.value = compositeDof
+      }
+      stickerRig.visible = stickerWas[0]
+      nfc.visible = stickerWas[1]
+      foil.visible = stickerWas[2]
+      if (partsRig && !reducedMotion) {
+        partsRig.root.visible = false
+        const state = assembleAt(0, { phone: phoneCut() })
+        partsRig.apply(state)
+        lastAssemble = state
+        applyContact(0)
+        applyStick(stickHidden())
+        setMountVisible(false)
+        holoLive = false
+        act0T = 0
+      }
+      // Shader compilation alone does not allocate EffectComposer, bloom or
+      // stick-focus render targets. Exercise the exact production graph once
+      // offscreen before readiness so first scroll only reuses GPU resources.
+      renderGymFrame()
+      // Keep coaching construction behind the hero GLB and main shader work so
+      // its canvases/image request do not compete with critical scene loading.
+      // It still lands before readiness and is exposed to the phone prewarm,
+      // avoiding any first-use allocation or program link in the transition.
+      if (opts.readCoaching && !coaching) {
+        coaching = createCoachingContent(currentCopy)
+        phoneOverlay.addContent(coaching.group)
+        phoneOverlay.setCoaching(coaching.texture, 0)
+      }
+      await phoneOverlay.prewarm(
+        renderer,
+        composer.readBuffer.texture,
+        coaching?.group ?? null,
+        () => disposed,
+      )
+      if (disposed) return
+      await reticleOverlay.prewarm(renderer, composer.readBuffer, () => disposed)
+      if (disposed) return
+    } finally {
+      settleWarmup()
+      if (activeWarmup === warmup) activeWarmup = null
     }
-    // The card's three layers each have their own program, and two of them -
-    // the inlay and the film - are only ever on screen during 0C. compile()
-    // walks traverseVisible, so unless they are shown here they are compiled
-    // the frame the peel starts, which is the frame that must not drop.
-    const stickerWas = [stickerRig.visible, nfc.visible, foil.visible] as const
-    stickerRig.visible = true
-    nfc.visible = true
-    foil.visible = true
-    phoneFill.visible = true
-    holo.object.visible = true
-    await renderer.compileAsync(scene, camera)
-    if (disposed) return
-    if (overlayRenderer) {
-      const prevBg = scene.background
-      const prevFog = scene.fog
-      const layers = camera.layers.mask
-      scene.background = null
-      scene.fog = null
-      camera.layers.set(STICK_FOCUS_LAYER)
-      await overlayRenderer.compileAsync(scene, camera)
-      scene.background = prevBg
-      scene.fog = prevFog
-      camera.layers.mask = layers
-      overlayRenderer.setClearColor(0x000000, 0)
-      overlayRenderer.clear()
-    }
-    if (disposed) return
-    phoneFill.visible = false
-    holo.object.visible = false
-    await renderer.compileAsync(scene, camera)
-    if (disposed) return
-    stickerRig.visible = stickerWas[0]
-    nfc.visible = stickerWas[1]
-    foil.visible = stickerWas[2]
-    if (partsRig && !reducedMotion) {
-      partsRig.root.visible = false
-      const state = assembleAt(0, { phone: phoneCut() })
-      partsRig.apply(state)
-      lastAssemble = state
-      applyContact(0)
-      applyStick(stickHidden())
-      setMountVisible(false)
-      holoLive = false
-      act0T = 0
-    }
-    phoneOverlay.prewarm(renderer)
-    reticleOverlay.prewarm(renderer)
     act0Armed = true
     if (!reducedMotion) act0T = 0
     lastT = performance.now()
@@ -2230,9 +2339,9 @@ export function createGymScanStage(opts: StageOptions) {
     cancelAnimationFrame(raf)
     appScreen.suspend()
   }
-  function dispose() {
-    disposed = true
-    stop()
+  function disposeGpuResources() {
+    if (gpuDisposalStarted) return
+    gpuDisposalStarted = true
     partsRig?.dispose()
     scene.traverse((o) => {
       const mesh = o as THREE.Mesh
@@ -2261,6 +2370,24 @@ export function createGymScanStage(opts: StageOptions) {
     heroMats = []
   }
 
+  function dispose() {
+    if (disposed) return
+    disposed = true
+    stop()
+    canvas.style.visibility = 'hidden'
+    if (overlayCanvas) {
+      overlayCanvas.classList.remove('is-on')
+      overlayCanvas.style.visibility = 'hidden'
+    }
+    // compileAsync polls renderer properties until every material is ready.
+    // Releasing those materials during the poll leaves Three with a missing
+    // currentProgram record. Stop and hide synchronously, then defer only GPU
+    // teardown until the active shader warmup chain has settled.
+    const pending = activeWarmup
+    if (pending) pending.then(disposeGpuResources, disposeGpuResources)
+    else disposeGpuResources()
+  }
+
   const api = {
     load,
     resize,
@@ -2268,6 +2395,7 @@ export function createGymScanStage(opts: StageOptions) {
     setAssemblyProgress,
     setProductView,
     setCopy(next: GymDemoMessages) {
+      currentCopy = next
       coaching?.setCopy(next)
       nfcMaps.setCopy(next.canvas)
     },

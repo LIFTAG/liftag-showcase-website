@@ -111,6 +111,8 @@ function applyCover(
   srcW: number,
   srcH: number,
 ) {
+  const cached = coverSizes.get(texture);
+  if (cached?.width === srcW && cached.height === srcH) return false;
   const uv = coverFitScreenUVs({
     sourceWidth: srcW,
     sourceHeight: srcH,
@@ -121,12 +123,20 @@ function applyCover(
   texture.repeat.set(uv.repeatX, uv.repeatY);
   texture.wrapS = THREE.ClampToEdgeWrapping;
   texture.wrapT = THREE.ClampToEdgeWrapping;
+  coverSizes.set(texture, { width: srcW, height: srcH });
+  return true;
 }
 
 function resetCover(texture: THREE.Texture) {
+  const cached = coverSizes.get(texture);
+  if (cached?.width === 0 && cached.height === 0) return false;
   texture.offset.set(0, 0);
   texture.repeat.set(1, 1);
+  coverSizes.set(texture, { width: 0, height: 0 });
+  return true;
 }
+
+const coverSizes = new WeakMap<THREE.Texture, { width: number; height: number }>();
 
 /** Screen content attached to the scan phone. The video stays on the glass. */
 export function createCoachingContent(copy: GymDemoMessages = gymDemoMessages('en')) {
@@ -302,7 +312,9 @@ export function createCoachingContent(copy: GymDemoMessages = gymDemoMessages('e
     map: { value: THREE.Texture | null },
     uv: { value: THREE.Matrix3 },
     texture: THREE.Texture,
+    transformChanged: boolean,
   ) {
+    if (map.value === texture && !transformChanged) return;
     map.value = texture;
     texture.updateMatrix();
     uv.value.copy(texture.matrix);
@@ -354,20 +366,26 @@ export function createCoachingContent(copy: GymDemoMessages = gymDemoMessages('e
       }
     }
     const libraryLive = videoMap(video);
-    if (libraryLive && video) applyCover(libraryLive, video.videoWidth, video.videoHeight);
-    else applyCover(posterTexture, poster.naturalWidth || 1080, poster.naturalHeight || 603);
+    const libraryTexture = libraryLive ?? posterTexture;
+    const libraryTransformChanged = libraryLive && video
+      ? applyCover(libraryLive, video.videoWidth, video.videoHeight)
+      : applyCover(posterTexture, poster.naturalWidth || 1080, poster.naturalHeight || 603);
     bindMap(
       wipeMat.uniforms.tLibrary!,
       wipeMat.uniforms.uLibraryUv!,
-      libraryLive ?? posterTexture,
+      libraryTexture,
+      libraryTransformChanged,
     );
     const gymLive = videoMap(own);
-    if (gymLive && own) applyCover(gymLive, own.videoWidth, own.videoHeight);
-    else resetCover(placement.texture);
+    const gymTexture = gymLive ?? placement.texture;
+    const gymTransformChanged = gymLive && own
+      ? applyCover(gymLive, own.videoWidth, own.videoHeight)
+      : resetCover(placement.texture);
     bindMap(
       wipeMat.uniforms.tGym!,
       wipeMat.uniforms.uGymUv!,
-      gymLive ?? placement.texture,
+      gymTexture,
+      gymTransformChanged,
     );
     wipeMat.uniforms.uWipe!.value = coachingWipeTravel(wipe);
     wipeMat.uniforms.uOpacity!.value = mix;

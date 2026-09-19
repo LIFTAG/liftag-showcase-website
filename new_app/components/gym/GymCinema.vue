@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { probeTemporaryWebGL2 } from "~/utils/gymscan/device";
 import { cinemaPhoneSlot, compactLoggerOwnsCopy } from "~/utils/gymscan/handoff";
-import { listingFromStyle } from "~/utils/gymscan/listingMorph";
 import {
   experienceDevice,
   type GymProductView,
@@ -23,6 +22,7 @@ function requireFilm<T>(value: T | undefined): T {
 }
 const journey = requireFilm(inject(gymJourneyKey));
 const coaching = requireFilm(inject(gymCoachingKey));
+const { phoneVisible: discoveryPhoneVisible } = useGymDiscoveryHandoff();
 const emit = defineEmits<{ ready: [value: boolean]; fallback: []; customError: []; mediaFailed: [value: boolean]; swept: [] }>();
 const host = useTemplateRef<HTMLElement>("host");
 const canvas = useTemplateRef<HTMLCanvasElement>("canvas");
@@ -57,7 +57,6 @@ let copyBlur = false;
 let copyLogger = false;
 let copyDof = -1;
 let swept = false;
-let earthPoll = 0;
 
 function sync() {
   stage?.setAssemblyProgress(journey.value.assembly);
@@ -120,24 +119,12 @@ function frame(info: FrameInfo) {
     emit("swept");
   }
 }
-function phoneOut() {
-  if (!import.meta.client) return 1;
-  const gx = host.value?.closest(".gx") ?? document.documentElement;
-  return listingFromStyle(getComputedStyle(gx)).phoneOut;
-}
 function activity() {
   const chapter = journey.value.chapter;
-  const discoveryLive = chapter === "discover" || chapter === "kit";
-  const discoveryPhone = chapter === "discover" && phoneOut() < 0.97;
+  const discoveryPhone = chapter === "discover" && discoveryPhoneVisible.value;
   const filmVisible =
     ["experience", "the-tag", "lifters", "gyms"].includes(chapter) || discoveryPhone;
   const active = ready.value && visible && !document.hidden && !props.paused && filmVisible;
-  if (discoveryLive && !earthPoll) {
-    earthPoll = requestAnimationFrame(() => {
-      earthPoll = 0;
-      activity();
-    });
-  }
   const nextMedia = active && journey.value.film > .9 && !coaching.value.paused;
   if (mediaActive.value !== nextMedia) mediaActive.value = nextMedia;
   if (active) stage?.start();
@@ -147,8 +134,6 @@ function activity() {
 }
 function teardown() {
   cancelAnimationFrame(bootFrame);
-  cancelAnimationFrame(earthPoll);
-  earthPoll = 0;
   stage?.dispose();
   stage = null;
   ready.value = false;
@@ -223,6 +208,7 @@ async function scheduleStart() {
 }
 watch(journey, () => { sync(); activity(); });
 watch(locale, (value) => stage?.setCopy(gymDemoMessages(value)));
+watch(discoveryPhoneVisible, activity);
 watch(() => [coaching.value.paused, coaching.value.customSrc, coaching.value.frame.isOwner], () => nextTick(activity));
 watch(() => [props.paused, journey.value.chapter], activity);
 watch(

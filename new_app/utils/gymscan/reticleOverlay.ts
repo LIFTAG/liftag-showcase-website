@@ -213,8 +213,20 @@ export function createReticleOverlay() {
     renderer.setRenderTarget(previousTarget)
   }
 
-  function prewarm(renderer: THREE.WebGLRenderer) {
-    renderer.compile(scene, camera)
+  async function prewarm(
+    renderer: THREE.WebGLRenderer,
+    target: THREE.WebGLRenderTarget,
+    cancelled: () => boolean = () => false,
+  ) {
+    const previousTarget = renderer.getRenderTarget()
+    try {
+      // The reticle is blended into the composer's half-float read buffer,
+      // whose output defines differ from the drawing buffer.
+      renderer.setRenderTarget(target)
+      await renderer.compileAsync(scene, camera)
+    } finally {
+      if (!cancelled()) renderer.setRenderTarget(previousTarget)
+    }
   }
 
   function dispose() {

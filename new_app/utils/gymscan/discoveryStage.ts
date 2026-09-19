@@ -77,8 +77,14 @@ function fadeMaterial(
   amount: number,
 ) {
   const opacity = base * amount;
+  const transparent = opacity < 0.999 || base < 0.999;
   material.opacity = opacity;
-  material.transparent = opacity < 0.999 || base < 0.999;
+  if (material.transparent !== transparent) {
+    material.transparent = transparent;
+    // `transparent` changes Three's OPAQUE shader define. The version bump lets
+    // setProgram select the matching prewarmed program at the fade boundary.
+    material.needsUpdate = true;
+  }
   material.depthWrite = opacity > 0.95 && base > 0.95;
 }
 
@@ -198,6 +204,7 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement, opts: { copy: Gy
   let floorHeld = false;
   const models: THREE.Group[] = [];
   const modelCenters: THREE.Vector3[] = [];
+  const modelContacts: THREE.Mesh[] = [];
   const decoder = new DRACOLoader().setDecoderPath("/draco/");
   const loader = new GLTFLoader().setDRACOLoader(decoder);
   let disposed = false,
@@ -254,7 +261,10 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement, opts: { copy: Gy
               "#include <dithering_fragment>\nif(vHeight>uReveal)discard;float band=1.-smoothstep(.01,.05,abs(vHeight-uReveal));gl_FragColor.rgb+=vec3(.65,.78,.9)*band;",
             );
           };
-          m.customProgramCacheKey = () => `discovery-floor-spawn-${index}`;
+          // uReveal varies per material, but the injected GLSL is identical. Let
+          // Three's own material/geometry parameters distinguish real variants
+          // while sharing the reveal program across equipment.
+          m.customProgramCacheKey = () => "discovery-floor-spawn-v1";
         }
       });
       modelCenters[index] = new THREE.Box3().setFromObject(object).getCenter(new THREE.Vector3());
@@ -276,18 +286,126 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement, opts: { copy: Gy
       contact.name = "contact";
       rig.add(contact);
       models[index] = rig;
+      modelContacts[index] = contact;
       tilt.add(rig);
     }),
   ]).finally(() => decoder.dispose());
   let paintedNumbers = false;
   let paintedTitle = false;
+  let prewarmTask: Promise<void> | null = null;
+  async function prewarm() {
+    if (disposed) return;
+    const warmTarget = new THREE.WebGLRenderTarget(1, 1, {
+      depthBuffer: true,
+      stencilBuffer: false,
+    });
+    const previousTarget = renderer.getRenderTarget();
+    const visibility = [
+      globe.root,
+      room,
+      standIn.mesh,
+      phone.group,
+      ...models,
+    ].map((object) => ({ object, visible: object.visible }));
+    const fadingMaterials = [
+      { material: screenMaterial, opacity: 1 },
+      { material: phone.glass.material as THREE.Material, opacity: glassBase },
+      ...bodyMaterials,
+      ...chromeMaterials,
+    ].map(
+      ({ material, opacity: base }) => ({
+        material,
+        base,
+        opacity: material.opacity,
+        transparent: material.transparent,
+        depthWrite: material.depthWrite,
+      }),
+    );
+    const culling: { mesh: THREE.Mesh; frustumCulled: boolean }[] = [];
+    scene.traverse((node) => {
+      if (!(node instanceof THREE.Mesh)) return;
+      culling.push({ mesh: node, frustumCulled: node.frustumCulled });
+      // The warmup camera has not entered the choreography yet. Bypass its
+      // frustum so the first render uploads every geometry buffer now.
+      node.frustumCulled = false;
+    });
+
+    const compileAndUpload = async () => {
+      // Cached compile promises may resolve in one microtask chain. Give input
+      // and paint a task boundary between material states even on a warm visit.
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
+      if (disposed) return false;
+      // compileAsync must see the canvas output target: render-target programs
+      // omit ACES tone mapping and use a different output color space.
+      renderer.setRenderTarget(null);
+      await renderer.compileAsync(scene, camera);
+      if (disposed) return false;
+
+      // Separately prepare the offscreen variant before its render. That render
+      // forces geometry and texture uploads without flashing the live canvas.
+      renderer.setRenderTarget(warmTarget);
+      await renderer.compileAsync(scene, camera);
+      if (disposed) return false;
+      renderer.render(scene, camera);
+      return true;
+    };
+
+    try {
+      for (const { object } of visibility) object.visible = true;
+
+      // Floor + equipment + the phone's opaque resting state.
+      if (!(await compileAndUpload())) return;
+
+      // Every phone material passes through fadeMaterial during the morph.
+      // Exercise the exact partial-opacity state before its first visible frame.
+      for (const entry of fadingMaterials) {
+        fadeMaterial(entry.material, entry.base, 0.5);
+      }
+      if (!(await compileAndUpload())) return;
+
+      // At the end of the morph, the screen switches back to Three's opaque
+      // program while the low-opacity glass remains transparent.
+      for (const entry of fadingMaterials) {
+        fadeMaterial(entry.material, entry.base, 1);
+      }
+      if (!(await compileAndUpload())) return;
+
+      // Exercise the globe-only render path as well; this is the state in which
+      // the stage first appears before the gym floor is introduced.
+      room.visible = false;
+      if (!(await compileAndUpload())) return;
+    } finally {
+      for (const entry of fadingMaterials) {
+        entry.material.opacity = entry.opacity;
+        if (entry.material.transparent !== entry.transparent) {
+          entry.material.transparent = entry.transparent;
+          entry.material.needsUpdate = true;
+        }
+        entry.material.depthWrite = entry.depthWrite;
+      }
+      for (const { object, visible } of visibility) object.visible = visible;
+      for (const { mesh, frustumCulled } of culling)
+        mesh.frustumCulled = frustumCulled;
+      if (!disposed) renderer.setRenderTarget(previousTarget);
+      warmTarget.dispose();
+    }
+
+    if (!disposed) {
+      // Leave each material bound to the program for its restored initial state.
+      // The alternate programs remain cached for the later morph boundaries.
+      renderer.setRenderTarget(null);
+      await renderer.compileAsync(scene, camera);
+      if (!disposed) renderer.setRenderTarget(previousTarget);
+    }
+  }
+
   const ready = Promise.all([
     landReady,
     equipmentReady,
     document.fonts.load("600 32px Inter"),
     document.fonts.load("650 57px Inter"),
     document.fonts.load('600 18px "JetBrains Mono"'),
-  ]).then(() => {
+  ]).then(async () => {
     if (disposed) return;
     title.paintClean(copy.discovery);
     drawDiscoveryAppScreen(appCtx, appImage.width, appImage.height, {
@@ -298,6 +416,8 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement, opts: { copy: Gy
       discovery: copy.discovery,
     });
     appTexture.needsUpdate = true;
+    prewarmTask = prewarm();
+    await prewarmTask;
   });
   const cameraTarget = new THREE.Vector3(),
     lookTarget = new THREE.Vector3(),
@@ -543,7 +663,7 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement, opts: { copy: Gy
       thumbCenter.copy(modelCenters[i]!).applyEuler(rig.rotation).multiplyScalar(placed.scale * ordered);
       rig.position.x -= thumbCenter.x;
       rig.position.z -= thumbCenter.z;
-      const contact = rig.getObjectByName("contact") as THREE.Mesh | undefined;
+      const contact = modelContacts[i];
       if (contact) {
         contact.visible = ordered < 0.85 && spawn.amount > 0.08;
         const mat = contact.material as THREE.MeshBasicMaterial;
@@ -604,6 +724,16 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement, opts: { copy: Gy
     result.phoneOut = journey.phoneOut;
     return result;
   }
+  function releaseResources() {
+    decoder.dispose();
+    environment.dispose();
+    shadow.dispose();
+    floorMaps.dispose();
+    appTexture.dispose();
+    title.dispose();
+    disposeTree(scene);
+    renderer.dispose();
+  }
   return {
     ready,
     resize,
@@ -621,15 +751,13 @@ export function createDiscoveryStage(canvas: HTMLCanvasElement, opts: { copy: Gy
       appTexture.needsUpdate = true;
     },
     dispose() {
+      if (disposed) return;
       disposed = true;
-      decoder.dispose();
-      environment.dispose();
-      shadow.dispose();
-      floorMaps.dispose();
-      appTexture.dispose();
-      title.dispose();
-      disposeTree(scene);
-      renderer.dispose();
+      // Three polls material programs inside compileAsync. Deleting them while
+      // it is polling throws outside the promise and prevents it from settling.
+      // Stop immediately, then release resources after the in-flight warmup.
+      if (prewarmTask) void prewarmTask.then(releaseResources, releaseResources);
+      else releaseResources();
     },
   };
 }

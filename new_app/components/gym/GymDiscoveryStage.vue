@@ -18,6 +18,7 @@ import {
 import { en, sk, gymDemoMessages } from '~/i18n/messages/gymDemo';
 import { useSiteLocale } from '~/composables/useSiteLocale';
 const mouse = useSharedMouse();
+const { publishPhoneOut } = useGymDiscoveryHandoff();
 const props = defineProps<{
   film: { progress: number };
   reduced: boolean;
@@ -28,6 +29,7 @@ const { t } = useI18n({ useScope: 'local', messages: { en, sk } });
 const emit = defineEmits<{ open: []; unavailable: [] }>();
 const host = useTemplateRef<HTMLElement>("host");
 const canvas = useTemplateRef<HTMLCanvasElement>("canvas");
+const canvasVersion = shallowRef(0);
 const map = useTemplateRef<HTMLElement>("map");
 const locationPhase = shallowRef(0);
 const mapVisible = shallowRef(false);
@@ -38,8 +40,15 @@ let mapNodes: HTMLElement[] = [];
 let assemblySeconds = 0;
 let stage: ReturnType<typeof createDiscoveryStage> | null = null;
 let observer: IntersectionObserver | null = null,
+  warmObserver: IntersectionObserver | null = null,
   resize: ResizeObserver | null = null,
   stopMouse: (() => void) | null = null;
+let nearby = false;
+let generation = 0;
+let scrolledAt = 0;
+let stageModule: ReturnType<typeof loadStageModule> | null = null;
+let warmTask: number | null = null;
+let warmTimer: ReturnType<typeof setTimeout> | null = null;
 let movedAt = 0;
 let visible = false,
   booting = false,
@@ -55,6 +64,8 @@ function stop() {
 function lost(event?: Event) {
   event?.preventDefault();
   failed = true;
+  generation++;
+  booting = false;
   stop();
   ready.value = false;
   stage?.dispose();
@@ -63,7 +74,7 @@ function lost(event?: Event) {
 }
 function draw(time: number) {
   raf = 0;
-  if (!stage || !visible || document.hidden || props.reduced) return;
+  if (!stage || !ready.value || !visible || document.hidden || props.reduced) return;
   const morphing = progress >= DISCOVERY_MORPH_START;
   const liveGlobe = progress < GLOBE_FOCUS_PROGRESS + 0.01;
   const liveListing = progress >= GLOBE_FOCUS_PROGRESS && progress < 0.48;
@@ -182,6 +193,7 @@ function clearListing() {
   const sticky = host.value?.parentElement;
   listingRest = null;
   listingPin = null;
+  publishPhoneOut(1);
   if (sticky) {
     for (const key of listingKeys) sticky.style.removeProperty(key);
   }
@@ -236,6 +248,7 @@ function pinOrigin(sticky: HTMLElement) {
 function publishListing(listing: number, floor: number, phoneOut: number) {
   const sticky = host.value?.parentElement;
   if (!sticky) return;
+  publishPhoneOut(Math.max(phoneOut, floor));
   const profile = sticky.querySelector(".gd-profile") as HTMLElement | null;
   if (profile && !listingRest) {
     for (const key of listingBoxKeys) sticky.style.removeProperty(key);
@@ -260,40 +273,100 @@ function publishListing(listing: number, floor: number, phoneOut: number) {
 }
 function activity() {
   stop();
-  if (stage && visible && !document.hidden && !props.reduced) {
+  if (stage && ready.value && visible && !document.hidden && !props.reduced) {
     last = performance.now();
     movedAt = last;
     raf = requestAnimationFrame(draw);
   }
 }
+function cancelWarmup() {
+  if (warmTask !== null) window.cancelIdleCallback(warmTask);
+  if (warmTimer !== null) clearTimeout(warmTimer);
+  warmTask = null;
+  warmTimer = null;
+}
+function loadStageModule() {
+  return import("~/utils/gymscan/discoveryStage");
+}
+function onScroll() {
+  scrolledAt = performance.now();
+}
+function prepareNearby() {
+  if (stage || booting || failed || disposed || props.reduced || document.hidden) return;
+  cancelWarmup();
+  // Fetch code ahead of the chapter even while the user is scrolling. Only
+  // construct its GPU resources once scrolling leaves an idle opportunity.
+  if (!stageModule) {
+    stageModule = loadStageModule();
+    void stageModule.catch(() => { stageModule = null; });
+  }
+  // Prepare the next chapter between frames, while the current one is visible.
+  // Its animation clock still starts only when it actually enters the viewport.
+  if ('requestIdleCallback' in window) {
+    warmTask = window.requestIdleCallback(deadline => {
+      warmTask = null;
+      if (deadline.timeRemaining() < 2 || performance.now() - scrolledAt < 150) {
+        if (nearby) prepareNearby();
+        return;
+      }
+      void boot();
+    });
+  } else {
+    warmTimer = setTimeout(() => {
+      warmTimer = null;
+      if (performance.now() - scrolledAt < 150) {
+        if (nearby) prepareNearby();
+        return;
+      }
+      void boot();
+    }, 160);
+  }
+}
+function visibility() {
+  if (document.hidden) cancelWarmup();
+  else if (nearby) prepareNearby();
+  activity();
+}
 async function boot() {
+  cancelWarmup();
   if (stage || booting || failed || disposed || props.reduced || !canvas.value)
     return;
   booting = true;
+  const attempt = ++generation;
   try {
-    const module = await import("~/utils/gymscan/discoveryStage");
-    if (disposed || !canvas.value) return;
+    const module = await (stageModule ??= loadStageModule());
+    if (attempt !== generation || disposed || props.reduced || !canvas.value) return;
     stage = module.createDiscoveryStage(canvas.value, { copy: gymDemoMessages(locale.value) });
     await stage.ready;
-    if (disposed || failed) return;
+    if (attempt !== generation || disposed || failed || props.reduced) return;
     ready.value = true;
     progress = props.film.progress;
     mapVisible.value = discoveryAt(progress).floor < 0.12;
     activity();
   } catch {
-    if (!disposed) lost();
+    if (!disposed && attempt === generation) lost();
   } finally {
-    booting = false;
+    if (attempt === generation) booting = false;
   }
 }
 watch(
   () => props.reduced,
-  () => {
+  async () => {
     if (props.reduced) {
+      cancelWarmup();
+      generation++;
+      booting = false;
+      stop();
+      stage?.dispose();
+      stage = null;
+      canvasVersion.value++;
+      ready.value = false;
       mapVisible.value = false;
       clearListing();
     }
+    await nextTick();
     if (visible) boot();
+    else if (nearby) prepareNearby();
     activity();
   },
 );
@@ -324,6 +397,12 @@ onMounted(() => {
     activity();
   });
   if (host.value) observer.observe(host.value);
+  warmObserver = new IntersectionObserver(([entry]) => {
+    nearby = entry?.isIntersecting ?? false;
+    if (nearby) prepareNearby();
+    else cancelWarmup();
+  }, { rootMargin: '200% 0px' });
+  if (host.value) warmObserver.observe(host.value);
   resize = new ResizeObserver(() => {
     listingRest = null;
     listingPin = null;
@@ -331,26 +410,32 @@ onMounted(() => {
     activity();
   });
   if (host.value) resize.observe(host.value);
-  document.addEventListener("visibilitychange", activity);
+  document.addEventListener("visibilitychange", visibility);
+  window.addEventListener("scroll", onScroll, { passive: true });
   stopMouse = onMouseEvent(() => {
+    if (!visible || document.hidden || props.reduced) return;
     movedAt = performance.now();
     if (!raf) activity();
   });
 });
 onBeforeUnmount(() => {
   disposed = true;
+  generation++;
+  cancelWarmup();
   stop();
   observer?.disconnect();
+  warmObserver?.disconnect();
   resize?.disconnect();
   stopMouse?.();
-  document.removeEventListener("visibilitychange", activity);
+  document.removeEventListener("visibilitychange", visibility);
+  window.removeEventListener("scroll", onScroll);
   clearEarthOut();
   stage?.dispose();
 });
 </script>
 <template>
   <div ref="host" class="gd-stage" :class="{ 'is-ready': ready && !reduced }">
-    <canvas ref="canvas" aria-hidden="true" @webglcontextlost="lost" />
+    <canvas :key="canvasVersion" ref="canvas" aria-hidden="true" @webglcontextlost="lost" />
     <div ref="map" class="gd-map-labels" v-show="mapVisible">
       <div
         v-for="location in discoveryMapLocations"
