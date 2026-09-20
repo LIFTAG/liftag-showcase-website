@@ -44,18 +44,18 @@ function mediaHarness(t: TestContext) {
 }
 async function settle() { await nextTick(); await new Promise(resolve => setImmediate(resolve)) }
 
-function gym(t: TestContext) {
+function gym(t: TestContext, options: { autoplay?: boolean; saveData?: boolean } = {}) {
   const media = mediaHarness(t)
   const active = ref(true), locale = ref('en')
   const document = Object.assign(new EventTarget(), { hidden: false })
   let mount = () => {}, unmount = () => {}
   const scope = effectScope()
   const exports = {} as {
-    useGymInstructionPreview: (video: Ref<unknown>, active: () => boolean, reduced: () => boolean, sameOrigin: boolean, locale: Ref<string>) => { failed: Ref<boolean>; loading: Ref<boolean> }
+    useGymInstructionPreview: (video: Ref<unknown>, active: () => boolean, reduced: () => boolean, sameOrigin: boolean, locale: Ref<string>, options?: { autoplay?: boolean }) => { failed: Ref<boolean>; loading: Ref<boolean>; deferred: Ref<boolean>; load: () => void }
   }
   const source = ref('https://example.test/shared.m3u8')
   runInNewContext(gymScript, {
-    exports, shallowRef, watch, nextTick, toValue, AbortController, document, navigator: {},
+    exports, shallowRef, watch, nextTick, toValue, AbortController, document, navigator: { connection: { saveData: options.saveData } },
     onMounted: (fn: () => void) => { mount = fn }, onBeforeUnmount: (fn: () => void) => { unmount = fn },
     $fetch: async () => ({ videos: [] }), loadHls: media.loadHls,
     require(id: string) {
@@ -68,12 +68,37 @@ function gym(t: TestContext) {
       throw Error(id)
     },
   })
-  const preview = scope.run(() => exports.useGymInstructionPreview(ref(media.element), () => active.value, () => false, false, locale))
+  const preview = scope.run(() => exports.useGymInstructionPreview(ref(media.element), () => active.value, () => false, false, locale, { autoplay: options.autoplay }))
   const close = () => { unmount(); scope.stop() }
   t.after(close)
   mount()
   return { ...media, active, locale, source, document, preview, close }
 }
+
+test('manual gym previews attach without autoplaying or overriding a pause after re-entry', async t => {
+  const h = gym(t, { autoplay: false })
+  await settle(); h.imports[0]!(); await settle()
+  assert.equal(h.instances.length, 1)
+  assert.equal(h.element.play.mock.callCount(), 0)
+  h.active.value = false; await settle()
+  assert.equal(h.element.pause.mock.callCount(), 1)
+  h.active.value = true; await settle()
+  assert.equal(h.element.play.mock.callCount(), 0)
+})
+
+test('save-data users get an explicit load path for a manual gym preview', async t => {
+  const h = gym(t, { autoplay: false, saveData: true })
+  await settle()
+  assert.equal(h.preview.deferred.value, true)
+  assert.equal(h.imports.length, 0)
+  h.preview.load()
+  await settle()
+  assert.equal(h.preview.deferred.value, false)
+  assert.equal(h.imports.length, 1)
+  h.imports[0]!(); await settle()
+  assert.equal(h.instances.length, 1)
+  assert.equal(h.element.play.mock.callCount(), 0)
+})
 
 for (const interruption of ['visibility', 'activity', 'locale', 'unmount'] as const) {
   test(`gym preview recovers from an import interrupted by ${interruption}`, async t => {

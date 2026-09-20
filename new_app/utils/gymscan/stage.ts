@@ -35,6 +35,7 @@ import { act0At, act0SweepDone, act0Windows, type Act0Shot, type Act0State } fro
 import { act1At, act1Windows, phoneFillAmp, PHONE_FILL_INTENSITY, type Act1Shot, type Act1State } from './act1'
 import { APPROACH_PATH, APPROACH_TARGET_PATH } from './act1Cam'
 import { act0CamAt } from './act0Cam'
+import { splitHeroPresentationAt } from './splitHeroPresentation'
 import { floorConstructAt, PBR_TAIL_R } from './floorConstruct'
 import {
   emptyTilePose, floorTilePoseAt, FLOOR_TILES,
@@ -278,6 +279,8 @@ export interface StageOptions {
   onDeviceClassChange?: (deviceClass: GymScanDevice['deviceClass']) => void
   /** The new journey reuses this film, with native scroll owning its opening. */
   adaptiveQuality?: boolean
+  /** Larger, right-aligned establishing shot for the editorial demo hero. */
+  splitHeroPresentation?: boolean
   readPointer?: () => {
     mx: number
     my: number
@@ -414,7 +417,8 @@ export function createGymScanStage(opts: StageOptions) {
   // Pulled down from 1.35. The rig below puts more energy into speculars and
   // less into flat fill, so the machine can sit further into the toe of the
   // curve and still read - which is what a dark room actually looks like.
-  renderer.toneMappingExposure = isCoarse ? 1.10 : opts.adaptiveQuality ? 1.0 : 0.82
+  const baseExposure = isCoarse ? 1.10 : opts.adaptiveQuality ? 1.0 : 0.82
+  renderer.toneMappingExposure = baseExposure
   renderer.shadowMap.enabled = device.shadows
   renderer.shadowMap.type = THREE.PCFShadowMap
 
@@ -1179,6 +1183,7 @@ export function createGymScanStage(opts: StageOptions) {
   const probeViewport = new THREE.Vector2(1, 1)
   const camPos = { x: 3.98, y: 2.22, z: 4.96 }
   const camTgt = { x: 0.05, y: 0.88, z: -0.04 }
+  let presentationZoom = 1, presentationOffset = 0, presentationWidth = 0, presentationHeight = 0
   const lookAt = new THREE.Vector3()
 
   const projected = new THREE.Vector3()
@@ -1667,21 +1672,34 @@ export function createGymScanStage(opts: StageOptions) {
       camera.lookAt(lookAt)
     }
 
+    const presentation = splitHeroPresentationAt(!!opts.splitHeroPresentation, assemblyTarget, a0.shot, isPhone)
+    renderer.toneMappingExposure = baseExposure * Math.sqrt(presentation.lightGain)
+    const offset = presentation.offsetX * width
+    if (presentationZoom !== presentation.zoom || presentationOffset !== offset || presentationWidth !== width || presentationHeight !== heightPx) {
+      presentationZoom = camera.zoom = presentation.zoom
+      presentationOffset = offset
+      presentationWidth = width
+      presentationHeight = heightPx
+      if (offset) camera.setViewOffset(width, heightPx, offset, 0, width, heightPx)
+      else camera.clearViewOffset()
+      camera.updateProjectionMatrix()
+    }
+
     const keySize = scalarAt(KEY_SIZE, camU)
     const keyLevel = scalarAt(KEY_LEVEL, camU)
-    key.intensity = KEY_INTENSITY0 * keyLevel
+    key.intensity = KEY_INTENSITY0 * keyLevel * presentation.lightGain
     key.distance = lerp(KEY_DISTANCE_END, KEY_DISTANCE0, keySize)
     key.angle = lerp(KEY_ANGLE_END, KEY_ANGLE0, keySize)
     key.penumbra = lerp(KEY_PENUMBRA_END, KEY_PENUMBRA0, keySize)
-    rimL.intensity = RIM_L0 * keyLevel
-    rimR.intensity = RIM_R0 * keyLevel
+    rimL.intensity = RIM_L0 * keyLevel * presentation.lightGain
+    rimR.intensity = RIM_R0 * keyLevel * presentation.lightGain
     for (const strip of strips) {
-      strip.intensity = STRIP_NITS * lerp(0.18, 1, keyLevel)
+      strip.intensity = STRIP_NITS * lerp(0.18, 1, keyLevel) * presentation.lightGain
       strip.width = lerp(STRIP_W_END, STRIP_W0, keySize)
       strip.height = lerp(STRIP_L_END, STRIP_L0, keySize)
     }
     for (const sub of stripSpots) {
-      sub.intensity = STRIP_SPOT_I0 * lerp(0.18, 1, keyLevel)
+      sub.intensity = STRIP_SPOT_I0 * lerp(0.18, 1, keyLevel) * presentation.lightGain
       sub.distance = lerp(5.5, STRIP_SPOT_D0, keySize)
       sub.angle = lerp(0.48, STRIP_SPOT_A0, keySize)
     }

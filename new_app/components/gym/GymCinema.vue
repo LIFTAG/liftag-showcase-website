@@ -44,6 +44,8 @@ const discoveryFilm = computed(() => {
   const chapter = journey.value.chapter;
   return chapter === "discover" || chapter === "kit";
 });
+// The opening film gives way to real, independently interactive sections.
+const contentChapter = computed(() => !['experience', 'the-tag'].includes(journey.value.chapter));
 const customSrc = computed(() => coaching.value.customSrc);
 const mouse = useSharedMouse();
 let stage: GymScanStage | null = null;
@@ -121,9 +123,7 @@ function frame(info: FrameInfo) {
 }
 function activity() {
   const chapter = journey.value.chapter;
-  const discoveryPhone = chapter === "discover" && discoveryPhoneVisible.value;
-  const filmVisible =
-    ["experience", "the-tag", "lifters", "gyms"].includes(chapter) || discoveryPhone;
+  const filmVisible = ["experience", "the-tag"].includes(chapter);
   const active = ready.value && visible && !document.hidden && !props.paused && filmVisible;
   const nextMedia = active && journey.value.film > .9 && !coaching.value.paused;
   if (mediaActive.value !== nextMedia) mediaActive.value = nextMedia;
@@ -175,6 +175,7 @@ async function start() {
       device,
       reducedMotion: false,
       adaptiveQuality: true,
+      splitHeroPresentation: true,
       onReady: () => {},
       onFrame: frame,
       readPointer: () => mouse.latest,
@@ -249,7 +250,7 @@ onBeforeUnmount(() => {
   <div
     ref="host"
     class="gx-cinema"
-    :class="{ 'is-ready': ready, 'is-discovery': discoveryFilm }"
+    :class="{ 'is-ready': ready, 'is-discovery': discoveryFilm, 'is-content': contentChapter }"
     aria-hidden="true"
   >
     <img
@@ -268,6 +269,7 @@ onBeforeUnmount(() => {
     :key="`sticker-${key}`"
     ref="sticker"
     class="gx-sticker"
+    :class="{ 'is-content': contentChapter }"
     aria-hidden="true"
   />
 </template>

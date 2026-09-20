@@ -6,8 +6,6 @@ import { gymCoachingKey } from '~/composables/useCoachingScroll';
 import { GYM_ARRIVAL_STATE_KEY } from '~/utils/gymscan/arrivalBootstrap';
 import { en, sk } from '~/i18n/messages/gymDemo';
 const coaching = shallowRef<CoachingState>({ frame: { member: 0, owner: 0, isOwner: false, reduced: false }, paused: false, customSrc: '', replay: 0 });
-const customError = shallowRef(0);
-const mediaFailed = shallowRef(false);
 const root = useTemplateRef<HTMLElement>("journey");
 const { current, chapter, reducedMotion, track } = useGymJourney(root);
 const { t } = useI18n({ useScope: 'local', messages: { en, sk } });
@@ -93,7 +91,7 @@ useHead({
 </script>
 <template>
   <div
-    class="gx"
+    class="gx gx-redesign"
     @click="revisitChapter"
     :class="{
       'is-enhanced': enhanced,
@@ -101,6 +99,7 @@ useHead({
       'is-copy-held': copyHold,
       'is-reduced': reducedMotion,
       'is-static': fallback || !hydrated,
+      'is-opening': chapter === 'experience',
     }"
   >
     <GymArrival :ready="enhanced" :fallback="fallback" :reduced="reducedMotion" @active="arriving = $event" />
@@ -113,8 +112,6 @@ useHead({
     <main :inert="arriving ? true : undefined">
       <div ref="journey" class="gx-journey">
         <GymCinema
-          @custom-error="customError++"
-          @media-failed="mediaFailed = $event"
           :paused="arriving"
           :reduced="reducedMotion"
           product-view="exercise"
@@ -135,15 +132,20 @@ useHead({
             </h1>
             <p><GymHeroEntry :delay="300">{{ t('opening.body') }}</GymHeroEntry></p>
             <div class="gx-actions">
-              <GymHeroEntry button :delay="400"><a class="btn-primary" href="#kit" @click="kit">{{ t('opening.partner') }}</a></GymHeroEntry>
-              <GymHeroEntry button :delay="480"><NuxtLink class="btn-ghost" :to="href('/get')"><HoloPill />{{ t('nav.app') }}</NuxtLink></GymHeroEntry>
+              <GymHeroEntry button :delay="400"><a class="btn-primary" href="#kit" @click="kit">{{ t('opening.partner') }} <span aria-hidden="true">↗</span></a></GymHeroEntry>
+              <GymHeroEntry button :delay="480"><a class="gx-opening__explore" href="#lifters">{{ t('opening.explore') }} <span aria-hidden="true">↗</span></a></GymHeroEntry>
             </div>
           </div>
-          <a class="gx-scroll gx-protocol" href="#the-tag"
-            ><GymHeroEntry row :delay="560">{{ t('opening.scroll') }}</GymHeroEntry> <span>↓</span></a
-          ><span class="gx-spec gx-protocol"
-            ><GymHeroEntry :delay="600">{{ t('opening.spec') }}<br />{{ t('opening.specSub') }}</GymHeroEntry></span
-          >
+          <div class="gx-opening__rail">
+            <ol class="gx-opening__steps" :aria-label="t('opening.flow')">
+              <li v-for="(step, index) in ['scanStep', 'watchStep', 'logStep']" :key="step">
+                <span class="gx-opening__step-number" aria-hidden="true">0{{ index + 1 }}</span>
+                <span class="gx-opening__step-line" aria-hidden="true" />
+                <span>{{ t(`opening.${step}`) }}</span>
+              </li>
+            </ol>
+            <a class="gx-scroll gx-protocol" href="#the-tag"><span>{{ t('opening.scroll') }}</span> <span aria-hidden="true">↓</span></a>
+          </div>
         </section>
         <section id="the-tag" class="gx-install" aria-labelledby="gx-tag-title" tabindex="-1">
           <div class="gx-install__copy">
@@ -165,8 +167,9 @@ useHead({
             loading="lazy"
           />
         </section>
-        <GymCoachingStory :reduced="reducedMotion" :enhanced="enhanced" :custom-error="customError" :media-failed="mediaFailed" @change="coaching = $event" @kit="kit" />
-        <GymGlobeStory :reduced="reducedMotion" />
+        <GymMemberWalkthrough :reduced="reducedMotion" />
+        <GymTrainerStudio :reduced="reducedMotion" />
+        <GymFloorDiscovery :reduced="reducedMotion" />
       </div>
       <GymKit />
     </main>
@@ -207,3 +210,4 @@ useHead({
   </div>
 </template>
 <style src="~/assets/css/gym-experience.css"></style>
+<style src="~/assets/css/gym-demo-redesign.css"></style>

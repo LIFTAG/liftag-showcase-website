@@ -1,0 +1,217 @@
+/* The approved demo direction. Scoped to the demo shell so the partner
+   pages that share gym-experience.css keep their existing presentation. */
+.gx-redesign {
+  --gx-muted: oklch(73% 0.008 130);
+  --gx-line: oklch(90% 0.008 130 / 0.17);
+  --gx-page-gutter: clamp(24px, 4.5vw, 80px);
+}
+.gx-redesign h1,
+.gx-redesign h2 {
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 1.04;
+}
+.gx-redesign a.btn-primary,
+.gx-redesign button.btn-primary {
+  min-height: 48px;
+  padding: 14px 24px;
+  gap: 24px;
+  border-radius: 8px;
+  box-shadow: none;
+  font-size: 0.875rem;
+  font-weight: 650;
+  text-transform: none;
+  letter-spacing: -0.01em;
+}
+.gx-redesign .btn-primary::before,
+.gx-redesign .btn-primary::after {
+  display: none;
+}
+.gx-redesign .gx-nav-root {
+  background: linear-gradient(var(--gx-bg), oklch(12% 0.008 130 / 0.92));
+  border-bottom: 1px solid var(--gx-line);
+}
+.gx-redesign .gx-nav {
+  max-width: 1760px;
+  margin-inline: auto;
+  padding-inline: var(--gx-page-gutter);
+}
+.gx-redesign .gx-nav__kit {
+  gap: 0.3em;
+}
+.gx-redesign .gx-nav .btn-primary {
+  box-shadow: none;
+}
+.gx-redesign .gx-logo {
+  gap: 10px;
+}
+.gx-redesign .gx-logo img {
+  filter: none;
+}
+.gx-redesign .gx-opening {
+  min-height: 760px;
+  align-items: center;
+  padding: 96px var(--gx-page-gutter) 164px;
+}
+.gx-redesign .gx-opening__copy {
+  width: 55%;
+  max-width: 800px;
+  text-shadow: none;
+}
+.gx-redesign .gx-opening h1 {
+  font-size: clamp(3.25rem, 5.5vw, 6.25rem);
+  text-wrap: initial;
+}
+.gx-redesign .gx-opening h1 em {
+  max-width: 11.5ch;
+}
+.gx-redesign .gx-opening .gx-protocol {
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  margin-bottom: 24px;
+}
+.gx-redesign .gx-opening__copy > p:not(.gx-protocol) {
+  max-width: 42ch;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  margin-top: 24px;
+}
+.gx-redesign .gx-opening .gx-actions {
+  margin-top: 32px;
+  gap: 28px;
+}
+.gx-redesign .gx-opening__explore {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--gx-line);
+  font-size: 0.875rem;
+  transition: color 180ms ease-out, border-color 180ms ease-out;
+}
+.gx-redesign .gx-opening__explore:hover {
+  color: var(--gx-lime);
+  border-color: currentColor;
+}
+.gx-opening__rail {
+  position: absolute;
+  inset-inline: var(--gx-page-gutter);
+  bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--gx-line);
+  pointer-events: auto;
+}
+.gx-opening__steps {
+  display: flex;
+  justify-content: space-between;
+  flex: 1;
+  gap: clamp(20px, 4vw, 64px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.gx-opening__steps li {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 0.8125rem;
+}
+.gx-opening__step-number {
+  font-family: var(--liftag-font-headline);
+  font-size: 1.625rem;
+  font-weight: 600;
+  letter-spacing: -0.06em;
+}
+.gx-opening__step-line {
+  width: clamp(24px, 3vw, 60px);
+  height: 1px;
+  background: var(--gx-line);
+}
+.gx-redesign .gx-opening__rail .gx-scroll {
+  position: static;
+  flex-shrink: 0;
+  min-height: 44px;
+  margin: 0;
+  gap: 12px;
+  font-size: 0.625rem;
+}
+.gx-redesign.is-copy-held .gx-opening__rail {
+  visibility: hidden;
+}
+.gx-redesign .gx-chapters {
+  border-radius: 10px;
+  box-shadow: 0 6px 24px oklch(8% 0.005 130 / 0.35);
+}
+.gx-redesign .gx-chapters a {
+  border-radius: 6px;
+}
+.gx-redesign.is-opening .gx-chapters {
+  visibility: hidden;
+  pointer-events: none;
+}
+/* Both canvases must yield to the semantic walkthrough, including the
+   sticker which the renderer can independently mark as visible. */
+.gx-redesign .gx-cinema.is-content,
+.gx-redesign .gx-cinema.is-content canvas,
+.gx-redesign .gx-sticker.is-content {
+  visibility: hidden;
+}
+.gx-redesign #lifters,
+.gx-redesign #gyms,
+.gx-redesign #discover,
+.gx-redesign #progress,
+.gx-redesign #trainers {
+  scroll-margin-top: 88px;
+}
+.gx-redesign .gx-cinema__poster {
+  inset: 14% 0 auto 46%;
+  width: 54%;
+  height: 76%;
+  object-position: center;
+  opacity: 1;
+}
+.gx-redesign .gx-fallback {
+  max-width: 100%;
+}
+.gx-redesign .gx-kit {
+  border-top: 1px solid var(--gx-line);
+}
+@media (max-width: 1050px) and (min-width: 761px) {
+  .gx-redesign .gx-opening h1 { font-size: clamp(2.8rem, 5.4vw, 3.55rem); }
+  .gx-redesign .gx-opening .gx-actions { gap: 16px; }
+  .gx-redesign .gx-opening__rail .gx-scroll { display: none; }
+  .gx-redesign .gx-opening__copy { width: 57%; }
+}
+@media (max-width: 760px) {
+  .gx-redesign .gx-nav { padding: 12px 20px; }
+  .gx-redesign .gx-nav__kit { min-height: 42px; padding: 10px 14px; font-size: 0.75rem; }
+  .gx-redesign .gx-opening {
+    display: block;
+    height: 100svh;
+    min-height: 920px;
+    padding: 112px 24px 130px;
+  }
+  .gx-redesign .gx-opening__copy { width: 100%; max-width: 560px; height: 100%; }
+  .gx-redesign .gx-opening h1 { font-size: clamp(2.5rem, 8.7vw, 3.5rem); }
+  .gx-redesign .gx-opening h1 em { max-width: 14ch; }
+  .gx-redesign .gx-opening .gx-protocol { margin-bottom: 16px; font-size: 0.625rem; }
+  .gx-redesign .gx-opening__copy > p:not(.gx-protocol) { margin-top: 16px; font-size: 1rem; max-width: 32ch; }
+  .gx-redesign .gx-opening .gx-actions { margin-top: auto; padding-top: 24px; gap: 16px; flex-wrap: wrap; }
+  .gx-redesign .gx-opening .btn-primary { padding-inline: 18px; gap: 12px; }
+  .gx-redesign .gx-opening__explore { font-size: 0.8125rem; }
+  .gx-opening__rail { bottom: 24px; display: block; padding-top: 20px; }
+  .gx-opening__steps { gap: 20px; }
+  .gx-opening__steps li { display: grid; gap: 6px; flex: 1; align-content: start; font-size: 0.75rem; line-height: 1.5; }
+  .gx-opening__step-number { font-size: 1.25rem; color: var(--gx-lime); }
+  .gx-opening__step-line { display: none; }
+  .gx-redesign .gx-opening__rail .gx-scroll { display: none; }
+  .gx-redesign .gx-cinema__poster { inset: 34% 0 auto; width: 100%; height: 45%; }
+  .gx-redesign .gx-chapters { gap: 2px; max-width: calc(100% - 24px); }
+  .gx-redesign #lifters,
+  .gx-redesign #gyms,
+  .gx-redesign #discover { scroll-margin-top: 72px; }
+}

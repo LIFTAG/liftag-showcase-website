@@ -9,11 +9,18 @@ import { useVideoLanguage } from './useVideoLanguage.ts';
 import { canUseNativeHls } from '../utils/exerciseVideoLanguage.ts';
 import { exerciseHlsConfig, exerciseHlsRequestUrl } from '../utils/exerciseHls.ts';
 
+interface GymInstructionPreviewOptions {
+  autoplay?: boolean;
+}
+
 /** Resolve only the real matched bench instruction, near its visible shot. */
-export function useGymInstructionPreview(video: Ref<HTMLVideoElement | null>, active: () => boolean, reduced: () => boolean, sameOrigin = false, locale: MaybeRefOrGetter<SiteLocale> = 'en') {
+export function useGymInstructionPreview(video: Ref<HTMLVideoElement | null>, active: () => boolean, reduced: () => boolean, sameOrigin = false, locale: MaybeRefOrGetter<SiteLocale> = 'en', options: GymInstructionPreviewOptions = {}) {
   const exercise = shallowRef<CatalogExercise | null>(null);
   const failed = shallowRef(false);
   const loading = shallowRef(false);
+  const deferred = shallowRef(false);
+  const autoplay = options.autoplay ?? true;
+  let loadRequested = false;
   let hls: Hls | null = null;
   let disposed = false;
   let request: Promise<CatalogExercise> | null = null;
@@ -53,9 +60,16 @@ export function useGymInstructionPreview(video: Ref<HTMLVideoElement | null>, ac
   async function sync() {
     const current = ++revision;
     const requestedLocale = toValue(locale);
-    if (!canPlay()) { loading.value = false; video.value?.pause(); return; }
+    if (!canPlay()) {
+      loading.value = false;
+      const el = attached ?? video.value;
+      el?.pause();
+      if (reduced() || (attached && video.value !== attached)) release();
+      return;
+    }
     const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
-    if (saveData) { loading.value = false; return; }
+    if (saveData && !loadRequested) { loading.value = false; deferred.value = true; return; }
+    deferred.value = false;
     const isCurrent = () => current === revision && requestedLocale === toValue(locale) && canPlay();
     loading.value = true;
     failed.value = false;
@@ -103,10 +117,14 @@ export function useGymInstructionPreview(video: Ref<HTMLVideoElement | null>, ac
         if (!isCurrent()) return;
         attachedSource = source;
       }
-      if (isCurrent()) el.play().catch(() => {});
+      if (isCurrent() && autoplay) el.play().catch(() => {});
     } catch {
       if (!disposed && current === revision) { request = null; fail(); }
     } finally { if (!disposed && current === revision) loading.value = false; }
+  }
+  function load() {
+    loadRequested = true;
+    sync();
   }
   watch([active, reduced], sync);
   watch(() => toValue(locale), () => {
@@ -125,5 +143,5 @@ export function useGymInstructionPreview(video: Ref<HTMLVideoElement | null>, ac
     document.removeEventListener('visibilitychange', sync);
     release();
   });
-  return { exercise, failed, loading };
+  return { exercise, failed, loading, deferred, load };
 }

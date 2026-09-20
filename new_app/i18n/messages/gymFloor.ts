@@ -1,0 +1,73 @@
+export const en = {
+  eyebrow: 'YOUR GYM, IN LIFTAG',
+  headingLead: 'Your floor.',
+  headingAccent: 'Made discoverable.',
+  intro: 'Show your equipment, location and trainer guidance in one clear listing.',
+  floorAlt: 'Illustrated LIFTAG demo gym floor with four selectable equipment stations',
+  floorAria: 'Select equipment on the example gym floor',
+  listing: 'Example gym listing',
+  listingNote: 'Illustrative preview',
+  gymName: 'Your gym',
+  gymPhotoAlt: 'LIFTAG gym equipment floor preview',
+  tabs: {
+    overview: 'Overview',
+    equipment: 'Equipment',
+  },
+  overview: {
+    title: 'A useful first look before a member arrives.',
+    copy: 'Help people understand the training areas, available equipment and guidance your team provides.',
+    cues: ['Equipment by training area', 'Trainer setup guidance', 'One clear gym profile'],
+  },
+  equipmentAria: 'Equipment in this example listing',
+  selected: 'Selected on floor',
+  machineAction: 'Select {machine}',
+  machines: {
+    'leg-press': { name: 'Pivot leg press', area: 'Strength' },
+    'flat-bench': { name: 'Flat bench', area: 'Free weights' },
+    'cable-station': { name: 'Cable station', area: 'Strength' },
+    treadmill: { name: 'Treadmill', area: 'Cardio' },
+  },
+  benefits: {
+    equipment: { title: 'Equipment listing', copy: 'Show what members can train with.' },
+    discovery: { title: 'Gym discovery', copy: 'Give people a clear way to find your gym.' },
+    guidance: { title: 'Trainer guidance', copy: 'Put setup help beside the right machine.' },
+  },
+  cta: 'Put your gym on the map',
+}
+
+export const sk: typeof en = {
+  eyebrow: 'TVOJE FITKO V LIFTAGU',
+  headingLead: 'Tvoja tréningová plocha.',
+  headingAccent: 'Ľahko objaviteľná.',
+  intro: 'Ukáž vybavenie, polohu a pokyny trénerov v jednom prehľadnom profile.',
+  floorAlt: 'Ilustrovaná ukážková plocha LIFTAG so štyrmi voliteľnými stanovišťami',
+  floorAria: 'Vyber vybavenie na ukážkovej ploche fitka',
+  listing: 'Ukážkový profil fitka',
+  listingNote: 'Ilustračný náhľad',
+  gymName: 'Tvoje fitko',
+  gymPhotoAlt: 'Náhľad vybavenia fitka v LIFTAGu',
+  tabs: {
+    overview: 'Prehľad',
+    equipment: 'Vybavenie',
+  },
+  overview: {
+    title: 'Užitočný prvý pohľad ešte pred návštevou.',
+    copy: 'Pomôž ľuďom spoznať tréningové zóny, dostupné vybavenie a podporu tvojho tímu.',
+    cues: ['Vybavenie podľa tréningovej zóny', 'Pokyny trénerov k nastaveniu', 'Jeden prehľadný profil fitka'],
+  },
+  equipmentAria: 'Vybavenie v tomto ukážkovom profile',
+  selected: 'Vybrané na ploche',
+  machineAction: 'Vybrať {machine}',
+  machines: {
+    'leg-press': { name: 'Pákový leg press', area: 'Silový tréning' },
+    'flat-bench': { name: 'Rovná lavička', area: 'Voľné váhy' },
+    'cable-station': { name: 'Kladková veža', area: 'Silový tréning' },
+    treadmill: { name: 'Bežecký pás', area: 'Kardio' },
+  },
+  benefits: {
+    equipment: { title: 'Zoznam vybavenia', copy: 'Ukáž, na čom môžu členovia trénovať.' },
+    discovery: { title: 'Objavenie fitka', copy: 'Daj ľuďom jasnú cestu k tvojmu fitku.' },
+    guidance: { title: 'Pokyny trénerov', copy: 'Pridaj pomoc s nastavením k správnemu stroju.' },
+  },
+  cta: 'Pridaj svoje fitko na mapu',
+}
