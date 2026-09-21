@@ -125,7 +125,7 @@ test('journal translations retain every section, table, source link and FAQ', as
     assert.deepEqual(structure(sk.body), structure(en.body), `${file}: omitted section or table`)
     assert.deepEqual(links(sk.body), links(en.body), `${file}: omitted source or related link`)
   }
-  assert.equal(count, 11)
+  assert.equal(count, 12)
 })
 
 test('distinct exercise FAQs must not become repeated generic answers', async () => {

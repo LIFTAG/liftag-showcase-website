@@ -305,6 +305,8 @@ interface LiftagArticleOptions {
   dateModified?: string
   image?: string
   author?: { name: string, url?: string }
+  /** Sources the article reviews, so answer engines can follow them from the schema. */
+  citation?: string[]
 }
 
 export function liftagArticle(opts: LiftagArticleOptions) {
@@ -327,6 +329,7 @@ export function liftagArticle(opts: LiftagArticleOptions) {
     },
     publisher: { '@id': ORGANIZATION_ID },
     inLanguage: schemaLanguage(opts.path),
+    ...(opts.citation?.length ? { citation: opts.citation } : {}),
   }
 }
 

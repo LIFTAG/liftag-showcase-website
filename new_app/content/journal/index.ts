@@ -8,6 +8,12 @@ export const en = [
     body: 'Estimate a one-rep max from any set. Epley, same formula as the app, plus Brzycki and the rest of the family.',
   },
   {
+    href: '/journal/fitbod-1rm-formula',
+    eyebrow: 'LIFTING',
+    title: 'Fitbod’s new 1RM formula',
+    body: 'A weight-dependent 1RM equation from 303,494 logged sets. What it says, what it misses, and why we still use Epley.',
+  },
+  {
     href: '/journal/how-to-track-workouts',
     eyebrow: 'LIFTING',
     title: 'How to track workouts properly',
@@ -111,6 +117,12 @@ export const sk = [
     eyebrow: 'NÁSTROJ',
     title: 'Kalkulačka 1RM',
     body: 'Odhadni maximum na jedno opakovanie z ľubovoľnej série. Epleyho vzorec ako v aplikácii aj ďalšie vzorce.',
+  },
+  {
+    href: '/journal/fitbod-1rm-formula',
+    eyebrow: 'SILOVÝ TRÉNING',
+    title: 'Nový vzorec na 1RM od Fitbodu',
+    body: 'Vzorec na 1RM závislý od záťaže z 303 494 zapísaných sérií. Čo tvrdí, čo mu chýba a prečo zostávame pri Epleym.',
   },
   {
     href: '/journal/how-to-track-workouts',
