@@ -2,29 +2,20 @@
 import { en, sk } from '~/i18n/messages/handoff'
 const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 /**
- * Shown when an automatic App Store redirect would strand the visitor: iOS,
- * inside a social app's embedded browser.
- *
- * Apple's https listing does not reliably hand off from embedded WKWebViews,
- * which can leave visitors on a blank page. Instagram is a special case: its
- * own `instagram://extbrowser/?url=...` route can hand a URL to the external
- * browser. From there, the normal App Store https URL can be claimed by iOS and
- * opened in the App Store.
- *
- * We attempt that handoff automatically on mount for Instagram. Because host
- * apps may reject custom-scheme navigation without a user gesture, the working
- * button remains visible as the reliable fallback.
- *
- * For other in-app browsers, and as a fallback if Instagram changes this route,
- * the page still explains how to use the host app's external-browser menu and
- * lets the visitor copy the /get URL into Safari.
+ * Escape social browsers without losing a shared app destination. Install-only
+ * pages still go to the store; content pages hand their HTTPS URL to the
+ * external browser, where a user-tapped app link works if Universal Links did
+ * not launch LIFTAG. Never infer that the app is missing from a browser visit.
  */
 const props = withDefaults(defineProps<{
   /** Where the visitor should end up once they escape the webview. */
   shareUrl: string
+  /** Production app destination; omitted on install-only pages. */
+  appUrl?: string
   heading?: string
   body?: string
 }>(), {
+  appUrl: undefined,
   heading: undefined,
   body: undefined,
 })
@@ -38,7 +29,7 @@ const isInstagram = computed(() => host.value === 'instagram')
 
 function openInstagramExternalBrowser() {
   if (!import.meta.client) return
-  window.location.href = `instagram://extbrowser/?url=${encodeURIComponent(APP_STORE_URL)}`
+  window.location.href = `instagram://extbrowser/?url=${encodeURIComponent(props.appUrl ? props.shareUrl : APP_STORE_URL)}`
 }
 
 onMounted(() => {
@@ -104,7 +95,7 @@ onBeforeUnmount(() => {
       <img src="/assets/qr/app-icon.png" width="72" height="72" alt="LIFTAG" class="escape__icon">
 
       <h1 class="display escape__title">{{ heading ?? t('handoff.defaultHeading') }}</h1>
-      <p class="escape__body">{{ body ?? t('handoff.defaultBody') }}</p>
+      <p class="escape__body">{{ appUrl && !host ? t('handoff.appBody') : (body ?? t('handoff.defaultBody')) }}</p>
 
       <button
         v-if="isInstagram"
@@ -112,15 +103,19 @@ onBeforeUnmount(() => {
         class="escape__primary"
         @click="openInstagramExternalBrowser"
       >
-        {{ t('handoff.openStore') }}
+        {{ t(appUrl ? 'handoff.continueToApp' : 'handoff.openStore') }}
       </button>
 
+      <a v-else-if="appUrl" :href="appUrl" class="escape__primary">
+        {{ t('handoff.openApp') }}
+      </a>
+
       <template v-if="isInstagram">
-        <p class="escape__hint">{{ t('handoff.openHint') }}</p>
+        <p class="escape__hint">{{ t(appUrl ? 'handoff.contentOpenHint' : 'handoff.openHint') }}</p>
         <p class="escape__or">{{ t('handoff.ifNot') }}</p>
       </template>
 
-      <ol class="escape__steps">
+      <ol v-if="host" class="escape__steps">
         <li>
           <span class="escape__step-no">1</span>
           <span v-if="isInstagram">{{ t('handoff.tapTop') }}</span>
@@ -139,7 +134,9 @@ onBeforeUnmount(() => {
       </button>
       <p class="protocol escape__url">{{ shareUrl.replace(/^https:\/\//, '') }}</p>
 
-      <a :href="APP_STORE_URL" class="escape__last">{{ t('handoff.tryStore') }}</a>
+      <a :href="isInstagram ? `instagram://extbrowser/?url=${encodeURIComponent(APP_STORE_URL)}` : APP_STORE_URL" class="escape__last">
+        {{ t(appUrl ? 'handoff.installApp' : 'handoff.tryStore') }}
+      </a>
     </div>
   </main>
 </template>
