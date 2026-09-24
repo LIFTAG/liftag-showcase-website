@@ -46,6 +46,12 @@ export const FLOOR_APP_LAYOUT = {
   areaLift: 49 / 1520,
   numberSize: 22 / 1520,
   numberAdvance: 40 / 720,
+  nameSize: 32 / 1520,
+  nameLeading: 36 / 1520,
+  /** First baseline below the row's centre: one line, or the first of two. */
+  nameDrop: 5 / 1520,
+  nameDropWrapped: -9 / 1520,
+  nameInsetRight: 64 / 720,
 };
 /**
  * In-app "Your gym" title, canvas pixels. The caption on the tiles uses the
@@ -165,35 +171,44 @@ export function floorSpawnDone(seconds: number) {
 // ---- tags and title --------------------------------------------------------
 
 export type FloorLabel = {
-  /** 0 beside its machine, 1 on the in-app index slot. */
+  /** 0 beside its machine, 1 on its in-app row. */
   travel: number;
-  /** The machine's name rides along only until the tag leaves the floor. */
-  name: number;
+  /** The leader line down to the machine, only while the tag is on the floor. */
+  leader: number;
+  /** The name's floor pill, dissolving as the name flies into its row. */
+  pill: number;
   alpha: number;
 };
 
+/** A tag hands its row to the painted app from this share of the landing on. */
+const FLOOR_LABEL_HANDOFF = 0.94;
+
+function floorLabelSettle(progress: number, index: number) {
+  const travel = smoothstep((floorOrderAt(progress, index) - 0.08) / 0.84);
+  const screen = floorMorphBeats(floorAt(progress).morph).screen;
+  return { travel, settle: travel * screen };
+}
+
 /**
- * Floor tag of one machine. It appears once the scan has finished climbing
- * it, then flies into the in-app index. Alpha only drops once it covers that
- * slot, so the painted number takes over on the same pixels.
+ * Floor tag of one machine: its number and its name. It appears once the
+ * scan has finished climbing the machine, then the number flies into the
+ * in-app index and the name into the row title. Travel completes before the
+ * glass is up, so alpha only drops once both cover their painted pixels.
  */
 export function floorLabelAt(progress: number, index: number, spawn: number): FloorLabel {
-  const travel = smoothstep((floorOrderAt(progress, index) - 0.08) / 0.92);
-  const screen = floorMorphBeats(floorAt(progress).morph).screen;
-  const handoff = smoothstep((travel * screen - 0.9) / 0.1);
+  const { travel, settle } = floorLabelSettle(progress, index);
+  const handoff = smoothstep((settle - FLOOR_LABEL_HANDOFF) / (1 - FLOOR_LABEL_HANDOFF));
   return {
     travel,
-    name: 1 - smoothstep(travel / 0.3),
+    leader: 1 - smoothstep(travel / 0.3),
+    pill: 1 - smoothstep((travel - 0.1) / 0.5),
     alpha: smoothstep((spawn - 0.7) / 0.3) * (1 - handoff),
   };
 }
 
-export function floorLabelsLanded(progress: number) {
-  const screen = floorMorphBeats(floorAt(progress).morph).screen;
-  if (screen < 0.88) return false;
-  for (let i = 0; i < floorEquipment.length; i++)
-    if (floorLabelAt(progress, i, 1).travel < 0.92) return false;
-  return true;
+/** The app paints a row's index and name from the moment its tag hands off. */
+export function floorLabelLanded(progress: number, index: number) {
+  return floorLabelSettle(progress, index).settle >= FLOOR_LABEL_HANDOFF;
 }
 
 /** "Your gym" is painted on the tiles once the camera is overhead. */
@@ -318,6 +333,28 @@ export function floorAppNumber(index: number) {
     areaX: textLeft + advance,
     baselineY,
   };
+}
+
+/**
+ * A machine's name in its row: left edge and first baseline, phone-local, with
+ * its font size and line pitch. Long names wrap to two lines.
+ */
+export function floorAppName(index: number, lines: number) {
+  const row = floorAppRow(index);
+  const drop = lines > 1 ? FLOOR_APP_LAYOUT.nameDropWrapped : FLOOR_APP_LAYOUT.nameDrop;
+  return {
+    x: floorAppNumber(index).areaX,
+    y: row.y - drop * PHONE_SCR_H,
+    size: FLOOR_APP_LAYOUT.nameSize * PHONE_SCR_H,
+    leading: FLOOR_APP_LAYOUT.nameLeading * PHONE_SCR_H,
+  };
+}
+
+/** World point of a row's name on the glass (before pointer tilt). */
+export function floorAppNameWorld(index: number, lines: number) {
+  const name = floorAppName(index, lines);
+  const xz = floorScreenLocalToWorld(name.x, name.y);
+  return { x: xz.x, y: floorScreenWorldY() + 0.002, z: xz.z, size: name.size * FLOOR_PHONE_SCALE };
 }
 
 /** World point of an in-app index on the glass (before pointer tilt). */

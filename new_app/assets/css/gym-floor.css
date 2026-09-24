@@ -98,7 +98,7 @@
 }
 /* A zero-size anchor on the tag's number; JS moves and scales it. */
 .gf-tag {
-  --gf-name: 1;
+  --gf-leader: 1;
   --gf-mix: 0;
   position: absolute;
   left: 0;
@@ -119,7 +119,7 @@
   width: 1px;
   height: 17px;
   background: linear-gradient(#ccff00b3, #ccff0000);
-  opacity: var(--gf-name);
+  opacity: var(--gf-leader);
 }
 .gf-tag__num {
   position: absolute;
@@ -144,23 +144,62 @@
     0 0 0 calc((1 - var(--gf-mix)) * 4px) #0a0d0b99,
     0 0 calc((1 - var(--gf-mix)) * 18px) #ccff0059;
 }
-.gf-tag__name {
+/* The machine's name, a zero-size anchor of its own that JS moves and scales:
+   beside the badge on the floor, on its row's first baseline in the app. */
+.gf-label {
+  --gf-mix: 0;
+  --gf-pill: 1;
   position: absolute;
-  left: 4px;
+  left: 0;
   top: 0;
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+/* Inter's baseline sits 0.3638em below the middle of a 1em line box. On the
+   floor the name is centred on the anchor, clear of the badge; in the app its
+   baseline is the anchor, in the weight the app paints it with. */
+.gf-label__text {
+  position: absolute;
+  left: 0;
+  top: -0.8638em;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: calc(500 + 100 * var(--gf-mix));
+  line-height: 1;
+  letter-spacing: 0;
+  color: var(--gx-fg);
+  transform: translate(
+    calc((1 - var(--gf-mix)) * 1.9167em),
+    calc((1 - var(--gf-mix)) * 0.3638em)
+  );
+}
+/* The floor pill dissolves on the way, so bare text reaches the row. */
+.gf-label__text::before {
+  content: "";
+  position: absolute;
+  inset: calc(-0.5em - 1px) calc(-1em - 1px) calc(-0.5em - 1px) calc(-1.5em - 1px);
   z-index: -1;
-  padding: 6px 12px 6px 18px;
   border: 1px solid #edf1ed2e;
   border-radius: 999px;
   background: #0a0d0bd9;
-  transform: translateY(-50%);
-  white-space: nowrap;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1;
-  color: var(--gx-fg);
-  opacity: var(--gf-name);
+  opacity: var(--gf-pill);
   backdrop-filter: blur(6px);
+}
+/* A wrapped name's second line: inline on the floor, under the first in the
+   app. It drops to its line before sliding back, so it never crosses the first. */
+.gf-label__wrap {
+  --gf-drop: clamp(0, (var(--gf-mix) - 0.3) / 0.35, 1);
+  --gf-slide: clamp(0, (var(--gf-mix) - 0.45) / 0.55, 1);
+  display: inline-block;
+  margin-left: 0.3em;
+  transform: translate(
+    calc(var(--gf-slide) * var(--gf-slide) * (3 - 2 * var(--gf-slide)) * -1em * (var(--gf-wrap) + 0.3)),
+    calc(var(--gf-drop) * var(--gf-drop) * (3 - 2 * var(--gf-drop)) * 1em * var(--gf-leading))
+  );
 }
 
 /* ---- copy + beat rail ---------------------------------------------------- */
@@ -547,10 +586,6 @@
   }
   .gf.is-pinned .gf-rail li.is-on .gf-rail__more {
     margin: 0 !important;
-  }
-  .gf-tag__name {
-    font-size: 11px;
-    padding: 5px 10px 5px 16px;
   }
   .gf-note {
     display: none;

@@ -2,7 +2,12 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { createPhoneModel, PHONE_SCREEN_Z } from "../phoneModel";
-import { drawFloorAppScreen, type FloorAppCopy } from "./floorAppScreen";
+import {
+  drawFloorAppScreen,
+  floorAppNameLayout,
+  type FloorAppCopy,
+  type FloorAppNameLayout,
+} from "./floorAppScreen";
 import { createFloorSeams } from "./floorSeams";
 import { createFloorIsland } from "./floorIsland";
 import { createFloorTitle } from "./floorTitle";
@@ -19,13 +24,14 @@ import {
   FLOOR_CAM_FOV,
   FLOOR_PHONE_ROT_X,
   FLOOR_PHONE_SCALE,
+  floorAppNameWorld,
   floorAppNumberWorld,
   floorAt,
   floorCameraAt,
   floorCornerRadius,
   floorFrames,
   floorLabelAt,
-  floorLabelsLanded,
+  floorLabelLanded,
   floorMachinePoseAt,
   floorMorphBeats,
   floorMorphRect,
@@ -46,6 +52,10 @@ import { damp, lerp } from "./timeline";
 
 /** CSS font size of a floor tag's number; the in-app index is matched to it. */
 export const FLOOR_TAG_FONT = 11;
+/** CSS font size of a floor tag's name; the in-app row title is matched to it. */
+export const FLOOR_NAME_FONT = 12;
+/** Phones set the floor names a size down, as 11px pills. */
+const FLOOR_NAME_COMPACT = 11 / FLOOR_NAME_FONT;
 /** Tags float this far above the top of their machine, CSS pixels. */
 const TAG_LIFT = 30;
 /** Rubber under the ceiling strips → the app's own background. */
@@ -59,12 +69,18 @@ export type FloorPointer = {
 };
 
 export type FloorTagPoint = {
+  /** The number badge, CSS pixels from the canvas corner. */
   x: number;
   y: number;
   scale: number;
   alpha: number;
-  name: number;
+  leader: number;
   mix: number;
+  /** The name: the badge on the floor, the row's first baseline in the app. */
+  nameX: number;
+  nameY: number;
+  nameScale: number;
+  pill: number;
 };
 
 function fadeMaterial(material: THREE.Material, base: number, amount: number) {
@@ -135,14 +151,19 @@ export function createFloorStage(
   appImage.width = FLOOR_APP_CANVAS.w;
   appImage.height = FLOOR_APP_CANVAS.h;
   const appCtx = appImage.getContext("2d")!;
-  let paintedNumbers = false;
+  const paintedLabels = floorEquipment.map(() => false);
   let paintedTitle = false;
   const paintApp = () =>
     drawFloorAppScreen(appCtx, appImage.width, appImage.height, {
-      numbers: paintedNumbers,
+      landed: paintedLabels,
       title: paintedTitle,
       copy,
     });
+  const layoutNames = (): FloorAppNameLayout[] =>
+    floorEquipment.map((item, i) =>
+      floorAppNameLayout(appCtx, appImage.width, appImage.height, i, copy.names[item.id]),
+    );
+  let names = layoutNames();
   paintApp();
   const appTexture = new THREE.CanvasTexture(appImage);
   appTexture.colorSpace = THREE.SRGBColorSpace;
@@ -328,12 +349,14 @@ export function createFloorStage(
 
   const ready = Promise.all([
     equipmentReady,
-    document.fonts.load("600 32px Inter"),
+    // With the names as sample text, so a caron's subset is in before layout.
+    document.fonts.load("600 32px Inter", Object.values(copy.names).join("")),
     document.fonts.load("650 57px Inter"),
     document.fonts.load('600 18px "JetBrains Mono"'),
   ]).then(async () => {
     if (disposed) return;
     title.paint(copy.title);
+    names = layoutNames();
     paintApp();
     appTexture.needsUpdate = true;
     prewarmTask = prewarm();
@@ -343,7 +366,18 @@ export function createFloorStage(
   const projected = new THREE.Vector3();
   const lifted = new THREE.Vector3();
   const thumbCenter = new THREE.Vector3();
-  const tags: FloorTagPoint[] = floorEquipment.map(() => ({ x: 0, y: 0, scale: 1, alpha: 0, name: 1, mix: 0 }));
+  const tags: FloorTagPoint[] = floorEquipment.map(() => ({
+    x: 0,
+    y: 0,
+    scale: 1,
+    alpha: 0,
+    leader: 1,
+    mix: 0,
+    nameX: 0,
+    nameY: 0,
+    nameScale: 1,
+    pill: 1,
+  }));
   const result = { tags, spawning: false, tilting: false };
 
   function toScreen(v: THREE.Vector3) {
@@ -435,10 +469,16 @@ export function createFloorStage(
       HERO_PHONE_KEY_LIGHT.z,
     );
 
-    const landed = floorLabelsLanded(progress);
+    let repaint = false;
+    for (let i = 0; i < floorEquipment.length; i++) {
+      const landed = floorLabelLanded(progress, i);
+      if (landed !== paintedLabels[i]) {
+        paintedLabels[i] = landed;
+        repaint = true;
+      }
+    }
     const landedTitle = floorTitleLanded(progress);
-    if (landed !== paintedNumbers || landedTitle !== paintedTitle) {
-      paintedNumbers = landed;
+    if (repaint || landedTitle !== paintedTitle) {
       paintedTitle = landedTitle;
       paintApp();
       appTexture.needsUpdate = true;
@@ -474,6 +514,13 @@ export function createFloorStage(
       lifted.set(slot.x, slot.y, slot.z - slot.h / 2).applyMatrix4(tilt.matrixWorld);
       const top = toScreen(lifted);
       const slotH = Math.hypot(to.x - top.x, to.y - top.y) * 2;
+      // The name rides from beside the badge onto its row's first baseline.
+      const name = floorAppNameWorld(i, names[i]!.lines.length);
+      projected.set(name.x, name.y, name.z).applyMatrix4(tilt.matrixWorld);
+      const nameTo = toScreen(projected);
+      lifted.set(name.x, name.y, name.z - name.size).applyMatrix4(tilt.matrixWorld);
+      const nameTop = toScreen(lifted);
+      const nameH = Math.hypot(nameTo.x - nameTop.x, nameTo.y - nameTop.y);
       const label = floorLabelAt(progress, i, grow);
       const t = label.travel;
       const tag = tags[i]!;
@@ -481,8 +528,16 @@ export function createFloorStage(
       tag.y = lerp(from.y - TAG_LIFT, to.y, t);
       tag.scale = lerp(1, Math.max(0.35, slotH / FLOOR_TAG_FONT), t);
       tag.alpha = label.alpha;
-      tag.name = label.name;
+      tag.leader = label.leader;
       tag.mix = t;
+      tag.nameX = lerp(from.x, nameTo.x, t);
+      tag.nameY = lerp(from.y - TAG_LIFT, nameTo.y, t);
+      tag.nameScale = lerp(
+        frames.compact ? FLOOR_NAME_COMPACT : 1,
+        Math.max(0.35, nameH / FLOOR_NAME_FONT),
+        t,
+      );
+      tag.pill = label.pill;
     }
 
     renderer.render(scene, camera);
@@ -504,6 +559,10 @@ export function createFloorStage(
     ready,
     resize,
     draw,
+    /** How the app sets each machine's name; the floor tags follow it. */
+    nameLayout() {
+      return names;
+    },
     /** Play the scan again the next time the floor comes into view. */
     rescan() {
       spawnSeconds = 0;
@@ -511,6 +570,7 @@ export function createFloorStage(
     setCopy(next: FloorAppCopy) {
       copy = next;
       title.paint(copy.title);
+      names = layoutNames();
       paintApp();
       appTexture.needsUpdate = true;
     },
