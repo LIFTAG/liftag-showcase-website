@@ -13,8 +13,6 @@ import {
   LOGGER_FRONT_FOLD,
   LOGGER_FRONT_MORPH,
   compactLoggerOwnsCopy,
-  cinemaPhoneSlot,
-  CINEMA_PHONE_ASPECT,
   fallbackHeroSlot,
   gymScanStickySvh,
   heroBodyTargetFromPhoneBox,
@@ -174,24 +172,6 @@ test('the parked gym-demo phone keeps pointer tilt after the film ends', () => {
   assert.doesNotMatch(stage, /hasPointer && targetProgress < 0\.995/)
   const overlay = readFileSync(new URL('../utils/gymscan/phoneOverlay.ts', import.meta.url), 'utf8')
   assert.match(overlay, /targetRotX \+= pointer\.rotX \* tiltMix/)
-})
-
-test('cinema phone slot matches the parked gym-demo overlay', () => {
-  const desktop = cinemaPhoneSlot(1440, 900)
-  assert.equal(desktop.h, 585)
-  assert.ok(Math.abs(desktop.w - 585 * CINEMA_PHONE_ASPECT) < 1e-9)
-  assert.ok(Math.abs(desktop.x - (1440 * 0.81 - desktop.w / 2)) < 1e-9)
-  assert.ok(Math.abs(desktop.y - (900 - 585) / 2) < 1e-9)
-  const compact = cinemaPhoneSlot(390, 800)
-  assert.ok(Math.abs(compact.h - 800 * 0.38) < 1e-9)
-  assert.ok(Math.abs(compact.x - (390 * 0.68 - compact.w / 2)) < 1e-9)
-  assert.ok(Math.abs(compact.y - 800 * 0.33) < 1e-9)
-  const cinema = readFileSync(
-    new URL('../components/gym/GymCinema.vue', import.meta.url),
-    'utf8',
-  )
-  assert.match(cinema, /cinemaPhoneSlot/)
-  assert.doesNotMatch(cinema, /h \* 0\.475/)
 })
 
 test('fallback hero slot is the smaller front-phone body', () => {

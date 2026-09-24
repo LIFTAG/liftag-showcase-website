@@ -1,17 +1,17 @@
 import * as THREE from "three";
 import {
-  DISCOVERY_APP_LAYOUT,
-  DISCOVERY_FLOOR_COLS,
-  DISCOVERY_PHONE_SCALE,
-  discoveryCornerRadius,
-  discoveryFloorSeamAt,
-  discoveryMorphRect,
-} from "./discoveryTimeline";
+  FLOOR_APP_LAYOUT,
+  FLOOR_COLS,
+  FLOOR_PHONE_SCALE,
+  floorCornerRadius,
+  floorSeamAt,
+  floorMorphRect,
+} from "./floorTimeline";
 import { smoothstep } from "./timeline";
 
 /** The floor joints and final list rules are the same persistent geometry. */
-export function createDiscoverySeams() {
-  const count = DISCOVERY_APP_LAYOUT.rows - 1;
+export function createFloorSeams() {
+  const count = FLOOR_APP_LAYOUT.rows - 1;
   const uniforms = {
     uRows: { value: new Float32Array(count) },
     uHalf: { value: new THREE.Vector2() },
@@ -22,8 +22,8 @@ export function createDiscoverySeams() {
     uOpacity: { value: 0 },
     uColor: { value: new THREE.Color() },
   };
-  const floorColor = new THREE.Color("#121715");
-  const dividerColor = new THREE.Color("#29312a");
+  const floorColor = new THREE.Color("#0b0e0c");
+  const dividerColor = new THREE.Color("#252d27");
   const material = new THREE.ShaderMaterial({
     uniforms,
     transparent: true,
@@ -53,8 +53,8 @@ export function createDiscoverySeams() {
         }
         rows *= clamp((uLineHalfWidth - abs(vLocal.x)) / pixel.x + .5, 0., 1.);
         float columns = 0.;
-        for (int i = 1; i < ${DISCOVERY_FLOOR_COLS}; i++) {
-          float x = -uHalf.x + 2. * uHalf.x * float(i) / ${DISCOVERY_FLOOR_COLS}.;
+        for (int i = 1; i < ${FLOOR_COLS}; i++) {
+          float x = -uHalf.x + 2. * uHalf.x * float(i) / ${FLOOR_COLS}.;
           columns = max(columns, clamp((uThickness * .5 - abs(vLocal.x - x)) / pixel.x + .5, 0., 1.));
         }
         gl_FragColor = vec4(uColor, max(rows, columns * uColumns) * uOpacity);
@@ -68,11 +68,11 @@ export function createDiscoverySeams() {
   return {
     mesh,
     update(morph: number, floor: number) {
-      const rect = discoveryMorphRect(morph);
-      uniforms.uHalf.value.set(rect.w / (2 * DISCOVERY_PHONE_SCALE), rect.d / (2 * DISCOVERY_PHONE_SCALE));
-      uniforms.uRadius.value = discoveryCornerRadius(morph) / DISCOVERY_PHONE_SCALE;
+      const rect = floorMorphRect(morph);
+      uniforms.uHalf.value.set(rect.w / (2 * FLOOR_PHONE_SCALE), rect.d / (2 * FLOOR_PHONE_SCALE));
+      uniforms.uRadius.value = floorCornerRadius(morph) / FLOOR_PHONE_SCALE;
       for (let i = 0; i < count; i++) {
-        const seam = discoveryFloorSeamAt(morph, i);
+        const seam = floorSeamAt(morph, i);
         uniforms.uRows.value[i] = seam.y;
         uniforms.uLineHalfWidth.value = seam.halfWidth;
         uniforms.uThickness.value = seam.thickness;

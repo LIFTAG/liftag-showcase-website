@@ -889,113 +889,6 @@
   top: 0;
   left: 0;
 }
-.gx-kit {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: 12vw;
-  row-gap: 65px;
-  padding: 140px 8vw 110px;
-  background:
-    radial-gradient(ellipse at 5% 20%, #18240f55, transparent 55%), #060907;
-  border-top: 1px solid var(--gx-line);
-}
-.gx-kit__intro,
-.gx-kit__form {
-  min-width: 0;
-}
-.gx-kit__intro h2 {
-  font-size: clamp(2.4rem, 3.8vw, 4.5rem);
-  margin: 24px 0;
-}
-.gx-kit__intro h2 .gx-hero-entry {
-  max-width: 100%;
-  white-space: normal;
-  text-wrap: balance;
-}
-.gx-kit__intro > p:not(.gx-protocol) {
-  font-size: 0.9rem;
-  max-width: 35ch;
-}
-.gx-kit__tag {
-  display: flex;
-  align-items: center;
-  gap: 28px;
-  padding: 50px 0;
-}
-.gx-kit__tag img {
-  width: 145px;
-  height: auto;
-  transform: rotate(-9deg);
-  filter: drop-shadow(0 15px 35px #ccff000d);
-}
-.gx-kit__tag .gx-protocol {
-  color: var(--gx-muted);
-  font-size: 0.7rem;
-}
-.gx-included {
-  border-block: 1px solid var(--gx-line);
-  max-width: 420px;
-}
-.gx-included summary,
-.gx-faqs summary {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  list-style: none;
-  align-items: center;
-  padding: 20px 0;
-  font-size: 0.9375rem;
-  min-height: 60px;
-}
-.gx-included summary::-webkit-details-marker,
-.gx-faqs summary::-webkit-details-marker {
-  display: none;
-}
-.gx-included p,
-.gx-faqs p {
-  font-size: 0.875rem;
-  max-width: 65ch;
-  padding-bottom: 20px;
-}
-.gx-included a {
-  display: inline-block;
-  color: var(--gx-lime);
-  padding-bottom: 20px;
-  font-size: 0.8rem;
-}
-.gx-kit__form h3 {
-  margin: 6px 0 32px;
-}
-.gx-faqs {
-  grid-column: 1/-1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0 12vw;
-}
-.gx-faqs details {
-  border-bottom: 1px solid var(--gx-line);
-}
-.gx-faqs summary span,
-.gx-included summary span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 24px;
-  width: 24px;
-  height: 24px;
-  color: var(--gx-lime);
-  font-size: 1.25rem;
-  transition: transform 180ms var(--gx-ease);
-}
-.gx-faqs details[open] summary span,
-.gx-included[open] summary span {
-  transform: rotate(45deg);
-}
-.gx-faqs summary:hover,
-.gx-included summary:hover {
-  color: var(--gx-lime);
-}
 .gx .gx-form-fields {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1233,10 +1126,6 @@ html[data-gym-motion="reduce"] {
   }
   .gx-owner {
     width: 42vw;
-  }
-  .gx-kit {
-    gap: 60px 7vw;
-    padding-inline: 6vw;
   }
 }
 @media (max-width: 760px) {
@@ -1506,28 +1395,6 @@ html[data-gym-motion="reduce"] {
     width: 100%;
     left: 0;
   }
-  .gx-kit {
-    grid-template-columns: minmax(0, 1fr);
-    padding: 90px 24px 80px;
-    gap: 34px;
-  }
-  .gx-kit__intro h2 {
-    font-size: clamp(2rem, 9vw, 3rem);
-    margin: 20px 0;
-  }
-  .gx-kit__tag {
-    padding: 30px 0;
-  }
-  .gx-kit__tag img {
-    width: 105px;
-  }
-  .gx-included {
-    max-width: none;
-  }
-  .gx-kit__form h3 {
-    font-size: 1.35rem;
-    margin: 12px 0 30px;
-  }
   .gx .gx-form-fields {
     gap: 23px;
   }
@@ -1536,10 +1403,6 @@ html[data-gym-motion="reduce"] {
   }
   .gx .gx-form-field label {
     font-size: 0.875rem;
-  }
-  .gx-faqs {
-    grid-template-columns: 1fr;
-    margin-top: 20px;
   }
   .gx-footer {
     padding: 35px 24px 110px;
@@ -1687,9 +1550,6 @@ html[data-gym-motion="reduce"] {
   }
   .gx .gx-opening {
     padding-block: 112px 148px !important;
-  }
-  .gx .gx-kit {
-    padding-block: 90px 80px !important;
   }
 }
 
@@ -1949,27 +1809,12 @@ html[data-gym-motion="reduce"] {
   }
 }
 
-.gx-cinema.is-member canvas { visibility: hidden; }
-/* Keep sticky on the wrapper. Scale the picture, not the pin — a transform
-   on `.gx-cinema` itself sends the phone back to its in-flow box for a beat. */
-.gx-cinema.is-discovery {
-  z-index: 5;
-}
-.gx-cinema.is-ready.is-discovery canvas {
-  /* Hold the custom-video phone, then recede before Earth is on screen. */
-  opacity: clamp(0, calc(1 - var(--gd-phone-out, 0)), 1);
-  transition: none;
-  will-change: opacity;
-}
-.gx.is-reduced .gx-cinema.is-discovery,
-.gx.is-static .gx-cinema.is-discovery {
-  z-index: 0;
-}
-.gx.is-reduced .gx-cinema.is-discovery canvas,
-.gx.is-static .gx-cinema.is-discovery canvas {
-  visibility: hidden;
-  opacity: 1;
-  will-change: auto;
+/* The member chapter's DOM phone has the device: fade the parked film out
+   quickly so the two renders only ever overlap for one short crossfade. */
+.gx-cinema.is-ready.is-docked canvas {
+  opacity: 0;
+  transition-duration: 200ms;
+  transition-timing-function: linear;
 }
 .gx .gx-member-shot { min-height: 320svh; }
 .gx .gx-owner-shot { min-height: 340svh; }
@@ -2225,4 +2070,20 @@ html[data-gym-motion="reduce"] {
     padding-inline: 12px;
     font-size: 0.625rem;
   }
+}
+
+/* Entrance for the owner chapters: one rise per element, staggered by --d.
+   SSR, the static fallback and reduced motion always show the settled state. */
+.gx-rise {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 800ms var(--gx-ease) calc(var(--d, 0) * 90ms),
+    transform 1000ms var(--gx-ease) calc(var(--d, 0) * 90ms);
+}
+.is-in .gx-rise,
+.gx.is-static .gx-rise,
+.gx.is-reduced .gx-rise {
+  opacity: 1;
+  transform: none;
 }

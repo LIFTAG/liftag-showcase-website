@@ -4,7 +4,6 @@ import {
   EXPERIENCE_DESKTOP_DPR_CAP,
   EXPERIENCE_PHONE_DPR_CAP,
   EXPERIENCE_PIXEL_BUDGET,
-  discoveryPixelRatio,
   experienceDevice,
   experienceDprCap,
   gymJourneyAt,
@@ -74,13 +73,6 @@ test("phone DPR uses the unused fill budget so the hologram is not 1× on a 3× 
   );
 });
 
-test("discovery phone DPR follows the gym-film fill budget; desktop stays at 1.5", () => {
-  assert.equal(discoveryPixelRatio(2, 1440, 900), 1.5);
-  assert.equal(discoveryPixelRatio(1, 1440, 900), 1);
-  const phone = discoveryPixelRatio(3, 390, 844);
-  assert.equal(phone, experienceDprCap(true, 390, 844));
-  assert.ok(phone >= 2);
-});
 test("the kit is an explicit destination for chapter and abandonment tracking", () => {
   assert.equal(gymJourneyAt(7300, 900, 3600, 5490, 7200).chapter, "kit");
   assert.equal(gymJourneyAt(5490, 900, 3600, 5490, 7200).chapter, "gyms");

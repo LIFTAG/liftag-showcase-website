@@ -1,0 +1,237 @@
+/* 06 · The dashboard. The real screen recording in a browser window, with
+   chapters that follow the playhead and seek on click. */
+.gdb {
+  position: relative;
+  z-index: 1;
+  padding: clamp(120px, 15vh, 170px) 4.5vw clamp(110px, 14vh, 150px);
+  background:
+    radial-gradient(60% 45% at 50% 58%, #ccff000f, #0000 70%),
+    linear-gradient(180deg, var(--gx-bg), #070a08 60%, var(--gx-bg));
+  border-top: 1px solid var(--gx-line);
+  overflow: clip;
+}
+.gdb-head {
+  max-width: 820px;
+  margin: 0 auto 52px;
+  text-align: center;
+}
+.gdb-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--gx-muted);
+  margin-bottom: 22px !important;
+}
+.gdb-eyebrow span {
+  color: var(--gx-lime);
+}
+.gdb-eyebrow::before,
+.gdb-eyebrow::after {
+  content: "";
+  width: 44px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.5;
+}
+.gdb-eyebrow::before {
+  order: -1;
+}
+.gdb h2 {
+  font-size: clamp(2.3rem, 4.4vw, 4.8rem);
+  text-wrap: balance;
+}
+.gdb-lede {
+  max-width: 46ch;
+  margin: 20px auto 0 !important;
+  font-size: 1.0625rem;
+  text-wrap: pretty;
+}
+
+.gdb-stage {
+  /* Window plus its chapter row fit under the sticky nav in one viewport. */
+  --gdb-w: min(100%, 1240px, calc((100svh - 230px) * 1.593));
+  display: grid;
+  justify-items: center;
+  perspective: 1800px;
+}
+.gdb-window {
+  --gdb-rise: 1;
+  width: var(--gdb-w);
+  margin: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0b0d0c;
+  box-shadow:
+    0 0 0 1px #edf1ed1f,
+    0 50px 120px -40px #000,
+    0 0 120px -40px #ccff0040;
+  transform-origin: 50% 100%;
+  transform:
+    rotateX(calc(var(--gdb-rise) * 16deg))
+    scale(calc(1 - var(--gdb-rise) * 0.06))
+    translateY(calc(var(--gdb-rise) * 40px));
+  will-change: transform;
+}
+.gdb-screen {
+  position: relative;
+  aspect-ratio: 1440 / 904;
+  background: #0b0d0c;
+}
+.gdb-screen video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.gdb-play {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 50%;
+  background: #0b0d0cd9;
+  color: var(--gx-fg);
+  box-shadow: inset 0 0 0 1px #edf1ed29, 0 10px 30px #0008;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: background-color 200ms ease, transform 200ms var(--gx-ease);
+}
+.gdb-play:hover {
+  background: #1a2213e6;
+  transform: scale(1.06);
+}
+.gdb-play svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+.gdb:not(.is-playing) .gdb-play {
+  width: 64px;
+  height: 64px;
+  right: 50%;
+  bottom: 50%;
+  transform: translate(50%, 50%);
+  background: var(--gx-lime);
+  color: #0d1204;
+}
+.gdb:not(.is-playing) .gdb-play:hover {
+  transform: translate(50%, 50%) scale(1.06);
+}
+.gdb:not(.is-playing) .gdb-play svg {
+  width: 24px;
+  height: 24px;
+}
+
+.gdb-chapters {
+  list-style: none;
+  width: var(--gdb-w);
+  margin: 0 0 22px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.gdb-chapters button {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 10px;
+  row-gap: 4px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 0 18px;
+  border: 0;
+  background: none;
+  text-align: left;
+  color: var(--gx-muted);
+  transition: color 220ms ease;
+}
+.gdb-chapters li.is-on button,
+.gdb-chapters button:hover {
+  color: var(--gx-fg);
+}
+.gdb-chapters__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: #edf1ed1f;
+  overflow: hidden;
+}
+.gdb-chapters__bar i {
+  position: absolute;
+  inset: 0;
+  background: var(--gx-lime);
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 260ms linear;
+}
+.gdb-chapters li:nth-child(1) .gdb-chapters__bar i { transform: scaleX(var(--gdb-fill-0, 0)); }
+.gdb-chapters li:nth-child(2) .gdb-chapters__bar i { transform: scaleX(var(--gdb-fill-1, 0)); }
+.gdb-chapters li:nth-child(3) .gdb-chapters__bar i { transform: scaleX(var(--gdb-fill-2, 0)); }
+.gdb-chapters li:nth-child(4) .gdb-chapters__bar i { transform: scaleX(var(--gdb-fill-3, 0)); }
+.gdb-chapters__idx {
+  align-self: center;
+}
+.gdb-chapters li.is-on .gdb-chapters__idx {
+  color: var(--gx-lime);
+}
+.gdb-chapters__name {
+  font-family: var(--liftag-font-headline);
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+.gdb-chapters__line {
+  grid-column: 1 / -1;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  opacity: 0.8;
+}
+.gx .gdb-cta {
+  margin-top: 44px;
+}
+
+@media (max-width: 760px) {
+  .gdb {
+    padding: 110px 16px 96px;
+  }
+  .gdb-head {
+    margin-bottom: 40px;
+    text-align: left;
+  }
+  .gdb-eyebrow::before {
+    display: none;
+  }
+  .gdb-lede {
+    margin-left: 0 !important;
+  }
+  .gdb-window {
+    border-radius: 12px;
+  }
+  .gdb-screen {
+    /* A phone gets the working area of the recording, not the whole desk. */
+    aspect-ratio: 4 / 3.4;
+  }
+  .gdb-screen video {
+    object-position: 64% 30%;
+  }
+  .gdb-play {
+    right: 10px;
+    bottom: 10px;
+    width: 38px;
+    height: 38px;
+  }
+  .gdb-chapters {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 14px;
+  }
+  .gdb-chapters__line {
+    display: none;
+  }
+}

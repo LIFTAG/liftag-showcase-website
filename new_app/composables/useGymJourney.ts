@@ -9,6 +9,8 @@ type Marks = {
   owner: number;
   kit: number;
   discover: number;
+  dashboard: number;
+  floor: number;
 };
 
 export function useGymJourney(root: Ref<HTMLElement | null>) {
@@ -40,16 +42,19 @@ export function useGymJourney(root: Ref<HTMLElement | null>) {
     const el = root.value;
     if (!el) return;
     const origin = el.getBoundingClientRect().top + scrollY;
-    const y = (id: string) =>
-      (el.querySelector(`#${id}`)?.getBoundingClientRect().top ?? 0) +
-      scrollY -
-      origin;
+    // The film lives inside the journey; the owner chapters follow it.
+    const y = (id: string) => {
+      const target = document.getElementById(id);
+      return target ? target.getBoundingClientRect().top + scrollY - origin : Infinity;
+    };
     marks = {
       tag: y("the-tag"),
       member: y("lifters"),
       owner: y("gyms"),
-      kit: el.getBoundingClientRect().bottom + scrollY - origin,
+      kit: y("kit"),
       discover: y("discover"),
+      dashboard: y("dashboard"),
+      floor: y("floor"),
     };
   }
 
@@ -65,6 +70,8 @@ export function useGymJourney(root: Ref<HTMLElement | null>) {
       marks!.owner,
       marks!.kit,
       marks!.discover,
+      marks!.dashboard,
+      marks!.floor,
     );
     current.value = next;
     if (next.chapter !== chapter.value) chapter.value = next.chapter;
@@ -109,6 +116,8 @@ export function useGymJourney(root: Ref<HTMLElement | null>) {
     media.addEventListener("change", motion);
     resize = new ResizeObserver(onResize);
     if (root.value) resize.observe(root.value);
+    // Chapters after the film (forms, accordions) can change height too.
+    if (root.value?.parentElement) resize.observe(root.value.parentElement);
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize, { passive: true });
     window.addEventListener("pagehide", leave);

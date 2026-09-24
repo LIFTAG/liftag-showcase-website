@@ -69,27 +69,3 @@ export const discoveryGyms: DiscoveryGym[] = [
 ];
 
 export const discoveryHub = discoveryGyms.find((gym) => gym.hub)!;
-
-export const discoveryLocation = {
-  city: discoveryHub.city,
-  country: discoveryHub.country,
-  latitude: discoveryHub.latitude,
-  longitude: discoveryHub.longitude,
-};
-
-/** Camera aim once the globe has approached Slovakia. */
-export const discoveryRegionFocus = {
-  latitude: 48.72,
-  longitude: 19.2,
-};
-
-/** Hub-and-spoke links from Bratislava. Same-city gyms share one route. */
-export function discoveryGymArcs() {
-  const seen = new Set<string>();
-  return discoveryGyms.flatMap((gym) => {
-    if (gym === discoveryHub || gym.city === discoveryHub.city) return [];
-    if (seen.has(gym.city)) return [];
-    seen.add(gym.city);
-    return [{ from: discoveryHub, to: gym }];
-  });
-}

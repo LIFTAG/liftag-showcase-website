@@ -1,8 +1,10 @@
+export type CoachingVideoError = '' | 'type' | 'play';
+
 /** A local object URL is the entire preview. No upload or server state. */
-export function useCoachingVideo(errorVersion: () => number) {
+export function useCoachingVideo() {
   const customSrc = shallowRef('');
   const customName = shallowRef('');
-  const fileError = shallowRef('');
+  const fileError = shallowRef<CoachingVideoError>('');
   function clearVideo() {
     if (customSrc.value) URL.revokeObjectURL(customSrc.value);
     customSrc.value = '';
@@ -15,7 +17,7 @@ export function useCoachingVideo(errorVersion: () => number) {
     input.value = '';
     if (!file) return false;
     if (!file.type.startsWith('video/')) {
-      fileError.value = 'Choose a video file, such as MP4 or WebM.';
+      fileError.value = 'type';
       return false;
     }
     clearVideo();
@@ -25,9 +27,8 @@ export function useCoachingVideo(errorVersion: () => number) {
   }
   function videoError() {
     clearVideo();
-    fileError.value = 'This browser can’t play that file. Try an MP4 or WebM video.';
+    fileError.value = 'play';
   }
-  watch(errorVersion, videoError);
   onBeforeUnmount(clearVideo);
   return { customSrc, customName, fileError, selectVideo, clearVideo, videoError };
 }

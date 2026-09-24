@@ -1,0 +1,404 @@
+/* 04 · Your trainer. One stage, two sources: the LIFTAG guide every tag ships
+   with, and the gym's own clip that replaces it. */
+.gt {
+  position: relative;
+  z-index: 1;
+  padding: clamp(120px, 16vh, 170px) 4.5vw clamp(100px, 13vh, 140px);
+  background:
+    radial-gradient(60% 50% at 88% 8%, #ccff000d, #0000 70%),
+    radial-gradient(50% 40% at 0% 60%, #1a2b1426, #0000 70%),
+    var(--gx-bg);
+  border-top: 1px solid var(--gx-line);
+}
+.gt-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  align-items: end;
+  gap: 32px 8vw;
+  max-width: 1320px;
+  margin: 0 auto 56px;
+}
+.gt-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--gx-muted);
+  margin-bottom: 22px !important;
+}
+.gt-eyebrow span {
+  color: var(--gx-lime);
+}
+.gt-eyebrow::after {
+  content: "";
+  width: 44px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.5;
+}
+.gt h2 {
+  font-size: clamp(2.3rem, 4.2vw, 4.6rem);
+  text-wrap: balance;
+}
+.gt-lede {
+  max-width: 44ch;
+  font-size: 1.0625rem;
+  text-wrap: pretty;
+  padding-bottom: 10px;
+}
+
+/* ---- the compare stage --------------------------------------------------- */
+.gt-frame {
+  /* The whole comparison stays inside one viewport under the sticky nav. */
+  width: min(100%, 1320px, calc((100svh - 190px) * 16 / 9));
+  margin: 0 auto;
+}
+.gt-stage {
+  --gt-split: 50%;
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: clamp(18px, 2.2vw, 30px);
+  overflow: hidden;
+  isolation: isolate;
+  background: #050605;
+  box-shadow:
+    0 0 0 1px var(--gx-line),
+    0 40px 120px -40px #000,
+    0 0 90px -30px #ccff0026;
+  cursor: ew-resize;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.gt-side {
+  position: absolute;
+  inset: 0;
+}
+.gt-side--guide video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.gt-shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, #050605a6 0%, #0000 26%, #0000 70%, #050605cc 100%);
+}
+.gt-side--you {
+  clip-path: inset(0 0 0 var(--gt-split));
+  background:
+    radial-gradient(55% 70% at 70% 52%, #1a2019, #070907 70%),
+    #070907;
+}
+.gt.is-dragging .gt-side--you,
+.gt.is-dragging .gt-divider {
+  transition: none;
+}
+.gt-custom {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.gt-floor {
+  position: absolute;
+  right: 3%;
+  top: 4%;
+  height: 92%;
+  width: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  opacity: 0.38;
+  filter: saturate(0.5) brightness(0.9);
+  mask-image: radial-gradient(closest-side, #000 62%, #0000 100%);
+  -webkit-mask-image: radial-gradient(closest-side, #000 62%, #0000 100%);
+}
+.gt-finder {
+  position: absolute;
+  inset: 7% 5.5% 9% calc(var(--gt-split) + 5.5%);
+  min-width: 0;
+  pointer-events: none;
+  transition: left 0s;
+}
+.gt-finder__c {
+  position: absolute;
+  width: clamp(18px, 2.4vw, 34px);
+  height: clamp(18px, 2.4vw, 34px);
+  border: 0 solid #edf1edb3;
+}
+.gt-finder__c--tl { left: 0; top: 0; border-left-width: 2px; border-top-width: 2px; border-top-left-radius: 6px; }
+.gt-finder__c--tr { right: 0; top: 0; border-right-width: 2px; border-top-width: 2px; border-top-right-radius: 6px; }
+.gt-finder__c--bl { left: 0; bottom: 0; border-left-width: 2px; border-bottom-width: 2px; border-bottom-left-radius: 6px; }
+.gt-finder__c--br { right: 0; bottom: 0; border-right-width: 2px; border-bottom-width: 2px; border-bottom-right-radius: 6px; }
+.gt-finder__grid {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, #0000 calc(33.33% - 0.5px), #edf1ed14 calc(33.33% - 0.5px), #edf1ed14 calc(33.33% + 0.5px), #0000 calc(33.33% + 0.5px), #0000 calc(66.66% - 0.5px), #edf1ed14 calc(66.66% - 0.5px), #edf1ed14 calc(66.66% + 0.5px), #0000 calc(66.66% + 0.5px)),
+    linear-gradient(180deg, #0000 calc(33.33% - 0.5px), #edf1ed14 calc(33.33% - 0.5px), #edf1ed14 calc(33.33% + 0.5px), #0000 calc(33.33% + 0.5px), #0000 calc(66.66% - 0.5px), #edf1ed14 calc(66.66% - 0.5px), #edf1ed14 calc(66.66% + 0.5px), #0000 calc(66.66% + 0.5px));
+}
+.gt-finder__rec {
+  position: absolute;
+  left: clamp(28px, 3.4vw, 48px);
+  top: clamp(4px, 0.5vw, 8px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #edf1edcc;
+}
+.gt-finder__rec b {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff2d55;
+  box-shadow: 0 0 12px #ff2d55;
+  animation: gt-rec 1.2s steps(2, jump-none) infinite;
+}
+.gt-finder__rec span {
+  color: #edf1ed80;
+  margin-left: 6px;
+}
+@keyframes gt-rec {
+  50% { opacity: 0.15; }
+}
+.gt-you {
+  position: absolute;
+  left: max(calc(var(--gt-split) + 7%), 54%);
+  right: 7%;
+  bottom: 13%;
+  max-width: 380px;
+  text-shadow: 0 2px 24px #000;
+}
+.gt-you h3 {
+  font-size: clamp(1.2rem, 2vw, 1.85rem);
+  line-height: 1.12;
+  color: var(--gx-fg);
+  text-wrap: balance;
+}
+.gt-you p {
+  margin-top: 10px !important;
+  font-size: clamp(0.8rem, 1vw, 0.9375rem);
+  line-height: 1.5;
+  color: #c9d1ca;
+  text-wrap: pretty;
+}
+
+/* Labels ride on the two halves; each hides before the seam would crush it. */
+.gt-label {
+  position: absolute;
+  top: clamp(14px, 2.2vw, 28px);
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 10px 14px 11px;
+  border-radius: 14px;
+  background: #050605b8;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1px var(--gx-line);
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  color: var(--gx-fg);
+  pointer-events: none;
+  transition: opacity 240ms ease;
+}
+.gt-label .gx-protocol {
+  color: var(--gx-lime);
+}
+.gt-label--guide {
+  left: clamp(14px, 2.2vw, 28px);
+}
+.gt-label--you {
+  right: clamp(14px, 2.2vw, 28px);
+}
+.gt-label.is-hidden {
+  opacity: 0;
+}
+.gt.is-custom .gt-label--you {
+  top: auto;
+  bottom: clamp(14px, 2.2vw, 28px);
+}
+
+.gt-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--gt-split);
+  width: 2px;
+  margin-left: -1px;
+  background: var(--gx-lime);
+  box-shadow: 0 0 18px #ccff00b3, 0 0 2px #ccff00;
+  pointer-events: none;
+}
+.gt-handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--gx-lime);
+  color: #0d1204;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 6px #ccff0026, 0 10px 30px #000a;
+  transition: transform 260ms var(--gx-ease), box-shadow 260ms var(--gx-ease);
+}
+.gt-handle svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.gt.is-dragging .gt-handle,
+.gt-stage:hover .gt-handle {
+  transform: translate(-50%, -50%) scale(1.08);
+  box-shadow: 0 0 0 10px #ccff0021, 0 10px 30px #000a;
+}
+.gt-range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.gt-stage:has(.gt-range:focus-visible) .gt-handle {
+  outline: 2px solid var(--gx-fg);
+  outline-offset: 4px;
+}
+
+.gt-try {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-top: 22px;
+}
+.gx .gt-file {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.gt-file svg {
+  position: relative;
+  z-index: 1;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--gx-lime);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.gt-file input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.gt-file:has(input:focus-visible) {
+  outline: 2px solid var(--gx-lime);
+  outline-offset: 4px;
+}
+.gt-remove {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font-size: 0.875rem;
+  color: var(--gx-muted);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.gt-remove:hover {
+  color: var(--gx-fg);
+}
+.gt-note {
+  font-size: 0.8125rem;
+}
+.gt-note.is-alert {
+  color: #ff8fa3 !important;
+}
+
+.gt-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px 4vw;
+  max-width: 1320px;
+  margin: 72px auto 0;
+}
+.gt-facts div {
+  padding-top: 20px;
+  border-top: 1px solid var(--gx-line);
+}
+.gt-facts dt {
+  color: var(--gx-lime);
+}
+.gt-facts dd {
+  margin: 10px 0 0;
+  max-width: 30ch;
+  color: var(--gx-fg);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .gt-head {
+    grid-template-columns: 1fr;
+  }
+  .gt-facts {
+    grid-template-columns: 1fr;
+    margin-top: 48px;
+  }
+}
+@media (max-width: 760px) {
+  .gt {
+    padding: 110px 20px 96px;
+  }
+  .gt-head {
+    margin-bottom: 36px;
+  }
+  .gt-stage {
+    aspect-ratio: 4 / 5;
+    border-radius: 22px;
+  }
+  .gt-side--guide video {
+    object-position: 68% 50%;
+  }
+  .gt-floor {
+    right: -30%;
+    top: 12%;
+    height: 80%;
+  }
+  .gt-you {
+    left: max(calc(var(--gt-split) + 6%), 46%);
+    right: 6%;
+    bottom: 8%;
+  }
+  .gt-you h3 {
+    font-size: 1.05rem;
+  }
+  .gt-you p {
+    display: none;
+  }
+  .gt-label {
+    padding: 8px 10px 9px;
+    font-size: 0.75rem;
+    max-width: 42%;
+  }
+  .gt-handle {
+    width: 44px;
+    height: 44px;
+  }
+}

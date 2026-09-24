@@ -70,6 +70,7 @@ export type ScanAppScreen = {
   prepare: () => void
   sync: (scene: number, dt: number) => number
   suspend: () => void
+  readonly settled: boolean
   dispose: () => void
 }
 
@@ -238,6 +239,10 @@ export function createScanAppScreen(opts: {
     get ready() { return ready },
     prepare,
     suspend: () => { playback?.setActive(false); lastActive = false },
+    /** The capture has reached its held log-set frame (or never needed to play). */
+    get settled() {
+      return usingStill || (video !== null && lastActive && video.currentTime >= SCAN_FLOW_LOG.end - 0.08)
+    },
     sync,
     dispose,
   }

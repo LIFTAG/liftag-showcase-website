@@ -1,28 +1,25 @@
 import * as THREE from "three";
-import {
-  DISCOVERY_APP_TITLE,
-  discoveryTitlePoseAt,
-} from "./discoveryTimeline";
-import type { GymDemoMessages } from '~/i18n/messages/gymDemo';
+import { FLOOR_APP_TITLE, floorTitlePoseAt } from "./floorTimeline";
 
 const TEX_W = 1024;
 const TEX_H = 240;
 
-function drawCaption(ctx: CanvasRenderingContext2D, w: number, h: number, copy: GymDemoMessages['discovery']) {
-  ctx.clearRect(0, 0, w, h);
-  const { x, baseline, size, weight, boxX, boxY, boxW, boxH } = DISCOVERY_APP_TITLE;
+function drawCaption(ctx: CanvasRenderingContext2D, title: string) {
+  ctx.clearRect(0, 0, TEX_W, TEX_H);
+  const { x, baseline, size, weight, boxX, boxY, boxW, boxH } = FLOOR_APP_TITLE;
   ctx.fillStyle = "#eff2ed";
-  ctx.font = `${weight} ${(size / boxH) * h}px Inter, sans-serif`;
+  ctx.font = `${weight} ${(size / boxH) * TEX_H}px Inter, sans-serif`;
   ctx.textBaseline = "alphabetic";
-  ctx.fillText(copy.profileTitle, ((x - boxX) / boxW) * w, ((baseline - boxY) / boxH) * h);
+  ctx.fillText(title, ((x - boxX) / boxW) * TEX_W, ((baseline - boxY) / boxH) * TEX_H);
 }
 
-/** Floor "Your gym" caption that travels into the in-app title. */
-export function createDiscoveryTitle(copy: GymDemoMessages['discovery']) {
+/** "Your gym" painted on the tiles, travelling into the in-app title. */
+export function createFloorTitle(title: string) {
   const image = document.createElement("canvas");
   image.width = TEX_W;
   image.height = TEX_H;
-  drawCaption(image.getContext("2d")!, TEX_W, TEX_H, copy);
+  const ctx = image.getContext("2d")!;
+  drawCaption(ctx, title);
   const texture = new THREE.CanvasTexture(image);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.generateMipmaps = false;
@@ -40,18 +37,17 @@ export function createDiscoveryTitle(copy: GymDemoMessages['discovery']) {
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
   mesh.rotation.x = -Math.PI / 2;
   mesh.renderOrder = 3;
-  mesh.name = "floor-title-your-gym";
+  mesh.name = "floor-title";
   const root = new THREE.Group();
-  root.name = "discovery-title";
   root.add(mesh);
   return {
     root,
-    paintClean(nextCopy = copy) {
-      drawCaption(image.getContext("2d")!, TEX_W, TEX_H, nextCopy);
+    paint(next: string) {
+      drawCaption(ctx, next);
       texture.needsUpdate = true;
     },
     update(progress: number) {
-      const pose = discoveryTitlePoseAt(progress);
+      const pose = floorTitlePoseAt(progress);
       root.visible = pose.opacity > 0.001;
       if (!root.visible) return;
       root.position.set(pose.x, pose.y, pose.z);

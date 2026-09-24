@@ -1,0 +1,346 @@
+/* 07 · Start. How partnering works, what it costs, and the request form. */
+.gx-kit {
+  position: relative;
+  z-index: 1;
+  padding: clamp(120px, 15vh, 170px) 4.5vw clamp(100px, 12vh, 130px);
+  background:
+    radial-gradient(55% 40% at 12% 0%, #ccff0012, #0000 70%),
+    radial-gradient(45% 40% at 100% 70%, #18240f40, #0000 70%),
+    #060907;
+  border-top: 1px solid var(--gx-line);
+}
+.gx-kit > * {
+  max-width: 1320px;
+  margin-inline: auto;
+}
+.gk-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  align-items: end;
+  gap: 28px 8vw;
+}
+.gk-eyebrow {
+  display: flex;
+  align-items: center;
+  color: var(--gx-muted);
+  margin-bottom: 24px !important;
+}
+.gx-kit h2 {
+  font-size: clamp(2.5rem, 4.8vw, 5.2rem);
+  text-wrap: balance;
+}
+.gk-lede {
+  max-width: 34ch;
+  font-size: 1.0625rem;
+  text-wrap: pretty;
+  padding-bottom: 12px;
+}
+
+/* ---- three steps on one rail --------------------------------------------- */
+.gk-steps {
+  list-style: none;
+  margin-top: 72px !important;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  counter-reset: step;
+}
+.gk-steps li {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-content: start;
+  column-gap: 16px;
+  padding: 26px 26px 28px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #0e130f, #0a0d0b);
+  box-shadow: inset 0 0 0 1px var(--gx-line);
+}
+.gk-steps li:not(:last-child)::after {
+  /* The rail between cards: a short lime run across the gutter. */
+  content: "";
+  position: absolute;
+  top: 50px;
+  right: -16px;
+  width: 16px;
+  height: 1px;
+  background: var(--gx-lime);
+  box-shadow: 0 0 8px #ccff00;
+}
+.gk-steps__icon {
+  grid-row: span 3;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #151d10;
+  box-shadow: inset 0 0 0 1px #ccff0033;
+}
+.gk-steps__icon svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: var(--gx-lime);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.gk-steps__idx {
+  color: var(--gx-lime);
+  margin-top: 2px;
+}
+.gk-steps h3 {
+  margin-top: 6px !important;
+  font-size: 1.3rem;
+}
+.gk-steps p {
+  margin-top: 8px !important;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+/* ---- costs + form -------------------------------------------------------- */
+.gk-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 16px;
+  margin-top: 16px;
+  align-items: stretch;
+}
+.gk-side {
+  display: flex;
+  flex-direction: column;
+  border-radius: 28px;
+  overflow: hidden;
+  background:
+    radial-gradient(90% 60% at 50% 0%, #ccff0014, #0000 70%),
+    #0a0d0b;
+  box-shadow: inset 0 0 0 1px var(--gx-line);
+}
+.gk-sticker {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  margin: 0;
+  padding: 56px 36px 40px;
+  perspective: 900px;
+}
+.gk-sticker::before {
+  /* The lime pool the tag floats over. */
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 70%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #ccff001f, #0000);
+  transform: translate(-50%, -50%);
+}
+.gk-sticker img {
+  position: relative;
+  width: min(250px, 62%);
+  height: auto;
+  transform: rotateX(10deg) rotateY(-16deg) rotate(-6deg);
+  filter: drop-shadow(0 30px 44px #000) drop-shadow(0 0 40px #ccff0014);
+  animation: gk-float 6s ease-in-out infinite;
+}
+@keyframes gk-float {
+  50% { transform: rotateX(4deg) rotateY(-8deg) rotate(-3deg) translateY(-10px); }
+}
+.gk-sticker figcaption {
+  position: relative;
+  text-align: center;
+  color: var(--gx-fg);
+  font-size: 0.75rem;
+}
+.gk-sticker figcaption span {
+  color: var(--gx-muted);
+}
+.gk-ledger {
+  margin-top: auto;
+  padding: 30px 36px 34px;
+  border-top: 1px solid var(--gx-line);
+}
+.gk-ledger h3 {
+  font-size: 1.35rem;
+}
+.gk-ledger dl {
+  margin: 18px 0 0;
+}
+.gk-ledger dl div {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 16px;
+  padding: 13px 0;
+  border-bottom: 1px dashed #edf1ed1f;
+}
+.gk-ledger dt {
+  align-self: start;
+  padding-top: 3px;
+  color: var(--gx-lime);
+}
+.gk-ledger dl div:nth-child(2) dt {
+  color: #ff8fa3;
+}
+.gk-ledger dl div:nth-child(3) dt {
+  color: var(--gx-muted);
+}
+.gk-ledger dd {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--gx-fg);
+}
+.gx .gk-included {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 10px;
+  font-size: 0.875rem;
+  color: var(--gx-lime);
+}
+.gx .gk-included:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.gk-form {
+  min-width: 0;
+  padding: clamp(28px, 3vw, 44px);
+  border-radius: 28px;
+  background: #0b0f0c;
+  box-shadow: inset 0 0 0 1px var(--gx-line), 0 40px 100px -50px #000;
+}
+.gk-form > h3 {
+  font-size: clamp(1.6rem, 2.2vw, 2.1rem);
+  margin: 0 0 28px !important;
+}
+
+/* ---- FAQ ----------------------------------------------------------------- */
+.gk-faqs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 6vw;
+  margin-top: 96px !important;
+}
+.gk-faqs details {
+  border-bottom: 1px solid var(--gx-line);
+}
+.gk-faqs summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  min-height: 64px;
+  padding: 20px 0;
+  list-style: none;
+  font-size: 1rem;
+  color: var(--gx-fg);
+  transition: color 180ms ease;
+}
+.gk-faqs summary::-webkit-details-marker {
+  display: none;
+}
+.gk-faqs summary:hover {
+  color: var(--gx-lime);
+}
+.gk-faqs summary span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--gx-line);
+  color: var(--gx-lime);
+  font-size: 1.1rem;
+  transition: transform 220ms var(--gx-ease), background-color 220ms ease;
+}
+.gk-faqs details[open] summary span {
+  transform: rotate(45deg);
+  background: #151d10;
+}
+.gk-faqs p {
+  max-width: 62ch;
+  padding-bottom: 22px;
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 1100px) {
+  .gk-steps {
+    grid-template-columns: 1fr;
+  }
+  .gk-steps li:not(:last-child)::after {
+    top: auto;
+    bottom: -16px;
+    right: auto;
+    left: 50px;
+    width: 1px;
+    height: 16px;
+  }
+  .gk-grid {
+    grid-template-columns: 1fr;
+  }
+  .gk-side {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  }
+  .gk-ledger {
+    border-top: 0;
+    border-left: 1px solid var(--gx-line);
+  }
+}
+@media (max-width: 640px) {
+  .gk-side {
+    display: flex;
+  }
+  .gk-ledger {
+    border-left: 0;
+    border-top: 1px solid var(--gx-line);
+  }
+}
+@media (max-width: 760px) {
+  .gx-kit {
+    padding: 100px 16px 90px;
+  }
+  .gk-head {
+    grid-template-columns: 1fr;
+  }
+  .gx-kit h2 {
+    font-size: clamp(2.1rem, 10vw, 3rem);
+  }
+  .gk-steps {
+    margin-top: 44px !important;
+  }
+  .gk-steps li {
+    padding: 22px 20px;
+  }
+  .gk-sticker {
+    padding: 40px 24px 30px;
+  }
+  .gk-sticker img {
+    width: 170px;
+  }
+  .gk-ledger {
+    padding: 24px;
+  }
+  .gk-ledger dl div {
+    grid-template-columns: 84px 1fr;
+  }
+  .gk-form {
+    padding: 26px 20px;
+    border-radius: 22px;
+  }
+  .gk-faqs {
+    grid-template-columns: 1fr;
+    margin-top: 64px !important;
+  }
+}

@@ -169,25 +169,6 @@ export function fallbackHeroSlot(viewW: number, viewH: number): PhoneBox {
 }
 
 /**
- * CSS-pixel body box of the parked gym-demo phone. GymCinema feeds this to
- * the overlay; the discovery listing morphs out of the same rectangle.
- */
-export const CINEMA_PHONE_ASPECT = 0.475
-
-export function cinemaPhoneSlot(viewW: number, viewH: number): PhoneBox {
-  const compact = viewW < 761
-  const short = compact && viewH <= 740
-  const h = Math.min(viewH * (compact ? (short ? 0.34 : 0.38) : 0.65), 600)
-  const w = h * CINEMA_PHONE_ASPECT
-  return {
-    x: viewW * (compact ? 0.68 : 0.81) - w / 2,
-    y: compact ? viewH * (short ? 0.35 : 0.33) : (viewH - h) / 2,
-    w,
-    h,
-  }
-}
-
-/**
  * Slide the park box onto the hero slot. Position uses the snappy travel ease;
  * size uses the slower scale ease so the device visibly shrinks into place.
  */

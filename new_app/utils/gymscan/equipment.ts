@@ -50,3 +50,8 @@ export const benchInstruction = {
   slug: "ez-bar-skullcrusher",
   name: "EZ-Bar Skullcrusher",
 } as const;
+/** The catalog guide the member chapter plays for the scanned leg press. */
+export const legPressInstruction = {
+  slug: "standard-leg-press",
+  name: "Standard Leg Press",
+} as const;

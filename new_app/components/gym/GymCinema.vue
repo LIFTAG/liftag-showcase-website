@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { probeTemporaryWebGL2 } from "~/utils/gymscan/device";
-import { cinemaPhoneSlot, compactLoggerOwnsCopy } from "~/utils/gymscan/handoff";
+import { compactLoggerOwnsCopy } from "~/utils/gymscan/handoff";
+import { memberPhoneSlot } from "~/utils/gymscan/memberPhone";
 import {
   experienceDevice,
   type GymProductView,
@@ -9,7 +10,6 @@ import type { GymScanStage, FrameInfo } from "~/utils/gymscan/stage";
 import { gymDemoMessages } from '~/i18n/messages/gymDemo';
 import { useSiteLocale } from '~/composables/useSiteLocale';
 import { gymJourneyKey } from "~/composables/useGymJourney";
-import { gymCoachingKey } from "~/composables/useCoachingScroll";
 const props = defineProps<{
   paused: boolean;
   reduced: boolean;
@@ -21,17 +21,13 @@ function requireFilm<T>(value: T | undefined): T {
   return value;
 }
 const journey = requireFilm(inject(gymJourneyKey));
-const coaching = requireFilm(inject(gymCoachingKey));
-const { phoneVisible: discoveryPhoneVisible } = useGymDiscoveryHandoff();
-const emit = defineEmits<{ ready: [value: boolean]; fallback: []; customError: []; mediaFailed: [value: boolean]; swept: [] }>();
+// Once the member chapter's DOM phone has the device, the film has nothing
+// left to draw: stop the stage and let its canvas fade under the pane.
+const { docked, settled } = useGymPhoneDock();
+const emit = defineEmits<{ ready: [value: boolean]; fallback: []; swept: [] }>();
 const host = useTemplateRef<HTMLElement>("host");
 const canvas = useTemplateRef<HTMLCanvasElement>("canvas");
 const sticker = useTemplateRef<HTMLCanvasElement>("sticker");
-const video = useTemplateRef<HTMLVideoElement>('video');
-const customVideo = useTemplateRef<HTMLVideoElement>('customVideo');
-const mediaActive = shallowRef(false);
-const { failed: mediaFailed } = useGymInstructionPreview(video, () => mediaActive.value, () => props.reduced, true, locale);
-watch(mediaFailed, value => emit('mediaFailed', value));
 const ready = shallowRef(false);
 const fallback = shallowRef(false);
 const key = shallowRef(0);
@@ -40,11 +36,6 @@ const showPoster = computed(
     journey.value.chapter === "experience" &&
     (props.reduced || fallback.value),
 );
-const discoveryFilm = computed(() => {
-  const chapter = journey.value.chapter;
-  return chapter === "discover" || chapter === "kit";
-});
-const customSrc = computed(() => coaching.value.customSrc);
 const mouse = useSharedMouse();
 let stage: GymScanStage | null = null;
 let generation = 0,
@@ -67,7 +58,7 @@ function resize() {
   stage.resize();
   const width = canvas.value.clientWidth,
     height = canvas.value.clientHeight;
-  stage.setHeroSlot(cinemaPhoneSlot(width, height));
+  stage.setHeroSlot(memberPhoneSlot(width, height));
   sync();
   activity();
 }
@@ -114,6 +105,7 @@ function clearCopy() {
 }
 function frame(info: FrameInfo) {
   syncCopy(info);
+  if (settled.value) settled.value = false;
   if (!swept && info.act0.swept) {
     swept = true;
     emit("swept");
@@ -121,22 +113,18 @@ function frame(info: FrameInfo) {
 }
 function activity() {
   const chapter = journey.value.chapter;
-  const discoveryPhone = chapter === "discover" && discoveryPhoneVisible.value;
   const filmVisible =
-    ["experience", "the-tag", "lifters", "gyms"].includes(chapter) || discoveryPhone;
+    chapter === "experience" || chapter === "the-tag" || (chapter === "lifters" && !docked.value);
   const active = ready.value && visible && !document.hidden && !props.paused && filmVisible;
-  const nextMedia = active && journey.value.film > .9 && !coaching.value.paused;
-  if (mediaActive.value !== nextMedia) mediaActive.value = nextMedia;
   if (active) stage?.start();
   else stage?.stop();
-  if (nextMedia && coaching.value.frame.isOwner && coaching.value.customSrc) customVideo.value?.play().catch(() => {});
-  else customVideo.value?.pause();
 }
 function teardown() {
   cancelAnimationFrame(bootFrame);
   stage?.dispose();
   stage = null;
   ready.value = false;
+  settled.value = false;
   swept = false;
   emit("ready", false);
   clearCopy();
@@ -178,7 +166,10 @@ async function start() {
       onReady: () => {},
       onFrame: frame,
       readPointer: () => mouse.latest,
-      readCoaching: () => ({ frame: coaching.value.frame, video: video.value, customVideo: customVideo.value, replay: coaching.value.replay }),
+      parkAfterScan: true,
+      onParked: (value) => {
+        if (settled.value !== value) settled.value = value;
+      },
       copy: gymDemoMessages(locale.value),
     });
     resize();
@@ -208,8 +199,7 @@ async function scheduleStart() {
 }
 watch(journey, () => { sync(); activity(); });
 watch(locale, (value) => stage?.setCopy(gymDemoMessages(value)));
-watch(discoveryPhoneVisible, activity);
-watch(() => [coaching.value.paused, coaching.value.customSrc, coaching.value.frame.isOwner], () => nextTick(activity));
+watch(docked, activity);
 watch(() => [props.paused, journey.value.chapter], activity);
 watch(
   () => props.productView,
@@ -249,7 +239,7 @@ onBeforeUnmount(() => {
   <div
     ref="host"
     class="gx-cinema"
-    :class="{ 'is-ready': ready, 'is-discovery': discoveryFilm }"
+    :class="{ 'is-ready': ready, 'is-docked': docked }"
     aria-hidden="true"
   >
     <img
@@ -261,8 +251,6 @@ onBeforeUnmount(() => {
       alt=""
     />
     <canvas :key="key" ref="canvas" @webglcontextlost="failed" />
-    <video ref="video" class="gc-video-source" crossorigin="anonymous" muted playsinline loop preload="none" tabindex="-1" @error="mediaFailed = true" />
-    <video v-if="customSrc" ref="customVideo" class="gc-video-source" :src="customSrc" muted playsinline loop preload="metadata" tabindex="-1" @loadeddata="activity" @error="emit('customError')" />
   </div>
   <canvas
     :key="`sticker-${key}`"

@@ -1,0 +1,445 @@
+/* 05 · On the map. Slovakia seen from low orbit, lit on a dotted Europe that
+   falls away to a curved horizon, the demo gyms pinned, and one listing card
+   that follows the selected pin. */
+.gmap {
+  position: relative;
+  z-index: 1;
+  min-height: max(100svh, 760px);
+  overflow: clip;
+  background:
+    radial-gradient(70% 70% at 70% 52%, #0d150b, #0000 72%),
+    var(--gx-bg);
+  border-top: 1px solid var(--gx-line);
+}
+.gmap-stage {
+  position: absolute;
+  inset: 0;
+}
+.gmap-canvas,
+.gmap-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.gmap-canvas {
+  opacity: 0;
+  transition: opacity 600ms ease;
+  /* The planet's night side falls into shadow behind the copy, and the near
+     ground fades out under the card, leaving Slovakia and the limb lit. */
+  -webkit-mask-image:
+    linear-gradient(90deg, #0000 16%, #000 50%),
+    linear-gradient(#000 58%, #0000 96%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(90deg, #0000 16%, #000 50%),
+    linear-gradient(#000 58%, #0000 96%);
+  mask-composite: intersect;
+}
+.gmap.is-ready .gmap-canvas {
+  opacity: 1;
+}
+.gmap-lines {
+  overflow: visible;
+  pointer-events: none;
+}
+/* Routes lift off the ground from Bratislava; the selected city's lights up. */
+.gmap-arc {
+  fill: none;
+  stroke: #ccff0040;
+  stroke-width: 1;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition:
+    stroke-dashoffset 1400ms var(--gx-ease) calc(350ms + var(--i) * 120ms),
+    stroke 400ms ease,
+    stroke-width 400ms ease;
+}
+.gmap.is-landed .gmap-arc {
+  stroke-dashoffset: 0;
+}
+.gmap.is-hub .gmap-arc,
+.gmap-arc.is-on {
+  stroke: #ccff00b3;
+  stroke-width: 1.4;
+}
+.gmap-stem {
+  stroke: #ccff00;
+  stroke-width: 1;
+  stroke-linecap: round;
+  opacity: 0;
+  transition: opacity 500ms ease calc(var(--i) * 70ms);
+}
+.gmap.is-landed .gmap-stem {
+  opacity: 0.45;
+}
+.gmap-extra {
+  fill: var(--gx-lime);
+  opacity: 0;
+  transition: opacity 500ms ease 400ms;
+}
+.gmap.is-landed .gmap-extra {
+  opacity: 0.8;
+}
+.gmap.is-landed .gmap-stem.is-on {
+  opacity: 0.9;
+  transition-delay: 0ms;
+}
+
+.gmap-pins {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.gmap-pins li {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  z-index: 2;
+}
+.gmap-pins li.is-on,
+.gmap-pins li:hover,
+.gmap-pins li:has(button:focus-visible) {
+  z-index: 3;
+}
+.gmap-pins button {
+  position: absolute;
+  left: -16px;
+  top: -16px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: translateY(-10px) scale(0.6);
+  transition:
+    opacity 500ms ease calc(var(--i) * 70ms),
+    transform 700ms var(--gx-ease) calc(var(--i) * 70ms);
+}
+.gmap.is-landed .gmap-pins button {
+  opacity: 1;
+  transform: none;
+}
+.gmap-pin {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gx-lime);
+  box-shadow: 0 0 0 2px #0a0f06, 0 0 12px #ccff0099;
+  transition: transform 300ms var(--gx-ease), background-color 300ms ease;
+}
+.is-hub .gmap-pin {
+  width: 11px;
+  height: 11px;
+}
+.gmap-pins button:hover .gmap-pin {
+  transform: scale(1.3);
+}
+.gmap-pins li.is-on .gmap-pin {
+  background: #fff;
+  transform: scale(1.3);
+  box-shadow: 0 0 0 2px #0a0f06, 0 0 0 3.5px var(--gx-lime), 0 0 22px #ccff00;
+}
+.gmap-pins li.is-on .gmap-pin::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 1px solid #ccff00;
+  animation: gmap-ring 2.4s ease-out infinite;
+}
+@keyframes gmap-ring {
+  0% { opacity: 0.8; transform: scale(1); }
+  100% { opacity: 0; transform: scale(3.2); }
+}
+/* Labels sit beside the pin, map style, so a neighbour a few kilometres
+   north (Prešov over Košice) never ends up under one. */
+.gmap-city {
+  position: absolute;
+  left: 14px;
+  top: 0;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  padding: 4px 7px 3px;
+  border-radius: 6px;
+  color: var(--gx-fg);
+  background: #070a08d9;
+  box-shadow: inset 0 0 0 1px var(--gx-line);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 240ms ease;
+}
+.gmap-pins li.is-flip .gmap-city {
+  left: auto;
+  right: 14px;
+}
+.gmap.is-landed .gmap-pins li.is-on .gmap-city,
+.gmap-pins li:hover .gmap-city,
+.gmap-pins li:has(button:focus-visible) .gmap-city {
+  opacity: 1;
+}
+
+.gmap-leader {
+  fill: none;
+  stroke: var(--gx-lime);
+  stroke-width: 1.25;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  animation: gmap-leader 900ms var(--gx-ease) 120ms forwards;
+}
+.gmap:not(.is-landed) .gmap-leader {
+  animation-play-state: paused;
+}
+@keyframes gmap-leader {
+  0% { stroke-dashoffset: 1; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0.8; }
+}
+.gmap-card {
+  position: absolute;
+  right: 4.5vw;
+  bottom: 128px;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 38% 1fr;
+  width: min(640px, 50vw);
+  border-radius: 24px;
+  overflow: hidden;
+  background: #0a0e0bf2;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow:
+    inset 0 0 0 1px var(--gx-line),
+    0 30px 80px -20px #000,
+    0 0 60px -20px #ccff0033;
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 700ms ease 450ms,
+    transform 900ms var(--gx-ease) 450ms;
+}
+.gmap.is-landed .gmap-card {
+  opacity: 1;
+  transform: none;
+}
+.gmap-card__photo {
+  position: relative;
+  overflow: hidden;
+  min-height: 100%;
+}
+.gmap-card__photo img {
+  /* The photo band is 287 of the capture's 1212 px, starting at 28.4%. */
+  position: absolute;
+  width: auto;
+  height: 422%;
+  top: -120%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.gmap-card__body {
+  padding: 20px 22px 20px;
+  min-width: 0;
+}
+.gmap-card__place {
+  color: var(--gx-lime);
+}
+.gmap-card h3 {
+  margin-top: 6px !important;
+  font-size: 1.45rem;
+}
+.gmap-card__open {
+  display: flex;
+  align-items: center;
+  margin-top: 6px !important;
+  font-size: 0.8125rem;
+}
+.gmap-card__label {
+  margin: 16px 0 8px !important;
+  color: var(--gx-muted);
+}
+.gmap-card__machines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.gmap-card__machines li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 5px 8px 5px 5px;
+  border-radius: 11px;
+  background: #121813;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  color: var(--gx-fg);
+}
+.gmap-card__machines span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gmap-card__machines img {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  object-fit: cover;
+  background: #000;
+}
+.gmap-swap-enter-active,
+.gmap-swap-leave-active {
+  transition: opacity 220ms ease, transform 320ms var(--gx-ease);
+}
+.gmap-swap-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.gmap-swap-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+.gmap-note {
+  position: absolute;
+  right: 4.5vw;
+  bottom: 100px;
+  z-index: 2;
+  color: #7e8c80;
+}
+
+.gmap-copy {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: max(100svh, 760px);
+  width: min(36vw, 600px);
+  margin-left: 4.5vw;
+  padding: 120px 0;
+  pointer-events: none;
+}
+.gmap-copy > * {
+  pointer-events: auto;
+}
+.gmap-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--gx-muted);
+  margin-bottom: 22px !important;
+}
+.gmap-eyebrow span {
+  color: var(--gx-lime);
+}
+.gmap-eyebrow::after {
+  content: "";
+  width: 44px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.5;
+}
+.gmap h2 {
+  font-size: clamp(2.3rem, 4vw, 4.4rem);
+  text-wrap: balance;
+  text-shadow: 0 2px 40px #040605;
+}
+.gmap-lede {
+  margin-top: 20px !important;
+  max-width: 40ch;
+  font-size: 1rem;
+  text-wrap: pretty;
+}
+.gmap-facts {
+  margin: 34px 0 0;
+  border-top: 1px solid var(--gx-line);
+}
+.gmap-facts div {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--gx-line);
+}
+.gmap-facts dt {
+  color: var(--gx-lime);
+  align-self: center;
+}
+.gmap-facts dd {
+  margin: 0;
+  color: var(--gx-fg);
+  font-size: 0.9375rem;
+}
+.gx .gmap-link {
+  align-self: flex-start;
+  margin-top: 32px;
+}
+
+@media (max-width: 1100px) and (min-width: 761px) {
+  .gmap-copy {
+    width: min(38vw, 420px);
+  }
+  .gmap-card {
+    width: min(520px, 50vw);
+    grid-template-columns: 34% 1fr;
+  }
+}
+@media (max-width: 760px) {
+  .gmap {
+    min-height: 0;
+    display: flex;
+    flex-direction: column-reverse;
+  }
+  .gmap-stage {
+    position: relative;
+    inset: auto;
+    height: min(118vw, 640px);
+    margin-top: 8px;
+  }
+  .gmap-copy {
+    min-height: 0;
+    width: auto;
+    margin: 0;
+    padding: 110px 20px 0;
+  }
+  .gmap-canvas {
+    -webkit-mask-image: linear-gradient(#000 62%, #0000 98%);
+    mask-image: linear-gradient(#000 62%, #0000 98%);
+  }
+  .gmap-card.is-compact {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    width: auto;
+    grid-template-columns: 36% 1fr;
+    border-radius: 18px;
+  }
+  .gmap-card.is-compact .gmap-card__body {
+    padding: 14px 14px 14px;
+  }
+  .gmap-card.is-compact h3 {
+    font-size: 1.15rem;
+  }
+  .gmap-card.is-compact .gmap-card__label,
+  .gmap-card.is-compact .gmap-card__machines {
+    display: none;
+  }
+  .gmap-note {
+    right: 16px;
+    top: 14px;
+    bottom: auto;
+  }
+  .gmap-facts div {
+    grid-template-columns: 96px 1fr;
+  }
+}

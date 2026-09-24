@@ -1,8 +1,8 @@
 import * as THREE from "three";
-import { discoveryIslandAt } from "./discoveryTimeline";
+import { floorIslandAt } from "./floorTimeline";
 
 /** Fade and gently expand the real notch in place, independently of the floor. */
-export function createDiscoveryIsland(island: THREE.Mesh) {
+export function createFloorIsland(island: THREE.Mesh) {
   const root = new THREE.Group();
   root.name = "dynamic-island-entrance";
   root.add(island);
@@ -14,7 +14,7 @@ export function createDiscoveryIsland(island: THREE.Mesh) {
   return {
     root,
     update(morph: number) {
-      const { opacity, scale } = discoveryIslandAt(morph);
+      const { opacity, scale } = floorIslandAt(morph);
       root.visible = opacity > 0;
       material.opacity = opacity;
       island.scale.copy(baseScale).multiplyScalar(scale);

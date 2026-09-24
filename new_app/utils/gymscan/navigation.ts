@@ -31,6 +31,8 @@ export function gymAnchor(hash: string): string | null {
     "trainers",
     "gyms",
     "discover",
+    "floor",
+    "dashboard",
     "kit",
   ].includes(destination)
     ? destination

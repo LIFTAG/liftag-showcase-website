@@ -9,6 +9,8 @@ export function gymJourneyAt(
   owner: number,
   kit = Infinity,
   discover = Infinity,
+  dashboard = Infinity,
+  floor = Infinity,
 ) {
   const installationEnd = tag + (member - tag) * 0.4;
   return {
@@ -23,6 +25,10 @@ export function gymJourneyAt(
     chapter:
       scroll >= kit - 96
         ? "kit"
+        : scroll >= dashboard - 96
+          ? "dashboard"
+        : scroll >= floor - 96
+          ? "floor"
         : scroll >= discover - 96
           ? "discover"
           : scroll >= owner - 96
@@ -65,22 +71,6 @@ export function experienceDprCap(
     EXPERIENCE_PHONE_DPR_CAP,
     Math.sqrt(EXPERIENCE_PIXEL_BUDGET / area),
   );
-}
-
-/**
- * Discovery canvas DPR. Desktop keeps the existing 1.5 cap. Compact spends
- * the same unused fill the gym film does, so the equipment GLBs match the
- * hero machine instead of sitting at 1.5× on a 3× display.
- */
-export function discoveryPixelRatio(
-  devicePixelRatio: number,
-  cssWidth: number,
-  cssHeight: number,
-): number {
-  const native = devicePixelRatio > 0 ? devicePixelRatio : 1;
-  const compact = cssWidth < 760;
-  const cap = compact ? experienceDprCap(true, cssWidth, cssHeight) : 1.5;
-  return Math.min(native, cap);
 }
 
 /** Graphics quality is independent of the film: phones retain every shot. */

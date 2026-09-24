@@ -9,8 +9,8 @@ import { useVideoLanguage } from './useVideoLanguage.ts';
 import { canUseNativeHls } from '../utils/exerciseVideoLanguage.ts';
 import { exerciseHlsConfig, exerciseHlsRequestUrl } from '../utils/exerciseHls.ts';
 
-/** Resolve only the real matched bench instruction, near its visible shot. */
-export function useGymInstructionPreview(video: Ref<HTMLVideoElement | null>, active: () => boolean, reduced: () => boolean, sameOrigin = false, locale: MaybeRefOrGetter<SiteLocale> = 'en') {
+/** Resolve only a real catalog instruction, near its visible shot. */
+export function useGymInstructionPreview(video: Ref<HTMLVideoElement | null>, active: () => boolean, reduced: () => boolean, sameOrigin = false, locale: MaybeRefOrGetter<SiteLocale> = 'en', slug: string = benchInstruction.slug) {
   const exercise = shallowRef<CatalogExercise | null>(null);
   const failed = shallowRef(false);
   const loading = shallowRef(false);
@@ -60,7 +60,7 @@ export function useGymInstructionPreview(video: Ref<HTMLVideoElement | null>, ac
     loading.value = true;
     failed.value = false;
     try {
-      request ??= $fetch<CatalogExercise>(`/api/catalog/exercises/${benchInstruction.slug}?locale=${requestedLocale}`, { signal: abort.signal, timeout: 12000 });
+      request ??= $fetch<CatalogExercise>(`/api/catalog/exercises/${slug}?locale=${requestedLocale}`, { signal: abort.signal, timeout: 12000 });
       const result = await request;
       if (!isCurrent()) return;
       exercise.value = result;

@@ -286,6 +286,14 @@ export interface StageOptions {
     clientY?: number
   }
   readCoaching?: () => { frame: CoachingFrame; video: HTMLVideoElement | null; customVideo: HTMLVideoElement | null; replay: number }
+  /**
+   * Once the scan has landed, draw only the parked phone on its app screen.
+   * The page hands the device to its own DOM phone from there, so the room,
+   * bloom and reticle have nothing left to contribute.
+   */
+  parkAfterScan?: boolean
+  /** Each parked frame: whether the scan capture has reached its log-set hold. */
+  onParked?: (settled: boolean) => void
   overlayCoversFrame?: () => boolean
   renderOverlay?: (renderer: THREE.WebGLRenderer, dt: number, width: number, height: number) => void
   copy?: GymDemoMessages
@@ -1483,9 +1491,20 @@ export function createGymScanStage(opts: StageOptions) {
 
     // After the scan, draw only the existing phone and its screen content.
     // The gym, bloom, reticle and scanner playback have finished their work.
-    if (opts.readCoaching && p > .999 && targetProgress === 1) {
-      appScreen.suspend()
-      updateCoaching(1, dt)
+    if ((opts.readCoaching || opts.parkAfterScan) && p > .999 && targetProgress === 1) {
+      if (opts.readCoaching) {
+        appScreen.suspend()
+        updateCoaching(1, dt)
+      } else {
+        // Let the scan-to-log capture run out on the parked glass. The page's
+        // DOM phone takes the device over on its held last frame.
+        appScreen.sync(1, dt)
+        phoneOverlay.bindAppTexture(
+          appScreen.texture, appScreen.uvs.repeatX, appScreen.uvs.repeatY,
+          appScreen.uvs.offsetX, appScreen.uvs.offsetY,
+        )
+        opts.onParked?.(appScreen.settled)
+      }
       phoneOverlay.setHeroMix(1)
       phoneOverlay.setAppMix(1)
       const parked = phoneTarget(1)

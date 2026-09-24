@@ -1,20 +1,14 @@
 <script setup lang="ts">
 import { gymAnchor } from "~/utils/gymscan/navigation";
-import type { CoachingState } from '~/utils/gymscan/coachingStage';
 import { gymJourneyKey } from '~/composables/useGymJourney';
-import { gymCoachingKey } from '~/composables/useCoachingScroll';
 import { GYM_ARRIVAL_STATE_KEY } from '~/utils/gymscan/arrivalBootstrap';
 import { en, sk } from '~/i18n/messages/gymDemo';
-const coaching = shallowRef<CoachingState>({ frame: { member: 0, owner: 0, isOwner: false, reduced: false }, paused: false, customSrc: '', replay: 0 });
-const customError = shallowRef(0);
-const mediaFailed = shallowRef(false);
 const root = useTemplateRef<HTMLElement>("journey");
 const { current, chapter, reducedMotion, track } = useGymJourney(root);
 const { t } = useI18n({ useScope: 'local', messages: { en, sk } });
 const { href } = useSiteLocale();
 provide(gymJourneyKey, current);
-provide(gymCoachingKey, coaching);
-provideGymDiscoveryHandoff();
+provideGymPhoneDock();
 const enhanced = shallowRef(false);
 const hydrated = shallowRef(false);
 const arrivalSeen = useState(GYM_ARRIVAL_STATE_KEY, () => false);
@@ -34,8 +28,10 @@ const chapters = computed(() => [
   { id: 'experience', label: t('chapters.machine'), compact: t('chapters.machineCompact') },
   { id: 'the-tag', label: t('chapters.tag'), compact: t('chapters.tagCompact') },
   { id: 'lifters', label: t('chapters.members'), compact: t('chapters.membersCompact') },
-  { id: 'gyms', label: t('chapters.instructions'), compact: t('chapters.instructionsCompact') },
+  { id: 'gyms', label: t('chapters.trainer'), compact: t('chapters.trainerCompact') },
   { id: 'discover', label: t('chapters.map'), compact: t('chapters.mapCompact') },
+  { id: 'floor', label: t('chapters.floor'), compact: t('chapters.floorCompact') },
+  { id: 'dashboard', label: t('chapters.dashboard'), compact: t('chapters.dashboardCompact') },
 ]);
 function kit() {
   track("gym_kit_cta");
@@ -113,8 +109,6 @@ useHead({
     <main :inert="arriving ? true : undefined">
       <div ref="journey" class="gx-journey">
         <GymCinema
-          @custom-error="customError++"
-          @media-failed="mediaFailed = $event"
           :paused="arriving"
           :reduced="reducedMotion"
           product-view="exercise"
@@ -165,9 +159,12 @@ useHead({
             loading="lazy"
           />
         </section>
-        <GymCoachingStory :reduced="reducedMotion" :enhanced="enhanced" :custom-error="customError" :media-failed="mediaFailed" @change="coaching = $event" @kit="kit" />
-        <GymGlobeStory :reduced="reducedMotion" />
+        <GymMemberStory :reduced="reducedMotion" :enhanced="enhanced && !fallback" />
       </div>
+      <GymTrainerStory :reduced="reducedMotion" />
+      <GymMapStory :reduced="reducedMotion" />
+      <GymFloorStory :reduced="reducedMotion" />
+      <GymDashboardStory :reduced="reducedMotion" @kit="kit" />
       <GymKit />
     </main>
     <footer class="gx-footer" :inert="arriving ? true : undefined">

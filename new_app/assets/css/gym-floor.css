@@ -1,0 +1,566 @@
+/* 06 · Your floor. A pinned pane where the demonstration floor contracts into
+   the gym's equipment list in the app. */
+.gf {
+  --gf-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  z-index: 1;
+  background: var(--gx-bg);
+}
+.gf.is-pinned {
+  height: 380svh;
+}
+.gf-pane {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  min-height: 480px;
+  overflow: clip;
+  overflow-anchor: none;
+  /* A pool of light under the floor, and a softer one where the phone lands. */
+  background:
+    radial-gradient(36% 46% at 69% 52%, #151d17 0%, #0000 72%),
+    radial-gradient(26% 40% at 56% 52%, #ccff0008 0%, #0000 70%);
+}
+.gf.is-still .gf-pane {
+  position: relative;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 48px 6vw;
+  padding: clamp(110px, 14vh, 150px) 4.5vw clamp(90px, 12vh, 130px);
+}
+
+/* ---- film ---------------------------------------------------------------- */
+.gf-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0;
+  transition: opacity 700ms ease;
+}
+.gf.is-ready .gf-canvas {
+  opacity: 1;
+}
+/* The tile field in wireframe, with a scan line, until the stage is ready. */
+.gf-standby {
+  position: absolute;
+  left: 42%;
+  top: 15%;
+  width: 54%;
+  height: 72%;
+  perspective: 1200px;
+  pointer-events: none;
+  transition: opacity 500ms ease, visibility 0s linear 500ms;
+}
+.gf.is-ready .gf-standby {
+  opacity: 0;
+  visibility: hidden;
+}
+.gf-standby i {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: 78%;
+  aspect-ratio: 5 / 4;
+  overflow: hidden;
+  border: 1px solid #edf1ed29;
+  background:
+    linear-gradient(#edf1ed1a 1px, #0000 1px) 0 0 / 100% 25%,
+    linear-gradient(90deg, #edf1ed1a 1px, #0000 1px) 0 0 / 20% 100%;
+  transform: translate(-50%, -50%) rotateX(58deg) rotateZ(-24deg);
+}
+.gf-standby i::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gx-lime);
+  box-shadow: 0 0 18px 2px #ccff0066;
+  animation: gf-standby 1.8s var(--gf-ease) infinite;
+}
+@keyframes gf-standby {
+  from { top: 0; opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  to { top: 100%; opacity: 0; }
+}
+.gf-tags {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+/* A zero-size anchor on the tag's number; JS moves and scales it. */
+.gf-tag {
+  --gf-name: 1;
+  --gf-mix: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+.gf-tag::after {
+  /* Leader down to the machine it names. */
+  content: "";
+  position: absolute;
+  left: -0.5px;
+  top: 13px;
+  width: 1px;
+  height: 17px;
+  background: linear-gradient(#ccff00b3, #ccff0000);
+  opacity: var(--gf-name);
+}
+.gf-tag__num {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  font-family: var(--liftag-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+  /* Lime badge on the floor → bare lime index, exactly as the app paints it. */
+  color: color-mix(in srgb, var(--gx-lime) calc(var(--gf-mix) * 100%), #0d1204);
+  background: rgb(204 255 0 / calc(1 - var(--gf-mix)));
+  box-shadow:
+    0 0 0 calc((1 - var(--gf-mix)) * 4px) #0a0d0b99,
+    0 0 calc((1 - var(--gf-mix)) * 18px) #ccff0059;
+}
+.gf-tag__name {
+  position: absolute;
+  left: 4px;
+  top: 0;
+  z-index: -1;
+  padding: 6px 12px 6px 18px;
+  border: 1px solid #edf1ed2e;
+  border-radius: 999px;
+  background: #0a0d0bd9;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--gx-fg);
+  opacity: var(--gf-name);
+  backdrop-filter: blur(6px);
+}
+
+/* ---- copy + beat rail ---------------------------------------------------- */
+.gf-copy {
+  position: absolute;
+  left: 4.5vw;
+  top: 50%;
+  width: min(33vw, 440px);
+  transform: translateY(-50%);
+  z-index: 2;
+}
+.gf.is-still .gf-copy {
+  position: static;
+  width: auto;
+  max-width: 520px;
+  transform: none;
+}
+.gf-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--gx-muted);
+  margin-bottom: 22px !important;
+}
+.gf-eyebrow span {
+  color: var(--gx-lime);
+}
+.gf-eyebrow::after {
+  content: "";
+  width: 44px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.5;
+}
+.gf h2 {
+  font-size: clamp(2.2rem, 3.7vw, 4.1rem);
+  text-wrap: balance;
+}
+.gf-lede {
+  margin-top: 18px !important;
+  max-width: 36ch;
+  font-size: 1rem;
+  text-wrap: pretty;
+}
+.gf-rail {
+  list-style: none;
+  margin: 38px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--gx-line);
+}
+.gf-rail li {
+  border-bottom: 1px solid var(--gx-line);
+}
+.gf-rail button {
+  position: relative;
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  align-items: baseline;
+  width: 100%;
+  min-height: 56px;
+  padding: 16px 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  color: var(--gx-muted);
+  transition: color 240ms ease;
+}
+.gf-rail button:disabled {
+  cursor: default;
+}
+.gf-rail li.is-on button,
+.gf-rail button:hover:not(:disabled) {
+  color: var(--gx-fg);
+}
+.gf-rail li.is-on .gf-rail__idx {
+  color: var(--gx-lime);
+}
+.gf-rail__text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+.gf-rail__name {
+  font-family: var(--liftag-font-headline);
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.gf-rail__line {
+  font-size: 0.875rem;
+  opacity: 0.8;
+}
+.gf-rail__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  overflow: hidden;
+}
+.gf-rail__bar i {
+  position: absolute;
+  inset: 0;
+  background: var(--gx-lime);
+  box-shadow: 0 0 10px #ccff0099;
+  transform-origin: left;
+  transform: scaleX(0);
+}
+.gf-rail li:nth-child(1) .gf-rail__bar i { transform: scaleX(var(--gf-fill-0, 0)); }
+.gf-rail li:nth-child(2) .gf-rail__bar i { transform: scaleX(var(--gf-fill-1, 0)); }
+.gf-rail li:nth-child(3) .gf-rail__bar i { transform: scaleX(var(--gf-fill-2, 0)); }
+.gf.is-still .gf-rail__bar {
+  display: none;
+}
+/* The active beat opens its own line of detail. */
+.gf-rail__more {
+  max-height: 0;
+  overflow: hidden;
+  margin: 0 0 0 34px !important;
+  max-width: 38ch;
+  font-size: 0.9375rem;
+  text-wrap: pretty;
+  opacity: 0;
+  transition:
+    max-height 500ms var(--gf-ease),
+    opacity 300ms ease,
+    margin 500ms var(--gf-ease);
+}
+.gf-rail li.is-on .gf-rail__more {
+  max-height: 7em;
+  margin-bottom: 18px !important;
+  opacity: 1;
+}
+
+.gf-note {
+  /* Under the copy column, clear of the device at every width. */
+  position: absolute;
+  left: 4.5vw;
+  bottom: clamp(96px, 12vh, 118px);
+  z-index: 2;
+  color: var(--gx-muted);
+  opacity: 0.7;
+}
+.gf.is-still .gf-note {
+  position: static;
+  grid-column: 1 / -1;
+}
+
+/* ---- the finished screen as markup ---------------------------------------- */
+.gf-app {
+  --gf-u: calc(var(--gf-w) / 100);
+  --gf-w: min(330px, 78vw);
+  position: relative;
+  width: var(--gf-w);
+  aspect-ratio: 0.95 / 1.95;
+  margin: 0;
+  justify-self: center;
+  border-radius: calc(var(--gf-w) * 0.14737);
+  background: #010101;
+  box-shadow:
+    inset 0 0 0 max(1px, calc(var(--gf-u) * 0.28)) #ffffff14,
+    0 calc(var(--gf-u) * 10) calc(var(--gf-u) * 24) calc(var(--gf-u) * -4) #000000cc;
+}
+/* While the film plays, the list stays in the accessibility tree only. */
+.gf.is-pinned .gf-app {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.gf-app__screen {
+  position: absolute;
+  inset: 1.28% 2.63%;
+  border-radius: calc(var(--gf-w) * 0.12105);
+  overflow: hidden;
+  padding: calc(var(--gf-u) * 12) calc(var(--gf-u) * 5.2) 0;
+  background: #0e1210;
+  color: #eff2ed;
+  font-size: calc(var(--gf-u) * 3.4);
+  line-height: 1.25;
+}
+.gf-app__island {
+  position: absolute;
+  left: 50%;
+  top: 2.69%;
+  width: 27.4%;
+  height: 3.33%;
+  border-radius: 999px;
+  background: #000;
+  transform: translateX(-50%);
+}
+.gf-app__status {
+  position: absolute;
+  left: calc(var(--gf-u) * 6);
+  top: calc(var(--gf-u) * 5);
+  font-weight: 600;
+}
+.gf-app__back {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--gf-u) * 2);
+  color: #9aa49c !important;
+  font-size: calc(var(--gf-u) * 2.6) !important;
+}
+.gf-app__back span {
+  font-family: var(--liftag-font-body);
+  font-size: calc(var(--gf-u) * 6.4);
+  line-height: 0.6;
+  color: #eff2ed;
+}
+.gf-app__title {
+  margin-top: calc(var(--gf-u) * 3) !important;
+  font-size: calc(var(--gf-u) * 7.6);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: #eff2ed !important;
+}
+.gf-app__city {
+  color: #9aa49c !important;
+}
+.gf-app__search {
+  margin-top: calc(var(--gf-u) * 3.4) !important;
+  padding: calc(var(--gf-u) * 2.6) calc(var(--gf-u) * 4);
+  border-radius: calc(var(--gf-u) * 2.4);
+  background: #1a201c;
+  color: #9aa49c !important;
+}
+.gf-app__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: calc(var(--gf-u) * 4) !important;
+  color: #eff2ed !important;
+  font-weight: 600;
+  font-size: calc(var(--gf-u) * 4.3);
+}
+.gf-app__head span + span {
+  color: #9aa49c;
+  font-weight: 500;
+  font-size: calc(var(--gf-u) * 3.1);
+}
+.gf-app ol {
+  list-style: none;
+  margin: calc(var(--gf-u) * 2) 0 0;
+  padding: 0;
+}
+.gf-app li {
+  display: grid;
+  grid-template-columns: calc(var(--gf-u) * 23) 1fr;
+  grid-template-rows: auto auto auto;
+  column-gap: calc(var(--gf-u) * 3.5);
+  align-items: center;
+  padding: calc(var(--gf-u) * 3.4) 0;
+  border-bottom: 1px solid #252d27;
+}
+.gf-app li:last-child {
+  border-bottom: 0;
+}
+.gf-app li img {
+  grid-row: 1 / 4;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  border-radius: calc(var(--gf-u) * 3);
+  background: radial-gradient(circle at 50% 40%, #39443b, #1d241f 72%);
+}
+.gf-app__meta {
+  display: flex;
+  gap: calc(var(--gf-u) * 2);
+  font-family: var(--liftag-font-mono);
+  font-size: calc(var(--gf-u) * 2.4);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9aa49c;
+}
+.gf-app__meta b {
+  color: var(--gx-lime);
+  font-weight: 600;
+}
+.gf-app li strong {
+  font-size: calc(var(--gf-u) * 4.2);
+  font-weight: 600;
+  line-height: 1.15;
+}
+.gf-app__view {
+  color: var(--gx-lime);
+  font-size: calc(var(--gf-u) * 2.9);
+}
+
+/* ---- mid widths: a narrower copy column --------------------------------- */
+@media (max-width: 1199px) and (min-width: 761px) {
+  .gf-copy {
+    width: min(38vw, 400px);
+  }
+  .gf-rail__line {
+    display: none;
+  }
+  .gf-pane {
+    background:
+      radial-gradient(40% 46% at 70% 52%, #151d17 0%, #0000 72%),
+      radial-gradient(26% 40% at 62% 52%, #ccff0008 0%, #0000 70%);
+  }
+}
+
+/* ---- phones: floor on top, copy underneath ------------------------------- */
+@media (max-width: 760px) {
+  .gf.is-pinned {
+    height: 340svh;
+  }
+  .gf-pane {
+    --gf-vh: max(100svh, 480px);
+    --gf-top: max(76px, calc(var(--gf-vh) * 0.11));
+    --gf-dev: min(calc(var(--gf-vh) * 0.5), 460px);
+    background: radial-gradient(70% 34% at 50% 30%, #151d17 0%, #0000 72%);
+  }
+  .gf-standby {
+    left: 5%;
+    top: var(--gf-top);
+    width: 90%;
+    height: var(--gf-dev);
+  }
+  .gf.is-pinned .gf-copy {
+    left: 20px;
+    right: 20px;
+    top: calc(var(--gf-top) + var(--gf-dev) + 22px);
+    width: auto;
+    transform: none;
+  }
+  .gf-eyebrow {
+    margin-bottom: 10px !important;
+  }
+  .gf h2 {
+    font-size: clamp(1.55rem, 7.4vw, 2rem);
+  }
+  .gf.is-pinned .gf-lede {
+    display: none;
+  }
+  .gf.is-pinned .gf-rail {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 16px;
+    border: 0;
+  }
+  .gf.is-pinned .gf-rail li {
+    border: 0;
+  }
+  .gf.is-pinned .gf-rail button {
+    grid-template-columns: auto 1fr;
+    gap: 8px;
+    min-height: 44px;
+    padding: 10px 0 12px;
+    border-top: 1px solid var(--gx-line);
+  }
+  .gf.is-pinned .gf-rail__bar {
+    top: -1px;
+    bottom: auto;
+  }
+  .gf-rail__name {
+    font-size: 0.95rem;
+  }
+  .gf-rail__line {
+    display: none;
+  }
+  /* One beat's detail at a time, under the three tabs. */
+  .gf.is-pinned .gf-rail {
+    position: relative;
+    padding-bottom: 4.6em;
+  }
+  .gf.is-pinned .gf-rail__more {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 60px;
+    margin: 0 !important;
+    max-height: none;
+    max-width: none;
+    font-size: 0.875rem;
+    transition: opacity 300ms ease;
+  }
+  .gf.is-pinned .gf-rail li.is-on .gf-rail__more {
+    margin: 0 !important;
+  }
+  .gf-tag__name {
+    font-size: 11px;
+    padding: 5px 10px 5px 16px;
+  }
+  .gf-note {
+    display: none;
+  }
+  .gf.is-still .gf-pane {
+    grid-template-columns: 1fr;
+    padding: 96px 20px 80px;
+  }
+  .gf.is-still .gf-note {
+    display: block;
+    text-align: center;
+  }
+}
