@@ -1537,6 +1537,11 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 768px) {
+  /* Keep the app download action in the first phone view when the drawer opens. */
+  .nav-drawer-audience {
+    display: none;
+  }
+
   /* At the top of a phone viewport the hero should meet a completely clear
      nav. Bring the lime lower edge in with the same state that enables the
      blurred surface on the first real scroll pixel. */
