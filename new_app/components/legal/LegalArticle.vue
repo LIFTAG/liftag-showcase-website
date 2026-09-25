@@ -44,7 +44,7 @@ useLiftagStructuredData(() => [
         <div class="container legal-body">
           <section v-for="section in content.sections" :key="section.title" class="legal-section">
             <h2>{{ section.title }}</h2>
-            <p>{{ section.body }}</p>
+            <p v-for="(paragraph, index) in section.body.split('\n\n')" :key="index">{{ paragraph }}</p>
           </section>
 
           <p class="legal-contact-email">
@@ -104,6 +104,9 @@ useLiftagStructuredData(() => [
   font-weight: 300;
   line-height: 1.7;
   margin: 0;
+}
+.legal-section p + p {
+  margin-top: 1em;
 }
 .legal-contact-email {
   margin: 18px 0 0;
