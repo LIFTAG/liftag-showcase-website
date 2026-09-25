@@ -29,39 +29,154 @@ let nativeScrollTimeline = false
 const isHomeLike = computed(() => basePath.value === '/')
 const sectionHref = (hash: string) => isHomeLike.value ? hash : href(`/${hash}`)
 
-// Per-character spans for the desktop nav's hover index (see .nav-link__char).
-// Array.from, not split(''), so an accented or non-BMP label would still index
-// one glyph at a time rather than tearing a surrogate pair in half.
-const navChars = (label: string) => Array.from(label)
-
-// The third entry is the link's aria-current value, and any value marks it
-// active. It is matched on the locale-stripped route path rather than the href,
-// which carries a query and changes once the locale is ready. Homepage sections
-// are never current.
+// `current` is the link's aria-current value, and any value marks it active.
+// It is matched on the locale-stripped route path rather than the href, which
+// carries a query and changes once the locale is ready.
 const current = (prefixes: readonly [string, ...string[]]) => navCurrent(basePath.value, prefixes)
 
-const navLinks = computed<[string, string, NavCurrent][]>(() => [
-  [t('shell.nav.exercises'), href('/exercises'), current(NAV_ACTIVE_PREFIXES.exercises)],
-  [t('shell.nav.gyms'), localeReady.value ? discoveryHref('/explore', locale.value) : href('/explore'), current(NAV_ACTIVE_PREFIXES.gyms)],
-  [t('shell.nav.lifters'), sectionHref('#lifters'), undefined],
-  [t('shell.nav.owners'), sectionHref('#gyms'), undefined],
-  [t('shell.nav.trainers'), sectionHref('#trainers'), undefined],
-  [t('shell.nav.demo'), href('/demo'), current(NAV_ACTIVE_PREFIXES.demo)],
-  [t('shell.nav.journal'), href('/journal'), current(NAV_ACTIVE_PREFIXES.journal)],
-  [t('shell.nav.pricing'), href('/pricing'), current(NAV_ACTIVE_PREFIXES.pricing)],
+interface PageLink { id: string, label: string, href: string, current: NavCurrent }
+type AudienceId = 'lifters' | 'owners' | 'trainers'
+interface AudienceLink { id: AudienceId, label: string, hint: string, href: string }
+
+const pageLinks = computed<PageLink[]>(() => [
+  { id: 'exercises', label: t('shell.nav.exercises'), href: href('/exercises'), current: current(NAV_ACTIVE_PREFIXES.exercises) },
+  { id: 'gyms', label: t('shell.nav.gyms'), href: localeReady.value ? discoveryHref('/explore', locale.value) : href('/explore'), current: current(NAV_ACTIVE_PREFIXES.gyms) },
+  { id: 'demo', label: t('shell.nav.demo'), href: href('/demo'), current: current(NAV_ACTIVE_PREFIXES.demo) },
+  { id: 'journal', label: t('shell.nav.journal'), href: href('/journal'), current: current(NAV_ACTIVE_PREFIXES.journal) },
+  { id: 'pricing', label: t('shell.nav.pricing'), href: href('/pricing'), current: current(NAV_ACTIVE_PREFIXES.pricing) },
 ])
+
+// The three audiences are homepage sections, which the URL cannot tell apart,
+// so none of them is ever current. They sit behind one "Who it's for" menu so
+// the bar reads as pages, and each carries a line saying what that side of
+// LIFTAG is, rather than leaving a bare "Trainers" to be guessed at.
+const audienceLinks = computed<AudienceLink[]>(() => [
+  { id: 'lifters', label: t('shell.nav.lifters'), hint: t('shell.nav.liftersHint'), href: sectionHref('#lifters') },
+  { id: 'owners', label: t('shell.nav.owners'), hint: t('shell.nav.ownersHint'), href: sectionHref('#gyms') },
+  { id: 'trainers', label: t('shell.nav.trainers'), hint: t('shell.nav.trainersHint'), href: sectionHref('#trainers') },
+])
+
+// Desktop order: the audience menu keeps the slot the three section links held,
+// between the catalog pages and the rest. The entry stagger counts it as one.
+const AUDIENCE_SLOT = 2
+const leadLinks = computed(() => pageLinks.value.slice(0, AUDIENCE_SLOT))
+const trailLinks = computed(() => pageLinks.value.slice(AUDIENCE_SLOT))
 
 // "Trainers" is the MacBook coach chapter, not TrainersSection. Direct
 // `#trainers` loads are handled in plugins/trainer-hash-scroll.client.ts;
 // this intercepts same-page nav clicks (pushState would not run Vue Router).
-function onNavLinkClick(label: string, href: string, event: MouseEvent) {
-  if (label !== t('shell.nav.trainers') || !isHomeLike.value) return
+function onAudienceClick(id: AudienceId, target: string, event: MouseEvent) {
+  open.value = false
+  closeAudience()
+  if (id !== 'trainers' || !isHomeLike.value) return
   if (!document.getElementById('dashboard')) return
 
   event.preventDefault()
-  window.history.pushState(null, '', href)
+  window.history.pushState(null, '', target)
   scrollToTrainerHandoff()
 }
+
+// "Who it's for" disclosure. A mouse opens it by hovering, with a short intent
+// delay so sweeping across the bar does not flash it, and a grace period on the
+// way out so the pointer can cross the gap to the panel. Touch and keyboard open
+// it by activating the button. A click that lands on a menu the hover already
+// opened keeps it open instead of toggling it shut under the pointer.
+const AUDIENCE_OPEN_DELAY_MS = 70
+const AUDIENCE_CLOSE_DELAY_MS = 220
+
+const audienceOpen = ref(false)
+const audienceRoot = ref<HTMLElement | null>(null)
+const audienceTrigger = ref<HTMLButtonElement | null>(null)
+const audiencePanelId = useId()
+let audienceOpenedByHover = false
+let audienceTimer: ReturnType<typeof setTimeout> | null = null
+
+function clearAudienceTimer() {
+  if (audienceTimer) clearTimeout(audienceTimer)
+  audienceTimer = null
+}
+
+function closeAudience() {
+  clearAudienceTimer()
+  audienceOpen.value = false
+  audienceOpenedByHover = false
+}
+
+function onAudiencePointerEnter(event: PointerEvent) {
+  if (event.pointerType !== 'mouse') return
+  clearAudienceTimer()
+  if (audienceOpen.value) return
+  audienceTimer = setTimeout(() => {
+    audienceTimer = null
+    audienceOpen.value = true
+    audienceOpenedByHover = true
+  }, AUDIENCE_OPEN_DELAY_MS)
+}
+
+function onAudiencePointerLeave(event: PointerEvent) {
+  if (event.pointerType !== 'mouse') return
+  clearAudienceTimer()
+  if (audienceOpen.value) audienceTimer = setTimeout(closeAudience, AUDIENCE_CLOSE_DELAY_MS)
+}
+
+function toggleAudience() {
+  clearAudienceTimer()
+  if (audienceOpen.value && audienceOpenedByHover) {
+    audienceOpenedByHover = false
+    return
+  }
+  audienceOpen.value = !audienceOpen.value
+  audienceOpenedByHover = false
+}
+
+function audienceItems() {
+  return Array.from(audienceRoot.value?.querySelectorAll<HTMLAnchorElement>('.nav-audience__item') ?? [])
+}
+
+async function onAudienceKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape' && audienceOpen.value) {
+    event.preventDefault()
+    closeAudience()
+    audienceTrigger.value?.focus()
+    return
+  }
+  if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
+
+  const items = audienceItems()
+  const index = items.indexOf(document.activeElement as HTMLAnchorElement)
+  event.preventDefault()
+  if (!audienceOpen.value) {
+    audienceOpen.value = true
+    audienceOpenedByHover = false
+    await nextTick()
+  }
+  const step = event.key === 'ArrowDown' ? 1 : -1
+  const next = index === -1
+    ? (step === 1 ? 0 : items.length - 1)
+    : (index + step + items.length) % items.length
+  items[next]?.focus()
+}
+
+// Only a focus move that lands somewhere real closes the menu. A click on a
+// panel link in Safari does not focus the link, so the trigger blurs with no
+// related target, and closing on that would hide the panel under the click.
+// Pointer presses elsewhere are the document listener's job.
+function onAudienceFocusOut(event: FocusEvent) {
+  const next = event.relatedTarget as Node | null
+  if (next && !audienceRoot.value?.contains(next)) closeAudience()
+}
+
+function onDocumentPointerDown(event: PointerEvent) {
+  if (!audienceRoot.value?.contains(event.target as Node)) closeAudience()
+}
+
+watch(audienceOpen, (isOpen, _, onCleanup) => {
+  if (!isOpen) return
+  document.addEventListener('pointerdown', onDocumentPointerDown, true)
+  onCleanup(() => document.removeEventListener('pointerdown', onDocumentPointerDown, true))
+})
+
+watch(() => route.fullPath, closeAudience)
 
 let _onScroll: (() => void) | null = null
 let _onResize: (() => void) | null = null
@@ -251,6 +366,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   publishNavOpen(false)
+  clearAudienceTimer()
   docResizeObserver?.disconnect()
   docResizeObserver = null
   navResizeObserver?.disconnect()
@@ -318,32 +434,81 @@ onBeforeUnmount(() => {
       <span class="nav-logo__wordmark">LIFTAG</span>
     </a>
 
-    <!-- Desktop nav links. The label is split into characters so hover can
-         index them through their own clip windows; the real text stays in the
-         DOM for crawlers, and aria-label carries the accessible name so a
-         screen reader never has to reassemble the split run. -->
+    <!-- Desktop nav links. Labels index on hover through IndexedText, which
+         splits them client side only; aria-label carries the accessible name so
+         the split run and its parked duplicates are never read out. -->
     <nav class="nav-desktop nav-center-links">
       <a
-        v-for="([label, href, currentAs], linkIndex) in navLinks"
-        :key="label"
-        :href="href"
-        class="nav-link"
-        :class="{ 'is-active': currentAs }"
-        :aria-current="currentAs"
-        :style="{ '--nav-i': linkIndex }"
-        :aria-label="label"
-        @click="onNavLinkClick(label, href, $event)"
-      ><span class="nav-link__chars" aria-hidden="true"><span
-        v-for="(char, index) in navChars(label)"
-        :key="index"
-        class="nav-link__char"
-        :data-char="char"
-        :style="{ '--i': index }"
-      ><span class="nav-link__glyph">{{ char }}</span></span></span></a>
+        v-for="(link, index) in leadLinks"
+        :key="link.id"
+        :href="link.href"
+        class="nav-link ti-host"
+        :class="{ 'is-active': link.current }"
+        :aria-current="link.current"
+        :aria-label="link.label"
+        :style="{ '--nav-i': index }"
+      ><IndexedText :text="link.label" /></a>
+
+      <div
+        ref="audienceRoot"
+        class="nav-audience"
+        :class="{ 'is-open': audienceOpen }"
+        :style="{ '--nav-i': AUDIENCE_SLOT }"
+        @pointerenter="onAudiencePointerEnter"
+        @pointerleave="onAudiencePointerLeave"
+        @focusout="onAudienceFocusOut"
+        @keydown="onAudienceKeydown"
+      >
+        <button
+          ref="audienceTrigger"
+          type="button"
+          class="nav-link nav-audience__trigger ti-host"
+          :aria-label="t('shell.nav.audience')"
+          :aria-expanded="audienceOpen"
+          :aria-controls="audiencePanelId"
+          @click="toggleAudience"
+        >
+          <IndexedText :text="t('shell.nav.audience')" />
+          <svg class="nav-audience__chevron" viewBox="0 0 16 16" width="12" height="12" fill="none" aria-hidden="true">
+            <path d="m4 6 4 4 4-4" />
+          </svg>
+        </button>
+
+        <!-- Closed, the panel is visibility: hidden, which also takes its links
+             out of the tab order and the accessibility tree. -->
+        <div :id="audiencePanelId" class="nav-audience__panel">
+          <a
+            v-for="audience in audienceLinks"
+            :key="audience.id"
+            :href="audience.href"
+            class="nav-audience__item ti-host"
+            :aria-label="audience.label"
+            :aria-describedby="`${audiencePanelId}-${audience.id}`"
+            @click="onAudienceClick(audience.id, audience.href, $event)"
+          >
+            <span class="nav-audience__title"><IndexedText :text="audience.label" /></span>
+            <span :id="`${audiencePanelId}-${audience.id}`" class="nav-audience__hint">{{ audience.hint }}</span>
+            <svg class="nav-audience__arrow" viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
+              <path d="M3 8h10M9 4l4 4-4 4" />
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <a
+        v-for="(link, index) in trailLinks"
+        :key="link.id"
+        :href="link.href"
+        class="nav-link ti-host"
+        :class="{ 'is-active': link.current }"
+        :aria-current="link.current"
+        :aria-label="link.label"
+        :style="{ '--nav-i': AUDIENCE_SLOT + 1 + index }"
+      ><IndexedText :text="link.label" /></a>
     </nav>
 
-    <!-- Right side: CTA + hamburger -->
-    <div class="nav-actions" style="display: flex; align-items: center; gap: 12px;">
+    <!-- Right side: language, dashboard, primary CTA, hamburger -->
+    <div class="nav-actions">
       <!-- Personalized UI hydrates separately from cached marketing pages. -->
       <ClientOnly>
         <SiteLanguageSelect @select="open = false" />
@@ -357,11 +522,10 @@ onBeforeUnmount(() => {
       >
         <HoloPill />{{ t('shell.nav.dashboard') }}
       </a>
-      <span data-magnetic class="nav-desktop" style="display: inline-flex;">
+      <span data-magnetic class="nav-desktop nav-app-cta-wrap">
         <NuxtLink
-        :to="href('/get')"
+          :to="href('/get')"
           class="btn-primary nav-app-cta"
-          style="padding: 10px 20px; font-size: 11px; box-shadow: 0 0 24px rgba(204,255,0,0.4);"
           @click="open = false"
         >
           {{ t('shell.nav.getApp') }}
@@ -393,16 +557,32 @@ onBeforeUnmount(() => {
     :class="{ 'is-open': open }"
     :aria-hidden="!open"
   >
-    <nav style="display: flex; flex-direction: column; gap: 0;">
+    <nav class="nav-drawer-pages">
       <a
-        v-for="[label, href, currentAs] in navLinks"
-        :key="label"
-        :href="href"
+        v-for="link in pageLinks"
+        :key="link.id"
+        :href="link.href"
         class="nav-drawer-link"
-        :class="{ 'is-active': currentAs }"
-        :aria-current="currentAs"
-        @click="open = false; onNavLinkClick(label, href, $event)"
-      >{{ label }}</a>
+        :class="{ 'is-active': link.current }"
+        :aria-current="link.current"
+        @click="open = false"
+      >{{ link.label }}</a>
+    </nav>
+    <nav class="nav-drawer-audience" :aria-labelledby="`${audiencePanelId}-drawer`">
+      <p :id="`${audiencePanelId}-drawer`" class="nav-drawer-audience__label">{{ t('shell.nav.audience') }}</p>
+      <a
+        v-for="audience in audienceLinks"
+        :key="audience.id"
+        :href="audience.href"
+        class="nav-drawer-audience__item"
+        @click="onAudienceClick(audience.id, audience.href, $event)"
+      >
+        <span class="nav-drawer-audience__title">{{ audience.label }}</span>
+        <span class="nav-drawer-audience__hint">{{ audience.hint }}</span>
+        <svg class="nav-drawer-audience__arrow" viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">
+          <path d="M3 8h10M9 4l4 4-4 4" />
+        </svg>
+      </a>
     </nav>
     <a
       href="https://app.liftag.fit/login"
@@ -448,8 +628,15 @@ onBeforeUnmount(() => {
   }
 }
 
+/* Clipped sideways only, so the entry sweep cannot spill past the viewport
+   edge while the "Who it's for" panel is free to hang below the bar. `clip`,
+   unlike `hidden`, does not turn the other axis into a scroller. Engines
+   without it fall back to visible: the bar is fixed, and a fixed box never
+   extends the page's scrollable area, so the sweep still cannot add a
+   horizontal scrollbar. */
 .site-nav {
-  overflow: hidden;
+  overflow: visible;
+  overflow-x: clip;
   /* Padding lives here rather than in the inline :style above, because inline
      styles outrank scoped CSS and would pin it flat at 14px 32px. The bar
      spans the full width so its background bleeds behind the cutout; only the
@@ -628,71 +815,55 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
+/* Sentence-case body type rather than tracked mono capitals. At 0.22em of
+   tracking the gap inside "For gym owners" was as wide as the gap between two
+   links, so multi-word labels read as several links and the row as one long
+   run. Normal spacing lets the whitespace between items do the separating.
+
+   Hover indexes the label (IndexedText, the same effect the footer uses): the
+   resting glyph leaves through the top as a lime copy arrives from below. No
+   underline; the swap is the affordance. */
 .nav-link {
-  color: #fff;
-  text-decoration: none;
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 600;
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
+  --ti-rest: var(--nav-link-rest);
+  --nav-link-rest: rgba(255, 255, 255, 0.74);
   position: relative;
-  /* Flex rather than inline text: a character window is an overflow: hidden
-     inline-block, whose baseline is its bottom edge, so leaving these in a
-     line box would drop the whole row against the logo and the CTA. The
-     symmetric padding is hit area only; the row is centred either way. */
   display: inline-flex;
   align-items: center;
+  gap: 6px;
+  /* The vertical padding is hit area; the row is centred either way. */
   padding: 6px 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--nav-link-rest);
+  font-family: var(--liftag-font-body);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  text-decoration: none;
   opacity: 0;
   transform: translate3d(0, -14px, 0) skewX(-9deg);
   /* Stagger from the link's index rather than a fixed nth-child list, so every
      link gets a delay no matter how many the nav holds. */
   animation: navItemIn 700ms cubic-bezier(0.16, 1, 0.3, 1) calc(360ms + var(--nav-i, 0) * 70ms) both;
+  transition: color 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Hover index. Each character owns a clip window holding two copies of itself
-   stacked vertically: the white one in flow, the lime one waiting one full
-   window below. Hovering drives both up by exactly one window, so the label is
-   not re-coloured, it is indexed - the white glyph leaves through the top as
-   the lime one arrives from the bottom, one hard step with no fade and no
-   scale. The 12ms per-character offset runs the swap left to right, and both
-   copies share the travel and the curve, so the seam between them never opens.
-   Rising from below matches the plate-wipe section titles.
-   No underline: the swap is the affordance. */
-.nav-link__chars {
-  display: inline-flex;
+/* The fallback for every label IndexedText leaves whole (touch, reduced
+   motion, before the idle split): a plain colour change. --ti-rest keeps the
+   split glyph that is leaving at its resting colour. */
+@media (hover: hover) and (pointer: fine) {
+  .nav-link:hover {
+    color: var(--liftag-primary);
+  }
 }
 
-.nav-link__char {
-  position: relative;
-  display: inline-block;
-  overflow: hidden;
-  /* Include accented capitals in both copies' line boxes. Otherwise the parked
-     lime copy's accents can protrude into this window from below. `pre` keeps
-     spaces from collapsing to zero-width windows. */
-  line-height: 1.5;
-  white-space: pre;
-}
-
-.nav-link__glyph,
-.nav-link__char::after {
-  display: block;
-  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.nav-link__char::after {
-  content: attr(data-char);
-  position: absolute;
-  left: 0;
-  top: 0;
+.nav-link:focus-visible {
   color: var(--liftag-primary);
-  pointer-events: none;
-  /* Font metrics and fractional pixels can paint an accent past the parked
-     copy's box. Hide it after the return slide, independently of clipping. */
-  visibility: hidden;
-  transform: translate3d(0, 100%, 0);
-  transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 300ms;
+  outline: 1px solid rgba(204, 255, 0, 0.55);
+  outline-offset: 4px;
 }
 
 /* Current page: a scanner lock. LIFTAG is read by pointing a phone at a tag,
@@ -707,7 +878,7 @@ onBeforeUnmount(() => {
   --nav-lock-stroke: 1.5px;
   --nav-lock-x: -11px;
   --nav-lock-y: 1px;
-  color: var(--liftag-primary);
+  --nav-link-rest: var(--liftag-primary);
   text-shadow: 0 0 14px rgba(204, 255, 0, 0.35);
 }
 
@@ -767,20 +938,166 @@ onBeforeUnmount(() => {
   100% { opacity: 0.7; }
 }
 
-/* Stagger only the entry; leaving returns every character together. */
-.nav-link:hover .nav-link__glyph,
-.nav-link:focus-visible .nav-link__glyph {
-  transform: translate3d(0, -100%, 0);
-  transition-duration: 500ms;
-  transition-delay: calc(var(--i) * 12ms);
+/* "Who it's for". The wrapper takes the entry stagger for its slot, so the
+   trigger inside it must not run its own. */
+.nav-audience {
+  position: relative;
+  display: flex;
+  opacity: 0;
+  transform: translate3d(0, -14px, 0) skewX(-9deg);
+  animation: navItemIn 700ms cubic-bezier(0.16, 1, 0.3, 1) calc(360ms + var(--nav-i, 0) * 70ms) both;
 }
 
-.nav-link:hover .nav-link__char::after,
-.nav-link:focus-visible .nav-link__char::after {
-  transform: translate3d(0, 0, 0);
+.nav-audience__trigger {
+  opacity: 1;
+  transform: none;
+  animation: none;
+  cursor: pointer;
+}
+
+.nav-audience.is-open .nav-audience__trigger {
+  --nav-link-rest: #fff;
+}
+
+.nav-audience__chevron {
+  flex-shrink: 0;
+  margin-right: -2px;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.7;
+  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-audience.is-open .nav-audience__chevron {
+  transform: rotate(180deg);
+}
+
+/* Drops from the trigger to just under the bar's lower edge. The panel sits
+   inside the bar, which is a backdrop root once scrolled, so a backdrop blur
+   here would have nothing of the page to sample: the surface is solid, the
+   same one the language menu uses. */
+.nav-audience__panel {
+  --nav-panel-gap: 22px;
+  position: absolute;
+  top: calc(100% + var(--nav-panel-gap));
+  left: 50%;
+  z-index: 3;
+  display: grid;
+  gap: 2px;
+  box-sizing: border-box;
+  width: 344px;
+  padding: 6px;
+  border: 1px solid var(--liftag-border-strong);
+  border-radius: 16px;
+  background: var(--liftag-surface-dark);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 24px 64px rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate3d(-50%, -6px, 0);
+  transition:
+    opacity 140ms ease-out,
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0s linear 200ms;
+}
+
+/* Bridges the gap between the trigger and the panel, so a pointer travelling
+   down to it never leaves the menu on the way. */
+.nav-audience__panel::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: calc(var(--nav-panel-gap) + 4px);
+}
+
+.nav-audience.is-open .nav-audience__panel {
+  opacity: 1;
   visibility: visible;
-  transition-duration: 500ms, 0s;
-  transition-delay: calc(var(--i) * 12ms), 0s;
+  transform: translate3d(-50%, 0, 0);
+  transition:
+    opacity 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0s;
+}
+
+.nav-audience__item {
+  --ti-rest: #fff;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: 16px;
+  row-gap: 3px;
+  padding: 12px 14px;
+  border-radius: 11px;
+  color: #fff;
+  text-decoration: none;
+  transition: background-color 160ms ease-out;
+}
+
+.nav-audience__title {
+  font-family: var(--liftag-font-body);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: -0.005em;
+}
+
+.nav-audience__hint {
+  grid-column: 1;
+  color: var(--liftag-fg-soft);
+  font-family: var(--liftag-font-body);
+  font-size: 13px;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.nav-audience__arrow {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  stroke: var(--liftag-primary);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  transform: translate3d(-4px, 0, 0);
+  transition:
+    opacity 160ms ease-out,
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .nav-audience__item:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .nav-audience__item:hover .nav-audience__title {
+    color: var(--liftag-primary);
+  }
+
+  .nav-audience__item:hover .nav-audience__arrow {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.nav-audience__item:focus-visible {
+  outline: 1px solid rgba(204, 255, 0, 0.55);
+  outline-offset: -1px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-audience__item:focus-visible .nav-audience__title {
+  color: var(--liftag-primary);
+}
+
+.nav-audience__item:focus-visible .nav-audience__arrow {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
 }
 
 .nav-center-links {
@@ -789,14 +1106,21 @@ onBeforeUnmount(() => {
   left: 50%;
   display: flex;
   align-items: center;
-  gap: 36px;
+  gap: 32px;
   transform: translate(-50%, -50%);
 }
 
 .nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   opacity: 0;
   transform: translate3d(22px, -12px, 0);
   animation: navActionsIn 760ms cubic-bezier(0.16, 1, 0.3, 1) 640ms both;
+}
+
+.nav-app-cta-wrap {
+  display: inline-flex;
 }
 
 .nav-app-cta {
@@ -804,6 +1128,9 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   overflow: hidden;
+  padding: 10px 20px;
+  font-size: 11px;
+  box-shadow: 0 0 24px rgba(204, 255, 0, 0.32);
   /* Was a <button> until it gained a real destination; as a link it picks up
      the global anchor underline, which .btn-primary never had to suppress. */
   text-decoration: none;
@@ -984,6 +1311,75 @@ onBeforeUnmount(() => {
   transform: scaleY(1);
 }
 
+.nav-drawer-pages {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The audiences sit under the pages as a quieter group: a label naming what
+   the three have in common, then one row each with the line that says what
+   that side of LIFTAG does. Smaller type than the pages above, so the drawer
+   reads as pages first and audiences second rather than eight equal shouts. */
+.nav-drawer-audience {
+  display: flex;
+  flex-direction: column;
+  margin-top: 28px;
+}
+
+.nav-drawer-audience__label {
+  margin: 0 0 4px;
+  color: var(--liftag-fg-dim);
+  font-family: var(--liftag-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.nav-drawer-audience__item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: 16px;
+  row-gap: 2px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--liftag-border-soft);
+  color: #fff;
+  text-decoration: none;
+}
+
+.nav-drawer-audience__title {
+  font-family: var(--liftag-font-headline);
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  transition: color 200ms ease;
+}
+
+.nav-drawer-audience__hint {
+  grid-column: 1;
+  color: var(--liftag-fg-dim);
+  font-family: var(--liftag-font-body);
+  font-size: 13px;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.nav-drawer-audience__arrow {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  stroke: var(--liftag-primary);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.nav-drawer-audience__item:hover .nav-drawer-audience__title,
+.nav-drawer-audience__item:focus-visible .nav-drawer-audience__title {
+  color: var(--liftag-primary);
+}
+
 .nav-dashboard-mobile {
   display: flex;
   align-items: center;
@@ -1097,17 +1493,8 @@ onBeforeUnmount(() => {
   100% { opacity: 0; transform: translateX(150%); }
 }
 
-@media (max-width: 1080px) {
-  .nav-center-links {
-    gap: 24px;
-  }
-
-  .nav-link {
-    font-size: 10px;
-    letter-spacing: 0.16em;
-  }
-}
-
+/* Below this the centred row would run into the actions, so it becomes the
+   flexible middle of the bar instead. */
 @media (max-width: 1600px) {
   .nav-logo,
   .nav-actions {
@@ -1120,13 +1507,13 @@ onBeforeUnmount(() => {
     justify-content: center;
     min-width: 0;
     margin: 0 clamp(18px, 2vw, 30px);
-    gap: clamp(18px, 1.5vw, 24px);
+    gap: clamp(22px, 2vw, 30px);
     transform: none;
   }
 
   /* The links close up to ~22px apart; pull the reticle in to clear them. */
   .nav-link.is-active {
-    --nav-lock-x: -8px;
+    --nav-lock-x: -9px;
     --nav-lock-tick: 6px;
   }
 }
@@ -1137,7 +1524,9 @@ onBeforeUnmount(() => {
   height: 44px;
 }
 
-@media (max-width: 1439px) {
+/* Five links and one menu fit a 1200px laptop with room to spare in both
+   languages; the hamburger only takes over below that. */
+@media (max-width: 1199px) {
   .nav-center-links {
     display: none;
   }
@@ -1231,6 +1620,7 @@ onBeforeUnmount(() => {
   .nav-logo__img,
   .nav-logo__wordmark,
   .nav-link,
+  .nav-audience,
   .nav-actions,
   .nav-app-cta::before {
     animation: none !important;
@@ -1245,28 +1635,16 @@ onBeforeUnmount(() => {
     transition-duration: 0.01ms !important;
   }
 
-  /* The hover index collapses to the colour change it was carrying. The lime
-     copy is dropped rather than hidden, so nothing is left stacked under the
-     window, and the white glyph is pinned in place - the hover rules above
-     would otherwise still drive it out through the top with no replacement. */
-  .nav-link__char::after {
-    content: none;
+  /* The panel still fades, it just does not travel. IndexedText keeps every
+     label whole under this preference, so hover is the colour change alone. */
+  .nav-audience__panel,
+  .nav-audience.is-open .nav-audience__panel {
+    transform: translate3d(-50%, 0, 0);
   }
 
-  .nav-link__glyph,
-  .nav-link:hover .nav-link__glyph,
-  .nav-link:focus-visible .nav-link__glyph {
-    transform: none !important;
-    transition: none !important;
-  }
-
-  .nav-link {
-    transition: color 200ms ease !important;
-  }
-
-  .nav-link:hover,
-  .nav-link:focus-visible {
-    color: var(--liftag-primary);
+  .nav-audience__chevron,
+  .nav-audience__arrow {
+    transition: none;
   }
 }
 

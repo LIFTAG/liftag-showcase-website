@@ -52,6 +52,11 @@ function appCopy(): FloorAppCopy {
     equipment: t('floor.equipment'),
     machines: t('floor.machines'),
     view: t('floor.view'),
+    exerciseList: t('floor.exerciseList'),
+    exerciseHint: t('floor.exerciseHint'),
+    exerciseNames: [t('floor.exerciseNames.0'), t('floor.exerciseNames.1')],
+    exerciseMuscles: t('floor.exerciseMuscles'),
+    exerciseGuide: t('floor.exerciseGuide'),
     names: Object.fromEntries(floorEquipment.map((item) => [item.id, t(`floor.names.${item.id}`)])) as FloorAppCopy['names'],
     areas: {
       strength: t('floor.areas.strength'),
@@ -368,6 +373,18 @@ onBeforeUnmount(() => {
         </div>
         <span class="gf-app__island" aria-hidden="true" />
       </figure>
+
+      <div class="gf-exercises" :aria-label="t('floor.exerciseScreenAlt')">
+        <p class="gx-protocol">01 · {{ t('floor.areas.strength') }}</p>
+        <h3>{{ t('floor.names.plate-loaded-pulldown') }}</h3>
+        <p>{{ t('floor.exerciseHint') }}</p>
+        <ul>
+          <li v-for="i in 2" :key="i">
+            <strong>{{ t(`floor.exerciseNames.${i - 1}`) }}</strong>
+            <span>{{ t('floor.exerciseMuscles') }}</span>
+          </li>
+        </ul>
+      </div>
 
       <p class="gf-note gx-protocol">{{ t('floor.note') }}</p>
     </div>

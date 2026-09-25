@@ -286,6 +286,9 @@ test('Slovak navigation retains language on home sections and the catalog', asyn
   if (await menu.isVisible()) await menu.click()
   const nav = page.locator('.site-nav, #mobile-navigation')
   await expect(nav.locator('a[href="/sk/exercises"]').filter({ visible: true })).toBeVisible()
+  // On desktop the audience sections sit behind the "Pre koho" menu.
+  const audience = page.getByRole('button', { name: 'Pre koho', exact: true })
+  if (await audience.isVisible()) await audience.click()
   await nav.locator('a[href="/sk#lifters"]').filter({ visible: true }).click()
   await expect(page).toHaveURL(/\/sk#lifters$/)
   await expect(page.locator('html')).toHaveAttribute('lang', 'sk')
