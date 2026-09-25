@@ -10,8 +10,6 @@ const stage = useTemplateRef<HTMLElement>('stage');
 const guide = useTemplateRef<HTMLVideoElement>('guide');
 const seen = useSeenOnce(root);
 const near = useNearViewport(root, '200px 0px');
-const fileId = useId();
-const { customSrc, customName, fileError, selectVideo, clearVideo, videoError } = useCoachingVideo();
 useGymInstructionPreview(guide, () => near.value && !props.reduced, () => props.reduced, false, locale, legPressInstruction.slug);
 
 /** Percent of the stage, from the left, where the trainer's side begins. */
@@ -19,13 +17,6 @@ const split = shallowRef(50);
 const dragging = shallowRef(false);
 let touched = false;
 let sweep = 0;
-
-const facts = computed(() =>
-  [0, 1, 2].map((i) => ({ key: t(`trainer.facts.${i}.key`), value: t(`trainer.facts.${i}.value`) })),
-);
-const errorText = computed(() =>
-  fileError.value === 'type' ? t('trainer.fileError') : fileError.value === 'play' ? t('trainer.playError') : '',
-);
 
 function setFromPointer(clientX: number) {
   const el = stage.value;
@@ -52,14 +43,6 @@ function onRange(event: Event) {
   cancelAnimationFrame(sweep);
   split.value = Number((event.target as HTMLInputElement).value);
 }
-function preview(event: Event) {
-  if (!selectVideo(event)) return;
-  touched = true;
-  cancelAnimationFrame(sweep);
-  // Open the stage toward the visitor's own clip.
-  split.value = Math.min(split.value, 28);
-}
-
 /** One slow wipe on arrival shows that the stage is a control, not a poster. */
 function playSweep() {
   if (touched || props.reduced) return;
@@ -85,7 +68,7 @@ onBeforeUnmount(() => cancelAnimationFrame(sweep));
     id="gyms"
     ref="root"
     class="gt"
-    :class="{ 'is-in': seen || reduced, 'is-custom': !!customSrc, 'is-dragging': dragging }"
+    :class="{ 'is-in': seen || reduced, 'is-dragging': dragging }"
     aria-labelledby="gt-title"
     tabindex="-1"
   >
@@ -113,35 +96,33 @@ onBeforeUnmount(() => cancelAnimationFrame(sweep));
           <span class="gt-shade" />
         </div>
         <div class="gt-side gt-side--you">
-          <video
-            v-if="customSrc"
-            class="gt-custom"
-            :src="customSrc"
-            muted
-            playsinline
-            loop
-            autoplay
-            @error="videoError"
+          <img
+            class="gt-trainer"
+            src="/assets/gym3d/trainer-instruction-preview.webp"
+            width="1672"
+            height="941"
+            :alt="t('trainer.previewAlt')"
+            loading="lazy"
           />
-          <template v-else>
-            <img class="gt-floor" src="/assets/gym3d/leg-press-poster.webp" width="900" height="900" alt="" loading="lazy" />
-            <div class="gt-finder" aria-hidden="true">
-              <i class="gt-finder__c gt-finder__c--tl" /><i class="gt-finder__c gt-finder__c--tr" />
-              <i class="gt-finder__c gt-finder__c--bl" /><i class="gt-finder__c gt-finder__c--br" />
-              <span class="gt-finder__grid" />
-              <span class="gt-finder__rec gx-protocol"><b />{{ t('trainer.rec') }} <span>00:00:00</span></span>
+          <span class="gt-shade" />
+          <div class="gt-you" :class="{ 'is-hidden': split > 54 }">
+            <span class="gx-protocol">{{ t('trainer.previewLabel') }}</span>
+            <h3>{{ t('trainer.videoTitle') }}</h3>
+            <p>{{ t('trainer.videoByline') }}</p>
+            <div class="gt-playback" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="m8 5 11 7-11 7z" /></svg>
+              <span class="gt-playback__track"><i /></span>
+              <span class="gx-protocol">00:12 / 01:24</span>
             </div>
-            <div class="gt-you">
-              <h3>{{ t('trainer.placeholderTitle') }}</h3>
-              <p>{{ t('trainer.placeholderBody') }}</p>
-            </div>
-          </template>
+          </div>
         </div>
         <p class="gt-label gt-label--guide" :class="{ 'is-hidden': split < 18 }">
-          <span class="gx-protocol">{{ t('trainer.guideLabel') }}</span>{{ t('trainer.guideSub') }}
+          <span class="gx-protocol">{{ t('trainer.guideLabel') }}</span>
+          <span class="gt-label__detail">{{ t('trainer.guideSub') }}</span>
         </p>
         <p class="gt-label gt-label--you" :class="{ 'is-hidden': split > 82 }">
-          <span class="gx-protocol">{{ t('trainer.yourLabel') }}</span>{{ t('trainer.yourSub') }}
+          <span class="gx-protocol">{{ t('trainer.yourLabel') }}</span>
+          <span class="gt-label__detail">{{ t('trainer.yourSub') }}</span>
         </p>
         <div class="gt-divider" aria-hidden="true">
           <span class="gt-handle">
@@ -160,26 +141,8 @@ onBeforeUnmount(() => cancelAnimationFrame(sweep));
           @pointerdown.stop
         />
       </div>
-      <div class="gt-try">
-        <label class="btn-ghost gt-file" :for="fileId">
-          <HoloPill />
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" /></svg>
-          {{ customSrc ? t('trainer.replaceClip') : t('trainer.tryClip') }}
-          <input :id="fileId" type="file" accept="video/*" @change="preview" />
-        </label>
-        <button v-if="customSrc" type="button" class="gt-remove" @click="clearVideo">{{ t('trainer.removeClip') }}</button>
-        <p class="gt-note" :class="{ 'is-alert': !!errorText }" role="status">
-          {{ errorText || (customName ? `${customName} · ${t('trainer.local')}` : t('trainer.local')) }}
-        </p>
-      </div>
+      <p class="gt-caption">{{ t('trainer.caption') }}</p>
     </div>
-
-    <dl class="gt-facts">
-      <div v-for="(fact, i) in facts" :key="fact.key" class="gx-rise" :style="{ '--d': 4 + i }">
-        <dt class="gx-protocol">{{ fact.key }}</dt>
-        <dd>{{ fact.value }}</dd>
-      </div>
-    </dl>
   </section>
 </template>
 

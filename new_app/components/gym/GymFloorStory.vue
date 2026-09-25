@@ -33,7 +33,6 @@ const still = computed(() => props.reduced || unavailable.value);
 const beats = computed(() =>
   Array.from({ length: FLOOR_BEATS }, (_, i) => ({
     name: t(`floor.beats.${i}.name`),
-    line: t(`floor.beats.${i}.line`),
     title: t(`floor.beats.${i}.title`),
     copy: t(`floor.beats.${i}.copy`),
   })),
@@ -380,7 +379,6 @@ onBeforeUnmount(() => {
               <span class="gf-rail__idx gx-protocol">0{{ i + 1 }}</span>
               <span class="gf-rail__text">
                 <span class="gf-rail__name">{{ item.name }}</span>
-                <span class="gf-rail__line">{{ item.line }}</span>
               </span>
               <span class="gf-rail__bar" aria-hidden="true"><i /></span>
             </button>
