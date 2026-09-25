@@ -1,11 +1,13 @@
 import { PHONE_SCR_H, PHONE_SCR_W } from "../phoneModel";
 import { floorEquipment, type FloorMachine } from "./floorEquipment";
 import {
+  FLOOR_APP_CHROME,
   FLOOR_APP_LAYOUT,
   FLOOR_APP_TITLE,
   floorAppName,
   floorAppNumber,
   floorAppRow,
+  type FloorAppBox,
 } from "./floorTimeline";
 
 export type FloorAppCopy = {
@@ -23,13 +25,36 @@ export type FloorAppCopy = {
   exerciseGuide: string;
   names: Record<FloorMachine["id"], string>;
   areas: Record<FloorMachine["area"], string>;
+  /** The AI workout for this gym; exercises in slot order. */
+  plan: {
+    offer: string;
+    title: string;
+    building: string;
+    summary: string;
+    start: string;
+    exercises: FloorPlanExercise[];
+  };
+  /** A coach's routine for the gym; exercises in slot order. */
+  coach: {
+    name: string;
+    role: string;
+    title: string;
+    publish: string;
+    live: string;
+    exercises: FloorPlanExercise[];
+  };
 };
+
+export type FloorPlanExercise = { name: string; sets: string };
 
 const canvasX = (localX: number, w: number) => (localX / PHONE_SCR_W + 0.5) * w;
 const canvasY = (localY: number, h: number) => (0.5 - localY / PHONE_SCR_H) * h;
+/** A row's lime "View exercises" link: size and baseline below the row centre. */
+const VIEW_SIZE = 21;
+const VIEW_DROP = 65;
 
 /** Split a name into at most two lines that fit `max` pixels. */
-function wrap(ctx: CanvasRenderingContext2D, text: string, max: number) {
+export function wrap(ctx: CanvasRenderingContext2D, text: string, max: number) {
   if (ctx.measureText(text).width <= max) return [text];
   const words = text.split(" ");
   let best: [string, string] = [text, ""];
@@ -74,6 +99,27 @@ export function floorAppNameLayout(
     wrap: lines.length > 1 ? ctx.measureText(lines[0]!).width / size : 0,
     leading: FLOOR_APP_LAYOUT.nameLeading / FLOOR_APP_LAYOUT.nameSize,
   };
+}
+
+/**
+ * The tap target around a row's "View exercises" link, canvas pixels. The
+ * machine screen opens out of this box.
+ */
+export function floorViewButton(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  index: number,
+  label: string,
+): FloorAppBox {
+  ctx.font = `500 ${VIEW_SIZE}px Inter, sans-serif`;
+  const x = canvasX(floorAppNumber(index).areaX, w);
+  const baseline = canvasY(floorAppRow(index).y, h) + VIEW_DROP;
+  const padX = 14;
+  const height = 38;
+  // Centred on the lowercase letters, which carry most of the label.
+  const middle = baseline - VIEW_SIZE * 0.36;
+  return { x: x - padX, y: middle - height / 2, w: ctx.measureText(label).width + padX * 2, h: height };
 }
 
 /**
@@ -167,7 +213,7 @@ export function drawFloorAppScreen(
         text(line, canvasX(name.x, w), canvasY(name.y, h) + n * (name.leading / PHONE_SCR_H) * h, size, ink, 600);
       });
     }
-    text(copy.view, areaX, cy + 65, 21, lime, 500);
+    text(copy.view, areaX, cy + VIEW_DROP, VIEW_SIZE, lime, 500);
     ctx.textAlign = "right";
     text("›", w - 32, cy + 11, 36, muted);
     ctx.textAlign = "left";
@@ -176,7 +222,10 @@ export function drawFloorAppScreen(
   rounded(w / 2 - 74, h - 24, 148, 7, 4, ink);
 }
 
-/** The machine opened from the first equipment row, painted once per locale. */
+/**
+ * The machine opened from the first equipment row, painted once per locale.
+ * The stage fits it into the card that grows out of that row's button.
+ */
 export function drawFloorExerciseScreen(
   ctx: CanvasRenderingContext2D,
   w: number,
@@ -199,7 +248,7 @@ export function drawFloorExerciseScreen(
     copy,
   });
   ctx.fillStyle = "#0e1210";
-  ctx.fillRect(0, 90, w, h - 130);
+  ctx.fillRect(0, FLOOR_APP_CHROME.top, w, h - FLOOR_APP_CHROME.top - FLOOR_APP_CHROME.bottom);
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
   text("9:41", 42, 66, 25, ink, 600);

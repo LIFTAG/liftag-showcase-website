@@ -109,6 +109,31 @@
   height: 18px;
   fill: currentColor;
 }
+.gdb-expand {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  display: none;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: #0b0d0cd9;
+  color: var(--gx-fg);
+  box-shadow: inset 0 0 0 1px #edf1ed29, 0 10px 30px #0008;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.gdb-expand svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 .gdb:not(.is-playing) .gdb-play {
   width: 64px;
   height: 64px;
@@ -214,12 +239,10 @@
   .gdb-window {
     border-radius: 12px;
   }
-  .gdb-screen {
-    /* A phone gets the working area of the recording, not the whole desk. */
-    aspect-ratio: 4 / 3.4;
-  }
-  .gdb-screen video {
-    object-position: 64% 30%;
+  /* The whole desk, uncropped: any crop cuts through a panel or a modal
+     somewhere in the tour. Full screen is one tap away. */
+  .gdb-expand {
+    display: grid;
   }
   .gdb-play {
     right: 10px;

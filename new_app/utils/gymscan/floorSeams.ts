@@ -63,8 +63,9 @@ export function createFloorSeams() {
   });
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), material);
   mesh.name = "floor-seams-to-list-dividers";
-  // Render after both surfaces; depth testing still lets machines occlude seams.
-  mesh.renderOrder = 2;
+  // Render after both surfaces but before the app's opening cards, which cover
+  // the list and its rules; depth testing still lets machines occlude seams.
+  mesh.renderOrder = 1;
   return {
     mesh,
     update(morph: number, floor: number) {
