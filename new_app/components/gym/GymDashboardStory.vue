@@ -75,6 +75,18 @@ function toggle() {
   }
 }
 
+/** Phones show the whole desk small; full screen is where it can be read. */
+function expand() {
+  const el = video.value as (HTMLVideoElement & { webkitEnterFullscreen?: () => void }) | null;
+  if (!el) return;
+  held.value = false;
+  if (el.currentTime < DASHBOARD_TOUR_EDGES[0]) el.currentTime = DASHBOARD_TOUR_EDGES[0];
+  el.play().catch(() => {});
+  // iPhone Safari only takes a video full screen through its own call.
+  if (el.requestFullscreen) el.requestFullscreen().catch(() => el.webkitEnterFullscreen?.());
+  else el.webkitEnterFullscreen?.();
+}
+
 function go(index: number) {
   const el = video.value;
   if (!el) return;
@@ -172,6 +184,9 @@ onBeforeUnmount(() => {
             <source src="/assets/videos/macbook-dashboard.av1.mp4" type='video/mp4; codecs="av01.0.08M.08"' />
             <source src="/assets/videos/macbook-dashboard.mp4" type='video/mp4; codecs="avc1.640028"' />
           </video>
+          <button type="button" class="gdb-expand" :aria-label="t('dash.expand')" @click="expand">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" /></svg>
+          </button>
           <button type="button" class="gdb-play" :aria-label="playing ? t('dash.pause') : t('dash.play')" @click="toggle">
             <svg v-if="playing" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5h3v14H8zM13 5h3v14h-3z" /></svg>
             <svg v-else viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" /></svg>
