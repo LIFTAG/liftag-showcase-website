@@ -14,6 +14,8 @@ export interface JournalArticle {
   category: string
   dateUpdated: string
   body: string
+  /** Absolute URLs of the sources an article reviews, mirrored into Article schema. */
+  citations?: string[]
   picks?: JournalPick[]
   howTo?: JournalHowTo
   faqs: JournalFaq[]

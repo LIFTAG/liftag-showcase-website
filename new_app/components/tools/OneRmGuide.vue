@@ -96,6 +96,8 @@ const chapters = computed(() => [
           <p>{{ guideCopy.brzyckiBody }}</p>
           <h3>{{ guideCopy.familyHeading }}</h3>
           <p>{{ guideCopy.familyBody }}</p>
+          <h3>{{ guideCopy.weightDependentHeading }}</h3>
+          <p>{{ guideCopy.weightDependentBody }} <a :href="href('/journal/fitbod-1rm-formula')">{{ guideCopy.weightDependentLink }}</a>.</p>
         </section>
 
         <section id="when-wrong">
@@ -129,6 +131,7 @@ const chapters = computed(() => [
         <section id="related">
           <h2>{{ t('tools.guide.related') }}</h2>
           <ul>
+            <li><a :href="href('/journal/fitbod-1rm-formula')">{{ t('tools.guide.relatedOneRmPaper') }}</a></li>
             <li><a :href="href('/journal/what-is-rpe-lifting')">{{ t('tools.guide.relatedRpe') }}</a></li>
             <li><a :href="href('/journal/progressive-overload')">{{ t('tools.guide.relatedOverload') }}</a></li>
             <li><a :href="href('/journal/how-to-track-workouts')">{{ t('tools.guide.relatedTrack') }}</a></li>

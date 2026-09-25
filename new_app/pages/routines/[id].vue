@@ -11,7 +11,6 @@ useHead(() => ({ htmlAttrs: { lang: htmlLang.value } }))
 const id = String(route.params.id ?? '')
 
 const APP_STORE_APP_ID = '6761140080'
-const APP_STORE = `https://apps.apple.com/app/id${APP_STORE_APP_ID}`
 const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.liftag.app'
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 // Share links from female users carry ?v=f; the card then prefers the female
@@ -57,25 +56,17 @@ useHead(() => ({
   ],
 }))
 
-// iOS inside a social app's webview cannot complete Apple's
-// `301 -> itms-appss://` hand-off, so redirecting there hangs on a blank page.
-// Render the escape interstitial instead of redirecting. See utils/userAgent.ts.
-// Seeded from the request header so the escape page is what SSR renders —
-// deciding only in onMounted would flash the redirect shell first.
-const showEscape = ref(needsStoreEscape(useRequestHeaders(['user-agent'])['user-agent'] ?? ''))
+// A browser visit does not mean LIFTAG is absent. Keep the shared destination
+// available on iOS, including after Instagram hands this page to Safari.
+const showEscape = ref(detectPlatform(useRequestHeaders(['user-agent'])['user-agent'] ?? '') === 'ios')
 
 onMounted(() => {
   const ua = navigator.userAgent || ''
   const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as unknown as { MSStream?: unknown }).MSStream
   const isAndroid = /Android/.test(ua)
 
-  if (needsStoreEscape(ua)) {
-    showEscape.value = true
-    return
-  }
-
   if (isIOS) {
-    window.location.replace(APP_STORE)
+    showEscape.value = true
   } else if (isAndroid) {
     const intentUrl =
       `intent://liftag.fit/routines/${id}` +
@@ -91,9 +82,10 @@ onMounted(() => {
 <template>
   <StoreEscape
     v-if="showEscape"
+    :app-url="`liftag://routines/${encodeURIComponent(id)}`"
     :share-url="absoluteUrl(href(`/routines/${id}${variantQuery}`))"
     :heading="t('handoff.routineHeading')"
-    :body="t('handoff.body')"
+    :body="t('handoff.contentBody')"
   />
 
   <main v-else class="routine-redirect">

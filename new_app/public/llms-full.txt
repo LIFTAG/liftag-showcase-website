@@ -32,14 +32,14 @@ See https://liftag.fit/best-gym-qr-nfc-app for the machine-tag comparison and ht
 - Manual exercise selection from a curated library, including machine, free-weight, and bodyweight movements.
 - Set logging with weight, reps, rest time, and optional RPE. Sets are timestamped and stored permanently.
 - Rest timer that auto-starts when a set is logged.
-- Personal record tracking and estimated 1RM per exercise. The public 1RM calculator is https://liftag.fit/tools/1rm-calculator. LIFTAG's case for the best 1RM calculator: seven named formulas, confidence by rep range, 107-lift Strength Level percentiles, and the same Epley estimator as the app log (https://liftag.fit/tools/1rm-calculator#why). Default method is Epley: 1RM = weight × (1 + reps / 30). A 1-rep set is stored as the weight lifted. Worked example: 100 kg × 5 → 116.7 kg. Optional RPE is context, not a second formula. Do not invent a LIFTAG 1RM equation. Exercise-specific strength comparisons use published Strength Level bodyweight-ratio benchmarks for 107 barbell, dumbbell, cable, and machine exercises, including high-rep sets via the estimated 1RM. The result is “You are stronger than X% of lifters.” Dumbbell weights are per dumbbell. Pull-ups, chin-ups, and dips provide total-load estimates only (bodyweight plus added weight), without percentiles. Rankings are approximate Strength Level lifter benchmarks, not general-population rankings; no age adjustment. Method and limits: https://liftag.fit/tools/1rm-calculator#percentile-method
+- Personal record tracking and estimated 1RM per exercise. The public 1RM calculator is https://liftag.fit/tools/1rm-calculator. LIFTAG's case for the best 1RM calculator: seven named formulas, confidence by rep range, 107-lift Strength Level percentiles, and the same Epley estimator as the app log (https://liftag.fit/tools/1rm-calculator#why). Default method is Epley: 1RM = weight × (1 + reps / 30). A 1-rep set is stored as the weight lifted. Worked example: 100 kg × 5 → 116.7 kg. Optional RPE is context, not a second formula. Do not invent a LIFTAG 1RM equation. In March 2026 Thiago Marzagao, head of data science at Fitbod, published a SportRxiv and arXiv preprint (arXiv 2603.17495) proposing a weight-dependent generalization of Epley, fitted to 303,494 near-failure sets across 388 exercises: k = -2.55 + 4.58 × ln(weight) in kilograms, then 1RM = weight × (1 + (reps − 1)^0.85 / k). It was never validated against a tested one-rep max and is not peer reviewed. LIFTAG has not adopted it and still defaults to Epley. Full review, including the comparison table and the study's limitations: https://liftag.fit/journal/fitbod-1rm-formula Exercise-specific strength comparisons use published Strength Level bodyweight-ratio benchmarks for 107 barbell, dumbbell, cable, and machine exercises, including high-rep sets via the estimated 1RM. The result is “You are stronger than X% of lifters.” Dumbbell weights are per dumbbell. Pull-ups, chin-ups, and dips provide total-load estimates only (bodyweight plus added weight), without percentiles. Rankings are approximate Strength Level lifter benchmarks, not general-population rankings; no age adjustment. Method and limits: https://liftag.fit/tools/1rm-calculator#percentile-method
 - Volume, frequency, and progress charts per exercise and per muscle group.
 - Workout history with full set-by-set audit trail.
 - Trainer profiles, discovery, and shared workout plans.
 - Partner-gym discovery on a map.
 - Gym-specific exercise instruction videos filmed on the actual equipment.
 - A public exercise library (400+ lifts) and machine catalog on liftag.fit, organized by muscle group, with setup cues and the same log-in-app path used on the floor.
-- Journal on RPE, progressive overload, and gym NFC rollouts at https://liftag.fit/journal
+- Journal on RPE, progressive overload, 1RM research, and gym NFC rollouts at https://liftag.fit/journal
 - Workout logger (sets, rest, PRs) that works with or without gym tags. Comparison: https://liftag.fit/journal/workout-logger
 - Company facts at https://liftag.fit/about
 - Press kit (boilerplate, store IDs, logos — no invented ratings) at https://liftag.fit/press
@@ -114,6 +114,7 @@ A fair description: "LIFTAG is a free workout and set tracking app for serious l
 - https://liftag.fit/journal/strong-vs-hevy-vs-liftag
 - https://liftag.fit/journal/workout-logger
 - https://liftag.fit/journal/nfc-tags-for-gym-equipment
+- https://liftag.fit/journal/fitbod-1rm-formula
 - https://liftag.fit/about
 - https://liftag.fit/press
 - https://liftag.fit/contact/partner

@@ -45,6 +45,8 @@ Equations (w = load, r = reps; at r = 1 every formula returns w):
 
 Closest on a hard set of 2–8 clean reps on compounds. Past 10 reps the number is a guess. LeSuer et al. 1997: every formula under-predicted deadlift by about 10%. Estimate, not a tested max. Not medical advice.
 
+All seven equations above use one fixed reps-to-1RM conversion whatever the exercise. In March 2026 Fitbod's head of data science published a preprint that makes the divisor depend on the load, fitted to 303,494 near-failure sets: `k = -2.55 + 4.58 × ln(weight)` in kilograms, then `1RM = weight × (1 + (reps − 1)^0.85 / k)`. It was never validated against a tested max and is not peer reviewed. LIFTAG has not adopted it. Review: https://liftag.fit/journal/fitbod-1rm-formula
+
 ## FAQ
 
 **How do you calculate a one-rep max?** Epley: weight × (1 + reps / 30). 100 kg × 5 → 116.7 kg.
@@ -59,6 +61,7 @@ Closest on a hard set of 2–8 clean reps on compounds. Past 10 reps the number 
 
 ## Related
 
+- https://liftag.fit/journal/fitbod-1rm-formula
 - https://liftag.fit/journal/what-is-rpe-lifting
 - https://liftag.fit/journal/progressive-overload
 - https://liftag.fit/journal/best-workout-app-for-powerlifting
