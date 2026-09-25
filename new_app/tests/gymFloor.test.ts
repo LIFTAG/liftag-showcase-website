@@ -13,12 +13,15 @@ import {
   FLOOR_TITLE_TILES,
   FLOOR_W,
   floorAppDivider,
+  floorAppName,
+  floorAppNumber,
+  floorAppRow,
   floorAt,
   floorBeatAt,
   floorBeatTarget,
   floorCameraAt,
   floorLabelAt,
-  floorLabelsLanded,
+  floorLabelLanded,
   floorMachinePoseAt,
   floorMorphRect,
   floorPhoneBodyRect,
@@ -83,29 +86,47 @@ test("the crane starts low and pulled back, and only turns plumb for the morph",
   assert.equal(list.overhead, 0);
 });
 
-test("tags scan in with their machine, then land on the in-app indices", () => {
+test("tags scan in with their machine, then land their number and name in the app row", () => {
   assert.equal(floorSpawnAt(0, 0).amount, 0);
   assert.equal(floorSpawnDone(FLOOR_SPAWN_DURATION + 2 * FLOOR_SPAWN_STAGGER), false);
   assert.equal(floorSpawnDone(FLOOR_SPAWN_DURATION + 3 * FLOOR_SPAWN_STAGGER), true);
   assert.equal(floorLabelAt(0.2, 0, 0).alpha, 0, "no tag before its machine exists");
   const onFloor = floorLabelAt(0.2, 0, 1);
   assert.equal(onFloor.alpha, 1);
-  assert.equal(onFloor.name, 1);
+  assert.equal(onFloor.leader, 1);
+  assert.equal(onFloor.pill, 1);
   assert.equal(onFloor.travel, 0);
   for (let i = 0; i < floorEquipment.length; i++) {
     const landed = floorLabelAt(1, i, 1);
     assert.equal(landed.travel, 1);
-    assert.equal(landed.name, 0);
-    assert.equal(landed.alpha, 0, "the painted index takes over");
+    assert.equal(landed.leader, 0);
+    assert.equal(landed.pill, 0, "bare text reaches the row");
+    assert.equal(landed.alpha, 0, "the painted row takes over");
+    assert.equal(floorLabelLanded(0.6, i), false);
+    assert.equal(floorLabelLanded(1, i), true);
   }
-  assert.equal(floorLabelsLanded(0.6), false);
-  assert.equal(floorLabelsLanded(1), true);
-  // Handoff only once the tag already covers its slot on a visible screen.
+  // The app paints a row only once its tag sits exactly on it, and the tag
+  // only fades once that row is painted: no ghost, and no gap.
   for (const progress of samples) {
     for (let i = 0; i < floorEquipment.length; i++) {
       const label = floorLabelAt(progress, i, 1);
-      if (label.alpha < 1) assert.ok(label.travel > 0.9, `tag ${i} fades early at ${progress}`);
+      if (floorLabelLanded(progress, i)) assert.equal(label.travel, 1, `tag ${i} still flying at ${progress}`);
+      if (label.alpha < 1) assert.ok(floorLabelLanded(progress, i), `tag ${i} fades unpainted at ${progress}`);
     }
+  }
+});
+
+test("a machine's name lands between its area line and the View link", () => {
+  for (let i = 0; i < floorEquipment.length; i++) {
+    const row = floorAppRow(i);
+    const number = floorAppNumber(i);
+    const one = floorAppName(i, 1);
+    const two = floorAppName(i, 2);
+    assert.equal(one.x, number.areaX, "name aligns with the area label");
+    assert.equal(two.x, number.areaX);
+    assert.ok(one.y < number.baselineY - one.size && one.y > row.y - row.rowH / 2);
+    // A wrapped name starts higher, so its two lines sit about the row's centre.
+    assert.ok(two.y > one.y && two.y - two.leading < one.y);
   }
 });
 
@@ -154,6 +175,9 @@ test("the floor film keeps per-frame work off Vue and has a real fallback", () =
   const story = read("../components/gym/GymFloorStory.vue");
   assert.match(story, /style\.setProperty\(`--gf-fill-\$\{i\}`/);
   assert.match(story, /node\.style\.setProperty\('--gf-mix'/);
+  assert.match(story, /label\.style\.setProperty\('--gf-mix'/);
+  // Names are their own layer under the badges, so they can fly to their rows.
+  assert.match(story, /class="gf-label"[\s\S]*class="gf-tag"/);
   assert.doesNotMatch(story, /:style="\{[^"]*progress/);
   // The finished screen exists as markup for screen readers and still mode.
   assert.match(story, /class="gf-app" :aria-label="t\('floor\.screenAlt'\)"/);

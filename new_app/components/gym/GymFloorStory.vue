@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { en, sk } from '~/i18n/messages/gymDemo';
 import type { FloorStage } from '~/utils/gymscan/floorStage';
-import type { FloorAppCopy } from '~/utils/gymscan/floorAppScreen';
+import type { FloorAppCopy, FloorAppNameLayout } from '~/utils/gymscan/floorAppScreen';
 import { floorEquipment } from '~/utils/gymscan/floorEquipment';
 import {
   FLOOR_BEATS,
@@ -24,6 +24,8 @@ const pane = useTemplateRef<HTMLElement>('pane');
 const canvas = useTemplateRef<HTMLCanvasElement>('canvas');
 const tagLayer = useTemplateRef<HTMLElement>('tagLayer');
 const beat = shallowRef<FloorBeat>(0);
+/** How the app sets each name, once the stage has measured it. */
+const nameLayout = shallowRef<FloorAppNameLayout[] | null>(null);
 const ready = shallowRef(false);
 const unavailable = shallowRef(false);
 /** No pinned film: reduced motion, no WebGL, or the stage failed. */
@@ -42,6 +44,17 @@ const machines = computed(() =>
     name: t(`floor.names.${item.id}`),
     area: t(`floor.areas.${item.area}`),
   })),
+);
+// Each floor name is set in the lines its app row uses, so it lands on them.
+const labels = computed(() =>
+  machines.value.map((item, i) => {
+    const layout = nameLayout.value?.[i];
+    return {
+      id: item.id,
+      lines: layout?.lines ?? [item.name],
+      style: { '--gf-wrap': layout?.wrap ?? 0, '--gf-leading': layout?.leading ?? 0 },
+    };
+  }),
 );
 function appCopy(): FloorAppCopy {
   return {
@@ -83,6 +96,7 @@ let entryTarget = 0;
 let entryShown = 0;
 let snap = true;
 let tagNodes: HTMLElement[] = [];
+let labelNodes: HTMLElement[] = [];
 let warm: IntersectionObserver | null = null;
 let view: IntersectionObserver | null = null;
 let resize: ResizeObserver | null = null;
@@ -116,15 +130,30 @@ function kick() {
   raf = requestAnimationFrame(frame);
 }
 
+function collectTags() {
+  const layer = tagLayer.value;
+  tagNodes = layer ? Array.from(layer.querySelectorAll<HTMLElement>('.gf-tag')) : [];
+  labelNodes = layer ? Array.from(layer.querySelectorAll<HTMLElement>('.gf-label')) : [];
+}
+
 function writeTags(tags: ReturnType<FloorStage['draw']>['tags']) {
   tags.forEach((tag, i) => {
     const node = tagNodes[i];
-    if (!node) return;
+    const label = labelNodes[i];
+    if (!node || !label) return;
+    const alpha = tag.alpha.toFixed(3);
+    const visibility = tag.alpha > 0.01 ? 'visible' : 'hidden';
+    const mix = tag.mix.toFixed(3);
     node.style.transform = `translate3d(${tag.x.toFixed(1)}px,${tag.y.toFixed(1)}px,0) scale(${tag.scale.toFixed(3)})`;
-    node.style.opacity = tag.alpha.toFixed(3);
-    node.style.visibility = tag.alpha > 0.01 ? 'visible' : 'hidden';
-    node.style.setProperty('--gf-name', tag.name.toFixed(3));
-    node.style.setProperty('--gf-mix', tag.mix.toFixed(3));
+    node.style.opacity = alpha;
+    node.style.visibility = visibility;
+    node.style.setProperty('--gf-leader', tag.leader.toFixed(3));
+    node.style.setProperty('--gf-mix', mix);
+    label.style.transform = `translate3d(${tag.nameX.toFixed(1)}px,${tag.nameY.toFixed(1)}px,0) scale(${tag.nameScale.toFixed(3)})`;
+    label.style.opacity = alpha;
+    label.style.visibility = visibility;
+    label.style.setProperty('--gf-mix', mix);
+    label.style.setProperty('--gf-pill', tag.pill.toFixed(3));
   });
 }
 
@@ -192,6 +221,7 @@ async function boot() {
     stage = module.createFloorStage(canvas.value, { copy: appCopy() });
     await stage.ready;
     if (attempt !== generation || disposed || still.value) return;
+    nameLayout.value = stage.nameLayout();
     snap = true;
     ready.value = true;
     measure();
@@ -219,7 +249,11 @@ function onVisibility() {
   if (!document.hidden) kick();
 }
 
-watch(locale, () => stage?.setCopy(appCopy()));
+watch(locale, () => {
+  if (!stage) return;
+  stage.setCopy(appCopy());
+  nameLayout.value = stage.nameLayout();
+});
 watch(still, (value) => {
   if (value) {
     generation++;
@@ -232,13 +266,13 @@ watch(still, (value) => {
     void nextTick(boot);
   }
   void nextTick(() => {
-    tagNodes = Array.from(tagLayer.value?.children ?? []) as HTMLElement[];
+    collectTags();
     measure();
   });
 });
 
 onMounted(() => {
-  tagNodes = Array.from(tagLayer.value?.children ?? []) as HTMLElement[];
+  collectTags();
   const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
   if (saveData) unavailable.value = true;
   measure();
@@ -320,9 +354,14 @@ onBeforeUnmount(() => {
       <!-- Holds the floor's place while the machines load. -->
       <div v-if="!still" class="gf-standby" aria-hidden="true"><i /></div>
       <div v-if="!still" ref="tagLayer" class="gf-tags" aria-hidden="true">
+        <!-- Names first, so every number badge sits above every name pill. -->
+        <span v-for="item in labels" :key="`name-${item.id}`" class="gf-label" :style="item.style">
+          <span class="gf-label__text"
+            >{{ item.lines[0] }}<span v-if="item.lines[1]" class="gf-label__wrap">{{ item.lines[1] }}</span></span
+          >
+        </span>
         <span v-for="item in machines" :key="item.id" class="gf-tag">
           <b class="gf-tag__num">{{ item.number }}</b>
-          <span class="gf-tag__name">{{ item.name }}</span>
         </span>
       </div>
 

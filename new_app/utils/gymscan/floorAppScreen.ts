@@ -1,7 +1,9 @@
 import { PHONE_SCR_H, PHONE_SCR_W } from "../phoneModel";
 import { floorEquipment, type FloorMachine } from "./floorEquipment";
 import {
+  FLOOR_APP_LAYOUT,
   FLOOR_APP_TITLE,
+  floorAppName,
   floorAppNumber,
   floorAppRow,
 } from "./floorTimeline";
@@ -44,17 +46,47 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, max: number) {
   return best[1] ? best : [text];
 }
 
+export type FloorAppNameLayout = {
+  lines: string[];
+  /** Advance of the first line, in em, where a wrapped second line starts. */
+  wrap: number;
+  /** Baseline pitch between the two lines, in em. */
+  leading: number;
+};
+
+/**
+ * How the app sets a machine's name in its row. The painter and the flying
+ * floor tag both follow this, so the tag lands on the painted lines.
+ */
+export function floorAppNameLayout(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  index: number,
+  name: string,
+): FloorAppNameLayout {
+  const size = FLOOR_APP_LAYOUT.nameSize * h;
+  ctx.font = `600 ${size}px Inter, sans-serif`;
+  const left = canvasX(floorAppName(index, 1).x, w);
+  const lines = wrap(ctx, name, w - left - FLOOR_APP_LAYOUT.nameInsetRight * w);
+  return {
+    lines,
+    wrap: lines.length > 1 ? ctx.measureText(lines[0]!).width / size : 0,
+    leading: FLOOR_APP_LAYOUT.nameLeading / FLOOR_APP_LAYOUT.nameSize,
+  };
+}
+
 /**
  * The gym overview the floor turns into. Thumbnail wells stay empty: the real
  * floor models land in them, and the list rules are the floor seams
- * themselves. The title and 01–04 indices are painted only once their 3D
- * counterparts have landed on these exact pixels.
+ * themselves. The title, and each row's index and name, are painted only
+ * once their floor counterparts have landed on these exact pixels.
  */
 export function drawFloorAppScreen(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
-  options: { numbers: boolean; title: boolean; copy: FloorAppCopy },
+  options: { landed: readonly boolean[]; title: boolean; copy: FloorAppCopy },
 ) {
   const { copy } = options;
   const ink = "#eff2ed";
@@ -121,21 +153,19 @@ export function drawFloorAppScreen(
     ctx.beginPath();
     ctx.roundRect(cx - thumb / 2, cy - thumb / 2, thumb, thumb, 22);
     ctx.fill();
-    if (options.numbers) {
+    text(copy.areas[item.area].toUpperCase(), areaX, areaY, 18, muted, 600);
+    if (options.landed[i]) {
       ctx.fillStyle = lime;
       ctx.font = `600 ${(number.size / PHONE_SCR_H) * h}px "JetBrains Mono", ui-monospace, monospace`;
       ctx.textAlign = "center";
       ctx.fillText(item.number, canvasX(number.x, w), areaY);
       ctx.textAlign = "left";
-    }
-    text(copy.areas[item.area].toUpperCase(), areaX, areaY, 18, muted, 600);
-    ctx.font = font(32, 600);
-    const lines = wrap(ctx, copy.names[item.id], w - areaX - 64);
-    if (lines.length > 1) {
-      text(lines[0]!, areaX, cy - 9, 32, ink, 600);
-      text(lines[1]!, areaX, cy + 27, 32, ink, 600);
-    } else {
-      text(lines[0]!, areaX, cy + 5, 32, ink, 600);
+      const { lines } = floorAppNameLayout(ctx, w, h, i, copy.names[item.id]);
+      const name = floorAppName(i, lines.length);
+      const size = (name.size / PHONE_SCR_H) * h;
+      lines.forEach((line, n) => {
+        text(line, canvasX(name.x, w), canvasY(name.y, h) + n * (name.leading / PHONE_SCR_H) * h, size, ink, 600);
+      });
     }
     text(copy.view, areaX, cy + 65, 21, lime, 500);
     ctx.textAlign = "right";
@@ -163,7 +193,11 @@ export function drawFloorExerciseScreen(
     ctx.fillText(value, x, y);
   };
   // Keep the status bar and home indicator fixed through the screen change.
-  drawFloorAppScreen(ctx, w, h, { numbers: true, title: true, copy });
+  drawFloorAppScreen(ctx, w, h, {
+    landed: floorEquipment.map(() => true),
+    title: true,
+    copy,
+  });
   ctx.fillStyle = "#0e1210";
   ctx.fillRect(0, 90, w, h - 130);
   ctx.textAlign = "left";
