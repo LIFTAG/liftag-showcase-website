@@ -5,6 +5,8 @@ import type { FloorAppCopy, FloorAppNameLayout } from '~/utils/gymscan/floorAppS
 import { floorEquipment } from '~/utils/gymscan/floorEquipment';
 import {
   FLOOR_BEATS,
+  FLOOR_COACH_ORDER,
+  FLOOR_PLAN_ORDER,
   floorBeatAt,
   floorBeatFill,
   floorBeatTarget,
@@ -76,8 +78,34 @@ function appCopy(): FloorAppCopy {
       freeWeights: t('floor.areas.freeWeights'),
       cardio: t('floor.areas.cardio'),
     },
+    plan: {
+      offer: t('floor.plan.offer'),
+      title: t('floor.plan.title'),
+      building: t('floor.plan.building'),
+      summary: t('floor.plan.summary'),
+      start: t('floor.plan.start'),
+      exercises: planExercises('plan'),
+    },
+    coach: {
+      name: t('floor.coach.name'),
+      role: t('floor.coach.role'),
+      title: t('floor.coach.title'),
+      publish: t('floor.coach.publish'),
+      live: t('floor.coach.live'),
+      exercises: planExercises('coach'),
+    },
   };
 }
+/** A plan's exercises in slot order, each with its machine's tag number. */
+function planExercises(kind: 'plan' | 'coach') {
+  const order = kind === 'plan' ? FLOOR_PLAN_ORDER : FLOOR_COACH_ORDER;
+  return order.map((index, slot) => ({
+    number: floorEquipment[index]!.number,
+    name: t(`floor.${kind}.exercises.${slot}.name`),
+    sets: t(`floor.${kind}.exercises.${slot}.sets`),
+  }));
+}
+const plans = computed(() => ({ plan: planExercises('plan'), coach: planExercises('coach') }));
 
 let stage: FloorStage | null = null;
 let stageModule: Promise<typeof import('~/utils/gymscan/floorStage')> | null = null;
@@ -384,7 +412,7 @@ onBeforeUnmount(() => {
               </span>
               <span class="gf-rail__bar" aria-hidden="true"><i /></span>
             </button>
-            <p class="gf-rail__more">{{ item.copy }}</p>
+            <p class="gf-rail__more"><b aria-hidden="true">{{ item.name }}</b>{{ item.copy }}</p>
           </li>
         </ol>
       </div>
@@ -423,6 +451,29 @@ onBeforeUnmount(() => {
             <span>{{ t('floor.exerciseMuscles') }}</span>
           </li>
         </ul>
+      </div>
+
+      <div class="gf-plans">
+        <div class="gf-plan" :aria-label="t('floor.planScreenAlt')">
+          <p class="gx-protocol">AI · {{ t('floor.appTitle') }}</p>
+          <h3>{{ t('floor.plan.title') }}</h3>
+          <p>{{ t('floor.plan.summary') }}</p>
+          <ol>
+            <li v-for="item in plans.plan" :key="item.number">
+              <b class="gx-protocol">{{ item.number }}</b><strong>{{ item.name }}</strong><span>{{ item.sets }}</span>
+            </li>
+          </ol>
+        </div>
+        <div class="gf-plan" :aria-label="t('floor.coachScreenAlt')">
+          <p class="gx-protocol">{{ t('floor.coach.name') }} · {{ t('floor.coach.role') }}</p>
+          <h3>{{ t('floor.coach.title') }}</h3>
+          <p>{{ t('floor.coach.live') }}</p>
+          <ol>
+            <li v-for="item in plans.coach" :key="item.number">
+              <b class="gx-protocol">{{ item.number }}</b><strong>{{ item.name }}</strong><span>{{ item.sets }}</span>
+            </li>
+          </ol>
+        </div>
       </div>
 
       <p class="gf-note gx-protocol">{{ t('floor.note') }}</p>

@@ -6,9 +6,17 @@ import {
   drawFloorAppScreen,
   drawFloorExerciseScreen,
   floorAppNameLayout,
+  floorViewButton,
   type FloorAppCopy,
   type FloorAppNameLayout,
 } from "./floorAppScreen";
+import {
+  drawFloorCoachScreen,
+  drawFloorOffer,
+  drawFloorPlanScreen,
+  floorOfferButton,
+  type FloorPublishState,
+} from "./floorPlanScreen";
 import { createFloorSeams } from "./floorSeams";
 import { createFloorIsland } from "./floorIsland";
 import { createFloorTitle } from "./floorTitle";
@@ -22,6 +30,7 @@ import {
 import { experienceDprCap } from "./journey";
 import {
   FLOOR_APP_CANVAS,
+  FLOOR_APP_CHROME,
   FLOOR_CAM_FOV,
   FLOOR_PHONE_ROT_X,
   FLOOR_PHONE_SCALE,
@@ -29,18 +38,24 @@ import {
   floorAppNumberWorld,
   floorAt,
   floorCameraAt,
+  floorFilm,
   floorCornerRadius,
   floorFrames,
-  floorExercisesAt,
   floorLabelAt,
   floorLabelLanded,
   floorMachinePoseAt,
   floorMorphBeats,
   floorMorphRect,
+  floorOfferFrame,
+  floorOpenAt,
+  floorOpenFrame,
   floorOrderAt,
+  floorPlanAt,
+  floorPlanLanded,
   floorSpawnAt,
   floorSpawnDone,
   floorTitleLanded,
+  type FloorOpenFrame,
 } from "./floorTimeline";
 import {
   HERO_PHONE_KEY_LIGHT,
@@ -63,6 +78,116 @@ const TAG_LIFT = 30;
 /** Rubber under the ceiling strips → the app's own background. */
 const RUBBER = new THREE.Color(0x8d959b);
 const APP_INK = new THREE.Color(0x0e1210);
+const APP_LIME = new THREE.Color(0xccff00);
+/** The app's raised surface: its search field and exercise cards. */
+const APP_CARD = new THREE.Color(0x1a201c);
+
+/**
+ * A card opening out of a button: clips a screen to the card, and fits the
+ * screen into it by width. While button-sized the card wears the button's
+ * own face, if it has one. Around the card the list dims under a soft
+ * shadow. Canvas pixels throughout, y down.
+ */
+const OPEN_FRAGMENT = /* glsl */ `
+vec2 openPx = vec2(vMapUv.x, 1. - vMapUv.y) * uOpenCanvas;
+vec2 openQ = abs(openPx - uOpenBox.xy) - uOpenBox.zw + uOpenRadius;
+float openD = length(max(openQ, 0.)) + min(max(openQ.x, openQ.y), 0.) - uOpenRadius;
+float openAa = max(fwidth(openD), 1e-3);
+float openIn = 1. - smoothstep(-openAa, openAa, openD);
+// The button's face, under the tint of the press.
+vec2 openFaceUv = ((openPx - uOpenBox.xy) / (2. * uOpenBox.zw) + .5) * uOpenFaceUv;
+vec4 openFace = texture2D(uOpenSprite, vec2(openFaceUv.x, 1. - openFaceUv.y));
+openFace.a *= uOpenFace;
+float openFaceA = uOpenState.x + openFace.a * (1. - uOpenState.x);
+vec3 openFaceRgb = (uOpenTint * uOpenState.x + openFace.rgb * openFace.a * (1. - uOpenState.x)) / max(openFaceA, 1e-4);
+// The screen inside the card, without its own chrome: the card is not a phone.
+vec2 openLocal = (openPx - uOpenMap.xy) / uOpenMap.z;
+float openApp = step(uOpenChrome.x, openLocal.y) * step(openLocal.y, uOpenCanvas.y - uOpenChrome.y);
+vec2 openUv = vec2(openLocal.x / uOpenCanvas.x, 1. - openLocal.y / uOpenCanvas.y);
+vec3 openScreen = mix(texture2D(map, openUv).rgb, texture2D(uOpenNext, openUv).rgb, uOpenSwap);
+openScreen = mix(uOpenInk, openScreen, openApp);
+vec3 openSurface = mix(openFaceRgb, uOpenCard, uOpenState.y);
+vec3 openCard = mix(openSurface, openScreen, uOpenState.z);
+float openCardA = mix(mix(openFaceA, 1., uOpenState.y), 1., uOpenState.z);
+float openShade = max(uOpenState.w, uOpenShadow * (1. - smoothstep(0., 56., openD)));
+vec4 openColor = mix(vec4(0., 0., 0., openShade), vec4(openCard, openCardA), openIn);
+// Every screen paints the same status bar and home indicator; leave them be.
+openColor.a *= step(uOpenChrome.x, openPx.y) * step(openPx.y, uOpenCanvas.y - uOpenChrome.y);
+diffuseColor = vec4(openColor.rgb, openColor.a * opacity);
+`;
+const OPEN_UNIFORMS =
+  "uniform vec2 uOpenCanvas;uniform vec2 uOpenChrome;uniform vec4 uOpenBox;uniform float uOpenRadius;" +
+  "uniform vec3 uOpenMap;uniform vec4 uOpenState;uniform float uOpenShadow;uniform float uOpenFace;" +
+  "uniform float uOpenSwap;uniform sampler2D uOpenNext;uniform sampler2D uOpenSprite;uniform vec2 uOpenFaceUv;" +
+  "uniform vec3 uOpenTint;uniform vec3 uOpenCard;uniform vec3 uOpenInk;\n";
+
+function createAppTexture(image: HTMLCanvasElement, anisotropy: number) {
+  const texture = new THREE.CanvasTexture(image);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.generateMipmaps = false;
+  texture.minFilter = THREE.LinearFilter;
+  texture.anisotropy = anisotropy;
+  return texture;
+}
+
+/**
+ * A screen that opens out of a button over the list, on the glass's own
+ * geometry. `sprite` is the button's face; `next` a second screen the card
+ * can cross to.
+ */
+function createOpenCard(
+  screen: THREE.Mesh,
+  opts: { map: THREE.Texture; next?: THREE.Texture; sprite: THREE.Texture; tint: THREE.Color; overModels: boolean },
+) {
+  const material = new THREE.MeshBasicMaterial({
+    map: opts.map,
+    toneMapped: false,
+    transparent: true,
+    // Over the models, the card hides the thumbnails; under them, they ride on it.
+    depthTest: !opts.overModels,
+    depthWrite: false,
+  });
+  const uniforms = {
+    uOpenCanvas: { value: new THREE.Vector2(FLOOR_APP_CANVAS.w, FLOOR_APP_CANVAS.h) },
+    uOpenChrome: { value: new THREE.Vector2(FLOOR_APP_CHROME.top, FLOOR_APP_CHROME.bottom) },
+    uOpenBox: { value: new THREE.Vector4() },
+    uOpenRadius: { value: 0 },
+    uOpenMap: { value: new THREE.Vector3(0, 0, 1) },
+    /** Tint alpha, fill, content, scrim. */
+    uOpenState: { value: new THREE.Vector4() },
+    uOpenShadow: { value: 0 },
+    uOpenFace: { value: 0 },
+    uOpenSwap: { value: 0 },
+    uOpenNext: { value: opts.next ?? opts.map },
+    uOpenSprite: { value: opts.sprite },
+    /** Share of the sprite, from its top left, that the face takes up. */
+    uOpenFaceUv: { value: new THREE.Vector2(1, 1) },
+    uOpenTint: { value: opts.tint },
+    uOpenCard: { value: APP_CARD },
+    uOpenInk: { value: APP_INK },
+  };
+  material.onBeforeCompile = (shader) => {
+    Object.assign(shader.uniforms, uniforms);
+    shader.fragmentShader = OPEN_UNIFORMS + shader.fragmentShader.replace("#include <map_fragment>", OPEN_FRAGMENT);
+  };
+  material.customProgramCacheKey = () => "floor-open-v2";
+  const mesh = new THREE.Mesh(screen.geometry.clone(), material);
+  mesh.position.copy(screen.position);
+  mesh.renderOrder = 2; // Over the list's rules; the Dynamic Island stays above.
+  mesh.visible = false;
+  return {
+    mesh,
+    uniforms,
+    set(card: FloorOpenFrame) {
+      uniforms.uOpenBox.value.set(card.cx, card.cy, card.hw, card.hh);
+      uniforms.uOpenRadius.value = card.radius;
+      uniforms.uOpenMap.value.set(card.left, card.top, card.scale);
+      uniforms.uOpenState.value.set(card.tint, card.fill, card.content, card.scrim);
+      uniforms.uOpenShadow.value = card.shadow;
+      uniforms.uOpenFace.value = card.face;
+    },
+  };
+}
 
 export type FloorPointer = {
   hasPointer: boolean;
@@ -96,6 +221,21 @@ function fadeMaterial(material: THREE.Material, base: number, amount: number) {
     material.needsUpdate = true;
   }
   material.depthWrite = opacity > 0.95 && base > 0.95;
+}
+
+/** Every string the app paints, for loading the font subsets it needs. */
+function sampleText(copy: FloorAppCopy) {
+  const exercises = [...copy.plan.exercises, ...copy.coach.exercises].map((item) => item.name + item.sets);
+  return [
+    ...Object.values(copy.names),
+    copy.plan.offer,
+    copy.plan.title,
+    copy.plan.building,
+    copy.coach.title,
+    copy.coach.publish,
+    copy.coach.live,
+    ...exercises,
+  ].join("");
 }
 
 /** Floor → phone, rendered by one lazily created canvas. */
@@ -167,11 +307,8 @@ export function createFloorStage(
     );
   let names = layoutNames();
   paintApp();
-  const appTexture = new THREE.CanvasTexture(appImage);
-  appTexture.colorSpace = THREE.SRGBColorSpace;
-  appTexture.generateMipmaps = false;
-  appTexture.minFilter = THREE.LinearFilter;
-  appTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  const anisotropy = renderer.capabilities.getMaxAnisotropy();
+  const appTexture = createAppTexture(appImage, anisotropy);
   const screenMaterial = new THREE.MeshBasicMaterial({
     map: appTexture,
     toneMapped: false,
@@ -206,35 +343,68 @@ export function createFloorStage(
   device.add(island.root);
   const glassBase = (phone.glass.material as THREE.Material).opacity;
 
-  // A second screen shares the glass silhouette and pointer tilt. Draw it
-  // after the landed models, so their thumbnails dissolve with the list.
-  const exerciseImage = document.createElement("canvas");
-  exerciseImage.width = FLOOR_APP_CANVAS.w;
-  exerciseImage.height = FLOOR_APP_CANVAS.h;
-  const exerciseCtx = exerciseImage.getContext("2d")!;
+  const canvasImage = (w = FLOOR_APP_CANVAS.w, h = FLOOR_APP_CANVAS.h) => {
+    const image = document.createElement("canvas");
+    image.width = w;
+    image.height = h;
+    return { image, ctx: image.getContext("2d")! };
+  };
+
+  // More screens share the glass silhouette and pointer tilt, each opening
+  // out of a button. The machine's screen draws over the landed models, so
+  // its card covers their thumbnails and the scrim dims them with the list.
+  const exercise = canvasImage();
   let machinePoster: HTMLImageElement | null = null;
   const paintExercises = () => drawFloorExerciseScreen(
-    exerciseCtx, exerciseImage.width, exerciseImage.height, copy, machinePoster,
+    exercise.ctx, exercise.image.width, exercise.image.height, copy, machinePoster,
   );
   paintExercises();
-  const exerciseTexture = new THREE.CanvasTexture(exerciseImage);
-  exerciseTexture.colorSpace = THREE.SRGBColorSpace;
-  exerciseTexture.generateMipmaps = false;
-  exerciseTexture.minFilter = THREE.LinearFilter;
-  exerciseTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-  const exerciseMaterial = new THREE.MeshBasicMaterial({
+  const exerciseTexture = createAppTexture(exercise.image, anisotropy);
+  // The machine link paints no face of its own: the list's label shows through.
+  const noFace = createAppTexture(canvasImage(1, 1).image, 1);
+  const exerciseCard = createOpenCard(phone.screen, {
     map: exerciseTexture,
-    toneMapped: false,
-    transparent: true,
-    depthTest: false,
-    depthWrite: false,
-    opacity: 0,
+    sprite: noFace,
+    tint: APP_LIME,
+    overModels: true,
   });
-  const exerciseScreen = new THREE.Mesh(phone.screen.geometry.clone(), exerciseMaterial);
-  exerciseScreen.position.copy(phone.screen.position);
-  exerciseScreen.renderOrder = 2; // The Dynamic Island remains above both screens.
-  exerciseScreen.visible = false;
-  device.add(exerciseScreen);
+  device.add(exerciseCard.mesh);
+  let viewButton = floorViewButton(appCtx, appImage.width, appImage.height, 0, copy.view);
+
+  // The AI workout, then the coach's routine on the same card. Its machines
+  // are the floor's own models, so this card draws under them.
+  const plan = canvasImage();
+  const coach = canvasImage();
+  const planLanded = floorEquipment.map(() => false);
+  const coachLanded = floorEquipment.map(() => false);
+  let publishState: FloorPublishState = "idle";
+  const paintPlan = () => drawFloorPlanScreen(plan.ctx, plan.image.width, plan.image.height, copy, planLanded);
+  const paintCoach = () =>
+    drawFloorCoachScreen(coach.ctx, coach.image.width, coach.image.height, copy, coachLanded, publishState);
+  paintPlan();
+  paintCoach();
+  const planTexture = createAppTexture(plan.image, anisotropy);
+  const coachTexture = createAppTexture(coach.image, anisotropy);
+  let offerButton = floorOfferButton(appCtx, appImage.width, copy.plan.offer);
+  // As wide as the screen, so a longer label in another locale still fits.
+  const offer = canvasImage(FLOOR_APP_CANVAS.w, offerButton.h);
+  const offerTexture = createAppTexture(offer.image, anisotropy);
+  // Pressing darkens the lime pill instead of lighting it.
+  const planCard = createOpenCard(phone.screen, {
+    map: planTexture,
+    next: coachTexture,
+    sprite: offerTexture,
+    tint: APP_INK,
+    overModels: false,
+  });
+  device.add(planCard.mesh);
+  const paintOffer = () => {
+    offerButton = floorOfferButton(appCtx, appImage.width, copy.plan.offer);
+    drawFloorOffer(offer.ctx, offerButton, copy.plan.offer);
+    planCard.uniforms.uOpenFaceUv.value.set(offerButton.w / offer.image.width, 1);
+    offerTexture.needsUpdate = true;
+  };
+  paintOffer();
 
   const shadow = createContactShadowTexture();
   const reveals = floorEquipment.map(() => ({ value: 0 }));
@@ -322,7 +492,15 @@ export function createFloorStage(
     if (disposed) return;
     const warmTarget = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: true, stencilBuffer: false });
     const previousTarget = renderer.getRenderTarget();
-    const visibility = [surface.mesh, phone.group, title.root, island.root, exerciseScreen, ...models].map((object) => ({
+    const visibility = [
+      surface.mesh,
+      phone.group,
+      title.root,
+      island.root,
+      exerciseCard.mesh,
+      planCard.mesh,
+      ...models,
+    ].map((object) => ({
       object,
       visible: object.visible,
     }));
@@ -389,21 +567,32 @@ export function createFloorStage(
     }
   }
 
-  const ready = Promise.all([
-    equipmentReady,
-    posterReady,
-    // With the names as sample text, so a caron's subset is in before layout.
-    document.fonts.load("600 32px Inter", Object.values(copy.names).join("")),
-    document.fonts.load("650 57px Inter"),
-    document.fonts.load('600 18px "JetBrains Mono"'),
-  ]).then(async () => {
-    if (disposed) return;
+  /** Every painted screen and measured button, after fonts or copy change. */
+  function repaintAll() {
     title.paint(copy.title);
     names = layoutNames();
+    viewButton = floorViewButton(appCtx, appImage.width, appImage.height, 0, copy.view);
     paintExercises();
     exerciseTexture.needsUpdate = true;
     paintApp();
     appTexture.needsUpdate = true;
+    paintPlan();
+    planTexture.needsUpdate = true;
+    paintCoach();
+    coachTexture.needsUpdate = true;
+    paintOffer();
+  }
+
+  const ready = Promise.all([
+    equipmentReady,
+    posterReady,
+    // With the copy as sample text, so a caron's subset is in before layout.
+    document.fonts.load("600 32px Inter", sampleText(copy)),
+    document.fonts.load("650 57px Inter"),
+    document.fonts.load('600 18px "JetBrains Mono"'),
+  ]).then(async () => {
+    if (disposed) return;
+    repaintAll();
     prewarmTask = prewarm();
     await prewarmTask;
   });
@@ -443,16 +632,39 @@ export function createFloorStage(
   resize();
 
   /**
-   * Render one frame. `active` is whether the floor is on screen enough for
-   * the scan to run; `dt` drives the scan and the pointer lean only.
+   * Render one frame at section `progress`. `active` is whether the floor is
+   * on screen enough for the scan to run; `dt` drives the scan and the
+   * pointer lean only.
    */
   function draw(progress: number, entry: number, active: boolean, dt: number, pointer: FloorPointer) {
-    const { morph } = floorAt(progress);
+    // Everything below runs on film time.
+    const film = floorFilm(progress);
+    const { morph } = floorAt(film);
     const beats = floorMorphBeats(morph);
     const frames = floorFrames(width, height);
-    const exercises = floorExercisesAt(progress);
-    exerciseScreen.visible = exercises > 0;
-    exerciseMaterial.opacity = exercises;
+    const opening = floorOpenAt(film);
+    exerciseCard.mesh.visible = opening.press > 0;
+    if (exerciseCard.mesh.visible)
+      exerciseCard.set(floorOpenFrame(viewButton, opening.press, opening.expand));
+    const planning = floorPlanAt(film);
+    planCard.mesh.visible = planning.offer > 0;
+    if (planCard.mesh.visible) {
+      planCard.set(floorOfferFrame(offerButton, planning.offer, planning.press, planning.expand));
+      planCard.uniforms.uOpenSwap.value = planning.swap;
+    }
+    const settled = floorPlanLanded(film);
+    const publish: FloorPublishState = planning.published ? "live" : planning.publishing ? "pressed" : "idle";
+    if (settled.plan.some((value, i) => value !== planLanded[i])) {
+      settled.plan.forEach((value, i) => (planLanded[i] = value));
+      paintPlan();
+      planTexture.needsUpdate = true;
+    }
+    if (publish !== publishState || settled.coach.some((value, i) => value !== coachLanded[i])) {
+      settled.coach.forEach((value, i) => (coachLanded[i] = value));
+      publishState = publish;
+      paintCoach();
+      coachTexture.needsUpdate = true;
+    }
 
     // Surface: rubber tiles → dark glass, contracting into the phone outline.
     const rect = floorMorphRect(morph);
@@ -468,7 +680,7 @@ export function createFloorStage(
     seams.update(morph, 1);
     seams.mesh.position.z = surface.mesh.position.z + 0.002;
     island.update(morph);
-    title.update(progress);
+    title.update(film);
 
     phone.group.visible = beats.screen > 0.001 || beats.device > 0.001;
     fadeMaterial(screenMaterial, 1, beats.screen);
@@ -484,7 +696,7 @@ export function createFloorStage(
     else if (active) spawnSeconds += dt;
     result.spawning = active && !floorSpawnDone(spawnSeconds);
 
-    const cam = floorCameraAt(progress, entry, width, height);
+    const cam = floorCameraAt(film, entry, width, height);
     camera.position.set(cam.x, cam.y, cam.z);
     // Screen-local +Y maps to world -Z: keep the app upright overhead.
     camera.up.set(0, 1 - cam.overhead, -cam.overhead).normalize();
@@ -519,13 +731,13 @@ export function createFloorStage(
 
     let repaint = false;
     for (let i = 0; i < floorEquipment.length; i++) {
-      const landed = floorLabelLanded(progress, i);
+      const landed = floorLabelLanded(film, i);
       if (landed !== paintedLabels[i]) {
         paintedLabels[i] = landed;
         repaint = true;
       }
     }
-    const landedTitle = floorTitleLanded(progress);
+    const landedTitle = floorTitleLanded(film);
     if (repaint || landedTitle !== paintedTitle) {
       paintedTitle = landedTitle;
       paintApp();
@@ -535,8 +747,8 @@ export function createFloorStage(
     for (let i = 0; i < floorEquipment.length; i++) {
       const rig = models[i];
       if (!rig) continue;
-      const placed = floorMachinePoseAt(progress, i);
-      const ordered = floorOrderAt(progress, i);
+      const placed = floorMachinePoseAt(film, i);
+      const ordered = floorOrderAt(film, i);
       const spawn = floorSpawnAt(spawnSeconds, i);
       const grow = spawn.amount;
       reveals[i]!.value = spawn.height;
@@ -569,7 +781,7 @@ export function createFloorStage(
       lifted.set(name.x, name.y, name.z - name.size).applyMatrix4(tilt.matrixWorld);
       const nameTop = toScreen(lifted);
       const nameH = Math.hypot(nameTo.x - nameTop.x, nameTo.y - nameTop.y);
-      const label = floorLabelAt(progress, i, grow);
+      const label = floorLabelAt(film, i, grow);
       const t = label.travel;
       const tag = tags[i]!;
       tag.x = lerp(from.x, to.x, t);
@@ -599,6 +811,10 @@ export function createFloorStage(
     floorMaps.dispose();
     appTexture.dispose();
     exerciseTexture.dispose();
+    noFace.dispose();
+    planTexture.dispose();
+    coachTexture.dispose();
+    offerTexture.dispose();
     title.dispose();
     disposeTree(scene);
     renderer.dispose();
@@ -618,12 +834,7 @@ export function createFloorStage(
     },
     setCopy(next: FloorAppCopy) {
       copy = next;
-      title.paint(copy.title);
-      names = layoutNames();
-      paintExercises();
-      exerciseTexture.needsUpdate = true;
-      paintApp();
-      appTexture.needsUpdate = true;
+      repaintAll();
     },
     dispose() {
       if (disposed) return;

@@ -3,8 +3,17 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { floorEquipment } from "../utils/gymscan/floorEquipment.ts";
 import {
+  FLOOR_APP_CANVAS,
+  FLOOR_APP_RADIUS,
+  FLOOR_APP_CHROME,
   FLOOR_BEAT_EDGES,
+  FLOOR_BEATS,
   FLOOR_CAM_FOV,
+  FLOOR_COACH_ORDER,
+  FLOOR_FILM,
+  FLOOR_PHONE_SCALE,
+  FLOOR_PLAN_LAYOUT,
+  FLOOR_PLAN_ORDER,
   FLOOR_D,
   FLOOR_FOOTPRINT,
   FLOOR_SPAWN_DURATION,
@@ -20,11 +29,20 @@ import {
   floorBeatAt,
   floorBeatTarget,
   floorCameraAt,
+  floorFilm,
   floorLabelAt,
   floorLabelLanded,
   floorMachinePoseAt,
   floorMorphRect,
+  floorOfferFrame,
+  floorOpenAt,
+  floorOpenFrame,
   floorPhoneBodyRect,
+  floorPlanAt,
+  floorPlanLanded,
+  floorPlanSlot,
+  floorPlanTravel,
+  floorScreenLocalToWorld,
   floorScreenWorldY,
   floorSeamAt,
   floorSpawnAt,
@@ -152,13 +170,134 @@ test("tile joints become the list rules", () => {
   }
 });
 
+test("View exercises is tapped once every row has landed, then opens into the machine screen", () => {
+  const tapped = floorFilm(FLOOR_BEAT_EDGES[2]!) + 0.1;
+  assert.equal(floorOpenAt(tapped).press, 0);
+  for (let i = 0; i < floorEquipment.length; i++) assert.equal(floorLabelLanded(tapped, i), true);
+  assert.equal(floorTitleLanded(tapped), true);
+  // The press lands before the button starts to grow.
+  assert.equal(floorOpenAt(0.78).press, 1);
+  assert.equal(floorOpenAt(0.78).expand, 0);
+  // The Browse link lands on the open screen.
+  assert.equal(floorOpenAt(floorFilm(floorBeatTarget(2))).expand, 1);
+
+  const button = { x: 240, y: 520, w: 190, h: 38 };
+  const start = floorOpenFrame(button, 1, 0);
+  assert.deepEqual(
+    [start.cx, start.cy, start.hw, start.hh, start.radius],
+    [button.x + button.w / 2, button.y + button.h / 2, button.w / 2, button.h / 2, button.h / 2],
+  );
+  assert.equal(start.fill, 0);
+  assert.equal(start.content, 0);
+  assert.ok(start.tint > 0, "the tapped button lights up");
+  // The card has turned solid before it is much bigger than the button.
+  const lifted = floorOpenFrame(button, 1, 0.16);
+  assert.equal(lifted.fill, 1);
+  assert.equal(lifted.content, 0);
+  assert.ok(lifted.hw * 2 < button.w * 1.5 && lifted.hh * 2 < button.h * 2);
+  // Width leads height through the middle.
+  const mid = floorOpenFrame(button, 1, 0.5);
+  assert.ok(mid.hw / (FLOOR_APP_CANVAS.w / 2) > mid.hh / (FLOOR_APP_CANVAS.h / 2));
+
+  const end = floorOpenFrame(button, 1, 1);
+  assert.deepEqual(
+    [end.cx, end.cy, end.hw, end.hh, end.left, end.top, end.scale, end.radius],
+    [FLOOR_APP_CANVAS.w / 2, FLOOR_APP_CANVAS.h / 2, FLOOR_APP_CANVAS.w / 2, FLOOR_APP_CANVAS.h / 2, 0, 0, 1, FLOOR_APP_RADIUS],
+  );
+  assert.equal(end.content, 1);
+  assert.ok(end.shadow < 1e-9);
+  // The finished card takes the glass's own corners.
+  assert.ok(Math.abs(FLOOR_APP_RADIUS - 92) < 1e-9);
+});
+
 test("floor beats tile the pinned range and each link lands in its band", () => {
-  assert.deepEqual([...FLOOR_BEAT_EDGES], [0, 0.3, 0.6, 1]);
-  for (const beat of [0, 1, 2]) assert.equal(floorBeatAt(floorBeatTarget(beat)), beat);
+  assert.equal(FLOOR_BEAT_EDGES.length, FLOOR_BEATS + 1);
+  assert.equal(FLOOR_BEAT_EDGES[0], 0);
+  assert.equal(FLOOR_BEAT_EDGES[FLOOR_BEATS], 1);
+  for (let beat = 0; beat < FLOOR_BEATS; beat++) assert.equal(floorBeatAt(floorBeatTarget(beat)), beat);
+  // The floor still becomes the app over the first unit of film.
+  assert.deepEqual(FLOOR_BEAT_EDGES.slice(0, 4).map(floorFilm), [0, 0.3, 0.6, 1].map((t) => t * 1));
+  assert.equal(floorFilm(1), FLOOR_FILM);
   // The list beat is overhead; the app beat starts once the floor is contracting.
-  assert.ok(floorAt(FLOOR_BEAT_EDGES[1]).overhead > 0.8);
-  assert.ok(floorAt(FLOOR_BEAT_EDGES[2]).morph > 0.2);
+  assert.ok(floorAt(floorFilm(FLOOR_BEAT_EDGES[1]!)).overhead > 0.8);
+  assert.ok(floorAt(floorFilm(FLOOR_BEAT_EDGES[2]!)).morph > 0.2);
   assert.equal(floorAt(0.84).morph, 1);
+});
+
+test("the machine screen closes, then an AI pill rises, is tapped and opens into the workout", () => {
+  assert.equal(floorOpenAt(1).expand, 1, "Browse still holds the machine screen");
+  assert.equal(floorOpenAt(1.08).expand, 0);
+  assert.equal(floorOpenAt(1.1).press, 0, "the machine card is gone");
+  assert.equal(floorPlanAt(1.07).offer, 0);
+  assert.equal(floorPlanAt(1.12).offer, 1);
+  assert.equal(floorPlanAt(1.12).press, 0, "the pill is in place before it is tapped");
+  assert.equal(floorPlanAt(1.155).press, 1);
+  assert.equal(floorPlanAt(1.155).expand, 0);
+  assert.equal(floorPlanAt(floorFilm(floorBeatTarget(3))).expand, 1, "the Plan link lands on the workout");
+
+  const pill = { x: 180, y: FLOOR_PLAN_LAYOUT.offer.y, w: 360, h: FLOOR_PLAN_LAYOUT.offer.h };
+  const rising = floorOfferFrame(pill, 0, 0, 0);
+  assert.equal(rising.face, 0);
+  assert.ok(rising.cy > pill.y + pill.h / 2, "it rises from below its place");
+  const resting = floorOfferFrame(pill, 1, 0, 0);
+  assert.deepEqual([resting.cx, resting.cy, resting.hw, resting.hh], [pill.x + pill.w / 2, pill.y + pill.h / 2, pill.w / 2, pill.h / 2]);
+  assert.equal(resting.face, 1);
+  assert.equal(resting.tint, 0);
+  assert.ok(resting.shadow > 0, "a floating button casts a shadow");
+  // The pill floats above the home indicator.
+  assert.ok(pill.y + pill.h < FLOOR_APP_CANVAS.h - FLOOR_APP_CHROME.bottom);
+  const open = floorOfferFrame(pill, 1, 1, 1);
+  assert.deepEqual([open.left, open.top, open.scale, open.content], [0, 0, 1, 1]);
+});
+
+test("this gym's machines move into the AI workout, then into the coach's routine", () => {
+  const machines = floorEquipment.map((_, i) => i);
+  assert.deepEqual([...FLOOR_PLAN_ORDER].sort(), machines);
+  assert.deepEqual([...FLOOR_COACH_ORDER].sort(), machines);
+  const { rowsTop, pitch, action } = FLOOR_PLAN_LAYOUT;
+  assert.ok(rowsTop + pitch * FLOOR_PLAN_ORDER.length < action.y, "rows clear the action button");
+
+  const planHold = floorFilm(floorBeatTarget(3));
+  const coachHold = floorFilm(floorBeatTarget(4));
+  const at = (t: number, order: readonly number[]) =>
+    order.forEach((index, slot) => {
+      const pose = floorMachinePoseAt(t, index);
+      const well = floorPlanSlot(slot);
+      const dest = floorScreenLocalToWorld(well.x, well.y);
+      assert.ok(Math.abs(pose.x - dest.x) < 1e-9 && Math.abs(pose.z - dest.z) < 1e-9, `machine ${index} in slot ${slot}`);
+    });
+  // Before the plan, every machine still sits in its list row.
+  for (const i of machines) assert.deepEqual(floorMachinePoseAt(1.2, i), floorMachinePoseAt(0.95, i));
+  at(planHold, FLOOR_PLAN_ORDER);
+  at(coachHold, FLOOR_COACH_ORDER);
+  assert.ok(floorPlanLanded(planHold).plan.every(Boolean));
+  assert.ok(!floorPlanLanded(planHold).coach.some(Boolean));
+  assert.ok(floorPlanLanded(coachHold).coach.every(Boolean));
+  assert.equal(floorPlanAt(coachHold).published, true, "the Coach link lands on the published routine");
+
+  // The coach's builder takes over only once the workout is built, and
+  // before any machine moves again; Publish waits for the last machine.
+  const swapped = FLOOR_PLAN_ORDER.length;
+  for (let t = 1; t <= FLOOR_FILM; t += 0.0025) {
+    const plan = floorPlanAt(t);
+    const landed = floorPlanLanded(t);
+    if (plan.swap > 0) assert.equal(landed.plan.filter(Boolean).length, swapped, `swap at ${t}`);
+    if (plan.swap < 1) for (const i of machines) assert.equal(floorPlanTravel(t, i).coach, 0, `coach move at ${t}`);
+    if (plan.publishing) assert.ok(landed.coach.every(Boolean), `publish at ${t}`);
+    // A row is painted only once its machine has all but settled into the well.
+    FLOOR_PLAN_ORDER.forEach((index, slot) => {
+      if (landed.plan[slot]) assert.ok(floorPlanTravel(t, index).plan >= 0.9);
+    });
+    // Machines that trade wells pass each other instead of overlapping.
+    for (const a of machines)
+      for (const b of machines) {
+        if (a >= b) continue;
+        const pa = floorMachinePoseAt(t, a);
+        const pb = floorMachinePoseAt(t, b);
+        const gap = Math.hypot(pa.x - pb.x, pa.z - pb.z) / FLOOR_PHONE_SCALE;
+        assert.ok(gap > floorAppRow(0).thumb * 0.8, `machines ${a} and ${b} overlap at ${t.toFixed(4)}`);
+      }
+  }
 });
 
 test("the floor chapter sits between the map and the dashboard", () => {

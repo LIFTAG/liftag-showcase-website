@@ -7,7 +7,8 @@
   background: var(--gx-bg);
 }
 .gf.is-pinned {
-  height: 440svh;
+  /* 340svh of scroll per unit of film (FLOOR_FILM = 1.8). */
+  height: 712svh;
 }
 .gf-pane {
   position: sticky;
@@ -312,6 +313,8 @@
 .gf-rail li:nth-child(1) .gf-rail__bar i { transform: scaleX(var(--gf-fill-0, 0)); }
 .gf-rail li:nth-child(2) .gf-rail__bar i { transform: scaleX(var(--gf-fill-1, 0)); }
 .gf-rail li:nth-child(3) .gf-rail__bar i { transform: scaleX(var(--gf-fill-2, 0)); }
+.gf-rail li:nth-child(4) .gf-rail__bar i { transform: scaleX(var(--gf-fill-3, 0)); }
+.gf-rail li:nth-child(5) .gf-rail__bar i { transform: scaleX(var(--gf-fill-4, 0)); }
 .gf.is-still .gf-rail__bar {
   display: none;
 }
@@ -333,6 +336,10 @@
   max-height: 7em;
   margin-bottom: 18px !important;
   opacity: 1;
+}
+/* The beat's name leads its detail only where the tabs show numbers alone. */
+.gf-rail__more b {
+  display: none;
 }
 
 .gf-note {
@@ -364,9 +371,10 @@
     inset 0 0 0 max(1px, calc(var(--gf-u) * 0.28)) #ffffff14,
     0 calc(var(--gf-u) * 10) calc(var(--gf-u) * 24) calc(var(--gf-u) * -4) #000000cc;
 }
-/* While the film plays, the list stays in the accessibility tree only. */
+/* While the film plays, the screens stay in the accessibility tree only. */
 .gf.is-pinned .gf-app,
-.gf.is-pinned .gf-exercises {
+.gf.is-pinned .gf-exercises,
+.gf.is-pinned .gf-plans {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -509,10 +517,32 @@
   }
 }
 
+/* ---- short desktop windows: five beats clear the header and the note ----- */
+@media (min-width: 761px) and (max-height: 880px) {
+  .gf.is-pinned h2 {
+    font-size: clamp(2rem, min(3.7vw, 6.2vh), 4.1rem);
+  }
+  .gf.is-pinned .gf-rail {
+    margin-top: 24px;
+  }
+  .gf.is-pinned .gf-rail button {
+    min-height: 44px;
+    padding: 11px 0;
+  }
+  .gf.is-pinned .gf-rail li.is-on .gf-rail__more {
+    margin-bottom: 12px !important;
+  }
+}
+@media (min-width: 761px) and (max-height: 760px) {
+  .gf.is-pinned .gf-lede {
+    display: none;
+  }
+}
+
 /* ---- phones: floor on top, copy underneath ------------------------------- */
 @media (max-width: 760px) {
   .gf.is-pinned {
-    height: 400svh;
+    height: 640svh;
   }
   .gf-pane {
     --gf-vh: max(100svh, 480px);
@@ -544,7 +574,7 @@
   }
   .gf.is-pinned .gf-rail {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 8px;
     margin-top: 16px;
     border: 0;
@@ -563,13 +593,24 @@
     top: -1px;
     bottom: auto;
   }
+  /* Five tabs are numbers; the active beat's name leads its detail. */
+  .gf.is-pinned .gf-rail__text {
+    display: none;
+  }
+  .gf.is-pinned .gf-rail__more b {
+    display: inline;
+    margin-right: 0.5em;
+    color: var(--gx-fg);
+    font-family: var(--liftag-font-headline);
+    font-weight: 500;
+  }
   .gf-rail__name {
     font-size: 0.95rem;
   }
   .gf-rail__line {
     display: none;
   }
-  /* One beat's detail at a time, under the three tabs. */
+  /* One beat's detail at a time, under the tabs. */
   .gf.is-pinned .gf-rail {
     position: relative;
     padding-bottom: 4.6em;
@@ -611,6 +652,35 @@
   border-radius: 24px;
   background: #0e1210;
 }
+/* The AI workout and the coach's routine, side by side without the film. */
+.gf.is-still .gf-plans {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 20px;
+  width: min(100%, 880px);
+  justify-self: center;
+}
+.gf-plan {
+  padding: 28px;
+  border: 1px solid var(--gx-line);
+  border-radius: 24px;
+  background: #0e1210;
+}
+.gf-plan > .gx-protocol { color: var(--gx-lime); }
+.gf-plan h3 { margin: 12px 0 6px; }
+.gf-plan > p:not(.gx-protocol) { color: var(--gx-muted); }
+.gf-plan ol { list-style: none; margin: 18px 0 0; padding: 0; }
+.gf-plan li {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  gap: 10px;
+  align-items: baseline;
+  padding: 12px 0;
+  border-top: 1px solid var(--gx-line);
+}
+.gf-plan li b { color: var(--gx-lime); font-weight: 600; }
+.gf-plan li span { color: var(--gx-muted); }
 .gf-exercises h3 { margin: 12px 0; }
 .gf-exercises ul { list-style: none; margin: 20px 0 0; padding: 0; }
 .gf-exercises li { display: grid; gap: 6px; padding: 16px 0; border-top: 1px solid var(--gx-line); }
