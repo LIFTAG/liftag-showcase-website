@@ -6,11 +6,10 @@ User-agent: *
 Allow: /
 Disallow: /auth/
 Disallow: /qr/
-Disallow: /routines/
-Disallow: /plans/
 Disallow: /trainer-invites/
-# /get is linked from the whole site and already noindex (meta + x-robots-tag).
-# Blocking it hides that tag and trips "Blocked by robots.txt" in site scans.
+# /routines/, /plans/, and /get remain crawlable so social apps can read their
+# Open Graph previews. Their meta and X-Robots-Tag noindex directives keep them
+# out of search results; disallowing them here also hides those directives.
 
 # AI search, citation, and training crawlers are welcome.
 # Search/citation agents (these power ChatGPT, Claude, Perplexity, Gemini answers):
