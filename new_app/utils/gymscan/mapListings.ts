@@ -55,7 +55,7 @@ export type MapListing = {
   name: string;
   kind: MapGymKind;
   photo: string;
-  /** `object-position` that keeps the lifter in the narrow photo column. */
+  /** `object-position` that keeps the gym equipment in the narrow photo column. */
   focus: string;
   /** Today's opening and closing time; null for a gym open around the clock. */
   hours: readonly [string, string] | null;
@@ -81,7 +81,7 @@ export const mapListings: Record<string, MapListing> = {
   trencin: {
     name: "Castle Hill Barbell",
     kind: "powerlifting",
-    photo: "/assets/img/squat.webp",
+    photo: "/assets/gym3d/map/gyms/powerlifting-floor.webp",
     focus: "52% 50%",
     hours: ["07:00", "21:00"],
     tagged: 22,
@@ -92,8 +92,8 @@ export const mapListings: Record<string, MapListing> = {
   "banska-bystrica": {
     name: "Night Shift Gym",
     kind: "allDay",
-    photo: "/assets/img/lat-pulldown.webp",
-    focus: "48% 50%",
+    photo: "/assets/gym3d/map/gyms/cardio-floor.webp",
+    focus: "12% 50%",
     hours: null,
     tagged: 35,
     trainers: 2,
@@ -103,8 +103,8 @@ export const mapListings: Record<string, MapListing> = {
   "spisska-nova-ves": {
     name: "Paradise Athletics",
     kind: "functional",
-    photo: "/assets/img/lunge.webp",
-    focus: "48% 50%",
+    photo: "/assets/gym3d/map/gyms/training-floor.webp",
+    focus: "58% 65%",
     hours: ["06:30", "21:00"],
     tagged: 18,
     trainers: 4,
@@ -114,8 +114,8 @@ export const mapListings: Record<string, MapListing> = {
   "kosice-roca": {
     name: "East Side Iron",
     kind: "bodybuilding",
-    photo: "/assets/img/bench-press.webp",
-    focus: "56% 50%",
+    photo: "/assets/gym3d/map/gyms/free-weights-floor.webp",
+    focus: "65% 50%",
     hours: ["05:30", "23:00"],
     tagged: 56,
     trainers: 7,
@@ -125,7 +125,7 @@ export const mapListings: Record<string, MapListing> = {
   presov: {
     name: "Plate & Chalk",
     kind: "community",
-    photo: "/assets/img/deadlift.webp",
+    photo: "/assets/gym3d/map/gyms/daylight-gym.webp",
     focus: "48% 50%",
     hours: ["06:00", "21:00"],
     tagged: 27,
