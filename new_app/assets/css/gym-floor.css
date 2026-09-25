@@ -7,7 +7,7 @@
   background: var(--gx-bg);
 }
 .gf.is-pinned {
-  height: 380svh;
+  height: 440svh;
 }
 .gf-pane {
   position: sticky;
@@ -326,7 +326,8 @@
     0 calc(var(--gf-u) * 10) calc(var(--gf-u) * 24) calc(var(--gf-u) * -4) #000000cc;
 }
 /* While the film plays, the list stays in the accessibility tree only. */
-.gf.is-pinned .gf-app {
+.gf.is-pinned .gf-app,
+.gf.is-pinned .gf-exercises {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -472,7 +473,7 @@
 /* ---- phones: floor on top, copy underneath ------------------------------- */
 @media (max-width: 760px) {
   .gf.is-pinned {
-    height: 340svh;
+    height: 400svh;
   }
   .gf-pane {
     --gf-vh: max(100svh, 480px);
@@ -564,3 +565,18 @@
     text-align: center;
   }
 }
+
+/* Equivalent machine information without a scroll animation. */
+.gf.is-still .gf-exercises {
+  grid-column: 1 / -1;
+  width: min(100%, 640px);
+  justify-self: center;
+  padding: 28px;
+  border: 1px solid var(--gx-line);
+  border-radius: 24px;
+  background: #0e1210;
+}
+.gf-exercises h3 { margin: 12px 0; }
+.gf-exercises ul { list-style: none; margin: 20px 0 0; padding: 0; }
+.gf-exercises li { display: grid; gap: 6px; padding: 16px 0; border-top: 1px solid var(--gx-line); }
+.gf-exercises li span { color: var(--gx-muted); }

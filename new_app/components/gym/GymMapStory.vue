@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import type { ComponentPublicInstance } from 'vue';
 import { en, sk } from '~/i18n/messages/gymDemo';
 import { discoveryHub } from '~/utils/gymscan/discoveryGyms';
-import { gymEquipment } from '~/utils/gymscan/equipment';
+import { mapListings } from '~/utils/gymscan/mapListings';
 import {
   ORBIT_MASK,
   orbitArc,
@@ -21,7 +22,7 @@ const { href } = useSiteLocale();
 const root = useTemplateRef<HTMLElement>('root');
 const stage = useTemplateRef<HTMLElement>('stage');
 const canvas = useTemplateRef<HTMLCanvasElement>('canvas');
-const cardRef = useTemplateRef<HTMLElement>('card');
+const cardRef = useTemplateRef<ComponentPublicInstance>('card');
 const leaderRef = useTemplateRef<SVGPathElement>('leader');
 const seen = useSeenOnce(root, 0.25);
 const selected = shallowRef(discoveryHub.id);
@@ -43,10 +44,9 @@ const arcNodes: (SVGPathElement | null)[] = [];
 const facts = computed(() =>
   [0, 1, 2].map((i) => ({ key: t(`map.facts.${i}.key`), value: t(`map.facts.${i}.value`) })),
 );
-const machines = computed(() =>
-  gymEquipment.map((item) => ({ id: item.id, poster: item.poster, name: t(`ownerMachineNames.${item.id}`) })),
-);
-const active = computed(() => cities.find((gym) => gym.id === selected.value) ?? discoveryHub);
+const activeIndex = computed(() => Math.max(0, cities.findIndex((gym) => gym.id === selected.value)));
+const active = computed(() => cities[activeIndex.value] ?? discoveryHub);
+const listing = computed(() => mapListings[active.value.id] ?? mapListings[discoveryHub.id]!);
 
 /** The crane settles from a high approach while the land lights up. */
 const ENTRY_MS = 3200;
@@ -64,6 +64,8 @@ let driftTarget = 0;
 let raf = 0;
 let last = 0;
 let touched = false;
+/** Pointer or focus is on the card: the tour waits while it is being read. */
+let held = false;
 let cycle: ReturnType<typeof setInterval> | null = null;
 let resize: ResizeObserver | null = null;
 let warm: IntersectionObserver | null = null;
@@ -147,7 +149,7 @@ function build(width: number, height: number) {
 }
 
 function measureCard() {
-  const el = cardRef.value;
+  const el = cardRef.value?.$el as HTMLElement | undefined;
   const host = stage.value;
   if (!el || !host) return;
   const a = el.getBoundingClientRect();
@@ -261,14 +263,25 @@ function choose(id: string) {
   selected.value = id;
 }
 
+function step(direction: -1 | 1) {
+  choose(cities[(activeIndex.value + direction + cities.length) % cities.length]!.id);
+}
+
+function engage() {
+  touched = true;
+}
+
+function hold(value: boolean) {
+  held = value;
+}
+
 function syncCycle() {
   const run = inView.value && !touched && !props.reduced;
   if (run && !cycle) {
     cycle = setInterval(() => {
-      if (touched || document.hidden) return;
-      const index = cities.findIndex((gym) => gym.id === selected.value);
-      selected.value = cities[(index + 1) % cities.length]!.id;
-    }, 3400);
+      if (touched || held || document.hidden) return;
+      selected.value = cities[(activeIndex.value + 1) % cities.length]!.id;
+    }, 4200);
   } else if (!run && cycle) {
     clearInterval(cycle);
     cycle = null;
@@ -387,25 +400,18 @@ onBeforeUnmount(() => {
           <span class="gmap-city gx-protocol" aria-hidden="true">{{ pin.city }}</span>
         </li>
       </ul>
-      <article ref="card" class="gmap-card" :class="{ 'is-compact': compact }" aria-live="polite">
-        <div class="gmap-card__photo">
-          <img src="/assets/screens/gym-detail-560.webp" width="560" height="1212" alt="" loading="lazy" />
-        </div>
-        <div class="gmap-card__body">
-          <Transition name="gmap-swap" mode="out-in">
-            <p :key="active.city" class="gx-protocol gmap-card__place">{{ active.city }}</p>
-          </Transition>
-          <h3>{{ t('map.listing') }}</h3>
-          <p class="gmap-card__open"><span class="gx-dot" />{{ t('map.open') }} · {{ t('map.hours') }}</p>
-          <p class="gx-protocol gmap-card__label">{{ t('map.equipment') }}</p>
-          <ul class="gmap-card__machines">
-            <li v-for="machine in machines" :key="machine.id">
-              <img :src="machine.poster" width="60" height="60" alt="" loading="lazy" />
-              <span>{{ machine.name }}</span>
-            </li>
-          </ul>
-        </div>
-      </article>
+      <GymMapCard
+        ref="card"
+        :gym-id="active.id"
+        :city="active.city"
+        :listing="listing"
+        :index="activeIndex"
+        :total="cities.length"
+        :compact="compact"
+        @step="step"
+        @engage="engage"
+        @hold="hold"
+      />
       <p class="gmap-note gx-protocol">{{ t('map.note') }}</p>
     </div>
 

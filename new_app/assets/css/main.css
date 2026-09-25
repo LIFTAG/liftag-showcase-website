@@ -699,10 +699,10 @@ section {
 }
 
 /* ── Character index ──
-   The desktop nav's hover affordance (SiteNav.vue, .nav-link__char), generalised
-   so footer links, cycling step titles and roadmap milestones can carry the same
-   motion. SiteNav keeps its own copy of the rules: it is the origin, it ships its
-   labels split in the served HTML, and it is on every page above the fold.
+   The desktop nav's hover affordance, generalised so footer links, cycling step
+   titles and roadmap milestones can carry the same motion. The nav started it
+   with its own copy of the rules (.nav-link__char, split in the served HTML) and
+   now uses this one like everything else.
 
    Each character owns a clip window holding two copies of itself: the one in flow,
    and a duplicate waiting exactly one window below. Driving both up by one window
@@ -722,16 +722,16 @@ section {
    pointer that can hover, so every rule here has a plain text node as its resting
    fallback.
 
-   The window is a clip-path rather than an overflow, which is the one deliberate
-   departure from SiteNav. An inline-block whose overflow is not visible takes its
-   baseline from its bottom margin edge; the nav absorbs that by making the link a
-   centred flex row, but these labels sit in body text, list items and wrapping
+   The window is a clip-path rather than an overflow, which is where this departs
+   from the nav's original copy. An inline-block whose overflow is not visible takes
+   its baseline from its bottom margin edge; the nav absorbed that by making the
+   link a centred flex row, but these labels sit in body text, list items and wrapping
    headings that would all shift. clip-path clips at paint time and leaves inline
    layout alone. For the same reason the window never declares a line-height: it
    inherits the host's, so no line height, list gap or grid row moves.
 
-   Which is also why the travel cannot simply be one line box. SiteNav gives its
-   window `line-height: 1.5` and exits the glyph through the leading that buys.
+   Which is also why the travel cannot simply be one line box. The nav's copy gave
+   its window `line-height: 1.5` and exited the glyph through the leading that bought.
    Inheriting instead means inheriting the host's leading, and a display headline
    sets `line-height: 1` - no leading at all. Measured on the scan title (Space
    Grotesk italic 700, 72px, line-height 1): the window is 72px tall with the

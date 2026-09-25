@@ -205,7 +205,7 @@
 .gmap-card {
   position: absolute;
   right: 4.5vw;
-  bottom: 128px;
+  bottom: 152px;
   z-index: 3;
   display: grid;
   grid-template-columns: 38% 1fr;
@@ -232,36 +232,201 @@
 .gmap-card__photo {
   position: relative;
   overflow: hidden;
+  container-type: size;
   min-height: 100%;
+  background: #060806;
 }
-.gmap-card__photo img {
-  /* The photo band is 287 of the capture's 1212 px, starting at 28.4%. */
+/* A scrim under the gym-type badge, so it reads on any photo. */
+.gmap-card__photo::after {
+  content: "";
   position: absolute;
-  width: auto;
-  height: 422%;
-  top: -120%;
-  left: 50%;
-  transform: translateX(-50%);
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(#000000a6, #0000 38%);
+  pointer-events: none;
 }
-.gmap-card__body {
-  padding: 20px 22px 20px;
-  min-width: 0;
+.gmap-card__gym {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(1.08);
+  transition:
+    opacity 600ms ease,
+    transform 1400ms var(--gx-ease);
 }
-.gmap-card__place {
+.gmap-card__gym.is-on {
+  opacity: 1;
+  transform: none;
+}
+.gmap-card:hover .gmap-card__gym.is-on {
+  transform: scale(1.04);
+}
+.gmap-card__kind {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 2;
+  max-width: calc(100% - 24px);
+  padding: 5px 8px 4px;
+  border-radius: 6px;
+  color: var(--gx-fg);
+  background: #070a08b3;
+  box-shadow: inset 0 0 0 1px var(--gx-line);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+/* A previewed machine takes over the photo: the black render, inverted to
+   white, stands on a lime-lit floor. */
+.gmap-card__machine {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(60% 16% at 50% 84%, #ccff0038, #0000 70%),
+    radial-gradient(90% 70% at 50% 42%, #18230f, #070a07 78%);
+}
+.gmap-card__machine img {
+  width: min(76%, 62cqh);
+  height: auto;
+  margin-top: 12%;
+  filter: grayscale(1) invert(1) brightness(1.05) drop-shadow(0 0 16px #ccff0026);
+}
+.gmap-card__machine figcaption {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.gmap-card__machine figcaption span:first-child {
   color: var(--gx-lime);
 }
+.gmap-card__machine figcaption span:last-child {
+  color: var(--gx-muted);
+}
+.gmap-fade-enter-active,
+.gmap-fade-leave-active {
+  transition: opacity 260ms ease;
+}
+.gmap-fade-enter-active img {
+  transition: transform 520ms var(--gx-ease);
+}
+.gmap-fade-enter-from,
+.gmap-fade-leave-to {
+  opacity: 0;
+}
+.gmap-fade-enter-from img {
+  transform: translateY(8px) scale(0.94);
+}
+.gmap-card__body {
+  padding: 18px 22px 20px;
+  min-width: 0;
+}
+.gmap-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.gmap-card__place {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--gx-lime);
+}
+.gmap-card__step {
+  display: flex;
+  align-items: center;
+  flex: none;
+  margin: -6px -10px -6px 0;
+}
+.gmap-card__step span {
+  min-width: 5.4em;
+  text-align: center;
+  color: var(--gx-muted);
+}
+.gmap-card__step button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--gx-fg);
+  cursor: pointer;
+  transition:
+    color 200ms ease,
+    background-color 200ms ease;
+}
+.gmap-card__step button:hover {
+  color: var(--gx-lime);
+  background: var(--gx-hover);
+}
+.gmap-card__step svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.gx .gmap-card__step button:focus-visible,
+.gx .gmap-card__machines button:focus-visible {
+  outline-offset: 2px;
+}
 .gmap-card h3 {
-  margin-top: 6px !important;
+  margin-top: 4px !important;
   font-size: 1.45rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .gmap-card__open {
   display: flex;
   align-items: center;
-  margin-top: 6px !important;
+  margin-top: 4px !important;
   font-size: 0.8125rem;
 }
+.gmap-card__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 14px 0 0;
+  border-top: 1px solid var(--gx-line);
+  border-bottom: 1px solid var(--gx-line);
+}
+.gmap-card__stats div {
+  display: flex;
+  flex-direction: column-reverse;
+  padding: 8px 0 7px;
+}
+.gmap-card__stats div + div {
+  padding-left: 12px;
+  border-left: 1px solid var(--gx-line);
+}
+.gmap-card__stats dt {
+  color: var(--gx-muted);
+}
+.gmap-card__stats dd {
+  margin: 0;
+  font-family: var(--liftag-font-mono);
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--gx-fg);
+}
 .gmap-card__label {
-  margin: 16px 0 8px !important;
+  margin: 14px 0 8px !important;
   color: var(--gx-muted);
 }
 .gmap-card__machines {
@@ -271,18 +436,34 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
+  /* `.gx button` resets the font, so the chips inherit their size from here. */
+  font-size: 0.75rem;
 }
-.gmap-card__machines li {
+.gmap-card__machines button {
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
   min-width: 0;
   padding: 5px 8px 5px 5px;
+  border: 0;
   border-radius: 11px;
   background: #121813;
-  font-size: 0.75rem;
+  box-shadow: inset 0 0 0 1px #0000;
   line-height: 1.2;
+  text-align: left;
   color: var(--gx-fg);
+  cursor: pointer;
+  transition:
+    background-color 200ms ease,
+    box-shadow 200ms ease;
+}
+.gmap-card__machines button.is-on {
+  background: #192212;
+  box-shadow: inset 0 0 0 1px #ccff0059;
+}
+.gmap-card__machines button[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 1px var(--gx-lime);
 }
 .gmap-card__machines span {
   overflow: hidden;
@@ -293,9 +474,8 @@
   flex: none;
   width: 26px;
   height: 26px;
-  border-radius: 7px;
-  object-fit: cover;
-  background: #000;
+  object-fit: contain;
+  filter: grayscale(1) invert(1) brightness(0.92);
 }
 .gmap-swap-enter-active,
 .gmap-swap-leave-active {
@@ -312,7 +492,7 @@
 .gmap-note {
   position: absolute;
   right: 4.5vw;
-  bottom: 100px;
+  bottom: 124px;
   z-index: 2;
   color: #7e8c80;
 }
@@ -385,6 +565,12 @@
   margin-top: 32px;
 }
 
+/* On a short laptop screen the full card would cover the pins it points at. */
+@media (min-width: 761px) and (max-height: 860px) {
+  .gmap-card__stats {
+    display: none;
+  }
+}
 @media (max-width: 1100px) and (min-width: 761px) {
   .gmap-copy {
     width: min(38vw, 420px);
@@ -425,14 +611,39 @@
     border-radius: 18px;
   }
   .gmap-card.is-compact .gmap-card__body {
-    padding: 14px 14px 14px;
+    padding: 12px 14px 14px;
+  }
+  .gmap-card.is-compact .gmap-card__step span {
+    min-width: 4.6em;
   }
   .gmap-card.is-compact h3 {
     font-size: 1.15rem;
   }
+  .gmap-card.is-compact .gmap-card__kind {
+    left: 8px;
+    top: 8px;
+    max-width: calc(100% - 16px);
+  }
+  .gmap-card.is-compact .gmap-card__stats,
   .gmap-card.is-compact .gmap-card__label,
-  .gmap-card.is-compact .gmap-card__machines {
+  .gmap-card.is-compact .gmap-card__machine figcaption span:last-child {
     display: none;
+  }
+  .gmap-card.is-compact .gmap-card__machine figcaption {
+    left: 8px;
+    top: 8px;
+  }
+  .gmap-card.is-compact .gmap-card__machines {
+    grid-template-columns: repeat(4, 1fr);
+    margin-top: 10px;
+  }
+  .gmap-card.is-compact .gmap-card__machines button {
+    justify-content: center;
+    padding: 4px;
+  }
+  .gmap-card.is-compact .gmap-card__machines img {
+    width: 30px;
+    height: 30px;
   }
   .gmap-note {
     right: 16px;

@@ -2,8 +2,8 @@
 import { splitIndexedText } from '~/utils/indexedText'
 
 /**
- * The desktop nav's hover index (SiteNav.vue, `.nav-link__char`) as a reusable
- * label. Each character sits in a clip window holding two copies of itself,
+ * The desktop nav's hover index as a reusable label (SiteNav.vue uses it for
+ * its own links). Each character sits in a clip window holding two copies of itself,
  * one in flow and a duplicate exactly one window below; driving both up by one
  * window swaps them in a single hard step. Geometry, curve and per-character
  * stagger all live in the `.ti-*` block in assets/css/main.css.

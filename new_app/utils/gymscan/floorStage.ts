@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { createPhoneModel, PHONE_SCREEN_Z } from "../phoneModel";
-import { drawFloorAppScreen, type FloorAppCopy } from "./floorAppScreen";
+import { drawFloorAppScreen, drawFloorExerciseScreen, type FloorAppCopy } from "./floorAppScreen";
 import { createFloorSeams } from "./floorSeams";
 import { createFloorIsland } from "./floorIsland";
 import { createFloorTitle } from "./floorTitle";
@@ -24,6 +24,7 @@ import {
   floorCameraAt,
   floorCornerRadius,
   floorFrames,
+  floorExercisesAt,
   floorLabelAt,
   floorLabelsLanded,
   floorMachinePoseAt,
@@ -183,6 +184,36 @@ export function createFloorStage(
   device.add(island.root);
   const glassBase = (phone.glass.material as THREE.Material).opacity;
 
+  // A second screen shares the glass silhouette and pointer tilt. Draw it
+  // after the landed models, so their thumbnails dissolve with the list.
+  const exerciseImage = document.createElement("canvas");
+  exerciseImage.width = FLOOR_APP_CANVAS.w;
+  exerciseImage.height = FLOOR_APP_CANVAS.h;
+  const exerciseCtx = exerciseImage.getContext("2d")!;
+  let machinePoster: HTMLImageElement | null = null;
+  const paintExercises = () => drawFloorExerciseScreen(
+    exerciseCtx, exerciseImage.width, exerciseImage.height, copy, machinePoster,
+  );
+  paintExercises();
+  const exerciseTexture = new THREE.CanvasTexture(exerciseImage);
+  exerciseTexture.colorSpace = THREE.SRGBColorSpace;
+  exerciseTexture.generateMipmaps = false;
+  exerciseTexture.minFilter = THREE.LinearFilter;
+  exerciseTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  const exerciseMaterial = new THREE.MeshBasicMaterial({
+    map: exerciseTexture,
+    toneMapped: false,
+    transparent: true,
+    depthTest: false,
+    depthWrite: false,
+    opacity: 0,
+  });
+  const exerciseScreen = new THREE.Mesh(phone.screen.geometry.clone(), exerciseMaterial);
+  exerciseScreen.position.copy(phone.screen.position);
+  exerciseScreen.renderOrder = 2; // The Dynamic Island remains above both screens.
+  exerciseScreen.visible = false;
+  device.add(exerciseScreen);
+
   const shadow = createContactShadowTexture();
   const reveals = floorEquipment.map(() => ({ value: 0 }));
   const models: THREE.Group[] = [];
@@ -197,6 +228,16 @@ export function createFloorStage(
   let spawnSeconds = 0;
   let tiltX = 0;
   let tiltZ = 0;
+
+  const posterReady = new Promise<void>((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      if (!disposed) machinePoster = image;
+      resolve();
+    };
+    image.onerror = () => resolve();
+    image.src = floorEquipment[0]!.poster;
+  });
 
   const equipmentReady = Promise.all(
     floorEquipment.map(async (item, index) => {
@@ -259,7 +300,7 @@ export function createFloorStage(
     if (disposed) return;
     const warmTarget = new THREE.WebGLRenderTarget(1, 1, { depthBuffer: true, stencilBuffer: false });
     const previousTarget = renderer.getRenderTarget();
-    const visibility = [surface.mesh, phone.group, title.root, island.root, ...models].map((object) => ({
+    const visibility = [surface.mesh, phone.group, title.root, island.root, exerciseScreen, ...models].map((object) => ({
       object,
       visible: object.visible,
     }));
@@ -328,12 +369,15 @@ export function createFloorStage(
 
   const ready = Promise.all([
     equipmentReady,
+    posterReady,
     document.fonts.load("600 32px Inter"),
     document.fonts.load("650 57px Inter"),
     document.fonts.load('600 18px "JetBrains Mono"'),
   ]).then(async () => {
     if (disposed) return;
     title.paint(copy.title);
+    paintExercises();
+    exerciseTexture.needsUpdate = true;
     paintApp();
     appTexture.needsUpdate = true;
     prewarmTask = prewarm();
@@ -371,6 +415,9 @@ export function createFloorStage(
     const { morph } = floorAt(progress);
     const beats = floorMorphBeats(morph);
     const frames = floorFrames(width, height);
+    const exercises = floorExercisesAt(progress);
+    exerciseScreen.visible = exercises > 0;
+    exerciseMaterial.opacity = exercises;
 
     // Surface: rubber tiles → dark glass, contracting into the phone outline.
     const rect = floorMorphRect(morph);
@@ -495,6 +542,7 @@ export function createFloorStage(
     shadow.dispose();
     floorMaps.dispose();
     appTexture.dispose();
+    exerciseTexture.dispose();
     title.dispose();
     disposeTree(scene);
     renderer.dispose();
@@ -511,6 +559,8 @@ export function createFloorStage(
     setCopy(next: FloorAppCopy) {
       copy = next;
       title.paint(copy.title);
+      paintExercises();
+      exerciseTexture.needsUpdate = true;
       paintApp();
       appTexture.needsUpdate = true;
     },
