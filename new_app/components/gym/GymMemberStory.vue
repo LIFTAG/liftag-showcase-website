@@ -46,7 +46,6 @@ const phoneShown = computed(() => props.reduced || !props.enhanced || docked.val
 const beats = computed(() =>
   Array.from({ length: MEMBER_BEATS }, (_, i) => ({
     name: t(`watch.beats.${i}.name`),
-    line: t(`watch.beats.${i}.line`),
     title: t(`watch.beats.${i}.title`),
     copy: t(`watch.beats.${i}.copy`),
   })),
@@ -287,7 +286,6 @@ onBeforeUnmount(() => {
               <span class="gm-rail__idx gx-protocol">0{{ i + 1 }}</span>
               <span class="gm-rail__text">
                 <span class="gm-rail__name">{{ item.name }}</span>
-                <span class="gm-rail__line">{{ item.line }}</span>
               </span>
               <span class="gm-rail__bar" aria-hidden="true"><i /></span>
             </button>
@@ -328,9 +326,14 @@ onBeforeUnmount(() => {
                 <span class="gm-phone__guide-bar"><i /></span>
               </div>
               <span class="gm-phone__spot" aria-hidden="true" />
-              <span class="gm-phone__marker gx-protocol" aria-hidden="true">0{{ beat + 1 }}</span>
               <span class="gm-phone__press" aria-hidden="true" />
               <span class="gm-phone__row" aria-hidden="true" />
+            </div>
+          </div>
+          <div class="gm-phone__annotations" aria-hidden="true">
+            <div class="gm-phone__ui">
+              <span class="gm-phone__spot" />
+              <span class="gm-phone__marker gx-protocol">0{{ beat + 1 }}</span>
             </div>
           </div>
           <span class="gm-phone__island" aria-hidden="true" />
@@ -358,7 +361,6 @@ onBeforeUnmount(() => {
           <dl class="gm-specs">
             <div><dt>{{ t('watch.specGuide') }}</dt><dd>{{ guideName }}</dd></div>
             <div><dt>{{ t('watch.specAudio') }}</dt><dd>{{ t('watch.audio') }}</dd></div>
-            <div><dt>{{ t('watch.specSource') }}</dt><dd>{{ t('watch.source') }}</dd></div>
           </dl>
           <button
             v-if="!reduced && !failed"

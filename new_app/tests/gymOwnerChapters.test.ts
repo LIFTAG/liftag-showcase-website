@@ -110,15 +110,15 @@ test("the dashboard follows the map and yields to the kit in either direction", 
   assert.equal(at(11903).chapter, "dashboard");
 });
 
-test("owner chapters play real footage and never invent a trainer", () => {
+test("owner chapters distinguish catalog footage from the illustrative trainer preview", () => {
   const member = read("../components/gym/GymMemberStory.vue");
   assert.match(member, /legPressInstruction\.slug/);
   assert.match(member, /src="\/assets\/gym3d\/log-set\.webp"/);
   const trainer = read("../components/gym/GymTrainerStory.vue");
   assert.match(trainer, /legPressInstruction\.slug/);
-  // The trainer's side is a viewfinder or the visitor's own local clip.
-  assert.match(trainer, /v-if="customSrc"/);
-  assert.match(trainer, /class="gt-finder"/);
+  assert.match(trainer, /trainer-instruction-preview\.webp/);
+  assert.match(trainer, /t\('trainer\.previewLabel'\)/);
+  assert.doesNotMatch(trainer, /type="file"|useCoachingVideo/);
   const dashboard = read("../components/gym/GymDashboardStory.vue");
   assert.match(dashboard, /macbook-dashboard\.av1\.mp4/);
   assert.match(dashboard, /macbook-dashboard\.mp4/);

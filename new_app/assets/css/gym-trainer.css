@@ -95,84 +95,27 @@
 .gt.is-dragging .gt-divider {
   transition: none;
 }
-.gt-custom {
+.gt-trainer {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.gt-floor {
-  position: absolute;
-  right: 3%;
-  top: 4%;
-  height: 92%;
-  width: auto;
-  aspect-ratio: 1;
-  object-fit: contain;
-  opacity: 0.38;
-  filter: saturate(0.5) brightness(0.9);
-  mask-image: radial-gradient(closest-side, #000 62%, #0000 100%);
-  -webkit-mask-image: radial-gradient(closest-side, #000 62%, #0000 100%);
-}
-.gt-finder {
-  position: absolute;
-  inset: 7% 5.5% 9% calc(var(--gt-split) + 5.5%);
-  min-width: 0;
-  pointer-events: none;
-  transition: left 0s;
-}
-.gt-finder__c {
-  position: absolute;
-  width: clamp(18px, 2.4vw, 34px);
-  height: clamp(18px, 2.4vw, 34px);
-  border: 0 solid #edf1edb3;
-}
-.gt-finder__c--tl { left: 0; top: 0; border-left-width: 2px; border-top-width: 2px; border-top-left-radius: 6px; }
-.gt-finder__c--tr { right: 0; top: 0; border-right-width: 2px; border-top-width: 2px; border-top-right-radius: 6px; }
-.gt-finder__c--bl { left: 0; bottom: 0; border-left-width: 2px; border-bottom-width: 2px; border-bottom-left-radius: 6px; }
-.gt-finder__c--br { right: 0; bottom: 0; border-right-width: 2px; border-bottom-width: 2px; border-bottom-right-radius: 6px; }
-.gt-finder__grid {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(90deg, #0000 calc(33.33% - 0.5px), #edf1ed14 calc(33.33% - 0.5px), #edf1ed14 calc(33.33% + 0.5px), #0000 calc(33.33% + 0.5px), #0000 calc(66.66% - 0.5px), #edf1ed14 calc(66.66% - 0.5px), #edf1ed14 calc(66.66% + 0.5px), #0000 calc(66.66% + 0.5px)),
-    linear-gradient(180deg, #0000 calc(33.33% - 0.5px), #edf1ed14 calc(33.33% - 0.5px), #edf1ed14 calc(33.33% + 0.5px), #0000 calc(33.33% + 0.5px), #0000 calc(66.66% - 0.5px), #edf1ed14 calc(66.66% - 0.5px), #edf1ed14 calc(66.66% + 0.5px), #0000 calc(66.66% + 0.5px));
-}
-.gt-finder__rec {
-  position: absolute;
-  left: clamp(28px, 3.4vw, 48px);
-  top: clamp(4px, 0.5vw, 8px);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #edf1edcc;
-}
-.gt-finder__rec b {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #ff2d55;
-  box-shadow: 0 0 12px #ff2d55;
-  animation: gt-rec 1.2s steps(2, jump-none) infinite;
-}
-.gt-finder__rec span {
-  color: #edf1ed80;
-  margin-left: 6px;
-}
-@keyframes gt-rec {
-  50% { opacity: 0.15; }
-}
 .gt-you {
   position: absolute;
-  left: max(calc(var(--gt-split) + 7%), 54%);
-  right: 7%;
-  bottom: 13%;
+  left: 55%;
+  right: 5%;
+  bottom: 6%;
   max-width: 380px;
   text-shadow: 0 2px 24px #000;
+  transition: opacity 240ms ease;
 }
-.gt-you h3 {
-  font-size: clamp(1.2rem, 2vw, 1.85rem);
+.gt-you.is-hidden { opacity: 0; }
+.gt .gt-you > .gx-protocol { color: var(--gx-lime); }
+.gt .gt-you h3 {
+  margin-top: 10px;
+  font-size: clamp(1.2rem, 2.2vw, 2rem);
   line-height: 1.12;
   color: var(--gx-fg);
   text-wrap: balance;
@@ -216,11 +159,6 @@
 .gt-label.is-hidden {
   opacity: 0;
 }
-.gt.is-custom .gt-label--you {
-  top: auto;
-  bottom: clamp(14px, 2.2vw, 28px);
-}
-
 .gt-divider {
   position: absolute;
   top: 0;
@@ -275,91 +213,27 @@
   outline-offset: 4px;
 }
 
-.gt-try {
+.gt-playback {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 12px 20px;
-  margin-top: 22px;
+  gap: 12px;
+  margin-top: 24px;
+  color: var(--gx-fg);
 }
-.gx .gt-file {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-.gt-file svg {
-  position: relative;
-  z-index: 1;
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: var(--gx-lime);
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.gt-file input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
-.gt-file:has(input:focus-visible) {
-  outline: 2px solid var(--gx-lime);
-  outline-offset: 4px;
-}
-.gt-remove {
-  min-height: 44px;
-  padding: 0 4px;
-  border: 0;
-  background: none;
+.gt-playback svg { width: 16px; height: 16px; fill: currentColor; flex: none; }
+.gt-playback__track { flex: 1; height: 3px; border-radius: 2px; background: #edf1ed66; }
+.gt-playback__track i { display: block; width: 14%; height: 100%; background: var(--gx-lime); }
+.gt-playback .gx-protocol { white-space: nowrap; font-size: 0.6rem; }
+.gt-caption {
+  margin-top: 24px !important;
+  text-align: center;
   font-size: 0.875rem;
-  color: var(--gx-muted);
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-.gt-remove:hover {
-  color: var(--gx-fg);
-}
-.gt-note {
-  font-size: 0.8125rem;
-}
-.gt-note.is-alert {
-  color: #ff8fa3 !important;
-}
-
-.gt-facts {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px 4vw;
-  max-width: 1320px;
-  margin: 72px auto 0;
-}
-.gt-facts div {
-  padding-top: 20px;
-  border-top: 1px solid var(--gx-line);
-}
-.gt-facts dt {
-  color: var(--gx-lime);
-}
-.gt-facts dd {
-  margin: 10px 0 0;
-  max-width: 30ch;
-  color: var(--gx-fg);
-  font-size: 1rem;
-  line-height: 1.5;
+  text-wrap: balance;
 }
 
 @media (max-width: 900px) {
   .gt-head {
     grid-template-columns: 1fr;
-  }
-  .gt-facts {
-    grid-template-columns: 1fr;
-    margin-top: 48px;
   }
 }
 @media (max-width: 760px) {
@@ -376,27 +250,31 @@
   .gt-side--guide video {
     object-position: 68% 50%;
   }
-  .gt-floor {
-    right: -30%;
-    top: 12%;
-    height: 80%;
+  .gt-side--guide video,
+  .gt-trainer {
+    position: absolute;
+    top: 64px;
+    height: calc(100% - 64px);
   }
+  .gt-trainer { object-position: 60% 50%; }
   .gt-you {
-    left: max(calc(var(--gt-split) + 6%), 46%);
+    left: 55%;
     right: 6%;
     bottom: 8%;
   }
-  .gt-you h3 {
+  .gt .gt-you h3 {
     font-size: 1.05rem;
   }
-  .gt-you p {
-    display: none;
-  }
+  .gt-you p { display: none; }
+  .gt .gt-you > .gx-protocol { font-size: 0.55rem; letter-spacing: 0.08em; }
+  .gt-playback { margin-top: 18px; gap: 8px; }
+  .gt-playback .gx-protocol { display: none; }
   .gt-label {
     padding: 8px 10px 9px;
     font-size: 0.75rem;
     max-width: 42%;
   }
+  .gt-label__detail { display: none; }
   .gt-handle {
     width: 44px;
     height: 44px;
