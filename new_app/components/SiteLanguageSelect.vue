@@ -202,11 +202,14 @@ watch(open, (visible, _, cleanup) => {
   letter-spacing: .04em;
   cursor: pointer;
 }
+/* No outline at rest: the globe already says what this is, and in the nav it
+   sits beside two pill buttons that should read as the only buttons there.
+   Hover and the open state bring the pill back. */
 .site-language-trigger::before {
   content: '';
   position: absolute;
   inset: 4px 0;
-  border: 1px solid var(--liftag-border);
+  border: 1px solid transparent;
   border-radius: inherit;
   transition: border-color 160ms ease-out, background-color 160ms ease-out;
   pointer-events: none;
@@ -305,7 +308,7 @@ watch(open, (visible, _, cleanup) => {
 }
 @media (hover: hover) {
   .site-language-trigger:hover::before {
-    border-color: var(--liftag-fg-muted);
+    border-color: var(--liftag-border);
     background: var(--liftag-secondary);
   }
   .site-language-option:hover {

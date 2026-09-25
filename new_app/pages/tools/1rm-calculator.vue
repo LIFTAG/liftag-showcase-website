@@ -35,7 +35,7 @@ useLiftagStructuredData(() => [
     publisher: { '@id': `${SITE_URL}/#organization` },
     featureList: ['estimate', 'formulas', 'units', 'percentages', 'curve', 'percentiles', 'guidance'].map(key => t(`seo.${key}`)),
     datePublished: '2026-09-09',
-    dateModified: '2026-09-11',
+    dateModified: '2026-09-21',
   },
   liftagFAQPage(guideCopy.value.faqs),
 ])

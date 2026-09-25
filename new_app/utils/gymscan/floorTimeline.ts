@@ -93,7 +93,7 @@ export function floorBeatFill(progress: number, beat: number): number {
   return storyBeatFill(FLOOR_BEAT_EDGES, progress, beat);
 }
 export function floorBeatTarget(beat: number): number {
-  return storyBeatTarget(FLOOR_BEAT_EDGES, beat);
+  return beat === 2 ? 0.92 : storyBeatTarget(FLOOR_BEAT_EDGES, beat);
 }
 
 /** Crane to overhead, then floor → phone. Both are scrubbed by scroll. */
@@ -101,8 +101,13 @@ export function floorAt(progress: number) {
   const p = clamp01(progress);
   return {
     overhead: smoothstep((p - 0.08) / 0.26),
-    morph: smoothstep((p - 0.44) / 0.4),
+    morph: smoothstep((p - 0.44) / 0.28),
   };
+}
+
+/** Open a machine only after every thumbnail has landed; hold it until release. */
+export function floorExercisesAt(progress: number) {
+  return smoothstep((clamp01(progress) - 0.8) / 0.08);
 }
 
 export type FloorMorphBeats = {

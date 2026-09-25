@@ -16,6 +16,11 @@ export type FloorAppCopy = {
   equipment: string;
   machines: string;
   view: string;
+  exerciseList: string;
+  exerciseHint: string;
+  exerciseNames: string[];
+  exerciseMuscles: string;
+  exerciseGuide: string;
   names: Record<FloorMachine["id"], string>;
   areas: Record<FloorMachine["area"], string>;
 };
@@ -169,4 +174,64 @@ export function drawFloorAppScreen(
   }
   // Home indicator.
   rounded(w / 2 - 74, h - 24, 148, 7, 4, ink);
+}
+
+/** The machine opened from the first equipment row, painted once per locale. */
+export function drawFloorExerciseScreen(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  copy: FloorAppCopy,
+  poster: HTMLImageElement | null,
+) {
+  const ink = "#eff2ed";
+  const muted = "#9aa49c";
+  const lime = "#ccff00";
+  const text = (value: string, x: number, y: number, size: number, color = ink, weight = 500) => {
+    ctx.fillStyle = color;
+    ctx.font = `${weight} ${size}px Inter, sans-serif`;
+    ctx.fillText(value, x, y);
+  };
+  // Keep the status bar and home indicator fixed through the screen change.
+  drawFloorAppScreen(ctx, w, h, {
+    landed: floorEquipment.map(() => true),
+    title: true,
+    copy,
+  });
+  ctx.fillStyle = "#0e1210";
+  ctx.fillRect(0, 90, w, h - 130);
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  text("9:41", 42, 66, 25, ink, 600);
+  text("‹", 38, 147, 48);
+  text(copy.title, 80, 137, 24, muted);
+  text(`01  ·  ${copy.areas.strength.toUpperCase()}`, 38, 211, 20, lime, 600);
+  ctx.font = "600 48px Inter, sans-serif";
+  wrap(ctx, copy.names["plate-loaded-pulldown"]!, w - 76).forEach((line, i) => {
+    text(line, 38, 274 + i * 54, 48, ink, 600);
+  });
+  ctx.fillStyle = "#1d241f";
+  ctx.beginPath();
+  ctx.roundRect(38, 368, w - 76, 390, 28);
+  ctx.fill();
+  if (poster) ctx.drawImage(poster, w / 2 - 180, 382, 360, 360);
+  text(copy.exerciseList, 38, 832, 38, ink, 600);
+  text(copy.exerciseHint, 38, 877, 24, muted);
+  copy.exerciseNames.forEach((name, i) => {
+    const y = 922 + i * 210;
+    ctx.fillStyle = "#1a201c";
+    ctx.beginPath();
+    ctx.roundRect(38, y, w - 76, 188, 24);
+    ctx.fill();
+    text(String(i + 1).padStart(2, "0"), 62, y + 43, 20, lime, 600);
+    ctx.font = "600 30px Inter, sans-serif";
+    wrap(ctx, name, w - 150).forEach((line, j) => text(line, 62, y + 82 + j * 34, 30, ink, 600));
+    text(copy.exerciseMuscles, 62, y + 154, 23, muted);
+    text("›", w - 77, y + 100, 40, lime);
+  });
+  text(copy.exerciseGuide, 38, 1418, 23, muted);
+  ctx.fillStyle = ink;
+  ctx.beginPath();
+  ctx.roundRect(w / 2 - 74, h - 24, 148, 7, 4);
+  ctx.fill();
 }

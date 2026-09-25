@@ -45,6 +45,8 @@ Rovnice (w = záťaž, r = počet opakovaní; pri r = 1 vráti každý vzorec ho
 
 Najpresnejší je pri náročnej sérii 2 až 8 čistých opakovaní pri komplexných cvikoch. Po 10 opakovaniach je číslo len odhad. LeSuer a kol. v roku 1997 zistili, že každý vzorec podhodnotil mŕtvy ťah približne o 10 %. Ide o odhad, nie o otestované maximum. Nie je to lekárske poradenstvo.
 
+Všetkých sedem rovníc vyššie prepočítava opakovania na 1RM rovnako bez ohľadu na cvik. V marci 2026 zverejnil šéf dátovej vedy vo Fitbode preprint, v ktorom deliteľ závisí od záťaže. Postavený je na 303 494 sériách blízko zlyhania: `k = -2,55 + 4,58 × ln(váha)` v kilogramoch a potom `1RM = váha × (1 + (opakovania − 1)^0,85 / k)`. Nikto ho neporovnal so skutočne odmeraným maximom a neprešiel recenzným konaním. LIFTAG ho nepoužíva. Rozbor: https://liftag.fit/sk/journal/fitbod-1rm-formula
+
 ## Časté otázky
 
 **Ako vypočítate maximum na jedno opakovanie?** Epleyho vzorec: weight × (1 + reps / 30). 100 kg × 5 → 116,7 kg.
@@ -59,6 +61,7 @@ Najpresnejší je pri náročnej sérii 2 až 8 čistých opakovaní pri komplex
 
 ## Súvisiace stránky
 
+- https://liftag.fit/sk/journal/fitbod-1rm-formula
 - https://liftag.fit/sk/journal/what-is-rpe-lifting
 - https://liftag.fit/sk/journal/progressive-overload
 - https://liftag.fit/sk/journal/best-workout-app-for-powerlifting

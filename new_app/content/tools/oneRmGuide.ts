@@ -30,6 +30,9 @@ export interface OneRmGuideCopy {
   brzyckiBody: string
   familyHeading: string
   familyBody: string
+  weightDependentHeading: string
+  weightDependentBody: string
+  weightDependentLink: string
   liftsIntro: string
   liftsProgram: string
   trueMaxIntro: string
@@ -93,6 +96,10 @@ export const en: OneRmGuideCopy = {
   familyHeading: 'The rest of the family',
   familyBody:
     'Lombardi is a power curve. Mayhew and Wathen are exponential and were the LeSuer bench winners. O’Connor is a shallower linear (r/40). Lander is the NSCA-era percentage chart in equation form. The LeSuer et al. 1997 paper is still the paper to cite: every formula under-predicted deadlift by about 10%.',
+  weightDependentHeading: 'A weight-dependent version (2026)',
+  weightDependentBody:
+    'All seven equations above convert reps the same way whatever is in your hands. In March 2026 Fitbod’s data science lead published a preprint that lets the divisor move with the load instead of fixing it at 30, fitted to 303,494 near-failure sets. On heavy barbell triples and fives it lands within a kilo or two of Epley. On a light curl it reads several kilos higher. Nobody has checked it against a measured max yet, so Epley stays the default here. We read the paper and wrote down what it does and does not show:',
+  weightDependentLink: 'Fitbod’s new 1RM formula, reviewed',
   liftsIntro:
     'Select your exercise in the calculator for lift-specific context and strength benchmarks. The 1RM formulas remain the same. Most validation studies focus on bench, squat, and deadlift. A machine chest press 8RM is not a competition bench.',
   liftsProgram:
@@ -232,6 +239,10 @@ export const sk: OneRmGuideCopy = {
   familyHeading: 'Ostatné vzorce',
   familyBody:
     'Lombardi je mocninová krivka. Mayhew a Wathen sú exponenciálne a v štúdii LeSuer vyhrali pri benchi. O’Connor je plytšia lineárna rovnica (r/40). Lander je rovnica percentuálnej tabuľky z éry NSCA. Štúdia LeSuer et al. z roku 1997 je stále vhodným zdrojom: každý vzorec podhodnotil mŕtvy ťah približne o 10 %.',
+  weightDependentHeading: 'Verzia závislá od záťaže (2026)',
+  weightDependentBody:
+    'Všetkých sedem rovníc vyššie prepočítava opakovania rovnako bez ohľadu na to, čo držíš v rukách. V marci 2026 zverejnil šéf dátovej vedy vo Fitbode preprint, v ktorom sa deliteľ mení spolu so záťažou namiesto pevnej tridsiatky. Postavený je na 303 494 sériách blízko zlyhania. Pri ťažkých trojkách a päťkách s veľkou činkou sa od Epleyho líši o kilogram či dva. Pri ľahkom bicepsovom zdvihu vyjde o niekoľko kilogramov vyššie. Nikto ho zatiaľ neporovnal so skutočne odmeraným maximom, takže predvolený tu zostáva Epley. Prečítali sme tú prácu a zapísali, čo z nej vyplýva a čo nie:',
+  weightDependentLink: 'Nový vzorec na 1RM od Fitbodu, rozbor',
   liftsIntro:
     'V kalkulačke vyber cvik a zobrazí sa jeho kontext a benchmarky sily. Vzorce 1RM zostávajú rovnaké. Väčšina validačných štúdií sa venuje benču, drepu a mŕtvemu ťahu. 8RM na stroji na prsia nie je súťažný bench.',
   liftsProgram:
