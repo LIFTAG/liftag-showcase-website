@@ -83,15 +83,23 @@
     visibility 0s;
 }
 .gm.is-pinned.is-beat-1 .gm-phone {
-  --gm-push: 1;
+  --gm-push: 0.4;
 }
-.gm-phone__screen {
+.gm-phone__screen,
+.gm-phone__annotations {
   position: absolute;
   inset: calc(var(--gm-h) * 0.012821) calc(var(--gm-w) * 0.026316);
+}
+.gm-phone__screen {
   border-radius: calc(var(--gm-w) * 0.12105);
   overflow: hidden;
   background: #070807;
   isolation: isolate;
+}
+.gm-phone__annotations {
+  /* Highlights share the screenshot grid but sit outside its rounded crop. */
+  z-index: 2;
+  pointer-events: none;
 }
 .gm-phone__island {
   position: absolute;
@@ -102,6 +110,7 @@
   border-radius: 999px;
   background: #000;
   transform: translateX(-50%);
+  z-index: 3;
 }
 /* The screenshot's own pixel grid. coverFitScreenUVs crops a tall capture
    from the bottom only, so the 3D glass is top-aligned; match it. */
@@ -157,13 +166,14 @@
   width: var(--sw);
   height: var(--sh);
   border-radius: var(--sr);
-  box-shadow:
-    0 0 calc(var(--gm-u) * 6) calc(var(--gm-u) * 0.4) #ccff0033,
-    0 0 0 999px #030504a8;
-  outline: max(1px, calc(var(--gm-u) * 0.45)) solid #ccff00d9;
-  outline-offset: calc(var(--gm-u) * 0.6);
+  box-shadow: 0 0 0 999px #030504a8;
   opacity: 0;
   z-index: 3;
+}
+.gm-phone__annotations .gm-phone__spot {
+  box-shadow: 0 0 calc(var(--gm-u) * 6) calc(var(--gm-u) * 0.4) #ccff0033;
+  outline: max(1px, calc(var(--gm-u) * 0.45)) solid #ccff00d9;
+  outline-offset: calc(var(--gm-u) * 0.6);
 }
 .gm-phone__marker {
   left: calc(var(--sx) + var(--sw));
@@ -471,7 +481,7 @@
 }
 .gm-readout h3 {
   font-size: clamp(1.45rem, 1.9vw, 1.9rem);
-  line-height: 1.12;
+  line-height: 1.22;
   text-wrap: balance;
 }
 .gm-readout > p:not(.gm-readout__head) {
@@ -503,9 +513,9 @@
 }
 .gm-specs div {
   display: grid;
-  grid-template-columns: 88px 1fr;
+  grid-template-columns: 64px minmax(0, 1fr);
   gap: 12px;
-  padding: 10px 0;
+  padding: 14px 0;
   border-bottom: 1px solid var(--gx-line);
   font-size: 0.875rem;
 }
@@ -651,6 +661,9 @@
 
 /* ---- phones: device on top, copy underneath ------------------------------ */
 @media (max-width: 760px) {
+  .gm.is-pinned.is-beat-1 .gm-phone {
+    --gm-push: 0;
+  }
   .gm.is-pinned {
     height: 300svh;
     overflow-x: visible !important;
