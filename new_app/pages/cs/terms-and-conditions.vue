@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ i18n: false })
 const path = '/cs/terms-and-conditions'
-const lastUpdated = 'květen 2026'
+const lastUpdated = 'září 2026'
 
 useLiftagSeo(() => ({
   title: 'Obchodní podmínky | LIFTAG',
@@ -47,12 +47,16 @@ const sections = [
     body: 'Pokud nahráváte fotografie, videa, vlastní cviky, zprávy nebo jiný obsah, musíte mít právo jej sdílet a musí být zákonný, respektující a bezpečný. Obsah, který porušuje tyto Podmínky nebo škodí službě, můžeme odstranit.',
   },
   {
+    title: 'Import tréninkových údajů',
+    body: 'Historii tréninků můžete importovat ze souborů exportovaných z jiných aplikací, například Hevy nebo Strong. Importujte pouze údaje, které patří vám nebo které máte právo použít. Importy zpracováváme automaticky bez odeslání souboru poskytovateli umělé inteligence. Přiřazení cviků, data, jednotky a hodnoty sérií mohou být neúplné nebo nesprávné, proto si výsledek před potvrzením zkontrolujte. Za tréninky, rutiny a cviky, které se rozhodnete uložit, odpovídáte vy. Tím nejsou omezena vaše zákonná práva spotřebitele ani práva na ochranu osobních údajů.\n\nSoubory mohou obsahovat poznámky, názvy tréninků a názvy cviků, které odhalují údaje o zdraví, například zranění. Před nahráním si soubor zkontrolujte. Importované tréninky včetně poznámek a původních podrobností vidí trenér, se kterým se spojíte, během aktivní spolupráce a osoby, které přidáte v části Sdílet tréninková data. Zásady ochrany osobních údajů vysvětlují, jak tyto údaje zpracováváme a uchováváme.\n\nPůvodní export si ponechte. Nahraný soubor vymažeme po úspěšné analýze; u neúspěšných nebo nedokončených importů platí pravidla vypršení a odstraňování uvedená v zásadách ochrany osobních údajů. Vrácení importu odstraní pouze importované tréninky, které jste od té doby neupravili. Upravené tréninky, rutiny, soukromé cviky a potvrzená přiřazení cviků zůstanou. Úprava viditelné poznámky u tréninku nemusí odstranit původní poznámku uloženou v podrobnostech importu nebo zkopírovanou do rutiny. Tréninky můžete vymazat samostatně a s odstraněním dalších uchovávaných údajů se obrátit na podporu.\n\nFunkce importu můžeme omezit, změnit nebo ukončit při zachování vašich zákonných práv. Hevy, Strong a názvy jiných aplikací jsou ochranné známky jejich vlastníků. Liftag s nimi není propojen, není jimi schválen ani sponzorován a uvádí je pouze k označení souborů, které dokáže načíst.',
+  },
+  {
     title: 'Přijatelné používání',
     body: 'Nezneužívejte Liftag, nenarušujte službu, nepokoušejte se o neoprávněný přístup, nenahrávejte škodlivý obsah, nevydávejte se za jiné, neobtěžujte uživatele a nepoužívejte aplikaci k nezákonné činnosti.',
   },
   {
     title: 'Služby třetích stran',
-    body: 'Liftag se může spoléhat na služby třetích stran, jako jsou Supabase, Google, Apple, Sentry, Resend, Cloudflare Turnstile, Strava, YouTube/WebView, mapové a lokalizační služby a úložiště médií S3/AWS. Mohou se vztahovat i jejich vlastní podmínky a zásady.',
+    body: 'Liftag může využívat služby třetích stran, například Supabase, Google, Apple, Meta/Facebook SDK a TikTok Business SDK pro atribuci reklam aplikace, Sentry, Resend, Cloudflare Turnstile, OpenAI, Anthropic a Google Generative AI pro generování rutin a plánů pomocí umělé inteligence a vyhodnocení jejich kvality, Strava, YouTube/WebView, mapové a lokalizační služby a úložiště médií S3/AWS. Mohou se na ně vztahovat i jejich vlastní podmínky a zásady.',
   },
   {
     title: 'Pozastavení a ukončení',
@@ -60,11 +64,11 @@ const sections = [
   },
   {
     title: 'Změny',
-    body: 'Tyto Podmínky můžeme aktualizovat. V případě podstatných změn vás můžeme požádat o přijetí aktualizované verze před dalším používáním funkcí produktu.',
+    body: 'Tyto Podmínky můžeme aktualizovat. Podstatné změny vám oznámíme upozorněním v aplikaci nebo e-mailem a vysvětlíme, kdy nabývají účinnosti. Pokud zákon vyžaduje váš souhlas se změnou podmínek, získáme jej předtím, než se na vás změněné podmínky začnou vztahovat. Samotné zveřejnění aktualizované verze ani další používání nepředstavuje takový souhlas. Vaše zákonná práva zůstávají nedotčena.',
   },
   {
     title: 'Subjekt a rozhodné právo',
-    body: 'Tyto Podmínky se řídí příslušnými právními předpisy, včetně závazné ochrany spotřebitele, která se na vás vztahuje. Případné spory budou řešit soudy nebo orgány, které mají podle těchto předpisů pravomoc.',
+    body: 'Vaší smluvní stranou a provozovatelem Liftag je Adam Prisenžňák, živnostník registrovaný v České republice, IČO 23848944, se sídlem Kurkova 1212/2, 182 00 Praha 8 – Kobylisy, Česká republika. Zapsaný v českém živnostenském rejstříku; příslušný živnostenský úřad: Úřad městské části Praha 8. Telefon: +420 725 825 340. E-mail: support@liftag.fit.\n\nTyto Podmínky se řídí příslušnými právními předpisy, včetně závazné ochrany spotřebitele, která se na vás vztahuje. Případné spory budou řešit soudy nebo orgány, které mají podle těchto předpisů pravomoc.',
   },
   {
     title: 'Kontakt',
@@ -93,7 +97,7 @@ const contactEmail = 'support@liftag.fit'
             class="legal-section"
           >
             <h2>{{ section.title }}</h2>
-            <p>{{ section.body }}</p>
+            <p v-for="(paragraph, index) in section.body.split('\n\n')" :key="index">{{ paragraph }}</p>
           </section>
 
           <p class="legal-contact-email">
@@ -161,6 +165,10 @@ const contactEmail = 'support@liftag.fit'
   font-weight: 300;
   line-height: 1.7;
   margin: 0;
+}
+
+.legal-section p + p {
+  margin-top: 1em;
 }
 
 .legal-contact-email {
