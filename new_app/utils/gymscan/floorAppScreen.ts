@@ -25,27 +25,39 @@ export type FloorAppCopy = {
   exerciseGuide: string;
   names: Record<FloorMachine["id"], string>;
   areas: Record<FloorMachine["area"], string>;
-  /** The AI workout for this gym; exercises in slot order. */
+  /** The AI workout for this gym: generating, then the draft, in slot order. */
   plan: {
     offer: string;
+    generating: string;
+    /** The app's estimate line; `{elapsed}` takes the clock at paint time. */
+    estimate: string;
+    stages: string[];
     title: string;
-    building: string;
     summary: string;
-    start: string;
+    why: string;
+    whyCopy: string;
+    save: string;
     exercises: FloorPlanExercise[];
   };
-  /** A coach's routine for the gym; exercises in slot order. */
+  /** A coach's clients, then one client's exercise library, in slot order. */
   coach: {
     name: string;
     role: string;
-    title: string;
-    publish: string;
-    live: string;
-    exercises: FloorPlanExercise[];
+    clients: string;
+    clientsHint: string;
+    people: string[];
+    otherGym: string;
+    library: string;
+    trainsHere: string;
+    filter: string;
+    notHere: string;
+    add: string;
+    exercises: FloorLibraryExercise[];
   };
 };
 
 export type FloorPlanExercise = { name: string; sets: string };
+export type FloorLibraryExercise = { name: string; equipment: string };
 
 const canvasX = (localX: number, w: number) => (localX / PHONE_SCR_W + 0.5) * w;
 const canvasY = (localY: number, h: number) => (0.5 - localY / PHONE_SCR_H) * h;

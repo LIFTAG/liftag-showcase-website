@@ -3,10 +3,9 @@ import { en, sk } from '~/i18n/messages/gymDemo';
 import type { FloorStage } from '~/utils/gymscan/floorStage';
 import type { FloorAppCopy, FloorAppNameLayout } from '~/utils/gymscan/floorAppScreen';
 import { floorEquipment } from '~/utils/gymscan/floorEquipment';
+import { floorCoachCatalog, floorPlanImages } from '~/utils/gymscan/floorRoutines';
 import {
   FLOOR_BEATS,
-  FLOOR_COACH_ORDER,
-  FLOOR_PLAN_ORDER,
   floorBeatAt,
   floorBeatFill,
   floorBeatTarget,
@@ -79,32 +78,49 @@ function appCopy(): FloorAppCopy {
     },
     plan: {
       offer: t('floor.plan.offer'),
+      generating: t('floor.plan.generating'),
+      // The stage puts its clock in at paint time.
+      estimate: t('floor.plan.estimate', { elapsed: '{elapsed}' }),
+      stages: [0, 1, 2].map((i) => t(`floor.plan.stages.${i}`)),
       title: t('floor.plan.title'),
-      building: t('floor.plan.building'),
       summary: t('floor.plan.summary'),
-      start: t('floor.plan.start'),
-      exercises: planExercises('plan'),
+      why: t('floor.plan.why'),
+      whyCopy: t('floor.plan.whyCopy'),
+      save: t('floor.plan.save'),
+      exercises: planExercises.value,
     },
     coach: {
       name: t('floor.coach.name'),
       role: t('floor.coach.role'),
-      title: t('floor.coach.title'),
-      publish: t('floor.coach.publish'),
-      live: t('floor.coach.live'),
-      exercises: planExercises('coach'),
+      clients: t('floor.coach.clients'),
+      clientsHint: t('floor.coach.clientsHint'),
+      people: [0, 1, 2].map((i) => t(`floor.coach.people.${i}`)),
+      otherGym: t('floor.coach.otherGym'),
+      library: t('floor.coach.library'),
+      trainsHere: t('floor.coach.trainsHere'),
+      filter: t('floor.coach.filter'),
+      notHere: t('floor.coach.notHere'),
+      add: t('floor.coach.add'),
+      exercises: libraryExercises.value,
     },
   };
 }
-/** A plan's exercises in slot order, each with its machine's tag number. */
-function planExercises(kind: 'plan' | 'coach') {
-  const order = kind === 'plan' ? FLOOR_PLAN_ORDER : FLOOR_COACH_ORDER;
-  return order.map((index, slot) => ({
-    number: floorEquipment[index]!.number,
-    name: t(`floor.${kind}.exercises.${slot}.name`),
-    sets: t(`floor.${kind}.exercises.${slot}.sets`),
-  }));
-}
-const plans = computed(() => ({ plan: planExercises('plan'), coach: planExercises('coach') }));
+/** The AI workout's exercises in slot order, each with its picture. */
+const planExercises = computed(() =>
+  floorPlanImages.map((image, slot) => ({
+    image,
+    name: t(`floor.plan.exercises.${slot}.name`),
+    sets: t(`floor.plan.exercises.${slot}.sets`),
+  })),
+);
+/** The coach's library, and whether this gym has what each exercise needs. */
+const libraryExercises = computed(() =>
+  floorCoachCatalog.map((item, slot) => ({
+    ...item,
+    name: t(`floor.coach.exercises.${slot}.name`),
+    equipment: t(`floor.coach.exercises.${slot}.equipment`),
+  })),
+);
 
 let stage: FloorStage | null = null;
 let stageModule: Promise<typeof import('~/utils/gymscan/floorStage')> | null = null;
@@ -217,6 +233,7 @@ function frame(now: number) {
     entryShown !== entryTarget ||
     out.spawning ||
     out.tilting ||
+    out.looping ||
     now - pointerAt < 200;
   if (moving) raf = requestAnimationFrame(frame);
   else last = 0;
@@ -456,19 +473,22 @@ onBeforeUnmount(() => {
           <p class="gx-protocol">AI · {{ t('floor.appTitle') }}</p>
           <h3>{{ t('floor.plan.title') }}</h3>
           <p>{{ t('floor.plan.summary') }}</p>
+          <p class="gf-plan__why"><b>{{ t('floor.plan.why') }}</b> {{ t('floor.plan.whyCopy') }}</p>
           <ol>
-            <li v-for="item in plans.plan" :key="item.number">
-              <b class="gx-protocol">{{ item.number }}</b><strong>{{ item.name }}</strong><span>{{ item.sets }}</span>
+            <li v-for="item in planExercises" :key="item.image">
+              <img :src="item.image" width="600" height="335" alt="" loading="lazy" /><strong>{{ item.name }}</strong><span>{{ item.sets }}</span>
             </li>
           </ol>
         </div>
         <div class="gf-plan" :aria-label="t('floor.coachScreenAlt')">
           <p class="gx-protocol">{{ t('floor.coach.name') }} · {{ t('floor.coach.role') }}</p>
-          <h3>{{ t('floor.coach.title') }}</h3>
-          <p>{{ t('floor.coach.live') }}</p>
+          <h3>{{ t('floor.coach.library') }}</h3>
+          <p>{{ t('floor.appTitle') }} · {{ t('floor.coach.trainsHere') }}</p>
+          <p class="gf-plan__why"><b>{{ t('floor.coach.filter') }}</b></p>
           <ol>
-            <li v-for="item in plans.coach" :key="item.number">
-              <b class="gx-protocol">{{ item.number }}</b><strong>{{ item.name }}</strong><span>{{ item.sets }}</span>
+            <li v-for="item in libraryExercises" :key="item.image" :class="{ 'is-off': !item.onFloor }">
+              <img :src="item.image" width="600" height="335" alt="" loading="lazy" /><strong>{{ item.name }}</strong
+              ><span>{{ item.onFloor ? item.equipment : t('floor.coach.notHere') }}</span>
             </li>
           </ol>
         </div>
