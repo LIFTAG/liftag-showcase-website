@@ -7,8 +7,8 @@
   background: var(--gx-bg);
 }
 .gf.is-pinned {
-  /* 340svh of scroll per unit of film (FLOOR_FILM = 1.8). */
-  height: 712svh;
+  /* 340svh of scroll per unit of film (FLOOR_FILM = 2.2). */
+  height: 848svh;
 }
 .gf-pane {
   position: sticky;
@@ -314,7 +314,6 @@
 .gf-rail li:nth-child(2) .gf-rail__bar i { transform: scaleX(var(--gf-fill-1, 0)); }
 .gf-rail li:nth-child(3) .gf-rail__bar i { transform: scaleX(var(--gf-fill-2, 0)); }
 .gf-rail li:nth-child(4) .gf-rail__bar i { transform: scaleX(var(--gf-fill-3, 0)); }
-.gf-rail li:nth-child(5) .gf-rail__bar i { transform: scaleX(var(--gf-fill-4, 0)); }
 .gf.is-still .gf-rail__bar {
   display: none;
 }
@@ -542,7 +541,7 @@
 /* ---- phones: floor on top, copy underneath ------------------------------- */
 @media (max-width: 760px) {
   .gf.is-pinned {
-    height: 640svh;
+    height: 760svh;
   }
   .gf-pane {
     --gf-vh: max(100svh, 480px);
@@ -574,7 +573,7 @@
   }
   .gf.is-pinned .gf-rail {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 8px;
     margin-top: 16px;
     border: 0;
@@ -593,7 +592,7 @@
     top: -1px;
     bottom: auto;
   }
-  /* Five tabs are numbers; the active beat's name leads its detail. */
+  /* Four tabs are numbers; the active beat's name leads its detail. */
   .gf.is-pinned .gf-rail__text {
     display: none;
   }
@@ -673,14 +672,27 @@
 .gf-plan ol { list-style: none; margin: 18px 0 0; padding: 0; }
 .gf-plan li {
   display: grid;
-  grid-template-columns: 32px 1fr auto;
-  gap: 10px;
-  align-items: baseline;
+  grid-template-columns: 72px 1fr auto;
+  gap: 14px;
+  align-items: center;
   padding: 12px 0;
   border-top: 1px solid var(--gx-line);
 }
-.gf-plan li b { color: var(--gx-lime); font-weight: 600; }
+.gf-plan li img {
+  width: 72px;
+  height: auto;
+  aspect-ratio: 600 / 335;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #222924;
+}
+/* A machine's cut-out render sits whole in its well. */
+.gf-plan li img[src*='/gym3d/'] { object-fit: contain; }
 .gf-plan li span { color: var(--gx-muted); }
+.gf-plan__why b { color: var(--gx-lime); font-weight: 600; }
+/* Exercises this gym has no equipment for. */
+.gf-plan li.is-off strong { color: var(--gx-muted); text-decoration: line-through; }
+.gf-plan li.is-off span { color: #f59e0b; }
 .gf-exercises h3 { margin: 12px 0; }
 .gf-exercises ul { list-style: none; margin: 20px 0 0; padding: 0; }
 .gf-exercises li { display: grid; gap: 6px; padding: 16px 0; border-top: 1px solid var(--gx-line); }

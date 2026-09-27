@@ -1,7 +1,8 @@
 // 06 · Your floor. A demonstration gym floor contracts into a screen-up phone:
 // the tile seams become the list rules, "Your gym" on the tiles becomes the app
 // title, and each machine flies into its own row as a 3/4 thumbnail. The app
-// then plans a workout on those machines, and a coach builds one for the gym.
+// then generates a workout for the gym, and a coach, who sees where each
+// client trains, narrows the exercise library to this gym's machines.
 // Every pose here is a pure function of film time, `floorFilm(progress)`.
 import {
   PHONE_H,
@@ -13,6 +14,7 @@ import {
   PHONE_W,
 } from "../phoneModel.ts";
 import { floorEquipment } from "./floorEquipment.ts";
+import { floorCoachCatalog, floorPlanImages } from "./floorRoutines.ts";
 import type { PhoneBox } from "./handoff.ts";
 import { MEMBER_COMPACT_MAX, memberPhoneSlot } from "./memberPhone.ts";
 import { storyBeatAt, storyBeatFill, storyBeatTarget } from "./storyBeats.ts";
@@ -84,23 +86,24 @@ export const FLOOR_THUMB_ROT_Y = 0.58;
 // ---- beats -----------------------------------------------------------------
 
 /**
- * Film time the pinned section plays. 0 → 1 turns the floor into the gym's
- * app and opens a machine; after that the app plans a workout and a coach
- * builds a routine. Every pose below takes film time, not section progress.
+ * Film time the pinned section plays. Up to 0.9 the floor turns into the
+ * gym's app and opens a machine; after that the app generates a workout, and
+ * a coach picks exercises for a client who trains here. Every pose below
+ * takes film time, not section progress.
  */
-export const FLOOR_FILM = 1.8;
+export const FLOOR_FILM = 2.2;
 export function floorFilm(progress: number) {
   return clamp01(progress) * FLOOR_FILM;
 }
 
-export const FLOOR_BEATS = 5;
-/** Tag (the floor) → list (the morph starts) → browse → plan (AI) → coach, in film time. */
-const FLOOR_BEAT_FILM = [0, 0.3, 0.6, 1, 1.4, FLOOR_FILM] as const;
+export const FLOOR_BEATS = 4;
+/** Tag (the floor) → browse (the morph starts) → plan (AI) → coach, in film time. */
+const FLOOR_BEAT_FILM = [0, 0.28, 0.9, 1.62, FLOOR_FILM] as const;
 /** The same bands as section progress, for the rail. */
 export const FLOOR_BEAT_EDGES: readonly number[] = FLOOR_BEAT_FILM.map((t) => t / FLOOR_FILM);
-export type FloorBeat = 0 | 1 | 2 | 3 | 4;
+export type FloorBeat = 0 | 1 | 2 | 3;
 /** App beats land their link on the finished screen, film time. */
-const FLOOR_BEAT_HOLD: Partial<Record<number, number>> = { 2: 0.92, 3: 1.38, 4: 1.74 };
+const FLOOR_BEAT_HOLD: Partial<Record<number, number>> = { 1: 0.78, 2: 1.6, 3: 2.14 };
 
 export function floorBeatAt(progress: number): FloorBeat {
   return storyBeatAt(FLOOR_BEAT_EDGES, progress) as FloorBeat;
@@ -113,12 +116,15 @@ export function floorBeatTarget(beat: number): number {
   return hold === undefined ? storyBeatTarget(FLOOR_BEAT_EDGES, beat) : hold / FLOOR_FILM;
 }
 
-/** Crane to overhead, then floor → phone. Both are scrubbed by scroll. */
+/**
+ * Crane to overhead, then floor → phone. Both are scrubbed by scroll, and the
+ * morph starts before the crane settles, so the shot never stops between them.
+ */
 export function floorAt(progress: number) {
   const p = clamp01(progress);
   return {
-    overhead: smoothstep((p - 0.08) / 0.26),
-    morph: smoothstep((p - 0.44) / 0.28),
+    overhead: smoothstep((p - 0.06) / 0.26),
+    morph: smoothstep((p - 0.26) / 0.28),
   };
 }
 
@@ -143,8 +149,8 @@ export type FloorAppBox = { x: number; y: number; w: number; h: number };
  */
 export function floorOpenAt(t: number) {
   return {
-    press: smoothstep((t - 0.75) / 0.03) * (1 - smoothstep((t - 1.08) / 0.02)),
-    expand: smoothstep((t - 0.78) / 0.12) * (1 - smoothstep((t - 1.01) / 0.07)),
+    press: smoothstep((t - 0.6) / 0.03) * (1 - smoothstep((t - 0.93) / 0.02)),
+    expand: smoothstep((t - 0.63) / 0.12) * (1 - smoothstep((t - 0.86) / 0.07)),
   };
 }
 
@@ -209,42 +215,60 @@ export function floorOpenFrame(button: FloorAppBox, press: number, expand: numbe
   };
 }
 
-// ---- planning a workout, then a coach's routine -----------------------------
+// ---- generating a workout, then a coach picking for a client ----------------
 
-/** The AI workout and the coach's routine share one layout, canvas pixels. */
+/** The AI workout and the coach's screens share one frame, canvas pixels. */
 export const FLOOR_PLAN_LAYOUT = {
-  /** Top of the first exercise row, and the pitch between rows. */
-  rowsTop: 390,
-  pitch: 196,
-  /** Left edge of each row's text, right of the machine's well. */
-  textX: 216,
-  /** The full-width action under the rows. */
+  /** The generating screen: the loading mark's centre, then the stage card. */
+  generating: { mark: 520, markSize: 190, title: 690, estimate: 740, bar: 800, card: 862, row: 88 },
+  /** The finished workout: its note, then one row per exercise. */
+  draft: { note: 352, noteH: 132, top: 510, pitch: 186, h: 170 },
+  /** The coach's clients: one card each. */
+  clients: { top: 344, pitch: 256, h: 236 },
+  /** The coach's exercise library: the client's gym, then the exercises. */
+  library: { gym: 256, gymH: 206, head: 510, top: 530, pitch: 124, h: 112 },
+  /** The full-width action under the exercises. */
   action: { y: 1262, h: 88 },
   /** The floating "AI workout" pill over the equipment list: top and height. */
   offer: { y: 1372, h: 84 },
 } as const;
-/** Machine index in each slot of the AI workout. */
-export const FLOOR_PLAN_ORDER: readonly number[] = [1, 0, 2, 3];
-/**
- * Machine index in each slot of the coach's routine: the bike moves up to
- * warm up, and everything else steps down one well.
- */
-export const FLOOR_COACH_ORDER: readonly number[] = [3, 1, 0, 2];
 
 /**
- * Back on the list, an "AI workout" pill rises, is tapped and opens into the
- * workout. Then a coach's builder takes over the same screen, and the coach
- * publishes the routine to the gym.
+ * Back on the list, an "AI workout" pill rises, is tapped and opens over the
+ * machines, which leave with the list. The workout generates, then the
+ * coach's client list pushes in, then the exercise library for one client.
  */
 export function floorPlanAt(t: number) {
   return {
-    offer: smoothstep((t - 1.07) / 0.05),
-    press: smoothstep((t - 1.13) / 0.025),
-    expand: smoothstep((t - 1.155) / 0.12),
-    swap: smoothstep((t - 1.45) / 0.04),
-    /** Publish is held down, then the routine is live on the gym's page. */
-    publishing: t >= 1.67,
-    published: t >= 1.7,
+    offer: smoothstep((t - 0.92) / 0.05),
+    press: smoothstep((t - 0.98) / 0.025),
+    expand: smoothstep((t - 1.005) / 0.12),
+    /** The finished workout → the coach's clients. */
+    swap: smoothstep((t - 1.64) / 0.06),
+    /** The clients → the exercise library for the tapped client. */
+    pick: smoothstep((t - 1.8) / 0.06),
+  };
+}
+
+/** From the open card to a finished draft, film time. */
+const FLOOR_GENERATION = { start: 1.1, running: 1.18, done: 1.46 } as const;
+/** The elapsed clock at the finish, seconds: inside the app's "usually 1–2 min". */
+export const FLOOR_GENERATION_SECONDS = 94;
+
+export type FloorGenerationStatus = "queued" | "running" | "completed";
+
+/**
+ * The app's generating screen, driven by the same lifecycle the API reports:
+ * queued, running, completed. The elapsed clock runs with the scroll, and
+ * the completed screen fades away over the finished workout.
+ */
+export function floorGenerationAt(t: number) {
+  const { start, running, done } = FLOOR_GENERATION;
+  const status: FloorGenerationStatus = t < running ? "queued" : t < done ? "running" : "completed";
+  return {
+    status,
+    elapsed: Math.round(lerp(1, FLOOR_GENERATION_SECONDS, clamp01((t - start) / (done - start)))),
+    screen: 1 - smoothstep((t - 1.48) / 0.05),
   };
 }
 
@@ -269,38 +293,38 @@ export function floorOfferFrame(pill: FloorAppBox, offer: number, press: number,
   };
 }
 
+/** How far each of the finished workout's rows has settled in, in slot order. */
+export function floorPlanReveal(t: number) {
+  return floorPlanImages.map((_, slot) => smoothstep((t - 1.5 - slot * 0.02) / 0.04));
+}
+
 /**
- * How far a machine has moved into its AI slot, and on into the coach's.
- * Into the workout they leave in list order, so the two that trade places
- * cross mid-swing. For the coach, the bike lifts out first and swings over
- * the rest, which step down one well together to clear the top one.
+ * The coach's side. A client who trains here is tapped; in their library
+ * the gym filter turns on, the exercises this floor cannot host are marked
+ * and drop out, and the rest can be added to the client's routine.
  */
-export function floorPlanTravel(t: number, index: number) {
-  const leap = FLOOR_COACH_ORDER.indexOf(index) < FLOOR_PLAN_ORDER.indexOf(index);
+export function floorCoachAt(t: number) {
   return {
-    plan: smoothstep((t - 1.22 - index * 0.024) / 0.07),
-    coach: leap ? smoothstep((t - 1.5) / 0.11) : smoothstep((t - 1.52) / 0.07),
+    // The tapped client stays pressed while their library pushes in.
+    tap: smoothstep((t - 1.75) / 0.02) * (1 - smoothstep((t - 1.86) / 0.02)),
+    filter: smoothstep((t - 1.92) / 0.03),
+    flag: smoothstep((t - 1.95) / 0.02),
+    remove: smoothstep((t - 1.98) / 0.06),
+    add: smoothstep((t - 2.05) / 0.03),
   };
 }
 
-/** A row's text is painted once its machine has all but settled into the well. */
-const FLOOR_PLAN_LANDING = 0.9;
-
-/** Which slots of the AI workout and of the coach's routine show their exercise. */
-export function floorPlanLanded(t: number) {
-  return {
-    plan: FLOOR_PLAN_ORDER.map((index) => floorPlanTravel(t, index).plan >= FLOOR_PLAN_LANDING),
-    coach: FLOOR_COACH_ORDER.map((index) => floorPlanTravel(t, index).coach >= FLOOR_PLAN_LANDING),
-  };
-}
-
-/** Phone-local centre of a slot's well. Wells line up under the list's. */
-export function floorPlanSlot(slot: number) {
-  const { rowsTop, pitch } = FLOOR_PLAN_LAYOUT;
-  return {
-    x: floorAppRow(0).x,
-    y: (0.5 - (rowsTop + pitch * (slot + 0.5)) / FLOOR_APP_CANVAS.h) * PHONE_SCR_H,
-  };
+/** Rows of the coach's library, canvas pixels: the dropped ones collapse. */
+export function floorLibraryRows(remove: number) {
+  const { top, pitch, h } = FLOOR_PLAN_LAYOUT.library;
+  const gone = clamp01(remove);
+  let y = top;
+  return floorCoachCatalog.map((item) => {
+    const shrink = item.onFloor ? 1 : 1 - gone;
+    const row = { y, h: h * shrink, alpha: item.onFloor ? 1 : 1 - smoothstep(gone / 0.6) };
+    y += pitch * shrink;
+    return row;
+  });
 }
 
 export type FloorMorphBeats = {
@@ -414,7 +438,7 @@ export function floorTitleAt(progress: number) {
   const p = clamp01(progress);
   const { morph } = floorAt(p);
   const screen = floorMorphBeats(morph).screen;
-  const appear = smoothstep((p - 0.2) / 0.1);
+  const appear = smoothstep((p - 0.14) / 0.1);
   const travel = smoothstep((morph - 0.05) / 0.58);
   const handoff = smoothstep((travel * screen - 0.86) / 0.14);
   return { appear, travel, alpha: appear * (1 - handoff) };
@@ -618,35 +642,14 @@ export function floorMachinePoseAt(progress: number, index: number): FloorMachin
   const row = floorAppRow(index);
   const dest = floorScreenLocalToWorld(row.x, row.y);
   const lift = row.thumb * FLOOR_PHONE_SCALE * 0.1;
-  // In the app, the thumbnail moves between wells: the list row, then its
-  // AI slot, then its slot in the coach's routine.
-  const travel = floorPlanTravel(progress, index);
-  const planSlot = floorPlanSlot(FLOOR_PLAN_ORDER.indexOf(index)).y;
-  const coachSlot = floorPlanSlot(FLOOR_COACH_ORDER.indexOf(index)).y;
-  const localY = lerp(lerp(row.y, planSlot, travel.plan), coachSlot, travel.coach);
-  const hop =
-    floorPlanHop(row.y, planSlot, travel.plan, row.thumb) +
-    floorPlanHop(planSlot, coachSlot, travel.coach, row.thumb);
   return {
-    x: lerp(item.x * fx, dest.x, mix) + hop * FLOOR_PHONE_SCALE,
-    y:
-      lerp(0, floorScreenWorldY() + 0.03 + lift, mix) +
-      row.thumb * FLOOR_PHONE_SCALE * 0.5 * (Math.sin(Math.PI * travel.plan) + Math.sin(Math.PI * travel.coach)),
-    z: lerp(item.z * fz, dest.z, mix) - (localY - row.y) * FLOOR_PHONE_SCALE,
+    x: lerp(item.x * fx, dest.x, mix),
+    y: lerp(0, floorScreenWorldY() + 0.03 + lift, mix),
+    z: lerp(item.z * fz, dest.z, mix),
     scale: lerp(Math.min(fx, fz), floorMachineAppScale(index), mix),
     rotation: lerp(item.rotation, FLOOR_THUMB_ROT_Y, mix),
     rotX: lerp(0, FLOOR_THUMB_ROT_X, mix),
   };
-}
-
-/**
- * Sideways swing of a thumbnail changing wells, phone-local. A machine
- * going further than the next well swings wide into the text column, so it
- * passes the machines it overtakes instead of passing through them.
- */
-function floorPlanHop(fromY: number, toY: number, travel: number, thumb: number) {
-  const pitch = (FLOOR_PLAN_LAYOUT.pitch / FLOOR_APP_CANVAS.h) * PHONE_SCR_H;
-  return Math.abs(toY - fromY) > pitch * 1.2 ? 1.3 * thumb * Math.sin(Math.PI * travel) : 0;
 }
 
 // ---- camera ----------------------------------------------------------------
