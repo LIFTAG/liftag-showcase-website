@@ -2,20 +2,18 @@
 import type { CatalogIndexMachine } from '~/types/catalog'
 import { catalogChrome } from '~/utils/catalogCopy'
 import { muscleDisplayName } from '~/utils/catalogLocale'
+definePageMeta({ key: route => route.fullPath.split('#')[0] })
 
 const { locale, href } = useSiteLocale()
 const chrome = catalogChrome(locale.value)
 const description = chrome.machineSeoDescription
 
-useLiftagSeo(() => ({
-  title: chrome.machineSeoTitle,
-  description,
-  path: '/machines',
-}))
-
 const route = useRoute()
 
 const { data: index, error, refresh } = await useCatalogIndex(locale)
+if (import.meta.server && error.value) {
+  throw createError({ statusCode: 503, statusMessage: 'Machine catalog temporarily unavailable' })
+}
 
 const query = ref(typeof route.query.q === 'string' ? route.query.q : '')
 const muscle = ref(typeof route.query.muscle === 'string' ? route.query.muscle : '')
@@ -134,9 +132,6 @@ onBeforeUnmount(() => {
   if (onViewportResize) window.visualViewport?.removeEventListener('resize', onViewportResize)
 })
 
-const PAGE_SIZE = 48
-const visibleCount = ref(PAGE_SIZE)
-
 const categories = computed(() => index.value?.categories ?? [])
 const categoryNames = computed(() => {
   const names = new Map<string, string>()
@@ -169,16 +164,31 @@ const filtered = computed<CatalogIndexMachine[]>(() => {
   return rows
 })
 
-const visible = computed(() => filtered.value.slice(0, visibleCount.value))
+const { page, offset, end, canonicalPath, nextPath, previousPath, reset, showMore } = useCatalogPagination({
+  path: () => href('/machines'),
+  total: () => filtered.value.length,
+  filters: () => ({ q: query.value, muscle: muscle.value }),
+})
+const visible = computed(() => filtered.value.slice(offset.value, end.value))
+useLiftagSeo(() => ({
+  title: page.value > 1
+    ? `${chrome.machineSeoTitle.split('|')[0]?.trim()} · ${locale.value === 'sk' ? 'Strana' : 'Page'} ${page.value} | LIFTAG`
+    : chrome.machineSeoTitle,
+  description,
+  path: canonicalPath.value,
+  noindex: Boolean(query.value || muscle.value || error.value),
+  followLinks: true,
+}))
 
 // Keep filters shareable without asking Vue Router to navigate on every
 // keystroke. A router replace invokes the app's scroll behavior, which can move
 // the focused input while the phone keyboard is opening.
 watch([query, muscle], ([q, m]) => {
-  visibleCount.value = PAGE_SIZE
+  reset()
   if (!import.meta.client) return
 
   const url = new URL(window.location.href)
+  url.searchParams.delete('page')
   if (q) url.searchParams.set('q', q)
   else url.searchParams.delete('q')
   if (m) url.searchParams.set('muscle', m)
@@ -212,7 +222,7 @@ useLiftagStructuredData(() => [
   liftagOrganization,
   liftagSoftwareApplication,
   liftagWebPage({
-    path: href('/machines'),
+    path: canonicalPath.value,
     name: chrome.machineWebPageName,
     description,
     type: 'CollectionPage',
@@ -221,6 +231,10 @@ useLiftagStructuredData(() => [
     { name: 'LIFTAG', path: '/' },
     { name: chrome.breadcrumbMachines, path: href('/machines') },
   ]),
+  liftagItemList({
+    name: chrome.breadcrumbMachines,
+    items: visible.value.map(machine => ({ name: machine.name, url: `https://liftag.fit${href(machinePath(machine))}` })),
+  }),
 ])
 </script>
 
@@ -313,11 +327,7 @@ useLiftagStructuredData(() => [
               :label="machine.categories[0] ? categoryNames.get(machine.categories[0]) : null"
             />
           </div>
-          <div v-if="filtered.length > visibleCount" class="ma-more">
-            <button type="button" class="btn-ghost" @click="visibleCount += PAGE_SIZE">
-              <HoloPill />{{ chrome.showMore(filtered.length - visibleCount) }}
-            </button>
-          </div>
+          <CatalogPagination :next-path="nextPath" :previous-path="previousPath" :remaining="Math.max(0, filtered.length - end)" :locale="locale" @more="showMore" />
         </template>
       </section>
 

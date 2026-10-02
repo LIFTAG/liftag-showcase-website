@@ -11,9 +11,17 @@ export default defineEventHandler(async (event) => {
   setHeader(event, 'content-type', headers['content-type'])
   setHeader(event, 'cache-control', headers['cache-control'])
 
-  const localized = await Promise.all((['en', 'sk'] as const).map(async (locale) => {
-    const snapshot = await getCatalogSnapshotOrNull(locale)
-    if (!snapshot) return []
+  const locales = ['en', 'sk'] as const
+  const snapshots = await Promise.all(locales.map(locale => getCatalogSnapshotOrNull(locale)))
+  if (snapshots.some(snapshot => !snapshot)) {
+    setResponseStatus(event, 503)
+    setHeader(event, 'retry-after', 300)
+    setHeader(event, 'cache-control', 'no-store')
+    return sitemapXml('', VIDEO_SITEMAP_NS)
+  }
+
+  const localized = locales.map((locale, index) => {
+    const snapshot = snapshots[index]!
     const { t } = createMessageTranslator(locale, { en, sk })
     return snapshot.exercises
       .filter(exercise => exercise.slug && catalogHasVideo(exercise.videos) && exercise.imageUrl)
@@ -29,7 +37,7 @@ export default defineEventHandler(async (event) => {
           lastmod: exercise.updatedAt ?? exercise.createdAt,
         })]
       })
-  }))
+  })
   const entries = localized.flat()
 
   return sitemapXml(entries.join('\n'), VIDEO_SITEMAP_NS)

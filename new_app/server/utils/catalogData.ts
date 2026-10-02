@@ -26,6 +26,9 @@ async function fetchAllPages<T>(
     })
     rows.push(...res.data)
     if (page >= res.metadata.lastPage) break
+    if (page === MAX_PAGES) {
+      throw new Error(`Catalog pagination exceeded the ${MAX_PAGES}-page safety limit for ${path}`)
+    }
   }
   return rows
 }
@@ -75,7 +78,7 @@ export function getCatalogSnapshot(locale: CatalogLocale = 'en'): Promise<Catalo
   return readCatalogSnapshot(String(apiBaseUrl), locale === 'sk' ? 'sk' : 'en')
 }
 
-/** Sitemap routes prefer an empty urlset over a 500 that Google caches as "Couldn't fetch". */
+/** Let discovery routes turn upstream failures into explicit retryable responses. */
 export async function getCatalogSnapshotOrNull(
   locale: CatalogLocale = 'en',
 ): Promise<CatalogSnapshot | null> {

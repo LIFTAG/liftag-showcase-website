@@ -7,6 +7,8 @@ export const en = {
   search: 'Search gyms by name or address',
   searchShort: 'Search gyms',
   searchEquipment: 'Search machines or exercises',
+  equipmentDescription:
+    'Browse the gym machines and equipment listed by {gym}. Filter by equipment brand or muscle group, then open a machine to see its exercises.',
   clear: 'Clear',
   filters: 'Filters',
   reset: 'Reset',
@@ -104,7 +106,7 @@ export const en = {
   appPlan: 'Download LIFTAG to view and follow this training plan.',
   unavailable: 'This page is unavailable',
   unavailableHint: 'It may have been removed or is no longer public.',
-  intro: 'Find your next training spot.',
+  intro: 'Find gyms by name, address, equipment, distance, rating, and opening hours on the LIFTAG gym map.',
   video: 'Video',
   noMedia: 'No photos yet',
   exerciseDetails: 'Exercise details',
@@ -118,6 +120,8 @@ export const en = {
   language: 'Language',
   map: 'Map',
   gymMachine: 'Gym machine',
+  gymMachineDescription:
+    'View {machine} at {gym}, including its equipment details and the exercises available on this machine.',
   skip: 'Skip to content',
   planPreview: 'View in app',
   clearFilters: 'Clear filters',
@@ -143,6 +147,8 @@ export const sk: DiscoveryCopy = {
   search: 'Hľadať fitká podľa názvu alebo adresy',
   searchShort: 'Hľadať fitká',
   searchEquipment: 'Hľadať stroje alebo cviky',
+  equipmentDescription:
+    'Pozri si stroje a vybavenie fitka {gym}. Filtruj podľa značky vybavenia alebo svalovej partie a otvor stroj so zoznamom cvikov.',
   clear: 'Vymazať',
   filters: 'Filtre',
   reset: 'Obnoviť',
@@ -240,7 +246,7 @@ export const sk: DiscoveryCopy = {
   appPlan: 'Stiahni si LIFTAG a pozri si celý tréningový plán.',
   unavailable: 'Táto stránka nie je dostupná',
   unavailableHint: 'Mohla byť odstránená alebo už nie je verejná.',
-  intro: 'Nájdi svoje ďalšie fitko.',
+  intro: 'Nájdi fitko podľa názvu, adresy, vybavenia, vzdialenosti, hodnotenia a otváracích hodín na mape LIFTAG.',
   video: 'Video',
   noMedia: 'Zatiaľ bez fotografií',
   exerciseDetails: 'Detail cviku',
@@ -254,6 +260,8 @@ export const sk: DiscoveryCopy = {
   language: 'Jazyk',
   map: 'Mapa',
   gymMachine: 'Stroj vo fitku',
+  gymMachineDescription:
+    'Pozri si stroj {machine} vo fitku {gym}, jeho údaje o vybavení a cviky, ktoré na ňom môžeš cvičiť.',
   skip: 'Preskočiť na obsah',
   planPreview: 'Otvoriť v aplikácii',
   clearFilters: 'Vymazať filtre',

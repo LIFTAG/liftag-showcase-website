@@ -194,25 +194,29 @@ export default defineNuxtConfig({
     '/terms-and-conditions': { prerender: true },
     '/cs/**': { prerender: true },
     '/sk': { prerender: true },
-    // Catalog pages regenerate on Vercel at most hourly: new exercises appear
-    // without a redeploy, and a build never has to prerender the whole catalog.
-    '/exercises': { isr: 3600 },
+    // Live catalog data is shared and cached upstream: new exercises appear
+    // without a redeploy or prerendering the whole catalog.
+    // Pagination/search depend on query parameters. Vercel ISR can reuse a
+    // pathname entry across queries; render these lists per request using the
+    // shared catalog cache so page 2 never serves page 1's HTML/canonical.
+    '/exercises': { headers: { 'cache-control': 'no-store' } },
     // Detail routes also resolve gym-specific equipment via query context.
     // Render them per request so an ISR entry cannot erase that context or language.
     // The catalog data/index cache remains shared by ordinary catalog requests.
     '/exercises/**': { headers: { 'cache-control': 'no-store' } },
-    '/machines': { isr: 3600 },
+    '/machines': { headers: { 'cache-control': 'no-store' } },
     '/machines/**': { headers: { 'cache-control': 'no-store' } },
     '/explore': { headers: { 'cache-control': 'no-store' } },
     '/explore/**': { headers: { 'cache-control': 'no-store' } },
     '/gyms/**': { headers: { 'cache-control': 'no-store' } },
     '/muscles': { isr: 3600 },
-    '/muscles/**': { isr: 3600 },
+    '/muscles/**': { headers: { 'cache-control': 'no-store' } },
     // Index and marketing URLs are static. Catalog sitemaps stay ISR so a
     // Search Console fetch never waits on a cold catalog aggregation.
     '/sitemap.xml': { prerender: true },
     '/sitemap-pages.xml': { prerender: true },
     '/sitemap-catalog.xml': { isr: 3600 },
+    '/sitemap-discovery.xml': { isr: 3600 },
     '/sitemap-images.xml': { isr: 3600 },
     '/sitemap-videos.xml': { isr: 3600 },
     '/api/catalog/**': {

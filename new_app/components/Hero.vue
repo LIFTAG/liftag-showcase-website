@@ -4,6 +4,8 @@
 // evaluates the phone layout (and vice versa). The cursor effect lives in
 // SplashCursor.vue, mounted page-wide by index.vue and gym-scan.vue (held
 // invisible until the film hands the frame to this hero).
+import { en, sk } from '~/i18n/messages/marketing'
+const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 
 const props = withDefaults(defineProps<{
   handoff?: boolean
@@ -108,6 +110,9 @@ onBeforeUnmount(() => {
       paddingBottom: '80px',
     }"
   >
+    <!-- Both responsive islands render on the server. Share one semantic
+         heading with the same text as their visible typography. -->
+    <h1 class="sr-only">{{ t('marketing.hero.heading') }}</h1>
     <div
       :style="{
         position: 'absolute',

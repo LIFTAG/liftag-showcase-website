@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { localizeContentLinks } from '~/utils/localizeContentLinks'
+import { en as journalEn, sk as journalSk } from '~/content/journal'
 import type { JournalArticle } from '~/content/journal/types'
 import { en, sk } from '~/i18n/messages/journal'
 
@@ -15,6 +16,16 @@ const updated = computed(() =>
 )
 
 const localizedBody = computed(() => localizeContentLinks(props.article.body, href))
+const relatedArticles = computed(() => {
+  const articles = locale.value === 'sk' ? journalSk : journalEn
+  const candidates = articles.filter(article => article.href !== props.article.path)
+  const sameTopic = candidates.filter(article => article.eyebrow === props.article.category)
+  const ordered = [...sameTopic, ...candidates]
+
+  return ordered.filter(
+    (article, index) => ordered.findIndex(candidate => candidate.href === article.href) === index,
+  ).slice(0, 3)
+})
 </script>
 
 <template>
@@ -35,6 +46,12 @@ const localizedBody = computed(() => localizeContentLinks(props.article.body, hr
             >
           </div>
         </header>
+
+        <aside class="container guide-answer" :aria-label="t('journal.quickAnswer')">
+          <p class="protocol">{{ t('journal.quickAnswer') }}</p>
+          <h2>{{ article.faqs[0]?.question }}</h2>
+          <p>{{ article.faqs[0]?.answer }}</p>
+        </aside>
 
         <div class="container guide-body" v-html="localizedBody" />
 
@@ -71,6 +88,21 @@ const localizedBody = computed(() => localizeContentLinks(props.article.body, hr
           <section class="guide-method">
             <p class="protocol">{{ t('journal.writtenBy') }}</p>
             <p>{{ t('journal.authorNote') }}</p>
+          </section>
+          <section v-if="relatedArticles.length" class="guide-related" :aria-label="t('journal.relatedHeading')">
+            <h2>{{ t('journal.relatedHeading') }}</h2>
+            <div class="guide-related-grid">
+              <a
+                v-for="related in relatedArticles"
+                :key="related.href"
+                :href="href(related.href)"
+                class="guide-related-card"
+              >
+                <span class="protocol">{{ related.eyebrow }}</span>
+                <strong>{{ related.title }}</strong>
+                <span>{{ related.body }}</span>
+              </a>
+            </div>
           </section>
           <p class="guide-back">
             <a :href="href('/journal')">{{ t('journal.backToJournal') }}</a>
@@ -120,6 +152,32 @@ const localizedBody = computed(() => localizeContentLinks(props.article.body, hr
 }
 .guide-actions a {
   text-decoration: none;
+}
+.guide-answer {
+  max-width: 880px;
+  padding: 24px 28px;
+  border: 1px solid rgba(204, 255, 0, 0.22);
+  border-radius: 10px;
+  background: rgba(204, 255, 0, 0.055);
+}
+.guide-answer .protocol {
+  margin: 0 0 10px;
+  color: var(--liftag-primary);
+}
+.guide-answer h2 {
+  margin: 0 0 10px;
+  font-family: var(--liftag-font-headline);
+  font-size: clamp(24px, 3vw, 34px);
+  font-style: italic;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.guide-answer p:last-child {
+  max-width: 760px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 17px;
+  line-height: 1.65;
 }
 .guide-body {
   padding: 32px 0 80px;
@@ -246,6 +304,38 @@ const localizedBody = computed(() => localizeContentLinks(props.article.body, hr
   font-size: 14px;
   max-width: 780px;
 }
+.guide-related-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.guide-related-card {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 10px;
+  background: rgba(11, 18, 21, 0.7);
+  color: inherit !important;
+  text-decoration: none !important;
+}
+.guide-related-card .protocol {
+  color: var(--liftag-primary);
+  font-size: 9px;
+}
+.guide-related-card strong {
+  font-family: var(--liftag-font-headline);
+  font-size: 21px;
+  font-style: italic;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.guide-related-card span:last-child {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 13px;
+  line-height: 1.5;
+}
 .guide-back {
   margin: 0;
   padding-top: 16px;
@@ -257,6 +347,9 @@ const localizedBody = computed(() => localizeContentLinks(props.article.body, hr
 }
 @media (max-width: 900px) {
   .guide-picks {
+    grid-template-columns: 1fr;
+  }
+  .guide-related-grid {
     grid-template-columns: 1fr;
   }
 }

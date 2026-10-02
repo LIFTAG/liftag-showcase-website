@@ -3,6 +3,7 @@ import { en, sk } from '~/i18n/messages/muscles'
 import type { CatalogIndexExercise } from '~/types/catalog'
 import { catalogChrome } from '~/utils/catalogCopy'
 import { muscleDisplayName } from '~/utils/catalogLocale'
+definePageMeta({ key: route => route.fullPath.split('#')[0] })
 
 const route = useRoute()
 const param = String(route.params.slug)
@@ -16,6 +17,9 @@ if (!hub) {
 
 const chrome = catalogChrome(locale.value)
 const { data: index, error, refresh } = await useCatalogIndex(locale)
+if (import.meta.server && error.value) {
+  throw createError({ statusCode: 503, statusMessage: 'Exercise catalog temporarily unavailable' })
+}
 
 const query = ref(typeof route.query.q === 'string' ? route.query.q : '')
 
@@ -138,10 +142,7 @@ onBeforeUnmount(() => {
   if (onViewportResize) window.visualViewport?.removeEventListener('resize', onViewportResize)
 })
 
-const PAGE_SIZE = 48
-const visibleCount = ref(PAGE_SIZE)
-
-const categories = computed(() => index.value?.categories ?? [])
+const categories = computed(() => (index.value?.categories ?? []).filter(category => isMuscleSlug(category.slug)))
 const categoryNames = computed(() => {
   const names = new Map<string, string>()
   for (const category of categories.value) names.set(category.slug, muscleDisplayName(category.slug, category.name, locale.value))
@@ -178,32 +179,41 @@ const grouped = computed(() => {
 })
 
 const filtered = computed(() => [...grouped.value.primary, ...grouped.value.secondary])
+const path = href(musclePath(hub.slug))
+const { page, offset, end, visibleCount, canonicalPath, nextPath, previousPath, reset, showMore } = useCatalogPagination({
+  path,
+  total: () => filtered.value.length,
+  filters: () => ({ q: query.value }),
+})
 const sliced = computed(() =>
-  sliceMuscleGroups(grouped.value.primary, grouped.value.secondary, visibleCount.value),
+  catalogPageGroups(grouped.value.primary, grouped.value.secondary, offset.value, visibleCount.value),
 )
-const listForSchema = computed(() => exercises.value.slice(0, 30))
+const listForSchema = computed(() => [...sliced.value.visiblePrimary, ...sliced.value.visibleSecondary])
 
 const otherHubs = muscleHubsForLocale(locale.value).filter(item => item.slug !== hub.slug)
-
-const path = musclePath(hub.slug)
 
 // Keep filters shareable without asking Vue Router to navigate on every
 // keystroke. A router replace invokes the app's scroll behavior, which can move
 // the focused input while the phone keyboard is opening.
 watch(query, (q) => {
-  visibleCount.value = PAGE_SIZE
+  reset()
   if (!import.meta.client) return
 
   const url = new URL(window.location.href)
+  url.searchParams.delete('page')
   if (q) url.searchParams.set('q', q)
   else url.searchParams.delete('q')
   window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`)
 })
 
 useLiftagSeo(() => ({
-  title: `${hub.name} ${t('hubSeoSuffix')} | LIFTAG`,
+  title: page.value > 1
+    ? `${hub.name} ${chrome.breadcrumbExercises.toLocaleLowerCase(locale.value)} · ${locale.value === 'sk' ? 'Strana' : 'Page'} ${page.value} | LIFTAG`
+    : `${hub.name} ${t('hubSeoSuffix')} | LIFTAG`,
   description: hub.description,
-  path,
+  path: canonicalPath.value,
+  noindex: Boolean(query.value || error.value),
+  followLinks: true,
 }))
 
 const cdnOrigin = computed(() => {
@@ -226,7 +236,7 @@ useLiftagStructuredData(() => [
   liftagOrganization,
   liftagSoftwareApplication,
   liftagWebPage({
-    path,
+    path: canonicalPath.value,
     name: `${hub.name} exercises`,
     description: hub.description,
     type: 'CollectionPage',
@@ -241,7 +251,7 @@ useLiftagStructuredData(() => [
     name: `${hub.name} exercises in LIFTAG`,
     items: listForSchema.value.map(exercise => ({
       name: exercise.name,
-      url: `https://liftag.fit/exercises/${exercise.slug}`,
+      url: `https://liftag.fit${href(`/exercises/${exercise.slug}`)}`,
     })),
   }),
 ])
@@ -364,11 +374,7 @@ useLiftagStructuredData(() => [
               :preview-video-url="exercise.previewVideoUrl"
             />
           </div>
-          <div v-if="filtered.length > visibleCount" class="mu-more">
-            <button type="button" class="btn-ghost" @click="visibleCount += PAGE_SIZE">
-              <HoloPill />{{ chrome.showMore(filtered.length - visibleCount) }}
-            </button>
-          </div>
+          <CatalogPagination :next-path="nextPath" :previous-path="previousPath" :remaining="Math.max(0, filtered.length - end)" :locale="locale" @more="showMore" />
         </template>
       </section>
 

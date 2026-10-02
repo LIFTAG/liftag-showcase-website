@@ -62,7 +62,7 @@ export const sk = {
   titleText: 'Ako fitká nasadia NFC štítky.',
   description:
     'Praktické nasadenie LIFTAGu: označ jeden tréningový priestor, over správny cvik a potom skopíruj katalóg do ďalších lokalít. Cesta od 1 → 12 pobočiek bez vymyslených citátov.',
-  seoTitle: 'Nasadenie NFC štítkov vo fitku: od jednej podlahy po 12 lokalít | LIFTAG',
+  seoTitle: 'NFC štítky vo fitku: nasadenie pre 12 lokalít | LIFTAG',
   datePublished: '2026-08-20',
   category: 'FITKÁ',
   dateUpdated: '2026-08',

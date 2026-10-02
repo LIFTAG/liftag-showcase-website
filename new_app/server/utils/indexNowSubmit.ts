@@ -3,6 +3,7 @@ import {
   buildIndexNowPayload,
   collectIndexNowEntries,
   INDEXNOW_ENDPOINT,
+  isIndexNowDeploymentEnabled,
   selectIndexNowUrls,
   shouldSkipIndexNowPing,
 } from '../../utils/indexNow'
@@ -11,12 +12,10 @@ let lastSuccessAt: number | null = null
 let inFlight = false
 
 export function isIndexNowRuntimeEnabled(): boolean {
-  if (import.meta.prerender) return false
-  if (process.env.NODE_ENV !== 'production') return false
-  // Preview deploys must not ping production liftag.fit URLs.
-  const vercelEnv = process.env.VERCEL_ENV
-  if (vercelEnv && vercelEnv !== 'production') return false
-  return true
+  // A Vercel marker is authoritative: previews and development deployments
+  // must never submit canonical production URLs, even with a stray opt-in.
+  // Other hosts (including local `nuxt preview`) require an explicit opt-in.
+  return isIndexNowDeploymentEnabled(process.env, Boolean(import.meta.prerender))
 }
 
 export function scheduleIndexNowSubmit(snapshot: IndexNowCatalogInput | null): void {

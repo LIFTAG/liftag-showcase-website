@@ -21,6 +21,15 @@ const DENIED_PATH_PREFIXES = [
   '/trainer-invites',
 ] as const
 
+export function isIndexNowDeploymentEnabled(
+  env: Readonly<Record<string, string | undefined>>,
+  prerender: boolean,
+): boolean {
+  if (prerender || env.NODE_ENV !== 'production') return false
+  if (env.VERCEL_ENV !== undefined) return env.VERCEL_ENV === 'production'
+  return env.INDEXNOW_ENABLED === 'true'
+}
+
 export interface IndexNowUrlEntry {
   url: string
   lastmod: string | null

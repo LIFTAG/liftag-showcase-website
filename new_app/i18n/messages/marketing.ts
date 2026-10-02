@@ -85,6 +85,7 @@ export const en = {
       ['Exercise Insights', 'Top set · best 1RM · total volume'],
     ],
     hero: {
+      heading: 'For lifters. By lifters.',
       vsLastWeek: 'vs last week',
       lead: 'Tap or scan any machine. Track every set. Watch your numbers compound.',
       free: 'Core workout tracking is free forever. Premium intelligence is optional.',
@@ -530,6 +531,7 @@ export const sk = {
       ['Prehľad cvikov', 'Najlepšia séria · 1RM · celkový objem'],
     ],
     hero: {
+      heading: 'Pre cvičencov. Od cvičencov.',
       vsLastWeek: 'vs minulý týždeň',
       lead: 'Prilož telefón alebo naskenuj ktorýkoľvek stroj. Zaznamenaj každú sériu. Sleduj, ako sa tvoje čísla zlepšujú.',
       free: 'Základné sledovanie tréningu je navždy zadarmo. Inteligentné funkcie sú voliteľné.',

@@ -11,6 +11,7 @@ import {
   INDEXNOW_KEY,
   INDEXNOW_KEY_LOCATION,
   INDEXNOW_MAX_URLS,
+  isIndexNowDeploymentEnabled,
   isIndexNowUrl,
   liftagUrl,
   selectIndexNowUrls,
@@ -143,4 +144,15 @@ test('process cooldown skips a second full ping within six hours', () => {
   assert.equal(shouldSkipIndexNowPing(null, now), false)
   assert.equal(shouldSkipIndexNowPing(now - INDEXNOW_COOLDOWN_MS + 1, now), true)
   assert.equal(shouldSkipIndexNowPing(now - INDEXNOW_COOLDOWN_MS, now), false)
+})
+
+test('enables IndexNow only for an explicit production deployment', () => {
+  assert.equal(isIndexNowDeploymentEnabled({ NODE_ENV: 'production', VERCEL_ENV: 'production' }, false), true)
+  assert.equal(isIndexNowDeploymentEnabled({ NODE_ENV: 'production', INDEXNOW_ENABLED: 'true' }, false), true)
+
+  assert.equal(isIndexNowDeploymentEnabled({ NODE_ENV: 'development', INDEXNOW_ENABLED: 'true' }, false), false)
+  assert.equal(isIndexNowDeploymentEnabled({ NODE_ENV: 'production' }, false), false)
+  assert.equal(isIndexNowDeploymentEnabled({ NODE_ENV: 'production', VERCEL_ENV: 'preview', INDEXNOW_ENABLED: 'true' }, false), false)
+  assert.equal(isIndexNowDeploymentEnabled({ NODE_ENV: 'production', VERCEL_ENV: 'development', INDEXNOW_ENABLED: 'true' }, false), false)
+  assert.equal(isIndexNowDeploymentEnabled({ NODE_ENV: 'production', VERCEL_ENV: 'production' }, true), false)
 })

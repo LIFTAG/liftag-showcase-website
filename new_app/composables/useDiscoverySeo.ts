@@ -13,10 +13,12 @@ interface DiscoverySeoOptions {
   /** Extra schema.org fields merged into the page's primary entity. */
   details?: MaybeRefOrGetter<Record<string, unknown>>
   canonicalPath?: MaybeRefOrGetter<string>
+  /** Opt individual query variants out of indexing while keeping links crawlable. */
+  noindex?: MaybeRefOrGetter<boolean | undefined>
 }
 
 export function useDiscoverySeo(options: DiscoverySeoOptions) {
-  const { name, description, locale, photo, details, canonicalPath, kind = 'page' } = options
+  const { name, description, locale, photo, details, canonicalPath, noindex, kind = 'page' } = options
   const route = useRoute()
   const canonical = computed(() => {
     const target = new URL(toValue(canonicalPath) ?? route.path, SITE_URL)
@@ -35,12 +37,20 @@ export function useDiscoverySeo(options: DiscoverySeoOptions) {
   useSeoMeta({
     title: () => `${toValue(name)} | LIFTAG`,
     description: () => toValue(description),
+    robots: () => toValue(noindex)
+      ? 'noindex,follow'
+      : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1',
+    ogType: 'website',
+    ogSiteName: 'LIFTAG',
     ogTitle: () => `${toValue(name)} | LIFTAG`,
     ogDescription: () => toValue(description),
     ogUrl: () => url.value,
     ogImage: () => toValue(photo) ?? DEFAULT_OG_IMAGE,
     ogLocale: () => (toValue(locale) === 'sk' ? 'sk_SK' : 'en_US'),
     twitterCard: 'summary_large_image',
+    twitterTitle: () => `${toValue(name)} | LIFTAG`,
+    twitterDescription: () => toValue(description),
+    twitterImage: () => toValue(photo) ?? DEFAULT_OG_IMAGE,
   })
   useHead(() => {
     const copy = discoveryCopy(toValue(locale))

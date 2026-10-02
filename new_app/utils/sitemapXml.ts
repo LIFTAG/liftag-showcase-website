@@ -69,6 +69,7 @@ export function sitemapXml(body: string, namespaces = 'xmlns="http://www.sitemap
 export const SITEMAP_INDEX_PATHS = [
   '/sitemap-pages.xml',
   '/sitemap-catalog.xml',
+  '/sitemap-discovery.xml',
   '/sitemap-images.xml',
   '/sitemap-videos.xml',
 ] as const

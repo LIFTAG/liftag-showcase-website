@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { catalogChrome } from '../utils/catalogCopy.ts'
 import { clipMetaDescription, descriptionToHowToSteps, splitSentences, catalogSeo } from '../utils/seoCopy.ts'
 const { defaultExerciseFaqs, exerciseImageAlt, exerciseMetaDescription, exerciseTitle } = catalogSeo('en')
 const {
@@ -55,7 +56,17 @@ test('builds a template meta description when no overlay exists', () => {
 
 test('keeps exercise titles inside a typical SERP budget', () => {
   assert.ok(exerciseTitle('Barbell Bench Press').length <= 62)
-  assert.ok(exerciseTitle('Seated Overhead Dumbbell Triceps Extension').length <= 70)
+  assert.equal(
+    exerciseTitle('Seated Overhead Dumbbell Triceps Extension'),
+    'Seated Overhead Dumbbell Triceps Extension | LIFTAG',
+  )
+})
+
+test('machine titles keep the complete translated title or fall back to brand only', () => {
+  assert.equal(catalogChrome('en').machineDetailTitle('Leg Press'), 'Leg Press | Exercises & Setup | LIFTAG')
+  const longName = 'Plate-Loaded Independent Iso-Lateral High Row Machine'
+  assert.equal(catalogChrome('en').machineDetailTitle(longName), `${longName} | LIFTAG`)
+  assert.equal(catalogChrome('sk').machineDetailTitle(longName), `${longName} | LIFTAG`)
 })
 
 test('writes image alts that name the muscle and movement type', () => {

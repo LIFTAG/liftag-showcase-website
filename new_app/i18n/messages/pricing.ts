@@ -29,7 +29,7 @@ export const sk = {
   pricing: {
     eyebrow: 'CENNÍK',
     title: 'Cenník LIFTAG: <span class="lime">nula.</span>',
-    seoTitle: "Cenník LIFTAG 2026 {'|'} Bezplatný tracker tréningov bez plateného programu",
+    seoTitle: "Cenník LIFTAG 2026 {'|'} Tréningový tracker zadarmo",
     description:
       'Koľko stojí LIFTAG v roku 2026. Základné zaznamenávanie tréningov je navždy bezplatné v iOS aj Androide, NFC a QR štítky sú voliteľné a v žiadnom obchode dnes nie je platený program.',
     get: 'Stiahnuť LIFTAG zadarmo',

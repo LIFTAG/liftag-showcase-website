@@ -95,7 +95,7 @@ export function catalogSeo(locale: SiteLocale) {
       if (full.length <= 62) return full
       if (locale === 'sk') return `${name}${t('exercise.title.brand')}`
       const short = `${name}${t('exercise.title.short')}`
-      return short.length <= 62 ? short : `${name}${t('exercise.title.library')}`
+      return short.length <= 62 ? short : `${name}${t('exercise.title.brand')}`
     },
     exerciseImageAlt(opts: ExerciseCopyOptions): string {
       const movement = kind(opts.isCompound)

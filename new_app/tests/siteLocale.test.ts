@@ -2,7 +2,7 @@ import { siteCanonicalPath, siteLocaleAlternates, siteLocaleFontPreloads } from 
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
-import { siteLocaleLocation, siteLocalePath, sitePathLocale, siteBasePath } from '../utils/siteLocale.ts'
+import { siteLocaleLocation, siteLocalePath, siteLocalePreference, sitePathLocale, siteBasePath } from '../utils/siteLocale.ts'
 import { localizedRouteRules } from '../utils/localizedRouteRules.ts'
 import { slovakPluralRule } from '../utils/i18n.ts'
 
@@ -21,6 +21,15 @@ test('public content gets stable English and Slovak twins without changing ident
 test('external contracts and resources are never language-prefixed', () => {
   for (const path of ['/get', '/qr/id', '/routines/id', '/plans/id', '/trainer-invites/id', '/auth/callback', '/api/catalog/search-index', '/assets/logo.svg', '/exercises-extra'])
     assert.equal(siteLocalePath(path, 'sk'), path)
+})
+test('public URL locale outranks saved and inferred discovery preferences', () => {
+  assert.equal(siteLocalePreference(undefined, '/gyms/id', 'sk'), 'en')
+  assert.equal(siteLocalePreference(undefined, '/sk/gyms/id', 'en'), 'sk')
+  assert.equal(siteLocalePreference(undefined, '/machines/id', 'sk'), 'en')
+  assert.equal(siteLocalePreference(undefined, '/sk/machines/id', 'en'), 'sk')
+  assert.equal(siteLocalePreference('sk', '/gyms/id', 'en'), 'sk')
+  assert.equal(siteLocalePreference('en', '/sk/gyms/id', 'sk'), 'en')
+  assert.equal(siteLocalePreference(undefined, '/routines/id', 'sk'), 'sk')
 })
 test('switching retains browsing state, contextual identities and anchors', () => {
   const query = { lang: 'en', search: 'Fitness', manufacturers: ['one', 'two'], selected: 'gym', lat: '49', gym: 'gym-id', machine: 'machine-id', exercise: 'exercise-id' }

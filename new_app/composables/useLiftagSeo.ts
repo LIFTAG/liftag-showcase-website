@@ -33,6 +33,11 @@ interface LiftagSeoOptions {
   path?: string
   image?: string
   noindex?: boolean
+  /** Keep catalog result links crawlable while excluding search/filter variants. */
+  followLinks?: boolean
+  type?: 'website' | 'article'
+  publishedTime?: string
+  modifiedTime?: string
   lang?: string
   locale?: string
   alternates?: LiftagAlternate[]
@@ -52,10 +57,14 @@ export function useLiftagSeo(input: MaybeRefOrGetter<LiftagSeoOptions>) {
   useSeoMeta({
     title: () => options.value.title,
     description: () => options.value.description,
-    robots: () => (options.value.noindex ? 'noindex,nofollow' : 'index,follow'),
+    robots: () => (options.value.noindex
+      ? `noindex,${options.value.followLinks ? 'follow' : 'nofollow'}`
+      : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1'),
     ogTitle: () => options.value.title,
     ogDescription: () => options.value.description,
-    ogType: 'website',
+    ogType: () => options.value.type ?? 'website',
+    articlePublishedTime: () => options.value.publishedTime,
+    articleModifiedTime: () => options.value.modifiedTime,
     ogUrl: () => url.value,
     ogSiteName: 'LIFTAG',
     ogLocale: () =>
@@ -86,7 +95,7 @@ export function useLiftagSeo(input: MaybeRefOrGetter<LiftagSeoOptions>) {
     link: [
       { rel: 'canonical', href: url.value },
       ...(
-        options.value.alternates ?? (isLocalizedSitePath(path.value) ? siteLocaleAlternates(path.value) : [])
+        options.value.alternates ?? (isLocalizedSitePath(new URL(path.value, SITE_URL).pathname) ? siteLocaleAlternates(path.value) : [])
       ).map((item) => ({
         rel: 'alternate',
         hreflang: item.hreflang,

@@ -12,6 +12,8 @@ useLiftagSeo(() => ({
   title: article.value.seoTitle,
   description: article.value.description,
   path: article.value.path,
+  type: 'article',
+  publishedTime: article.value.datePublished,
 }))
 
 useLiftagStructuredData(() => {

@@ -62,7 +62,7 @@ export const sk = {
   titleText: 'QR a NFC sledovanie tréningu vo fitku.',
   description:
     'Ako QR kódy a NFC štítky na strojoch menia zaznamenávanie tréningu, prečo na nich záleží a ktoré aplikácie tento tok v roku 2026 podporujú.',
-  seoTitle: 'QR a NFC sledovanie tréningu vo fitku: ako funguje (2026) | LIFTAG',
+  seoTitle: 'QR a NFC tréning vo fitku: ako funguje | LIFTAG',
   datePublished: '2026-05-25',
   category: 'STROJE A SYNC',
   dateUpdated: '2026-08',

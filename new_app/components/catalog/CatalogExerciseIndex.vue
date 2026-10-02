@@ -13,22 +13,17 @@ const isSk = locale === 'sk'
 const chrome = catalogChrome(locale)
 const indexPath = exerciseIndexPath(locale)
 
-useLiftagSeo(() => ({
-  title: chrome.indexSeoTitle,
-  description: chrome.indexSeoDescription,
-  path: indexPath,
-  alternates: liftagExerciseAlternates(),
-  ...(isSk ? { lang: 'sk', locale: 'sk_SK' } : {}),
-}))
-
 const route = useRoute()
 
 const muscleQuery = typeof route.query.muscle === 'string' ? route.query.muscle : ''
-if (!isSk && muscleQuery && isMuscleSlug(muscleQuery)) {
-  await navigateTo(musclePath(muscleQuery), { redirectCode: 301, replace: true })
+if (muscleQuery && isMuscleSlug(muscleQuery)) {
+  await navigateTo(muscleChipPath(muscleQuery, locale), { redirectCode: 301, replace: true })
 }
 
 const { data: index, error, refresh } = await useCatalogIndex(locale)
+if (import.meta.server && error.value) {
+  throw createError({ statusCode: 503, statusMessage: 'Exercise catalog temporarily unavailable' })
+}
 
 const query = ref(typeof route.query.q === 'string' ? route.query.q : '')
 
@@ -151,10 +146,7 @@ onBeforeUnmount(() => {
   if (onViewportResize) window.visualViewport?.removeEventListener('resize', onViewportResize)
 })
 
-const PAGE_SIZE = 48
-const visibleCount = ref(PAGE_SIZE)
-
-const categories = computed(() => index.value?.categories ?? [])
+const categories = computed(() => (index.value?.categories ?? []).filter(category => isMuscleSlug(category.slug)))
 const categoryNames = computed(() => {
   const names = new Map<string, string>()
   for (const category of categories.value) {
@@ -194,31 +186,42 @@ const grouped = computed(() => {
 })
 
 const filtered = computed(() => [...grouped.value.primary, ...grouped.value.secondary])
+const { page, offset, end, visibleCount, canonicalPath, nextPath, previousPath, reset, showMore } = useCatalogPagination({
+  path: indexPath,
+  total: () => filtered.value.length,
+  filters: () => ({ q: query.value, muscle: muscleFilter.value }),
+})
 const sliced = computed(() =>
-  sliceMuscleGroups(grouped.value.primary, grouped.value.secondary, visibleCount.value),
+  catalogPageGroups(grouped.value.primary, grouped.value.secondary, offset.value, visibleCount.value),
 )
+useLiftagSeo(() => ({
+  title: page.value > 1
+    ? `${chrome.libraryCrumb} · ${isSk ? 'Strana' : 'Page'} ${page.value} | LIFTAG`
+    : chrome.indexSeoTitle,
+  description: chrome.indexSeoDescription,
+  path: canonicalPath.value,
+  noindex: Boolean(query.value || muscleFilter.value || error.value),
+  followLinks: true,
+  ...(isSk ? { lang: 'sk', locale: 'sk_SK' } : {}),
+}))
 const filterMuscleName = computed(() => {
   if (!muscleFilter.value) return ''
   return categoryNames.value.get(muscleFilter.value) ?? muscleFilter.value
 })
 
 function chipTo(slug?: string): string {
-  if (!isSk) return slug ? musclePath(slug) : indexPath
-  const params = new URLSearchParams()
-  if (slug) params.set('muscle', slug)
-  if (query.value) params.set('q', query.value)
-  const qs = params.toString()
-  return qs ? `${indexPath}?${qs}` : indexPath
+  return slug ? muscleChipPath(slug, locale) : indexPath
 }
 
 // Keep filters shareable without asking Vue Router to navigate on every
 // keystroke. A router replace invokes the app's scroll behavior, which can move
 // the focused input while the phone keyboard is opening.
 watch(query, (q) => {
-  visibleCount.value = PAGE_SIZE
+  reset()
   if (!import.meta.client) return
 
   const url = new URL(window.location.href)
+  url.searchParams.delete('page')
   if (q) url.searchParams.set('q', q)
   else url.searchParams.delete('q')
   if (!isSk) url.searchParams.delete('muscle')
@@ -226,7 +229,7 @@ watch(query, (q) => {
 })
 
 watch(muscleFilter, () => {
-  visibleCount.value = PAGE_SIZE
+  reset()
 })
 
 // Exercise photos come from the catalog CDN; open the connection before the
@@ -251,7 +254,7 @@ useLiftagStructuredData(() => [
   liftagOrganization,
   liftagSoftwareApplication,
   liftagWebPage({
-    path: indexPath,
+    path: canonicalPath.value,
     name: chrome.indexWebPageName,
     description: chrome.indexSeoDescription,
     type: 'CollectionPage',
@@ -265,7 +268,14 @@ useLiftagStructuredData(() => [
     name: chrome.muscleGroupsName,
     items: MUSCLE_HUBS.map(hub => ({
       name: muscleDisplayName(hub.slug, hub.name, locale),
-      url: `https://liftag.fit${isSk ? muscleChipPath(hub.slug, 'sk') : musclePath(hub.slug)}`,
+      url: `https://liftag.fit${muscleChipPath(hub.slug, locale)}`,
+    })),
+  }),
+  liftagItemList({
+    name: chrome.libraryCrumb,
+    items: [...sliced.value.visiblePrimary, ...sliced.value.visibleSecondary].map(exercise => ({
+      name: exercise.name,
+      url: `https://liftag.fit${exercisePath(exercise.slug, locale)}`,
     })),
   }),
 ])
@@ -284,8 +294,7 @@ useLiftagStructuredData(() => [
         <p v-if="index" class="ex-stats">
           <span>{{ chrome.statExercises(index.exercises.length) }}</span>
           <span class="ex-stats-dot" aria-hidden="true">·</span>
-          <NuxtLink v-if="!isSk" :to="siteLocalePath('/machines', locale)" class="ex-stats-link">{{ chrome.statMachines(index.machines.length) }}</NuxtLink>
-          <span v-else>{{ chrome.statMachines(index.machines.length) }}</span>
+          <NuxtLink :to="siteLocalePath('/machines', locale)" class="ex-stats-link">{{ chrome.statMachines(index.machines.length) }}</NuxtLink>
           <span class="ex-stats-dot" aria-hidden="true">·</span>
           <span>{{ chrome.statMuscles(index.categories.filter(c => c.slug !== 'cardio').length) }}</span>
         </p>
@@ -382,11 +391,7 @@ useLiftagStructuredData(() => [
               :preview-video-url="exercise.previewVideoUrl"
             />
           </div>
-          <div v-if="filtered.length > visibleCount" class="ex-more">
-            <button type="button" class="btn-ghost" @click="visibleCount += PAGE_SIZE">
-              <HoloPill />{{ chrome.showMore(filtered.length - visibleCount) }}
-            </button>
-          </div>
+          <CatalogPagination :next-path="nextPath" :previous-path="previousPath" :remaining="Math.max(0, filtered.length - end)" :locale="locale" @more="showMore" />
         </template>
       </section>
 

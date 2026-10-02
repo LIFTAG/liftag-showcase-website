@@ -201,8 +201,9 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
       }"
     >
       <div class="hero-copy">
-        <h1
+        <div
           class="hero-title-laser"
+          aria-hidden="true"
           :style="{
             margin: '0 0 28px',
             fontFamily: 'var(--liftag-font-headline)',
@@ -235,7 +236,7 @@ const nfcTagTransform = `translate3d(${parallaxX(22)}, ${parallaxY(15, -0.12)}, 
               :data-word="word"
             />
           </span>
-        </h1>
+        </div>
 
         <p
           :style="{

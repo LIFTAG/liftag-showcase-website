@@ -8,31 +8,42 @@ export default defineEventHandler(async (event) => {
   setHeader(event, 'content-type', headers['content-type'])
   setHeader(event, 'cache-control', headers['cache-control'])
 
-  const localized = await Promise.all((['en', 'sk'] as const).map(async (locale) => {
-    const snapshot = await getCatalogSnapshotOrNull(locale)
-    if (!snapshot) return []
+  const locales = ['en', 'sk'] as const
+  const snapshots = await Promise.all(locales.map(locale => getCatalogSnapshotOrNull(locale)))
+  if (snapshots.some(snapshot => !snapshot)) {
+    setResponseStatus(event, 503)
+    setHeader(event, 'retry-after', 300)
+    setHeader(event, 'cache-control', 'no-store')
+    return sitemapXml(
+      '',
+      'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"',
+    )
+  }
+
+  const localized = locales.map((locale, index) => {
+    const snapshot = snapshots[index]!
     const { t } = createMessageTranslator(locale, { en, sk })
     return [
-    ...snapshot.exercises
-      .filter(exercise => exercise.slug && exercise.imageUrl)
-      .map(exercise => imageUrlEntry({
-        path: siteLocalePath(`/exercises/${exercise.slug}`, locale),
-        imageUrl: exercise.imageUrl!,
-        title: exercise.name,
-        caption: t('exerciseCaption', { name: exercise.name }),
-        lastmod: exercise.updatedAt ?? exercise.createdAt,
-      })),
-    ...snapshot.machines
-      .filter(machine => machine.photoUrl)
-      .map(machine => imageUrlEntry({
-        path: siteLocalePath(`/machines/${machine.slug ?? machine.id}`, locale),
-        imageUrl: machine.photoUrl!,
-        title: machine.name,
-        caption: t('machineCaption', { name: machine.name }),
-        lastmod: machine.updatedAt ?? machine.createdAt,
-      })),
+      ...snapshot.exercises
+        .filter(exercise => exercise.slug && exercise.imageUrl)
+        .map(exercise => imageUrlEntry({
+          path: siteLocalePath(`/exercises/${exercise.slug}`, locale),
+          imageUrl: exercise.imageUrl!,
+          title: exercise.name,
+          caption: t('exerciseCaption', { name: exercise.name }),
+          lastmod: exercise.updatedAt ?? exercise.createdAt,
+        })),
+      ...snapshot.machines
+        .filter(machine => machine.photoUrl)
+        .map(machine => imageUrlEntry({
+          path: siteLocalePath(`/machines/${machine.slug ?? machine.id}`, locale),
+          imageUrl: machine.photoUrl!,
+          title: machine.name,
+          caption: t('machineCaption', { name: machine.name }),
+          lastmod: machine.updatedAt ?? machine.createdAt,
+        })),
     ]
-  }))
+  })
   const entries = localized.flat()
 
   return sitemapXml(

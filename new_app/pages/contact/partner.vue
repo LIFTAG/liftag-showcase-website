@@ -9,6 +9,18 @@ useLiftagSeo(() => ({
   description: t('partner.description'),
   path: "/contact/partner",
 }));
+useLiftagStructuredData(() => [
+  liftagOrganization,
+  liftagContactPage({
+    name: t('partner.title'),
+    path: href('/contact/partner'),
+    description: t('partner.description'),
+  }),
+  liftagBreadcrumbs([
+    { name: 'LIFTAG', path: href('/') },
+    { name: t('chapters.becomePartner'), path: href('/contact/partner') },
+  ]),
+]);
 </script>
 <template>
   <div class="gx gx-partner">

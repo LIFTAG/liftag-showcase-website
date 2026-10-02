@@ -128,12 +128,22 @@ const status = computed(() => {
         <DiscoveryIcon :name="selected ? 'arrow' : 'pin'" />
       </span>
     </button>
-    <div v-if="selected" class="d-gym-actions">
-      <a :href="googleDirections(gym)" target="_blank" rel="noopener noreferrer" class="d-button">
+    <div class="d-gym-actions" :class="{ 'has-directions': selected }">
+      <a
+        v-if="selected"
+        :href="googleDirections(gym)"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="d-button"
+      >
         <DiscoveryIcon name="directions" :size="17" />
         {{ copy.directions }}
       </a>
-      <NuxtLink :to="detailHref" class="d-button d-button--primary">
+      <NuxtLink
+        :to="detailHref"
+        class="d-button d-button--primary"
+        :aria-label="`${copy.viewDetail}: ${gym.name}`"
+      >
         {{ copy.viewDetail }}
         <DiscoveryIcon name="arrow" :size="15" />
       </NuxtLink>
@@ -250,10 +260,13 @@ const status = computed(() => {
 }
 .d-gym-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 8px;
   padding: 0 16px 16px;
   animation: d-gym-expand 200ms ease-out both;
+}
+.d-gym-actions.has-directions {
+  grid-template-columns: 1fr 1fr;
 }
 .d-gym-actions .d-button {
   min-width: 0;

@@ -1,0 +1,10 @@
+{
+  "checkedAt": "2026-10-01T22:54:28.734Z",
+  "source": "http://127.0.0.1:3027",
+  "publicGyms": 10,
+  "contextualMachines": 226,
+  "localizedSitemapUrls": 492,
+  "localeCount": 2,
+  "method": "Compared every paginated public gym/equipment API row with the exact English and Slovak sitemap URL set. Current sitemap contains no affiliated trainer/routine URLs; unaffiliated entities are outside this inventory.",
+  "passed": true
+}

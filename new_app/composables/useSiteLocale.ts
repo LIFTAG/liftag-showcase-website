@@ -1,6 +1,6 @@
 import type { MaybeRefOrGetter } from 'vue'
 import type { SiteLocale } from '~/types/locale'
-import { isDiscoveryLocalePath, siteBasePath, siteLocale, siteLocaleLocation, siteLocalePath, sitePathLocale, withSiteLocaleQuery } from '~/utils/siteLocale'
+import { isDiscoveryLocalePath, siteBasePath, siteLocale, siteLocaleLocation, siteLocalePath, siteLocalePreference, sitePathLocale, withSiteLocaleQuery } from '~/utils/siteLocale'
 
 /** The i18n composer owns active language; this facade owns the manual preference. */
 export function useSiteLocale() {
@@ -13,9 +13,7 @@ export function useSiteLocale() {
   })
   const browserLanguage = useState('site-browser-language', () => import.meta.server
     ? (useRequestHeaders(['accept-language'])['accept-language'] ?? '') : navigator.language)
-  const preference = computed(() => siteLocale(route.query.lang)
-    ?? (sitePathLocale(route.path) === 'sk' ? 'sk' : undefined)
-    ?? siteLocale(saved.value))
+  const preference = computed(() => siteLocalePreference(route.query.lang, route.path, saved.value))
   const locale = computed<SiteLocale>(() => siteLocale(i18n.locale.value) ?? 'en')
   async function setLocale(value: SiteLocale) {
     saved.value = value

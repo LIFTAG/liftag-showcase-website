@@ -201,34 +201,58 @@ onBeforeUnmount(() => {
       <!-- Every hoverable label below carries the nav's character index; the two
            column headings that are not links keep plain text. -->
       <div class="footer-col">
-        <a :href="localeHref('/#all-in-one')" class="protocol footer-col-heading footer-heading-link ti-host">
+        <a
+          :href="localeHref('/#all-in-one')"
+          class="protocol footer-col-heading footer-heading-link ti-host"
+          :aria-label="t('shell.footer.product')"
+        >
           <IndexedText :text="t('shell.footer.product')" />
         </a>
         <ul class="footer-link-list">
           <li v-for="item in productLinks" :key="item.key">
-            <a :href="localeHref(item.href)" class="footer-link ti-host"><IndexedText :text="t(`shell.footer.links.${item.key}`)" /></a>
+            <a
+              :href="localeHref(item.href)"
+              class="footer-link ti-host"
+              :aria-label="t(`shell.footer.links.${item.key}`)"
+            ><IndexedText :text="t(`shell.footer.links.${item.key}`)" /></a>
           </li>
         </ul>
       </div>
 
       <div class="footer-col">
-        <NuxtLink :to="localeHref('/muscles')" class="protocol footer-col-heading footer-heading-link ti-host">
+        <NuxtLink
+          :to="localeHref('/muscles')"
+          class="protocol footer-col-heading footer-heading-link ti-host"
+          :aria-label="t('shell.footer.library')"
+        >
           <IndexedText :text="t('shell.footer.library')" />
         </NuxtLink>
         <ul class="footer-link-list">
           <li v-for="item in libraryLinks" :key="item.key">
-            <a :href="localeHref(item.href)" class="footer-link ti-host"><IndexedText :text="t(`shell.footer.links.${item.key}`)" /></a>
+            <a
+              :href="localeHref(item.href)"
+              class="footer-link ti-host"
+              :aria-label="t(`shell.footer.links.${item.key}`)"
+            ><IndexedText :text="t(`shell.footer.links.${item.key}`)" /></a>
           </li>
         </ul>
       </div>
 
       <div class="footer-col">
-        <NuxtLink :to="localeHref('/journal')" class="protocol footer-col-heading footer-heading-link ti-host">
+        <NuxtLink
+          :to="localeHref('/journal')"
+          class="protocol footer-col-heading footer-heading-link ti-host"
+          :aria-label="t('shell.footer.journal')"
+        >
           <IndexedText :text="t('shell.footer.journal')" />
         </NuxtLink>
         <ul class="footer-link-list">
           <li v-for="item in guideLinks" :key="item.key">
-            <a :href="localeHref(item.href)" class="footer-link ti-host"><IndexedText :text="t(`shell.footer.links.${item.key}`)" /></a>
+            <a
+              :href="localeHref(item.href)"
+              class="footer-link ti-host"
+              :aria-label="t(`shell.footer.links.${item.key}`)"
+            ><IndexedText :text="t(`shell.footer.links.${item.key}`)" /></a>
           </li>
         </ul>
       </div>
@@ -237,7 +261,11 @@ onBeforeUnmount(() => {
         <span class="protocol footer-col-heading">{{ t('shell.footer.legal') }}</span>
         <ul class="footer-link-list">
           <li v-for="item in legalLinks" :key="item.key">
-            <a :href="localeHref(item.href)" class="footer-link ti-host"><IndexedText :text="t(`shell.footer.links.${item.key}`)" /></a>
+            <a
+              :href="localeHref(item.href)"
+              class="footer-link ti-host"
+              :aria-label="t(`shell.footer.links.${item.key}`)"
+            ><IndexedText :text="t(`shell.footer.links.${item.key}`)" /></a>
           </li>
         </ul>
       </div>
@@ -291,7 +319,11 @@ onBeforeUnmount(() => {
             </span>
           </a>
         </div>
-        <span class="protocol footer-stores">{{ t('shell.footer.available') }} <a :href="localeHref('/get')" class="footer-stores-link ti-host"><IndexedText :text="t('shell.app.mobile')" /></a></span>
+        <span class="protocol footer-stores">{{ t('shell.footer.available') }} <a
+          :href="localeHref('/get')"
+          class="footer-stores-link ti-host"
+          :aria-label="t('shell.app.mobile')"
+        ><IndexedText :text="t('shell.app.mobile')" /></a></span>
       </div>
     </div>
 

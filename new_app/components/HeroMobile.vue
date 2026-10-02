@@ -97,7 +97,7 @@ onBeforeUnmount(() => {
       }"
     >
       <div class="hero-mobile-copy">
-        <h1 class="hero-mobile-title">
+        <div class="hero-mobile-title" aria-hidden="true">
           <span
             v-for="(line, lineIndex) in heroMobileTitle"
             :key="lineIndex"
@@ -125,7 +125,7 @@ onBeforeUnmount(() => {
               >{{ word }}</span>
             </template>
           </span>
-        </h1>
+        </div>
 
         <div class="hero-mobile-details" :style="heroMobileDetailsStyle">
           <p class="hero-mobile-kicker">{{ t('marketing.hero.kicker') }}</p>

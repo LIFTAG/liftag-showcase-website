@@ -48,6 +48,10 @@ export function sitePathLocale(path: string): SiteLocale | undefined {
   if (!isLocalizedSitePath(path)) return undefined
   return path === '/sk' || path.startsWith('/sk/') ? 'sk' : 'en'
 }
+/** Explicit query wins; otherwise a localized public path is itself a locale preference. */
+export function siteLocalePreference(url: unknown, path: string, saved: unknown): SiteLocale | undefined {
+  return siteLocale(url) ?? sitePathLocale(path) ?? siteLocale(saved)
+}
 export function siteLocalePath(path: string, locale: SiteLocale): string {
   const boundary = path.search(/[?#]/)
   const pathname = boundary < 0 ? path : path.slice(0, boundary)

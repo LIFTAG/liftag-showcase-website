@@ -21,7 +21,14 @@ const ledger = computed(() =>
     <header class="gk-head">
       <div>
         <p class="gx-protocol gk-eyebrow gx-rise"><span class="gx-dot" />{{ t('kit.eyebrow') }}</p>
-        <h2 id="gx-kit-title" class="gx-rise" style="--d: 1">{{ t('kit.titleA') }}<br /><em>{{ t('kit.titleB') }}</em></h2>
+        <component
+          :is="source === 'partner' ? 'h1' : 'h2'"
+          id="gx-kit-title"
+          class="gk-title gx-rise"
+          style="--d: 1"
+        >
+          {{ t('kit.titleA') }}<br /><em>{{ t('kit.titleB') }}</em>
+        </component>
       </div>
       <p class="gk-lede gx-rise" style="--d: 2">{{ t('kit.body') }}</p>
     </header>

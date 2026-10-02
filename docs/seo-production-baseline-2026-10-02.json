@@ -1,0 +1,2037 @@
+{
+  "generatedAt": "2026-10-01T22:42:52.395Z",
+  "mode": "remote",
+  "source": "https://liftag.fit",
+  "pages": [
+    {
+      "path": "/",
+      "source": "https://liftag.fit/",
+      "findings": [
+        {
+          "severity": "error",
+          "code": "h1.invalid_count",
+          "target": "/",
+          "message": "Expected one H1; found 2."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "LIFTAG | Free Workout Tracker and Logger",
+        "description": "LIFTAG is a free workout tracker and logger for iOS and Android. Tap NFC or scan QR on gym machines to log sets, run rest timers, and track PRs. Works without tags.",
+        "canonical": "https://liftag.fit/",
+        "lang": "en",
+        "h1Count": 2,
+        "jsonLdCount": 1,
+        "visibleWords": 2175
+      }
+    },
+    {
+      "path": "/sk",
+      "source": "https://liftag.fit/sk",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/sk",
+          "message": "Meta description is 190 characters; target roughly 50–170."
+        },
+        {
+          "severity": "error",
+          "code": "h1.invalid_count",
+          "target": "/sk",
+          "message": "Expected one H1; found 2."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "LIFTAG | Bezplatná aplikácia na zaznamenávanie tréningu",
+        "description": "LIFTAG je bezplatná aplikácia na zaznamenávanie tréningu pre iOS a Android. Prilož NFC alebo naskenuj QR na stroji, zaznamenaj série, spusti časovač a sleduj rekordy. Funguje aj bez štítkov.",
+        "canonical": "https://liftag.fit/sk",
+        "lang": "sk",
+        "h1Count": 2,
+        "jsonLdCount": 1,
+        "visibleWords": 2134
+      }
+    },
+    {
+      "path": "/for-lifters",
+      "source": "https://liftag.fit/for-lifters",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/for-lifters",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Workout tracking for lifters. | LIFTAG",
+        "description": "LIFTAG lets lifters tap NFC tags or scan QR codes on gym machines to open the right exercise, log sets, run rest timers, and track progress over time.",
+        "canonical": "https://liftag.fit/for-lifters",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 497
+      }
+    },
+    {
+      "path": "/sk/for-lifters",
+      "source": "https://liftag.fit/sk/for-lifters",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/for-lifters",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Sledovanie tréningu pre cvičencov. | LIFTAG",
+        "description": "LIFTAG umožní cvičencom priložiť NFC štítok alebo naskenovať QR kód na stroji, otvoriť správny cvik, zaznamenať série, spustiť časovač odpočinku a sledovať pokrok.",
+        "canonical": "https://liftag.fit/sk/for-lifters",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 451
+      }
+    },
+    {
+      "path": "/for-gyms",
+      "source": "https://liftag.fit/for-gyms",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/for-gyms",
+          "message": "Meta description is 222 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/for-gyms",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "NFC and QR tags for gym machines. | LIFTAG",
+        "description": "LIFTAG gives gyms a free dashboard to create and manage NFC tags and QR codes, plus listing, machine setup, and the full member app. Gyms buy the physical tags and stickers themselves. Advanced business tools are optional.",
+        "canonical": "https://liftag.fit/for-gyms",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 943
+      }
+    },
+    {
+      "path": "/sk/for-gyms",
+      "source": "https://liftag.fit/sk/for-gyms",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/sk/for-gyms",
+          "message": "Meta description is 216 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/for-gyms",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "NFC a QR štítky na stroje vo fitku. | LIFTAG",
+        "description": "LIFTAG dá fitkám bezplatný nástroj na tvorbu a správu NFC štítkov a QR kódov, profil, nastavenie strojov aj aplikáciu pre členov. Fyzické štítky a nálepky si fitká kupujú samy. Pokročilé firemné funkcie sú voliteľné.",
+        "canonical": "https://liftag.fit/sk/for-gyms",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 888
+      }
+    },
+    {
+      "path": "/for-trainers",
+      "source": "https://liftag.fit/for-trainers",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/for-trainers",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Client progress tracking for trainers. | LIFTAG",
+        "description": "LIFTAG gives trainers a profile, discovery surface, shared plans, and client workout progress tracking tied to real set history.",
+        "canonical": "https://liftag.fit/for-trainers",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 387
+      }
+    },
+    {
+      "path": "/sk/for-trainers",
+      "source": "https://liftag.fit/sk/for-trainers",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/for-trainers",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Sledovanie pokroku klientov pre trénerov. | LIFTAG",
+        "description": "LIFTAG dá trénerom profil, priestor na objavenie, zdieľané plány a sledovanie tréningov klientov prepojené so skutočnou históriou sérií.",
+        "canonical": "https://liftag.fit/sk/for-trainers",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 389
+      }
+    },
+    {
+      "path": "/become-a-coach",
+      "source": "https://liftag.fit/become-a-coach",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/become-a-coach",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Become a Coach on LIFTAG — Train Clients Where They Lift",
+        "description": "Coach where your clients already train. Build your profile inside LIFTAG, get discovered by lifters, share routines, and track real progress.",
+        "canonical": "https://liftag.fit/become-a-coach",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 940
+      }
+    },
+    {
+      "path": "/sk/become-a-coach",
+      "source": "https://liftag.fit/sk/become-a-coach",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/become-a-coach",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Staň sa trénerom v LIFTAG — Trénuj klientov tam, kde cvičia",
+        "description": "Trénuj klientov tam, kde už cvičia. Vytvor si profil v LIFTAG, nechaj sa objaviť cvičencami, zdieľaj tréningové zostavy a sleduj skutočný pokrok.",
+        "canonical": "https://liftag.fit/sk/become-a-coach",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 854
+      }
+    },
+    {
+      "path": "/contact/partner",
+      "source": "https://liftag.fit/contact/partner",
+      "findings": [
+        {
+          "severity": "error",
+          "code": "h1.invalid_count",
+          "target": "/contact/partner",
+          "message": "Expected one H1; found 0."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/contact/partner",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        },
+        {
+          "severity": "warning",
+          "code": "jsonld.missing",
+          "target": "/contact/partner",
+          "message": "No JSON-LD found; entity-rich pages should expose machine-readable facts."
+        }
+      ],
+      "facts": {
+        "title": "Become a partner gym | LIFTAG",
+        "description": "Connect your gym equipment to exercise videos and workout tracking. Contact LIFTAG to get started with free gym tools and NFC or QR tags.",
+        "canonical": "https://liftag.fit/contact/partner",
+        "lang": "en",
+        "h1Count": 0,
+        "jsonLdCount": 0,
+        "visibleWords": 332
+      }
+    },
+    {
+      "path": "/sk/contact/partner",
+      "source": "https://liftag.fit/sk/contact/partner",
+      "findings": [
+        {
+          "severity": "error",
+          "code": "h1.invalid_count",
+          "target": "/sk/contact/partner",
+          "message": "Expected one H1; found 0."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/contact/partner",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        },
+        {
+          "severity": "warning",
+          "code": "jsonld.missing",
+          "target": "/sk/contact/partner",
+          "message": "No JSON-LD found; entity-rich pages should expose machine-readable facts."
+        }
+      ],
+      "facts": {
+        "title": "Staňte sa partnerským fitkom | LIFTAG",
+        "description": "Prepojte vybavenie fitka s videonávodmi a tréningovým denníkom. Kontaktujte LIFTAG a začnite s bezplatnými nástrojmi pre fitká a NFC alebo QR štítkami.",
+        "canonical": "https://liftag.fit/sk/contact/partner",
+        "lang": "sk",
+        "h1Count": 0,
+        "jsonLdCount": 0,
+        "visibleWords": 321
+      }
+    },
+    {
+      "path": "/contact/support",
+      "source": "https://liftag.fit/contact/support",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/contact/support",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Support | LIFTAG",
+        "description": "Need help with LIFTAG? Send us a message about your account, a bug, or any other question.",
+        "canonical": "https://liftag.fit/contact/support",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 296
+      }
+    },
+    {
+      "path": "/sk/contact/support",
+      "source": "https://liftag.fit/sk/contact/support",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/contact/support",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Podpora | LIFTAG",
+        "description": "Potrebuješ pomoc s LIFTAG? Napíš nám, ak máš problém s účtom, našiel si chybu alebo máš otázku.",
+        "canonical": "https://liftag.fit/sk/contact/support",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 299
+      }
+    },
+    {
+      "path": "/qr-nfc-gym-tags",
+      "source": "https://liftag.fit/qr-nfc-gym-tags",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/qr-nfc-gym-tags",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "NFC and QR Gym Tags for Exercise Machines | LIFTAG",
+        "description": "LIFTAG combines NFC tags and QR codes for gym machines so lifters can tap or scan equipment to open setup videos, exercise details, and workout tracking.",
+        "canonical": "https://liftag.fit/qr-nfc-gym-tags",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 916
+      }
+    },
+    {
+      "path": "/sk/qr-nfc-gym-tags",
+      "source": "https://liftag.fit/sk/qr-nfc-gym-tags",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/sk/qr-nfc-gym-tags",
+          "message": "Meta description is 175 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/qr-nfc-gym-tags",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "NFC a QR štítky na stroje v posilňovni | LIFTAG",
+        "description": "LIFTAG spája NFC štítky a QR kódy na strojoch, takže cvičenci priložia telefón alebo naskenujú zariadenie a otvoria si videá nastavenia, detaily cviku aj zapisovanie tréningu.",
+        "canonical": "https://liftag.fit/sk/qr-nfc-gym-tags",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 874
+      }
+    },
+    {
+      "path": "/pricing",
+      "source": "https://liftag.fit/pricing",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/pricing",
+          "message": "Meta description is 171 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/pricing",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "LIFTAG Pricing 2026 | Free Workout Tracker, No Paid Tier",
+        "description": "What LIFTAG costs in 2026. Core workout tracking is free forever on iOS and Android, NFC and QR machine tags are optional, and there is no paid tier on either store today.",
+        "canonical": "https://liftag.fit/pricing",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1509
+      }
+    },
+    {
+      "path": "/sk/pricing",
+      "source": "https://liftag.fit/sk/pricing",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "title.long",
+          "target": "/sk/pricing",
+          "message": "Title is 71 characters; review likely SERP truncation."
+        },
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/sk/pricing",
+          "message": "Meta description is 182 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/pricing",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Cenník LIFTAG 2026 | Bezplatný tracker tréningov bez plateného programu",
+        "description": "Koľko stojí LIFTAG v roku 2026. Základné zaznamenávanie tréningov je navždy bezplatné v iOS aj Androide, NFC a QR štítky sú voliteľné a v žiadnom obchode dnes nie je platený program.",
+        "canonical": "https://liftag.fit/sk/pricing",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1339
+      }
+    },
+    {
+      "path": "/best-workout-tracking-app",
+      "source": "https://liftag.fit/best-workout-tracking-app",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/best-workout-tracking-app",
+          "message": "Meta description is 210 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/best-workout-tracking-app",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Best Workout Tracking App 2026: Honest Comparison | LIFTAG",
+        "description": "An honest head-to-head comparison of the best workout and set tracking apps in 2026, covering LIFTAG, Strong, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor, and Fitbod, written by lifters who built one of them.",
+        "canonical": "https://liftag.fit/best-workout-tracking-app",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 2017
+      }
+    },
+    {
+      "path": "/sk/best-workout-tracking-app",
+      "source": "https://liftag.fit/sk/best-workout-tracking-app",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/sk/best-workout-tracking-app",
+          "message": "Meta description is 206 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/best-workout-tracking-app",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Najlepší tréningový denník 2026: Úprimné porovnanie | LIFTAG",
+        "description": "Porovnanie najlepších aplikácií na zapisovanie tréningov a sérií v roku 2026: LIFTAG, Strong, Hevy, FitNotes, JEFIT, Boostcamp, MacroFactor a Fitbod. Pripravil ho tím cvičencov, ktorý jednu z nich vytvoril.",
+        "canonical": "https://liftag.fit/sk/best-workout-tracking-app",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1801
+      }
+    },
+    {
+      "path": "/best-gym-qr-nfc-app",
+      "source": "https://liftag.fit/best-gym-qr-nfc-app",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/best-gym-qr-nfc-app",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Best QR and NFC Gym Tracking App 2026 | LIFTAG",
+        "description": "An honest head-to-head of gym QR and NFC tracking platforms in 2026, covering LIFTAG, Liftd, ScanLiftLog, and RepTag, written by the team that ships one of them.",
+        "canonical": "https://liftag.fit/best-gym-qr-nfc-app",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 2868
+      }
+    },
+    {
+      "path": "/sk/best-gym-qr-nfc-app",
+      "source": "https://liftag.fit/sk/best-gym-qr-nfc-app",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/sk/best-gym-qr-nfc-app",
+          "message": "Meta description is 178 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/best-gym-qr-nfc-app",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Najlepšia QR a NFC platforma pre posilňovne 2026 | LIFTAG",
+        "description": "Úprimné porovnanie platforiem na sledovanie tréningu cez QR a NFC v posilňovniach v roku 2026: LIFTAG, Liftd, ScanLiftLog a RepTag. Pripravuje ho tím, ktorý jednu z nich vytvára.",
+        "canonical": "https://liftag.fit/sk/best-gym-qr-nfc-app",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 2594
+      }
+    },
+    {
+      "path": "/alternatives/hevy",
+      "source": "https://liftag.fit/alternatives/hevy",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/alternatives/hevy",
+          "message": "Meta description is 192 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/alternatives/hevy",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Hevy Alternative 2026: LIFTAG vs Hevy, Features and Pricing",
+        "description": "Hevy features and pricing in 2026, next to LIFTAG. Hevy Pro costs $2.99 a month and wins on community; LIFTAG has no paid tier and opens the exercise from an NFC tap or QR scan on the machine.",
+        "canonical": "https://liftag.fit/alternatives/hevy",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1773
+      }
+    },
+    {
+      "path": "/sk/alternatives/hevy",
+      "source": "https://liftag.fit/sk/alternatives/hevy",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/sk/alternatives/hevy",
+          "message": "Meta description is 294 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/alternatives/hevy",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Alternatíva k Hevy 2026: LIFTAG verzus Hevy, funkcie a ceny",
+        "description": "Porovnanie funkcií a cien Hevy a LIFTAGu v roku 2026. Hevy Pro stojí 2,99 USD mesačne, 23,99 USD ročne alebo 74,99 USD jednorazovo za doživotný prístup. Hevy vyniká komunitou; LIFTAG nemá platenú verziu a cvik v ňom otvoríš priložením telefónu k NFC štítku alebo naskenovaním QR kódu na stroji.",
+        "canonical": "https://liftag.fit/sk/alternatives/hevy",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1493
+      }
+    },
+    {
+      "path": "/vs/strong",
+      "source": "https://liftag.fit/vs/strong",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/vs/strong",
+          "message": "Meta description is 208 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/vs/strong",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "LIFTAG vs Strong 2026 | Free Tier, Features, PRO Pricing",
+        "description": "LIFTAG against Strong in 2026. Strong caps free routines at 3 and sells PRO at $4.99 / month or $29.99 / year; LIFTAG has no cap and no paid tier, and opens the lift from an NFC tap or QR scan on the machine.",
+        "canonical": "https://liftag.fit/vs/strong",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1792
+      }
+    },
+    {
+      "path": "/sk/vs/strong",
+      "source": "https://liftag.fit/sk/vs/strong",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/sk/vs/strong",
+          "message": "Meta description is 287 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/vs/strong",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "LIFTAG verzus Strong 2026 | Bezplatná verzia, funkcie a cena PRO",
+        "description": "LIFTAG proti Strong v roku 2026. Strong obmedzuje bezplatnú verziu na 3 tréningové zostavy a PRO stojí 4,99 USD mesačne alebo 29,99 USD ročne. LIFTAG počet zostáv neobmedzuje, nemá platenú verziu a cvik v ňom otvoríš priložením telefónu k NFC štítku alebo naskenovaním QR kódu na stroji.",
+        "canonical": "https://liftag.fit/sk/vs/strong",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1563
+      }
+    },
+    {
+      "path": "/explore",
+      "source": "https://liftag.fit/explore",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/explore",
+          "message": "Meta description is 29 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/explore",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Explore gyms | LIFTAG",
+        "description": "Find your next training spot.",
+        "canonical": "https://liftag.fit/explore",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 171
+      }
+    },
+    {
+      "path": "/sk/explore",
+      "source": "https://liftag.fit/sk/explore",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/sk/explore",
+          "message": "Meta description is 25 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/explore",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Objavuj fitká | LIFTAG",
+        "description": "Nájdi svoje ďalšie fitko.",
+        "canonical": "https://liftag.fit/sk/explore",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 157
+      }
+    },
+    {
+      "path": "/journal",
+      "source": "https://liftag.fit/journal",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/journal",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "LIFTAG Journal",
+        "description": "The LIFTAG journal: workout tracking, powerlifting apps, and QR/NFC gym machine tags. Written for serious lifters, trainers, and gyms.",
+        "canonical": "https://liftag.fit/journal",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 715
+      }
+    },
+    {
+      "path": "/sk/journal",
+      "source": "https://liftag.fit/sk/journal",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/journal",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Denník LIFTAG",
+        "description": "Denník LIFTAGu o zaznamenávaní tréningov, powerliftingových aplikáciách a QR/NFC štítkoch na strojoch. Pre serióznych lifterov, trénerov a fitká.",
+        "canonical": "https://liftag.fit/sk/journal",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 671
+      }
+    },
+    {
+      "path": "/tools/1rm-calculator",
+      "source": "https://liftag.fit/tools/1rm-calculator",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/tools/1rm-calculator",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "1RM Calculator | LIFTAG",
+        "description": "Estimate a one-rep max from a hard set. Free, with kg or lb.",
+        "canonical": "https://liftag.fit/tools/1rm-calculator",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 3356
+      }
+    },
+    {
+      "path": "/sk/tools/1rm-calculator",
+      "source": "https://liftag.fit/sk/tools/1rm-calculator",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/tools/1rm-calculator",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Kalkulačka 1RM | LIFTAG",
+        "description": "Odhadni maximum na jedno opakovanie z náročnej série. Bezplatne, v kg alebo lb.",
+        "canonical": "https://liftag.fit/sk/tools/1rm-calculator",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 3293
+      }
+    },
+    {
+      "path": "/journal/fitbod-1rm-formula",
+      "source": "https://liftag.fit/journal/fitbod-1rm-formula",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/journal/fitbod-1rm-formula",
+          "message": "Meta description is 192 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/journal/fitbod-1rm-formula",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Fitbod’s New 1RM Formula, Reviewed | LIFTAG",
+        "description": "Fitbod’s data science lead put a weight-dependent 1RM equation on SportRxiv, built from 303,494 near-failure sets. What it says, what it does not prove, and why LIFTAG still defaults to Epley.",
+        "canonical": "https://liftag.fit/journal/fitbod-1rm-formula",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1655
+      }
+    },
+    {
+      "path": "/sk/journal/fitbod-1rm-formula",
+      "source": "https://liftag.fit/sk/journal/fitbod-1rm-formula",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/sk/journal/fitbod-1rm-formula",
+          "message": "Meta description is 184 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/journal/fitbod-1rm-formula",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Nový vzorec na 1RM od Fitbodu: čo naozaj hovorí | LIFTAG",
+        "description": "Šéf dátovej vedy vo Fitbode zverejnil na SportRxiv vzorec na 1RM závislý od záťaže, postavený na 303 494 sériách do zlyhania. Čo tvrdí, čo nedokazuje a prečo LIFTAG zostáva pri Epleym.",
+        "canonical": "https://liftag.fit/sk/journal/fitbod-1rm-formula",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1509
+      }
+    },
+    {
+      "path": "/journal/how-to-track-workouts",
+      "source": "https://liftag.fit/journal/how-to-track-workouts",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/journal/how-to-track-workouts",
+          "message": "Meta description is 178 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/journal/how-to-track-workouts",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "How to Track Workouts: The Lifter’s Guide (2026) | LIFTAG",
+        "description": "A definitive guide to tracking workouts as a serious lifter: what to log, what to ignore, how to read progress, and which workout tracking app actually helps. Written by lifters.",
+        "canonical": "https://liftag.fit/journal/how-to-track-workouts",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1986
+      }
+    },
+    {
+      "path": "/sk/journal/how-to-track-workouts",
+      "source": "https://liftag.fit/sk/journal/how-to-track-workouts",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/journal/how-to-track-workouts",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Ako zaznamenávať tréning: návod pre lifterov (2026) | LIFTAG",
+        "description": "Definitívny návod pre serióznych lifterov: čo zapisovať, čo vynechať, ako čítať pokrok a ktorá aplikácia naozaj pomáha. Písali lifteri.",
+        "canonical": "https://liftag.fit/sk/journal/how-to-track-workouts",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1738
+      }
+    },
+    {
+      "path": "/journal/best-workout-app-for-powerlifting",
+      "source": "https://liftag.fit/journal/best-workout-app-for-powerlifting",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/journal/best-workout-app-for-powerlifting",
+          "message": "Meta description is 183 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/journal/best-workout-app-for-powerlifting",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Best Workout App for Powerlifting (2026) | LIFTAG",
+        "description": "The most honest comparison of workout tracking apps for powerlifters in 2026, covering LIFTAG, Strong, Boostcamp, Hevy, and FitNotes, including programming, % of 1RM, and PR tracking.",
+        "canonical": "https://liftag.fit/journal/best-workout-app-for-powerlifting",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1776
+      }
+    },
+    {
+      "path": "/sk/journal/best-workout-app-for-powerlifting",
+      "source": "https://liftag.fit/sk/journal/best-workout-app-for-powerlifting",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/journal/best-workout-app-for-powerlifting",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Najlepšia aplikácia na powerlifting (2026) | LIFTAG",
+        "description": "Poctivé porovnanie aplikácií pre powerlifterov v roku 2026: LIFTAG, Strong, Boostcamp, Hevy a FitNotes vrátane programovania, percent z 1RM a PR.",
+        "canonical": "https://liftag.fit/sk/journal/best-workout-app-for-powerlifting",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1569
+      }
+    },
+    {
+      "path": "/journal/qr-nfc-gym-tracking",
+      "source": "https://liftag.fit/journal/qr-nfc-gym-tracking",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/journal/qr-nfc-gym-tracking",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "QR and NFC Gym Tracking: How It Works (2026) | LIFTAG",
+        "description": "How NFC tags and QR codes on gym machines change workout tracking: what they do, why they matter, and which workout apps in 2026 actually support the tap-and-scan flow.",
+        "canonical": "https://liftag.fit/journal/qr-nfc-gym-tracking",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1997
+      }
+    },
+    {
+      "path": "/sk/journal/qr-nfc-gym-tracking",
+      "source": "https://liftag.fit/sk/journal/qr-nfc-gym-tracking",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "title.long",
+          "target": "/sk/journal/qr-nfc-gym-tracking",
+          "message": "Title is 66 characters; review likely SERP truncation."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/journal/qr-nfc-gym-tracking",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "QR a NFC sledovanie tréningu vo fitku: ako funguje (2026) | LIFTAG",
+        "description": "Ako QR kódy a NFC štítky na strojoch menia zaznamenávanie tréningu, prečo na nich záleží a ktoré aplikácie tento tok v roku 2026 podporujú.",
+        "canonical": "https://liftag.fit/sk/journal/qr-nfc-gym-tracking",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1803
+      }
+    },
+    {
+      "path": "/journal/best-workout-logger",
+      "source": "https://liftag.fit/journal/best-workout-logger",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/journal/best-workout-logger",
+          "message": "Meta description is 201 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/journal/best-workout-logger",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Best Workout Logger 2026 | Digital Logbook | LIFTAG",
+        "description": "A workout logger is the app that writes the set down. How that job differs from a workout tracker or a paper logbook, and which loggers are worth installing in 2026: LIFTAG, Strong, Hevy, and FitNotes.",
+        "canonical": "https://liftag.fit/journal/best-workout-logger",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1424
+      }
+    },
+    {
+      "path": "/sk/journal/best-workout-logger",
+      "source": "https://liftag.fit/sk/journal/best-workout-logger",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/sk/journal/best-workout-logger",
+          "message": "Meta description is 172 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/journal/best-workout-logger",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Najlepší tréningový denník 2026 | Digitálny zápisník | LIFTAG",
+        "description": "Čo má aplikácia na zaznamenávanie tréningov uložiť, ako sa líši od trackera a papierového zápisníka a ktoré denníky sa oplatí nainštalovať: LIFTAG, Strong, Hevy a FitNotes.",
+        "canonical": "https://liftag.fit/sk/journal/best-workout-logger",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1286
+      }
+    },
+    {
+      "path": "/journal/best-free-workout-tracker",
+      "source": "https://liftag.fit/journal/best-free-workout-tracker",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/journal/best-free-workout-tracker",
+          "message": "Meta description is 172 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/journal/best-free-workout-tracker",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Best Free Workout Tracker 2026 | LIFTAG",
+        "description": "An honest look at free workout trackers in 2026: LIFTAG, Strong’s free tier, Hevy’s free tier, and FitNotes. What you actually get without paying, and where each one stops.",
+        "canonical": "https://liftag.fit/journal/best-free-workout-tracker",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1070
+      }
+    },
+    {
+      "path": "/sk/journal/best-free-workout-tracker",
+      "source": "https://liftag.fit/sk/journal/best-free-workout-tracker",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/journal/best-free-workout-tracker",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Najlepší bezplatný tréningový tracker 2026 | LIFTAG",
+        "description": "Úprimné porovnanie bezplatných trackerov v roku 2026: LIFTAG, bezplatný Strong, bezplatné Hevy a FitNotes. Zistíš, čo dostaneš bez platenia a kde sa každá úroveň končí.",
+        "canonical": "https://liftag.fit/sk/journal/best-free-workout-tracker",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1015
+      }
+    },
+    {
+      "path": "/journal/strong-vs-hevy-vs-liftag",
+      "source": "https://liftag.fit/journal/strong-vs-hevy-vs-liftag",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/journal/strong-vs-hevy-vs-liftag",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Strong vs Hevy vs LIFTAG (2026) | Workout Trackers",
+        "description": "The comparison people actually type in 2026: Strong, Hevy, and LIFTAG for set logging, free tiers, social features, and gym machine tags.",
+        "canonical": "https://liftag.fit/journal/strong-vs-hevy-vs-liftag",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 904
+      }
+    },
+    {
+      "path": "/sk/journal/strong-vs-hevy-vs-liftag",
+      "source": "https://liftag.fit/sk/journal/strong-vs-hevy-vs-liftag",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/journal/strong-vs-hevy-vs-liftag",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Strong vs Hevy vs LIFTAG (2026) | Tréningové trackery",
+        "description": "Porovnanie, ktoré ľudia zadávajú v roku 2026: Strong, Hevy a LIFTAG pri zápise sérií, bezplatných úrovniach, sociálnych funkciách a štítkoch na strojoch.",
+        "canonical": "https://liftag.fit/sk/journal/strong-vs-hevy-vs-liftag",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 833
+      }
+    },
+    {
+      "path": "/journal/workout-logger",
+      "source": "https://liftag.fit/journal/workout-logger",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/journal/workout-logger",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Best Workout Logger 2026 | Logbook vs Tracker | LIFTAG",
+        "description": "What a workout logger records — every set, load, reps, rest — and when a paper logbook, Strong, Hevy, FitNotes, or LIFTAG is the better pick.",
+        "canonical": "https://liftag.fit/journal/workout-logger",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1235
+      }
+    },
+    {
+      "path": "/sk/journal/workout-logger",
+      "source": "https://liftag.fit/sk/journal/workout-logger",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "title.long",
+          "target": "/sk/journal/workout-logger",
+          "message": "Title is 66 characters; review likely SERP truncation."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/journal/workout-logger",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Najlepší tréningový denník 2026 | Zápisník verzus tracker | LIFTAG",
+        "description": "Čo denník zaznamenáva — každú sériu, záťaž, opakovania a oddych — a kedy je lepší papier, Strong, Hevy, FitNotes alebo LIFTAG.",
+        "canonical": "https://liftag.fit/sk/journal/workout-logger",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1186
+      }
+    },
+    {
+      "path": "/journal/nfc-tags-for-gym-equipment",
+      "source": "https://liftag.fit/journal/nfc-tags-for-gym-equipment",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/journal/nfc-tags-for-gym-equipment",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "NFC Tags for Gym Equipment (2026) | LIFTAG",
+        "description": "What to put on each gym machine in 2026: NFC vs QR, tag placement, NTAG types, and how a tap opens the right exercise in a workout tracker.",
+        "canonical": "https://liftag.fit/journal/nfc-tags-for-gym-equipment",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 986
+      }
+    },
+    {
+      "path": "/sk/journal/nfc-tags-for-gym-equipment",
+      "source": "https://liftag.fit/sk/journal/nfc-tags-for-gym-equipment",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/journal/nfc-tags-for-gym-equipment",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "NFC štítky pre vybavenie fitka (2026) | LIFTAG",
+        "description": "Čo dať na každý stroj v roku 2026: NFC verzus QR, umiestnenie štítku, typy NTAG a otvorenie správneho cviku v tréningovom denníku.",
+        "canonical": "https://liftag.fit/sk/journal/nfc-tags-for-gym-equipment",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 934
+      }
+    },
+    {
+      "path": "/journal/what-is-rpe-lifting",
+      "source": "https://liftag.fit/journal/what-is-rpe-lifting",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/journal/what-is-rpe-lifting",
+          "message": "Meta description is 173 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/journal/what-is-rpe-lifting",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "What is RPE in Lifting? (How to Log It) | LIFTAG",
+        "description": "RPE is a 1–10 rating of how hard a set was. How to use it on the bench, squat, and deadlift, when to log it, and how a workout tracker should store it next to load and rest.",
+        "canonical": "https://liftag.fit/journal/what-is-rpe-lifting",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 873
+      }
+    },
+    {
+      "path": "/sk/journal/what-is-rpe-lifting",
+      "source": "https://liftag.fit/sk/journal/what-is-rpe-lifting",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/journal/what-is-rpe-lifting",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Čo je RPE pri silovom tréningu? (Ako ho zapisovať) | LIFTAG",
+        "description": "RPE je hodnotenie náročnosti série od 1 do 10. Zistíš, ako ho použiť pri benchi, drepe a mŕtvom ťahu a uložiť vedľa záťaže a oddychu.",
+        "canonical": "https://liftag.fit/sk/journal/what-is-rpe-lifting",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 857
+      }
+    },
+    {
+      "path": "/journal/progressive-overload",
+      "source": "https://liftag.fit/journal/progressive-overload",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/journal/progressive-overload",
+          "message": "Meta description is 197 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/journal/progressive-overload",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Progressive Overload: How to Add Load Without Lying | LIFTAG",
+        "description": "Progressive overload is adding a small, honest demand over time: load, reps, or sets. How to do it on the big lifts without inflating the log, and how a workout tracker makes the next jump obvious.",
+        "canonical": "https://liftag.fit/journal/progressive-overload",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 847
+      }
+    },
+    {
+      "path": "/sk/journal/progressive-overload",
+      "source": "https://liftag.fit/sk/journal/progressive-overload",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/journal/progressive-overload",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Progresívne preťaženie: ako pridať záťaž bez klamania | LIFTAG",
+        "description": "Ako časom poctivo pridať záťaž, opakovania alebo série bez nafukovania denníka a ako tracker ukáže ďalší rozumný krok.",
+        "canonical": "https://liftag.fit/sk/journal/progressive-overload",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 818
+      }
+    },
+    {
+      "path": "/journal/gym-nfc-rollout",
+      "source": "https://liftag.fit/journal/gym-nfc-rollout",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/journal/gym-nfc-rollout",
+          "message": "Meta description is 190 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/journal/gym-nfc-rollout",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Gym NFC Tag Rollout: One Floor to 12 Locations | LIFTAG",
+        "description": "A practical LIFTAG rollout: tag one floor, confirm every machine opens the right lift, then copy the catalog across locations. No invented gym quotes. The 1→12 path the product is built for.",
+        "canonical": "https://liftag.fit/journal/gym-nfc-rollout",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 899
+      }
+    },
+    {
+      "path": "/sk/journal/gym-nfc-rollout",
+      "source": "https://liftag.fit/sk/journal/gym-nfc-rollout",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "title.long",
+          "target": "/sk/journal/gym-nfc-rollout",
+          "message": "Title is 72 characters; review likely SERP truncation."
+        },
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/sk/journal/gym-nfc-rollout",
+          "message": "Meta description is 174 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/journal/gym-nfc-rollout",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Nasadenie NFC štítkov vo fitku: od jednej podlahy po 12 lokalít | LIFTAG",
+        "description": "Praktické nasadenie LIFTAGu: označ jeden tréningový priestor, over správny cvik a potom skopíruj katalóg do ďalších lokalít. Cesta od 1 → 12 pobočiek bez vymyslených citátov.",
+        "canonical": "https://liftag.fit/sk/journal/gym-nfc-rollout",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 920
+      }
+    },
+    {
+      "path": "/about",
+      "source": "https://liftag.fit/about",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/about",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "About LIFTAG | Workout Tracker from Bratislava",
+        "description": "LIFTAG is a free workout tracker built in Bratislava for serious lifters, trainers, and gyms. Tap NFC or scan QR on a machine, log every set, and keep the history.",
+        "canonical": "https://liftag.fit/about",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 810
+      }
+    },
+    {
+      "path": "/sk/about",
+      "source": "https://liftag.fit/sk/about",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/sk/about",
+          "message": "Meta description is 207 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/about",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "O LIFTAG | Tréningový denník z Bratislavy",
+        "description": "LIFTAG je bezplatný tréningový denník z Bratislavy pre ľudí, ktorí to s cvičením myslia vážne, trénerov a posilňovne. Prilož NFC alebo naskenuj QR kód na stroji, zaznamenaj každú sériu a uchovaj si históriu.",
+        "canonical": "https://liftag.fit/sk/about",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 777
+      }
+    },
+    {
+      "path": "/press",
+      "source": "https://liftag.fit/press",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/press",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Press Kit | LIFTAG Workout Logger from Bratislava",
+        "description": "Official name, paste-ready boilerplate, logos, store IDs, and contact for journalists and Wikidata editors. Do not invent ratings or download counts.",
+        "canonical": "https://liftag.fit/press",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 560
+      }
+    },
+    {
+      "path": "/sk/press",
+      "source": "https://liftag.fit/sk/press",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/press",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Press kit | Tréningový denník LIFTAG z Bratislavy",
+        "description": "Oficiálny názov, text na kopírovanie, logá, ID obchodov a kontakt pre novinárov a editorov Wikidát. Nevymýšľaj hodnotenia ani počty stiahnutí.",
+        "canonical": "https://liftag.fit/sk/press",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 553
+      }
+    },
+    {
+      "path": "/privacy-policy",
+      "source": "https://liftag.fit/privacy-policy",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/privacy-policy",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Privacy Policy | LIFTAG",
+        "description": "How LIFTAG collects, uses, stores, and protects your personal data when you use the LIFTAG workout tracking app.",
+        "canonical": "https://liftag.fit/privacy-policy",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 2076
+      }
+    },
+    {
+      "path": "/sk/privacy-policy",
+      "source": "https://liftag.fit/sk/privacy-policy",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/privacy-policy",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Zásady ochrany osobných údajov | LIFTAG",
+        "description": "Ako LIFTAG zhromažďuje, používa, ukladá a chráni vaše osobné údaje pri používaní tréningovej aplikácie LIFTAG.",
+        "canonical": "https://liftag.fit/sk/privacy-policy",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1993
+      }
+    },
+    {
+      "path": "/cs/privacy-policy",
+      "source": "https://liftag.fit/cs/privacy-policy",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/cs/privacy-policy",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Zásady ochrany osobních údajů | LIFTAG",
+        "description": "Jak LIFTAG shromažďuje, používá, ukládá a chrání vaše osobní údaje při používání tréninkové aplikace LIFTAG.",
+        "canonical": "https://liftag.fit/cs/privacy-policy",
+        "lang": "cs",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1993
+      }
+    },
+    {
+      "path": "/terms-and-conditions",
+      "source": "https://liftag.fit/terms-and-conditions",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/terms-and-conditions",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Terms & Conditions | LIFTAG",
+        "description": "The terms governing your use of the LIFTAG workout tracking app — eligibility, account responsibility, content, and acceptable use.",
+        "canonical": "https://liftag.fit/terms-and-conditions",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1056
+      }
+    },
+    {
+      "path": "/sk/terms-and-conditions",
+      "source": "https://liftag.fit/sk/terms-and-conditions",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/terms-and-conditions",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Obchodné podmienky | LIFTAG",
+        "description": "Podmienky, ktorými sa riadi vaše používanie tréningovej aplikácie LIFTAG — oprávnenosť, zodpovednosť za účet, obsah a prijateľné používanie.",
+        "canonical": "https://liftag.fit/sk/terms-and-conditions",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 996
+      }
+    },
+    {
+      "path": "/cs/terms-and-conditions",
+      "source": "https://liftag.fit/cs/terms-and-conditions",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/cs/terms-and-conditions",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Obchodní podmínky | LIFTAG",
+        "description": "Podmínky, kterými se řídí vaše používání tréninkové aplikace LIFTAG — způsobilost, odpovědnost za účet, obsah a přijatelné používání.",
+        "canonical": "https://liftag.fit/cs/terms-and-conditions",
+        "lang": "cs",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 999
+      }
+    },
+    {
+      "path": "/exercises",
+      "source": "https://liftag.fit/exercises",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/exercises",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Exercise Library | Gym Exercises by Muscle & Machine | LIFTAG",
+        "description": "Browse the LIFTAG exercise library: gym exercises by muscle group and machine, with setup photos, instruction videos, and the muscles each lift works.",
+        "canonical": "https://liftag.fit/exercises",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 541
+      }
+    },
+    {
+      "path": "/sk/exercises",
+      "source": "https://liftag.fit/sk/exercises",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/exercises",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Knižnica cvikov | Cviky podľa svalu a stroja | LIFTAG",
+        "description": "Prehliadaj knižnicu cvikov LIFTAG: posilňovňové cviky podľa svalovej partie a stroja, s fotografiami nastavenia, inštruktážnymi videami a svalmi, ktoré každý cvik zapája.",
+        "canonical": "https://liftag.fit/sk/exercises",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 619
+      }
+    },
+    {
+      "path": "/machines",
+      "source": "https://liftag.fit/machines",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/machines",
+          "message": "Meta description is 175 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/machines",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Gym Machine Catalog | Exercises by Machine | LIFTAG",
+        "description": "Browse gym machines in the LIFTAG catalog. Every machine lists the exercises you can do on it, with photos and instruction videos, exactly like scanning its QR tag in the app.",
+        "canonical": "https://liftag.fit/machines",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 577
+      }
+    },
+    {
+      "path": "/sk/machines",
+      "source": "https://liftag.fit/sk/machines",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/machines",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Katalóg strojov | Cviky podľa stroja | LIFTAG",
+        "description": "Prehliadaj stroje vo fitku a nájdi cviky, ktoré sú dostupné na každom z nich v katalógu LIFTAG.",
+        "canonical": "https://liftag.fit/sk/machines",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 600
+      }
+    },
+    {
+      "path": "/muscles",
+      "source": "https://liftag.fit/muscles",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/muscles",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Exercises by Muscle Group · LIFTAG Library",
+        "description": "Browse LIFTAG exercises by muscle group: chest, back, shoulders, arms, legs, adductors, glutes, abs, and cardio, with setup cues and how to log every set.",
+        "canonical": "https://liftag.fit/muscles",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 705
+      }
+    },
+    {
+      "path": "/sk/muscles",
+      "source": "https://liftag.fit/sk/muscles",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/sk/muscles",
+          "message": "Meta description is 179 characters; target roughly 50–170."
+        },
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/muscles",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Cviky podľa svalovej partie · Knižnica LIFTAG",
+        "description": "Prehliadaj cviky LIFTAG podľa svalovej partie: hrudník, chrbát, ramená, ruky, nohy, adduktory, sedacie svaly, brucho a kardio, s nastavením a návodom na zaznamenanie každej série.",
+        "canonical": "https://liftag.fit/sk/muscles",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 703
+      }
+    },
+    {
+      "path": "/exercises/lat-pulldown",
+      "source": "https://liftag.fit/exercises/lat-pulldown",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/exercises/lat-pulldown",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Lat Pulldown | How to, Muscles, Log | LIFTAG",
+        "description": "Lat pulldown: thigh pad, bar to the chest, and logging pulldowns separately from pull-ups and grip-width variants in LIFTAG.",
+        "canonical": "https://liftag.fit/exercises/lat-pulldown",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1064
+      }
+    },
+    {
+      "path": "/sk/exercises/lat-pulldown",
+      "source": "https://liftag.fit/sk/exercises/lat-pulldown",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/exercises/lat-pulldown",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Sťahovanie hornej kladky | Ako cvičiť | LIFTAG",
+        "description": "Sťahovanie hornej kladky: opierka na stehná, tyč k hrudníku a samostatné zaznamenávanie oproti zhybom a variantom s inou šírkou úchopu v LIFTAG-u.",
+        "canonical": "https://liftag.fit/sk/exercises/lat-pulldown",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 1076
+      }
+    },
+    {
+      "path": "/machines/ab-crunch-bench",
+      "source": "https://liftag.fit/machines/ab-crunch-bench",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/machines/ab-crunch-bench",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Ab Crunch Bench | Exercises & Setup | LIFTAG",
+        "description": "A specialized abdominal bench with linked upper- and lower-body sections that move toward each other during a crunch. Exercises, setup photos, and how to…",
+        "canonical": "https://liftag.fit/machines/ab-crunch-bench",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 368
+      }
+    },
+    {
+      "path": "/sk/machines/ab-crunch-bench",
+      "source": "https://liftag.fit/sk/machines/ab-crunch-bench",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/machines/ab-crunch-bench",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Lavička na skracovačky so záťažou | Cviky a nastavenie | LIFTAG",
+        "description": "Špeciálna lavička na skracovačky, pri ktorých sa horná a dolná časť tela pohybujú smerom k sebe po vedenej dráhe. Cviky, fotografie nastavenia a otvorenie…",
+        "canonical": "https://liftag.fit/sk/machines/ab-crunch-bench",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 377
+      }
+    },
+    {
+      "path": "/muscles/chest",
+      "source": "https://liftag.fit/muscles/chest",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/muscles/chest",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Chest Exercises: How to Log Them | LIFTAG",
+        "description": "Chest exercises in the LIFTAG library: bench press, flyes, dips, and machine presses, with setup cues, muscles worked, and how to log every set.",
+        "canonical": "https://liftag.fit/muscles/chest",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 547
+      }
+    },
+    {
+      "path": "/sk/muscles/chest",
+      "source": "https://liftag.fit/sk/muscles/chest",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "robots.image_preview",
+          "target": "/sk/muscles/chest",
+          "message": "Add max-image-preview:large to permit large image treatments in search and discovery surfaces."
+        }
+      ],
+      "facts": {
+        "title": "Hrudník Cviky: Ako ich zaznamenávať | LIFTAG",
+        "description": "Cviky na hrudník v knižnici LIFTAG: bench press, rozpažovanie, dipy a tlaky na strojoch, s nastavením, zapojenými svalmi a záznamom každej série.",
+        "canonical": "https://liftag.fit/sk/muscles/chest",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 626
+      }
+    },
+    {
+      "path": "/exercises?q=bench",
+      "source": "https://liftag.fit/exercises?q=bench",
+      "findings": [
+        {
+          "severity": "error",
+          "code": "robots.indexed_search",
+          "target": "/exercises?q=bench",
+          "message": "Filtered/search result must declare noindex to avoid index bloat."
+        }
+      ],
+      "facts": {
+        "title": "Exercise Library | Gym Exercises by Muscle & Machine | LIFTAG",
+        "description": "Browse the LIFTAG exercise library: gym exercises by muscle group and machine, with setup photos, instruction videos, and the muscles each lift works.",
+        "canonical": "https://liftag.fit/exercises",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 541
+      }
+    },
+    {
+      "path": "/sk/exercises?q=bench",
+      "source": "https://liftag.fit/sk/exercises?q=bench",
+      "findings": [
+        {
+          "severity": "error",
+          "code": "robots.indexed_search",
+          "target": "/sk/exercises?q=bench",
+          "message": "Filtered/search result must declare noindex to avoid index bloat."
+        }
+      ],
+      "facts": {
+        "title": "Knižnica cvikov | Cviky podľa svalu a stroja | LIFTAG",
+        "description": "Prehliadaj knižnicu cvikov LIFTAG: posilňovňové cviky podľa svalovej partie a stroja, s fotografiami nastavenia, inštruktážnymi videami a svalmi, ktoré každý cvik zapája.",
+        "canonical": "https://liftag.fit/sk/exercises",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 619
+      }
+    },
+    {
+      "path": "/machines?q=bench",
+      "source": "https://liftag.fit/machines?q=bench",
+      "findings": [
+        {
+          "severity": "warning",
+          "code": "description.length",
+          "target": "/machines?q=bench",
+          "message": "Meta description is 175 characters; target roughly 50–170."
+        },
+        {
+          "severity": "error",
+          "code": "robots.indexed_search",
+          "target": "/machines?q=bench",
+          "message": "Filtered/search result must declare noindex to avoid index bloat."
+        }
+      ],
+      "facts": {
+        "title": "Gym Machine Catalog | Exercises by Machine | LIFTAG",
+        "description": "Browse gym machines in the LIFTAG catalog. Every machine lists the exercises you can do on it, with photos and instruction videos, exactly like scanning its QR tag in the app.",
+        "canonical": "https://liftag.fit/machines",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 577
+      }
+    },
+    {
+      "path": "/sk/machines?q=bench",
+      "source": "https://liftag.fit/sk/machines?q=bench",
+      "findings": [
+        {
+          "severity": "error",
+          "code": "robots.indexed_search",
+          "target": "/sk/machines?q=bench",
+          "message": "Filtered/search result must declare noindex to avoid index bloat."
+        }
+      ],
+      "facts": {
+        "title": "Katalóg strojov | Cviky podľa stroja | LIFTAG",
+        "description": "Prehliadaj stroje vo fitku a nájdi cviky, ktoré sú dostupné na každom z nich v katalógu LIFTAG.",
+        "canonical": "https://liftag.fit/sk/machines",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 600
+      }
+    },
+    {
+      "path": "/muscles/chest?q=bench",
+      "source": "https://liftag.fit/muscles/chest?q=bench",
+      "findings": [
+        {
+          "severity": "error",
+          "code": "robots.indexed_search",
+          "target": "/muscles/chest?q=bench",
+          "message": "Filtered/search result must declare noindex to avoid index bloat."
+        }
+      ],
+      "facts": {
+        "title": "Chest Exercises: How to Log Them | LIFTAG",
+        "description": "Chest exercises in the LIFTAG library: bench press, flyes, dips, and machine presses, with setup cues, muscles worked, and how to log every set.",
+        "canonical": "https://liftag.fit/muscles/chest",
+        "lang": "en",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 547
+      }
+    },
+    {
+      "path": "/sk/muscles/chest?q=bench",
+      "source": "https://liftag.fit/sk/muscles/chest?q=bench",
+      "findings": [
+        {
+          "severity": "error",
+          "code": "robots.indexed_search",
+          "target": "/sk/muscles/chest?q=bench",
+          "message": "Filtered/search result must declare noindex to avoid index bloat."
+        }
+      ],
+      "facts": {
+        "title": "Hrudník Cviky: Ako ich zaznamenávať | LIFTAG",
+        "description": "Cviky na hrudník v knižnici LIFTAG: bench press, rozpažovanie, dipy a tlaky na strojoch, s nastavením, zapojenými svalmi a záznamom každej série.",
+        "canonical": "https://liftag.fit/sk/muscles/chest",
+        "lang": "sk",
+        "h1Count": 1,
+        "jsonLdCount": 1,
+        "visibleWords": 626
+      }
+    }
+  ],
+  "globalFindings": [
+    {
+      "severity": "warning",
+      "code": "sitemap.discovery_unavailable",
+      "target": "/sitemap-discovery.xml",
+      "message": "Public discovery details are outside this audit: Error: HTTP 404"
+    },
+    {
+      "severity": "error",
+      "code": "sitemap.static_missing",
+      "target": "/sitemap-pages.xml",
+      "message": "Static route /explore is absent."
+    },
+    {
+      "severity": "error",
+      "code": "sitemap.static_missing",
+      "target": "/sitemap-pages.xml",
+      "message": "Static route /sk/explore is absent."
+    }
+  ],
+  "summary": {
+    "pagesAudited": 84,
+    "errors": 12,
+    "warnings": 115,
+    "passed": false
+  }
+}

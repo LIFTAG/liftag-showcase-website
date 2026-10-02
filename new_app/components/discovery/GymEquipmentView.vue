@@ -48,6 +48,9 @@ const { data: muscleGroups } = useFetch<{ id: string; name: string; slug: string
 const filtered = computed(
   () => manufacturers.value.length > 0 || categories.value.length > 0 || Boolean(search.value),
 )
+const equipmentDescription = computed(() =>
+  copy.value.equipmentDescription.replace('{gym}', detail.value?.gym.name ?? copy.value.gym),
+)
 function clearFilters() {
   search.value = ''
   manufacturers.value = []
@@ -90,8 +93,9 @@ watch(
 )
 useDiscoverySeo({
   name: () => `${detail.value?.gym.name ?? ''} · ${copy.value.equipment}`,
-  description: () => copy.value.searchEquipment,
+  description: equipmentDescription,
   locale,
+  noindex: filtered,
 })
 </script>
 <template>

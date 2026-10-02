@@ -1,6 +1,6 @@
 import { en, sk } from '../i18n/messages/catalog.ts'
-import type { CatalogLocale } from './catalogLocale'
-import { createMessageTranslator } from './messageTranslator'
+import type { CatalogLocale } from './catalogLocale.ts'
+import { createMessageTranslator } from './messageTranslator.ts'
 
 /** Small adapter for pure SEO and catalog renderers; English owns the key shape. */
 export function catalogChrome(locale: CatalogLocale) {
@@ -18,7 +18,10 @@ export function catalogChrome(locale: CatalogLocale) {
     statExercises: (count: number) => t('statExercises', { count }),
     statMachines: (count: number) => t('statMachines', { count }),
     statMuscles: (count: number) => t('statMuscles', { count }),
-    machineDetailTitle: (name: string) => t('machineDetailTitle', { name }),
+    machineDetailTitle: (name: string) => {
+      const full = t('machineDetailTitle', { name })
+      return full.length <= 65 ? full : `${name} | LIFTAG`
+    },
     machineExerciseList: (name: string) => t('machineExerciseList', { name }),
     logCopy: (name: string) => t('logCopy', { name }),
     howToHeading: (name: string) => t('howToHeading', { name: name.toLocaleUpperCase(locale) }),

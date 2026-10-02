@@ -52,7 +52,7 @@ export const sk = {
   titleText: 'Tréningový denník, nie ďalší tracker.',
   description:
     'Čo denník zaznamenáva — každú sériu, záťaž, opakovania a oddych — a kedy je lepší papier, Strong, Hevy, FitNotes alebo LIFTAG.',
-  seoTitle: 'Najlepší tréningový denník 2026 | Zápisník verzus tracker | LIFTAG',
+  seoTitle: 'Tréningový denník 2026: zápisník vs. tracker | LIFTAG',
   datePublished: '2026-08-20',
   category: 'POROVNANIE',
   dateUpdated: '2026-08',

@@ -1,5 +1,5 @@
 import { siteLocaleAlternates } from '../../utils/siteLocale'
-import { musclePath } from '../../utils/muscles'
+import { musclePath, MUSCLE_HUBS } from '../../utils/muscles'
 import { hreflangUrlEntry, sitemapXml, xmlHeaders } from '../../utils/sitemapXml'
 
 const CATALOG_SITEMAP_NS
@@ -22,15 +22,23 @@ export default defineEventHandler(async (event) => {
   setHeader(event, 'cache-control', headers['cache-control'])
 
   const snapshot = await getCatalogSnapshotOrNull()
-  if (!snapshot) return sitemapXml('')
+  if (!snapshot) {
+    setResponseStatus(event, 503)
+    setHeader(event, 'retry-after', 300)
+    setHeader(event, 'cache-control', 'no-store')
+    return sitemapXml('')
+  }
 
   const entries: string[] = [
-    ...catalogHreflangEntries('/exercises', snapshot.fetchedAt),
-    ...catalogHreflangEntries('/machines', snapshot.fetchedAt),
-    ...catalogHreflangEntries('/muscles', snapshot.fetchedAt),
-    ...snapshot.categories
-      .filter(category => category.isActive && category.slug)
-      .flatMap(category => catalogHreflangEntries(musclePath(category.slug), snapshot.fetchedAt)),
+    // A cache refresh is not a content modification. Omit lastmod for hubs
+    // rather than telling crawlers these pages changed every hour.
+    ...catalogHreflangEntries('/exercises'),
+    ...catalogHreflangEntries('/machines'),
+    ...catalogHreflangEntries('/muscles'),
+    // The page route accepts only curated MUSCLE_HUBS. API categories are a
+    // broader taxonomy and can contain slugs that intentionally render 404.
+    ...MUSCLE_HUBS
+      .flatMap(hub => catalogHreflangEntries(musclePath(hub.slug))),
     ...snapshot.exercises
       .filter(exercise => exercise.slug)
       .flatMap(exercise =>

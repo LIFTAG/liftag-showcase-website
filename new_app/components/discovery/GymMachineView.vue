@@ -10,9 +10,15 @@ const { data, error, status, refresh } = await useDiscoveryResource<GymMachineDe
   preference,
 )
 const { locale, copy, href } = useDiscoveryLocale(() => data.value?.gym.timezone)
+const machineName = computed(() => data.value?.name ?? copy.value.gymMachine)
+const gymName = computed(() => data.value?.gym.name ?? copy.value.gym)
+const machineTitle = computed(() => `${machineName.value} · ${gymName.value}`)
+const machineDescription = computed(() => copy.value.gymMachineDescription
+  .replace('{machine}', machineName.value)
+  .replace('{gym}', gymName.value))
 useDiscoverySeo({
-  name: () => data.value?.name ?? copy.value.gymMachine,
-  description: () => data.value?.description ?? data.value?.gym.name ?? '',
+  name: machineTitle,
+  description: machineDescription,
   locale,
   photo: () => data.value?.media.find((m) => m.type === 'image')?.url,
   canonicalPath: () => gymMachineHref(props.gymId, props.machineId, locale.value),

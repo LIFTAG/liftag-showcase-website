@@ -1,0 +1,36 @@
+{
+  "checkedAt": "2026-10-01T22:51:02.363Z",
+  "source": "http://127.0.0.1:3027",
+  "results": [
+    {
+      "locale": "en",
+      "family": "exercises",
+      "pages": 10,
+      "items": 469,
+      "firstPageItems": 48
+    },
+    {
+      "locale": "en",
+      "family": "machines",
+      "pages": 2,
+      "items": 91,
+      "firstPageItems": 48
+    },
+    {
+      "locale": "sk",
+      "family": "exercises",
+      "pages": 10,
+      "items": 469,
+      "firstPageItems": 48
+    },
+    {
+      "locale": "sk",
+      "family": "machines",
+      "pages": 2,
+      "items": 91,
+      "firstPageItems": 48
+    }
+  ],
+  "invalidPageChecks": 4,
+  "passed": true
+}
