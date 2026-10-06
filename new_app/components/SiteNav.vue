@@ -815,10 +815,12 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
-/* Sentence-case body type rather than tracked mono capitals. At 0.22em of
-   tracking the gap inside "For gym owners" was as wide as the gap between two
-   links, so multi-word labels read as several links and the row as one long
-   run. Normal spacing lets the whitespace between items do the separating.
+/* Condensed industrial caps (Big Shoulders), the lettering of plate stamps and
+   gym signage, set beside the italic wordmark. The bar was tracked mono caps
+   once, and at 0.22em the gap inside "Fitness centers" was as wide as the gap
+   between two links, so multi-word labels read as several links. A condensed
+   face keeps its word space narrow, and tracking stays light enough that the
+   whitespace between items still does the separating.
 
    Hover indexes the label (IndexedText, the same effect the footer uses): the
    resting glyph leaves through the top as a lime copy arrives from below. No
@@ -836,11 +838,12 @@ onBeforeUnmount(() => {
   border-radius: 6px;
   background: none;
   color: var(--nav-link-rest);
-  font-family: var(--liftag-font-body);
-  font-weight: 500;
-  font-size: 14px;
+  font-family: var(--liftag-font-nav);
+  font-weight: 700;
+  font-size: 15px;
   line-height: 20px;
-  letter-spacing: -0.005em;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
   white-space: nowrap;
   text-decoration: none;
   opacity: 0;
@@ -1039,12 +1042,15 @@ onBeforeUnmount(() => {
   transition: background-color 160ms ease-out;
 }
 
+/* The trigger's caps carry down into its items; the hint under each stays body
+   copy. */
 .nav-audience__title {
-  font-family: var(--liftag-font-body);
-  font-size: 14px;
-  font-weight: 600;
+  font-family: var(--liftag-font-nav);
+  font-size: 15px;
+  font-weight: 700;
   line-height: 20px;
-  letter-spacing: -0.005em;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
 }
 
 .nav-audience__hint {
@@ -1123,13 +1129,24 @@ onBeforeUnmount(() => {
   display: inline-flex;
 }
 
+/* Both CTAs speak in the links' face rather than the global button atoms'
+   Inter, so the bar reads in one voice. */
+.nav-app-cta,
+.nav-dashboard-cta {
+  font-family: var(--liftag-font-nav);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: 0.07em;
+}
+
 .nav-app-cta {
   position: relative;
   display: inline-flex;
   align-items: center;
   overflow: hidden;
-  padding: 10px 20px;
-  font-size: 11px;
+  /* One pixel more than the dashboard pill, which spends it on its border. */
+  padding: 11px 20px;
   box-shadow: 0 0 24px rgba(204, 255, 0, 0.32);
   /* Was a <button> until it gained a real destination; as a link it picks up
      the global anchor underline, which .btn-primary never had to suppress. */
@@ -1148,8 +1165,6 @@ onBeforeUnmount(() => {
 
 .nav-dashboard-cta {
   padding: 10px 18px;
-  font-size: 11px;
-  line-height: 1;
   text-decoration: none;
 }
 

@@ -39,7 +39,7 @@ const { data: routine } = await useAsyncData(`routine-share-${id}`, async () => 
 // grid and falls back to the default og-image for non-public routines.
 useLiftagSeo(() => ({
   title: routine.value ? t('handoff.sharedTitle', { name: routine.value.name }) : t('handoff.routineHeading'),
-  description: t('handoff.body'),
+  description: t('handoff.routineDescription'),
   path: `/routines/${id}`,
   image: absoluteUrl(withSiteLocaleQuery(`/api/og/routines/${id}${variantQuery.value}`, locale.value)),
   noindex: true,
@@ -56,36 +56,48 @@ useHead(() => ({
   ],
 }))
 
-// A browser visit does not mean LIFTAG is absent. Keep the shared destination
-// available on iOS, including after Instagram hands this page to Safari.
-const showEscape = ref(detectPlatform(useRequestHeaders(['user-agent'])['user-agent'] ?? '') === 'ios')
+const shareUrl = computed(() => absoluteUrl(href(`/routines/${id}${variantQuery.value}`)))
+
+// A browser visit does not mean LIFTAG is absent. iOS keeps the shared
+// destination available, including after Instagram hands this page to Safari;
+// a desktop visitor gets it as a QR code for their phone. The server's guess
+// travels in the payload so hydration renders the same branch: request headers
+// do not exist in the browser, and a fresh guess there would flash the desktop
+// page over the iOS one.
+const view = useState<Platform>(`routine-handoff-${id}`, () =>
+  detectPlatform(useRequestHeaders(['user-agent'])['user-agent'] ?? ''))
 
 onMounted(() => {
   const ua = navigator.userAgent || ''
-  const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as unknown as { MSStream?: unknown }).MSStream
-  const isAndroid = /Android/.test(ua)
+  // iPadOS Safari reports a Mac by default; only its touch points give it away.
+  const isDesktopModeIPad = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1
+  view.value = isDesktopModeIPad ? 'ios' : detectPlatform(ua)
 
-  if (isIOS) {
-    showEscape.value = true
-  } else if (isAndroid) {
+  if (view.value === 'android') {
     const intentUrl =
       `intent://liftag.fit/routines/${id}` +
       `#Intent;scheme=https;package=com.liftag.app;` +
       `S.browser_fallback_url=${encodeURIComponent(PLAY_STORE)};end`
     window.location.replace(intentUrl)
-  } else {
-    window.location.replace('/')
   }
 })
 </script>
 
 <template>
   <StoreEscape
-    v-if="showEscape"
+    v-if="view === 'ios'"
     :app-url="`liftag://routines/${encodeURIComponent(id)}`"
-    :share-url="absoluteUrl(href(`/routines/${id}${variantQuery}`))"
+    :share-url="shareUrl"
     :heading="t('handoff.routineHeading')"
     :body="t('handoff.contentBody')"
+  />
+
+  <DesktopHandoff
+    v-else-if="view === 'desktop'"
+    :share-url="shareUrl"
+    :kicker="t('handoff.desktopRoutineKicker')"
+    :heading="t('handoff.desktopRoutineHeading')"
+    :body="t('handoff.desktopRoutineBody')"
   />
 
   <main v-else class="routine-redirect">

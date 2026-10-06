@@ -39,7 +39,7 @@ const { data: plan } = await useAsyncData(`plan-share-${id}`, async () => {
 // and falls back to the default og-image for non-public plans.
 useLiftagSeo(() => ({
   title: plan.value ? t('handoff.sharedTitle', { name: plan.value.name }) : t('handoff.planHeading'),
-  description: t('handoff.body'),
+  description: t('handoff.planDescription'),
   path: `/plans/${id}`,
   image: absoluteUrl(withSiteLocaleQuery(`/api/og/plans/${id}${variantQuery.value}`, locale.value)),
   noindex: true,

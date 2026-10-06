@@ -10,7 +10,9 @@ export const en = {
     qrDescription:
       'This LIFTAG gym tag opens the exercise in the app. Get LIFTAG on iOS or Android to scan and log the set.',
     routineHeading: 'OPEN THIS ROUTINE.',
+    routineDescription: 'View this workout routine in LIFTAG.',
     planHeading: 'OPEN THIS PLAN.',
+    planDescription: 'View this training plan in LIFTAG.',
     inviteHeading: 'OPEN YOUR INVITE.',
     opening: 'Opening LIFTAG…',
     openingRoutine: 'Opening LIFTAG routine…',
@@ -39,9 +41,21 @@ export const en = {
     getBody: 'Open your camera, scan the code, and continue in the App Store or Google Play.',
     getSeoTitle: 'Get LIFTAG',
     getSeoDescription: 'Install LIFTAG. Scan gym machines, load the right exercise, and track every set.',
+    desktopRoutineKicker: 'Shared routine',
+    desktopRoutineHeading: 'Open this shared routine in LIFTAG.',
+    desktopRoutineBody: 'Scan the QR code with your phone to open the routine in the app.',
+    qrLabel: 'QR code that opens this shared link in LIFTAG',
+    qrError: 'The QR code couldn’t be drawn. Copy the link instead and open it on your phone.',
+    linkLabel: 'Shared link',
+    copyDone: 'Copied',
+    linkCopied: 'Link copied to your clipboard.',
+    copyFailed: 'Couldn’t copy automatically. The link is selected, so press Ctrl+C or ⌘C.',
+    desktopNoApp: 'No LIFTAG on your phone yet? Install it, then scan the code again.',
+    newTab: '(opens in a new tab)',
   },
 }
 export const sk = {
+  // \u00a0 keeps one-letter Slovak words (a, v) off the end of a line.
   handoff: {
     defaultHeading: 'EŠTE JEDEN KROK.',
     defaultBody:
@@ -53,7 +67,9 @@ export const sk = {
     qrDescription:
       'Tento štítok LIFTAG vo fitku otvorí cvik v aplikácii. Nainštaluj si LIFTAG na iOS alebo Android a naskenuj štítok na zaznamenanie série.',
     routineHeading: 'OTVORIŤ TENTO TRÉNING.',
+    routineDescription: 'Pozri si tento tréning v LIFTAGu.',
     planHeading: 'OTVORIŤ TENTO PLÁN.',
+    planDescription: 'Pozri si tento tréningový plán v LIFTAGu.',
     inviteHeading: 'OTVORIŤ POZVÁNKU.',
     opening: 'Otvára sa LIFTAG…',
     openingRoutine: 'Otvára sa tréning v LIFTAG…',
@@ -83,5 +99,16 @@ export const sk = {
     getSeoTitle: 'Získaj LIFTAG',
     getSeoDescription:
       'Nainštaluj si LIFTAG. Naskenuj stroje v posilňovni, otvor správny cvik a zaznamenaj každú sériu.',
+    desktopRoutineKicker: 'Zdieľaný tréning',
+    desktopRoutineHeading: 'Otvor tento zdieľaný tréning v\u00a0LIFTAGu.',
+    desktopRoutineBody: 'Naskenuj QR kód telefónom a\u00a0tréning sa otvorí v\u00a0aplikácii.',
+    qrLabel: 'QR kód, ktorý otvorí tento zdieľaný odkaz v LIFTAGu',
+    qrError: 'QR kód sa nepodarilo vykresliť. Skopíruj radšej odkaz a\u00a0otvor ho v\u00a0telefóne.',
+    linkLabel: 'Zdieľaný odkaz',
+    copyDone: 'Skopírované',
+    linkCopied: 'Odkaz je skopírovaný do schránky.',
+    copyFailed: 'Automaticky sa to skopírovať nepodarilo. Odkaz je označený, stlač Ctrl+C alebo ⌘C.',
+    desktopNoApp: 'Ešte nemáš LIFTAG v\u00a0telefóne? Nainštaluj si ho a\u00a0naskenuj kód znova.',
+    newTab: '(otvorí sa na novej karte)',
   },
 } satisfies typeof en

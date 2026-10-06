@@ -88,6 +88,7 @@ test('Slovak and Czech pages preload every latin-ext face used by UI copy', () =
     '/assets/fonts/inter-latin-ext.woff2',
     '/assets/fonts/space-grotesk-latin-ext.woff2',
     '/assets/fonts/jetbrains-mono-latin-ext.woff2',
+    '/assets/fonts/big-shoulders-latin-ext.woff2',
   ])
   assert.deepEqual(siteLocaleFontPreloads('cs'), siteLocaleFontPreloads('sk'))
 })
@@ -95,7 +96,7 @@ test('Slovak and Czech pages preload every latin-ext face used by UI copy', () =
 test('latin-ext subsets swap in so Slovak carons are not dropped after first paint', () => {
   const css = readFileSync(new URL('../assets/css/main.css', import.meta.url), 'utf8')
   const extFaces = css.split('@font-face').filter((block) => block.includes('latin-ext.woff2'))
-  assert.equal(extFaces.length, 3)
+  assert.equal(extFaces.length, 4)
   for (const block of extFaces) {
     assert.match(block, /font-display:\s*swap/)
     assert.doesNotMatch(block, /font-display:\s*optional/)
