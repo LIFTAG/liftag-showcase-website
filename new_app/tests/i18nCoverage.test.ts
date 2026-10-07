@@ -106,6 +106,11 @@ test('global EN/SK messages have identical keys and named placeholders', async (
 
 test('journal translations retain every section, table, source link and FAQ', async () => {
   const directory = new URL('../content/journal/', import.meta.url)
+  const { en: journalEn, sk: journalSk } = await import('../content/journal/index.ts')
+  const articleRoutes = (await readdir(new URL('../pages/journal/', import.meta.url)))
+    .filter((file) => file.endsWith('.vue') && file !== 'index.vue')
+    .map((file) => `/journal/${file.replace(/\.vue$/, '')}`)
+  assert.deepEqual(journalSk.map((article) => article.href), journalEn.map((article) => article.href))
   let count = 0
   const links = (body: string) => [...body.matchAll(/href="([^"]+)"/g)].map((match) => match[1]).sort()
   const structure = (body: string) =>
@@ -114,6 +119,8 @@ test('journal translations retain every section, table, source link and FAQ', as
     const { en, sk } = await import(new URL(file, directory).href)
     if (!en?.body) continue
     count++
+    assert.ok(articleRoutes.includes(en.path), `${file}: missing article route`)
+    assert.ok(journalEn.some((article) => article.href === en.path), `${file}: missing journal card`)
     assert.deepEqual(
       [...leaves(sk).keys()].sort(),
       [...leaves(en).keys()].sort(),
@@ -125,7 +132,7 @@ test('journal translations retain every section, table, source link and FAQ', as
     assert.deepEqual(structure(sk.body), structure(en.body), `${file}: omitted section or table`)
     assert.deepEqual(links(sk.body), links(en.body), `${file}: omitted source or related link`)
   }
-  assert.equal(count, 12)
+  assert.equal(count, articleRoutes.length, 'every journal route needs bilingual article content')
 })
 
 test('distinct exercise FAQs must not become repeated generic answers', async () => {

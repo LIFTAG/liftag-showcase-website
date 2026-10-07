@@ -35,6 +35,13 @@ Relevant use cases include gym set logging, NFC/QR machine tags, free iOS/Androi
 ## Journal
 
 - [Journal](https://liftag.fit/journal): Index of LIFTAG comparisons, lifting notes, and gym-tracking articles.
+- [What workout logs reveal about real progress](https://liftag.fit/journal/what-workout-logs-reveal): Original review of GymStreak's 2026 product-data reports; repeated loads, estimated PRs, selection bias, and what logged activity can show.
+- [Why workout logging habits fade](https://liftag.fit/journal/why-workout-logging-habits-fade): Conti, Marzagão, Galpin and Schoenfeld's Fitbod adherence study, including its first-month inclusion threshold and the difference between logging retention and exercise adherence.
+- [Weekly set distribution](https://liftag.fit/journal/weekly-set-distribution): Calzavara and Barroso's small randomized study of the same prescribed sets across one or three days; completed volume load and muscle thickness are different outcomes.
+- [Velocity-based hypertrophy training](https://liftag.fit/journal/velocity-based-hypertrophy-training): Fitas and colleagues' bench-press training comparison; limited evidence of an added hypertrophy benefit from adjusting load with velocity.
+- [Can wearables auto-log workouts?](https://liftag.fit/journal/can-wearables-auto-log-workouts): Research on smartwatch arm pose, set boundaries, and age-related recognition gaps. These studies do not establish automatic weight-and-rep logging in LIFTAG.
+- [Can AI understand workout history?](https://liftag.fit/journal/can-ai-understand-workout-history): WearableQA, FitOne and synthetic multi-agent research, with the distinction between benchmark scores and reliable advice from real training logs.
+- [Can AI check exercise form?](https://liftag.fit/journal/can-ai-check-exercise-form): FitAQA's bodyweight-video benchmark and the limits of model perception and timing. Research coverage, not a LIFTAG camera-coaching feature announcement.
 - [How to track workouts](https://liftag.fit/journal/how-to-track-workouts): Definitive guide to logging sets, reps, rest, RPE, and progress for serious lifters.
 - [Best workout app for powerlifting](https://liftag.fit/journal/best-workout-app-for-powerlifting): Set tracking, % of 1RM programming, and PR history for powerlifters.
 - [QR and NFC gym tracking](https://liftag.fit/journal/qr-nfc-gym-tracking): How tap-and-scan machine workflows compare with manual exercise selection.

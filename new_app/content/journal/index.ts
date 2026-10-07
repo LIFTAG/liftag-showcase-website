@@ -2,6 +2,48 @@ import type { JournalSummary } from './types'
 
 export const en = [
   {
+    href: "/journal/what-workout-logs-reveal",
+    eyebrow: "RESEARCH",
+    title: "What workout logs reveal about real progress.",
+    body: "GymStreak analysed millions of logged sets and hundreds of thousands of consecutive lift sessions. The useful finding is not a magic programme: most progress is repetitive, uneven and easy to misread.",
+  },
+  {
+    href: "/journal/why-workout-logging-habits-fade",
+    eyebrow: "RESEARCH",
+    title: "Why workout logging habits fade.",
+    body: "A 2026 Fitbod cohort study followed app-recorded exercise for a year. Early consistency predicted longer engagement, but the study cannot tell whether people stopped training or only stopped logging.",
+  },
+  {
+    href: "/journal/weekly-set-distribution",
+    eyebrow: "RESEARCH",
+    title: "One long leg day or three short ones?",
+    body: "How to decide whether your weekly sets belong in one long session or several shorter workouts, using your own training log.",
+  },
+  {
+    href: "/journal/velocity-based-hypertrophy-training",
+    eyebrow: "RESEARCH",
+    title: "Does velocity-based training build more chest?",
+    body: "What bar-speed data can add to hypertrophy training, how to log it, and when a velocity sensor is worth using.",
+  },
+  {
+    href: "/journal/can-wearables-auto-log-workouts",
+    eyebrow: "RESEARCH",
+    title: "Can a smartwatch log your workout for you?",
+    body: "New research can reconstruct arm motion from one watch and find action boundaries with fewer labels. Here is what that means for automatic workout logging — and what is still missing.",
+  },
+  {
+    href: "/journal/can-ai-understand-workout-history",
+    eyebrow: "RESEARCH",
+    title: "Can AI understand your workout history?",
+    body: "WearableQA and FitOne test two sides of an AI coach: reading a long personal record and knowing fitness science. The results show progress, with large reliability gaps still open.",
+  },
+  {
+    href: "/journal/can-ai-check-exercise-form",
+    eyebrow: "RESEARCH",
+    title: "Can AI check your exercise form?",
+    body: "FitAQA tests whether video AI can see, judge and time form errors across 30 bodyweight exercises. The results show why fluent feedback is still not the same as reliable coaching.",
+  },
+  {
     href: '/tools/1rm-calculator',
     eyebrow: 'TOOL',
     title: '1RM calculator',
@@ -112,6 +154,48 @@ export const en = [
 ] satisfies JournalSummary[]
 
 export const sk = [
+  {
+    href: "/journal/what-workout-logs-reveal",
+    eyebrow: "VÝSKUM",
+    title: "Čo tréningové záznamy ukazujú o skutočnom progrese.",
+    body: "GymStreak analyzoval milióny zapísaných sérií a státisíce po sebe idúcich tréningov cviku. Výsledkom nie je zázračný program: skutočný progres sa opakuje, kolíše a ľahko sa číta nesprávne.",
+  },
+  {
+    href: "/journal/why-workout-logging-habits-fade",
+    eyebrow: "VÝSKUM",
+    title: "Prečo návyk zapisovať si tréning vyprchá.",
+    body: "Štúdia používateľov Fitbodu z roku 2026 sledovala zaznamenané cvičenie počas jedného roka. Pravidelnosť na začiatku predpovedala dlhšie zapojenie, no chýbajúci zápis nemusí znamenať koniec tréningu.",
+  },
+  {
+    href: "/journal/weekly-set-distribution",
+    eyebrow: "VÝSKUM",
+    title: "Jeden dlhý tréning nôh alebo tri krátke?",
+    body: "Ako podľa vlastného tréningového denníka rozhodnúť, či týždenné série patria do jedného dlhého alebo viacerých kratších tréningov.",
+  },
+  {
+    href: "/journal/velocity-based-hypertrophy-training",
+    eyebrow: "VÝSKUM",
+    title: "Vybuduje tréning podľa rýchlosti väčší hrudník?",
+    body: "Čo môže rýchlosť činky pridať k tréningu hypertrofie, ako ju zapisovať a kedy sa oplatí používať snímač.",
+  },
+  {
+    href: "/journal/can-wearables-auto-log-workouts",
+    eyebrow: "VÝSKUM",
+    title: "Dokážu hodinky zapísať tréning za teba?",
+    body: "Nový výskum vie z jedných hodiniek rekonštruovať pohyb ruky a s menším množstvom značiek hľadať hranice aktivity. Čo to znamená pre automatický tréningový denník a čo stále chýba.",
+  },
+  {
+    href: "/journal/can-ai-understand-workout-history",
+    eyebrow: "VÝSKUM",
+    title: "Dokáže AI pochopiť tvoju tréningovú históriu?",
+    body: "WearableQA a FitOne testujú dve strany AI trénera: čítanie dlhého osobného záznamu a znalosť tréningovej vedy. Výsledky ukazujú pokrok aj veľké medzery v spoľahlivosti.",
+  },
+  {
+    href: "/journal/can-ai-check-exercise-form",
+    eyebrow: "VÝSKUM",
+    title: "Dokáže AI skontrolovať techniku cviku?",
+    body: "FitAQA testuje, či video AI vidí, posúdi a časovo lokalizuje chyby pri 30 cvikoch s vlastnou váhou. Výsledky ukazujú, prečo plynulá spätná väzba ešte nie je spoľahlivý coaching.",
+  },
   {
     href: '/tools/1rm-calculator',
     eyebrow: 'NÁSTROJ',
