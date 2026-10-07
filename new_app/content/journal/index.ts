@@ -2,6 +2,48 @@ import type { JournalSummary } from './types'
 
 export const en = [
   {
+    href: "/journal/what-workout-logs-reveal",
+    eyebrow: "RESEARCH",
+    title: "What workout logs reveal about real progress.",
+    body: "GymStreak studied 27.5 million logged sets and more than 700,000 pairs of exercise sessions. The data shows why progress often happens without adding weight.",
+  },
+  {
+    href: "/journal/why-workout-logging-habits-fade",
+    eyebrow: "RESEARCH",
+    title: "Why workout logging habits fade.",
+    body: "A 2026 study followed Fitbod workout records for a year. Regular logging in the first month was linked with staying longer, but an empty log does not prove that training stopped.",
+  },
+  {
+    href: "/journal/weekly-set-distribution",
+    eyebrow: "RESEARCH",
+    title: "One long leg day or three short ones?",
+    body: "How to decide whether your weekly sets belong in one long session or several shorter workouts, using your own training log.",
+  },
+  {
+    href: "/journal/velocity-based-hypertrophy-training",
+    eyebrow: "RESEARCH",
+    title: "Does tracking bar speed help build chest muscle?",
+    body: "What bar-speed data can add to muscle-building workouts, what belongs in the log, and what this small bench-press study can tell us.",
+  },
+  {
+    href: "/journal/can-wearables-auto-log-workouts",
+    eyebrow: "RESEARCH",
+    title: "Can a smartwatch log your workout for you?",
+    body: "New studies show how a watch might follow arm movement and notice when an action starts or stops. Here is what that could add to a workout log, and what it still cannot do.",
+  },
+  {
+    href: "/journal/can-ai-understand-workout-history",
+    eyebrow: "RESEARCH",
+    title: "Can AI understand your workout history?",
+    body: "Can AI read months of workout data without mixing up dates, units or exercises? New studies test that skill separately from general fitness knowledge.",
+  },
+  {
+    href: "/journal/can-ai-check-exercise-form",
+    eyebrow: "RESEARCH",
+    title: "Can AI check your exercise form?",
+    body: "FitAQA tests AI on videos of 30 bodyweight exercises. Models still miss important details and struggle to tell exactly when a form error happens.",
+  },
+  {
     href: '/tools/1rm-calculator',
     eyebrow: 'TOOL',
     title: '1RM calculator',
@@ -112,6 +154,48 @@ export const en = [
 ] satisfies JournalSummary[]
 
 export const sk = [
+  {
+    href: "/journal/what-workout-logs-reveal",
+    eyebrow: "VÝSKUM",
+    title: "Čo tréningové záznamy ukazujú o skutočnom progrese.",
+    body: "GymStreak preskúmal 27,5 milióna sérií a viac než 700 000 dvojíc tréningov rovnakého cviku. Dáta ukazujú, prečo možno napredovať aj bez pridania váhy.",
+  },
+  {
+    href: "/journal/why-workout-logging-habits-fade",
+    eyebrow: "VÝSKUM",
+    title: "Prečo návyk zapisovať si tréning vyprchá.",
+    body: "Štúdia z roku 2026 sledovala záznamy používateľov Fitbodu počas jedného roka. Pravidelné zapisovanie v prvom mesiaci súviselo s dlhším používaním, no prázdny denník nedokazuje koniec cvičenia.",
+  },
+  {
+    href: "/journal/weekly-set-distribution",
+    eyebrow: "VÝSKUM",
+    title: "Jeden dlhý tréning nôh alebo tri krátke?",
+    body: "Ako podľa vlastného tréningového denníka rozhodnúť, či týždenné série patria do jedného dlhého alebo viacerých kratších tréningov.",
+  },
+  {
+    href: "/journal/velocity-based-hypertrophy-training",
+    eyebrow: "VÝSKUM",
+    title: "Pomáha meranie rýchlosti činky pri raste prsných svalov?",
+    body: "Čo môže rýchlosť činky pridať k tréningu na rast svalov, čo patrí do denníka a čo nám povie malá štúdia bench pressu.",
+  },
+  {
+    href: "/journal/can-wearables-auto-log-workouts",
+    eyebrow: "VÝSKUM",
+    title: "Dokážu hodinky zapísať tréning za teba?",
+    body: "Nové štúdie ukazujú, ako by hodinky mohli sledovať ruku a zachytiť začiatok či koniec pohybu. Čo to môže priniesť tréningovému denníku a čo stále nedokáže.",
+  },
+  {
+    href: "/journal/can-ai-understand-workout-history",
+    eyebrow: "VÝSKUM",
+    title: "Dokáže AI pochopiť tvoju tréningovú históriu?",
+    body: "Dokáže AI prečítať mesiace tréningov bez zámeny dátumov, jednotiek či cvikov? Nové štúdie skúšajú túto schopnosť oddelene od všeobecných fitness znalostí.",
+  },
+  {
+    href: "/journal/can-ai-check-exercise-form",
+    eyebrow: "VÝSKUM",
+    title: "Dokáže AI skontrolovať techniku cviku?",
+    body: "FitAQA testuje AI na videách 30 cvikov s vlastnou váhou. Modely stále prehliadajú dôležité detaily a majú problém presne určiť, kedy sa chyba v technike objaví.",
+  },
   {
     href: '/tools/1rm-calculator',
     eyebrow: 'NÁSTROJ',
