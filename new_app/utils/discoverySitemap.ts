@@ -39,8 +39,7 @@ export function discoverySitemapPaths(manifest: DiscoverySitemapManifest): strin
   for (const gym of manifest.gyms) {
     add(`/gyms/${gym.id}`)
     add(`/gyms/${gym.id}/equipment`)
-    for (const machineId of gym.equipmentIds)
-      add(`/machines/${machineId}?gym=${gym.id}`)
+    // /machines/<id>?gym=<gymId> stays live for printed QR stickers but is noindex, so omit it.
     for (const trainerId of gym.trainerIds)
       add(`/explore/trainers/${trainerId}`)
     for (const routineId of gym.routineIds)

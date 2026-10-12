@@ -48,10 +48,20 @@ test('builds canonical gym-rooted discovery paths without inventing entities', (
   }), [
     '/gyms/gym-1',
     '/gyms/gym-1/equipment',
-    '/machines/machine-1?gym=gym-1',
     '/explore/trainers/trainer-1',
     '/explore/routines/routine-1',
   ])
+})
+
+test('keeps gyms with no equipment and never emits gym-contextual machine URLs', () => {
+  const emptyGym = discoverySitemapPaths({
+    gyms: [{ id: 'gym-empty', equipmentIds: [], trainerIds: [], routineIds: [] }],
+  })
+  assert.deepEqual(emptyGym, ['/gyms/gym-empty', '/gyms/gym-empty/equipment'])
+  const withMachines = discoverySitemapPaths({
+    gyms: [{ id: 'gym-1', equipmentIds: ['machine-1', 'machine-2'], trainerIds: [], routineIds: [] }],
+  })
+  assert.equal(withMachines.some(path => path.includes('gym=') || path.includes('/machines/')), false)
 })
 
 test('rejects incomplete discovery inventory evidence', () => {

@@ -14,7 +14,7 @@ Relevant use cases include gym set logging, NFC/QR machine tags, free iOS/Androi
 - [Exercise library](https://liftag.fit/exercises): 400+ gym exercises with setup cues, muscles worked, machine mappings, and how to log each lift.
 - [Exercises by muscle](https://liftag.fit/muscles): Chest, back, shoulders, arms, legs, adductors, glutes, abs, and cardio hubs.
 - [Machine catalog](https://liftag.fit/machines): Gym machines and the exercises each one hosts.
-- [Public gym directory](https://liftag.fit/explore): Find gyms by name, address, equipment, distance, rating, and opening hours. Public gym and equipment detail URLs are listed in https://liftag.fit/sitemap-discovery.xml; affiliated public trainer and routine pages are included when available.
+- [Public gym directory](https://liftag.fit/explore): Find gyms by name, address, equipment, distance, rating, and opening hours. Public gym and equipment detail URLs are listed in https://liftag.fit/sitemap-discovery.xml; affiliated public trainer and routine pages are included when available. Gym-machine QR URLs (`/machines/<id>?gym=<gymId>`) stay live for printed stickers but are noindex and are not listed in the discovery sitemap.
 - [For lifters](https://liftag.fit/for-lifters): Set logging, rest timer, progress, PRs, history.
 - [For trainers](https://liftag.fit/for-trainers): Trainer profile, discovery, plan sharing, client progress.
 - [Become a coach](https://liftag.fit/become-a-coach): How trainers apply, get verified, and get discovered.
