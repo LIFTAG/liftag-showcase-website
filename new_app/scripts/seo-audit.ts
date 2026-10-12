@@ -17,9 +17,10 @@ const DISCOVERY_FAMILIES = [
 
 export function isGymContextualMachinePath(target: string): boolean {
   const url = new URL(target, SITE_ORIGIN)
+  const extra = [...url.searchParams.keys()].filter(key => key !== 'gym' && key !== 'lang')
   return new RegExp(`^/(?:sk/)?machines/${UUID_PATH}$`, 'i').test(url.pathname)
     && new RegExp(`^${UUID_PATH}$`, 'i').test(url.searchParams.get('gym') ?? '')
-    && url.searchParams.size === 1
+    && extra.length === 0
 }
 
 function discoveryFamilyIndex(target: string): number {

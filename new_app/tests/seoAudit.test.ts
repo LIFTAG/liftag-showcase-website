@@ -104,12 +104,17 @@ test('gym-machine query pages are expected-noindex and rejected from the discove
   const gym = '11111111-1111-4111-8111-111111111111'
   const machine = '22222222-2222-4222-8222-222222222222'
   const path = `/machines/${machine}?gym=${gym}`
-  const html = validHtml(path).replace('index,follow,max-image-preview:large', 'noindex,follow')
-  const result = auditHtml(path, html)
-  assert.equal(result.findings.filter(item => item.severity === 'error').length, 0)
-  const indexed = auditHtml(path, validHtml(path))
-  assert.ok(indexed.findings.some(item => item.code === 'robots.indexed_search'))
   const skPath = `/sk/machines/${machine}?gym=${gym}`
+  const withLang = `${path}&lang=en`
+  for (const target of [path, withLang]) {
+    const html = validHtml(target).replace('index,follow,max-image-preview:large', 'noindex,follow')
+    const result = auditHtml(target, html)
+    assert.equal(result.findings.filter(item => item.severity === 'error').length, 0, target)
+    const indexed = auditHtml(target, validHtml(target))
+    assert.ok(indexed.findings.some(item => item.code === 'robots.indexed_search'), target)
+  }
+  const skIndexed = auditHtml(skPath, validHtml(path, 'sk'))
+  assert.ok(skIndexed.findings.some(item => item.code === 'robots.indexed_search'))
   const xml = `<urlset><url><loc>https://liftag.fit${path}</loc></url><url><loc>https://liftag.fit${skPath}</loc></url></urlset>`
   const inventory = validateDiscoveryInventory(xml)
   assert.equal(inventory.paths.includes(path), false)

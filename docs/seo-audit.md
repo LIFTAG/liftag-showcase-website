@@ -35,7 +35,7 @@ The deployed audit is authoritative because catalog sitemap routes depend on liv
 - every catalog pagination URL reachable through the server-rendered `?page=N` links, with a 100-page safety bound per localized index;
 - representative exercise, machine, muscle, and localized gym-equipment search URLs, which must emit `noindex,follow` and canonicalize to their unfiltered route;
 - representative localized gym, gym equipment, affiliated trainer, and gym-attached public routine URLs when `sitemap-discovery.xml` is available;
-- gym-machine `/machines/<uuid>?gym=<gymId>` URLs (EN and SK), which must emit `noindex,follow` and must not appear in `sitemap-discovery.xml`;
+- gym-machine `/machines/<uuid>?gym=<gymId>` URLs, which the audit classifies as expected-noindex and rejects if they appear in `sitemap-discovery.xml`;
 - titles, descriptions, canonical URLs, language, H1 count, indexability, hreflang, social metadata, valid JSON-LD, and server-rendered text;
 - `robots.txt`, the static and catalog sitemaps, `llms.txt`, `llms-full.txt`, and explicit access for major answer/search agents.
 
