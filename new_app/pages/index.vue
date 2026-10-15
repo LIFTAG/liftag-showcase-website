@@ -54,6 +54,17 @@ useHead({
       media: '(min-width: 769px)',
       fetchpriority: 'high',
     },
+    // The two tilted rear phones of the phone hero animate in from first paint
+    // and Chrome scores them as larger than the front phone, so they decide
+    // phone LCP. Fetch them with the front screenshot instead of at layout.
+    ...['hero-workout-360', 'hero-progress-360'].map(name => ({
+      rel: 'preload',
+      as: 'image',
+      type: 'image/webp',
+      href: `/assets/screens/${name}.webp`,
+      media: '(max-width: 768px)',
+      fetchpriority: 'high',
+    } as const)),
   ],
 })
 
