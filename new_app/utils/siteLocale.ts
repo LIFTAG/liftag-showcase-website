@@ -6,7 +6,8 @@ export function siteLocaleFontPreloads(locale: string) {
   // Big Shoulders is left out: only the desktop nav uses it, so SiteNav
   // preloads its latin-ext cut itself, desktop-only. On phones it was 20KB
   // racing the hero images that decide LCP.
-  return ['inter', 'space-grotesk', 'jetbrains-mono'].map((font) => `/assets/fonts/${font}-latin-ext.woff2`)
+  // The -cs cuts hold just the SK/CS letters (3-6KB each, see main.css).
+  return ['inter', 'space-grotesk', 'jetbrains-mono'].map((font) => `/assets/fonts/${font}-latin-ext-cs.woff2`)
 }
 
 export function siteLocaleNeedsLatinExt(locale: string) {

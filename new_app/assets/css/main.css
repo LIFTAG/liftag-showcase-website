@@ -1,6 +1,14 @@
 /* LIFTAG - Global tokens, typography, atomic primitives.
    Ported from the design bundle's index.html <style> + styles/liftag.css. */
 
+/* Each latin-ext face is split in two. The -cs file holds only the Slovak and
+   Czech letters outside latin-1 (Č Ď Ě Ĺ Ľ Ň Ŕ Ř Š Ť Ů Ž, 3-6KB); the full
+   latin-ext file now only serves every other extended glyph. Slovak pages used
+   to download (and preload) 85KB of Inter latin-ext for those 24 letters. The
+   ranges are disjoint, so a page fetches only the files its text uses.
+   Regenerate a -cs file from its latin-ext source with fontTools >= 4.55:
+     pyftsubset <face>-latin-ext.woff2 --flavor=woff2 --layout-features='*'
+       --output-file=<face>-latin-ext-cs.woff2 --unicodes=<the -cs unicode-range> */
 @font-face {
   font-family: 'Inter';
   font-style: normal;
@@ -8,8 +16,17 @@
   /* swap, not optional: SK/CS carons live here. optional drops the subset
      if it misses first paint, so š/č/ž fall back to a different face. */
   font-display: swap;
+  src: url('/assets/fonts/inter-latin-ext-cs.woff2') format('woff2');
+  unicode-range: U+010C-010F, U+011A-011B, U+0139-013A, U+013D-013E, U+0147-0148, U+0154-0155, U+0158-0159, U+0160-0161, U+0164-0165, U+016E-016F, U+017D-017E;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
   src: url('/assets/fonts/inter-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  unicode-range: U+0100-010B, U+0110-0119, U+011C-0138, U+013B-013C, U+013F-0146, U+0149-0153, U+0156-0157, U+015A-015F, U+0162-0163, U+0166-016D, U+0170-017C, U+017F-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
 @font-face {
@@ -37,8 +54,17 @@
   /* swap, not optional: SK/CS carons live here. optional drops the subset
      if it misses first paint, so š/č/ž fall back to a different mono. */
   font-display: swap;
+  src: url('/assets/fonts/jetbrains-mono-latin-ext-cs.woff2') format('woff2');
+  unicode-range: U+010C-010F, U+011A-011B, U+0139-013A, U+013D-013E, U+0147-0148, U+0154-0155, U+0158-0159, U+0160-0161, U+0164-0165, U+016E-016F, U+017D-017E;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
   src: url('/assets/fonts/jetbrains-mono-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  unicode-range: U+0100-010B, U+0110-0119, U+011C-0138, U+013B-013C, U+013F-0146, U+0149-0153, U+0156-0157, U+015A-015F, U+0162-0163, U+0166-016D, U+0170-017C, U+017F-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
 @font-face {
@@ -65,12 +91,22 @@
   font-weight: 300 700;
   /* swap, not optional: SK/CS carons live here. optional drops the subset
      if it misses first paint, and the fallback synthesizes Ž as Z + a
-     full-size caron. This woff2 is patched: uni030C.case is scaled down so
-     Ž/Č/Š don't collide at display size. Replacing it from Google Fonts
-     restores the oversized mark. */
+     full-size caron. Cut from the patched latin-ext file below. */
+  font-display: swap;
+  src: url('/assets/fonts/space-grotesk-latin-ext-cs.woff2') format('woff2');
+  unicode-range: U+010C-010F, U+011A-011B, U+0139-013A, U+013D-013E, U+0147-0148, U+0154-0155, U+0158-0159, U+0160-0161, U+0164-0165, U+016E-016F, U+017D-017E;
+}
+
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 300 700;
+  /* Patched: uni030C.case is scaled down so Ž/Č/Š don't collide at display
+     size, and the -cs subset is cut from this file. Replacing it from Google
+     Fonts restores the oversized mark. */
   font-display: swap;
   src: url('/assets/fonts/space-grotesk-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  unicode-range: U+0100-010B, U+0110-0119, U+011C-0138, U+013B-013C, U+013F-0146, U+0149-0153, U+0156-0157, U+015A-015F, U+0162-0163, U+0166-016D, U+0170-017C, U+017F-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
 @font-face {
@@ -109,8 +145,17 @@
   font-style: normal;
   font-weight: 700;
   font-display: swap;
+  src: url('/assets/fonts/big-shoulders-latin-ext-cs.woff2') format('woff2');
+  unicode-range: U+010C-010F, U+011A-011B, U+0139-013A, U+013D-013E, U+0147-0148, U+0154-0155, U+0158-0159, U+0160-0161, U+0164-0165, U+016E-016F, U+017D-017E;
+}
+
+@font-face {
+  font-family: 'Big Shoulders';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
   src: url('/assets/fonts/big-shoulders-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  unicode-range: U+0100-010B, U+0110-0119, U+011C-0138, U+013B-013C, U+013F-0146, U+0149-0153, U+0156-0157, U+015A-015F, U+0162-0163, U+0166-016D, U+0170-017C, U+017F-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
 @font-face {

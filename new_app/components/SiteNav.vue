@@ -25,7 +25,7 @@ const { locale, basePath, href } = useSiteLocale()
 // the app handoff routes) and phone viewports never spend early bandwidth on it.
 // Slovak and Czech labels also need the latin-ext cut for their carons.
 useHead(() => ({
-  link: ['latin', ...(siteLocaleNeedsLatinExt(locale.value) ? ['latin-ext'] : [])].map(subset => ({
+  link: ['latin', ...(siteLocaleNeedsLatinExt(locale.value) ? ['latin-ext-cs'] : [])].map(subset => ({
     rel: 'preload',
     as: 'font',
     type: 'font/woff2',
