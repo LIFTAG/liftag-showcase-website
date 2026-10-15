@@ -3,6 +3,7 @@ import { scrollToTrainerHandoff } from '~/utils/dashboardScroll'
 import { discoveryHref } from '~/utils/discovery'
 import { NAV_ACTIVE_PREFIXES, navCurrent, type NavCurrent } from '~/utils/navActive'
 import { en, sk } from '~/i18n/messages/shell'
+import { siteLocaleNeedsLatinExt } from '~/utils/siteLocale'
 
 const props = withDefaults(defineProps<{
   deferred?: boolean
@@ -12,26 +13,28 @@ const props = withDefaults(defineProps<{
   visible: true,
 })
 
-// The desktop nav row is the only thing set in Big Shoulders. Preload it from
-// here rather than from the global head, so pages without this nav (/demo,
-// the app handoff routes) and phone viewports never spend early bandwidth on it.
-useHead({
-  link: [{
-    rel: 'preload',
-    as: 'font',
-    type: 'font/woff2',
-    crossorigin: '',
-    href: '/assets/fonts/big-shoulders-latin.woff2',
-    media: '(min-width: 769px)',
-  }],
-})
-
 const scrolled = ref(false)
 const open = ref(false)
 const isMobileNav = ref(false)
 const navRoot = ref<HTMLElement | null>(null)
 const route = useRoute()
 const { locale, basePath, href } = useSiteLocale()
+
+// The desktop nav row is the only thing set in Big Shoulders. Preload it from
+// here rather than from the global head, so pages without this nav (/demo,
+// the app handoff routes) and phone viewports never spend early bandwidth on it.
+// Slovak and Czech labels also need the latin-ext cut for their carons.
+useHead(() => ({
+  link: ['latin', ...(siteLocaleNeedsLatinExt(locale.value) ? ['latin-ext'] : [])].map(subset => ({
+    rel: 'preload',
+    as: 'font',
+    type: 'font/woff2',
+    crossorigin: '',
+    href: `/assets/fonts/big-shoulders-${subset}.woff2`,
+    media: '(min-width: 769px)',
+  })),
+}))
+
 const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 const localeReady = ref(false)
 onMounted(() => { localeReady.value = true })

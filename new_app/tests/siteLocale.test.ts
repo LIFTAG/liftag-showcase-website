@@ -82,13 +82,13 @@ test('unprefixed share URLs retain identity, variants and anchors while replacin
   }
 })
 
-test('Slovak and Czech pages preload every latin-ext face used by UI copy', () => {
+test('Slovak and Czech pages preload the latin-ext faces used by page copy', () => {
   assert.deepEqual(siteLocaleFontPreloads('en'), [])
+  // Big Shoulders (desktop nav only) is preloaded by SiteNav, desktop-only.
   assert.deepEqual(siteLocaleFontPreloads('sk'), [
     '/assets/fonts/inter-latin-ext.woff2',
     '/assets/fonts/space-grotesk-latin-ext.woff2',
     '/assets/fonts/jetbrains-mono-latin-ext.woff2',
-    '/assets/fonts/big-shoulders-latin-ext.woff2',
   ])
   assert.deepEqual(siteLocaleFontPreloads('cs'), siteLocaleFontPreloads('sk'))
 })
