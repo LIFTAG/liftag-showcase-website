@@ -158,6 +158,9 @@ function teardown() {
 }
 function failed(event?: Event) {
   event?.preventDefault();
+  // A canvas replaced by a motion toggle can still report its context lost
+  // (a failed probe releases it); that must not tear down the new one.
+  if (event && event.target !== canvas.value) return;
   generation++;
   teardown();
   fallback.value = true;
@@ -173,7 +176,8 @@ async function start() {
   // ever creates one. Save-Data never starts the stage, so never probes.
   const probe = saveData
     ? { webgl2: false, maxTextureSize: 0, probeFailed: false }
-    : probeCanvasWebGL2(canvas.value);
+    : await probeCanvasWebGL2(canvas.value);
+  if (generation !== attempt || props.reduced || !canvas.value) return;
   const device = experienceDevice(
     probe,
     saveData,

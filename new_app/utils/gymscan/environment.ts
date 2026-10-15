@@ -242,8 +242,8 @@ export interface FloorMaps {
   dispose: () => void
 }
 
-/** Rows of the 512 map per paint step: a few milliseconds of pixel work. */
-const FLOOR_PAINT_ROWS = 64
+/** Rows per paint step: about a millisecond of pixel work on a laptop, a few on a phone. */
+const FLOOR_PAINT_ROWS = 16
 
 /**
  * Floor maps whose textures exist (so materials can be built on them) but
@@ -359,20 +359,12 @@ function* paintFloorMaps(
   // pebble texture of the mat surface, at a scale that stays sub-pixel until
   // the camera is right down on the floor.
   const hImg = hc.createImageData(S, S)
+  const hOut = hImg.data
   const grain = new Float32Array(S * S)
   for (let i = 0; i < grain.length; i++) grain[i] = rnd()
-  const at = (x: number, y: number) => grain[((y + S) % S) * S + ((x + S) % S)]!
-  for (let y = 0; y < S; y++) {
-    for (let x = 0; x < S; x++) {
-      // 3x3 box blur, twice over, keeps the grain a couple of texels wide.
-      let sum = 0
-      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) sum += at(x + dx, y + dy)
-      const v = 118 + (sum / 9 - 0.5) * 34
-      const o = (y * S + x) * 4
-      hImg.data[o] = hImg.data[o + 1] = hImg.data[o + 2] = Math.round(v)
-      hImg.data[o + 3] = 255
-    }
-    if ((y + 1) % FLOOR_PAINT_ROWS === 0) yield
+  for (let y = 0; y < S; y += FLOOR_PAINT_ROWS) {
+    floorHeightRows(S, grain, hOut, y, Math.min(S, y + FLOOR_PAINT_ROWS))
+    yield
   }
   hc.putImageData(hImg, 0, 0)
 
@@ -394,20 +386,62 @@ function* paintFloorMaps(
   // sample indices keeps the tiling seamless.
   const hData = hc.getImageData(0, 0, S, S).data
   const nImg = hc.createImageData(S, S)
-  const h = (x: number, y: number) => hData[(((y + S) % S) * S + ((x + S) % S)) * 4]! / 255
-  const strength = 1.1
-  for (let y = 0; y < S; y++) {
-    for (let x = 0; x < S; x++) {
-      const dx = (h(x + 1, y) - h(x - 1, y)) * strength
-      const dy = (h(x, y + 1) - h(x, y - 1)) * strength
-      const len = Math.hypot(dx, dy, 1)
-      const o = (y * S + x) * 4
-      nImg.data[o] = Math.round((-dx / len * 0.5 + 0.5) * 255)
-      nImg.data[o + 1] = Math.round((-dy / len * 0.5 + 0.5) * 255)
-      nImg.data[o + 2] = Math.round((1 / len * 0.5 + 0.5) * 255)
-      nImg.data[o + 3] = 255
-    }
-    if ((y + 1) % FLOOR_PAINT_ROWS === 0) yield
+  const nOut = nImg.data
+  for (let y = 0; y < S; y += FLOOR_PAINT_ROWS) {
+    floorNormalRows(S, hData, nOut, y, Math.min(S, y + FLOOR_PAINT_ROWS))
+    yield
   }
   normal.getContext('2d')!.putImageData(nImg, 0, 0)
+}
+
+/**
+ * Height texels for rows [y0, y1): a 3x3 wrapped box blur of the grain,
+ * written as grey RGBA. The nine samples are summed in a fixed order (row
+ * above, own row, row below; left to right) - tests/gymFloorMaps.test.ts
+ * pins this to the per-texel lookup it replaced, byte for byte.
+ */
+export function floorHeightRows(S: number, grain: Float32Array, out: Uint8ClampedArray, y0: number, y1: number) {
+  for (let y = y0; y < y1; y++) {
+    const up = ((y - 1 + S) % S) * S
+    const mid = y * S
+    const down = ((y + 1) % S) * S
+    for (let x = 0; x < S; x++) {
+      const l = (x - 1 + S) % S
+      const r = (x + 1) % S
+      // 3x3 box blur, twice over, keeps the grain a couple of texels wide.
+      let sum = 0
+      sum += grain[up + l]!; sum += grain[up + x]!; sum += grain[up + r]!
+      sum += grain[mid + l]!; sum += grain[mid + x]!; sum += grain[mid + r]!
+      sum += grain[down + l]!; sum += grain[down + x]!; sum += grain[down + r]!
+      const v = 118 + (sum / 9 - 0.5) * 34
+      const o = (mid + x) * 4
+      out[o] = out[o + 1] = out[o + 2] = Math.round(v)
+      out[o + 3] = 255
+    }
+  }
+}
+
+/**
+ * Tangent-space normals for rows [y0, y1): a wrapped central difference of
+ * the height map's red channel. Pinned like floorHeightRows.
+ */
+export function floorNormalRows(S: number, heights: Uint8ClampedArray, out: Uint8ClampedArray, y0: number, y1: number) {
+  const strength = 1.1
+  for (let y = y0; y < y1; y++) {
+    const up = ((y - 1 + S) % S) * S
+    const mid = y * S
+    const down = ((y + 1) % S) * S
+    for (let x = 0; x < S; x++) {
+      const l = (x - 1 + S) % S
+      const r = (x + 1) % S
+      const dx = (heights[(mid + r) * 4]! / 255 - heights[(mid + l) * 4]! / 255) * strength
+      const dy = (heights[(down + x) * 4]! / 255 - heights[(up + x) * 4]! / 255) * strength
+      const len = Math.hypot(dx, dy, 1)
+      const o = (mid + x) * 4
+      out[o] = Math.round((-dx / len * 0.5 + 0.5) * 255)
+      out[o + 1] = Math.round((-dy / len * 0.5 + 0.5) * 255)
+      out[o + 2] = Math.round((1 / len * 0.5 + 0.5) * 255)
+      out[o + 3] = 255
+    }
+  }
 }

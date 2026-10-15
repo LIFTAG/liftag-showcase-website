@@ -18,11 +18,11 @@ const clamp = (n: number) => Math.max(0, Math.min(1, n))
 type IdleJob = () => void
 const idleJobs: IdleJob[] = []
 let idlePending = false
-function pumpIdle(deadline?: IdleDeadline) {
+function pumpIdle() {
+  // One build per slice: a build is a raster plus a getImageData and a facet
+  // scan, tens of milliseconds on a phone, so two would make a long task.
   idlePending = false
-  do {
-    idleJobs.shift()?.()
-  } while (idleJobs.length && deadline && !deadline.didTimeout && deadline.timeRemaining() > 8)
+  idleJobs.shift()?.()
   if (idleJobs.length) scheduleIdle()
 }
 function scheduleIdle() {
