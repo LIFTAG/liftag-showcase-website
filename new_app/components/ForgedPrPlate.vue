@@ -43,6 +43,7 @@ import {
   plateScrollTilt,
 } from '../utils/forgedPlate'
 import { holoViewportProgress } from '../utils/holoFoil'
+import { beginProgramLink, type ProgramLink } from '../utils/glProgram'
 
 const CAM_Z = PLATE_CAM_Z
 const FOCAL = PLATE_FOCAL
@@ -62,6 +63,10 @@ let running = false
 let intersecting = false
 let disposed = true
 let contextBroken = false
+// Context whose program is still linking in the GPU process. init() starts
+// it, pollLink() finishes the setup on a later frame once the driver is done.
+let pendingInit: { context: WebGLRenderingContext, canvas: HTMLCanvasElement, link: ProgramLink } | null = null
+let linkPollRaf = 0
 let reduceMotion = false
 let startedAt = 0
 
@@ -363,19 +368,6 @@ const fragmentSource = /* glsl */ `
   }
 `
 
-function compile(context: WebGLRenderingContext, type: number, source: string) {
-  const shader = context.createShader(type)
-  if (!shader) return null
-  context.shaderSource(shader, source)
-  context.compileShader(shader)
-  if (!context.getShaderParameter(shader, context.COMPILE_STATUS)) {
-    if (import.meta.dev) console.error('[ForgedPrPlate]', context.getShaderInfoLog(shader))
-    context.deleteShader(shader)
-    return null
-  }
-  return shader
-}
-
 function drawStamp(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext('2d')
   if (!ctx) return
@@ -539,7 +531,7 @@ function stopLoop() {
 
 function init() {
   const host = mount.value
-  if (!host || !disposed || contextBroken) return
+  if (!host || !disposed || contextBroken || pendingInit) return
 
   const canvas = document.createElement('canvas')
   const attrs: WebGLContextAttributes = {
@@ -559,27 +551,48 @@ function init() {
     return
   }
 
-  const vs = compile(context, context.VERTEX_SHADER, vertexSource)
-  const fs = compile(context, context.FRAGMENT_SHADER, fragmentSource)
-  const prog = vs && fs ? context.createProgram() : null
-
-  if (!vs || !fs || !prog) {
-    if (vs) context.deleteShader(vs)
-    if (fs) context.deleteShader(fs)
+  const link = beginProgramLink(context, vertexSource, fragmentSource, '[ForgedPrPlate]')
+  if (!link) {
     contextBroken = true
     return
   }
 
-  context.attachShader(prog, vs)
-  context.attachShader(prog, fs)
-  context.linkProgram(prog)
-  context.deleteShader(vs)
-  context.deleteShader(fs)
+  pendingInit = { context, canvas, link }
+  pollLink()
+}
 
-  if (!context.getProgramParameter(prog, context.LINK_STATUS)) {
-    if (import.meta.dev) console.error('[ForgedPrPlate]', context.getProgramInfoLog(prog))
-    context.deleteProgram(prog)
+function cancelPendingInit() {
+  if (linkPollRaf) cancelAnimationFrame(linkPollRaf)
+  linkPollRaf = 0
+  if (!pendingInit) return
+  pendingInit.link.discard()
+  pendingInit.context.getExtension('WEBGL_lose_context')?.loseContext()
+  pendingInit = null
+}
+
+function pollLink() {
+  linkPollRaf = 0
+  const pending = pendingInit
+  if (!pending) return
+  const status = pending.link.status()
+  if (status === null) {
+    linkPollRaf = requestAnimationFrame(pollLink)
+    return
+  }
+  pendingInit = null
+  if (!status) {
+    pending.context.getExtension('WEBGL_lose_context')?.loseContext()
     contextBroken = true
+    return
+  }
+  finishInit(pending.context, pending.canvas, pending.link.program)
+}
+
+function finishInit(context: WebGLRenderingContext, canvas: HTMLCanvasElement, prog: WebGLProgram) {
+  const host = mount.value
+  if (!host) {
+    context.deleteProgram(prog)
+    context.getExtension('WEBGL_lose_context')?.loseContext()
     return
   }
 
@@ -686,6 +699,7 @@ function disposeScene() {
 function syncVisibility() {
   if (!intersecting || document.hidden) {
     stopLoop()
+    if (!intersecting) cancelPendingInit()
     if (!intersecting && !disposed) disposeScene()
     return
   }
@@ -764,6 +778,7 @@ onBeforeUnmount(() => {
   motionMql = null
   onMotionChange = null
   stopLoop()
+  cancelPendingInit()
   disposeScene()
 })
 </script>

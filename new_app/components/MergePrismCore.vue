@@ -37,6 +37,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useMergeParticleField } from '../composables/useMergeParticleField'
 import { prismBufferScale } from '../utils/mergePrism'
+import { beginProgramLink, type ProgramLink } from '../utils/glProgram'
 import {
   SHARD_FLOATS_PER_VERT,
   SHARD_MAX_VERTS,
@@ -97,6 +98,14 @@ let watching = false
 let intersecting = false
 let disposed = true
 let contextBroken = false
+// Context whose programs are still linking in the GPU process; see glProgram.
+// watchArmed() calls init() every frame while disposed, which polls this.
+let pendingInit: {
+  context: WebGLRenderingContext
+  canvas: HTMLCanvasElement
+  link: ProgramLink
+  shardLink: ProgramLink | null
+} | null = null
 let io: IntersectionObserver | null = null
 let resizeObserver: ResizeObserver | null = null
 let resizeTimer: ReturnType<typeof setTimeout> | null = null
@@ -542,46 +551,6 @@ const shardFragmentSource = /* glsl */ `
   }
 `
 
-function compile(context: WebGLRenderingContext, type: number, source: string) {
-  const shader = context.createShader(type)
-  if (!shader) return null
-  context.shaderSource(shader, source)
-  context.compileShader(shader)
-  if (!context.getShaderParameter(shader, context.COMPILE_STATUS)) {
-    // A silent bail here looks identical to "the section just does not render",
-    // and the shader is interpolated from JS constants, so keep the log in dev.
-    if (import.meta.dev) console.error('[MergePrismCore]', context.getShaderInfoLog(shader))
-    context.deleteShader(shader)
-    return null
-  }
-  return shader
-}
-
-function linkProgram(
-  context: WebGLRenderingContext,
-  vsSource: string,
-  fsSource: string,
-) {
-  const vs = compile(context, context.VERTEX_SHADER, vsSource)
-  const fs = compile(context, context.FRAGMENT_SHADER, fsSource)
-  const prog = vs && fs ? context.createProgram() : null
-  if (!vs || !fs || !prog) {
-    if (vs) context.deleteShader(vs)
-    if (fs) context.deleteShader(fs)
-    return null
-  }
-  context.attachShader(prog, vs)
-  context.attachShader(prog, fs)
-  context.linkProgram(prog)
-  context.deleteShader(vs)
-  context.deleteShader(fs)
-  if (!context.getProgramParameter(prog, context.LINK_STATUS)) {
-    if (import.meta.dev) console.error('[MergePrismCore]', context.getProgramInfoLog(prog))
-    context.deleteProgram(prog)
-    return null
-  }
-  return prog
-}
 
 function buildPlanes(out: Float32Array, rx: number, ry: number, rz: number) {
   const cx = Math.cos(rx)
@@ -666,6 +635,10 @@ function resizeBuffer() {
 }
 
 function init() {
+  if (pendingInit) {
+    pollLink()
+    return
+  }
   const host = mount.value
   if (!host || !disposed || contextBroken) return
 
@@ -694,9 +667,60 @@ function init() {
     return
   }
 
-  const prog = linkProgram(context, vertexSource, fragmentSource)
-  if (!prog) {
+  // Failures keep their dev log in beginProgramLink: the shader is interpolated
+  // from JS constants, and a silent bail looks like "the section just does not
+  // render".
+  const link = beginProgramLink(context, vertexSource, fragmentSource, '[MergePrismCore]')
+  if (!link) {
     contextBroken = true
+    return
+  }
+  const shardLink = beginProgramLink(context, shardVertexSource, shardFragmentSource, '[MergePrismCore]')
+  pendingInit = { context, canvas, link, shardLink }
+  pollLink()
+}
+
+function cancelPendingInit() {
+  if (!pendingInit) return
+  pendingInit.link.discard()
+  pendingInit.shardLink?.discard()
+  pendingInit.context.getExtension('WEBGL_lose_context')?.loseContext()
+  pendingInit = null
+}
+
+function pollLink() {
+  const pending = pendingInit
+  if (!pending) return
+  const status = pending.link.status()
+  if (status === null) return
+  if (!status) {
+    pendingInit = null
+    pending.shardLink?.discard()
+    pending.context.getExtension('WEBGL_lose_context')?.loseContext()
+    contextBroken = true
+    return
+  }
+  // The shatter pass is optional, as before: a failed link just skips it.
+  const shardStatus = pending.shardLink ? pending.shardLink.status() : false
+  if (shardStatus === null) return
+  pendingInit = null
+  finishInit(
+    pending.context,
+    pending.canvas,
+    pending.link.program,
+    shardStatus && pending.shardLink ? pending.shardLink.program : null,
+  )
+}
+
+function finishInit(
+  context: WebGLRenderingContext,
+  canvas: HTMLCanvasElement,
+  prog: WebGLProgram,
+  shatter: WebGLProgram | null,
+) {
+  const host = mount.value
+  if (!host) {
+    context.getExtension('WEBGL_lose_context')?.loseContext()
     return
   }
 
@@ -730,7 +754,6 @@ function init() {
     uIconCol: context.getUniformLocation(prog, 'uIconCol[0]'),
   }
 
-  const shatter = linkProgram(context, shardVertexSource, shardFragmentSource)
   if (shatter) {
     shardProgram = shatter
     shardBuffer = context.createBuffer()
@@ -800,6 +823,7 @@ function disposeScene() {
 
 function releaseField() {
   stopLoop()
+  cancelPendingInit()
   disposeScene()
   contextBroken = false
 }
@@ -1055,6 +1079,7 @@ onBeforeUnmount(() => {
     onVisibility = null
   }
   stopLoop()
+  cancelPendingInit()
   disposeScene()
 })
 </script>

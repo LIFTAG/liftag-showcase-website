@@ -20,6 +20,7 @@
 //   • pause while the document is hidden
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { TOKEN_DESKTOP_DPR_CAP, tokenBufferScale } from '../utils/tapToken'
+import { beginProgramLink, type ProgramLink } from '../utils/glProgram'
 import { en, sk } from '~/i18n/messages/gymDemo'
 
 const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
@@ -56,6 +57,9 @@ let running = false
 let intersecting = false
 let disposed = true
 let contextBroken = false
+// Context whose program is still linking in the GPU process; see glProgram.
+let pendingInit: { context: WebGLRenderingContext, canvas: HTMLCanvasElement, link: ProgramLink } | null = null
+let linkPollRaf = 0
 let io: IntersectionObserver | null = null
 let resizeObserver: ResizeObserver | null = null
 let resizeTimer: ReturnType<typeof setTimeout> | null = null
@@ -413,18 +417,6 @@ const fragmentSource = /* glsl */ `
   }
 `
 
-function compile(context: WebGLRenderingContext, type: number, source: string) {
-  const shader = context.createShader(type)
-  if (!shader) return null
-  context.shaderSource(shader, source)
-  context.compileShader(shader)
-  if (!context.getShaderParameter(shader, context.COMPILE_STATUS)) {
-    if (import.meta.dev) console.error('[TapTokenCore]', context.getShaderInfoLog(shader))
-    context.deleteShader(shader)
-    return null
-  }
-  return shader
-}
 
 function drawDecal(size: number) {
   const canvas = document.createElement('canvas')
@@ -544,7 +536,12 @@ function paintStill() {
   ctx.arc(320, 320, 292, 0, Math.PI * 2)
   ctx.fill()
 
-  stillUrl.value = still.toDataURL('image/png')
+  // toBlob encodes off the main thread; toDataURL blocked it for the full PNG
+  // encode of a 640px canvas.
+  still.toBlob((blob) => {
+    if (!blob || !mount.value) return
+    stillUrl.value = URL.createObjectURL(blob)
+  }, 'image/png')
 }
 
 function currentBufferScale() {
@@ -586,7 +583,7 @@ function uploadDecal(context: WebGLRenderingContext) {
 
 function init() {
   const host = mount.value
-  if (!host || !disposed || contextBroken) return
+  if (!host || !disposed || contextBroken || pendingInit) return
 
   const canvas = document.createElement('canvas')
   const attrs: WebGLContextAttributes = {
@@ -606,27 +603,50 @@ function init() {
     return
   }
 
-  const vs = compile(context, context.VERTEX_SHADER, vertexSource)
-  const fs = compile(context, context.FRAGMENT_SHADER, fragmentSource)
-  const prog = vs && fs ? context.createProgram() : null
-
-  if (!vs || !fs || !prog) {
-    if (vs) context.deleteShader(vs)
-    if (fs) context.deleteShader(fs)
+  const link = beginProgramLink(context, vertexSource, fragmentSource, '[TapTokenCore]')
+  if (!link) {
     contextBroken = true
     return
   }
 
-  context.attachShader(prog, vs)
-  context.attachShader(prog, fs)
-  context.linkProgram(prog)
-  context.deleteShader(vs)
-  context.deleteShader(fs)
+  pendingInit = { context, canvas, link }
+  pollLink()
+}
 
-  if (!context.getProgramParameter(prog, context.LINK_STATUS)) {
-    if (import.meta.dev) console.error('[TapTokenCore]', context.getProgramInfoLog(prog))
-    context.deleteProgram(prog)
+function cancelPendingInit() {
+  if (linkPollRaf) cancelAnimationFrame(linkPollRaf)
+  linkPollRaf = 0
+  if (!pendingInit) return
+  pendingInit.link.discard()
+  pendingInit.context.getExtension('WEBGL_lose_context')?.loseContext()
+  pendingInit = null
+}
+
+function pollLink() {
+  linkPollRaf = 0
+  const pending = pendingInit
+  if (!pending) return
+  const status = pending.link.status()
+  if (status === null) {
+    linkPollRaf = requestAnimationFrame(pollLink)
+    return
+  }
+  pendingInit = null
+  if (!status) {
+    pending.context.getExtension('WEBGL_lose_context')?.loseContext()
     contextBroken = true
+    return
+  }
+  finishInit(pending.context, pending.canvas, pending.link.program)
+  // The observer only starts the loop when init() finished synchronously.
+  if (!disposed && intersecting) startLoop()
+}
+
+function finishInit(context: WebGLRenderingContext, canvas: HTMLCanvasElement, prog: WebGLProgram) {
+  const host = mount.value
+  if (!host) {
+    context.deleteProgram(prog)
+    context.getExtension('WEBGL_lose_context')?.loseContext()
     return
   }
 
@@ -718,6 +738,7 @@ function disposeScene() {
 
 function releaseField() {
   stopLoop()
+  cancelPendingInit()
   disposeScene()
   contextBroken = false
 }
@@ -866,8 +887,13 @@ onMounted(async () => {
     // Decal falls back to the system stack already listed on the fillText calls.
   }
 
-  paintStill()
-  if (reduceMotion.value) return
+  // The still is only ever shown under reduced motion. Painting and encoding
+  // it for everyone was a ~1s long task on a throttled phone, at page load,
+  // because ScanSection hydrates inside the hero's 200px margin.
+  if (reduceMotion.value) {
+    paintStill()
+    return
+  }
 
   dpr = currentBufferScale()
 
@@ -924,7 +950,9 @@ onBeforeUnmount(() => {
     onVisibility = null
   }
   stopLoop()
+  cancelPendingInit()
   disposeScene()
+  if (stillUrl.value) URL.revokeObjectURL(stillUrl.value)
 })
 </script>
 
