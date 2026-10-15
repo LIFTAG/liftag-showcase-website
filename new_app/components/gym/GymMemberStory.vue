@@ -27,6 +27,7 @@ const mouse = useSharedMouse();
 const root = useTemplateRef<HTMLElement>('root');
 const pane = useTemplateRef<HTMLElement>('pane');
 const phone = useTemplateRef<HTMLElement>('phone');
+const rail = useTemplateRef<HTMLOListElement>('rail');
 const video = useTemplateRef<HTMLVideoElement>('video');
 const beat = shallowRef<MemberBeat>(0);
 const inView = shallowRef(false);
@@ -91,26 +92,35 @@ function layout() {
   style.setProperty('--gm-persp', `${memberPhonePerspective(height).toFixed(1)}px`);
 }
 
-/** Last value written per variable (progress, then fills); unchanged values are not rewritten. */
+/** Last fill written per rail item; an unchanged value is not rewritten. */
 const written: string[] = [];
+
+type Geometry = { top: number; height: number; paneH: number };
+/** Section geometry read in the scroll event (see onScroll); update() applies it. */
+let geometry: Geometry | null = null;
+function readGeometry(el: HTMLElement, box: HTMLElement): Geometry {
+  return { top: el.getBoundingClientRect().top, height: el.offsetHeight, paneH: box.offsetHeight };
+}
 
 function update() {
   raf = 0;
   const el = root.value;
   const box = pane.value;
   if (!el || !box) return;
-  const rect = el.getBoundingClientRect();
-  const progress = props.reduced ? 0 : memberProgress(rect.top, el.offsetHeight, box.offsetHeight);
-  const progressText = progress.toFixed(4);
-  if (written[0] !== progressText) {
-    written[0] = progressText;
-    el.style.setProperty('--gm-progress', progressText);
-  }
+  const rect = geometry ?? readGeometry(el, box);
+  geometry = null;
+  const progress = props.reduced ? 0 : memberProgress(rect.top, rect.height, rect.paneH);
+  // Each fill goes on its own rail item, the only element whose bar reads it
+  // (gym-member.css). On the section root a custom property is inherited by
+  // the whole chapter, so every scroll frame restyled all of it. (A
+  // --gm-progress written here had no reader at all and is gone.)
+  const items = rail.value?.children;
   for (let i = 0; i < MEMBER_BEATS; i++) {
+    const item = items?.[i] as HTMLElement | undefined;
     const fill = memberBeatFill(progress, i).toFixed(4);
-    if (written[i + 1] === fill) continue;
-    written[i + 1] = fill;
-    el.style.setProperty(`--gm-fill-${i}`, fill);
+    if (!item || written[i] === fill) continue;
+    written[i] = fill;
+    item.style.setProperty(`--gm-fill-${i}`, fill);
   }
   const next = props.reduced ? 0 : memberBeatAt(progress);
   if (next !== beat.value) beat.value = next;
@@ -130,7 +140,18 @@ function schedule() {
   if (!raf) raf = requestAnimationFrame(update);
 }
 
+/**
+ * Read in the scroll event, write in the rAF. Scroll events run in the same
+ * frame just before animation callbacks, so this read finds layout clean; the
+ * same read inside the rAF forced a layout of what the film had just written.
+ */
+function onScroll() {
+  if (root.value && pane.value) geometry = readGeometry(root.value, pane.value);
+  schedule();
+}
+
 function onResize() {
+  geometry = null;
   layout();
   schedule();
   kickLean();
@@ -244,12 +265,13 @@ watch(
     rotY = MEMBER_PHONE_REST.y;
     writeLean();
     layout();
+    geometry = null;
     schedule();
   }),
 );
 
 // Scroll only matters while the pinned chapter is near; see useGymNearScroll.
-useGymNearScroll(root, schedule);
+useGymNearScroll(root, onScroll);
 
 onMounted(() => {
   layout();
@@ -299,7 +321,7 @@ onBeforeUnmount(() => {
         <p class="gx-protocol gm-eyebrow"><span>03</span>{{ t('watch.eyebrow') }}</p>
         <h2 id="gm-title">{{ t('watch.titleA') }}<br /><em>{{ t('watch.titleB') }}</em></h2>
         <p class="gm-lede">{{ t('watch.lede') }}</p>
-        <ol class="gm-rail" :aria-label="t('watch.beatsLabel')">
+        <ol ref="rail" class="gm-rail" :aria-label="t('watch.beatsLabel')">
           <li v-for="(item, i) in beats" :key="i" :class="{ 'is-on': beat === i }">
             <button type="button" :aria-current="!reduced && beat === i ? 'step' : undefined" :disabled="reduced" @click="go(i)">
               <span class="gm-rail__idx gx-protocol">0{{ i + 1 }}</span>

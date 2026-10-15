@@ -86,13 +86,18 @@ export function useGymJourney(root: Ref<HTMLElement | null>) {
     };
   }
 
+  /** Journey offset read in the scroll event; see onScroll. */
+  let scrolled: number | null = null;
+
   function update() {
     raf = 0;
     if (!root.value) return;
     if (!marks) measure();
-    const origin = root.value.getBoundingClientRect().top + scrollY;
+    // Scroll offset into the journey: scrollY minus the root's document top.
+    const position = scrolled ?? -root.value.getBoundingClientRect().top;
+    scrolled = null;
     const next = gymJourneyAt(
-      scrollY - origin,
+      position,
       marks!.tag,
       marks!.member,
       marks!.owner,
@@ -111,11 +116,19 @@ export function useGymJourney(root: Ref<HTMLElement | null>) {
   }
 
   function schedule(remeasure = false) {
-    if (remeasure) marks = null;
+    if (remeasure) {
+      marks = null;
+      scrolled = null;
+    }
     if (!raf) raf = requestAnimationFrame(update);
   }
 
   function onScroll() {
+    // Read here rather than in the rAF. Scroll events run in the same frame
+    // just before animation callbacks, before any of them has written, so
+    // this read finds layout clean; read inside the rAF it forced a layout of
+    // whatever the film and chapters had just written. The rAF applies it.
+    if (root.value) scrolled = -root.value.getBoundingClientRect().top;
     schedule();
   }
 
