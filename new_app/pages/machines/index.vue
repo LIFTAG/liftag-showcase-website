@@ -10,7 +10,13 @@ const description = chrome.machineSeoDescription
 
 const route = useRoute()
 
-const { data: index, error, refresh } = await useCatalogIndex(locale)
+// Machines need every machine row but only the exercise total, so the page
+// payload carries the count instead of the ~470 exercise rows.
+const { data: index, error, refresh } = await useCatalogIndexView('machines', locale, full => ({
+  machines: full.machines,
+  categories: full.categories,
+  exerciseCount: full.exercises.length,
+}))
 if (import.meta.server && error.value) {
   throw createError({ statusCode: 503, statusMessage: 'Machine catalog temporarily unavailable' })
 }
@@ -244,7 +250,7 @@ useLiftagStructuredData(() => [
         <p v-if="index" class="ma-stats">
           <span>{{ chrome.statMachines(index.machines.length) }}</span>
           <span class="ma-stats-dot" aria-hidden="true">·</span>
-          <NuxtLink :to="href('/exercises')" class="ma-stats-link">{{ chrome.statExercises(index.exercises.length) }}</NuxtLink>
+          <NuxtLink :to="href('/exercises')" class="ma-stats-link">{{ chrome.statExercises(index.exerciseCount) }}</NuxtLink>
         </p>
       </header>
 

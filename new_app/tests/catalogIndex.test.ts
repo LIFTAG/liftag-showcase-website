@@ -2,8 +2,10 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { CatalogIndexExercise } from '../types/catalog.ts'
 import {
+  catalogCategoryCounts,
   compareCatalogPopularity,
   partitionExercisesByMuscle,
+  pickRelatedExercises,
   sliceMuscleGroups,
   sortCatalogByPopularity,
 } from '../utils/catalogIndex.ts'
@@ -78,4 +80,29 @@ test('empty primary still marks the secondary group', () => {
   assert.deepEqual(sliced.visiblePrimary, [])
   assert.deepEqual(sliced.visibleSecondary, ['s1'])
   assert.equal(sliced.showSplit, true)
+})
+
+test('category counts count each exercise once per muscle', () => {
+  const rows = [
+    exercise({ id: 'a', name: 'A', primaryCategory: 'back', categories: ['back', 'biceps'] }),
+    exercise({ id: 'b', name: 'B', primaryCategory: null, categories: ['biceps'] }),
+    exercise({ id: 'c', name: 'C', primaryCategory: 'chest' }),
+  ]
+  assert.deepEqual(catalogCategoryCounts(rows), { back: 1, biceps: 2, chest: 1 })
+  assert.deepEqual(catalogCategoryCounts([]), {})
+})
+
+test('related lifts: guide order first, then the same primary muscle, capped', () => {
+  const rows = [
+    exercise({ id: 'self', name: 'Self', primaryCategory: 'back' }),
+    exercise({ id: 'b1', name: 'B1', primaryCategory: 'back' }),
+    exercise({ id: 'c1', name: 'C1', primaryCategory: 'chest' }),
+    exercise({ id: 'b2', name: 'B2', primaryCategory: 'back' }),
+    exercise({ id: 'b3', name: 'B3', primaryCategory: 'back' }),
+  ]
+  const current = { id: 'self', primaryCategory: 'back', relatedSlugs: ['c1', 'missing', 'self', 'b2', 'c1'] }
+  assert.deepEqual(pickRelatedExercises(rows, current).map(row => row.id), ['c1', 'b2', 'b1', 'b3'])
+  assert.deepEqual(pickRelatedExercises(rows, current, 2).map(row => row.id), ['c1', 'b2'])
+  assert.deepEqual(pickRelatedExercises(rows, { id: 'self' }).map(row => row.id), [])
+  assert.deepEqual(pickRelatedExercises(rows, { id: 'self', primaryCategory: 'back' }).map(row => row.id), ['b1', 'b2', 'b3'])
 })

@@ -16,7 +16,15 @@ if (!hub) {
 }
 
 const chrome = catalogChrome(locale.value)
-const { data: index, error, refresh } = await useCatalogIndex(locale)
+// The hub only lists (and searches) exercises that train this muscle, and the
+// filter chips only need totals, so the payload carries those instead of the
+// whole ~470-row index.
+const { data: index, error, refresh } = await useCatalogIndexView(`muscle:${hub.slug}`, locale, full => ({
+  exercises: full.exercises.filter(exercise =>
+    exercise.primaryCategory === hub.slug || exercise.categories.includes(hub.slug)),
+  categories: full.categories,
+  counts: catalogCategoryCounts(full.exercises),
+}))
 if (import.meta.server && error.value) {
   throw createError({ statusCode: 503, statusMessage: 'Exercise catalog temporarily unavailable' })
 }
@@ -149,16 +157,7 @@ const categoryNames = computed(() => {
   return names
 })
 
-const categoryCounts = computed(() => {
-  const counts = new Map<string, number>()
-  for (const exercise of index.value?.exercises ?? []) {
-    for (const slug of new Set([exercise.primaryCategory, ...exercise.categories])) {
-      if (!slug) continue
-      counts.set(slug, (counts.get(slug) ?? 0) + 1)
-    }
-  }
-  return counts
-})
+const categoryCounts = computed(() => new Map(Object.entries(index.value?.counts ?? {})))
 
 const allForMuscle = computed(() =>
   partitionExercisesByMuscle(index.value?.exercises ?? [], hub.slug),
