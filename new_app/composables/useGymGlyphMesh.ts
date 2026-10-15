@@ -7,6 +7,39 @@ type Facet = { points: Point[]; start: number; drift: number }
 const DURATION = 1600
 const clamp = (n: number) => Math.max(0, Math.min(1, n))
 
+/**
+ * Builds run one per idle slice. Every hero entry used to build in its own
+ * `document.fonts.ready` continuation, and those all resolve in the same task:
+ * eleven glyph rasters + getImageData + facet scans in one long task, right as
+ * the opening logo animates. A build is only needed by the time its entry arms
+ * (the opening waits for the arrival doors and the first sweep), and an entry
+ * that arms first builds on the spot.
+ */
+type IdleJob = () => void
+const idleJobs: IdleJob[] = []
+let idlePending = false
+function pumpIdle(deadline?: IdleDeadline) {
+  idlePending = false
+  do {
+    idleJobs.shift()?.()
+  } while (idleJobs.length && deadline && !deadline.didTimeout && deadline.timeRemaining() > 8)
+  if (idleJobs.length) scheduleIdle()
+}
+function scheduleIdle() {
+  if (idlePending) return
+  idlePending = true
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(pumpIdle, { timeout: 400 })
+  else setTimeout(pumpIdle, 16)
+}
+function queueIdle(job: IdleJob): () => void {
+  idleJobs.push(job)
+  scheduleIdle()
+  return () => {
+    const at = idleJobs.indexOf(job)
+    if (at >= 0) idleJobs.splice(at, 1)
+  }
+}
+
 /** A short-lived canvas projection, sampled from the actual laid-out glyphs. */
 export function useGymGlyphMesh(
   host: Ref<HTMLElement | null>,
@@ -29,9 +62,15 @@ export function useGymGlyphMesh(
   let motion: MediaQueryList | undefined
   let ctx: CanvasRenderingContext2D | null = null
   let building = false
+  let cancelQueued: (() => void) | null = null
+  // Scratch for the per-facet vertex offsets in draw(); no per-frame garbage.
+  const xs = new Float64Array(3)
+  const ys = new Float64Array(3)
 
   function finish() {
     finished = true
+    cancelQueued?.()
+    cancelQueued = null
     cancelAnimationFrame(raf)
     observer?.disconnect()
     resize?.disconnect()
@@ -117,20 +156,24 @@ export function useGymGlyphMesh(
       const settle = Math.pow(1 - clamp(t / .7), 3)
       const fade = 1 - clamp((t - .62) / .36)
       ctx.lineWidth = .65
+      // Same colour for every facet in a frame: parse it once, not per facet.
+      // Each facet keeps its own path + stroke, so shared edges still
+      // composite twice exactly as before.
+      ctx.strokeStyle = `rgba(174, 215, 244, ${fade * .68})`
       for (const facet of facets) {
         const progress = clamp((t - facet.start) / .22)
         if (!progress) continue
-        ctx.strokeStyle = `rgba(174, 215, 244, ${fade * .68})`
+        const shift = facet.drift * settle
+        const p = facet.points
+        xs[0] = p[0]!.x + shift; ys[0] = p[0]!.y + shift * .5
+        xs[1] = p[1]!.x - shift; ys[1] = p[1]!.y + shift * .5
+        xs[2] = p[2]!.x + shift; ys[2] = p[2]!.y - shift
         ctx.beginPath()
-        const points = facet.points.map((p, i) => ({
-          x: p.x + facet.drift * settle * (i === 1 ? -1 : 1),
-          y: p.y + facet.drift * settle * (i === 2 ? -1 : .5),
-        }))
-        ctx.moveTo(points[0]!.x, points[0]!.y)
+        ctx.moveTo(xs[0], ys[0])
         for (let edge = 0; edge < 3; edge++) {
           const amount = clamp(progress * 3 - edge)
-          const a = points[edge]!, b = points[(edge + 1) % 3]!
-          ctx.lineTo(a.x + (b.x - a.x) * amount, a.y + (b.y - a.y) * amount)
+          const b = (edge + 1) % 3
+          ctx.lineTo(xs[edge]! + (xs[b]! - xs[edge]!) * amount, ys[edge]! + (ys[b]! - ys[edge]!) * amount)
           if (amount < 1) break
         }
         ctx.stroke()
@@ -145,6 +188,31 @@ export function useGymGlyphMesh(
     started = performance.now()
     raf = requestAnimationFrame(draw)
   }
+  /** Build (once) and, if the entry is already armed, play. */
+  function prepare() {
+    cancelQueued?.()
+    cancelQueued = null
+    if (disposed || finished || ready.value) return
+    try {
+      if (!build()) {
+        // Same outcome as before: no mesh, the CSS contour entrance remains.
+        observer?.disconnect()
+        resize?.disconnect()
+        return
+      }
+      ready.value = true
+      start()
+    } catch {
+      // Font/canvas failure retains the CSS contour entrance and native links.
+      finish()
+    }
+  }
+  function onClass() {
+    // Arming before the idle build ran: build now so the mesh starts with
+    // the CSS entrance, exactly as when every entry built up front.
+    if (!ready.value && host.value?.classList.contains('is-in')) prepare()
+    else start()
+  }
   function onMotion() {
     if (motion?.matches || reduced?.value) finish()
   }
@@ -155,27 +223,32 @@ export function useGymGlyphMesh(
     host.value?.addEventListener('focusin', finish)
     if (motion.matches || reduced?.value) { finish(); return }
     await document.fonts.ready
-    if (disposed || finished) return
-    try {
-      if (!build()) return
-      ready.value = true
-      observer = new MutationObserver(start)
-      observer.observe(host.value!, { attributes: true, attributeFilter: ['class'] })
-      resize = new ResizeObserver(() => {
-        // Sticky pin/URL-bar motion resizes the host. Rebuilding the mesh
-        // mid-scroll is what made the tag and map copy shiver on a phone.
-        if (started || finished || building) return
+    if (disposed || finished || !host.value) return
+    observer = new MutationObserver(onClass)
+    observer.observe(host.value, { attributes: true, attributeFilter: ['class'] })
+    resize = new ResizeObserver(() => {
+      // Sticky pin/URL-bar motion resizes the host. Rebuilding the mesh
+      // mid-scroll is what made the tag and map copy shiver on a phone.
+      // Before the first build there is nothing to redo, and the initial
+      // notification (same size as the build just measured) is not a change;
+      // rebuilding on it used to double every entry's start-up cost.
+      if (!ready.value || started || finished || building || !host.value) return
+      const box = host.value.getBoundingClientRect()
+      if (Math.ceil(box.width) === width && Math.ceil(box.height) === height) return
+      try {
         if (!build()) finish()
-      })
-      resize.observe(host.value!)
-      start()
-    } catch {
-      // Font/canvas failure retains the CSS contour entrance and native links.
-      finish()
-    }
+      } catch {
+        finish()
+      }
+    })
+    resize.observe(host.value)
+    if (host.value.classList.contains('is-in')) prepare()
+    else cancelQueued = queueIdle(prepare)
   })
   onBeforeUnmount(() => {
     disposed = true
+    cancelQueued?.()
+    cancelQueued = null
     cancelAnimationFrame(raf)
     observer?.disconnect()
     resize?.disconnect()

@@ -38,6 +38,34 @@ export function useGymJourney(root: Ref<HTMLElement | null>) {
     gtag("event", event, { experience: "gym_scan_v2", ...data });
   }
 
+  // Chapter views are found inside the scroll rAF. gtag's event handling is
+  // tens of milliseconds of script on a phone, so it is sent once the frame
+  // is out of the way instead of inside it. Exit and click events stay
+  // synchronous: those can be the last thing the page does.
+  const queuedTracks: Array<() => void> = [];
+  let cancelTrackSlot: (() => void) | null = null;
+  function sendQueued() {
+    cancelTrackSlot = null;
+    queuedTracks.splice(0).forEach((send) => send());
+  }
+  function trackSoon(event: string, data: Record<string, string | number>) {
+    queuedTracks.push(() => track(event, data));
+    if (cancelTrackSlot) return;
+    if (typeof requestIdleCallback === "function") {
+      const handle = requestIdleCallback(sendQueued, { timeout: 2000 });
+      cancelTrackSlot = () => cancelIdleCallback(handle);
+    } else {
+      const handle = window.setTimeout(sendQueued, 0);
+      cancelTrackSlot = () => clearTimeout(handle);
+    }
+  }
+  /** Leaving before an idle slot came round: send what is queued, in order. */
+  function flushTracks() {
+    if (!cancelTrackSlot) return;
+    cancelTrackSlot();
+    sendQueued();
+  }
+
   function measure() {
     const el = root.value;
     if (!el) return;
@@ -78,7 +106,7 @@ export function useGymJourney(root: Ref<HTMLElement | null>) {
     lastChapter = next.chapter;
     if (!visited.has(lastChapter)) {
       visited.add(lastChapter);
-      track("gym_story_chapter", { chapter: lastChapter });
+      trackSoon("gym_story_chapter", { chapter: lastChapter });
     }
   }
 
@@ -100,6 +128,7 @@ export function useGymJourney(root: Ref<HTMLElement | null>) {
   }
 
   function leave() {
+    flushTracks();
     if (!exited) {
       exited = true;
       track("gym_story_exit", { last_chapter: lastChapter });

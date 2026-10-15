@@ -10,6 +10,10 @@ const stage = useTemplateRef<HTMLElement>('stage');
 const guide = useTemplateRef<HTMLVideoElement>('guide');
 const seen = useSeenOnce(root);
 const near = useNearViewport(root, '200px 0px');
+/** Bind the poster once near: as an attribute it loads with the page. */
+const posterNear = useNearViewport(root, '100% 0px');
+const posterOn = shallowRef(false);
+watch(posterNear, (value) => { if (value) posterOn.value = true; });
 useGymInstructionPreview(guide, () => near.value && !props.reduced, () => props.reduced, false, locale, legPressInstruction.slug);
 
 /** Percent of the stage, from the left, where the trainer's side begins. */
@@ -92,7 +96,7 @@ onBeforeUnmount(() => cancelAnimationFrame(sweep));
         @pointercancel="release"
       >
         <div class="gt-side gt-side--guide" aria-hidden="true">
-          <video ref="guide" poster="/assets/gym3d/leg-press-guide.webp" muted playsinline loop preload="none" tabindex="-1" />
+          <video ref="guide" :poster="posterOn ? '/assets/gym3d/leg-press-guide.webp' : undefined" muted playsinline loop preload="none" tabindex="-1" />
           <span class="gt-shade" />
         </div>
         <div class="gt-side gt-side--you">
