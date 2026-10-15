@@ -130,7 +130,7 @@ onBeforeUnmount(() => {
       <DiscoveryVideo
         v-if="slide.item.type === 'video' && !slide.clone && slide.index === index && active"
         :src="slide.item.url"
-        :poster="slide.item.posterUrl"
+        :poster="fullscreen ? slide.item.posterUrl : catalogImageUrl(slide.item.posterUrl, 1080)"
         :title="name"
         :locale="locale"
       />
@@ -155,10 +155,16 @@ onBeforeUnmount(() => {
         />
         <span v-else class="d-carousel-placeholder"><DiscoveryIcon name="image" :size="40" /></span>
       </button>
+      <!-- Fullscreen keeps the original (zoom); inline, this is a video poster in
+           the gallery column and takes the same resized variants as photos. -->
       <img
         v-else-if="(slide.item.type === 'image' || slide.item.posterUrl) && !failed.has(slide.item.url)"
         class="d-carousel-poster"
-        :src="slide.item.type === 'image' ? slide.item.url : slide.item.posterUrl!"
+        :src="fullscreen
+          ? (slide.item.type === 'image' ? slide.item.url : slide.item.posterUrl!)
+          : catalogImageUrl(slide.item.type === 'image' ? slide.item.url : slide.item.posterUrl!, 1080)"
+        :srcset="fullscreen ? undefined : catalogImageSrcset(slide.item.type === 'image' ? slide.item.url : slide.item.posterUrl, [480, 640, 828, 1080, 1440])"
+        :sizes="fullscreen ? undefined : '(max-width: 767px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 388px), 740px'"
         :alt="slide.item.type === 'image' ? `${name}, ${slide.index + 1}` : ''"
         loading="lazy"
         draggable="false"
