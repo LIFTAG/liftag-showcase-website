@@ -183,6 +183,13 @@ const chapters = computed(() => [
 .guide-body code { color: oklch(87% .045 115); font-family: var(--liftag-font-mono); font-size: .85em; overflow-wrap: anywhere; }
 .guide-faq-list { margin-top: 24px; }
 .guide-method .protocol { margin-bottom: 14px; font-size: 10px; }
+/* The only latin-ext glyph on the English page is the "ğ" in a source title
+   at the very bottom, and laying it out fetched the 85KB Inter latin-ext face
+   during load. Skipping this list's layout until it nears the viewport defers
+   that font. The text stays in the DOM and the accessibility tree. The
+   intrinsic sizes are the measured list heights. */
+.orm-sources { content-visibility: auto; contain-intrinsic-size: auto 500px; }
+@media (max-width: 700px) { .orm-sources { contain-intrinsic-size: auto 810px; } }
 .guide-method p, .guide-method li { font-size: 12px; }
 .orm-static-table { overflow-x: auto; margin: 24px 0; border: 1px solid oklch(28% .008 115); border-radius: 10px; }
 .orm-static-table table { width: 100%; border-collapse: collapse; font-size: 12px; }

@@ -2,8 +2,6 @@
 definePageMeta({ key: 'one-rm-calculator' })
 import { ONE_RM_MARKDOWN_PATH, ONE_RM_PATH } from '~/utils/oneRepMaxPage'
 import OneRmCalculator from '~/components/tools/OneRmCalculator.vue'
-import OneRmWhy from '~/components/tools/OneRmWhy.vue'
-import OneRmGuide from '~/components/tools/OneRmGuide.vue'
 import { SITE_URL } from '~/utils/seoSchema'
 import { en, sk } from '~/i18n/messages/tools'
 import { en as guideEn, sk as guideSk } from '~/content/tools/oneRmGuide'
@@ -59,9 +57,12 @@ useLiftagStructuredData(() => [
         <OneRmCalculator />
         <noscript>{{ t('tools.calculator.noscript') }}</noscript>
       </div>
-      <OneRmWhy />
+      <!-- Below the fold and static apart from the FAQ: server-rendered as
+           usual, hydrated (and their code fetched) only as they near the
+           viewport, so the calculator hydrates without them on the main thread. -->
+      <LazyToolsOneRmWhy :hydrate-on-visible="{ rootMargin: '200px' }" />
       <div class="app-invitation"><p><strong>{{ t('tools.calculator.invitationTitle') }}</strong> {{ t('tools.calculator.invitationBody') }}</p><a :href="href('/get')">{{ t('tools.calculator.invitationLink') }} <span aria-hidden="true">↗</span></a></div>
-      <OneRmGuide />
+      <LazyToolsOneRmGuide :hydrate-on-visible="{ rootMargin: '200px' }" />
     </div>
   </article>
 </template>
