@@ -16,6 +16,10 @@ const frame = useTemplateRef<HTMLElement>('frame');
 const video = useTemplateRef<HTMLVideoElement>('video');
 const seen = useSeenOnce(root);
 const near = useNearViewport(frame, '400px 0px');
+/** Bind the poster once near: as an attribute it loads with the page. */
+const posterNear = useNearViewport(frame, '100% 0px');
+const posterOn = shallowRef(false);
+watch(posterNear, (value) => { if (value) posterOn.value = true; });
 const chapter = shallowRef(0);
 const playing = shallowRef(false);
 /** A visitor's pause wins over the in-view autoplay until they press play. */
@@ -23,6 +27,8 @@ const held = shallowRef(false);
 const visible = shallowRef(false);
 let io: IntersectionObserver | null = null;
 let raf = 0;
+/** Last --gdb-rise written; an unchanged value is not rewritten. */
+let lastRise = '';
 
 const chapters = computed(() =>
   Array.from({ length: DASHBOARD_TOUR_CHAPTERS }, (_, i) => ({
@@ -104,11 +110,17 @@ function tilt() {
   if (!el || props.reduced) return;
   const rect = el.getBoundingClientRect();
   const k = Math.min(1, Math.max(0, (innerHeight - rect.top) / (innerHeight * 0.75)));
-  el.style.setProperty('--gdb-rise', (1 - k).toFixed(4));
+  const rise = (1 - k).toFixed(4);
+  if (rise === lastRise) return;
+  lastRise = rise;
+  el.style.setProperty('--gdb-rise', rise);
 }
 function scheduleTilt() {
   if (!raf) raf = requestAnimationFrame(tilt);
 }
+// Scroll only matters while the window is near the viewport; away from it
+// the rise is clamped and the leave callback has written it.
+useGymNearScroll(frame, scheduleTilt);
 
 watch([visible, held, () => props.reduced], sync);
 watch(near, (value) => {
@@ -119,21 +131,22 @@ watch(near, (value) => {
   }
 });
 watch(() => props.reduced, (value) => {
-  if (value) frame.value?.style.setProperty('--gdb-rise', '0');
+  if (value) {
+    lastRise = '0';
+    frame.value?.style.setProperty('--gdb-rise', '0');
+  }
   else tilt();
 });
 
 onMounted(() => {
   paintProgress(0);
   tilt();
-  window.addEventListener('scroll', scheduleTilt, { passive: true });
   document.addEventListener('visibilitychange', sync);
   io = new IntersectionObserver(([entry]) => { visible.value = entry?.isIntersecting ?? false; }, { threshold: 0.35 });
   if (frame.value) io.observe(frame.value);
 });
 onBeforeUnmount(() => {
   cancelAnimationFrame(raf);
-  window.removeEventListener('scroll', scheduleTilt);
   document.removeEventListener('visibilitychange', sync);
   io?.disconnect();
   video.value?.pause();
@@ -173,7 +186,7 @@ onBeforeUnmount(() => {
             muted
             playsinline
             preload="none"
-            poster="/assets/screens/dashboard-tour.webp"
+            :poster="posterOn ? '/assets/screens/dashboard-tour.webp' : undefined"
             :aria-label="t('dash.videoLabel')"
             @timeupdate="onTime"
             @seeked="onTime"

@@ -30,6 +30,14 @@ const phone = useTemplateRef<HTMLElement>('phone');
 const video = useTemplateRef<HTMLVideoElement>('video');
 const beat = shallowRef<MemberBeat>(0);
 const inView = shallowRef(false);
+/**
+ * A poster attribute is fetched with the page, chapters before anyone sees
+ * it, competing with the boot for bandwidth. Bind it once the chapter is
+ * near and keep it.
+ */
+const posterNear = useNearViewport(root, '100% 0px');
+const posterOn = shallowRef(false);
+watch(posterNear, (value) => { if (value) posterOn.value = true; });
 const playing = shallowRef(false);
 const sound = shallowRef(false);
 const guideActive = computed(() => inView.value && !props.reduced);
@@ -83,6 +91,9 @@ function layout() {
   style.setProperty('--gm-persp', `${memberPhonePerspective(height).toFixed(1)}px`);
 }
 
+/** Last value written per variable (progress, then fills); unchanged values are not rewritten. */
+const written: string[] = [];
+
 function update() {
   raf = 0;
   const el = root.value;
@@ -90,9 +101,16 @@ function update() {
   if (!el || !box) return;
   const rect = el.getBoundingClientRect();
   const progress = props.reduced ? 0 : memberProgress(rect.top, el.offsetHeight, box.offsetHeight);
-  el.style.setProperty('--gm-progress', progress.toFixed(4));
+  const progressText = progress.toFixed(4);
+  if (written[0] !== progressText) {
+    written[0] = progressText;
+    el.style.setProperty('--gm-progress', progressText);
+  }
   for (let i = 0; i < MEMBER_BEATS; i++) {
-    el.style.setProperty(`--gm-fill-${i}`, memberBeatFill(progress, i).toFixed(4));
+    const fill = memberBeatFill(progress, i).toFixed(4);
+    if (written[i + 1] === fill) continue;
+    written[i + 1] = fill;
+    el.style.setProperty(`--gm-fill-${i}`, fill);
   }
   const next = props.reduced ? 0 : memberBeatAt(progress);
   if (next !== beat.value) beat.value = next;
@@ -230,11 +248,13 @@ watch(
   }),
 );
 
+// Scroll only matters while the pinned chapter is near; see useGymNearScroll.
+useGymNearScroll(root, schedule);
+
 onMounted(() => {
   layout();
   update();
   writeLean();
-  window.addEventListener('scroll', schedule, { passive: true });
   resize = new ResizeObserver(onResize);
   if (pane.value) resize.observe(pane.value);
   if (root.value) resize.observe(root.value);
@@ -251,7 +271,6 @@ onBeforeUnmount(() => {
   resize?.disconnect();
   view?.disconnect();
   stopMouse?.();
-  window.removeEventListener('scroll', schedule);
   docked.value = false;
 });
 </script>
@@ -304,12 +323,14 @@ onBeforeUnmount(() => {
                 src="/assets/gym3d/log-set.webp"
                 width="620"
                 height="1344"
+                loading="lazy"
+                decoding="async"
                 :alt="t('watch.phoneAlt')"
               />
               <div class="gm-phone__guide" aria-hidden="true">
                 <video
                   ref="video"
-                  poster="/assets/gym3d/leg-press-guide.webp"
+                  :poster="posterOn ? '/assets/gym3d/leg-press-guide.webp' : undefined"
                   muted
                   playsinline
                   loop

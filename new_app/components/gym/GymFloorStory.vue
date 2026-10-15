@@ -145,6 +145,8 @@ let view: IntersectionObserver | null = null;
 let resize: ResizeObserver | null = null;
 let stopMouse: (() => void) | null = null;
 
+const fills: string[] = [];
+
 function measure() {
   scrollRaf = 0;
   const el = root.value;
@@ -157,7 +159,11 @@ function measure() {
   const viewport = Math.max(paneH, useStableViewportHeight() || innerHeight);
   entryTarget = clamp01(1 - rect.top / viewport);
   for (let i = 0; i < FLOOR_BEATS; i++) {
-    el.style.setProperty(`--gf-fill-${i}`, floorBeatFill(target, i).toFixed(4));
+    const fill = floorBeatFill(target, i).toFixed(4);
+    // An unchanged value is not rewritten (see useGymNearScroll).
+    if (fills[i] === fill) continue;
+    fills[i] = fill;
+    el.style.setProperty(`--gf-fill-${i}`, fill);
   }
   const next = still.value ? 0 : floorBeatAt(target);
   if (next !== beat.value) beat.value = next;
@@ -315,12 +321,14 @@ watch(still, (value) => {
   });
 });
 
+// Scroll only matters while the pinned chapter is near; see useGymNearScroll.
+useGymNearScroll(root, schedule);
+
 onMounted(() => {
   collectTags();
   const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
   if (saveData) unavailable.value = true;
   measure();
-  window.addEventListener('scroll', schedule, { passive: true });
   document.addEventListener('visibilitychange', onVisibility);
   resize = new ResizeObserver(() => {
     stage?.resize();
@@ -368,7 +376,6 @@ onBeforeUnmount(() => {
   view?.disconnect();
   resize?.disconnect();
   stopMouse?.();
-  window.removeEventListener('scroll', schedule);
   document.removeEventListener('visibilitychange', onVisibility);
   stage?.dispose();
   stage = null;
