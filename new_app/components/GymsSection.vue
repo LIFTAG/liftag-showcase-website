@@ -38,10 +38,9 @@ function gymMotionTransform(
     + ` rotate(calc(var(--gym-mx) * ${rotateFactor}deg))`
 }
 
-// The sticker is a physical tag: HologramPlate owns the 3D tilt. This
-// wrapper only holds the crooked rest pose so the card does not also
-// slide around in 2D and fight the foil.
-const gymQrStickerMotion = 'rotate(4deg)'
+// The printed machine tag drifts with the cursor like the machine card and
+// phones, on top of its crooked rest pose.
+const gymQrStickerMotion = computed(() => gymMotionTransform(10, 8, 0.5, 'rotate(4deg)'))
 const gymMachineMotion = computed(() => gymMotionTransform(18, 12, 1.1))
 const gymBackPhoneMotion = computed(() => gymMotionTransform(14, 10, 0.7))
 const gymFrontPhoneMotion = computed(() => gymMotionTransform(-20, -14, -1.1))
@@ -132,12 +131,13 @@ onBeforeUnmount(() => {
           alignItems: 'center',
         }"
       >
-        <!-- LEFT - foil kit tag + machine card -->
+        <!-- LEFT - machine QR tag + machine card -->
         <div
           class="reveal gyms-qr"
           :style="{ position: 'relative', height: '560px' }"
         >
-          <!-- Foil security tag. The face is a hologram, not a spinning rim. -->
+          <!-- The sticker gyms put on machines, as printed: wordmark, QR with
+               the logo, machine name. Drawn in HTML so the name localizes. -->
           <div
             class="gyms-motion-layer gyms-qr-sticker-motion"
             :style="{
@@ -148,19 +148,27 @@ onBeforeUnmount(() => {
               transform: gymQrStickerMotion,
             }"
           >
-            <div
-              class="gyms-qr-sticker-card"
-              :style="{
-                width: '180px',
-                height: '210px',
-              }"
+            <figure
+              class="gyms-qr-sticker-card gyms-tag"
+              role="img"
+              :aria-label="t('marketing.gyms.tagAria', { machine: t('marketing.gyms.machineName') })"
             >
-              <HologramPlate
-                label="Cable Lat Pulldown"
-                serial="#042"
-                angle-prefix="gym"
-              />
-            </div>
+              <span class="gyms-tag-brand" aria-hidden="true">LIFTAG</span>
+              <span class="gyms-tag-qr" aria-hidden="true">
+                <img
+                  src="/uploads/qr-code-224.webp"
+                  srcset="/uploads/qr-code-160.webp 160w, /uploads/qr-code-224.webp 224w, /uploads/qr-code.webp 400w"
+                  sizes="132px"
+                  width="224"
+                  height="224"
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                >
+              </span>
+              <span class="gyms-tag-name" aria-hidden="true">{{ t('marketing.gyms.machineName') }}</span>
+              <span class="gyms-tag-foot" aria-hidden="true">{{ t('marketing.gyms.tagFoot') }}</span>
+            </figure>
           </div>
 
           <!-- Machine card -->
@@ -488,6 +496,68 @@ onBeforeUnmount(() => {
   transform-origin: center;
   transform-style: preserve-3d;
   will-change: transform;
+}
+
+/* Machine QR tag, after the printed LIFTAG sticker. */
+.gyms-tag {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  width: 180px;
+  margin: 0;
+  padding: 13px 14px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+  background: #050505;
+  box-shadow:
+    0 30px 70px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(0, 0, 0, 0.6),
+    0 0 36px rgba(204, 255, 0, 0.08);
+}
+
+.gyms-tag-brand {
+  color: var(--liftag-primary);
+  font-family: var(--liftag-font-headline);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.gyms-tag-qr {
+  display: block;
+  width: 100%;
+  padding: 9px;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.gyms-tag-qr img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.gyms-tag-name {
+  color: #fff;
+  font-family: var(--liftag-font-headline);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.gyms-tag-foot {
+  color: var(--liftag-primary);
+  font-family: var(--liftag-font-mono);
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .gyms-numbers {
