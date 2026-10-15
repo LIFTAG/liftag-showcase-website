@@ -291,13 +291,17 @@ function measureScrollMax() {
   scrollMax = document.documentElement.scrollHeight - window.innerHeight
 }
 
-function updateScrolled() {
+// `y` comes from the scroll event when there is one. Reading window.scrollY in
+// the rAF callback instead forced a style and layout flush every scroll frame,
+// because pinned sections have already written their CSS vars by then; the
+// event fires before rAF, while layout is still clean from the last frame.
+function updateScrolled(y = window.scrollY) {
   const threshold = isMobileNav.value ? 0 : 40
-  const next = window.scrollY > threshold
+  const next = y > threshold
   if (next !== scrolled.value) scrolled.value = next
 
   if (!nativeScrollTimeline && navRoot.value) {
-    const p = scrollMax > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollMax)) : 0
+    const p = scrollMax > 0 ? Math.min(1, Math.max(0, y / scrollMax)) : 0
     navRoot.value.style.setProperty('--nav-scroll-p', p.toFixed(4))
   }
 }
@@ -337,12 +341,14 @@ onMounted(() => {
   }
 
   let queued = false
+  let latestScrollY = 0
   _onScroll = () => {
+    latestScrollY = window.scrollY
     if (queued) return
     queued = true
     requestAnimationFrame(() => {
       queued = false
-      updateScrolled()
+      updateScrolled(latestScrollY)
     })
   }
   window.addEventListener('scroll', _onScroll, { passive: true })
