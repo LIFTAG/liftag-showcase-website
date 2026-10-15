@@ -12,6 +12,20 @@ const props = withDefaults(defineProps<{
   visible: true,
 })
 
+// The desktop nav row is the only thing set in Big Shoulders. Preload it from
+// here rather than from the global head, so pages without this nav (/demo,
+// the app handoff routes) and phone viewports never spend early bandwidth on it.
+useHead({
+  link: [{
+    rel: 'preload',
+    as: 'font',
+    type: 'font/woff2',
+    crossorigin: '',
+    href: '/assets/fonts/big-shoulders-latin.woff2',
+    media: '(min-width: 769px)',
+  }],
+})
+
 const scrolled = ref(false)
 const open = ref(false)
 const isMobileNav = ref(false)
