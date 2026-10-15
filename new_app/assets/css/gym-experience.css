@@ -677,6 +677,10 @@
 .gx-journey.is-copy-blur .gx-spec,
 .gx-journey.is-copy-blur .gx-install__copy {
   filter: blur(calc(var(--gx-dof) * 18px));
+  /* Its own layer for as long as the rack focus runs: the radius then changes
+     as a compositor filter on cached glyphs instead of repainting the text
+     every film frame. Dropped with the class. */
+  will-change: filter;
 }
 /* Live CSS filters re-rasterize glyphs every film frame. On a phone that
    reads as the sticky headline and CTAs shivering, so fade instead. */
@@ -686,9 +690,11 @@
   .gx-journey.is-copy-blur .gx-spec {
     filter: none;
     opacity: calc(1 - var(--gx-dof, 0) * 0.72);
+    will-change: opacity;
   }
   .gx-journey.is-copy-blur .gx-install__copy {
     filter: none;
+    will-change: auto;
   }
 }
 @media (max-width: 760px) {

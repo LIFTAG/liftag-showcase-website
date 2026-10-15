@@ -64,6 +64,97 @@ export const GYM_ENV_SIZE = 256
 export const GYM_FLOOR_MAP_SIZE = 512
 
 export function createGymEnvironment(renderer: THREE.WebGLRenderer, size = GYM_ENV_SIZE): GymEnvironment {
+  const { scene, parts } = environmentScene()
+  return bake(renderer, new THREE.PMREMGenerator(renderer), scene, parts, size)
+}
+
+/** The private PMREMGenerator members `precompilePmrem` reads, if present. */
+type PmremInternals = {
+  _setSize?: (cubeSize: number) => void
+  _allocateTargets?: () => THREE.WebGLRenderTarget
+  _blurMaterial?: THREE.Material | null
+  _ggxMaterial?: THREE.Material | null
+}
+
+/**
+ * `createGymEnvironment`, with the bake's four programs compiled through
+ * KHR_parallel_shader_compile first. `fromScene` builds and links them
+ * synchronously inside the bake - the room's quads, the background box, the
+ * blur and the GGX convolution - and the first use of each blocks the main
+ * thread until the GPU has linked it. Compiled here, against a render target
+ * as the bake draws them, their keys match and the bake finds them linked.
+ *
+ * The blur and GGX materials are PMREMGenerator internals (three r183). If
+ * they are not where this expects, nothing is precompiled and the bake is
+ * exactly the synchronous one. The result is identical either way.
+ */
+export async function createGymEnvironmentAsync(
+  renderer: THREE.WebGLRenderer,
+  size = GYM_ENV_SIZE,
+  cancelled: () => boolean = () => false,
+): Promise<GymEnvironment | null> {
+  const { scene, parts } = environmentScene()
+  const pmrem = new THREE.PMREMGenerator(renderer)
+  // Same program as PMREMGenerator's own 'PMREM.Background' box. It has to
+  // outlive the bake: disposing a material releases its program, and this one
+  // holds the reference that keeps the shared program linked until the bake
+  // has picked it up.
+  const background = new THREE.MeshBasicMaterial({ side: THREE.BackSide, depthWrite: false, depthTest: false })
+  try {
+    try {
+      await precompilePmrem(renderer, pmrem, scene, size, background)
+    }
+    catch {
+      // Best effort: the bake below compiles whatever is missing itself.
+    }
+    if (cancelled()) {
+      pmrem.dispose()
+      disposeParts(parts)
+      return null
+    }
+    return bake(renderer, pmrem, scene, parts, size)
+  }
+  finally {
+    background.dispose()
+  }
+}
+
+async function precompilePmrem(
+  renderer: THREE.WebGLRenderer,
+  pmrem: THREE.PMREMGenerator,
+  scene: THREE.Scene,
+  size: number,
+  background: THREE.Material,
+) {
+  const internals = pmrem as unknown as PmremInternals
+  if (typeof internals._setSize !== 'function' || typeof internals._allocateTargets !== 'function') return
+  // Allocates the ping-pong target and the blur/GGX materials sized for this
+  // cube; fromScene() reuses both because the size matches.
+  internals._setSize(size)
+  internals._allocateTargets().dispose()
+  const group = new THREE.Group()
+  const blank = new THREE.BufferGeometry()
+  for (const material of [internals._blurMaterial, internals._ggxMaterial, background]) {
+    if (material) group.add(new THREE.Mesh(blank, material))
+  }
+  const target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType })
+  const camera = new THREE.PerspectiveCamera(90, 1, 0.1, 100)
+  const previous = renderer.getRenderTarget()
+  try {
+    renderer.setRenderTarget(target)
+    await Promise.all([
+      renderer.compileAsync(group, camera),
+      renderer.compileAsync(scene, camera),
+    ])
+  }
+  finally {
+    renderer.setRenderTarget(previous)
+    target.dispose()
+    blank.dispose()
+  }
+}
+
+function environmentScene() {
   const scene = new THREE.Scene()
   scene.background = new THREE.Color(0x000000)
 
@@ -97,15 +188,26 @@ export function createGymEnvironment(renderer: THREE.WebGLRenderer, size = GYM_E
     emissiveQuad(3.4, 1.8, 0xff9a52, 0.42, [-9.5, 2.2, -4.0], [0, HALF_PI, 0]),
   )
   parts.forEach(p => scene.add(p))
+  return { scene, parts }
+}
 
-  const pmrem = new THREE.PMREMGenerator(renderer)
-  const target = pmrem.fromScene(scene, 0.02, 0.1, 100, { size })
-  pmrem.dispose()
-
+function disposeParts(parts: THREE.Mesh[]) {
   parts.forEach((p) => {
     p.geometry.dispose()
     ;(p.material as THREE.Material).dispose()
   })
+}
+
+function bake(
+  renderer: THREE.WebGLRenderer,
+  pmrem: THREE.PMREMGenerator,
+  scene: THREE.Scene,
+  parts: THREE.Mesh[],
+  size: number,
+): GymEnvironment {
+  const target = pmrem.fromScene(scene, 0.02, 0.1, 100, { size })
+  pmrem.dispose()
+  disposeParts(parts)
 
   return {
     texture: target.texture,
@@ -140,6 +242,20 @@ export interface FloorMaps {
   dispose: () => void
 }
 
+/** Rows of the 512 map per paint step: a few milliseconds of pixel work. */
+const FLOOR_PAINT_ROWS = 64
+
+/**
+ * Floor maps whose textures exist (so materials can be built on them) but
+ * whose pixels are not drawn yet. `paint()` draws them in row bands and
+ * yields between bands, so the hero stage can spread the per-pixel work over
+ * several tasks while its GLBs download. Draining it in one go is exactly
+ * `createFloorMaps`; the result is byte-identical either way.
+ */
+export interface PendingFloorMaps extends FloorMaps {
+  paint: () => Generator<void, void, void>
+}
+
 /**
  * Rubber gym matting, generated at startup: albedo, roughness and normal.
  *
@@ -162,13 +278,60 @@ export interface FloorMaps {
  * neither GLB nor a texture request.
  */
 export function createFloorMaps(anisotropy: number, size = GYM_FLOOR_MAP_SIZE, options: { seams?: boolean } = {}): FloorMaps {
-  const S = size
-  const TILE = S / 2            // two tiles across the 2 m repeat
+  const maps = createPendingFloorMaps(anisotropy, size, options)
+  for (const _ of maps.paint()) { /* drain: paint every band now */ }
+  return maps
+}
 
+export function createPendingFloorMaps(anisotropy: number, size = GYM_FLOOR_MAP_SIZE, options: { seams?: boolean } = {}): PendingFloorMaps {
+  const S = size
   const albedo = document.createElement('canvas')
   const rough = document.createElement('canvas')
   const height = document.createElement('canvas')
-  for (const c of [albedo, rough, height]) { c.width = c.height = S }
+  const normal = document.createElement('canvas')
+  for (const c of [albedo, rough, height, normal]) { c.width = c.height = S }
+
+  const mk = (c: HTMLCanvasElement, srgb: boolean) => {
+    const t = new THREE.CanvasTexture(c)
+    t.wrapS = t.wrapT = THREE.RepeatWrapping
+    t.repeat.set(45, 45)          // 2 m tiles across the 90 m plane
+    t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace
+    t.anisotropy = anisotropy
+    return t
+  }
+  const map = mk(albedo, true)
+  const roughnessMap = mk(rough, false)
+  const normalMap = mk(normal, false)
+
+  let painted = false
+  function* paint(): Generator<void, void, void> {
+    if (painted) return
+    painted = true
+    yield* paintFloorMaps(S, albedo, rough, height, normal, options)
+    // The textures were made around blank canvases; upload what was drawn.
+    map.needsUpdate = true
+    roughnessMap.needsUpdate = true
+    normalMap.needsUpdate = true
+  }
+
+  return {
+    map,
+    roughnessMap,
+    normalMap,
+    paint,
+    dispose: () => { map.dispose(); roughnessMap.dispose(); normalMap.dispose() },
+  }
+}
+
+function* paintFloorMaps(
+  S: number,
+  albedo: HTMLCanvasElement,
+  rough: HTMLCanvasElement,
+  height: HTMLCanvasElement,
+  normal: HTMLCanvasElement,
+  options: { seams?: boolean },
+): Generator<void, void, void> {
+  const TILE = S / 2            // two tiles across the 2 m repeat
   const ac = albedo.getContext('2d')!
   const rc = rough.getContext('2d')!
   const hc = height.getContext('2d')!
@@ -209,6 +372,7 @@ export function createFloorMaps(anisotropy: number, size = GYM_FLOOR_MAP_SIZE, o
       hImg.data[o] = hImg.data[o + 1] = hImg.data[o + 2] = Math.round(v)
       hImg.data[o + 3] = 255
     }
+    if ((y + 1) % FLOOR_PAINT_ROWS === 0) yield
   }
   hc.putImageData(hImg, 0, 0)
 
@@ -243,27 +407,7 @@ export function createFloorMaps(anisotropy: number, size = GYM_FLOOR_MAP_SIZE, o
       nImg.data[o + 2] = Math.round((1 / len * 0.5 + 0.5) * 255)
       nImg.data[o + 3] = 255
     }
+    if ((y + 1) % FLOOR_PAINT_ROWS === 0) yield
   }
-  const normal = document.createElement('canvas')
-  normal.width = normal.height = S
   normal.getContext('2d')!.putImageData(nImg, 0, 0)
-
-  const mk = (c: HTMLCanvasElement, srgb: boolean) => {
-    const t = new THREE.CanvasTexture(c)
-    t.wrapS = t.wrapT = THREE.RepeatWrapping
-    t.repeat.set(45, 45)          // 2 m tiles across the 90 m plane
-    t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace
-    t.anisotropy = anisotropy
-    return t
-  }
-  const map = mk(albedo, true)
-  const roughnessMap = mk(rough, false)
-  const normalMap = mk(normal, false)
-
-  return {
-    map,
-    roughnessMap,
-    normalMap,
-    dispose: () => { map.dispose(); roughnessMap.dispose(); normalMap.dispose() },
-  }
 }

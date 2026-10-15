@@ -16,7 +16,8 @@ import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLigh
 import {
   CEILING_STRIPS, STRIP_COLOR, STRIP_NITS,
   GYM_ENV_SIZE, GYM_FLOOR_MAP_SIZE,
-  createGymEnvironment, createContactShadowTexture, createFloorMaps,
+  createGymEnvironmentAsync, createContactShadowTexture, createPendingFloorMaps,
+  type GymEnvironment,
 } from './environment'
 import {
   applyScanShader, applySurfaceShader, createScanUniforms, createSurfaceUniforms, type SurfaceKind,
@@ -72,7 +73,9 @@ import {
 import { dropAt, dropPlanted, firstSweepTime, PLANTED_DROP } from './drop'
 import { assembleAt, type AssembleState } from './assemble'
 import { loadPartsRig, type PartsRig } from './parts'
-import type { GymScanDevice } from './device'
+import { GYM_STAGE_CONTEXT, type GymScanDevice } from './device'
+import { yieldToMain } from './yieldToMain'
+import { compileSliced as compileInSlices, warmSlices } from './warmSlices'
 import {
   clamp01, damp, ease, lerp, scalarAt, smoothstep, span, vec3HermiteAt,
   type ScalarStop, type Vec3Stop,
@@ -386,12 +389,17 @@ export function createGymScanStage(opts: StageOptions) {
   let currentCopy = opts.copy
   const { canvas, overlayCanvas, device, onDeviceClassChange, onFrame, onReady, reducedMotion } = opts
 
+  // Same attributes GymCinema probed this canvas with (probeCanvasWebGL2), so
+  // three picks that context back up instead of creating a second one.
   const renderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: false,
-    alpha: true,
-    powerPreference: 'high-performance',
+    ...GYM_STAGE_CONTEXT,
   })
+  // Error checks cost four synchronous GL round trips per program on first
+  // use (two info logs, a program log, link status), dozens of programs into
+  // a boot. A failed program draws the same either way; keep the console
+  // diagnostics for development.
+  renderer.debug.checkShaderErrors = Boolean(import.meta.dev)
   // The live detector always hands FROM THE FLOOR, so a 390-wide laptop window
   // and an iPhone play the same film. Seat remains a stage option for tests.
   const isCoarse = device.cut === 'seat'
@@ -436,8 +444,10 @@ export function createGymScanStage(opts: StageOptions) {
   const camera = new THREE.PerspectiveCamera(38, 1, 0.05, 90)
   camera.position.set(3.98, 2.22, 4.96)
 
-  const env = createGymEnvironment(renderer, GYM_ENV_SIZE)
-  scene.environment = env.texture
+  // Baked in load(), while the GLBs download: the PMREM pass compiles and
+  // links its own programs synchronously, and nothing samples the
+  // environment before the first warm-up render.
+  let env: GymEnvironment | null = null
 
   const uniforms = createScanUniforms()
 
@@ -571,7 +581,10 @@ export function createGymScanStage(opts: StageOptions) {
   // reflection at grazing angles through Fresnel alone, but the fleck and seam
   // maps chop it into something with a scale, so the floor reads as a surface
   // the machine is standing on rather than a plane it is floating over.
-  const floorMaps = createFloorMaps(
+  //
+  // The textures exist from here so the materials can be built on them; the
+  // pixels are painted in load(), in row bands, while the GLBs download.
+  const floorMaps = createPendingFloorMaps(
     renderer.capabilities.getMaxAnisotropy(),
     GYM_FLOOR_MAP_SIZE,
   )
@@ -1040,6 +1053,7 @@ export function createGymScanStage(opts: StageOptions) {
         premultipliedAlpha: true,
         powerPreference: 'high-performance',
       })
+      overlayRenderer.debug.checkShaderErrors = Boolean(import.meta.dev)
       overlayRenderer.setPixelRatio(renderer.getPixelRatio())
       overlayRenderer.setClearColor(0x000000, 0)
       overlayRenderer.toneMapping = THREE.AgXToneMapping
@@ -2026,6 +2040,79 @@ export function createGymScanStage(opts: StageOptions) {
     return { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
   }
 
+  /**
+   * `renderer.compileAsync(scene, camera)`, built one top-level object at a
+   * time with a task boundary between each (see warmSlices.ts). Assembling
+   * shader source is the expensive half of a compile, and a whole-scene
+   * compile did all of it in one task per light state. Every light here is a
+   * direct child of the scene, so each slice sees the same light list - and
+   * so the same program keys - as the whole-scene compile it replaces.
+   */
+  async function compileSliced(target: THREE.WebGLRenderer) {
+    await compileInSlices(target, scene, camera, warmSlices(scene), () => disposed)
+  }
+
+  /**
+   * The composer's full-screen materials (bloom, composite, focus blur) are
+   * not in the scene, so no scene compile reaches them: each used to be built
+   * and linked synchronously inside the first warm render that drew it.
+   * A full-screen quad draws with no lights into a render target - exactly the
+   * state compiled here - so the program keys match and that render finds
+   * them already linked through the parallel path.
+   */
+  async function compilePasses() {
+    const materials: THREE.Material[] = [composite.material, ...stickFocus.passMaterials]
+    if (device.bloom) {
+      materials.push(
+        bloom.materialHighPassFilter,
+        ...bloom.separableBlurMaterials,
+        bloom.compositeMaterial,
+        bloom.blendMaterial,
+      )
+    }
+    const quad = new THREE.BufferGeometry()
+    const group = new THREE.Group()
+    for (const material of materials) group.add(new THREE.Mesh(quad, material))
+    const previous = renderer.getRenderTarget()
+    try {
+      renderer.setRenderTarget(composer.renderTarget1)
+      await renderer.compileAsync(group, camera)
+    } finally {
+      if (!disposed) renderer.setRenderTarget(previous)
+      quad.dispose()
+    }
+  }
+
+  /**
+   * The environment bake and the floor-map pixels, one task each (the floor
+   * in row bands). Both used to run inside construction, in the same long
+   * task as the renderer and every material. False once disposed.
+   */
+  async function bakeWhileLoading(): Promise<boolean> {
+    // The bake polls compileAsync; GPU teardown has to wait for it exactly as
+    // it waits for the load warm-up (see dispose()).
+    let settle!: () => void
+    const bakeWarmup = new Promise<void>((resolve) => { settle = resolve })
+    activeWarmup = bakeWarmup
+    try {
+      await yieldToMain()
+      if (disposed) return false
+      env = await createGymEnvironmentAsync(renderer, GYM_ENV_SIZE, () => disposed)
+      if (!env || disposed) return false
+      scene.environment = env.texture
+      for (const _ of floorMaps.paint()) {
+        await yieldToMain()
+        if (disposed) return false
+      }
+      await yieldToMain()
+      return !disposed
+    }
+    finally {
+      settle()
+      if (activeWarmup === bakeWarmup) activeWarmup = null
+    }
+  }
+
   async function load() {
     const draco = new DRACOLoader()
     draco.setDecoderPath('/draco/')
@@ -2039,11 +2126,22 @@ export function createGymScanStage(opts: StageOptions) {
     // "big dark room" more convincingly than a row of machines nobody is
     // meant to look at.
     const shadows = renderer.shadowMap.enabled
-    partsRig = await loadPartsRig(loader, {
+    const partsLoad = loadPartsRig(loader, {
       dress: dressMaterial,
       shadows,
       heroMats,
     })
+    // Handled where it is awaited; this only keeps a rejection that lands
+    // during the bake below from being reported as unhandled.
+    partsLoad.catch(() => {})
+    // The GLBs are on the network now. Spend that wait on the scene's one-off
+    // CPU work, each piece in its own task, instead of inside construction.
+    if (!(await bakeWhileLoading())) {
+      void partsLoad.then(rig => rig?.dispose(), () => {})
+      draco.dispose()
+      return
+    }
+    partsRig = await partsLoad
     if (disposed) { partsRig?.dispose(); draco.dispose(); return }
 
     if (partsRig) {
@@ -2168,10 +2266,12 @@ export function createGymScanStage(opts: StageOptions) {
       // then exercise the complete graph with the fill light and all transition
       // materials present. Binding the target before compileAsync keeps the
       // expensive RT-specific links out of the synchronous warm draw.
+      await compilePasses()
+      if (disposed) return
       const warmTarget = renderer.getRenderTarget()
       try {
         renderer.setRenderTarget(composer.renderTarget2)
-        await renderer.compileAsync(scene, camera)
+        await compileSliced(renderer)
         if (disposed) return
         renderGymFrame()
       } finally {
@@ -2183,21 +2283,40 @@ export function createGymScanStage(opts: StageOptions) {
         const layers = camera.layers.mask
         const prevTarget = overlayRenderer.getRenderTarget()
         const overlayWarmTarget = new THREE.WebGLRenderTarget(1, 1)
+        const fillWas = phoneFill.visible
+        const keyWas = cardKey.visible
         scene.background = null
         scene.fog = null
         camera.layers.set(STICK_FOCUS_LAYER)
         try {
-          await overlayRenderer.compileAsync(scene, camera)
-          if (disposed) return
+          // The overlay only ever draws the card (nfc, placard, foil: the only
+          // meshes on STICK_FOCUS_LAYER), so only the card is compiled in this
+          // second context - against the whole scene, for its lights. It used
+          // to compile every material in the room here as well.
+          //
+          // And in the light states it actually draws in. The overlay is live
+          // only for the 0C fly: the phone fill is off then (it lights the
+          // approach), and the card's own key is on for most of the flight and
+          // off at its ends. Light counts are program defines, and this used to
+          // warm only fill-on / key-off - a state the overlay never draws - so
+          // the fly linked both real variants synchronously, mid-scroll.
+          phoneFill.visible = false
+          for (const keyOn of [false, true]) {
+            cardKey.visible = keyOn
+            await overlayRenderer.compileAsync(stickerRig, camera, scene)
+            if (disposed) return
+          }
           // Compilation covers the canvas-output shader variant; this private
           // draw pays the context's first geometry/texture upload cost without
           // ever lighting up the transparent overlay canvas.
           overlayRenderer.setRenderTarget(overlayWarmTarget)
-          await overlayRenderer.compileAsync(scene, camera)
+          await overlayRenderer.compileAsync(stickerRig, camera, scene)
           if (disposed) return
           overlayRenderer.clear()
           overlayRenderer.render(scene, camera)
         } finally {
+          phoneFill.visible = fillWas
+          cardKey.visible = keyWas
           if (!disposed) {
             overlayRenderer.setRenderTarget(prevTarget)
             overlayRenderer.setClearColor(0x000000, 0)
@@ -2217,7 +2336,7 @@ export function createGymScanStage(opts: StageOptions) {
       const noFillWarmTarget = renderer.getRenderTarget()
       try {
         renderer.setRenderTarget(composer.renderTarget2)
-        await renderer.compileAsync(scene, camera)
+        await compileSliced(renderer)
         if (disposed) return
         renderGymFrame()
       } finally {
@@ -2236,7 +2355,7 @@ export function createGymScanStage(opts: StageOptions) {
         stickFocus.setDof(1)
         composite.uniforms.uDof!.value = 1
         renderer.setRenderTarget(composer.renderTarget2)
-        await renderer.compileAsync(scene, camera)
+        await compileSliced(renderer)
         if (disposed) return
         renderGymFrame()
       } finally {
@@ -2374,7 +2493,7 @@ export function createGymScanStage(opts: StageOptions) {
     floorMaps.dispose()
     floorPbrMaterial.dispose()
     floorLiteMaterial?.dispose()
-    env.dispose()
+    env?.dispose()
     appScreen.dispose()
     productTextures.forEach(texture => texture.dispose())
     coaching?.dispose()

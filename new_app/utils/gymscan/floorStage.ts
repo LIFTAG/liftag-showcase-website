@@ -26,11 +26,14 @@ import { floorEquipment } from "./floorEquipment";
 import { floorPlanImages, floorRoutineSources } from "./floorRoutines";
 import {
   GYM_ENV_SIZE,
-  createGymEnvironment,
-  createFloorMaps,
+  createGymEnvironmentAsync,
+  createPendingFloorMaps,
   createContactShadowTexture,
+  type GymEnvironment,
 } from "./environment";
 import { experienceDprCap } from "./journey";
+import { yieldToMain } from "./yieldToMain";
+import { compileSliced, renderSliced, warmSlices } from "./warmSlices";
 import {
   FLOOR_APP_CANVAS,
   FLOOR_APP_CHROME,
@@ -267,10 +270,14 @@ export function createFloorStage(
   });
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.3;
+  // Error checks are four synchronous GL round trips per program on first use;
+  // a failed program draws the same either way. Development keeps them.
+  renderer.debug.checkShaderErrors = Boolean(import.meta.dev);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(FLOOR_CAM_FOV, 1, 0.05, 90);
-  const environment = createGymEnvironment(renderer, GYM_ENV_SIZE);
-  scene.environment = environment.texture;
+  // Baked in `ready`, in its own task: the PMREM pass links its programs
+  // synchronously, and nothing samples the environment before the prewarm.
+  let environment: GymEnvironment | null = null;
   const key = new THREE.DirectionalLight(0xe8f0ea, 4.2);
   key.position.set(-3, 6, 5);
   const rim = new THREE.DirectionalLight(0xc8d9ed, 2.2);
@@ -290,7 +297,8 @@ export function createFloorStage(
 
   // One continuous surface: rubber tiles that contract into the glass.
   const surface = createRoundedPlate(8, "floor-surface-v1");
-  const floorMaps = createFloorMaps(renderer.capabilities.getMaxAnisotropy(), 256, { seams: false });
+  // Painted in `ready` too, in row bands; the textures exist now for the material.
+  const floorMaps = createPendingFloorMaps(renderer.capabilities.getMaxAnisotropy(), 256, { seams: false });
   for (const texture of [floorMaps.map, floorMaps.roughnessMap, floorMaps.normalMap])
     texture.repeat.set((8 * FLOOR_PHONE_SCALE) / 2, (8 * FLOOR_PHONE_SCALE) / 2);
   surface.material.color.copy(RUBBER);
@@ -321,7 +329,10 @@ export function createFloorStage(
       floorAppNameLayout(appCtx, appImage.width, appImage.height, i, copy.names[item.id]),
     );
   let names = layoutNames();
-  paintApp();
+  // No paints at construction: every screen is drawn by repaintAll() in
+  // `ready`, after the fonts and pictures it needs have loaded and before the
+  // first frame. Painting here as well was thrown away, inside the long task
+  // that boots this stage while the map chapter is being scrolled.
   const anisotropy = renderer.capabilities.getMaxAnisotropy();
   const appTexture = createAppTexture(appImage, anisotropy);
   const screenMaterial = new THREE.MeshBasicMaterial({
@@ -373,7 +384,6 @@ export function createFloorStage(
   const paintExercises = () => drawFloorExerciseScreen(
     exercise.ctx, exercise.image.width, exercise.image.height, copy, machinePoster,
   );
-  paintExercises();
   const exerciseTexture = createAppTexture(exercise.image, anisotropy);
   // The machine link paints no face of its own: the list's label shows through.
   const noFace = createAppTexture(canvasImage(1, 1).image, 1);
@@ -405,9 +415,6 @@ export function createFloorStage(
     drawFloorClientsScreen(clients.ctx, clients.image.width, clients.image.height, copy, picture, clientsTap);
   const paintLibrary = () =>
     drawFloorLibraryScreen(library.ctx, library.image.width, library.image.height, copy, picture, libraryState);
-  paintPlan();
-  paintClients();
-  paintLibrary();
   const planTexture = createAppTexture(plan.image, anisotropy);
   const clientsTexture = createAppTexture(clients.image, anisotropy);
   const libraryTexture = createAppTexture(library.image, anisotropy);
@@ -434,7 +441,6 @@ export function createFloorStage(
     planCard.uniforms.uOpenFaceUv.value.set(offerButton.w / offer.image.width, 1);
     offerTexture.needsUpdate = true;
   };
-  paintOffer();
 
   const shadow = createContactShadowTexture();
   const reveals = floorEquipment.map(() => ({ value: 0 }));
@@ -561,19 +567,20 @@ export function createFloorStage(
       // The camera has not entered the choreography yet; upload everything.
       node.frustumCulled = false;
     });
+    // One slice per model, card and phone part (see warmSlices.ts): `tilt` and
+    // `device` hold nearly the whole floor, so they are split, not sliced.
+    const slices = warmSlices(scene, new Set<THREE.Object3D>([tilt, device]));
+    const cancelled = () => disposed;
     const compileAndUpload = async () => {
       // Give input and paint a task boundary between material states.
-      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      await yieldToMain();
       if (disposed) return false;
       // The canvas target first: offscreen programs skip tone mapping.
       renderer.setRenderTarget(null);
-      await renderer.compileAsync(scene, camera);
-      if (disposed) return false;
+      if (!(await compileSliced(renderer, scene, camera, slices, cancelled))) return false;
       renderer.setRenderTarget(warmTarget);
-      await renderer.compileAsync(scene, camera);
-      if (disposed) return false;
-      renderer.render(scene, camera);
-      return true;
+      if (!(await compileSliced(renderer, scene, camera, slices, cancelled))) return false;
+      return renderSliced(renderer, scene, camera, slices, cancelled);
     };
     try {
       for (const { object } of visibility) object.visible = true;
@@ -605,25 +612,70 @@ export function createFloorStage(
     }
   }
 
-  /** Every painted screen and measured button, after fonts or copy change. */
+  /**
+   * Every painted screen and measured button, after fonts or copy change -
+   * in order, one screen per step.
+   */
+  const repaintSteps: (() => void)[] = [
+    () => title.paint(copy.title),
+    () => {
+      names = layoutNames();
+      viewButton = floorViewButton(appCtx, appImage.width, appImage.height, 0, copy.view);
+    },
+    () => {
+      paintExercises();
+      exerciseTexture.needsUpdate = true;
+    },
+    () => {
+      paintApp();
+      appTexture.needsUpdate = true;
+    },
+    () => {
+      paintPlan();
+      planTexture.needsUpdate = true;
+    },
+    () => {
+      paintClients();
+      clientsTexture.needsUpdate = true;
+    },
+    () => {
+      paintLibrary();
+      libraryTexture.needsUpdate = true;
+    },
+    paintOffer,
+  ];
   function repaintAll() {
-    title.paint(copy.title);
-    names = layoutNames();
-    viewButton = floorViewButton(appCtx, appImage.width, appImage.height, 0, copy.view);
-    paintExercises();
-    exerciseTexture.needsUpdate = true;
-    paintApp();
-    appTexture.needsUpdate = true;
-    paintPlan();
-    planTexture.needsUpdate = true;
-    paintClients();
-    clientsTexture.needsUpdate = true;
-    paintLibrary();
-    libraryTexture.needsUpdate = true;
-    paintOffer();
+    for (const step of repaintSteps) step();
+  }
+  /**
+   * The boot's repaint, one screen per task: the stage boots while the map
+   * chapter is on screen, and seven canvas screens in one go was a visible
+   * hitch in that scroll. Same steps, same order as repaintAll().
+   */
+  async function repaintSliced() {
+    for (const step of repaintSteps) {
+      if (disposed) return;
+      step();
+      await yieldToMain();
+    }
   }
 
+  // While the models and pictures download: bake the environment and paint
+  // the floor maps, each in its own task rather than inside construction.
+  const bakeReady = (async () => {
+    await yieldToMain();
+    if (disposed) return;
+    environment = await createGymEnvironmentAsync(renderer, GYM_ENV_SIZE, () => disposed);
+    if (!environment || disposed) return;
+    scene.environment = environment.texture;
+    for (const _ of floorMaps.paint()) {
+      await yieldToMain();
+      if (disposed) return;
+    }
+  })();
+
   const ready = Promise.all([
+    bakeReady,
     equipmentReady,
     posterReady,
     routinesReady,
@@ -633,7 +685,8 @@ export function createFloorStage(
     document.fonts.load('600 18px "JetBrains Mono"'),
   ]).then(async () => {
     if (disposed) return;
-    repaintAll();
+    await repaintSliced();
+    if (disposed) return;
     prewarmTask = prewarm();
     await prewarmTask;
   });
@@ -894,7 +947,7 @@ export function createFloorStage(
 
   function releaseResources() {
     decoder.dispose();
-    environment.dispose();
+    environment?.dispose();
     shadow.dispose();
     floorMaps.dispose();
     appTexture.dispose();
@@ -929,9 +982,10 @@ export function createFloorStage(
       if (disposed) return;
       disposed = true;
       // compileAsync polls programs; deleting them mid-poll throws outside the
-      // promise. Release after an in-flight warmup instead.
-      if (prewarmTask) void prewarmTask.then(releaseResources, releaseResources);
-      else releaseResources();
+      // promise. Release after an in-flight warmup (or the bake, which polls
+      // too) instead.
+      const pending = prewarmTask ?? bakeReady;
+      void pending.then(releaseResources, releaseResources);
     },
   };
 }

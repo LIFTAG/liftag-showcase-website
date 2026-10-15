@@ -71,6 +71,22 @@ export function classifyGymScanDevice(signals: GymScanDeviceSignals): GymScanDev
 }
 
 /**
+ * The context attributes the gym stage's WebGLRenderer asks for. Three takes
+ * `alpha: true` and its own defaults for the rest; `stage.ts` builds its
+ * renderer from this object so a probe made with it is the same context.
+ */
+export const GYM_STAGE_CONTEXT = {
+  alpha: true,
+  depth: true,
+  stencil: false,
+  antialias: false,
+  premultipliedAlpha: true,
+  preserveDrawingBuffer: false,
+  powerPreference: 'high-performance',
+  failIfMajorPerformanceCaveat: false,
+} as const satisfies WebGLContextAttributes
+
+/**
  * Make, compile-test, and immediately release a temporary WebGL2 context.
  * This is deliberately separate from the real stage so a failed probe cannot
  * leave a half-created renderer behind.
@@ -79,10 +95,6 @@ export function probeTemporaryWebGL2(): WebGL2Probe {
   if (typeof document === 'undefined') return NO_WEBGL
 
   let gl: WebGL2RenderingContext | null = null
-  let vertex: WebGLShader | null = null
-  let fragment: WebGLShader | null = null
-  let program: WebGLProgram | null = null
-
   try {
     const canvas = document.createElement('canvas')
     canvas.width = 1
@@ -94,7 +106,50 @@ export function probeTemporaryWebGL2(): WebGL2Probe {
       stencil: false,
     })
     if (!gl) return NO_WEBGL
+    return compileTest(gl)
+  }
+  catch {
+    return { webgl2: Boolean(gl), maxTextureSize: 0, probeFailed: true }
+  }
+  finally {
+    gl?.getExtension('WEBGL_lose_context')?.loseContext()
+  }
+}
 
+/**
+ * Probe on the stage's own canvas instead of a throwaway one.
+ *
+ * The temporary probe paid for a second WebGL context (creation, a compile
+ * round trip, and the loss) on the main thread right before the real one was
+ * made. Creating the context here with GYM_STAGE_CONTEXT means three's
+ * `canvas.getContext('webgl2', ...)` hands this same context back, so there
+ * is only ever one. A failed probe loses the context again so no renderer is
+ * ever built on it; the canvas is not drawn to after that.
+ */
+export function probeCanvasWebGL2(canvas: HTMLCanvasElement): WebGL2Probe {
+  if (typeof document === 'undefined') return NO_WEBGL
+  let gl: WebGL2RenderingContext | null = null
+  let result: WebGL2Probe
+  try {
+    const attributes: WebGLContextAttributes = { ...GYM_STAGE_CONTEXT }
+    gl = canvas.getContext('webgl2', attributes)
+    if (!gl) return NO_WEBGL
+    result = compileTest(gl)
+  }
+  catch {
+    result = { webgl2: Boolean(gl), maxTextureSize: 0, probeFailed: true }
+  }
+  if (result.probeFailed) gl?.getExtension('WEBGL_lose_context')?.loseContext()
+  return result
+}
+
+/** Compile and link a trivial program; release it, keep the context. */
+function compileTest(gl: WebGL2RenderingContext): WebGL2Probe {
+  let vertex: WebGLShader | null = null
+  let fragment: WebGLShader | null = null
+  let program: WebGLProgram | null = null
+
+  try {
     vertex = gl.createShader(gl.VERTEX_SHADER)
     fragment = gl.createShader(gl.FRAGMENT_SHADER)
     program = gl.createProgram()
@@ -121,15 +176,12 @@ export function probeTemporaryWebGL2(): WebGL2Probe {
     }
   }
   catch {
-    return { webgl2: Boolean(gl), maxTextureSize: 0, probeFailed: true }
+    return { webgl2: true, maxTextureSize: 0, probeFailed: true }
   }
   finally {
-    if (gl) {
-      if (program) gl.deleteProgram(program)
-      if (vertex) gl.deleteShader(vertex)
-      if (fragment) gl.deleteShader(fragment)
-      gl.getExtension('WEBGL_lose_context')?.loseContext()
-    }
+    if (program) gl.deleteProgram(program)
+    if (vertex) gl.deleteShader(vertex)
+    if (fragment) gl.deleteShader(fragment)
   }
 }
 
