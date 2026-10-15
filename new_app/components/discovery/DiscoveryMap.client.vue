@@ -206,7 +206,10 @@ onBeforeUnmount(() => {
 </script>
 <template>
   <div class="d-map-container">
-    <div ref="container" class="d-map-canvas" :aria-label="copy.map" />
+    <!-- Unlabelled on purpose: the parent section is the labelled "Map"
+         region, and aria-label on a role-less div is prohibited (it was
+         flagged whenever the SDK failed to load). -->
+    <div ref="container" class="d-map-canvas" />
     <div v-if="error" class="d-map-unavailable">
       <DiscoveryIcon name="map" :size="40" />
       <p class="d-subtitle">{{ copy.mapError }}</p>

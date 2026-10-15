@@ -100,18 +100,22 @@ onBeforeUnmount(() => {
         </NuxtLink>
       </div>
     </section>
+    <!-- Closed, the name comes from the content: a hidden "For gym owners:"
+         prefix plus the hint, so the label the hint shows on screen is part of
+         the accessible name (WCAG 2.5.3). The space between the hint spans is
+         a collapsed flex whitespace node, there for the text alternative only. -->
     <button
       ref="toggleButton"
       type="button"
       class="d-owner-toggle"
-      :aria-label="open ? copy.close : copy.claimToggle"
+      :aria-label="open ? copy.close : undefined"
       :aria-expanded="open"
       :aria-controls="panelId"
       @click="setOpen(!open)"
     >
-      <span class="d-owner-hint" aria-hidden="true">
-        <span class="d-owner-hint-title">{{ copy.claimTitle }}</span>
-        <span class="d-owner-hint-more">{{ copy.claimCta }}</span>
+      <span class="sr-only">{{ `${copy.claimToggle}: ` }}</span>
+      <span class="d-owner-hint">
+        <span class="d-owner-hint-title">{{ copy.claimTitle }}</span>{{ ' ' }}<span class="d-owner-hint-more">{{ copy.claimCta }}</span>
       </span>
       <span class="d-owner-icon" aria-hidden="true">
         <DiscoveryGhostPin class="d-owner-toggle-pin" :live="hint" />

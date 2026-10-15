@@ -1089,13 +1089,18 @@ useStickyMomentum(mediaRef)
   line-height: 1.7;
 }
 
+/* Links sit inside running text, so colour alone cannot mark them
+   (WCAG 1.4.1, axe link-in-text-block): a faint underline that firms up on hover. */
 .ex-link-list a {
   color: var(--liftag-primary);
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-color: rgba(204, 255, 0, 0.35);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
 .ex-link-list a:hover {
-  text-decoration: underline;
+  text-decoration-color: currentColor;
 }
 
 .ex-faq {

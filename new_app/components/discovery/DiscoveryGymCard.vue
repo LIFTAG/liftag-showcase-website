@@ -98,13 +98,15 @@ const status = computed(() => {
       loading="lazy"
       @error="photoFailed = true"
     />
+    <!-- Named by its visible content plus a hidden action prefix, so the
+         accessible name contains the visible label (WCAG 2.5.3). -->
     <button
       type="button"
       class="d-gym-main"
-      :aria-label="`${selected ? copy.viewGym : copy.showOnMap}: ${gym.name}`"
       :aria-current="selected ? 'true' : undefined"
       @click="$emit('activate', gym)"
     >
+      <span class="sr-only">{{ `${selected ? copy.viewGym : copy.showOnMap}: ` }}</span>
       <span class="d-gym-select">
         <!-- 76px thumb. The 160w variant is also the map pin's photo, so the two share one fetch. -->
         <img
