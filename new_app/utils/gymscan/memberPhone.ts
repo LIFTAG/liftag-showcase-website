@@ -11,7 +11,7 @@ import {
   PHONE_REST_ROT_Y,
   PHONE_SCR_H,
   PHONE_W,
-} from '../phoneModel.ts'
+} from './phoneDims.ts'
 import type { PhoneBox } from './handoff.ts'
 
 /** Compact layouts stack copy under the device instead of beside it. */

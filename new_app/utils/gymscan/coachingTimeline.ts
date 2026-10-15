@@ -1,4 +1,4 @@
-import { PHONE_H, PHONE_W } from "../phoneModel.ts";
+import { PHONE_H, PHONE_W } from "./phoneDims.ts";
 import { smoothstep } from "./timeline.ts";
 
 export interface CoachingFrame {
