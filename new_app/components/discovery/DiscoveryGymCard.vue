@@ -88,7 +88,16 @@ const status = computed(() => {
 </script>
 <template>
   <article class="d-gym-card" :class="{ 'is-selected': selected, 'has-banner': banner }" :data-gym-id="gym.id">
-    <img v-if="banner" :src="gym.photo!" alt="" class="d-gym-banner" loading="lazy" @error="photoFailed = true" />
+    <img
+      v-if="banner"
+      :src="catalogImageUrl(gym.photo!, 480)"
+      :srcset="catalogImageSrcset(gym.photo, [480, 828])"
+      sizes="400px"
+      alt=""
+      class="d-gym-banner"
+      loading="lazy"
+      @error="photoFailed = true"
+    />
     <button
       type="button"
       class="d-gym-main"
@@ -97,9 +106,12 @@ const status = computed(() => {
       @click="$emit('activate', gym)"
     >
       <span class="d-gym-select">
+        <!-- 76px thumb. The 160w variant is also the map pin's photo, so the two share one fetch. -->
         <img
           v-if="gym.photo && !photoFailed"
-          :src="gym.photo"
+          :src="catalogImageUrl(gym.photo, 160)"
+          :srcset="catalogImageSrcset(gym.photo, [160, 240])"
+          sizes="76px"
           alt=""
           loading="lazy"
           @error="photoFailed = true"

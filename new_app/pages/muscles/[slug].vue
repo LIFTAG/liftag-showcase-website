@@ -216,19 +216,16 @@ useLiftagSeo(() => ({
   followLinks: true,
 }))
 
-const cdnOrigin = computed(() => {
-  const first = exercises.value.find(exercise => exercise.imageUrl)?.imageUrl
-  try {
-    return first ? new URL(first).origin : null
-  }
-  catch {
-    return null
-  }
-})
+// Tile photos normally come through the same-origin resize route. Only a
+// photo that still loads from a foreign origin is worth an early connection.
+const cdnOrigin = computed(() =>
+  catalogImagePreconnect(exercises.value.find(exercise => exercise.imageUrl)?.imageUrl),
+)
 
 useHead(() => ({
   link: cdnOrigin.value
-    ? [{ rel: 'preconnect', href: cdnOrigin.value, crossorigin: 'anonymous' as const }]
+    // No crossorigin: <img> fetches are no-cors and would not reuse a CORS connection.
+    ? [{ rel: 'preconnect', href: cdnOrigin.value }]
     : [],
 }))
 

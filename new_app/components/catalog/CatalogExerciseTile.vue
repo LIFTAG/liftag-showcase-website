@@ -6,17 +6,27 @@
 import type Hls from 'hls.js'
 import { CATALOG_VIDEOS_ENABLED } from '~/utils/catalogVideo'
 import { catalogChrome } from '~/utils/catalogCopy'
+import { catalogImageSrcset, catalogImageUrl } from '~/utils/catalogImage'
 import { canUseNativeHls } from '~/utils/exerciseVideoLanguage'
 import { exerciseHlsConfig, exerciseHlsRequestUrl } from '~/utils/exerciseHls'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   to: string
   name: string
   imageUrl: string | null
   label?: string | null
   hasVideo?: boolean
   previewVideoUrl?: string | null
-}>()
+  /** Rendered width hint for the photo's srcset. Defaults to the 2/3/4-column catalog grids. */
+  sizes?: string
+}>(), {
+  sizes: '(max-width: 768px) 50vw, (max-width: 1080px) 33vw, 300px',
+})
+
+// Tiles render at ~185-300 CSS px; 640 covers a 2x desktop column.
+const TILE_WIDTHS = [240, 360, 480, 640] as const
+const imageSrc = computed(() => catalogImageUrl(props.imageUrl, 480))
+const imageSrcset = computed(() => catalogImageSrcset(props.imageUrl, TILE_WIDTHS))
 
 const { locale } = useSiteLocale()
 const language = useVideoLanguage(locale)
@@ -141,8 +151,10 @@ onBeforeUnmount(() => {
   >
     <span class="ex-tile__media">
       <img
-        v-if="imageUrl"
-        :src="imageUrl"
+        v-if="imageSrc"
+        :src="imageSrc"
+        :srcset="imageSrcset"
+        :sizes="imageSrcset ? sizes : undefined"
         :alt="name"
         loading="lazy"
         decoding="async"

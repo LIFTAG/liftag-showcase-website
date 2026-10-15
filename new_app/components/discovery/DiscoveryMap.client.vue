@@ -3,6 +3,7 @@
 import type { Coordinate, DiscoveryLocale, ExploreGym, MapViewport } from '~/types/discovery'
 import { discoveryCopy } from '~/utils/discoveryCopy'
 import { loadDiscoveryMaps } from '~/lib/discoveryMaps'
+import { catalogImageUrl } from '~/utils/catalogImage'
 const props = defineProps<{
   gyms: ExploreGym[]
   selectedId: string | null
@@ -58,7 +59,8 @@ function updatePhoto(element: HTMLElement, url: string | null) {
   face.append(placeholder)
   if (url) {
     const photo = document.createElement('img')
-    photo.src = url
+    // Same 160w variant as the result card's thumbnail: one shared fetch.
+    photo.src = catalogImageUrl(url, 160)
     photo.alt = ''
     photo.addEventListener('error', () => face.replaceChildren(placeholder), { once: true })
     face.replaceChildren(photo)

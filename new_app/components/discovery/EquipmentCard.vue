@@ -13,7 +13,9 @@ const multipleUnits = computed(() =>
     <span class="d-equipment-art">
       <img
         v-if="item.photoUrl && !failed"
-        :src="item.photoUrl"
+        :src="catalogImageUrl(item.photoUrl, 480)"
+        :srcset="catalogImageSrcset(item.photoUrl, [240, 360, 480, 640])"
+        sizes="(max-width: 1100px) 50vw, 300px"
         alt=""
         loading="lazy"
         @error="failed = true"

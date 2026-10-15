@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { gymCatalogContext, gymExerciseHref, gymMachineHref } from '~/utils/gymCatalog'
+import { catalogImageUrl } from '~/utils/catalogImage'
 import type { CatalogLocale } from '~/utils/catalogLocale'
 
 const props = withDefaults(
@@ -461,7 +462,7 @@ useStickyMomentum(mediaRef)
                 >
                   <img
                     v-if="machine.photoUrl"
-                    :src="machine.photoUrl"
+                    :src="catalogImageUrl(machine.photoUrl, 160)"
                     :alt="chrome.machineAlt(machine.name, name)"
                     loading="lazy"
                     decoding="async"
@@ -550,6 +551,7 @@ useStickyMomentum(mediaRef)
             :image-url="row.imageUrl"
             :has-video="row.hasVideo"
             :preview-video-url="row.previewVideoUrl"
+            sizes="(max-width: 1024px) 50vw, 300px"
           />
         </div>
       </section>

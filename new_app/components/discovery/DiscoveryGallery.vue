@@ -109,7 +109,7 @@ function viewerKeydown(event: KeyboardEvent) {
       >
         <img
           v-if="item.type === 'image' || item.posterUrl"
-          :src="item.type === 'image' ? item.url : item.posterUrl!"
+          :src="catalogImageUrl(item.type === 'image' ? item.url : item.posterUrl!, 160)"
           alt=""
           loading="lazy"
         />

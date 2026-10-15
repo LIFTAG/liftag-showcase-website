@@ -140,9 +140,13 @@ onBeforeUnmount(() => {
         :aria-label="`${copy.photos}: ${name}`"
         @click="emit('open')"
       >
+        <!-- Inline gallery column (gym detail): resized same-origin variants.
+             The fullscreen viewer below keeps the original for zooming. -->
         <img
           v-if="!failed.has(slide.item.url)"
-          :src="slide.item.url"
+          :src="catalogImageUrl(slide.item.url, 1080)"
+          :srcset="catalogImageSrcset(slide.item.url, [480, 640, 828, 1080, 1440])"
+          sizes="(max-width: 767px) calc(100vw - 32px), (max-width: 1023px) calc(100vw - 388px), 740px"
           :alt="`${name}, ${slide.index + 1}`"
           :loading="slide.index === index && !slide.clone ? 'eager' : 'lazy'"
           :fetchpriority="slide.index === index && !slide.clone ? 'high' : 'auto'"
