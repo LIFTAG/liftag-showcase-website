@@ -71,6 +71,14 @@ let reduceMotion = false
 let startedAt = 0
 
 let io: IntersectionObserver | null = null
+// The 480px observer above prepares the context early; this one decides
+// whether frames are drawn. The plate is a per-pixel raymarch, and drawing it
+// for the whole approach cost GPU time while the section above was scrolling.
+let screenIo: IntersectionObserver | null = null
+let onScreen = false
+// The press plays from the first frame anyone can see, not from init, so it
+// is not half over by the time the plate scrolls into view.
+let pressClockArmed = true
 let resizeObserver: ResizeObserver | null = null
 let resizeTimer: ReturnType<typeof setTimeout> | null = null
 let onVisibility: (() => void) | null = null
@@ -532,7 +540,11 @@ function frame(now: number) {
 }
 
 function startLoop() {
-  if (running || disposed || document.hidden || reduceMotion) return
+  if (running || disposed || document.hidden || reduceMotion || !onScreen) return
+  if (pressClockArmed) {
+    pressClockArmed = false
+    startedAt = performance.now()
+  }
   running = true
   lastPresent = 0
   rafId = requestAnimationFrame(frame)
@@ -658,6 +670,8 @@ function finishInit(context: WebGLRenderingContext, canvas: HTMLCanvasElement, p
   bufW = 0
   bufH = 0
   startedAt = performance.now()
+  // A fresh context replays the press, from whenever it is first seen.
+  pressClockArmed = true
   disposed = false
   resizeBuffer()
 
@@ -758,6 +772,16 @@ onMounted(() => {
   )
   io.observe(host)
 
+  screenIo = new IntersectionObserver(
+    (entries) => {
+      onScreen = Boolean(entries[entries.length - 1]?.isIntersecting)
+      if (!onScreen) stopLoop()
+      else if (!disposed && !document.hidden) startLoop()
+    },
+    { threshold: 0 },
+  )
+  screenIo.observe(host)
+
   onVisibility = () => {
     if (document.hidden) stopLoop()
     else syncVisibility()
@@ -780,6 +804,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   io?.disconnect()
   io = null
+  screenIo?.disconnect()
+  screenIo = null
   resizeObserver?.disconnect()
   resizeObserver = null
   if (resizeTimer) clearTimeout(resizeTimer)
