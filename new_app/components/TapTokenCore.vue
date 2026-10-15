@@ -553,12 +553,27 @@ function currentBufferScale() {
   )
 }
 
+// Host CSS size, refreshed by the ResizeObserver (which runs after layout,
+// where reading it is free). resizeBuffer() runs every frame, and reading
+// clientWidth there forced a synchronous layout whenever a scroll handler
+// had written styles earlier in the same frame.
+let hostCssW = 0
+let hostCssH = 0
+
+function measureHost() {
+  const host = mount.value
+  if (!host) return
+  hostCssW = host.clientWidth
+  hostCssH = host.clientHeight
+}
+
 function resizeBuffer() {
   const host = mount.value
   if (!host || !canvasEl || !gl) return
+  if (!hostCssW || !hostCssH) measureHost()
   dpr = currentBufferScale()
-  const width = Math.max(1, Math.round((host.clientWidth || 1) * dpr))
-  const height = Math.max(1, Math.round((host.clientHeight || 1) * dpr))
+  const width = Math.max(1, Math.round((hostCssW || 1) * dpr))
+  const height = Math.max(1, Math.round((hostCssH || 1) * dpr))
   if (width === bufW && height === bufH) return
   canvasEl.width = width
   canvasEl.height = height
@@ -925,6 +940,7 @@ onMounted(async () => {
   document.addEventListener('visibilitychange', onVisibility)
 
   resizeObserver = new ResizeObserver(() => {
+    measureHost()
     hostRect = null
     if (resizeTimer) clearTimeout(resizeTimer)
     resizeTimer = setTimeout(() => {
