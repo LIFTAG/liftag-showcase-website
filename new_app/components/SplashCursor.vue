@@ -122,6 +122,17 @@ let displayMaterial: Material | null = null
 
 let lastUpdateTime = 0
 let colorUpdateTimer = 0
+// The sim parks once the pointer has been still long enough for the dye to
+// dissipate (5.2/s leaves ~0.05% after 1.5s), and the next move wakes it.
+// Without this it ran ~27 full-texture passes every frame for the life of
+// the page, including every scroll frame with the mouse at rest.
+const IDLE_PARK_MS = 1800
+let lastInputAt = 0
+// Canvas CSS size from a ResizeObserver: reading clientWidth every frame
+// forced a style/layout flush whenever a scroll handler had just written.
+let canvasCssWidth = 0
+let canvasCssHeight = 0
+let canvasResizeObserver: ResizeObserver | null = null
 
 class Program {
   program: WebGLProgram | null
@@ -821,6 +832,14 @@ function updateFrame() {
   applyInputs()
   step(dt)
   render(null)
+  if (performance.now() - lastInputAt > IDLE_PARK_MS) {
+    // Park on an empty frame so no faint residue sits over the page.
+    gl?.bindFramebuffer(gl.FRAMEBUFFER, null)
+    gl?.clearColor(0, 0, 0, 0)
+    gl?.clear(gl.COLOR_BUFFER_BIT)
+    rafId = 0
+    return
+  }
   rafId = requestAnimationFrame(updateFrame)
 }
 
@@ -835,8 +854,8 @@ function calcDeltaTime() {
 function resizeCanvas() {
   const canvas = canvasRef.value
   if (!canvas || !gl) return false
-  const width = scaleByPixelRatio(canvas.clientWidth)
-  const height = scaleByPixelRatio(canvas.clientHeight)
+  const width = scaleByPixelRatio(canvasCssWidth || canvas.clientWidth)
+  const height = scaleByPixelRatio(canvasCssHeight || canvas.clientHeight)
   if (canvas.width !== width || canvas.height !== height) {
     canvas.width = width
     canvas.height = height
@@ -1270,6 +1289,7 @@ function arm(event: { clientX: number, clientY: number }) {
   initFramebuffers()
 
   lastUpdateTime = Date.now()
+  lastInputAt = performance.now()
   colorUpdateTimer = 0
 
   dropPointerSampler()
@@ -1286,15 +1306,19 @@ function installListeners() {
   onWindowMouseMove = (e) => {
     const pointer = pointers[0]
     if (!pointer) return
+    lastInputAt = performance.now()
     updatePointerMoveData(pointer, scaleByPixelRatio(e.clientX), scaleByPixelRatio(e.clientY), pointer.color)
+    resumeLoop()
   }
   window.addEventListener('mousemove', onWindowMouseMove, { passive: true })
 
   onWindowMouseDown = (e) => {
     const pointer = pointers[0]
     if (!pointer) return
+    lastInputAt = performance.now()
     updatePointerDownData(pointer, -1, scaleByPixelRatio(e.clientX), scaleByPixelRatio(e.clientY))
     clickSplat(pointer)
+    resumeLoop()
   }
   window.addEventListener('mousedown', onWindowMouseDown)
 
@@ -1309,6 +1333,17 @@ function installListeners() {
     tone.value = next === 'red' ? 'red' : 'green'
   }
   window.addEventListener('liftag:cursor-glow-tone', onToneChange)
+
+  const canvas = canvasRef.value
+  if (canvas && typeof ResizeObserver !== 'undefined') {
+    canvasResizeObserver = new ResizeObserver((entries) => {
+      const box = entries[entries.length - 1]?.contentRect
+      if (!box) return
+      canvasCssWidth = box.width
+      canvasCssHeight = box.height
+    })
+    canvasResizeObserver.observe(canvas)
+  }
 }
 
 onMounted(() => {
@@ -1344,6 +1379,8 @@ onBeforeUnmount(() => {
   if (onWindowMouseDown) window.removeEventListener('mousedown', onWindowMouseDown)
   if (onVisibilityChange) document.removeEventListener('visibilitychange', onVisibilityChange)
   if (onToneChange) window.removeEventListener('liftag:cursor-glow-tone', onToneChange)
+  canvasResizeObserver?.disconnect()
+  canvasResizeObserver = null
   onFirstPointerMove = null
   onWindowMouseMove = null
   onWindowMouseDown = null

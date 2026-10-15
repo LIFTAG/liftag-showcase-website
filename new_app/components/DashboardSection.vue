@@ -13,18 +13,40 @@ import {
   smoothstep,
 } from '../utils/dashboardScroll'
 import type { ScreenVideoSource } from '../utils/screenVideo'
+import type { Component } from 'vue'
+import Macbook3D from './Macbook3D.vue'
 
 const sectionRef = ref<HTMLElement | null>(null)
 const stageRef = ref<HTMLElement | null>(null)
 const mountRef = ref<HTMLElement | null>(null)
 const coachMountRef = ref<HTMLElement | null>(null)
 
+// Per-frame scroll values. The section template must never read these: every
+// scroll frame would re-render the whole section. The laptop gets them through
+// MacbookPose below, and the template only reads the threshold flags.
 const openProgress = ref(0)
 const zoomProgress = ref(0)
-const chromeProgress = ref(1)
 const blendProgress = ref(0)
-const coachProgress = ref(0)
+const chromeHidden = ref(false)
+const coachActive = ref(false)
 const chapterIndex = ref(0)
+
+// Render-isolation shim: reads the per-frame refs in its own render, so a
+// scroll frame re-renders this one vnode instead of the section.
+const MacbookPose = defineComponent({
+  name: 'MacbookPose',
+  inheritAttrs: false,
+  setup(_, { attrs }) {
+    // attrs carries the static props from the template; Macbook3D's required
+    // props are among them, which TypeScript cannot see through attrs.
+    return () => h(Macbook3D as Component, {
+      ...attrs,
+      screenBlend: blendProgress.value,
+      openProgress: openProgress.value,
+      zoomProgress: zoomProgress.value,
+    })
+  },
+})
 const remainLabel = ref('0:00')
 const clipPaused = ref(false)
 const playbackActive = ref(false)
@@ -339,9 +361,9 @@ function tick() {
   const mapped = mapDashboardJourney(p, reduceMotion)
   openProgress.value = mapped.open
   zoomProgress.value = mapped.zoom
-  chromeProgress.value = mapped.chrome
   blendProgress.value = mapped.blend
-  coachProgress.value = mapped.coach
+  chromeHidden.value = mapped.chrome < 0.05
+  coachActive.value = mapped.coach > 0.5
   chapterIndex.value = mapped.chapter
 
   const locked = !reduceMotion && mapped.zoom > 0.98
@@ -546,11 +568,11 @@ onBeforeUnmount(() => {
     ref="sectionRef"
     class="dashboard-section"
     :class="{
-      'is-chrome-hidden': chromeProgress < 0.05,
+      'is-chrome-hidden': chromeHidden,
       'is-spine-active': playbackActive,
       'is-coach-screen': chapterIndex >= DASHBOARD_COACH_CHAPTER,
       'is-switch-chapter': chapterIndex === DASHBOARD_COACH_CHAPTER,
-      'is-coach-active': coachProgress > 0.5,
+      'is-coach-active': coachActive,
     }"
     :style="{ '--trainers-at': DASHBOARD_TRAINERS_AT }"
   >
@@ -575,7 +597,7 @@ onBeforeUnmount(() => {
                force a lazy init on their first non-zero value, so leaving it
                mounted would spin up a WebGL context and a Three.js scene for a
                display:none layer nobody will ever see. -->
-          <Macbook3D
+          <MacbookPose
             v-if="!staticMode"
             screenshot-src="/assets/screens/dashboard-web.webp"
             :screenshot-src-b="COACH_POSTER"
@@ -583,11 +605,8 @@ onBeforeUnmount(() => {
             :video-sources-b="coachVideoSources"
             :video-segment="gymVideoSegment"
             :video-segment-b="coachVideoSegment"
-            :screen-blend="blendProgress"
             :arm-secondary="armCoachVideo"
             :playback-active="playbackActive"
-            :open-progress="openProgress"
-            :zoom-progress="zoomProgress"
             :align-el="alignMountRef"
           />
         </ClientOnly>

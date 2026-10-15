@@ -62,23 +62,32 @@ const atmosphereGlow = 'radial-gradient(ellipse 70% 55%'
 
 let onHeroScroll: (() => void) | null = null
 
+// Past this depth the hero is off screen on any desktop viewport, so the
+// scroll vars stop changing and the handler stops restyling the hero subtree.
+const HERO_SCROLL_CLAMP_PX = 1600
+
 onMounted(() => {
+  const phoneQuery = window.matchMedia('(max-width: 768px)')
   let scrollQueued = false
+  let lastY = -1
   onHeroScroll = () => {
     if (scrollQueued) return
     scrollQueued = true
     requestAnimationFrame(() => {
       scrollQueued = false
-      if (window.matchMedia('(max-width: 768px)').matches) return
+      if (phoneQuery.matches) return
 
       const root = heroRoot.value
       if (!root) return
       // Handoff lives inside the gym-scan sticky, so window.scrollY is already
       // several viewports deep when the hero appears. Measure the section
       // itself: pinned → y = 0, unpinning → the same fade the homepage uses.
-      const y = props.handoff
+      const rawY = props.handoff
         ? Math.max(0, -root.getBoundingClientRect().top)
         : window.scrollY
+      const y = Math.min(rawY, HERO_SCROLL_CLAMP_PX)
+      if (y === lastY) return
+      lastY = y
       root.style.setProperty('--hero-fade', String(Math.max(0, 1 - y / 500)))
       root.style.setProperty('--hero-lift', `${y * 0.35}px`)
       root.style.setProperty('--hero-scroll', String(y))
