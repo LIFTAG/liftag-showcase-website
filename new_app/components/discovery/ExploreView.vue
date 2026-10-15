@@ -434,9 +434,13 @@ useDiscoverySeo({
     display: flex;
     gap: 12px;
   }
+  /* As tall as a collapsed DiscoveryGymCard (76px photo + 2x16px padding,
+     40px action row + 16px, 2px border). The bottom-anchored row then keeps
+     its height when results replace the skeleton, so the row, Locate me and
+     the owner control do not jump on load. */
   .d-explore-results :deep(.d-skeleton) {
     width: 310px;
-    min-height: 112px;
+    min-height: calc(76px + 2 * 16px + 40px + 16px + 2px);
   }
   .d-explore-owner {
     display: none;
