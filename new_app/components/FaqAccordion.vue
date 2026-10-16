@@ -152,8 +152,7 @@ watch(openFaq, () => {
 .faq-index {
   flex-shrink: 0;
   width: 2.4ch;
-  /* 0.5 white clears 4.5:1 on the FAQ's dark panels (0.34 did not). */
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.34);
   font-family: var(--liftag-font-mono);
   font-size: 11px;
   font-weight: 700;

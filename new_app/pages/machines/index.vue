@@ -10,13 +10,7 @@ const description = chrome.machineSeoDescription
 
 const route = useRoute()
 
-// Machines need every machine row but only the exercise total, so the page
-// payload carries the count instead of the ~470 exercise rows.
-const { data: index, error, refresh } = await useCatalogIndexView('machines', locale, full => ({
-  machines: full.machines,
-  categories: full.categories,
-  exerciseCount: full.exercises.length,
-}))
+const { data: index, error, refresh } = await useCatalogIndex(locale)
 if (import.meta.server && error.value) {
   throw createError({ statusCode: 503, statusMessage: 'Machine catalog temporarily unavailable' })
 }
@@ -206,16 +200,21 @@ function toggleMuscle(slug: string) {
   muscle.value = muscle.value === slug ? '' : slug
 }
 
-// Tile photos normally come through the same-origin resize route. Only a
-// photo that still loads from a foreign origin is worth an early connection.
-const cdnOrigin = computed(() =>
-  catalogImagePreconnect(index.value?.machines.find(machine => machine.photoUrl)?.photoUrl),
-)
+// Machine photos come from the catalog CDN; open the connection before the
+// first tile image is requested.
+const cdnOrigin = computed(() => {
+  const first = index.value?.machines.find(machine => machine.photoUrl)?.photoUrl
+  try {
+    return first ? new URL(first).origin : null
+  }
+  catch {
+    return null
+  }
+})
 
 useHead(() => ({
   link: cdnOrigin.value
-    // No crossorigin: <img> fetches are no-cors and would not reuse a CORS connection.
-    ? [{ rel: 'preconnect', href: cdnOrigin.value }]
+    ? [{ rel: 'preconnect', href: cdnOrigin.value, crossorigin: 'anonymous' as const }]
     : [],
 }))
 
@@ -250,7 +249,7 @@ useLiftagStructuredData(() => [
         <p v-if="index" class="ma-stats">
           <span>{{ chrome.statMachines(index.machines.length) }}</span>
           <span class="ma-stats-dot" aria-hidden="true">·</span>
-          <NuxtLink :to="href('/exercises')" class="ma-stats-link">{{ chrome.statExercises(index.exerciseCount) }}</NuxtLink>
+          <NuxtLink :to="href('/exercises')" class="ma-stats-link">{{ chrome.statExercises(index.exercises.length) }}</NuxtLink>
         </p>
       </header>
 

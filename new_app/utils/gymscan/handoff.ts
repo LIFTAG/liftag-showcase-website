@@ -10,7 +10,7 @@ import {
   PHONE_CAM_Z,
   PHONE_H,
   PHONE_W,
-} from './phoneDims.ts'
+} from '../phoneModel.ts'
 import { clamp01, lerp, smoothstep } from './timeline.ts'
 
 /**

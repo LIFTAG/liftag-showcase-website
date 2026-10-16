@@ -3,7 +3,6 @@ import { scrollToTrainerHandoff } from '~/utils/dashboardScroll'
 import { discoveryHref } from '~/utils/discovery'
 import { NAV_ACTIVE_PREFIXES, navCurrent, type NavCurrent } from '~/utils/navActive'
 import { en, sk } from '~/i18n/messages/shell'
-import { siteLocaleNeedsLatinExt } from '~/utils/siteLocale'
 
 const props = withDefaults(defineProps<{
   deferred?: boolean
@@ -19,22 +18,6 @@ const isMobileNav = ref(false)
 const navRoot = ref<HTMLElement | null>(null)
 const route = useRoute()
 const { locale, basePath, href } = useSiteLocale()
-
-// The desktop nav row is the only thing set in Big Shoulders. Preload it from
-// here rather than from the global head, so pages without this nav (/demo,
-// the app handoff routes) and phone viewports never spend early bandwidth on it.
-// Slovak and Czech labels also need the latin-ext cut for their carons.
-useHead(() => ({
-  link: ['latin', ...(siteLocaleNeedsLatinExt(locale.value) ? ['latin-ext-cs'] : [])].map(subset => ({
-    rel: 'preload',
-    as: 'font',
-    type: 'font/woff2',
-    crossorigin: '',
-    href: `/assets/fonts/big-shoulders-${subset}.woff2`,
-    media: '(min-width: 769px)',
-  })),
-}))
-
 const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 const localeReady = ref(false)
 onMounted(() => { localeReady.value = true })
@@ -308,17 +291,13 @@ function measureScrollMax() {
   scrollMax = document.documentElement.scrollHeight - window.innerHeight
 }
 
-// `y` comes from the scroll event when there is one. Reading window.scrollY in
-// the rAF callback instead forced a style and layout flush every scroll frame,
-// because pinned sections have already written their CSS vars by then; the
-// event fires before rAF, while layout is still clean from the last frame.
-function updateScrolled(y = window.scrollY) {
+function updateScrolled() {
   const threshold = isMobileNav.value ? 0 : 40
-  const next = y > threshold
+  const next = window.scrollY > threshold
   if (next !== scrolled.value) scrolled.value = next
 
   if (!nativeScrollTimeline && navRoot.value) {
-    const p = scrollMax > 0 ? Math.min(1, Math.max(0, y / scrollMax)) : 0
+    const p = scrollMax > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollMax)) : 0
     navRoot.value.style.setProperty('--nav-scroll-p', p.toFixed(4))
   }
 }
@@ -358,14 +337,12 @@ onMounted(() => {
   }
 
   let queued = false
-  let latestScrollY = 0
   _onScroll = () => {
-    latestScrollY = window.scrollY
     if (queued) return
     queued = true
     requestAnimationFrame(() => {
       queued = false
-      updateScrolled(latestScrollY)
+      updateScrolled()
     })
   }
   window.addEventListener('scroll', _onScroll, { passive: true })

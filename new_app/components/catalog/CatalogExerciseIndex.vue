@@ -232,16 +232,21 @@ watch(muscleFilter, () => {
   reset()
 })
 
-// Tile photos normally come through the same-origin resize route. Only a
-// photo that still loads from a foreign origin is worth an early connection.
-const cdnOrigin = computed(() =>
-  catalogImagePreconnect(index.value?.exercises.find(exercise => exercise.imageUrl)?.imageUrl),
-)
+// Exercise photos come from the catalog CDN; open the connection before the
+// first tile image is requested.
+const cdnOrigin = computed(() => {
+  const first = index.value?.exercises.find(exercise => exercise.imageUrl)?.imageUrl
+  try {
+    return first ? new URL(first).origin : null
+  }
+  catch {
+    return null
+  }
+})
 
 useHead(() => ({
   link: cdnOrigin.value
-    // No crossorigin: <img> fetches are no-cors and would not reuse a CORS connection.
-    ? [{ rel: 'preconnect', href: cdnOrigin.value }]
+    ? [{ rel: 'preconnect', href: cdnOrigin.value, crossorigin: 'anonymous' as const }]
     : [],
 }))
 

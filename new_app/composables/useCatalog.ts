@@ -19,42 +19,6 @@ export function useCatalogIndex(locale: MaybeRefOrGetter<CatalogLocale> = 'en') 
 }
 
 /**
- * A page-specific slice of the shared search index. The full index is ~320KB
- * once serialized into a page payload; pages that only need machines, counts
- * or one muscle's rows reduce it inside the handler, so only the slice is
- * serialized. A client-side visit reuses an index another catalog page
- * already loaded instead of fetching it again.
- */
-export function useCatalogIndexView<T>(
-  name: string,
-  locale: MaybeRefOrGetter<CatalogLocale>,
-  reduce: (index: CatalogIndexPayload) => T,
-  /** `lazy`: a client-side navigation renders without waiting (SSR still waits). */
-  options: { lazy?: boolean } = {},
-) {
-  const requestFetch = useRequestFetch()
-  // Client only: a server render never has another page's index in memory,
-  // and reading it there would add empty keys to the payload.
-  const loaded = import.meta.client
-    ? {
-        en: useNuxtData<CatalogIndexPayload | null>('catalog-index:en').data,
-        sk: useNuxtData<CatalogIndexPayload | null>('catalog-index:sk').data,
-      } satisfies Record<CatalogLocale, unknown>
-    : null
-  return useAsyncData<T>(
-    computed(() => `catalog-index-view:${name}:${toValue(locale)}`),
-    async (_app, { signal }) => {
-      const lang = toValue(locale)
-      return reduce(
-        loaded?.[lang].value
-        ?? await requestFetch<CatalogIndexPayload>('/api/catalog/search-index', { query: { locale: lang }, signal }),
-      )
-    },
-    { dedupe: 'cancel', lazy: options.lazy ?? false },
-  )
-}
-
-/**
  * Resolve an exercise by slug or UUID through the site's own catalog route.
  * That route maps slugs via the cached snapshot; the upstream show endpoint
  * only accepts UUIDs and 422s on a slug, which used to 404 the page when the

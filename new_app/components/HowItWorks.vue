@@ -467,16 +467,7 @@ function updateHIW(p: number, sectionRect?: DOMRect, scrollChanged = true) {
     track.style.transform = `translateX(-${panelP * 66.667}%)`
   }
 
-  // The scan pane is the first of three panels on the track and is fully off
-  // screen past the halfway point. Its idle sweep restyles two text blocks
-  // every frame, so stop driving it there and keep the lerps parked on p so
-  // scrolling back in does not jump.
-  if (panelP < 0.55) {
-    updateScanHoverEffect(panelP)
-  } else {
-    hiwLerpedP = panelP
-    hiwQRLerpedP = panelP
-  }
+  updateScanHoverEffect(panelP)
 
   // Draw the strength curve. Flash timings use perf.now(), so it keeps running
   // past a scroll stop until the newest marker's flash + label have settled.

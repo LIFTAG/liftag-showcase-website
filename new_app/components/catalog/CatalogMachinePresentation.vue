@@ -7,15 +7,7 @@ import { discoveryMuscleName } from '~/utils/discoveryMuscles'
 import type { CatalogMachine } from '~/types/catalog'
 import { catalogChrome } from '~/utils/catalogCopy'
 import { muscleDisplayName } from '~/utils/catalogLocale'
-import { catalogImageSrcset, catalogImageUrl } from '~/utils/catalogImage'
 const { href } = useSiteLocale()
-/**
- * The hero box object-fit: covers ~16:9 photos, so the decoded width is the
- * box height x 16/9: about 1.6x the phone viewport (full-bleed, 56px + 75vw
- * tall) and 1.33x the 7fr desktop column.
- */
-const HERO_SIZES = '(max-width: 768px) 160vw, (max-width: 1240px) 78vw, 880px'
-const HERO_WIDTHS = [640, 828, 1080, 1440] as const
 /** Exactly one source is supplied: a catalog machine, or a gym's resolved machine. */
 const props = withDefaults(
   defineProps<{
@@ -110,13 +102,10 @@ watch(
               :video-url="media[activePhoto]!.url"
               :poster="media[activePhoto]!.posterUrl"
               :name="name"
-              :poster-sizes="HERO_SIZES"
             />
             <img
               v-else-if="media[activePhoto]"
-              :src="catalogImageUrl(media[activePhoto]!.url, 1080)"
-              :srcset="catalogImageSrcset(media[activePhoto]!.url, HERO_WIDTHS)"
-              :sizes="HERO_SIZES"
+              :src="media[activePhoto]!.url"
               :alt="heroAlt"
               fetchpriority="high"
               decoding="async"
@@ -155,7 +144,7 @@ watch(
             >
               <img
                 v-if="item.type === 'image' || item.posterUrl"
-                :src="catalogImageUrl(item.type === 'image' ? item.url : item.posterUrl!, 160)"
+                :src="item.type === 'image' ? item.url : item.posterUrl!"
                 alt=""
                 loading="lazy"
                 decoding="async"
@@ -211,7 +200,6 @@ watch(
             :label="exercise.label"
             :has-video="Boolean(exercise.video)"
             :preview-video-url="exercise.video"
-            sizes="(max-width: 1024px) 50vw, 300px"
           />
         </div>
 

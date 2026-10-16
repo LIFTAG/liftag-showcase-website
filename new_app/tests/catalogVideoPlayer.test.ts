@@ -6,7 +6,6 @@ import ts from 'typescript'
 import { computed, effectScope, nextTick, reactive, ref, shallowRef, watch, type Ref } from 'vue'
 import { parse } from 'vue/compiler-sfc'
 import * as catalogVideo from '../utils/catalogVideo.ts'
-import * as catalogImage from '../utils/catalogImage.ts'
 import * as catalogMedia from '../i18n/messages/catalogMedia.ts'
 import * as videoLanguage from '../utils/exerciseVideoLanguage.ts'
 import * as exerciseHls from '../utils/exerciseHls.ts'
@@ -58,7 +57,6 @@ function setupPlayer(t: TestContext) {
       if (id === '~/i18n/messages/catalogMedia') return catalogMedia
       if (id === '~/utils/exerciseVideoLanguage') return videoLanguage
       if (id === '~/utils/exerciseHls') return exerciseHls
-      if (id === '~/utils/catalogImage') return catalogImage
       assert.equal(id, '~/utils/catalogVideo')
       return catalogVideo
     },

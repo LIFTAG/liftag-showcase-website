@@ -82,49 +82,24 @@ test('unprefixed share URLs retain identity, variants and anchors while replacin
   }
 })
 
-test('Slovak and Czech pages preload the latin-ext faces used by page copy', () => {
+test('Slovak and Czech pages preload every latin-ext face used by UI copy', () => {
   assert.deepEqual(siteLocaleFontPreloads('en'), [])
-  // Big Shoulders (desktop nav only) is preloaded by SiteNav, desktop-only.
   assert.deepEqual(siteLocaleFontPreloads('sk'), [
-    '/assets/fonts/inter-latin-ext-cs.woff2',
-    '/assets/fonts/space-grotesk-latin-ext-cs.woff2',
-    '/assets/fonts/jetbrains-mono-latin-ext-cs.woff2',
+    '/assets/fonts/inter-latin-ext.woff2',
+    '/assets/fonts/space-grotesk-latin-ext.woff2',
+    '/assets/fonts/jetbrains-mono-latin-ext.woff2',
+    '/assets/fonts/big-shoulders-latin-ext.woff2',
   ])
   assert.deepEqual(siteLocaleFontPreloads('cs'), siteLocaleFontPreloads('sk'))
 })
 
 test('latin-ext subsets swap in so Slovak carons are not dropped after first paint', () => {
   const css = readFileSync(new URL('../assets/css/main.css', import.meta.url), 'utf8')
-  // Four faces, each split into the SK/CS letters (-cs) and the rest of latin-ext.
-  const extFaces = css.split('@font-face').filter((block) => /src:\s*url\('[^']*latin-ext(-cs)?\.woff2/.test(block))
-  assert.equal(extFaces.length, 8)
+  const extFaces = css.split('@font-face').filter((block) => block.includes('latin-ext.woff2'))
+  assert.equal(extFaces.length, 4)
   for (const block of extFaces) {
     assert.match(block, /font-display:\s*swap/)
     assert.doesNotMatch(block, /font-display:\s*optional/)
-  }
-})
-
-test('the SK/CS subset owns the caron letters and the full latin-ext face does not', () => {
-  const css = readFileSync(new URL('../assets/css/main.css', import.meta.url), 'utf8')
-  const range = (block: string) => {
-    const points = new Set<number>()
-    for (const part of /unicode-range:\s*([^;]+);/.exec(block)![1].split(',')) {
-      const [from, to = from] = part.trim().slice(2).split('-')
-      for (let cp = parseInt(from, 16); cp <= parseInt(to, 16); cp++) points.add(cp)
-    }
-    return points
-  }
-  const slovakCzech = [...'ČčĎďĚěĹĺĽľŇňŔŕŘřŠšŤťŮůŽž'].map(ch => ch.codePointAt(0)!)
-  const blocks = css.split('@font-face')
-  for (const face of ['inter', 'space-grotesk', 'jetbrains-mono', 'big-shoulders']) {
-    const cs = range(blocks.find(block => block.includes(`src: url('/assets/fonts/${face}-latin-ext-cs.woff2')`))!)
-    const rest = range(blocks.find(block => block.includes(`src: url('/assets/fonts/${face}-latin-ext.woff2')`))!)
-    for (const cp of slovakCzech) {
-      assert.ok(cs.has(cp), `${face}: -cs subset misses U+${cp.toString(16)}`)
-      assert.ok(!rest.has(cp), `${face}: full latin-ext still claims U+${cp.toString(16)}`)
-    }
-    // Together they still cover the whole latin-ext block they replaced.
-    for (let cp = 0x100; cp <= 0x2ba; cp++) assert.ok(cs.has(cp) || rest.has(cp), `${face}: U+${cp.toString(16)} uncovered`)
   }
 })
 

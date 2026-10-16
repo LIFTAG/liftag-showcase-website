@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { GymMachineDetail } from '~/types/discovery'
 import { gymMachineHref } from '~/utils/gymCatalog'
+import '~/assets/css/discovery.css'
 const props = defineProps<{ gymId: string; machineId: string }>()
 /** The gym's timezone only arrives with the response, so the locale resolves after it. */
 const { preference } = useSiteLocale()
@@ -45,8 +46,6 @@ useDiscoverySeo({
     </template>
   </CatalogMachinePresentation>
 </template>
-<!-- SFC style block so SSR inlines the sheet (see layouts/discovery.vue). -->
-<style src="~/assets/css/discovery.css"></style>
 <style scoped>
 .ma-gym-context {
   display: grid;

@@ -3,7 +3,6 @@
 import type { Coordinate, DiscoveryLocale, ExploreGym, MapViewport } from '~/types/discovery'
 import { discoveryCopy } from '~/utils/discoveryCopy'
 import { loadDiscoveryMaps } from '~/lib/discoveryMaps'
-import { catalogImageUrl } from '~/utils/catalogImage'
 const props = defineProps<{
   gyms: ExploreGym[]
   selectedId: string | null
@@ -59,8 +58,7 @@ function updatePhoto(element: HTMLElement, url: string | null) {
   face.append(placeholder)
   if (url) {
     const photo = document.createElement('img')
-    // Same 160w variant as the result card's thumbnail: one shared fetch.
-    photo.src = catalogImageUrl(url, 160)
+    photo.src = url
     photo.alt = ''
     photo.addEventListener('error', () => face.replaceChildren(placeholder), { once: true })
     face.replaceChildren(photo)
@@ -206,10 +204,7 @@ onBeforeUnmount(() => {
 </script>
 <template>
   <div class="d-map-container">
-    <!-- Unlabelled on purpose: the parent section is the labelled "Map"
-         region, and aria-label on a role-less div is prohibited (it was
-         flagged whenever the SDK failed to load). -->
-    <div ref="container" class="d-map-canvas" />
+    <div ref="container" class="d-map-canvas" :aria-label="copy.map" />
     <div v-if="error" class="d-map-unavailable">
       <DiscoveryIcon name="map" :size="40" />
       <p class="d-subtitle">{{ copy.mapError }}</p>

@@ -8,7 +8,7 @@
 // covers the screen. ScanSection keeps the real-gym bench footage.
 import * as THREE from 'three'
 import { coverFitScreenUVs, type ScreenTextureUVs } from '../macbookScreen.ts'
-import { PHONE_SCR_H, PHONE_SCR_W } from './phoneDims.ts'
+import { PHONE_SCR_H, PHONE_SCR_W } from '../phoneModel.ts'
 import { GYM_SCAN_FLOW_SOURCES, SCAN_FLOW_LOG } from '../scanFlow.ts'
 import {
   createScreenVideoElement,

@@ -12,7 +12,7 @@ import {
   PHONE_SCR_W,
   PHONE_SCREEN_Z,
   PHONE_W,
-} from "./phoneDims.ts";
+} from "../phoneModel.ts";
 import { floorEquipment } from "./floorEquipment.ts";
 import { floorCoachCatalog, floorPlanImages } from "./floorRoutines.ts";
 import type { PhoneBox } from "./handoff.ts";

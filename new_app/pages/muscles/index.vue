@@ -12,11 +12,19 @@ useLiftagSeo(() => ({
   path: '/muscles',
 }))
 
-// Only the per-muscle totals reach the payload, not the ~470 exercise rows.
-const { data: index } = await useCatalogIndexView('muscle-counts', locale, full => ({
-  counts: catalogCategoryCounts(full.exercises),
-}))
+const { data: index } = await useCatalogIndex(locale)
 const hubs = computed(() => muscleHubsForLocale(locale.value))
+
+const counts = computed(() => {
+  const map = new Map<string, number>()
+  for (const exercise of index.value?.exercises ?? []) {
+    for (const slug of new Set([exercise.primaryCategory, ...exercise.categories])) {
+      if (!slug) continue
+      map.set(slug, (map.get(slug) ?? 0) + 1)
+    }
+  }
+  return map
+})
 
 useLiftagStructuredData(() => [
   liftagOrganization,
@@ -62,7 +70,7 @@ useLiftagStructuredData(() => [
           <h2>{{ hub.headline }}</h2>
           <p>{{ hub.intro }}</p>
           <p v-if="index" class="protocol mu-card-count">
-            {{ t('indexCount', { count: index.counts[hub.slug] ?? 0 }) }}
+            {{ t('indexCount', { count: counts.get(hub.slug) ?? 0 }) }}
           </p>
         </NuxtLink>
       </section>

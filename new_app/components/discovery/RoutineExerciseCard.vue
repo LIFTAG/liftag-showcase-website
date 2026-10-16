@@ -20,14 +20,7 @@ const columns = computed(() =>
 <template>
   <article class="d-prescription">
     <button class="d-prescription-heading" @click="$emit('select')">
-      <img
-        v-if="exercise.image"
-        :src="catalogImageUrl(exercise.image, 240)"
-        :srcset="catalogImageSrcset(exercise.image, [160, 240, 360])"
-        sizes="136px"
-        alt=""
-        loading="lazy"
-      />
+      <img v-if="exercise.image" :src="exercise.image" alt="" loading="lazy" />
       <span v-else class="d-prescription-art"><DiscoveryIcon name="gym" :size="26" /></span>
       <span>
         <span class="d-muted d-small">{{ String(position).padStart(2, '0') }}</span>

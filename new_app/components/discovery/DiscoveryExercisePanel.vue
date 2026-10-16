@@ -12,14 +12,7 @@ const copy = computed(() => discoveryCopy(props.locale))
 <template>
   <DiscoveryDialog :title="exercise.name || copy.exerciseDetails" :locale="locale" @close="$emit('close')">
     <div class="d-stack">
-      <img
-        v-if="exercise.image"
-        :src="catalogImageUrl(exercise.image, 828)"
-        :srcset="catalogImageSrcset(exercise.image, [480, 640, 828, 1080])"
-        sizes="(max-width: 632px) calc(100vw - 64px), 568px"
-        :alt="exercise.name"
-        class="d-exercise-image"
-      />
+      <img v-if="exercise.image" :src="exercise.image" :alt="exercise.name" class="d-exercise-image" />
       <div v-if="exercise.muscles.length" class="d-chips">
         <PillChip v-for="muscle in exercise.muscles" :key="muscle" plain>
           {{ discoveryMuscleName(muscle, locale) }}
