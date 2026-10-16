@@ -1,7 +1,7 @@
 import { localizedRouteRules } from './utils/localizedRouteRules'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
-const DEFERRED_CHUNK = /(?:^|\/)(?:ScanSection|HowItWorks|LiftersSection|ProgressSection|AppMergeSection|GymsSection|DashboardSection|TrainersSection|Roadmap|FinalCta|SiteFooter|HomeFaq|FaqAccordion|PartnerMarquee|Phone3D|Macbook3D|HeroParticles|HeroDesktop|HeroMobile|HeroCharts|NfcTag3D|ForgedPrPlate|MergeParticles|MergePrismCore|MergePrismaticBurst|MergeBurstHalo|RoadmapParticles|TapTokenCore)(?:\.vue)?(?:-|\.|$)/
+const DEFERRED_CHUNK = /(?:^|\/)(?:ScanSection|HowItWorks|LiftersSection|ProgressSection|AppMergeSection|GymsSection|DashboardSection|TrainersSection|Roadmap|FinalCta|SiteFooter|HomeFaq|FaqAccordion|PartnerMarquee|Phone3D|Macbook3D|HeroParticles|HeroDesktop|HeroMobile|HeroCharts|NfcTag3D|ForgedPrPlate|HologramPlate|MergeParticles|MergePrismCore|MergePrismaticBurst|MergeBurstHalo|RoadmapParticles|TapTokenCore)(?:\.vue)?(?:-|\.|$)/
 
 function isThreeManifestEntry(key: string, entry: { name?: string, file?: string }) {
   return entry.name === 'three' || key.includes('node_modules/three') || Boolean(entry.file?.includes('three'))
@@ -88,8 +88,7 @@ export default defineNuxtConfig({
         { rel: 'alternate', type: 'text/plain', href: 'https://liftag.fit/llms.txt', title: 'llms.txt' },
         { rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: '/assets/fonts/inter-latin.woff2' },
         { rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: '/assets/fonts/space-grotesk-latin.woff2' },
-        // Big Shoulders (the desktop nav's face) is preloaded by SiteNav itself,
-        // so pages without the nav (/demo, handoff routes) never fetch it.
+        { rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: '/assets/fonts/big-shoulders-latin.woff2' },
       ],
     },
   },

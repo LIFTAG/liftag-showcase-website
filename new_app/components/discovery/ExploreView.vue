@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ExploreGym } from '~/types/discovery'
 import { activeDiscoveryFilters, discoveryHref } from '~/utils/discovery'
-import { discoveryMapsScriptUrl, loadDiscoveryMaps } from '~/lib/discoveryMaps'
 const timezone = shallowRef<string | null | undefined>(undefined)
 const { locale, preference, copy } = useDiscoveryLocale(timezone)
 const {
@@ -30,21 +29,6 @@ const {
 watch(contextTimezone, (value) => {
   timezone.value = value
 })
-/**
- * On a phone the map's first raster frame is the page's LCP, and it used to
- * wait on hydration, the client map chunk, the loader chunk and only then the
- * SDK. Preload the SDK bootstrap from the SSR head, and start the shared load
- * while this view hydrates instead of after <ClientOnly> mounts the map.
- * DiscoveryMap still owns initialisation and error handling; it reuses this
- * load. Same guard as DiscoveryMap: no key or map id, no SDK.
- */
-const mapsConfig = useRuntimeConfig().public
-const mapsKey = String(mapsConfig.googleMapsApiKey || '')
-const mapsEnabled = Boolean(mapsKey && mapsConfig.googleMapsMapId)
-useHead({
-  link: mapsEnabled ? [{ rel: 'preload', as: 'script', href: discoveryMapsScriptUrl(mapsKey) }] : [],
-})
-if (import.meta.client && mapsEnabled) void loadDiscoveryMaps(mapsKey).catch(() => {})
 const filtersOpen = shallowRef(false)
 const filterCount = computed(() => activeDiscoveryFilters(filters.value))
 const results = useTemplateRef<HTMLElement>('results')
@@ -450,13 +434,9 @@ useDiscoverySeo({
     display: flex;
     gap: 12px;
   }
-  /* As tall as a collapsed DiscoveryGymCard (76px photo + 2x16px padding,
-     40px action row + 16px, 2px border). The bottom-anchored row then keeps
-     its height when results replace the skeleton, so the row, Locate me and
-     the owner control do not jump on load. */
   .d-explore-results :deep(.d-skeleton) {
     width: 310px;
-    min-height: calc(76px + 2 * 16px + 40px + 16px + 2px);
+    min-height: 112px;
   }
   .d-explore-owner {
     display: none;

@@ -1,4 +1,4 @@
-import { PHONE_SCR_H, PHONE_SCR_W } from "./phoneDims.ts";
+import { PHONE_SCR_H, PHONE_SCR_W } from "../phoneModel";
 import { floorEquipment, type FloorMachine } from "./floorEquipment";
 import {
   FLOOR_APP_CHROME,

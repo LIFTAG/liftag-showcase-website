@@ -16,15 +16,7 @@ if (!hub) {
 }
 
 const chrome = catalogChrome(locale.value)
-// The hub only lists (and searches) exercises that train this muscle, and the
-// filter chips only need totals, so the payload carries those instead of the
-// whole ~470-row index.
-const { data: index, error, refresh } = await useCatalogIndexView(`muscle:${hub.slug}`, locale, full => ({
-  exercises: full.exercises.filter(exercise =>
-    exercise.primaryCategory === hub.slug || exercise.categories.includes(hub.slug)),
-  categories: full.categories,
-  counts: catalogCategoryCounts(full.exercises),
-}))
+const { data: index, error, refresh } = await useCatalogIndex(locale)
 if (import.meta.server && error.value) {
   throw createError({ statusCode: 503, statusMessage: 'Exercise catalog temporarily unavailable' })
 }
@@ -157,7 +149,16 @@ const categoryNames = computed(() => {
   return names
 })
 
-const categoryCounts = computed(() => new Map(Object.entries(index.value?.counts ?? {})))
+const categoryCounts = computed(() => {
+  const counts = new Map<string, number>()
+  for (const exercise of index.value?.exercises ?? []) {
+    for (const slug of new Set([exercise.primaryCategory, ...exercise.categories])) {
+      if (!slug) continue
+      counts.set(slug, (counts.get(slug) ?? 0) + 1)
+    }
+  }
+  return counts
+})
 
 const allForMuscle = computed(() =>
   partitionExercisesByMuscle(index.value?.exercises ?? [], hub.slug),
@@ -215,16 +216,19 @@ useLiftagSeo(() => ({
   followLinks: true,
 }))
 
-// Tile photos normally come through the same-origin resize route. Only a
-// photo that still loads from a foreign origin is worth an early connection.
-const cdnOrigin = computed(() =>
-  catalogImagePreconnect(exercises.value.find(exercise => exercise.imageUrl)?.imageUrl),
-)
+const cdnOrigin = computed(() => {
+  const first = exercises.value.find(exercise => exercise.imageUrl)?.imageUrl
+  try {
+    return first ? new URL(first).origin : null
+  }
+  catch {
+    return null
+  }
+})
 
 useHead(() => ({
   link: cdnOrigin.value
-    // No crossorigin: <img> fetches are no-cors and would not reuse a CORS connection.
-    ? [{ rel: 'preconnect', href: cdnOrigin.value }]
+    ? [{ rel: 'preconnect', href: cdnOrigin.value, crossorigin: 'anonymous' as const }]
     : [],
 }))
 

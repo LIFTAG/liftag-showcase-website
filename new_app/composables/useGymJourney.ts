@@ -38,34 +38,6 @@ export function useGymJourney(root: Ref<HTMLElement | null>) {
     gtag("event", event, { experience: "gym_scan_v2", ...data });
   }
 
-  // Chapter views are found inside the scroll rAF. gtag's event handling is
-  // tens of milliseconds of script on a phone, so it is sent once the frame
-  // is out of the way instead of inside it. Exit and click events stay
-  // synchronous: those can be the last thing the page does.
-  const queuedTracks: Array<() => void> = [];
-  let cancelTrackSlot: (() => void) | null = null;
-  function sendQueued() {
-    cancelTrackSlot = null;
-    queuedTracks.splice(0).forEach((send) => send());
-  }
-  function trackSoon(event: string, data: Record<string, string | number>) {
-    queuedTracks.push(() => track(event, data));
-    if (cancelTrackSlot) return;
-    if (typeof requestIdleCallback === "function") {
-      const handle = requestIdleCallback(sendQueued, { timeout: 2000 });
-      cancelTrackSlot = () => cancelIdleCallback(handle);
-    } else {
-      const handle = window.setTimeout(sendQueued, 0);
-      cancelTrackSlot = () => clearTimeout(handle);
-    }
-  }
-  /** Leaving before an idle slot came round: send what is queued, in order. */
-  function flushTracks() {
-    if (!cancelTrackSlot) return;
-    cancelTrackSlot();
-    sendQueued();
-  }
-
   function measure() {
     const el = root.value;
     if (!el) return;
@@ -86,18 +58,13 @@ export function useGymJourney(root: Ref<HTMLElement | null>) {
     };
   }
 
-  /** Journey offset read in the scroll event; see onScroll. */
-  let scrolled: number | null = null;
-
   function update() {
     raf = 0;
     if (!root.value) return;
     if (!marks) measure();
-    // Scroll offset into the journey: scrollY minus the root's document top.
-    const position = scrolled ?? -root.value.getBoundingClientRect().top;
-    scrolled = null;
+    const origin = root.value.getBoundingClientRect().top + scrollY;
     const next = gymJourneyAt(
-      position,
+      scrollY - origin,
       marks!.tag,
       marks!.member,
       marks!.owner,
@@ -111,24 +78,16 @@ export function useGymJourney(root: Ref<HTMLElement | null>) {
     lastChapter = next.chapter;
     if (!visited.has(lastChapter)) {
       visited.add(lastChapter);
-      trackSoon("gym_story_chapter", { chapter: lastChapter });
+      track("gym_story_chapter", { chapter: lastChapter });
     }
   }
 
   function schedule(remeasure = false) {
-    if (remeasure) {
-      marks = null;
-      scrolled = null;
-    }
+    if (remeasure) marks = null;
     if (!raf) raf = requestAnimationFrame(update);
   }
 
   function onScroll() {
-    // Read here rather than in the rAF. Scroll events run in the same frame
-    // just before animation callbacks, before any of them has written, so
-    // this read finds layout clean; read inside the rAF it forced a layout of
-    // whatever the film and chapters had just written. The rAF applies it.
-    if (root.value) scrolled = -root.value.getBoundingClientRect().top;
     schedule();
   }
 
@@ -141,7 +100,6 @@ export function useGymJourney(root: Ref<HTMLElement | null>) {
   }
 
   function leave() {
-    flushTracks();
     if (!exited) {
       exited = true;
       track("gym_story_exit", { last_chapter: lastChapter });

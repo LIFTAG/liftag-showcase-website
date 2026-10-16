@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { probeCanvasWebGL2 } from "~/utils/gymscan/device";
+import { probeTemporaryWebGL2 } from "~/utils/gymscan/device";
 import { compactLoggerOwnsCopy } from "~/utils/gymscan/handoff";
 import { memberPhoneSlot } from "~/utils/gymscan/memberPhone";
 import {
@@ -48,12 +48,6 @@ let copyBlur = false;
 let copyLogger = false;
 let copyDof = -1;
 let swept = false;
-/**
- * Canvas CSS width, cached from the resize path. syncCopy runs inside every
- * film frame, after that frame's style writes; reading clientWidth there
- * forced a synchronous style + layout pass per frame.
- */
-let canvasWidth = 0;
 
 function sync() {
   stage?.setAssemblyProgress(journey.value.assembly);
@@ -64,7 +58,6 @@ function resize() {
   stage.resize();
   const width = canvas.value.clientWidth,
     height = canvas.value.clientHeight;
-  canvasWidth = width;
   stage.setHeroSlot(memberPhoneSlot(width, height));
   sync();
   activity();
@@ -78,7 +71,7 @@ function syncCopy(info: FrameInfo) {
   const flying = info.act0.shot === "fly";
   const blur = info.dof > 0.001;
   const logger = compactLoggerOwnsCopy(
-    canvasWidth < 761,
+    (canvas.value?.clientWidth ?? 0) < 761,
     info.fold,
     info.heroMorph,
   );
@@ -89,10 +82,7 @@ function syncCopy(info: FrameInfo) {
   if (blur !== copyBlur) {
     copyBlur = blur;
     journey.classList.toggle("is-copy-blur", blur);
-    if (!blur) {
-      writeDof(journey, null);
-      copyDof = -1;
-    }
+    if (!blur) journey.style.removeProperty("--gx-dof");
   }
   if (logger !== copyLogger) {
     copyLogger = logger;
@@ -100,24 +90,7 @@ function syncCopy(info: FrameInfo) {
   }
   if (blur && Math.abs(info.dof - copyDof) >= 0.004) {
     copyDof = info.dof;
-    writeDof(journey, info.dof.toFixed(3));
-  }
-}
-/** The four copy blocks that read --gx-dof (gym-experience.css, is-copy-blur). */
-const DOF_COPY = ".gx-opening__copy, .gx-scroll, .gx-spec, .gx-install__copy";
-let dofTargets: HTMLElement[] = [];
-/**
- * Written on the blocks that read it, not on the journey root: a custom
- * property set on the root is inherited by everything in the journey, so
- * every film frame of the rack focus restyled the whole member chapter too.
- */
-function writeDof(journey: HTMLElement, value: string | null) {
-  if (!dofTargets.length || !dofTargets[0]!.isConnected) {
-    dofTargets = Array.from(journey.querySelectorAll<HTMLElement>(DOF_COPY));
-  }
-  for (const el of dofTargets) {
-    if (value === null) el.style.removeProperty("--gx-dof");
-    else el.style.setProperty("--gx-dof", value);
+    journey.style.setProperty("--gx-dof", info.dof.toFixed(3));
   }
 }
 function clearCopy() {
@@ -128,7 +101,7 @@ function clearCopy() {
   copyDof = -1;
   if (!journey) return;
   journey.classList.remove("is-stick-front", "is-copy-blur", "is-logger-front");
-  writeDof(journey, null);
+  journey.style.removeProperty("--gx-dof");
 }
 function frame(info: FrameInfo) {
   syncCopy(info);
@@ -158,9 +131,6 @@ function teardown() {
 }
 function failed(event?: Event) {
   event?.preventDefault();
-  // A canvas replaced by a motion toggle can still report its context lost
-  // (a failed probe releases it); that must not tear down the new one.
-  if (event && event.target !== canvas.value) return;
   generation++;
   teardown();
   fallback.value = true;
@@ -172,14 +142,8 @@ async function start() {
   const saveData =
     (navigator as Navigator & { connection?: { saveData?: boolean } })
       .connection?.saveData ?? false;
-  // Probe on this canvas: three reuses the probed context, so the page only
-  // ever creates one. Save-Data never starts the stage, so never probes.
-  const probe = saveData
-    ? { webgl2: false, maxTextureSize: 0, probeFailed: false }
-    : await probeCanvasWebGL2(canvas.value);
-  if (generation !== attempt || props.reduced || !canvas.value) return;
   const device = experienceDevice(
-    probe,
+    probeTemporaryWebGL2(),
     saveData,
     canvas.value.clientWidth <= 760,
     canvas.value.clientWidth,

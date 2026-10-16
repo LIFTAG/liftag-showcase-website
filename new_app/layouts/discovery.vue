@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { en, sk } from '~/i18n/messages/discovery'
+import '~/assets/css/discovery.css'
 const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
 </script>
 <template>
@@ -7,14 +8,6 @@ const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
   <SiteNav />
   <div class="discovery-root discovery-shell"><slot /></div>
 </template>
-<!--
-  The shared discovery sheet rides as an SFC style block, not a script import:
-  Nuxt inlines SFC styles into the SSR HTML (features.inlineStyles), but a CSS
-  file imported from script only arrives with the layout's JS chunk. Until
-  then .discovery-shell had no header padding and /explore's map had no
-  height, and the whole page jumped at hydration (CLS 0.34 desktop, 0.7 phone).
--->
-<style src="~/assets/css/discovery.css"></style>
 <style scoped>
 .discovery-skip {
   position: fixed;

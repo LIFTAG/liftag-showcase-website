@@ -24,7 +24,6 @@ const root = useTemplateRef<HTMLElement>('root');
 const pane = useTemplateRef<HTMLElement>('pane');
 const canvas = useTemplateRef<HTMLCanvasElement>('canvas');
 const tagLayer = useTemplateRef<HTMLElement>('tagLayer');
-const rail = useTemplateRef<HTMLOListElement>('rail');
 const beat = shallowRef<FloorBeat>(0);
 /** How the app sets each name, once the stage has measured it. */
 const nameLayout = shallowRef<FloorAppNameLayout[] | null>(null);
@@ -146,43 +145,19 @@ let view: IntersectionObserver | null = null;
 let resize: ResizeObserver | null = null;
 let stopMouse: (() => void) | null = null;
 
-const fills: string[] = [];
-
-type Geometry = { top: number; height: number; paneH: number };
-/** Section geometry read in the scroll event (see onScroll); measureFrame() applies it. */
-let geometry: Geometry | null = null;
-function readGeometry(el: HTMLElement, box: HTMLElement): Geometry {
-  return { top: el.getBoundingClientRect().top, height: el.offsetHeight, paneH: box.offsetHeight };
-}
-
-/** Measure now, from fresh layout (mount, resize, boot, motion toggles). */
 function measure() {
-  geometry = null;
-  measureFrame();
-}
-
-function measureFrame() {
   scrollRaf = 0;
   const el = root.value;
   const box = pane.value;
   if (!el || !box) return;
-  const rect = geometry ?? readGeometry(el, box);
-  geometry = null;
-  const paneH = rect.paneH;
-  target = still.value ? 0 : storyProgress(rect.top, rect.height, paneH);
+  const rect = el.getBoundingClientRect();
+  const paneH = box.offsetHeight;
+  target = still.value ? 0 : storyProgress(rect.top, el.offsetHeight, paneH);
   // How far the pane has risen into the viewport before it pins.
   const viewport = Math.max(paneH, useStableViewportHeight() || innerHeight);
   entryTarget = clamp01(1 - rect.top / viewport);
-  // Each fill goes on its own rail item, the only element whose bar reads it
-  // (gym-floor.css); on the section root it restyled the whole chapter each
-  // frame. An unchanged value is not rewritten.
-  const items = rail.value?.children;
   for (let i = 0; i < FLOOR_BEATS; i++) {
-    const item = items?.[i] as HTMLElement | undefined;
-    const fill = floorBeatFill(target, i).toFixed(4);
-    if (!item || fills[i] === fill) continue;
-    fills[i] = fill;
-    item.style.setProperty(`--gf-fill-${i}`, fill);
+    el.style.setProperty(`--gf-fill-${i}`, floorBeatFill(target, i).toFixed(4));
   }
   const next = still.value ? 0 : floorBeatAt(target);
   if (next !== beat.value) beat.value = next;
@@ -190,18 +165,7 @@ function measureFrame() {
 }
 
 function schedule() {
-  if (!scrollRaf) scrollRaf = requestAnimationFrame(measureFrame);
-}
-
-/**
- * Read in the scroll event, write in the rAF. Scroll events run in the same
- * frame just before animation callbacks, so this read finds layout clean; the
- * same read inside the rAF forced a layout of what the floor tags and the
- * other chapters had just written.
- */
-function onScroll() {
-  if (root.value && pane.value) geometry = readGeometry(root.value, pane.value);
-  schedule();
+  if (!scrollRaf) scrollRaf = requestAnimationFrame(measure);
 }
 
 function kick() {
@@ -351,14 +315,12 @@ watch(still, (value) => {
   });
 });
 
-// Scroll only matters while the pinned chapter is near; see useGymNearScroll.
-useGymNearScroll(root, onScroll);
-
 onMounted(() => {
   collectTags();
   const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
   if (saveData) unavailable.value = true;
   measure();
+  window.addEventListener('scroll', schedule, { passive: true });
   document.addEventListener('visibilitychange', onVisibility);
   resize = new ResizeObserver(() => {
     stage?.resize();
@@ -406,6 +368,7 @@ onBeforeUnmount(() => {
   view?.disconnect();
   resize?.disconnect();
   stopMouse?.();
+  window.removeEventListener('scroll', schedule);
   document.removeEventListener('visibilitychange', onVisibility);
   stage?.dispose();
   stage = null;
@@ -450,7 +413,7 @@ onBeforeUnmount(() => {
         <p class="gx-protocol gf-eyebrow"><span>06</span>{{ t('floor.eyebrow') }}</p>
         <h2 id="gf-title">{{ t('floor.titleA') }}<br /><em>{{ t('floor.titleB') }}</em></h2>
         <p class="gf-lede">{{ t('floor.lede') }}</p>
-        <ol ref="rail" class="gf-rail" :aria-label="t('floor.beatsLabel')">
+        <ol class="gf-rail" :aria-label="t('floor.beatsLabel')">
           <li v-for="(item, i) in beats" :key="i" :class="{ 'is-on': still || beat === i }">
             <button
               type="button"

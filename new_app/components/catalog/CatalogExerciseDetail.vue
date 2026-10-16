@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { gymCatalogContext, gymExerciseHref, gymMachineHref } from '~/utils/gymCatalog'
-import { catalogImageUrl } from '~/utils/catalogImage'
-import { pickRelatedExercises } from '~/utils/catalogIndex'
-import type { CatalogIndexExercise } from '~/types/catalog'
 import type { CatalogLocale } from '~/utils/catalogLocale'
 
 const props = withDefaults(
@@ -161,19 +158,35 @@ const faqs = computed(() => {
   return [...extra, ...generated.filter((item) => !seen.has(item.question.toLowerCase()))]
 })
 
-// Related lifts: localized guide order first, then same primary muscle. Only
-// the picked rows reach this page's payload, not the whole search index. Lazy:
-// a client-side hop between exercises does not wait on the index for a grid
-// at the bottom of the page (the server render still includes it).
-const { data: relatedRows } = context
-  ? { data: shallowRef<CatalogIndexExercise[]>([]) }
-  : await useCatalogIndexView(`related:${canonicalSlug.value}`, locale, index =>
-      pickRelatedExercises(index.exercises, {
-        id: exercise.value?.id,
-        primaryCategory: exercise.value?.primaryCategory?.slug,
-        relatedSlugs: overlay.value?.relatedSlugs,
-      }), { lazy: true })
-const related = computed(() => relatedRows.value ?? [])
+// Related lifts: localized guide order first, then same primary muscle.
+const index = context ? shallowRef(null) : (await useCatalogIndex(locale)).data
+const related = computed(() => {
+  const rows = index.value?.exercises ?? []
+  const currentId = exercise.value?.id
+  const bySlug = new Map(rows.map((row) => [row.slug, row]))
+  const picked: typeof rows = []
+  const seen = new Set<string>()
+
+  for (const slug of overlay.value?.relatedSlugs ?? []) {
+    const row = bySlug.get(slug)
+    if (!row || row.id === currentId || seen.has(row.id)) continue
+    picked.push(row)
+    seen.add(row.id)
+  }
+
+  const primary = exercise.value?.primaryCategory?.slug
+  if (primary) {
+    for (const row of rows) {
+      if (picked.length >= 8) break
+      if (row.id === currentId || seen.has(row.id)) continue
+      if (row.primaryCategory !== primary) continue
+      picked.push(row)
+      seen.add(row.id)
+    }
+  }
+
+  return picked.slice(0, 8)
+})
 
 const primaryMuscleName = computed(() => {
   const category = exercise.value?.primaryCategory
@@ -448,7 +461,7 @@ useStickyMomentum(mediaRef)
                 >
                   <img
                     v-if="machine.photoUrl"
-                    :src="catalogImageUrl(machine.photoUrl, 160)"
+                    :src="machine.photoUrl"
                     :alt="chrome.machineAlt(machine.name, name)"
                     loading="lazy"
                     decoding="async"
@@ -537,7 +550,6 @@ useStickyMomentum(mediaRef)
             :image-url="row.imageUrl"
             :has-video="row.hasVideo"
             :preview-video-url="row.previewVideoUrl"
-            sizes="(max-width: 1024px) 50vw, 300px"
           />
         </div>
       </section>
@@ -1075,18 +1087,13 @@ useStickyMomentum(mediaRef)
   line-height: 1.7;
 }
 
-/* Links sit inside running text, so colour alone cannot mark them
-   (WCAG 1.4.1, axe link-in-text-block): a faint underline that firms up on hover. */
 .ex-link-list a {
   color: var(--liftag-primary);
-  text-decoration: underline;
-  text-decoration-color: rgba(204, 255, 0, 0.35);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
+  text-decoration: none;
 }
 
 .ex-link-list a:hover {
-  text-decoration-color: currentColor;
+  text-decoration: underline;
 }
 
 .ex-faq {

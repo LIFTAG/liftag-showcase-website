@@ -59,14 +59,6 @@ let observer: IntersectionObserver | null = null
 let stageResizeObserver: ResizeObserver | null = null
 let isVisible = false
 let reduceMotion = false
-// Layout reads for the current frame. tick() takes every measurement before
-// the first style write: publishMergePhysics used to read the stage rect
-// after ~50 writes in the same frame, which forced a synchronous style and
-// layout of the whole pinned section on every scroll frame.
-let stickyHeight = 0
-let stageOriginX = 0
-let stageOriginY = 0
-let stageOriginValid = false
 let lastMergeCss = -1
 let lastFinaleCss = -1
 let lastExitVarsKey = ''
@@ -310,26 +302,13 @@ function getScrollProgress() {
   const rect = section.getBoundingClientRect()
   const viewportH = useStableViewportHeight() || window.innerHeight
   const available = Math.max(1, rect.height - viewportH)
-  if (!stickyHeight && stickyRef.value) stickyHeight = stickyRef.value.offsetHeight
-  const stickyH = stickyHeight || viewportH
+  const stickyH = stickyRef.value?.offsetHeight ?? viewportH
   const pinned = rect.top <= 2 && rect.bottom >= stickyH - 2
   // Non-reactive: a Vue ref here re-renders the section and Vue's :style
   // bindings overwrite the rAF icon transforms for a frame (or permanently
   // when the style cache then skips the matching write).
   publishMergeArmed(pinned)
   return clamp(-rect.top / available)
-}
-
-function readStageOrigin() {
-  const stage = stageRef.value
-  if (!stage) {
-    stageOriginValid = false
-    return
-  }
-  const rect = stage.getBoundingClientRect()
-  stageOriginX = rect.left + rect.width / 2
-  stageOriginY = rect.top + rect.height / 2
-  stageOriginValid = true
 }
 
 function updateStageScale() {
@@ -466,10 +445,12 @@ function publishMergePhysics(now: number) {
     return
   }
 
-  if (!stageOriginValid) return
+  const stage = stageRef.value
+  if (!stage) return
 
-  const originX = stageOriginX
-  const originY = stageOriginY
+  const rect = stage.getBoundingClientRect()
+  const originX = rect.left + rect.width / 2
+  const originY = rect.top + rect.height / 2
   const dt = lastPublishAt === 0 ? 16 : Math.min(now - lastPublishAt, 48)
   lastPublishAt = now
 
@@ -747,7 +728,6 @@ function tick(now: number) {
   if (!isVisible && Math.abs(targetP - scrollP) < 0.001) return
 
   targetP = reduceMotion ? (isVisible ? 1 : targetP) : getScrollProgress()
-  if (isVisible && !reduceMotion) readStageOrigin()
   const ease = reduceMotion ? 1 : 0.12
   scrollP = lerp(scrollP, targetP, ease)
   pointerX = lerp(pointerX, targetPointerX, 0.16)
@@ -802,7 +782,6 @@ onMounted(() => {
   updateStageScale()
   cacheRayLayout()
   getScrollProgress()
-  readStageOrigin()
   updateAnimatedStyles()
 
   observer = new IntersectionObserver((entries) => {
@@ -825,7 +804,6 @@ onMounted(() => {
 
   if (typeof ResizeObserver !== 'undefined') {
     stageResizeObserver = new ResizeObserver(() => {
-      stickyHeight = 0
       updateStageScale()
       cacheRayLayout()
       updateAnimatedStyles()

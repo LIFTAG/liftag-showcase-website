@@ -146,15 +146,6 @@ function initMacbook() {
   camera.position.set(0, 0.7, 6.85)
   camera.lookAt(0, 0.22, 0)
 
-  // Nothing draws until compileAsync() has the programs linked: the first
-  // render would otherwise link every material synchronously, a stall that
-  // landed mid-scroll. Init runs 600px ahead, so this settles off screen.
-  let shadersReady = false
-  let torndown = false
-  const renderFrame = () => {
-    if (shadersReady) renderer.render(scene, camera)
-  }
-
   scene.add(new THREE.AmbientLight(0xffffff, 0.55))
 
   const keyLight = new THREE.DirectionalLight(0xffffff, 1.4)
@@ -373,7 +364,7 @@ function initMacbook() {
     props.screenshotSrc,
     (texture) => {
       applyImageFootageTransform(texture)
-      renderFrame()
+      renderer.render(scene, camera)
     },
     undefined,
     (err) => {
@@ -476,15 +467,6 @@ function initMacbook() {
   screenBounceLight.rotation.x = -Math.PI / 2
   lidGroup.add(screenBounceLight)
 
-  renderer.compileAsync(scene, camera)
-    .catch(() => {})
-    .then(() => {
-      if (torndown) return
-      shadersReady = true
-      applyPose()
-      renderFrame()
-    })
-
   const CAM_BASE_POS = new THREE.Vector3(0, 0.7, 6.85)
   const CAM_BASE_LOOK = new THREE.Vector3(0, 0.22, 0)
   const CAM_START_FOV = 30
@@ -577,7 +559,7 @@ function initMacbook() {
         screenMat.needsUpdate = true
       }
       previous.dispose()
-      renderFrame()
+      renderer.render(scene, camera)
     })
     posterTexture.colorSpace = THREE.SRGBColorSpace
     posterTexture.anisotropy = renderer.capabilities.getMaxAnisotropy?.() ?? 1
@@ -602,7 +584,7 @@ function initMacbook() {
         screenMatB.needsUpdate = true
       }
       previous?.dispose()
-      renderFrame()
+      renderer.render(scene, camera)
     })
     posterTextureB.colorSpace = THREE.SRGBColorSpace
     posterTextureB.anisotropy = renderer.capabilities.getMaxAnisotropy?.() ?? 1
@@ -796,7 +778,7 @@ function initMacbook() {
     screenMat.needsUpdate = true
 
     if (!sources?.length || prefersReducedMotion()) {
-      renderFrame()
+      renderer.render(scene, camera)
       return
     }
 
@@ -807,7 +789,7 @@ function initMacbook() {
       applyFootageTransform(readyTexture, readyVideo.videoWidth, readyVideo.videoHeight)
       screenMat.map = readyTexture
       screenMat.needsUpdate = true
-      renderFrame()
+      renderer.render(scene, camera)
       syncPlayback()
     })
 
@@ -830,7 +812,7 @@ function initMacbook() {
     screenMatB.needsUpdate = true
 
     if (!sources?.length || prefersReducedMotion()) {
-      renderFrame()
+      renderer.render(scene, camera)
       return
     }
 
@@ -841,7 +823,7 @@ function initMacbook() {
       applyFootageTransform(readyTexture, readyVideo.videoWidth, readyVideo.videoHeight)
       screenMatB.map = readyTexture
       screenMatB.needsUpdate = true
-      renderFrame()
+      renderer.render(scene, camera)
       syncPlayback()
     })
 
@@ -978,7 +960,7 @@ function initMacbook() {
       currentTiltX = targetTiltX
       currentTiltY = targetTiltY
       applyPose()
-      renderFrame()
+      renderer.render(scene, camera)
       return
     }
 
@@ -1003,7 +985,7 @@ function initMacbook() {
     currentTiltY += (targetTiltY - currentTiltY) * 0.06
 
     applyPose()
-    renderFrame()
+    renderer.render(scene, camera)
   }
 
   // Every wake source funnels through here: only restart when the loop is
@@ -1076,7 +1058,7 @@ function initMacbook() {
     // setSize clears the drawing buffer and the loop may be parked (see
     // animate), so redraw the settled pose at the new size.
     applyPose()
-    renderFrame()
+    renderer.render(scene, camera)
   }
   let resizeRaf = 0
   const onResize = () => {
@@ -1119,7 +1101,6 @@ function initMacbook() {
     videoObserver.disconnect()
     visObserver.disconnect()
     isVisible = false
-    torndown = true
     cancelAnimationFrame(animId)
     animId = 0
 

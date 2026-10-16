@@ -1,8 +1,8 @@
 <script setup lang="ts">
-// The phone hero animates with CSS only. Its entrance and the laser title
-// reveal start at first paint from server-rendered classes instead of after
-// hydration: on a throttled phone hydration lands seconds after the first
-// paint, and the headline sat blank (and LCP waited) until it did.
+import {
+  heroLaserClass,
+  useHeroLaser,
+} from '../composables/useHeroLaser'
 import { en, sk } from '~/i18n/messages/marketing'
 
 const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
@@ -18,36 +18,44 @@ const props = withDefaults(defineProps<{
   playEnter: false,
 })
 
-// Server-rendered as entered when the hero owns the page, so the CSS entrance
-// runs from first paint. A held hero (autoEnter false) waits for `enter()`.
-const entered = ref(props.autoEnter || props.playEnter)
+const entered = ref(false)
 const frontPhoneEl = ref<HTMLElement | null>(null)
+let entranceStarted = false
+
+const { setTitleEl, startHeroLaser, cleanupHeroLasers } = useHeroLaser({
+  emitSparks: false,
+  followFinishedWalls: false,
+})
 
 function enter() {
+  if (entranceStarted) return
+  entranceStarted = true
   entered.value = true
+  startHeroLaser()
 }
 
 watch(() => props.playEnter, (v) => { if (v) enter() })
 
 defineExpose({ enter, frontPhoneEl })
 
-// Word order of the laser sweep. Odd words are the lime ones and sweep in
-// from the right on a green beam; even words sweep from the left on red.
-function laserUnitClass(index: number) {
-  const accent = index % 2 === 1
-  return {
-    'hero-mobile-laser--green': accent,
-    'hero-mobile-laser--red': !accent,
-    'hero-mobile-laser--rtl': accent,
-  }
-}
+const heroMobileDetailsStyle = computed(() => ({
+  opacity: entered.value ? 1 : 0,
+  transform: entered.value ? 'translateY(0)' : 'translateY(14px)',
+  pointerEvents: (entered.value ? 'auto' : 'none') as 'auto' | 'none',
+  transition: 'opacity 700ms 120ms cubic-bezier(0.16,1,0.3,1), transform 700ms 120ms cubic-bezier(0.16,1,0.3,1)',
+}))
 
 const phoneCopyRoot = ref<HTMLElement | null>(null)
 const phoneCopyInView = ref(false)
 const phoneCopyEntered = computed(() => entered.value && phoneCopyInView.value)
 let phoneCopyIo: IntersectionObserver | null = null
+let heroEntranceTimer: ReturnType<typeof setTimeout> | null = null
 
 onMounted(() => {
+  if (props.autoEnter || props.playEnter) {
+    heroEntranceTimer = setTimeout(() => { enter() }, 80)
+  }
+
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   if (prefersReducedMotion) {
     phoneCopyInView.value = true
@@ -66,8 +74,11 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  if (heroEntranceTimer) clearTimeout(heroEntranceTimer)
+  cleanupHeroLasers()
   phoneCopyIo?.disconnect()
   phoneCopyIo = null
+  heroEntranceTimer = null
 })
 </script>
 
@@ -86,11 +97,7 @@ onBeforeUnmount(() => {
       }"
     >
       <div class="hero-mobile-copy">
-        <div
-          class="hero-mobile-title"
-          :class="{ 'is-revealing': entered }"
-          aria-hidden="true"
-        >
+        <div class="hero-mobile-title" aria-hidden="true">
           <span
             v-for="(line, lineIndex) in heroMobileTitle"
             :key="lineIndex"
@@ -98,26 +105,29 @@ onBeforeUnmount(() => {
           >
             <template v-for="(word, wordIndex) in line" :key="wordIndex">
               <span v-if="wordIndex > 0">{{ ' ' }}</span>
-              <span
-                class="hero-mobile-laser"
-                :class="laserUnitClass(lineIndex * 2 + wordIndex)"
-                :style="{ '--laser-i': lineIndex * 2 + wordIndex }"
-              >
+              <span v-if="wordIndex === 1" class="hero-mobile-lime-word">
                 <span
-                  class="hero-mobile-laser-word"
-                  :style="{ color: wordIndex === 1 ? '#CCFF00' : '#fff' }"
-                >{{ word }}<span class="hero-mobile-laser-track" /></span>
-                <!-- Halo for the lime words. Painted from blurred boxes, not
-                     from a text-shadow: a 120px text-shadow inflated the
-                     glyph rect past the hero phone and made this late-fading
-                     bloom the page's LCP element. -->
-                <span v-if="wordIndex === 1" class="hero-mobile-laser-glow" />
+                  :ref="(el) => setTitleEl(el as Element | null, lineIndex * 2 + wordIndex)"
+                  :class="heroLaserClass(lineIndex * 2 + wordIndex)"
+                  :style="{ color: '#CCFF00' }"
+                >{{ word }}</span>
+                <span
+                  class="hero-title-glow"
+                  aria-hidden="true"
+                  :data-word="word"
+                />
               </span>
+              <span
+                v-else
+                :ref="(el) => setTitleEl(el as Element | null, lineIndex * 2 + wordIndex)"
+                :class="heroLaserClass(lineIndex * 2 + wordIndex)"
+                :style="{ color: '#fff' }"
+              >{{ word }}</span>
             </template>
           </span>
         </div>
 
-        <div class="hero-mobile-details" :class="{ 'is-entered': entered }">
+        <div class="hero-mobile-details" :style="heroMobileDetailsStyle">
           <p class="hero-mobile-kicker">{{ t('marketing.hero.kicker') }}</p>
 
           <p class="hero-mobile-copyline hero-mobile-copyline--tablet">
@@ -148,31 +158,6 @@ onBeforeUnmount(() => {
           class="hero-mobile-device"
           :class="{ 'is-slot-only': props.hideFrontPhone }"
         >
-          <!-- Rear phones are <img>, not pseudo-element backgrounds: Chrome
-               scored the two backgrounds as one ~130k px² LCP candidate on
-               this element, larger than the preloaded front phone, so the
-               page's LCP waited on these decorative screenshots. Lazy keeps
-               them unfetched on desktop, where this layout is display:none. -->
-          <img
-            class="hero-mobile-rear hero-mobile-rear--left"
-            src="/assets/screens/hero-workout-360.webp"
-            width="360"
-            height="781"
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            decoding="async"
-          >
-          <img
-            class="hero-mobile-rear hero-mobile-rear--right"
-            src="/assets/screens/hero-progress-360.webp"
-            width="360"
-            height="781"
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            decoding="async"
-          >
           <div class="hero-mobile-device-glow" aria-hidden="true" />
           <div class="hero-mobile-phone-stage">
             <Phone
@@ -259,275 +244,19 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
-/* ── Laser title reveal ──
-   CSS port of useHeroLaser (desktop keeps the JS version, which also feeds
-   the particle field). Per word: a charge beam grows on the start edge
-   (140ms), the clip and a beam line sweep across (390ms, easeInOutQuad),
-   a beam shrinks off the end edge (300ms), 55ms gap, next word. */
-.hero-mobile-laser {
-  --laser-t0: calc(300ms + var(--laser-i) * 585ms);
-  --laser-rgb: 255, 45, 85;
-  --laser-glow: var(--liftag-red-neon-glow);
-  /* Beam x as an offset into the unit: start edge, then end edge. */
-  --laser-from: 0px;
-  --laser-to: calc(100% + 0.22em);
-
-  position: relative;
+.hero-mobile-title .hero-laser-reveal,
+.hero-mobile-lime-word {
   display: inline-block;
-  overflow: visible;
 }
 
-.hero-mobile-laser--green {
-  --laser-rgb: 204, 255, 0;
-  --laser-glow: var(--liftag-primary-glow);
-}
-
-.hero-mobile-laser--rtl {
-  --laser-from: calc(100% + 0.4em);
-  --laser-to: 0px;
-}
-
-.hero-mobile-laser-word {
-  position: relative;
-  z-index: 2;
-  display: inline-block;
+.hero-mobile-title .hero-laser-reveal {
   padding-right: 0.22em;
   margin-right: -0.22em;
-  clip-path: inset(-20% 100% -20% 0);
-  /* Inherited from the old .hero-laser-reveal: layout containment drops the
-     inline-block's text baseline, so it sits on its bottom edge. The title's
-     line spacing was designed around that. */
-  contain: layout;
 }
 
-.hero-mobile-laser--rtl .hero-mobile-laser-word {
-  clip-path: inset(-20% 0 -20% 100%);
-}
-
-/* Charge and discharge beams. They sit outside the clip, like the fixed
-   charge beam of the JS version. */
-.hero-mobile-laser::before,
-.hero-mobile-laser::after {
-  position: absolute;
-  top: -20%;
-  z-index: 3;
-  width: 2px;
-  height: 140%;
-  content: '';
-  pointer-events: none;
-  background: #fff;
-  box-shadow:
-    0 0 6px #fff,
-    0 0 20px rgb(var(--laser-rgb)),
-    0 0 50px rgb(var(--laser-rgb)),
-    0 0 100px var(--laser-glow);
-  opacity: 0;
-  transform: translateX(-50%);
-  transform-origin: top center;
-}
-
-.hero-mobile-laser::before {
-  left: var(--laser-from);
-}
-
-.hero-mobile-laser::after {
-  left: var(--laser-to);
-}
-
-/* The sweeping line rides a box as wide as the travel and is drawn on its
-   right edge, so the sweep is a compositor transform of that box. Being a
-   child of the word, it is clipped with it, as the JS ::after line was. */
-.hero-mobile-laser-track {
-  position: absolute;
-  top: -20%;
-  bottom: -20%;
-  left: 0;
-  width: 100%;
-  pointer-events: none;
-  opacity: 0;
-  transform: translateX(-100%);
-}
-
-.hero-mobile-laser--rtl .hero-mobile-laser-track {
-  width: calc(100% + 0.18em);
-  transform: none;
-}
-
-.hero-mobile-laser-track::before,
-.hero-mobile-laser-track::after {
-  position: absolute;
-  content: '';
-}
-
-.hero-mobile-laser-track::after {
-  top: 0;
-  right: -1px;
-  bottom: 0;
-  width: 2px;
-  border-radius: 1px;
-  background: #fff;
-  box-shadow:
-    0 0 6px #fff,
-    0 0 20px rgb(var(--laser-rgb)),
-    0 0 50px rgb(var(--laser-rgb)),
-    0 0 100px rgb(var(--laser-rgb)),
-    0 0 150px var(--laser-glow),
-    -8px 0 30px var(--laser-glow),
-    8px 0 30px var(--laser-glow);
-}
-
-.hero-mobile-laser-track::before {
-  top: -28.6%;
-  right: -40px;
-  bottom: -28.6%;
-  width: 80px;
-  background: radial-gradient(
-    ellipse 50% 45% at center,
-    rgba(var(--laser-rgb), 0.35) 0%,
-    rgba(var(--laser-rgb), 0.08) 50%,
-    transparent 70%
-  );
-}
-
-.hero-mobile-laser-glow {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0;
-}
-
-.hero-mobile-laser-glow::before,
-.hero-mobile-laser-glow::after {
-  position: absolute;
-  inset: 18% 4% 12% 6%;
-  border-radius: 0.2em;
-  content: '';
-  background: var(--liftag-primary);
-}
-
-.hero-mobile-laser-glow::before {
-  opacity: 0.22;
-  filter: blur(30px);
-}
-
-.hero-mobile-laser-glow::after {
-  opacity: 0.1;
-  filter: blur(60px);
-}
-
-.hero-mobile-title.is-revealing .hero-mobile-laser::before {
-  animation: heroMobileLaserCharge 200ms var(--laser-t0) cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.hero-mobile-title.is-revealing .hero-mobile-laser::after {
-  animation: heroMobileLaserDischarge 300ms calc(var(--laser-t0) + 530ms) cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.hero-mobile-title.is-revealing .hero-mobile-laser-word {
-  /* forwards, not both: the hidden base state must hold through the delay. */
-  animation: heroMobileLaserClipLtr 390ms calc(var(--laser-t0) + 140ms) cubic-bezier(0.455, 0.03, 0.515, 0.955) forwards;
-}
-
-.hero-mobile-title.is-revealing .hero-mobile-laser--rtl .hero-mobile-laser-word {
-  animation-name: heroMobileLaserClipRtl;
-}
-
-.hero-mobile-title.is-revealing .hero-mobile-laser-track {
-  animation: heroMobileLaserSweepLtr 390ms calc(var(--laser-t0) + 140ms) cubic-bezier(0.455, 0.03, 0.515, 0.955) forwards;
-}
-
-.hero-mobile-title.is-revealing .hero-mobile-laser--rtl .hero-mobile-laser-track {
-  animation-name: heroMobileLaserSweepRtl;
-}
-
-.hero-mobile-title.is-revealing .hero-mobile-laser-glow {
-  animation: heroMobileLaserGlow 700ms calc(var(--laser-t0) + 610ms) cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes heroMobileLaserCharge {
-  0% { opacity: 0; transform: translateX(-50%) scaleY(0); }
-  70% { opacity: 1; transform: translateX(-50%) scaleY(0.9); }
-  100% { opacity: 0; transform: translateX(-50%) scaleY(1); }
-}
-
-@keyframes heroMobileLaserDischarge {
-  0% { opacity: 1; transform: translateX(-50%) scaleY(1); }
-  100% { opacity: 0; transform: translateX(-50%) translateY(100%) scaleY(0); }
-}
-
-/* The last step drops the clip so italic overhang is never trimmed. The
-   right inset trails the line by the italic hang, as in the JS version. */
-@keyframes heroMobileLaserClipLtr {
-  0% { clip-path: inset(-20% calc(100% - 0.18em) -20% 0); }
-  99.9% { clip-path: inset(-20% -0.18em -20% 0); }
-  100% { clip-path: none; }
-}
-
-@keyframes heroMobileLaserClipRtl {
-  0% { clip-path: inset(-20% -0.18em -20% 100%); }
-  99.9% { clip-path: inset(-20% -0.18em -20% 0); }
-  100% { clip-path: none; }
-}
-
-@keyframes heroMobileLaserSweepLtr {
-  0% { opacity: 1; transform: translateX(-100%); }
-  99.9% { opacity: 1; transform: translateX(0); }
-  100% { opacity: 0; transform: translateX(0); }
-}
-
-@keyframes heroMobileLaserSweepRtl {
-  0% { opacity: 1; transform: translateX(0); }
-  99.9% { opacity: 1; transform: translateX(-100%); }
-  100% { opacity: 0; transform: translateX(-100%); }
-}
-
-@keyframes heroMobileLaserGlow {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-mobile-laser-word,
-  .hero-mobile-laser--rtl .hero-mobile-laser-word {
-    clip-path: none;
-    animation: none !important;
-  }
-
-  .hero-mobile-laser::before,
-  .hero-mobile-laser::after,
-  .hero-mobile-laser-track {
-    display: none;
-  }
-
-  .hero-mobile-laser-glow {
-    opacity: 1;
-    animation: none !important;
-  }
-}
-
-.hero-mobile-details {
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(14px);
-}
-
-.hero-mobile-details.is-entered {
-  pointer-events: auto;
-  animation: heroMobileDetailsIn 700ms 120ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes heroMobileDetailsIn {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: none; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-mobile-details.is-entered {
-    opacity: 1;
-    transform: none;
-    animation: none;
-  }
+.hero-mobile-lime-word {
+  position: relative;
+  overflow: visible;
 }
 
 .hero-mobile-kicker {
@@ -723,41 +452,46 @@ onBeforeUnmount(() => {
     isolation: isolate;
   }
 
-  .hero-mobile-rear {
+  .hero-mobile-device::before,
+  .hero-mobile-device::after {
     position: absolute;
     top: 0;
     left: 50%;
     z-index: 1;
-    display: block;
     box-sizing: border-box;
     width: 100%;
     height: 100%;
-    max-width: none;
     border: 1px solid oklch(0.28 0.008 120 / 0.96);
     border-radius: 15.5% / 7.2%;
+    content: '';
     pointer-events: none;
-    object-fit: contain;
+    background-clip: padding-box;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
     backface-visibility: hidden;
     filter: drop-shadow(0 22px 34px rgba(0, 0, 0, 0.58));
     opacity: 0;
     will-change: transform, opacity;
   }
 
-  .hero-mobile-rear--left {
+  .hero-mobile-device::before {
     transform: translate3d(-100%, 8%, 0) perspective(900px) rotateY(19deg) rotateZ(-6deg) scale(0.84);
   }
 
-  .hero-mobile-rear--right {
+  .hero-mobile-device::after {
     transform: translate3d(0, 5%, 0) perspective(900px) rotateY(-19deg) rotateZ(6deg) scale(0.84);
   }
 
-  .hero-mobile-visual.is-entered .hero-mobile-rear--left {
+  .hero-mobile-visual.is-entered .hero-mobile-device::before {
+    background-image: url('/assets/screens/hero-workout-360.webp');
     animation:
       heroPhoneLeftEnter 1080ms 70ms cubic-bezier(0.16, 1, 0.3, 1) both,
       heroRearLeftIdle var(--hero-phone-cycle) var(--hero-phone-motion-delay) linear infinite;
   }
 
-  .hero-mobile-visual.is-entered .hero-mobile-rear--right {
+  .hero-mobile-visual.is-entered .hero-mobile-device::after {
+    background-image: url('/assets/screens/hero-progress-360.webp');
     animation:
       heroPhoneRightEnter 1180ms 360ms cubic-bezier(0.22, 1, 0.32, 1) both,
       heroRearRightIdle var(--hero-phone-cycle) var(--hero-phone-motion-delay) linear infinite;
@@ -769,13 +503,12 @@ onBeforeUnmount(() => {
   }
 
   .hero-mobile-visual.is-entered .hero-mobile-rail {
-    animation: heroMobileRailIn 700ms 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 700ms 240ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 700ms 240ms cubic-bezier(0.16, 1, 0.3, 1);
   }
-}
-
-@keyframes heroMobileRailIn {
-  from { opacity: 0; transform: translate3d(-10px, 12px, 0); }
-  to { opacity: 1; transform: none; }
 }
 
 @keyframes heroPhoneLeftEnter {
@@ -838,7 +571,8 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 768px) and (prefers-reduced-motion: reduce) {
-  .hero-mobile-rear,
+  .hero-mobile-device::before,
+  .hero-mobile-device::after,
   .hero-mobile-phone-stage,
   .hero-mobile-device-glow,
   .hero-mobile-rail {
@@ -849,12 +583,14 @@ onBeforeUnmount(() => {
     transform: none;
   }
 
-  .hero-mobile-rear--left {
+  .hero-mobile-device::before {
+    background-image: url('/assets/screens/hero-workout-360.webp');
     opacity: 0.62;
     transform: translate3d(-100%, 8%, 0) perspective(900px) rotateY(19deg) rotateZ(-6deg) scale(0.84);
   }
 
-  .hero-mobile-rear--right {
+  .hero-mobile-device::after {
+    background-image: url('/assets/screens/hero-progress-360.webp');
     opacity: 0.56;
     transform: translate3d(0, 5%, 0) perspective(900px) rotateY(-19deg) rotateZ(6deg) scale(0.84);
   }
@@ -864,7 +600,8 @@ onBeforeUnmount(() => {
   }
 }
 
-:global(html[data-liftag-nav-open="true"] .hero-mobile-rear),
+:global(html[data-liftag-nav-open="true"] .hero-mobile-device::before),
+:global(html[data-liftag-nav-open="true"] .hero-mobile-device::after),
 :global(html[data-liftag-nav-open="true"] .hero-mobile-phone-stage),
 :global(html[data-liftag-nav-open="true"] .hero-mobile-device-glow) {
   animation-play-state: paused;

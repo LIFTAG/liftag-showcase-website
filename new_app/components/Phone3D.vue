@@ -109,15 +109,6 @@ function initPhone() {
   const camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 100)
   camera.position.set(0, 0, 3.92)
 
-  // Nothing draws until compileAsync() has the programs linked: a first
-  // render would compile them synchronously and stall the scroll for the
-  // whole link. Phone.vue keeps its still up until 'ready', which waits too.
-  let shadersReady = false
-  let torndown = false
-  const renderFrame = () => {
-    if (shadersReady) renderer.render(scene, camera)
-  }
-
   scene.add(new THREE.AmbientLight(0xffffff, 0.5))
 
   const keyLight = new THREE.DirectionalLight(0xffffff, 1.5)
@@ -320,20 +311,11 @@ function initPhone() {
   let announcedReady = false
   const announceReady = () => {
     if (announcedReady) return
-    if (!textureReady || !shadersReady) return
+    if (!textureReady) return
     if (container.clientWidth < 8 || container.clientHeight < 8) return
     announcedReady = true
     emit('ready')
   }
-
-  renderer.compileAsync(scene, camera)
-    .catch(() => {})
-    .then(() => {
-      if (torndown) return
-      shadersReady = true
-      renderFrame()
-      announceReady()
-    })
 
   const initialSrc = currentSrc
   loadScreenImage(initialSrc)
@@ -341,7 +323,7 @@ function initPhone() {
       if (initialSrc !== currentSrc || initialSrc !== props.screenshotSrc) return
       currentScreenImage = image
       drawStaticScreen(image)
-      renderFrame()
+      renderer.render(scene, camera)
       textureReady = true
       announceReady()
     })
@@ -377,7 +359,7 @@ function initPhone() {
           currentScreenImage = nextImage
           screenTransition = null
           drawStaticScreen(nextImage)
-          renderFrame()
+          renderer.render(scene, camera)
           return
         }
 
@@ -432,7 +414,7 @@ function initPhone() {
     screenMat.needsUpdate = true
 
     if (!sources?.length || reducedMotionMql.matches) {
-      if (isVisible) renderFrame()
+      if (isVisible) renderer.render(scene, camera)
       return
     }
 
@@ -471,7 +453,7 @@ function initPhone() {
 
       screenMat.map = texture
       screenMat.needsUpdate = true
-      if (isVisible) renderFrame()
+      if (isVisible) renderer.render(scene, camera)
     }, { once: true })
 
     videoPlayback = createSegmentPlayback(video)
@@ -635,7 +617,7 @@ function initPhone() {
     phone.rotation.x = currentRotX
     phone.rotation.y = currentRotY
     renderScreenTransition(now)
-    if (shouldRender) renderFrame()
+    if (shouldRender) renderer.render(scene, camera)
 
     if (parkTilt) {
       cancelAnimationFrame(animId)
@@ -664,7 +646,7 @@ function initPhone() {
     if (props.interactive || screenTransition || videoRunning()) {
       if (!animId) animate()
     } else {
-      renderFrame()
+      renderer.render(scene, camera)
       scheduleIdleMotion()
     }
   }
@@ -726,7 +708,7 @@ function initPhone() {
     targetRotX = restRotX
     targetRotY = restRotY
     if (isVisible) {
-      renderFrame()
+      renderer.render(scene, camera)
       scheduleIdleMotion()
     }
   }
@@ -739,7 +721,7 @@ function initPhone() {
     camera.aspect = w / h
     camera.updateProjectionMatrix()
     renderer.setSize(w, h)
-    renderFrame()
+    renderer.render(scene, camera)
     announceReady()
   }
   let resizeRaf = 0
@@ -775,7 +757,6 @@ function initPhone() {
     videoObserver.disconnect()
     visObserver.disconnect()
     isVisible = false
-    torndown = true
     cancelAnimationFrame(animId)
 
     updateTexture = null

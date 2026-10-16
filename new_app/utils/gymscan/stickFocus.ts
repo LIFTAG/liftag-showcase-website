@@ -117,8 +117,6 @@ export type StickFocus = {
   maskTexture: THREE.Texture
   blurTexture: THREE.Texture
   foilTexture: THREE.Texture
-  /** Full-screen pass materials, so the stage can compile them ahead of first use. */
-  passMaterials: readonly THREE.Material[]
   setDof: (dof: number) => void
   setSize: (width: number, height: number) => void
   prepare: (
@@ -306,7 +304,6 @@ export function createStickFocus(opts: {
     maskTexture: mask.texture,
     blurTexture: blur.texture,
     foilTexture: foilRt.texture,
-    passMaterials: [blurMat],
     setDof(value: number) {
       dof = value
       enabled = value > 0.001

@@ -65,13 +65,9 @@ function open(immediate = false) {
     finish();
     return;
   }
-  // Measure before writing: publishing "open" on <html> invalidates style for
-  // the whole document, and reading the two rects after it forced that full
-  // recalc + layout synchronously. Neither rect depends on the attribute, and
-  // `named` only patches the DOM on the next tick.
-  flyToNav();
   named.value = true;
   publishArrival("open");
+  flyToNav();
   finishTimer = setTimeout(() => {
     if (!disposed) finish();
   }, LOGO_OPEN_MS);

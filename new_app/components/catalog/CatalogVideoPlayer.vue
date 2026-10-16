@@ -8,7 +8,6 @@
  */
 import type Hls from 'hls.js'
 import { CATALOG_VIDEOS_ENABLED, catalogMediaAspectRatio } from '~/utils/catalogVideo'
-import { catalogImageSrcset, catalogImageUrl } from '~/utils/catalogImage'
 import { en, sk } from '~/i18n/messages/catalogMedia'
 import { canUseNativeHls } from '~/utils/exerciseVideoLanguage'
 import { exerciseHlsConfig, exerciseHlsRequestUrl } from '~/utils/exerciseHls'
@@ -17,18 +16,7 @@ const props = defineProps<{
   videoUrl: string | null
   poster: string | null
   name: string
-  /** Rendered width hint for the poster's srcset. Defaults to the exercise hero column. */
-  posterSizes?: string
 }>()
-
-// The hero still is the page's LCP: a resized same-origin variant instead of
-// the ~1.7k-pixel original from a second origin.
-const POSTER_WIDTHS = [480, 640, 828, 1080, 1440] as const
-const posterSrc = computed(() => catalogImageUrl(props.poster, 1080))
-const posterSrcset = computed(() => catalogImageSrcset(props.poster, POSTER_WIDTHS))
-const posterSizesAttr = computed(() => props.posterSizes ?? '(max-width: 768px) 100vw, (max-width: 1240px) 58vw, 660px')
-/** The variant the still actually decoded, reused as the <video> poster so play does not refetch. */
-const loadedPoster = shallowRef<string | null>(null)
 
 const { locale } = useSiteLocale()
 const { t } = useI18n({ useScope: 'local', messages: { en, sk } })
@@ -77,12 +65,10 @@ function clearPreviewLeaveTimer() {
 watch(() => props.poster, () => {
   posterFailed.value = false
   posterRatio.value = null
-  loadedPoster.value = null
 })
 
 function applyPosterRatio(img: HTMLImageElement) {
   posterRatio.value = catalogMediaAspectRatio(img.naturalWidth, img.naturalHeight)
-  loadedPoster.value = img.currentSrc || null
 }
 
 function onPosterLoad(event: Event) {
@@ -397,7 +383,7 @@ onBeforeUnmount(() => {
         v-else
         ref="videoRef"
         class="cat-player__video"
-        :poster="loadedPoster ?? poster ?? undefined"
+        :poster="poster ?? undefined"
         :controls="!ended"
         playsinline
         preload="auto"
@@ -424,12 +410,10 @@ onBeforeUnmount(() => {
 
     <template v-else>
       <img
-        v-if="posterSrc && !posterFailed"
+        v-if="poster && !posterFailed"
         ref="poster"
         class="cat-player__poster"
-        :src="posterSrc"
-        :srcset="posterSrcset"
-        :sizes="posterSrcset ? posterSizesAttr : undefined"
+        :src="poster"
         :alt="name"
         fetchpriority="high"
         decoding="async"
