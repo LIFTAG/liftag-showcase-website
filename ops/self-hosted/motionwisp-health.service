@@ -1,0 +1,10 @@
+[Unit]
+Description=Motionwisp daily lead-storage, tracking and email health check
+Requires=docker.service
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/liftag-web
+ExecStart=/usr/bin/python3 /opt/liftag-web/run-health.py
+TimeoutStartSec=90

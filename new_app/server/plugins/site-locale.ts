@@ -7,6 +7,10 @@ export default defineNitroPlugin((nitroApp) => {
   const handleRequest = nitroApp.h3App.handler
   nitroApp.h3App.handler = (event) => {
     const url = getRequestURL(event)
+    // Match Vercel's trailingSlash:false before Nitro serves prerendered HTML.
+    if (url.pathname.length > 1 && url.pathname.endsWith('/')) {
+      return sendRedirect(event, `${url.pathname.replace(/\/+$/, '')}${url.search}`, 308)
+    }
     const locale = siteLocale(url.searchParams.get('lang'))
     if (locale && isLocalizedSitePath(url.pathname) && sitePathLocale(url.pathname) !== locale) {
       const path = siteLocalePath(url.pathname, locale)

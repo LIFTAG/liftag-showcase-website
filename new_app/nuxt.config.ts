@@ -17,7 +17,10 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-04-26',
   devtools: { enabled: true },
   ssr: true,
-  modules: ['@vercel/analytics', '@nuxtjs/turnstile', 'nuxt-gtag', '@nuxtjs/i18n'],
+  modules: [
+    ...(process.env.NUXT_PUBLIC_ANALYTICS_WEBSITE_ID ? [] : ['@vercel/analytics']),
+    '@nuxtjs/turnstile', 'nuxt-gtag', '@nuxtjs/i18n',
+  ],
   i18n: {
     baseUrl: 'https://liftag.fit',
     strategy: 'prefix_except_default',
@@ -40,7 +43,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      // Set on Vercel as:
+      analyticsWebsiteId: '',
+      // Public deployment settings:
       //   NUXT_PUBLIC_GOOGLE_SITE_VERIFICATION=<code from Google Search Console>
       //   NUXT_PUBLIC_BING_SITE_VERIFICATION=<code from Bing Webmaster Tools>
       // After claiming the property, redeploy and the verification meta tags
@@ -152,6 +156,9 @@ export default defineNuxtConfig({
     },
   },
   routeRules: localizedRouteRules({
+    '/.well-known/apple-app-site-association': { headers: { 'content-type': 'application/json' } },
+    '/.well-known/assetlinks.json': { headers: { 'content-type': 'application/json' } },
+    '/liftag-a91aeac60beb0c9cca6b09312a630913.txt': { headers: { 'content-type': 'text/plain; charset=utf-8' } },
     // One rule only. `/gym-scan/` sanitizes to the same Vercel function name
     // (`gym-scan.func`); a second symlink onto `__fallback.func` is EEXIST
     // and the production build dies. `vercel.json` `trailingSlash: false`
@@ -210,16 +217,16 @@ export default defineNuxtConfig({
     '/explore': { headers: { 'cache-control': 'no-store' } },
     '/explore/**': { headers: { 'cache-control': 'no-store' } },
     '/gyms/**': { headers: { 'cache-control': 'no-store' } },
-    '/muscles': { isr: 3600 },
+    '/muscles': { swr: 3600 },
     '/muscles/**': { headers: { 'cache-control': 'no-store' } },
-    // Index and marketing URLs are static. Catalog sitemaps stay ISR so a
+    // Index and marketing URLs are static. Catalog sitemaps use native SWR so a
     // Search Console fetch never waits on a cold catalog aggregation.
     '/sitemap.xml': { prerender: true },
     '/sitemap-pages.xml': { prerender: true },
-    '/sitemap-catalog.xml': { isr: 3600 },
-    '/sitemap-discovery.xml': { isr: 3600 },
-    '/sitemap-images.xml': { isr: 3600 },
-    '/sitemap-videos.xml': { isr: 3600 },
+    '/sitemap-catalog.xml': { swr: 3600 },
+    '/sitemap-discovery.xml': { swr: 3600 },
+    '/sitemap-images.xml': { swr: 3600 },
+    '/sitemap-videos.xml': { swr: 3600 },
     '/api/catalog/**': {
       headers: {
         'cache-control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
@@ -227,11 +234,12 @@ export default defineNuxtConfig({
     },
     // Stable handoffs can resolve their UI from a manual language cookie.
     ...Object.fromEntries(['/qr/**', '/auth/**', '/routines/**', '/plans/**', '/trainer-invites/**']
-      .map(path => [path, { headers: { 'cache-control': 'no-store' } }])),
+      .map(path => [path, { headers: { 'cache-control': 'no-store', 'x-robots-tag': 'noindex, nofollow' } }])),
     '/get': {
       headers: {
         'x-robots-tag': 'noindex, nofollow',
         'cache-control': 'no-store',
+        'vary': 'User-Agent',
       },
     },
     '/assets/**': { headers: { 'cache-control': LONG_CACHE } },
