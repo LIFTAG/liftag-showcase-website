@@ -1,0 +1,17 @@
+[Unit]
+Description=Encrypted website configuration and analytics backup
+Requires=docker.service
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/liftag-db-backup/backup.env
+ExecStart=/usr/bin/python3 /opt/liftag-web/backup-web.py
+TimeoutStartSec=15min
+UMask=0077
+Nice=10
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/liftag-web-backup

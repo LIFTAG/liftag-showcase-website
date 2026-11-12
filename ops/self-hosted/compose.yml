@@ -1,0 +1,60 @@
+name: liftag-web
+
+x-runtime: &runtime
+  restart: unless-stopped
+  init: true
+  mem_limit: 768m
+  cpus: 1.5
+  pids_limit: 128
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  logging:
+    driver: json-file
+    options: {max-size: 10m, max-file: '3'}
+  healthcheck:
+    test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 30s
+
+services:
+  analytics:
+    <<: *runtime
+    image: ghcr.io/umami-software/umami:3.4.1@sha256:e69d1a7932e9dab0fc523edc7be1f3a53f3c261f57856fc2167ae74a8fc022e8
+    env_file: [{path: ./private/analytics.env, format: raw}]
+    environment:
+      DISABLE_TELEMETRY: '1'
+      CLIENT_IP_HEADER: x-real-ip
+    ports: ['127.0.0.1:3103:3000']
+    depends_on:
+      analytics-db: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/api/heartbeat').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+  analytics-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 128
+    security_opt: [no-new-privileges:true]
+    env_file: [{path: ./private/analytics-db.env, format: raw}]
+    volumes: [analytics-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U umami -d umami']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+
+volumes:
+  analytics-data:
+
+# This stack has its own network and analytics database. It never joins the
+# production API network or mounts the production PostgreSQL/Redis volumes.

@@ -1,0 +1,66 @@
+name: Self-hosted production
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: self-hosted-production
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install locked dependencies
+        run: pnpm --dir new_app install --frozen-lockfile
+      - name: Verify
+        run: |
+          pnpm verify
+        env:
+          NITRO_PRESET: node-server
+      - name: Build production ARM64 image
+        env:
+          NUXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${{ vars.NUXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+          NUXT_PUBLIC_GOOGLE_MAPS_MAP_ID: ${{ vars.NUXT_PUBLIC_GOOGLE_MAPS_MAP_ID }}
+          NUXT_PUBLIC_GOOGLE_SITE_VERIFICATION: ${{ vars.NUXT_PUBLIC_GOOGLE_SITE_VERIFICATION }}
+          NUXT_PUBLIC_ANALYTICS_WEBSITE_ID: ${{ vars.NUXT_PUBLIC_ANALYTICS_WEBSITE_ID }}
+        run: |
+          docker build --platform linux/arm64 \
+            -t liftag-web-liftag:${{ github.sha }} \
+            --build-arg NUXT_PUBLIC_GOOGLE_MAPS_API_KEY \
+            --build-arg NUXT_PUBLIC_GOOGLE_MAPS_MAP_ID \
+            --build-arg NUXT_PUBLIC_GOOGLE_SITE_VERIFICATION \
+            --build-arg NUXT_PUBLIC_ANALYTICS_WEBSITE_ID .
+      - name: Transfer and health-gate release
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.WEBSITE_DEPLOY_KEY }}
+          DEPLOY_HOST: ${{ vars.WEBSITE_DEPLOY_HOST }}
+          DEPLOY_KNOWN_HOSTS: ${{ vars.WEBSITE_DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          latest="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [ "$latest" != "$GITHUB_SHA" ]; then
+            echo 'Superseded by a newer commit; skipping deployment.'
+            exit 0
+          fi
+          test -n "$DEPLOY_HOST"
+          install -d -m 700 "$RUNNER_TEMP/web-ssh"
+          trap 'rm -f "$RUNNER_TEMP/web-ssh/key"' EXIT
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$RUNNER_TEMP/web-ssh/key"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$RUNNER_TEMP/web-ssh/known_hosts"
+          chmod 600 "$RUNNER_TEMP/web-ssh/key"
+          docker save liftag-web-liftag:"$GITHUB_SHA" | gzip -1 | \
+            ssh -T -i "$RUNNER_TEMP/web-ssh/key" \
+              -o IdentitiesOnly=yes -o BatchMode=yes \
+              -o StrictHostKeyChecking=yes \
+              -o UserKnownHostsFile="$RUNNER_TEMP/web-ssh/known_hosts" \
+              root@"$DEPLOY_HOST" "$GITHUB_SHA"
