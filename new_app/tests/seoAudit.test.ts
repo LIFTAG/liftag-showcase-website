@@ -93,9 +93,32 @@ test('discovery sitemap inventory accepts only supported same-origin public fami
   ]
   const xml = `<urlset>${urls.map(url => `<url><loc>${url}</loc></url>`).join('')}</urlset>`
   const all = discoveryInventoryPaths(xml, true)
-  assert.equal(all.length, 6)
-  assert.ok(all.includes(`/machines/${entity}?gym=${gym}`))
-  assert.equal(discoveryInventoryPaths(xml).length, 6)
+  assert.equal(all.length, 5)
+  assert.equal(all.includes(`/machines/${entity}?gym=${gym}`), false)
+  assert.equal(discoveryInventoryPaths(xml).length, 5)
+  assert.ok(validateDiscoveryInventory(xml).findings.some(item =>
+    item.code === 'sitemap.discovery_unsupported_loc' && item.message.includes(`gym=${gym}`)))
+})
+
+test('gym-machine query pages are expected-noindex and rejected from the discovery sitemap', () => {
+  const gym = '11111111-1111-4111-8111-111111111111'
+  const machine = '22222222-2222-4222-8222-222222222222'
+  const path = `/machines/${machine}?gym=${gym}`
+  const skPath = `/sk/machines/${machine}?gym=${gym}`
+  const withLang = `${path}&lang=en`
+  for (const target of [path, withLang]) {
+    const html = validHtml(target).replace('index,follow,max-image-preview:large', 'noindex,follow')
+    const result = auditHtml(target, html)
+    assert.equal(result.findings.filter(item => item.severity === 'error').length, 0, target)
+    const indexed = auditHtml(target, validHtml(target))
+    assert.ok(indexed.findings.some(item => item.code === 'robots.indexed_search'), target)
+  }
+  const skIndexed = auditHtml(skPath, validHtml(path, 'sk'))
+  assert.ok(skIndexed.findings.some(item => item.code === 'robots.indexed_search'))
+  const xml = `<urlset><url><loc>https://liftag.fit${path}</loc></url><url><loc>https://liftag.fit${skPath}</loc></url></urlset>`
+  const inventory = validateDiscoveryInventory(xml)
+  assert.equal(inventory.paths.includes(path), false)
+  assert.ok(inventory.findings.some(item => item.code === 'sitemap.discovery_unsupported_loc'))
 })
 
 test('discovery pages retain their family-specific schema type requirement', () => {

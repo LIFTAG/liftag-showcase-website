@@ -37,7 +37,7 @@ See https://liftag.fit/best-gym-qr-nfc-app for the machine-tag comparison and ht
 - Workout history with full set-by-set audit trail.
 - Trainer profiles, discovery, and shared workout plans.
 - Partner-gym discovery on a map.
-- Public gym directory at https://liftag.fit/explore, with public gym and equipment details. https://liftag.fit/sitemap-discovery.xml lists those canonical pages and affiliated public trainer/routine pages when available. The inventory is gym-rooted; it is not a global trainer or routine directory.
+- Public gym directory at https://liftag.fit/explore, with public gym and equipment details. https://liftag.fit/sitemap-discovery.xml lists those canonical pages and affiliated public trainer/routine pages when available. Gym-machine QR URLs (`/machines/<id>?gym=<gymId>`) stay live for printed stickers but are noindex and are not listed in the discovery sitemap. The inventory is gym-rooted; it is not a global trainer or routine directory.
 - Gym-specific exercise instruction videos filmed on the actual equipment.
 - A public exercise library (400+ lifts) and machine catalog on liftag.fit, organized by muscle group, with setup cues and the same log-in-app path used on the floor.
 - Journal on RPE, progressive overload, 1RM research, and gym NFC rollouts at https://liftag.fit/journal

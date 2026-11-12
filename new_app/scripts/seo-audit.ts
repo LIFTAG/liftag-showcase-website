@@ -11,19 +11,22 @@ const UUID_PATH = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
 const DISCOVERY_FAMILIES = [
   new RegExp(`^/(?:sk/)?gyms/${UUID_PATH}$`, 'i'),
   new RegExp(`^/(?:sk/)?gyms/${UUID_PATH}/equipment$`, 'i'),
-  null,
   new RegExp(`^/(?:sk/)?explore/trainers/${UUID_PATH}$`, 'i'),
   new RegExp(`^/(?:sk/)?explore/routines/${UUID_PATH}$`, 'i'),
 ] as const
 
+export function isGymContextualMachinePath(target: string): boolean {
+  const url = new URL(target, SITE_ORIGIN)
+  const extra = [...url.searchParams.keys()].filter(key => key !== 'gym' && key !== 'lang')
+  return new RegExp(`^/(?:sk/)?machines/${UUID_PATH}$`, 'i').test(url.pathname)
+    && new RegExp(`^${UUID_PATH}$`, 'i').test(url.searchParams.get('gym') ?? '')
+    && extra.length === 0
+}
+
 function discoveryFamilyIndex(target: string): number {
   const url = new URL(target, SITE_ORIGIN)
-  const machine = new RegExp(`^/(?:sk/)?machines/${UUID_PATH}$`, 'i').test(url.pathname)
-    && new RegExp(`^${UUID_PATH}$`, 'i').test(url.searchParams.get('gym') ?? '')
-    && url.searchParams.size === 1
-  if (machine) return 2
   if (url.search) return -1
-  return DISCOVERY_FAMILIES.findIndex(pattern => pattern?.test(url.pathname))
+  return DISCOVERY_FAMILIES.findIndex(pattern => pattern.test(url.pathname))
 }
 const AI_CRAWLERS = ['OAI-SearchBot', 'ChatGPT-User', 'Claude-SearchBot', 'Claude-User', 'PerplexityBot', 'Perplexity-User']
 
@@ -132,6 +135,7 @@ export function auditHtml(
   source = path,
   policy: { canonicalPath?: string, expectNoindex?: boolean } = {},
 ): PageResult {
+  const expectNoindex = policy.expectNoindex ?? isGymContextualMachinePath(path)
   const findings: Finding[] = []
   const add = (severity: Severity, code: string, message: string) => findings.push({ severity, code, target: path, message })
   const titleMatches = [...html.matchAll(/<title\b[^>]*>([\s\S]*?)<\/title>/gi)].map(match => stripMarkup(match[1] ?? ''))
@@ -158,9 +162,9 @@ export function auditHtml(
   if (lang?.toLowerCase() !== expectedLang(path)) add('error', 'html.lang', `html[lang] is ${lang ?? 'missing'}; expected ${expectedLang(path)}.`)
   if (h1Count !== 1) add('error', 'h1.invalid_count', `Expected one H1; found ${h1Count}.`)
   const hasNoindex = /\b(?:noindex|none)\b/.test(robots)
-  if (policy.expectNoindex && !hasNoindex) add('error', 'robots.indexed_search', 'Filtered/search result must declare noindex to avoid index bloat.')
-  if (!policy.expectNoindex && hasNoindex) add('error', 'robots.noindex', `Indexable audit target declares robots=${robots}.`)
-  if (policy.expectNoindex && !/\bfollow\b/.test(robots)) add('error', 'robots.search_nofollow', `Filtered/search result should preserve link discovery with robots=noindex,follow; got ${robots || 'missing'}.`)
+  if (expectNoindex && !hasNoindex) add('error', 'robots.indexed_search', 'Filtered/search result must declare noindex to avoid index bloat.')
+  if (!expectNoindex && hasNoindex) add('error', 'robots.noindex', `Indexable audit target declares robots=${robots}.`)
+  if (expectNoindex && !/\bfollow\b/.test(robots)) add('error', 'robots.search_nofollow', `Filtered/search result should preserve link discovery with robots=noindex,follow; got ${robots || 'missing'}.`)
 
   const alternates = linkHrefs(html, 'alternate').filter(item => item.hreflang)
   for (const expected of expectedAlternates(canonicalPath)) {
@@ -175,7 +179,7 @@ export function auditHtml(
   if (!ogUrl) add('warning', 'open_graph.url', 'Missing og:url.')
   else if (ogUrl !== expectedCanonical) add('error', 'open_graph.url_mismatch', `og:url is ${ogUrl}; expected ${expectedCanonical}.`)
   if (!metaContent(html, 'name', 'twitter:card')[0]) add('warning', 'twitter.card', 'Missing twitter:card.')
-  if (!policy.expectNoindex && !/max-image-preview\s*:\s*large/i.test(robots)) add('warning', 'robots.image_preview', 'Add max-image-preview:large to permit large image treatments in search and discovery surfaces.')
+  if (!expectNoindex && !/max-image-preview\s*:\s*large/i.test(robots)) add('warning', 'robots.image_preview', 'Add max-image-preview:large to permit large image treatments in search and discovery surfaces.')
   if (jsonLdBodies.length === 0) add('warning', 'jsonld.missing', 'No JSON-LD found; entity-rich pages should expose machine-readable facts.')
   for (const body of jsonLdBodies) {
     try { parsedJsonLd.push(JSON.parse(body)) }
@@ -184,7 +188,7 @@ export function auditHtml(
   const discoveryFamily = discoveryFamilyIndex(canonicalPath)
   const discoveryType = discoveryFamily === 0
     ? 'ExerciseGym'
-    : discoveryFamily === 3
+    : discoveryFamily === 2
       ? 'ProfilePage'
       : discoveryFamily >= 0
         ? 'WebPage'

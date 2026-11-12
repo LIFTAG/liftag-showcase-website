@@ -22,6 +22,7 @@ useDiscoverySeo({
   locale,
   photo: () => data.value?.media.find((m) => m.type === 'image')?.url,
   canonicalPath: () => gymMachineHref(props.gymId, props.machineId, locale.value),
+  noindex: true,
 })
 </script>
 <template>
